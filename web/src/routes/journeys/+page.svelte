@@ -1,0 +1,112 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { api } from '$lib/api/client';
+	import { m } from '$lib/paraglide/messages';
+	import { formatDistance, formatDuration } from '$lib/planner/route';
+	import { Hydrated } from '$lib/util/hydrated.svelte';
+
+	let { data } = $props();
+	const hydrated = new Hydrated();
+	// svelte-ignore state_referenced_locally
+	let shared = $state(data.shared);
+
+	async function leave(id: string) {
+		const { response } = await api().DELETE('/journeys/{id}/access', {
+			params: { path: { id } }
+		});
+		if (response.ok) shared = shared.filter((j) => j.id !== id);
+	}
+	let title = $state('');
+
+	async function create(e: SubmitEvent) {
+		e.preventDefault();
+		const { data: j } = await api().POST('/journeys', {
+			body: { title: title.trim(), visibility: 'private' }
+		});
+		if (j) await goto(resolve('/journeys/[id]', { id: j.id }));
+	}
+</script>
+
+<main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
+	<h1 class="text-2xl font-semibold">{m.journeys_title()}</h1>
+	<p class="mt-1 text-stone-600">
+		{m.journeys_intro()}
+		<a href={resolve('/import')} class="underline hover:text-emerald-700"
+			>{m.import_journey_hint()}</a
+		>
+	</p>
+
+	<form method="post" onsubmit={create} class="mt-6 flex gap-2">
+		<input
+			bind:value={title}
+			required
+			maxlength="120"
+			placeholder={m.journey_new()}
+			aria-label={m.field_title()}
+			class="flex-1 rounded-md border border-stone-300 px-3 py-2"
+		/>
+		<button
+			disabled={!hydrated.value}
+			class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800"
+		>
+			{m.journey_create()}
+		</button>
+	</form>
+
+	{#if data.journeys.length === 0}
+		<p class="mt-6 text-stone-600">{m.journeys_empty()}</p>
+	{:else}
+		<ul
+			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			data-testid="journey-list"
+		>
+			{#each data.journeys as j (j.id)}
+				<li>
+					<a
+						href={resolve('/journeys/[id]', { id: j.id })}
+						class="flex items-center gap-4 px-4 py-3 hover:bg-stone-50"
+					>
+						<span class="flex-1 font-medium">{j.title}</span>
+						<span class="text-sm text-stone-600"
+							>{m.journey_stages_count({ done: j.stages_done, total: j.stages })}</span
+						>
+						<span class="w-20 text-sm text-stone-600 tabular-nums"
+							>{formatDistance(j.distance_m)}</span
+						>
+						<span class="w-24 text-sm text-stone-600 tabular-nums"
+							>{formatDuration(j.duration_s)}</span
+						>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+
+	{#if shared.length > 0}
+		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.shared_title()}</h2>
+		<ul
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			data-testid="shared-journeys"
+		>
+			{#each shared as j (j.id)}
+				<li class="flex items-center gap-4 px-4 py-3">
+					<a
+						href={resolve('/journeys/[id]', { id: j.id })}
+						class="flex-1 font-medium hover:underline">{j.title}</a
+					>
+					<span class="text-sm text-stone-600">{m.shared_by({ user: j.owner_username })}</span>
+					<span class="text-sm text-stone-600"
+						>{m.journey_stages_count({ done: j.stages_done, total: j.stages })}</span
+					>
+					<span class="w-28 text-xs text-stone-500"
+						>{j.role === 'editor' ? m.role_editor() : m.role_viewer()}</span
+					>
+					<button type="button" class="text-xs text-stone-500 underline" onclick={() => leave(j.id)}
+						>{m.shared_leave()}</button
+					>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</main>

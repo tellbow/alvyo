@@ -1,0 +1,312 @@
+package routes
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// Store errors.
+var (
+	ErrNotFound  = errors.New("route not found")
+	ErrVersion   = errors.New("route was changed by someone else")
+	ErrDuplicate = errors.New("imported before")
+)
+
+// Store reads and writes routes.
+type Store struct {
+	DB *pgxpool.Pool
+}
+
+const summaryColumns = `r.id, u.username, r.title, r.description, r.visibility, r.profile,
+	r.distance_m, r.ascent_m, r.descent_m, r.duration_s, r.duration_reverse_s,
+	r.ele_min_m, r.ele_max_m, r.sac_grade, r.sac_max, r.version, r.created_at, r.updated_at`
+
+func scanSummary(row pgx.Row, extra ...any) (Summary, error) {
+	var s Summary
+	var id uuid.UUID
+	dest := []any{&id, &s.OwnerUsername, &s.Title, &s.Description, &s.Visibility, &s.Profile,
+		&s.Totals.DistanceM, &s.Totals.AscentM, &s.Totals.DescentM, &s.Totals.DurationS, &s.Totals.DurationReverseS,
+		&s.Totals.EleMinM, &s.Totals.EleMaxM, &s.Totals.SACGrade, &s.Totals.SACMax, &s.Version, &s.CreatedAt, &s.UpdatedAt}
+	err := row.Scan(append(dest, extra...)...)
+	s.ID = id.String()
+	return s, err
+}
+
+// Create stores a new route owned by ownerID.
+func (s *Store) Create(ctx context.Context, ownerID uuid.UUID, m Meta, c Content) (Route, error) {
+	return s.create(ctx, s.DB, ownerID, nil, m, c)
+}
+
+// Querier is a pool or a transaction.
+type Querier interface {
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
+// CreateInJourney stores a stage route of a journey (inside tx).
+func (s *Store) CreateInJourney(ctx context.Context, tx Querier, ownerID, journeyID uuid.UUID, title string, c Content) (uuid.UUID, error) {
+	r, err := s.create(ctx, tx, ownerID, &journeyID, Meta{Title: title, Visibility: "private"}, c)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return uuid.MustParse(r.ID), nil
+}
+
+func (s *Store) create(ctx context.Context, q Querier, ownerID uuid.UUID, journeyID *uuid.UUID, m Meta, c Content) (Route, error) {
+	a, err := assemble(c)
+	if err != nil {
+		return Route{}, err
+	}
+	anchors, legs, err := encode(c.Anchors, a.legs)
+	if err != nil {
+		return Route{}, err
+	}
+	t := a.totals
+	var id uuid.UUID
+	err = q.QueryRow(ctx, `
+		INSERT INTO routes (owner_id, title, description, visibility, profile, anchors, legs, geom,
+			distance_m, ascent_m, descent_m, duration_s, duration_reverse_s, ele_min_m, ele_max_m, sac_grade, sac_max,
+			share_token, journey_id)
+		VALUES ($1, $2, $3, $4::visibility, $5, $6, $7, ST_GeomFromText($8, 4326),
+			$9, $10, $11, $12, $13, $14, $15, $16, $17,
+			CASE WHEN $4::visibility = 'unlisted' THEN $18 END, $19)
+		RETURNING id`,
+		ownerID, m.Title, m.Description, m.Visibility, c.Profile, anchors, legs, a.wkt,
+		round(t.DistanceM), round(t.AscentM), round(t.DescentM), t.DurationS, t.DurationReverseS,
+		round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken(), journeyID,
+	).Scan(&id)
+	if err != nil {
+		return Route{}, fmt.Errorf("routes: create: %w", err)
+	}
+	if journeyID != nil {
+		return Route{Summary: Summary{ID: id.String()}}, nil // caller is inside a transaction
+	}
+	return s.Get(ctx, id)
+}
+
+// Get loads a route with its planner state.
+func (s *Store) Get(ctx context.Context, id uuid.UUID) (Route, error) {
+	var r Route
+	var owner uuid.UUID
+	var anchors, legs []byte
+	var token *string
+	var journey *uuid.UUID
+	row := s.DB.QueryRow(ctx, `SELECT `+summaryColumns+`, r.owner_id, r.anchors, r.legs, r.share_token, r.journey_id
+		FROM routes r JOIN users u ON u.id = r.owner_id WHERE r.id = $1`, id)
+	sum, err := scanSummary(row, &owner, &anchors, &legs, &token, &journey)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Route{}, ErrNotFound
+	}
+	if err != nil {
+		return Route{}, fmt.Errorf("routes: get: %w", err)
+	}
+	r.Summary = sum
+	r.OwnerID = owner.String()
+	if token != nil {
+		r.ShareToken = *token
+	}
+	if journey != nil {
+		r.JourneyID = journey.String()
+	}
+	if err := json.Unmarshal(anchors, &r.Anchors); err != nil {
+		return Route{}, err
+	}
+	if err := json.Unmarshal(legs, &r.Legs); err != nil {
+		return Route{}, err
+	}
+	return r, nil
+}
+
+// ListByOwner returns a user's routes, most recently changed first.
+func (s *Store) ListByOwner(ctx context.Context, ownerID uuid.UUID, limit int) ([]Summary, error) {
+	return s.list(ctx, `r.owner_id = $1 AND r.journey_id IS NULL`, ownerID, limit)
+}
+
+// ListPublicByOwner returns a user's public routes (not journey stages),
+// newest first.
+func (s *Store) ListPublicByOwner(ctx context.Context, ownerID uuid.UUID, limit int) ([]Summary, error) {
+	return s.list(ctx, `r.owner_id = $1 AND r.journey_id IS NULL AND r.visibility = 'public'`, ownerID, limit)
+}
+
+func (s *Store) list(ctx context.Context, where string, ownerID uuid.UUID, limit int) ([]Summary, error) {
+	rows, err := s.DB.Query(ctx, `SELECT `+summaryColumns+`
+		FROM routes r JOIN users u ON u.id = r.owner_id
+		WHERE `+where+` ORDER BY r.updated_at DESC LIMIT $2`, ownerID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("routes: list: %w", err)
+	}
+	defer rows.Close()
+	out := []Summary{}
+	for rows.Next() {
+		sum, err := scanSummary(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, sum)
+	}
+	return out, rows.Err()
+}
+
+// SetSource records where an imported route came from (ref may be "").
+// Importing the same reference twice fails with ErrDuplicate.
+func (s *Store) SetSource(ctx context.Context, id uuid.UUID, source, ref string) error {
+	_, err := s.DB.Exec(ctx, `UPDATE routes SET source = $2, source_ref = nullif($3, '') WHERE id = $1`, id, source, ref)
+	if pgErr := (*pgconn.PgError)(nil); errors.As(err, &pgErr) && pgErr.Code == "23505" { // unique_violation
+		return ErrDuplicate
+	}
+	return err
+}
+
+// ImportedRefs maps the references a user imported from source to the route ids.
+func (s *Store) ImportedRefs(ctx context.Context, ownerID uuid.UUID, source string) (map[string]string, error) {
+	rows, err := s.DB.Query(ctx, `SELECT source_ref, id FROM routes
+		WHERE owner_id = $1 AND source = $2 AND source_ref IS NOT NULL`, ownerID, source)
+	if err != nil {
+		return nil, fmt.Errorf("routes: imported: %w", err)
+	}
+	defer rows.Close()
+	out := map[string]string{}
+	for rows.Next() {
+		var ref string
+		var id uuid.UUID
+		if err := rows.Scan(&ref, &id); err != nil {
+			return nil, err
+		}
+		out[ref] = id.String()
+	}
+	return out, rows.Err()
+}
+
+// Shared is a route someone shared with the user, with the user's role.
+type Shared struct {
+	Summary
+	Role string `json:"role" enum:"viewer,editor"`
+}
+
+// ListSharedWith returns routes shared with the user by account or by their
+// verified e-mail address ("" if unverified).
+func (s *Store) ListSharedWith(ctx context.Context, userID uuid.UUID, verifiedEmail string, limit int) ([]Shared, error) {
+	rows, err := s.DB.Query(ctx, `
+		WITH mine AS (
+			SELECT route_id, max(role)::text AS role FROM grants
+			WHERE route_id IS NOT NULL AND (user_id = $1 OR (email = $2 AND $2 <> ''))
+			GROUP BY route_id)
+		SELECT `+summaryColumns+`, mine.role
+		FROM mine JOIN routes r ON r.id = mine.route_id JOIN users u ON u.id = r.owner_id
+		WHERE r.owner_id <> $1 ORDER BY r.updated_at DESC LIMIT $3`, userID, verifiedEmail, limit)
+	if err != nil {
+		return nil, fmt.Errorf("routes: shared: %w", err)
+	}
+	defer rows.Close()
+	out := []Shared{}
+	for rows.Next() {
+		var sh Shared
+		var err error
+		if sh.Summary, err = scanSummary(rows, &sh.Role); err != nil {
+			return nil, err
+		}
+		out = append(out, sh)
+	}
+	return out, rows.Err()
+}
+
+// Update changes a route if it is still at the given version. A nil content
+// only updates the descriptive fields.
+func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c *Content) (Route, error) {
+	var res pgconn.CommandTag
+	var err error
+	if c == nil {
+		res, err = s.DB.Exec(ctx, `UPDATE routes SET title = $3, description = $4, visibility = $5::visibility,
+			share_token = `+keepOrNewToken+`,
+			version = version + 1, updated_at = now() WHERE id = $1 AND version = $2`,
+			id, version, m.Title, m.Description, m.Visibility, NewShareToken())
+	} else {
+		a, aerr := assemble(*c)
+		if aerr != nil {
+			return Route{}, aerr
+		}
+		anchors, legs, eerr := encode(c.Anchors, a.legs)
+		if eerr != nil {
+			return Route{}, eerr
+		}
+		t := a.totals
+		res, err = s.DB.Exec(ctx, `UPDATE routes SET title = $3, description = $4, visibility = $5::visibility, profile = $6,
+			anchors = $7, legs = $8, geom = ST_GeomFromText($9, 4326),
+			distance_m = $10, ascent_m = $11, descent_m = $12, duration_s = $13, duration_reverse_s = $14,
+			ele_min_m = $15, ele_max_m = $16, sac_grade = $17, sac_max = $18,
+			share_token = `+keepOrNewToken19+`,
+			version = version + 1, updated_at = now()
+			WHERE id = $1 AND version = $2`,
+			id, version, m.Title, m.Description, m.Visibility, c.Profile, anchors, legs, a.wkt,
+			round(t.DistanceM), round(t.AscentM), round(t.DescentM), t.DurationS, t.DurationReverseS,
+			round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken())
+	}
+	if err != nil {
+		return Route{}, fmt.Errorf("routes: update: %w", err)
+	}
+	if res.RowsAffected() == 0 {
+		if _, gerr := s.Get(ctx, id); errors.Is(gerr, ErrNotFound) {
+			return Route{}, ErrNotFound
+		}
+		return Route{}, ErrVersion
+	}
+	return s.Get(ctx, id)
+}
+
+// A route keeps its share token (and so its link) across visibility changes;
+// one is created the first time it becomes unlisted. $5 is the visibility.
+const (
+	keepOrNewToken   = `CASE WHEN $5::visibility = 'unlisted' THEN COALESCE(share_token, $6) ELSE share_token END`
+	keepOrNewToken19 = `CASE WHEN $5::visibility = 'unlisted' THEN COALESCE(share_token, $19) ELSE share_token END`
+)
+
+// RotateShareToken replaces the share token, which breaks existing links.
+func (s *Store) RotateShareToken(ctx context.Context, id uuid.UUID) (string, error) {
+	token := NewShareToken()
+	res, err := s.DB.Exec(ctx, `UPDATE routes SET share_token = $2 WHERE id = $1`, id, token)
+	if err != nil {
+		return "", fmt.Errorf("routes: rotate token: %w", err)
+	}
+	if res.RowsAffected() == 0 {
+		return "", ErrNotFound
+	}
+	return token, nil
+}
+
+// NewShareToken returns a random, URL-safe 22-character token.
+func NewShareToken() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b)
+}
+
+// Delete removes a route.
+func (s *Store) Delete(ctx context.Context, id uuid.UUID) error {
+	res, err := s.DB.Exec(ctx, `DELETE FROM routes WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("routes: delete: %w", err)
+	}
+	if res.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func encode(anchors []Anchor, legs any) (a, l []byte, err error) {
+	if a, err = json.Marshal(anchors); err != nil {
+		return nil, nil, err
+	}
+	l, err = json.Marshal(legs)
+	return a, l, err
+}
+
+func round(x float64) int { return int(x + 0.5) }

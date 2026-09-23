@@ -1,0 +1,76 @@
+import type { APIRequestContext } from '@playwright/test';
+import { expect, test } from './fixtures';
+import { routeContent } from './legs';
+
+/** A saved route near First, created through the API. */
+async function createRoute(request: APIRequestContext, title: string, lon0: number) {
+	const res = await request.post('/api/v1/routes', {
+		data: { title, ...routeContent(lon0, 46.665) }
+	});
+	expect(res.status()).toBe(201);
+	return (await res.json()).id as string;
+}
+
+test('collect routes and a journey, reorder and annotate them', async ({ page }) => {
+	const id = `col${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Collector',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	const first = await createRoute(page.request, 'Bachalpsee', 8.04);
+	await createRoute(page.request, 'Faulhorn', 8.05);
+	const journey = await page.request.post('/api/v1/journeys', {
+		data: { title: 'Hardergrat bis Brienz', visibility: 'private' }
+	});
+	const journeyId = (await journey.json()).id as string;
+
+	await page.goto('/collections');
+	await page.getByLabel('Titel').fill('Sommer 2027');
+	await page.getByRole('button', { name: 'Erstellen' }).click();
+	await expect(page.getByTestId('collection-title')).toHaveValue('Sommer 2027');
+	const collectionUrl = page.url();
+
+	// Add from the route and journey pages.
+	for (const path of [`/routes/${first}`, `/journeys/${journeyId}`]) {
+		await page.goto(path);
+		const select = page.getByTestId('add-to-collection');
+		await expect(select.locator('option', { hasText: 'Sommer 2027' })).toHaveCount(1);
+		await select.selectOption({ label: 'Sommer 2027' });
+		await expect(page.getByRole('status')).toHaveText('Hinzugefügt zu «Sommer 2027»');
+	}
+	// Adding twice is refused politely.
+	await page.goto(`/routes/${first}`);
+	await page.getByTestId('add-to-collection').selectOption({ label: 'Sommer 2027' });
+	await expect(page.getByRole('status')).toHaveText('Schon in «Sommer 2027»');
+
+	await page.goto(collectionUrl);
+	const items = page.getByTestId('collection-item');
+	await expect(items).toHaveCount(2);
+	await expect(items.nth(0)).toContainText('Bachalpsee');
+	await expect(items.nth(1)).toContainText('Etappentour');
+
+	// Move the journey up and note something on the route.
+	const moved = page.waitForResponse((r) => r.request().method() === 'PATCH');
+	await items.nth(1).getByRole('button', { name: 'Nach oben' }).click();
+	expect((await moved).status()).toBe(200);
+	await expect(items.nth(0)).toContainText('Hardergrat bis Brienz');
+	const noted = page.waitForResponse((r) => r.request().method() === 'PATCH');
+	await items.nth(1).getByLabel('Notiz').fill('Früh starten');
+	await items.nth(1).getByLabel('Notiz').press('Tab');
+	expect((await noted).status()).toBe(200);
+	await page.reload();
+	await expect(page.getByTestId('collection-item').nth(1).getByLabel('Notiz')).toHaveValue(
+		'Früh starten'
+	);
+	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /route-collection-line/);
+	await page.waitForLoadState('networkidle');
+	await page.screenshot({ path: 'test-results/collection.png' });
+
+	await page.goto('/collections');
+	await expect(page.getByTestId('collection-list')).toContainText('2 Einträge');
+});

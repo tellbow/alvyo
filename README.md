@@ -1,0 +1,42 @@
+# odysgeh
+
+Plan, share and walk hikes in Switzerland — custom routes on the swisstopo national map,
+official Swiss hiking times, SAC difficulty, and multi-week stage journeys.
+
+Status: early development. Working: accounts, route planning on the swisstopo
+map (Swiss hiking time, SAC grade, elevation profile, breakdowns), saving and
+editing routes, multi-week stage journeys (stops, huts, public transport
+connections), sharing by link and by invitation, collections, GPX export,
+import from GPX, KML, TCX, FIT and Komoot, discovery of public hikes on the
+map, public profiles, likes, comments, following with a news feed, reports
+and a moderation queue, photos (metadata removed, pinned along the route),
+passkeys and sign-in with OpenID Connect providers, German, English, French
+and Italian, link previews. Hiking times match the official SchweizMobil
+figures ([docs/hiking-time.md](docs/hiking-time.md)). Next: the mobile app. Deployment: [docs/operations.md](docs/operations.md).
+
+## Layout
+
+| Path     | What                                                                 |
+|----------|----------------------------------------------------------------------|
+| `swiss/` | Go module: Swiss domain logic (hiking time, SAC, LV95, elevation, OJP) |
+| `api/`   | Go module: HTTP API (`odysgeh` binary)                                |
+| `web/`   | SvelteKit web app                                                     |
+| `app/`   | Flutter app (milestone M3)                                            |
+| `infra/` | Docker Compose, GraphHopper, tile cache, data import                  |
+| `docs/`  | ADRs, data sources, hiking-time calibration                           |
+
+## Development
+
+Needs Go 1.26, bun and Docker. Setup, daily workflow, tests and a
+production-like local run: [docs/development.md](docs/development.md).
+
+```sh
+make osm-fetch && make infra-up          # once: map data + containers
+export ODYSGEH_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+go run ./api/cmd/odysgeh migrate && go run ./api/cmd/odysgeh serve
+cd web && bun run dev                    # → http://localhost:5173
+```
+
+## License
+
+AGPL-3.0-only — see [LICENSE](LICENSE). Third-party data and code attributions: [NOTICE](NOTICE).

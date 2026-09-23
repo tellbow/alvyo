@@ -1,0 +1,24 @@
+odysgeh
+Copyright (C) 2026 Adrian Berger and odysgeh contributors
+Licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
+
+Data sources (attribution required when displaying or distributing):
+- Maps, elevation (swissALTI3D), swissTLM3D hiking trails: © swisstopo
+  (Federal Office of Topography swisstopo, free geodata / OGD terms)
+- Routing network, huts and accommodation: © OpenStreetMap contributors (ODbL)
+- Public transport stops: Federal Office of Transport BAV (list of stops, OGD)
+- Public transport: opentransportdata.swiss
+- Reference stages for calibration (swiss/testdata/reference_stages.json):
+  Wanderland Schweiz, ASTRA / SchweizMobil (opendata.swiss, open use, source
+  required)
+
+Algorithms:
+- Swiss hiking time: SchweizMobil variant of the Schweizer Wanderwege formula,
+  as published in geoadmin/mf-geoadmin3 (src/components/profile/ProfileService.js).
+  Re-implemented in Go (swiss/hikingtime).
+
+Code derived from third-party projects is listed below with its license.
+- api/internal/imports/komoot.go: use of Komoot's unofficial API (login, tour
+  list, tour coordinates) follows the Komoot plugin of wanderer
+  (github.com/open-wanderer/wanderer, plugins/komoot), AGPL-3.0.
+  Re-implemented in Go for odysgeh on 2026-09-23.

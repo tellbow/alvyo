@@ -1,0 +1,27 @@
+# One origin for everything: pages (SvelteKit), API (Go) and map tiles (cache).
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(self), camera=(), microphone=()"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+	handle /tiles/* {
+		reverse_proxy tilecache:8080
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

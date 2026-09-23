@@ -1,0 +1,15 @@
+import { expect, test } from './fixtures';
+
+test('the language follows the browser and can be switched', async ({ browser }) => {
+	const context = await browser.newContext({ locale: 'fr-CH' });
+	const page = await context.newPage();
+	await page.goto('/about');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText("À propos d'odysgeh");
+	await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+
+	await page.getByTestId('language').selectOption('it');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Informazioni su odysgeh');
+	await page.goto('/discover');
+	await expect(page.getByRole('link', { name: 'Scopri' })).toBeVisible();
+	await context.close();
+});

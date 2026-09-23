@@ -1,0 +1,95 @@
+<script lang="ts">
+	import { resolve } from '$app/paths';
+	import { api } from '$lib/api/client';
+	import { m } from '$lib/paraglide/messages';
+	import { SAC_COLOR } from '$lib/planner/colors';
+	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+
+	let { data } = $props();
+	const pace = $derived(data.user?.speed_factor ?? 1);
+	// svelte-ignore state_referenced_locally
+	let shared = $state(data.shared);
+
+	async function leave(id: string) {
+		const { response } = await api().DELETE('/routes/{id}/access', { params: { path: { id } } });
+		if (response.ok) shared = shared.filter((r) => r.id !== id);
+	}
+</script>
+
+<main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
+	<div class="mb-6 flex items-center justify-between">
+		<h1 class="text-2xl font-semibold">{m.routes_title()}</h1>
+		<div class="flex items-center gap-4">
+			<a href={resolve('/import')} class="text-sm hover:text-emerald-700">{m.import_link()}</a>
+			<a
+				href={resolve('/plan')}
+				class="rounded-md bg-emerald-700 px-3 py-1.5 text-sm text-white hover:bg-emerald-800"
+			>
+				{m.route_new()}
+			</a>
+		</div>
+	</div>
+	{#if data.routes.length === 0}
+		<p class="text-stone-600">{m.routes_empty()}</p>
+	{:else}
+		<ul
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			data-testid="route-list"
+		>
+			{#each data.routes as r (r.id)}
+				<li>
+					<a
+						href={resolve('/routes/[id]', { id: r.id })}
+						class="flex items-center gap-4 px-4 py-3 hover:bg-stone-50"
+					>
+						<span class="flex-1 font-medium">{r.title}</span>
+						<span class="text-sm text-stone-600 tabular-nums"
+							>{formatDistance(r.totals.distance_m)}</span
+						>
+						<span class="w-24 text-sm text-stone-600 tabular-nums"
+							>{formatDuration(r.totals.duration_s, pace)}</span
+						>
+						<span class="w-20 text-sm text-stone-600 tabular-nums"
+							>↑ {Math.round(r.totals.ascent_m)} m</span
+						>
+						<span
+							class="w-16 rounded px-1.5 py-0.5 text-center text-xs font-semibold text-white"
+							style:background={SAC_COLOR[`T${r.totals.sac_grade}`] ?? '#a8a29e'}
+						>
+							{formatSAC(r.totals.sac_grade, r.totals.sac_max)}
+						</span>
+						<span class="w-20 text-right text-xs text-stone-500">
+							{r.visibility === 'public' ? m.visibility_public() : m.visibility_private()}
+						</span>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+
+	{#if shared.length > 0}
+		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.shared_title()}</h2>
+		<ul
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			data-testid="shared-routes"
+		>
+			{#each shared as r (r.id)}
+				<li class="flex items-center gap-4 px-4 py-3">
+					<a href={resolve('/routes/[id]', { id: r.id })} class="flex-1 font-medium hover:underline"
+						>{r.title}</a
+					>
+					<span class="text-sm text-stone-600">{m.shared_by({ user: r.owner_username })}</span>
+					<span class="text-sm text-stone-600 tabular-nums"
+						>{formatDistance(r.totals.distance_m)}</span
+					>
+					<span class="w-28 text-xs text-stone-500"
+						>{r.role === 'editor' ? m.role_editor() : m.role_viewer()}</span
+					>
+					<button type="button" class="text-xs text-stone-500 underline" onclick={() => leave(r.id)}
+						>{m.shared_leave()}</button
+					>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+</main>

@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Go
+/api/bin/
+*.test
+coverage.out
+
+# Data (downloaded / generated; never commit)
+/infra/data/
+*.osm.pbf
+*.gpkg
+*.pmtiles
+/infra/backups/
+/data/

@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [swiss, api]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+      - run: go vet ./...
+        working-directory: ${{ matrix.module }}
+      - name: Build PostGIS image for integration tests
+        if: matrix.module == 'api'
+        run: docker build -t odysgeh-postgis:18 infra/postgis
+      - run: go test -race ./...
+        working-directory: ${{ matrix.module }}
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.10
+          working-directory: ${{ matrix.module }}
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run lint
+      - run: bun run test:unit --run --passWithNoTests

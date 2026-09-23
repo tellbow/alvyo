@@ -1,0 +1,128 @@
+# Development
+
+Needs Go 1.26, [bun](https://bun.sh) and Docker. All commands run from the
+repository root unless noted.
+
+## First setup (once per machine)
+
+```sh
+make osm-fetch      # OSM extracts for Switzerland + Liechtenstein (~550 MB) → infra/data/osm
+make infra-up       # PostGIS, GraphHopper, tile cache, Mailpit (docker compose)
+                    # GraphHopper builds its routing graph on first start (~2 min)
+export ODYSGEH_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+go run ./api/cmd/odysgeh migrate
+make tlm-import     # official hiking trails into PostGIS (~200 MB download), needed for SAC grades
+make places-import  # stops (BAV) and huts/accommodation (OSM) for stage start and end (~5 s)
+cd web && bun install
+```
+
+## Daily work
+
+Containers still running? `make infra-up` is harmless if they are. Then, in two
+terminals:
+
+```sh
+# terminal 1 — API on :8080
+export ODYSGEH_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+go run ./api/cmd/odysgeh migrate     # after pulling new migrations
+go run ./api/cmd/odysgeh serve
+
+# terminal 2 — web app on :5173
+cd web && bun run dev
+```
+
+Open http://localhost:5173. The Vite dev server forwards `/api` to the API and
+`/tiles` to the tile cache, so everything runs on one origin.
+
+| Service     | URL |
+|-------------|-----|
+| Web app     | http://localhost:5173 |
+| API         | http://localhost:8080/api/v1 — OpenAPI docs at `/api/v1/docs` |
+| Mailpit     | http://localhost:8025 — verification and reset e-mails land here |
+| GraphHopper | http://localhost:8989 |
+| Tile cache  | http://localhost:8081/tiles/wmts/{layer}/{z}/{x}/{y}.{ext} |
+
+Planning works without confirming the e-mail address; sharing (by link or
+publicly) needs it — use the link from Mailpit.
+
+`make infra-down` stops the containers (data volumes stay).
+
+### API configuration
+
+Environment variables of `odysgeh serve` (defaults match the dev stack):
+
+| Variable | Default |
+|---|---|
+| `ODYSGEH_DATABASE_URL` | required |
+| `ODYSGEH_LISTEN` | `:8080` |
+| `ODYSGEH_PUBLIC_URL` | `http://localhost:5173` — origin of the web app; POSTs from other origins get 403 |
+| `ODYSGEH_GRAPHHOPPER_URL` | `http://localhost:8989` |
+| `ODYSGEH_TILES_URL` | `http://localhost:8081` |
+| `ODYSGEH_CACHE_DIR` | `$TMPDIR/odysgeh` (rendered preview images) |
+| `ODYSGEH_PHOTOS_DIR` | `data/photos`, relative to where the API runs (uploaded photos; git-ignored) |
+| `ODYSGEH_SMTP_HOST` / `_PORT` / `_USER` / `_PASSWORD` / `_TLS` | Mailpit: `localhost` / `1025` / – / – / `none` |
+| `ODYSGEH_MAIL_FROM` | `odysgeh <noreply@localhost>` |
+| `ODYSGEH_LOG_LEVEL` | `info` (`debug` logs every request) |
+| `ODYSGEH_OJP_TOKEN` | unset — opentransportdata.swiss API key for public transport connections; without it the search answers 503 and the UI shows only SBB links |
+| `ODYSGEH_OJP_URL` | `https://api.opentransportdata.swiss/ojp20` |
+| `ODYSGEH_OIDC_PROVIDERS` | unset — comma-separated ids of OpenID Connect sign-in providers, e.g. `google`; each needs `ODYSGEH_OIDC_<ID>_ISSUER`, `_CLIENT_ID`, `_CLIENT_SECRET` and optionally `_NAME` (button label). Register `<ODYSGEH_PUBLIC_URL>/api/v1/auth/oidc/<id>/callback` as redirect URI at the provider. Playwright runs a fake provider (`web/tests/e2e/fake-idp.mjs`) |
+| `ODYSGEH_RELAXED_LIMITS` | unset — `true` lifts the per-IP signup limit (5 per 10 min); Playwright sets it, never use it in production |
+
+The web app reads `API_INTERNAL_URL` (default `http://localhost:8080`) for
+server-side rendering and the Vite proxy.
+
+## Code generation
+
+```sh
+make sqlc           # after changing api/queries/*.sql or migrations
+make api-client     # after changing API types: regenerates web/src/lib/api/{openapi.json,schema.d.ts}
+```
+
+## Tests
+
+```sh
+make test                    # Go unit + integration tests (need Docker), web unit tests
+make lint                    # golangci-lint, prettier, eslint
+make check                   # svelte-check (types)
+cd web && bun run test:e2e   # Playwright against the dev stack
+```
+
+The end-to-end tests start their own API (:18080) and a production build of
+the web app (:4173); only the containers must be running. They fail on any
+uncaught browser error or console error (`tests/e2e/fixtures.ts`).
+
+Live tests against the real external services:
+`go test -tags live ./swiss/elevation/ ./api/internal/routing/`, and with
+`ODYSGEH_OJP_TOKEN` set `go test -tags live ./swiss/ojp/` (one planner
+request). The e2e tests stub the planner, so they never use the OJP quota.
+
+## Production-like, locally
+
+Caddy on https://localhost with its internal certificate (the browser warns).
+Stop the dev GraphHopper first — both would use the same graph folder:
+
+```sh
+docker compose -f infra/compose.yaml stop graphhopper
+cd infra
+docker compose -f compose.prod.yaml --env-file .env.local-test up -d --build
+# … then tear down:
+docker compose -f compose.prod.yaml --env-file .env.local-test down -v
+docker compose -f compose.yaml start graphhopper
+```
+
+`infra/.env.local-test` is not committed; copy `infra/.env.example` and set
+`DOMAIN=localhost`, `SMTP_HOST=host.docker.internal`, `SMTP_PORT=1025`,
+`SMTP_TLS=none`. Real deployments: [operations.md](operations.md).
+
+## Troubleshooting
+
+- **"Port 5173 is in use, trying another one"** — another dev server is running;
+  Vite then picks 5174, but the API only accepts the origin in
+  `ODYSGEH_PUBLIC_URL`, so logins fail with 403. Stop the other one.
+- **The page reloads right after starting** — Vite re-optimizes dependencies
+  after config or dependency changes and reloads once. Wait a moment.
+- **No routes, "Kein Weg in der Nähe"** — GraphHopper is still importing
+  (`docker compose -f infra/compose.yaml logs -f graphhopper`).
+- **SAC grade always "not an official trail"** — `make tlm-import` not run.
+- **Stages show no start or end place, the picker finds nothing** — `make places-import`
+  not run (the journeys end-to-end test needs it too).

@@ -1,0 +1,46 @@
+import { defineConfig } from '@playwright/test';
+
+// End-to-end tests run the real API and web app against the dev stack
+// (`make infra-up`: PostGIS, Mailpit, GraphHopper, tile cache).
+const API_PORT = 18080;
+const WEB_PORT = 4173;
+
+export default defineConfig({
+	testMatch: '**/*.e2e.{ts,js}',
+	// German, like most tests expect; the language follows the browser.
+	use: { baseURL: `http://localhost:${WEB_PORT}`, locale: 'de-CH' },
+	webServer: [
+		{
+			command:
+				'cd .. && go build -o api/bin/odysgeh ./api/cmd/odysgeh && api/bin/odysgeh migrate && api/bin/odysgeh serve',
+			url: `http://localhost:${API_PORT}/healthz`,
+			reuseExistingServer: !process.env.CI,
+			env: {
+				ODYSGEH_DATABASE_URL:
+					process.env.ODYSGEH_DATABASE_URL ??
+					'postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable',
+				ODYSGEH_LISTEN: `:${API_PORT}`,
+				ODYSGEH_PUBLIC_URL: `http://localhost:${WEB_PORT}`,
+				// every test signs up its own account from 127.0.0.1
+				ODYSGEH_RELAXED_LIMITS: 'true',
+				// the fake provider below
+				ODYSGEH_OIDC_PROVIDERS: 'e2e',
+				ODYSGEH_OIDC_E2E_NAME: 'Test-ID',
+				ODYSGEH_OIDC_E2E_ISSUER: 'http://localhost:18090',
+				ODYSGEH_OIDC_E2E_CLIENT_ID: 'odysgeh',
+				ODYSGEH_OIDC_E2E_CLIENT_SECRET: 'e2e-secret'
+			}
+		},
+		{
+			command: 'node tests/e2e/fake-idp.mjs',
+			url: 'http://localhost:18090/.well-known/openid-configuration',
+			reuseExistingServer: !process.env.CI
+		},
+		{
+			command: 'bun run build && bun run preview',
+			port: WEB_PORT,
+			reuseExistingServer: !process.env.CI,
+			env: { API_INTERNAL_URL: `http://localhost:${API_PORT}` }
+		}
+	]
+});

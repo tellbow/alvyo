@@ -1,0 +1,281 @@
+<script lang="ts">
+	import type { Map as MapLibreMap } from 'maplibre-gl';
+	import type * as MapLibre from 'maplibre-gl';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { api, type Collection, type CollectionItem, type Me } from '$lib/api/client';
+	import { stageColor } from '$lib/journeys/colors';
+	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
+	import Map from '$lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '$lib/map/styles';
+	import { m } from '$lib/paraglide/messages';
+	import { SAC_COLOR } from '$lib/planner/colors';
+	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import SharePanel from '$lib/sharing/SharePanel.svelte';
+	import CollectionLayers from './CollectionLayers.svelte';
+
+	let { collection: initial, user }: { collection: Collection; user: Me | null } = $props();
+
+	// The API returns the whole collection after every change; it replaces this.
+	// svelte-ignore state_referenced_locally
+	let collection = $state(initial);
+	const canEdit = $derived(collection.can_edit);
+	const isOwner = $derived(collection.role === 'owner');
+	const pace = $derived(user?.speed_factor ?? 1);
+
+	let base = $state<BaseMapId>('landeskarte');
+	let overlays = $state<OverlayId[]>(['wanderwege']);
+	let map = $state<MapLibreMap>();
+	let highlight = $state<string>();
+	let confirming = $state(false);
+	let error = $state('');
+
+	const shareUrl = $derived(
+		isOwner && collection.share_token
+			? `${page.url.origin}/collections/${collection.id}?t=${collection.share_token}`
+			: ''
+	);
+
+	function onready(mp: MapLibreMap, l: typeof MapLibre) {
+		map = mp;
+		const pts = collection.item_list.flatMap((it) => it.lines.flat());
+		if (pts.length === 0) return;
+		const b = pts.reduce(
+			(acc, c) => acc.extend([c[0], c[1]]),
+			new l.LngLatBounds([pts[0][0], pts[0][1]], [pts[0][0], pts[0][1]])
+		);
+		mp.fitBounds(b, { padding: 60, duration: 0, maxZoom: 14 });
+	}
+
+	// Changes are sent one after another, like on the journey page.
+	let queue: Promise<unknown> = Promise.resolve();
+	function mutate(call: () => Promise<{ data?: Collection; response: Response }>) {
+		const run = queue.then(async () => {
+			error = '';
+			const { data } = await call();
+			if (data) collection = data;
+			else error = m.error_generic();
+			return data;
+		});
+		queue = run.catch(() => {});
+		return run;
+	}
+
+	const id = () => ({ id: collection.id });
+	const ifMatch = () => ({ 'If-Match': `"${collection.version}"` });
+
+	function patch(body: {
+		title?: string;
+		description?: string;
+		visibility?: 'private' | 'unlisted' | 'public';
+	}) {
+		return mutate(() =>
+			api().PATCH('/collections/{id}', { params: { path: id(), header: ifMatch() }, body })
+		);
+	}
+
+	function patchItem(it: CollectionItem, body: { note?: string; position?: number }) {
+		return mutate(() =>
+			api().PATCH('/collections/{id}/items/{item}', {
+				params: { path: { ...id(), item: it.id } },
+				body
+			})
+		);
+	}
+
+	function removeItem(it: CollectionItem) {
+		return mutate(() =>
+			api().DELETE('/collections/{id}/items/{item}', {
+				params: { path: { ...id(), item: it.id } }
+			})
+		);
+	}
+
+	async function remove() {
+		const { response } = await api().DELETE('/collections/{id}', { params: { path: id() } });
+		if (response.ok) await goto(resolve('/collections'));
+	}
+
+	function href(it: CollectionItem) {
+		return it.kind === 'route'
+			? resolve('/routes/[id]', { id: it.target_id })
+			: resolve('/journeys/[id]', { id: it.target_id });
+	}
+</script>
+
+<svelte:head><title>{collection.title} · odysgeh</title></svelte:head>
+
+<main class="flex min-h-0 flex-1">
+	<section class="relative flex-1">
+		<Map bind:base bind:overlays {onready} />
+		<LayerSwitcher bind:base bind:overlays />
+		{#if map}
+			<CollectionLayers {map} items={collection.item_list} {highlight} />
+		{/if}
+	</section>
+
+	<aside
+		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-white p-4"
+		data-testid="collection-panel"
+	>
+		<div>
+			{#if canEdit}
+				<input
+					class="w-full rounded border border-transparent px-1 text-xl font-semibold hover:border-stone-300"
+					value={collection.title}
+					maxlength="120"
+					aria-label={m.field_title()}
+					data-testid="collection-title"
+					onchange={(e) => patch({ title: e.currentTarget.value })}
+				/>
+			{:else}
+				<h1 class="text-xl font-semibold" data-testid="collection-title">{collection.title}</h1>
+			{/if}
+			<p class="text-sm text-stone-500">
+				{collection.role === 'editor'
+					? m.shared_editor_note({ user: collection.owner_username })
+					: m.route_by({ user: collection.owner_username })}
+			</p>
+			{#if canEdit}
+				<textarea
+					class="mt-2 w-full rounded border border-stone-300 px-2 py-1 text-sm"
+					rows="2"
+					value={collection.description}
+					placeholder={m.collection_description_placeholder()}
+					aria-label={m.collection_description_placeholder()}
+					onchange={(e) => patch({ description: e.currentTarget.value })}></textarea>
+			{:else if collection.description}
+				<p class="mt-2 text-sm whitespace-pre-line">{collection.description}</p>
+			{/if}
+		</div>
+
+		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
+
+		{#if collection.item_list.length === 0}
+			<p class="text-sm text-stone-600">{m.collection_empty()}</p>
+		{:else}
+			<ol class="flex flex-col gap-2" data-testid="collection-items">
+				{#each collection.item_list as it, i (it.id)}
+					<li
+						class="rounded-md border border-stone-200 p-2 text-sm"
+						data-testid="collection-item"
+						onmouseenter={() => (highlight = it.id)}
+						onmouseleave={() => (highlight = undefined)}
+					>
+						<div class="flex items-center gap-2">
+							<span class="inline-block size-3 rounded-full" style:background={stageColor(i)}
+							></span>
+							<a href={href(it)} class="flex-1 font-medium hover:underline">{it.title}</a>
+							<span class="text-xs text-stone-500"
+								>{it.kind === 'route'
+									? m.collection_kind_route()
+									: m.collection_kind_journey()}</span
+							>
+						</div>
+						<div class="mt-1 flex items-center gap-2 text-xs text-stone-600 tabular-nums">
+							<span>{m.shared_by({ user: it.owner_username })}</span>
+							{#if it.distance_m > 0}
+								<span class="ml-auto"
+									>{formatDistance(it.distance_m)} · {formatDuration(it.duration_s, pace)} · ↑ {Math.round(
+										it.ascent_m
+									)} m</span
+								>
+							{/if}
+							{#if it.sac_grade > 0}
+								<span
+									class="rounded px-1 font-semibold text-white"
+									style:background={SAC_COLOR[`T${it.sac_grade}`] ?? '#a8a29e'}
+									>{formatSAC(it.sac_grade, it.sac_max)}</span
+								>
+							{/if}
+						</div>
+						{#if it.kind === 'journey'}
+							<p class="mt-1 text-xs text-stone-500">
+								{m.collection_stages({ n: it.stages })}
+							</p>
+						{/if}
+						{#if canEdit}
+							<div class="mt-2 flex items-center gap-2 text-xs">
+								<input
+									class="min-w-0 flex-1 rounded border border-stone-300 px-2 py-1"
+									value={it.note}
+									maxlength="1000"
+									placeholder={m.collection_note_placeholder()}
+									aria-label={m.collection_note_placeholder()}
+									onchange={(e) => patchItem(it, { note: e.currentTarget.value })}
+								/>
+								<button
+									type="button"
+									class="px-1"
+									disabled={i === 0}
+									aria-label={m.journey_move_up()}
+									onclick={() => patchItem(it, { position: collection.item_list[i - 1].position })}
+									>↑</button
+								>
+								<button
+									type="button"
+									class="px-1"
+									disabled={i === collection.item_list.length - 1}
+									aria-label={m.journey_move_down()}
+									onclick={() => patchItem(it, { position: collection.item_list[i + 1].position })}
+									>↓</button
+								>
+								<button
+									type="button"
+									class="text-stone-500 underline"
+									onclick={() => removeItem(it)}>{m.collection_remove_item()}</button
+								>
+							</div>
+						{:else if it.note}
+							<p class="mt-1 text-xs text-stone-600">{it.note}</p>
+						{/if}
+					</li>
+				{/each}
+			</ol>
+		{/if}
+
+		{#if isOwner}
+			<section class="flex flex-col gap-2 rounded-md border border-stone-200 p-3 text-sm">
+				<h2 class="font-medium">{m.journey_settings()}</h2>
+				<label class="flex flex-col gap-1">
+					<span>{m.field_visibility()}</span>
+					<select
+						class="rounded-md border border-stone-300 px-2 py-1.5"
+						value={collection.visibility}
+						onchange={(e) =>
+							patch({ visibility: e.currentTarget.value as 'private' | 'unlisted' | 'public' })}
+					>
+						<option value="private">{m.visibility_private()}</option>
+						<option value="unlisted" disabled={!user?.email_verified}
+							>{m.visibility_unlisted()}</option
+						>
+						<option value="public" disabled={!user?.email_verified}>{m.visibility_public()}</option>
+					</select>
+				</label>
+				{#if shareUrl && collection.visibility === 'unlisted'}
+					<input
+						readonly
+						value={shareUrl}
+						class="rounded border border-stone-300 px-1.5 py-1 text-xs"
+						data-testid="collection-share-link"
+					/>
+				{/if}
+				{#if confirming}
+					<button
+						type="button"
+						class="self-start rounded bg-red-700 px-2 py-1 text-white"
+						onclick={remove}>{m.collection_delete_confirm()}</button
+					>
+				{:else}
+					<button
+						type="button"
+						class="self-start text-stone-500 underline"
+						onclick={() => (confirming = true)}>{m.collection_delete()}</button
+					>
+				{/if}
+			</section>
+			<SharePanel kind="collections" id={collection.id} verified={!!user?.email_verified} />
+		{/if}
+	</aside>
+</main>

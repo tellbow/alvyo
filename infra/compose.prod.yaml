@@ -1,0 +1,154 @@
+# Production stack: docker compose -f compose.prod.yaml --env-file .env up -d
+# Needs the OSM extract in ./data/osm (make osm-fetch) and, once, the trail
+# and place imports (docker compose -f compose.prod.yaml run --rm tlm-import,
+# then places-import).
+name: odysgeh-prod
+
+# Logs (they contain IP addresses) are rotated by size and kept briefly.
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+  caddy:
+    logging: *logging
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web, api, tilecache]
+
+  web:
+    logging: *logging
+    build: ../web
+    image: odysgeh-web:${VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      ORIGIN: https://${DOMAIN}
+      API_INTERNAL_URL: http://api:8080
+      PUBLIC_CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+
+  api:
+    logging: *logging
+    build:
+      context: ..
+      dockerfile: api/Dockerfile
+      args: { VERSION: "${VERSION:-dev}" }
+    image: odysgeh-api:${VERSION:-dev}
+    restart: unless-stopped
+    environment: &api-env
+      ODYSGEH_DATABASE_URL: postgres://odysgeh:${POSTGRES_PASSWORD}@db:5432/odysgeh?sslmode=disable
+      ODYSGEH_PUBLIC_URL: https://${DOMAIN}
+      ODYSGEH_TRUST_PROXY: "true"
+      ODYSGEH_GRAPHHOPPER_URL: http://graphhopper:8989
+      ODYSGEH_TILES_URL: http://tilecache:8080
+      ODYSGEH_CACHE_DIR: /cache
+      ODYSGEH_PHOTOS_DIR: /data/photos
+      ODYSGEH_SMTP_HOST: ${SMTP_HOST}
+      ODYSGEH_SMTP_PORT: ${SMTP_PORT:-587}
+      ODYSGEH_SMTP_USER: ${SMTP_USER:-}
+      ODYSGEH_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      ODYSGEH_SMTP_TLS: ${SMTP_TLS:-starttls}
+      ODYSGEH_MAIL_FROM: ${MAIL_FROM}
+      # opentransportdata.swiss API key; empty turns connection search off.
+      ODYSGEH_OJP_TOKEN: ${OJP_TOKEN:-}
+      # Sign-in providers (docs/operations.md), e.g. OIDC_PROVIDERS=google.
+      ODYSGEH_OIDC_PROVIDERS: ${OIDC_PROVIDERS:-}
+      ODYSGEH_OIDC_GOOGLE_NAME: Google
+      ODYSGEH_OIDC_GOOGLE_ISSUER: https://accounts.google.com
+      ODYSGEH_OIDC_GOOGLE_CLIENT_ID: ${OIDC_GOOGLE_CLIENT_ID:-}
+      ODYSGEH_OIDC_GOOGLE_CLIENT_SECRET: ${OIDC_GOOGLE_CLIENT_SECRET:-}
+    volumes: [api_cache:/cache, photos:/data/photos]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      graphhopper: { condition: service_started }
+
+  migrate:
+    image: odysgeh-api:${VERSION:-dev}
+    pull_policy: never # built by the api service
+    command: ["migrate"]
+    environment: *api-env
+    depends_on:
+      db: { condition: service_healthy }
+
+  db:
+    logging: *logging
+    build: ./postgis
+    image: odysgeh-postgis:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: odysgeh
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: odysgeh
+    volumes: [pgdata:/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odysgeh -d odysgeh"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  graphhopper:
+    logging: *logging
+    build: ./graphhopper
+    image: odysgeh-graphhopper:11.0
+    restart: unless-stopped
+    environment:
+      JAVA_OPTS: "-Xms1g -Xmx3g"
+    volumes:
+      - ./data/osm:/data/osm:ro
+      - ./data/graph-cache:/data/graph-cache
+
+  tilecache:
+    logging: *logging
+    image: nginx:1.30-alpine
+    restart: unless-stopped
+    volumes:
+      - ./tilecache/nginx.conf:/etc/nginx/nginx.conf:ro
+      - tilecache:/var/cache/nginx
+
+  # One-shot: swissTLM3D hiking trails (yearly update).
+  tlm-import:
+    image: odysgeh-data-import
+    build: ./data-import
+    profiles: [data]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: odysgeh
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: odysgeh
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    command: ["sh", "/scripts/import-tlm.sh"]
+
+  # One-shot: stops (BAV) and huts/accommodation (OSM), after each OSM fetch.
+  places-import:
+    image: odysgeh-data-import
+    build: ./data-import
+    profiles: [data]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: odysgeh
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: odysgeh
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    command: ["sh", "/scripts/import-places.sh"]
+
+volumes:
+  caddy_data:
+  caddy_config:
+  pgdata:
+  api_cache:
+  photos:
+  tilecache:

@@ -1,0 +1,53 @@
+name: release
+
+# A version tag (v0.1.0) publishes all images to GHCR for amd64 and arm64,
+# tagged 0.1.0 and sha-<commit>.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: api, context: ., file: api/Dockerfile }
+          - { name: web, context: web, file: web/Dockerfile }
+          - { name: postgis, context: infra/postgis, file: infra/postgis/Dockerfile }
+          - { name: graphhopper, context: infra/graphhopper, file: infra/graphhopper/Dockerfile }
+          - { name: data-import, context: infra/data-import, file: infra/data-import/Dockerfile }
+    steps:
+      - uses: actions/checkout@v7
+      # api and web cross-compile; the others run apt/curl under emulation.
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/odysgeh-${{ matrix.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha
+      - uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Shown on the About page next to the source link (AGPL §13).
+          build-args: VERSION=${{ steps.meta.outputs.version }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}

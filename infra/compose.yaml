@@ -1,0 +1,99 @@
+name: odysgeh
+
+services:
+  db:
+    build: ./postgis
+    image: odysgeh-postgis:18
+    environment:
+      POSTGRES_USER: odysgeh
+      POSTGRES_PASSWORD: odysgeh
+      POSTGRES_DB: odysgeh
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odysgeh -d odysgeh"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  tilecache:
+    image: nginx:1.30-alpine
+    ports: ["8081:8080"]
+    volumes:
+      - ./tilecache/nginx.conf:/etc/nginx/nginx.conf:ro
+      - tilecache:/var/cache/nginx
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz >/dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  graphhopper:
+    build: ./graphhopper
+    image: odysgeh-graphhopper:11.0
+    environment:
+      JAVA_OPTS: "-Xms1g -Xmx6g"
+    ports: ["8989:8989"]
+    volumes:
+      - ./data/osm:/data/osm:ro
+      - ./data/graph-cache:/data/graph-cache
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:8989/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 30m # first start imports the OSM file
+
+  # One-shot: make osm-fetch (downloads + merges the OSM extracts).
+  osm-fetch:
+    build: ./data-import
+    image: odysgeh-data-import
+    profiles: [data]
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    command: ["sh", "/scripts/fetch-and-merge.sh"]
+
+  # One-shot: make tlm-import (swissTLM3D hiking trails into PostGIS).
+  tlm-import:
+    image: odysgeh-data-import
+    build: ./data-import
+    profiles: [data]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: odysgeh
+      PGPASSWORD: odysgeh
+      PGDATABASE: odysgeh
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    command: ["sh", "/scripts/import-tlm.sh"]
+
+  # One-shot: make places-import (stops, huts, accommodation into PostGIS).
+  places-import:
+    image: odysgeh-data-import
+    build: ./data-import
+    profiles: [data]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: odysgeh
+      PGPASSWORD: odysgeh
+      PGDATABASE: odysgeh
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    command: ["sh", "/scripts/import-places.sh"]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025" # web UI + API
+      - "1025:1025" # SMTP
+
+volumes:
+  pgdata:
+  tilecache:

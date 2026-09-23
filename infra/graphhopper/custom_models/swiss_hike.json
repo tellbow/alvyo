@@ -1,0 +1,16 @@
+// Hiking up to SAC T3 (hike_rating: 1=T1 … 6=T6, 0=unknown), preferring
+// signed hiking routes. Based on GraphHopper 11.0's built-in hike.json.
+{
+  "priority": [
+    { "if": "!foot_access || hike_rating > 3", "multiply_by": "0" },
+    { "else": "", "multiply_by": "foot_priority" },
+    { "if": "foot_road_access == PRIVATE", "multiply_by": "0.1" },
+    { "if": "foot_network == INTERNATIONAL || foot_network == NATIONAL", "multiply_by": "1.7" },
+    { "else_if": "foot_network == REGIONAL || foot_network == LOCAL", "multiply_by": "1.5" }
+  ],
+  "speed": [
+    { "if": "hike_rating < 1", "limit_to": "foot_average_speed" },
+    { "else_if": "hike_rating > 2", "limit_to": "1.5" },
+    { "else": "", "limit_to": "4" }
+  ]
+}

@@ -1,0 +1,44 @@
+graphhopper:
+  datareader.file: /data/osm/ch-fl.osm.pbf
+  graph.location: /data/graph-cache
+  custom_models.directory: /opt/graphhopper/custom_models
+
+  # hike: marked hiking trails up to SAC T3; alpine: up to T6.
+  # Speed only steers route choice; displayed times use the Swiss formula.
+  profiles:
+    - name: hike
+      custom_model_files: [swiss_hike.json]
+    - name: alpine
+      custom_model_files: [swiss_alpine.json]
+  profiles_ch:
+    - profile: hike
+    - profile: alpine
+  profiles_lm: []
+
+  # Also returned as path details (details=...) for SAC / surface breakdowns.
+  graph.encoded_values: foot_access, foot_priority, foot_average_speed, foot_road_access, foot_network, hike_rating, road_class, road_environment, surface, track_type
+
+  import.osm.ignored_highways: motorway,trunk
+  prepare.min_network_size: 200
+  prepare.subnetworks.threads: 1
+  routing.snap_preventions_default: tunnel, ferry
+  graph.dataaccess.default_type: RAM_STORE
+
+server:
+  application_connectors:
+    - type: http
+      port: 8989
+      bind_host: 0.0.0.0
+      max_request_header_size: 50k
+  request_log:
+    appenders: []
+  admin_connectors:
+    - type: http
+      port: 8990
+      bind_host: 0.0.0.0
+
+logging:
+  appenders:
+    - type: console
+      time_zone: UTC
+      log_format: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,142 @@
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
+
+async function signup(page: Page, name: string) {
+	const id = `${name}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const res = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: name,
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(res.status()).toBe(201);
+}
+
+/** A GPX track of about 2.2 km heading east from lon/lat. */
+function track(name: string, lon: number, lat: number) {
+	const pts = Array.from(
+		{ length: 30 },
+		(_, i) => `<trkpt lat="${lat}" lon="${(lon + i * 0.001).toFixed(4)}"/>`
+	);
+	return `<trk><name>${name}</name><trkseg>${pts.join('')}</trkseg></trk>`;
+}
+
+test('a GPX file with several tracks becomes a journey', async ({ page }) => {
+	await signup(page, 'importer');
+	await page.goto('/routes');
+	await page.getByRole('link', { name: 'Importieren' }).click();
+	await expect(page).toHaveURL(/\/import$/);
+
+	const gpx = `<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">${track('Tag 1', 9.3, 46.99)}${track('Tag 2', 9.33, 46.99)}${track('Mailand', 9.19, 45.46)}</gpx>`;
+	await page
+		.getByTestId('file-import')
+		.getByLabel('Datei hochladen')
+		.setInputFiles({
+			name: 'durchquerung.gpx',
+			mimeType: 'application/gpx+xml',
+			buffer: Buffer.from(gpx)
+		});
+
+	const tracks = page.getByTestId('import-tracks');
+	await expect(tracks.getByRole('listitem')).toHaveCount(3);
+	await expect(tracks.getByRole('listitem').nth(2)).toContainText('ausserhalb CH/FL');
+
+	const submit = page.getByTestId('file-import').getByRole('button', { name: 'Importieren' });
+	await expect(submit).toBeDisabled(); // the mode must be chosen
+	await page.getByLabel('Als Etappentour – eine Etappe pro Track').check();
+	await page.getByTestId('file-import').getByLabel('Titel').fill('Test-Durchquerung');
+	await submit.click();
+
+	await expect(page.getByTestId('import-skipped')).toContainText(
+		'Mailand: liegt nicht ganz in der Schweiz oder in Liechtenstein'
+	);
+	await page.getByRole('link', { name: 'Etappentour öffnen' }).click();
+	await expect(page.getByRole('heading', { name: 'Test-Durchquerung' })).toBeVisible();
+	await expect(page.getByTestId('stage')).toHaveCount(3);
+});
+
+test('Komoot tours are picked and imported in batches', async ({ page }) => {
+	await signup(page, 'komooter');
+	// Komoot itself is only reached by the API; the browser's API calls are
+	// stubbed so the test needs neither Komoot nor an account there.
+	await page.route('**/api/v1/imports/komoot/login', async (route) => {
+		if (route.request().postDataJSON().password !== 'richtig') {
+			return route.fulfill({ status: 422, json: { status: 422, title: 'Unprocessable Entity' } });
+		}
+		await route.fulfill({
+			json: {
+				session: 's1',
+				total_pages: 1,
+				tours: [
+					{
+						id: 1,
+						type: 'tour_recorded',
+						name: 'Faulhorn',
+						date: '2026-08-01T07:00:00Z',
+						sport: 'hike',
+						distance: 10500
+					},
+					{
+						id: 2,
+						type: 'tour_planned',
+						name: 'Navigli',
+						date: '2026-07-01T07:00:00Z',
+						sport: 'hike',
+						distance: 4000
+					},
+					{
+						id: 3,
+						type: 'tour_recorded',
+						name: 'Niesen',
+						date: '2026-06-01T07:00:00Z',
+						sport: 'hike',
+						distance: 7000,
+						imported_route_id: '0199a000-0000-7000-8000-000000000003'
+					}
+				]
+			}
+		});
+	});
+	let requested: number[] = [];
+	await page.route('**/api/v1/imports/komoot', async (route) => {
+		requested = route.request().postDataJSON().tour_ids;
+		await route.fulfill({
+			json: {
+				routes: [{ id: '0199a000-0000-7000-8000-000000000001', title: 'Faulhorn', ref: '1' }],
+				skipped: [{ name: 'Navigli', reason: 'outside' }]
+			}
+		});
+	});
+
+	await page.goto('/import');
+	const komoot = page.getByTestId('komoot-import');
+	await komoot.getByLabel('E-Mail bei Komoot').fill('hiker@example.ch');
+	await komoot.getByLabel('Passwort bei Komoot').fill('falsch');
+	await komoot.getByRole('button', { name: 'Bei Komoot anmelden' }).click();
+	await expect(komoot.getByRole('alert')).toHaveText(
+		'Komoot hat E-Mail oder Passwort nicht akzeptiert.'
+	);
+	await expect(komoot.getByLabel('Passwort bei Komoot')).toHaveValue('');
+
+	await komoot.getByLabel('Passwort bei Komoot').fill('richtig');
+	await komoot.getByRole('button', { name: 'Bei Komoot anmelden' }).click();
+	const tours = komoot.getByTestId('komoot-tours');
+	await expect(tours.getByRole('listitem')).toHaveCount(3);
+	await expect(
+		tours.getByRole('listitem').nth(2).getByRole('link', { name: 'importiert' })
+	).toBeVisible();
+
+	await komoot.getByRole('button', { name: 'Alle nicht importierten auswählen' }).click();
+	await expect(komoot).toContainText('2 ausgewählt');
+	await komoot.getByRole('button', { name: 'Importieren' }).click();
+
+	await expect(komoot.getByTestId('import-result')).toContainText('Faulhorn');
+	await expect(komoot.getByTestId('import-skipped')).toContainText('Navigli: liegt nicht ganz');
+	expect(requested.sort()).toEqual([1, 2]);
+	await expect(
+		tours.getByRole('listitem').first().getByRole('link', { name: 'importiert' })
+	).toBeVisible();
+	await expect(komoot).toContainText('0 ausgewählt');
+});

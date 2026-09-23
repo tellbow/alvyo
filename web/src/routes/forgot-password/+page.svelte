@@ -1,0 +1,44 @@
+<script lang="ts">
+	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api } from '$lib/api/client';
+	import AuthCard from '$lib/components/AuthCard.svelte';
+	import Field from '$lib/components/Field.svelte';
+	import { m } from '$lib/paraglide/messages';
+
+	const hydrated = new Hydrated();
+
+	let email = $state('');
+	let sent = $state(false);
+	let error = $state('');
+
+	async function submit(e: SubmitEvent) {
+		e.preventDefault();
+		const { response } = await api().POST('/auth/password/forgot', { body: { email } });
+		if (response.ok) sent = true;
+		else error = response.status === 429 ? m.error_too_many() : m.error_generic();
+	}
+</script>
+
+<AuthCard title={m.forgot_title()}>
+	{#if sent}
+		<p role="status">{m.forgot_sent()}</p>
+	{:else}
+		<p class="mb-4 text-stone-600">{m.forgot_text()}</p>
+		<form method="post" onsubmit={submit} class="flex flex-col gap-4">
+			<Field
+				label={m.field_email()}
+				name="email"
+				type="email"
+				autocomplete="email"
+				required
+				bind:value={email}
+			/>
+			{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
+			<button
+				disabled={!hydrated.value}
+				class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800"
+				>{m.forgot_submit()}</button
+			>
+		</form>
+	{/if}
+</AuthCard>

@@ -954,6 +954,32 @@
         ],
         "type": "object"
       },
+      "File": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "layer": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tiles": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "layer",
+          "name",
+          "bytes",
+          "tiles"
+        ],
+        "type": "object"
+      },
       "ForgotInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -3459,6 +3485,46 @@
           "profile",
           "anchors",
           "legs"
+        ],
+        "type": "object"
+      },
+      "Status": {
+        "additionalProperties": false,
+        "properties": {
+          "done": {
+            "description": "Tiles fetched so far while building",
+            "format": "int64",
+            "type": "integer"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/File"
+            },
+            "type": "array"
+          },
+          "key": {
+            "description": "Changes when the route or journey changes: a saved pack with another key is out of date",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "missing",
+              "building",
+              "ready",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "total": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "state",
+          "key",
+          "done",
+          "total"
         ],
         "type": "object"
       },
@@ -6403,6 +6469,165 @@
         ]
       }
     },
+    "/journeys/{id}/pack": {
+      "get": {
+        "operationId": "get-journey-pack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Status of the offline map of a journey",
+        "tags": [
+          "offline"
+        ]
+      },
+      "post": {
+        "description": "National map and hiking trails within 1 km, zoom 10–16, as PMTiles. Builds in the background; poll the status, then download each layer. 503 when not configured.",
+        "operationId": "build-journey-pack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Prepare the offline map of a journey",
+        "tags": [
+          "offline"
+        ]
+      }
+    },
+    "/journeys/{id}/pack/{layer}": {
+      "get": {
+        "description": "Supports Range requests, so interrupted downloads can resume.",
+        "operationId": "download-journey-pack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "layer",
+            "required": true,
+            "schema": {
+              "enum": [
+                "landeskarte",
+                "wanderwege"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Download one layer of the offline map (PMTiles)",
+        "tags": [
+          "offline"
+        ]
+      }
+    },
     "/journeys/{id}/photos": {
       "get": {
         "operationId": "list-journey-photos",
@@ -8641,6 +8866,165 @@
         "summary": "Preview image of a route for link previews (1200×630)",
         "tags": [
           "routes"
+        ]
+      }
+    },
+    "/routes/{id}/pack": {
+      "get": {
+        "operationId": "get-route-pack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Status of the offline map of a route",
+        "tags": [
+          "offline"
+        ]
+      },
+      "post": {
+        "description": "National map and hiking trails within 1 km, zoom 10–16, as PMTiles. Builds in the background; poll the status, then download each layer. 503 when not configured.",
+        "operationId": "build-route-pack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Prepare the offline map of a route",
+        "tags": [
+          "offline"
+        ]
+      }
+    },
+    "/routes/{id}/pack/{layer}": {
+      "get": {
+        "description": "Supports Range requests, so interrupted downloads can resume.",
+        "operationId": "download-route-pack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "layer",
+            "required": true,
+            "schema": {
+              "enum": [
+                "landeskarte",
+                "wanderwege"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Download one layer of the offline map (PMTiles)",
+        "tags": [
+          "offline"
         ]
       }
     },

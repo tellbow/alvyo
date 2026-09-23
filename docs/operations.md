@@ -8,7 +8,7 @@ One VPS in Switzerland or the EU is enough to start:
 |---|---|---|
 | CPU | 4 vCPU | GraphHopper import (weekly), API |
 | RAM | 8 GB | GraphHopper serves with ~3 GB heap, imports need ~4 GB more |
-| Disk | 40 GB | OSM extract 0.6 GB, graph 2 GB (+2 GB during refresh), trail data 0.6 GB, tile cache up to 60 GB (`infra/tilecache/nginx.conf`, `max_size`) — size the cache to the disk; photos about 0.5 MB each (at most 1000 per person), plus 3 copies in the backups |
+| Disk | 40 GB | OSM extract 0.6 GB, graph 2 GB (+2 GB during refresh), trail data 0.6 GB, tile cache up to 60 GB (`infra/tilecache/nginx.conf`, `max_size`) — size the cache to the disk; photos about 0.5 MB each (at most 1000 per person), plus 3 copies in the backups; offline map packs at most 512 MiB in the API cache (ADR-0004) |
 
 Docker with the Compose plugin, ports 80/443 open, a DNS record for the domain.
 

@@ -698,6 +698,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journeys/{id}/pack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of the offline map of a journey */
+        get: operations["get-journey-pack"];
+        put?: never;
+        /**
+         * Prepare the offline map of a journey
+         * @description National map and hiking trails within 1 km, zoom 10–16, as PMTiles. Builds in the background; poll the status, then download each layer. 503 when not configured.
+         */
+        post: operations["build-journey-pack"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journeys/{id}/pack/{layer}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download one layer of the offline map (PMTiles)
+         * @description Supports Range requests, so interrupted downloads can resume.
+         */
+        get: operations["download-journey-pack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys/{id}/photos": {
         parameters: {
             query?: never;
@@ -1256,6 +1297,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/routes/{id}/pack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of the offline map of a route */
+        get: operations["get-route-pack"];
+        put?: never;
+        /**
+         * Prepare the offline map of a route
+         * @description National map and hiking trails within 1 km, zoom 10–16, as PMTiles. Builds in the background; poll the status, then download each layer. 503 when not configured.
+         */
+        post: operations["build-route-pack"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/routes/{id}/pack/{layer}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download one layer of the offline map (PMTiles)
+         * @description Supports Range requests, so interrupted downloads can resume.
+         */
+        get: operations["download-route-pack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/photos": {
         parameters: {
             query?: never;
@@ -1793,6 +1875,14 @@ export interface components {
              * @description Pass as before to get older items
              */
             next?: string;
+        };
+        File: {
+            /** Format: int64 */
+            bytes: number;
+            layer: string;
+            name: string;
+            /** Format: int64 */
+            tiles: number;
         };
         ForgotInputBody: {
             /** Format: email */
@@ -2546,6 +2636,20 @@ export interface components {
             legs: components["schemas"]["Leg"][];
             /** @enum {string} */
             profile: "hike" | "alpine";
+        };
+        Status: {
+            /**
+             * Format: int64
+             * @description Tiles fetched so far while building
+             */
+            done: number;
+            files?: components["schemas"]["File"][];
+            /** @description Changes when the route or journey changes: a saved pack with another key is out of date */
+            key: string;
+            /** @enum {string} */
+            state: "missing" | "building" | "ready" | "failed";
+            /** Format: int64 */
+            total: number;
         };
         TokenInputBody: {
             token: string;
@@ -4353,6 +4457,106 @@ export interface operations {
             };
         };
     };
+    "get-journey-pack": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Status"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "build-journey-pack": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Status"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "download-journey-pack": {
+        parameters: {
+            query?: {
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                layer: "landeskarte" | "wanderwege";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "list-journey-photos": {
         parameters: {
             query?: {
@@ -5818,6 +6022,106 @@ export interface operations {
                 content: {
                     "application/json": string;
                 };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-route-pack": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Status"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "build-route-pack": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Status"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "download-route-pack": {
+        parameters: {
+            query?: {
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                layer: "landeskarte" | "wanderwege";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error */
             default: {

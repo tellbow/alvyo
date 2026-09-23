@@ -17,8 +17,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
+
+	"golang.org/x/time/rate"
 
 	"github.com/tellbow/odysgeh/api/internal/admin"
 	"github.com/tellbow/odysgeh/api/internal/auth"
@@ -33,6 +36,7 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/journeys"
 	"github.com/tellbow/odysgeh/api/internal/mailer"
 	"github.com/tellbow/odysgeh/api/internal/og"
+	"github.com/tellbow/odysgeh/api/internal/packs"
 	"github.com/tellbow/odysgeh/api/internal/photos"
 	"github.com/tellbow/odysgeh/api/internal/places"
 	"github.com/tellbow/odysgeh/api/internal/routes"
@@ -101,6 +105,16 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("passkeys: %w", err)
 	}
+	packService := &packs.Service{
+		Builder: &packs.Builder{
+			TilesURL: cfg.TilesURL, Dir: filepath.Join(cfg.CacheDir, "packs"),
+			Rate: rate.NewLimiter(40, 40), // the tile cache allows 60 requests/s per address
+		},
+		// Packs are rebuilt on demand. The cache volume (1 GiB in the cluster)
+		// also holds the OpenGraph images.
+		MaxAge: 7 * 24 * time.Hour, MaxBytes: 512 << 20,
+	}
+	go packService.PruneEvery(ctx, time.Hour)
 	photoStore := &photos.Store{DB: pool, Files: &photos.Files{Dir: cfg.PhotosDir}}
 	go photoStore.SweepEvery(ctx, time.Minute) // files of deleted photos
 	var planner httpapi.Planner
@@ -127,6 +141,7 @@ func serve(ctx context.Context) error {
 		Community:   &community.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Photos:      photoStore,
 		OIDC:        oidcProviders(cfg),
+		Packs:       packService,
 		Planner:     planner,
 		Images:      &og.Renderer{TilesURL: cfg.TilesURL, CacheDir: cfg.CacheDir},
 		Version:     version,

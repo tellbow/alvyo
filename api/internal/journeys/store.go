@@ -519,3 +519,33 @@ func (s *Store) tx(ctx context.Context, journeyID uuid.UUID, fn func(pgx.Tx) err
 		return err
 	})
 }
+
+// StageLines returns the lines of a journey's stage routes (lon, lat).
+func (s *Store) StageLines(ctx context.Context, id uuid.UUID) ([][]geo.Point, error) {
+	rows, err := s.DB.Query(ctx, `SELECT ST_AsGeoJSON(ST_Force2D(r.geom))
+		FROM stages st JOIN routes r ON r.id = st.route_id
+		WHERE st.journey_id = $1 ORDER BY st.position`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var lines [][]geo.Point
+	for rows.Next() {
+		var g string
+		if err := rows.Scan(&g); err != nil {
+			return nil, err
+		}
+		var line struct {
+			Coordinates [][2]float64 `json:"coordinates"`
+		}
+		if err := json.Unmarshal([]byte(g), &line); err != nil {
+			return nil, err
+		}
+		pts := make([]geo.Point, len(line.Coordinates))
+		for i, c := range line.Coordinates {
+			pts[i] = geo.Point{Lon: c[0], Lat: c[1]}
+		}
+		lines = append(lines, pts)
+	}
+	return lines, rows.Err()
+}

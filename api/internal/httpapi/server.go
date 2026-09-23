@@ -21,6 +21,7 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/imports"
 	"github.com/tellbow/odysgeh/api/internal/journeys"
 	"github.com/tellbow/odysgeh/api/internal/og"
+	"github.com/tellbow/odysgeh/api/internal/packs"
 	"github.com/tellbow/odysgeh/api/internal/photos"
 	"github.com/tellbow/odysgeh/api/internal/places"
 	"github.com/tellbow/odysgeh/api/internal/routes"
@@ -50,7 +51,8 @@ type Deps struct {
 	Community   *community.Store
 	Photos      *photos.Store
 	OIDC        *auth.OIDC // sign-in providers; nil for none
-	Planner     Planner    // public transport connections; nil when not configured
+	Packs       *packs.Service
+	Planner     Planner // public transport connections; nil when not configured
 	Importer    *imports.Importer
 	Komoot      *imports.Komoot
 	Images      *og.Renderer
@@ -102,6 +104,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerPhotos(api, d)
 	registerPasskeys(api, d)
 	registerOIDC(api, d)
+	registerPacks(api, d)
 
 	var h http.Handler = mux
 	if d.Auth != nil {

@@ -36,6 +36,8 @@ type Limits struct {
 	Comment *ratelimit.Limiter
 	Report  *ratelimit.Limiter
 	Photo   *ratelimit.Limiter
+	// Offline map packs fetch many tiles.
+	Pack *ratelimit.Limiter
 }
 
 // DefaultLimits are generous for people and tight for scripts.
@@ -56,6 +58,7 @@ func DefaultLimits() Limits {
 		Comment:         ratelimit.New(10*time.Second, 10),
 		Report:          ratelimit.New(time.Minute, 10),
 		Photo:           ratelimit.New(3*time.Second, 30),
+		Pack:            ratelimit.New(time.Minute, 20),
 	}
 }
 

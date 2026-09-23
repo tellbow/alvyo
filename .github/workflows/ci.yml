@@ -26,6 +26,10 @@ jobs:
         run: docker build -t odysgeh-postgis:18 infra/postgis
       - run: go test -race ./...
         working-directory: ${{ matrix.module }}
+        env:
+          # Ryuk (testcontainers' clean-up) sometimes loses its connection and
+          # then removes the database mid-test; the runner is thrown away anyway.
+          TESTCONTAINERS_RYUK_DISABLED: "true"
       - uses: golangci/golangci-lint-action@v8
         with:
           version: v2.10

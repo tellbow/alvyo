@@ -1,9 +1,12 @@
+import AVFoundation
 import Flutter
 import UIKit
 import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private let speech = Speech()
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -33,6 +36,56 @@ import UserNotifications
           result(FlutterError(code: "backup", message: error.localizedDescription, details: nil))
         }
       }
+    }
+    // Turn-by-turn prompts.
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OdysgehSpeech") {
+      let channel = FlutterMethodChannel(name: "odysgeh/speech", binaryMessenger: registrar.messenger())
+      channel.setMethodCallHandler { [speech] call, result in
+        guard call.method == "say", let args = call.arguments as? [String: String],
+          let text = args["text"], let language = args["language"]
+        else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        do {
+          try speech.say(text, language: language)
+          result(nil)
+        } catch {
+          result(FlutterError(code: "speech", message: error.localizedDescription, details: nil))
+        }
+      }
+    }
+  }
+}
+
+/// Spoken navigation prompts. Other audio is turned down while one plays,
+/// also with the screen locked (UIBackgroundModes audio), and the silent
+/// switch does not mute them.
+final class Speech: NSObject, AVSpeechSynthesizerDelegate {
+  private let synthesizer = AVSpeechSynthesizer()
+
+  override init() {
+    super.init()
+    synthesizer.delegate = self
+  }
+
+  func say(_ text: String, language: String) throws {
+    let session = AVAudioSession.sharedInstance()
+    try session.setCategory(
+      .playback, mode: .voicePrompt, options: [.duckOthers, .interruptSpokenAudioAndMixWithOthers])
+    try session.setActive(true)
+    let utterance = AVSpeechUtterance(string: text)
+    // A Swiss voice if there is one, else the language's usual one.
+    let usual = ["de": "de-DE", "fr": "fr-FR", "it": "it-IT"][language] ?? "en-GB"
+    utterance.voice =
+      AVSpeechSynthesisVoice(language: "\(language)-CH") ?? AVSpeechSynthesisVoice(language: usual)
+    synthesizer.speak(utterance)
+  }
+
+  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+    if !synthesizer.isSpeaking {
+      // Other audio back to full volume.
+      try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
   }
 }

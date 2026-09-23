@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"mime"
 	"net/http"
 	"strconv"
@@ -20,10 +21,17 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/og"
 	"github.com/tellbow/odysgeh/api/internal/routes"
 	"github.com/tellbow/odysgeh/api/internal/routing"
+	"github.com/tellbow/odysgeh/swiss/geo"
 )
 
 // routeBodyLimit allows long multi-leg routes (each vertex carries elevation).
 const routeBodyLimit = 16 << 20
+
+type turnsOutput struct {
+	Body struct {
+		Turns []routing.Turn `json:"turns"`
+	}
+}
 
 type routeOutput struct {
 	ETag string `header:"ETag"`
@@ -167,6 +175,37 @@ func registerRoutes(api huma.API, d Deps) {
 			ContentDisposition: mime.FormatMediaType("attachment", map[string]string{"filename": gpx.Filename(r.Title)}),
 			Body:               buf.Bytes(),
 		}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-route-turns", Method: http.MethodGet, Path: "/routes/{id}/turns",
+		Summary:     "Turns along a route, for spoken navigation",
+		Description: "The route's line matched onto the path network. Where it does not follow the network, as GPS tracks and straight legs do not, there are no turns.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *routeIDInput) (*turnsOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if !d.Limits.LegUser.Allow(u.ID.String()) {
+			return nil, errTooMany
+		}
+		r, _, err := loadRoute(ctx, d, in.ID, in.Token)
+		if err != nil {
+			return nil, err
+		}
+		var line []geo.Point
+		for _, c := range r.Line() {
+			line = append(line, geo.Point{Lon: c[0], Lat: c[1]})
+		}
+		turns, err := d.Router.GraphHopper.Turns(ctx, line)
+		if err != nil {
+			slog.WarnContext(ctx, "turns failed", "route", r.ID, "err", err)
+			return nil, huma.Error503ServiceUnavailable("routing unavailable, please retry")
+		}
+		out := &turnsOutput{}
+		out.Body.Turns = turns
+		return out, nil
 	})
 
 	huma.Register(api, huma.Operation{

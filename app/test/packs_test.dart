@@ -19,6 +19,9 @@ class FakeServer {
 
   /// Sends only this many bytes of the next download.
   int? breakAfter;
+
+  /// Turns fail, as with a server before them or GraphHopper down.
+  var turnsDown = false;
   final files = {'landeskarte': utf8.encode('PMTiles-lk'), 'wanderwege': utf8.encode('PMTiles-ww')};
 
   Map<String, dynamic> status() => {
@@ -56,6 +59,16 @@ class FakeServer {
                   [8.001, 46.5, 1010],
                 ],
               },
+            ],
+          }),
+          200,
+        );
+      case ('GET', '/api/v1/routes/r1/turns'):
+        if (turnsDown) return http.Response(jsonEncode({'detail': 'routing unavailable'}), 503);
+        return http.Response(
+          jsonEncode({
+            'turns': [
+              {'along_m': 40.5, 'kind': 'left'},
             ],
           }),
           200,
@@ -99,6 +112,7 @@ void main() {
     expect(steps.last, (true, 1.0));
     expect(pack.key, 'route-r1-aaaaaa');
     expect(pack.route.title, 'Gratweg');
+    expect([for (final t in pack.turns!) (t.alongM, t.kind)], [(40.5, 'left')]);
     expect(File(pack.files['landeskarte']!).readAsStringSync(), 'PMTiles-lk');
     expect(offlineStyle(pack.files), contains('pmtiles://file://'));
     expect((await store.savedRoutes()).single.line.length, 2);
@@ -116,6 +130,14 @@ void main() {
     await store.delete('r1');
     expect(await store.saved('r1'), isNull);
     expect(await store.savedRoutes(), isEmpty);
+  });
+
+  test('saved without turns when they cannot be had', () async {
+    final server = FakeServer()..turnsDown = true;
+    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final pack = await PackStore(root, poll: Duration.zero).save(api, 'r1', progress: (_, _) {});
+    expect(pack.turns, isNull);
+    expect(pack.files, hasLength(2));
   });
 
   test('a broken off download goes on where it stopped', () async {

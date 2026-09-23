@@ -3,9 +3,11 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sync/atomic"
 	"testing"
 
 	"github.com/tellbow/odysgeh/api/internal/auth"
@@ -97,5 +99,49 @@ func TestRouteLeg(t *testing.T) {
 
 	if code, body := c.do("GET", "/api/v1/routing/profiles", nil); code != http.StatusOK {
 		t.Errorf("profiles: %d %s", code, body)
+	}
+}
+
+func TestRouteTurns(t *testing.T) {
+	// GraphHopper matches the line of newRouteBody (8.0 → 8.004 at 46.5° N)
+	// onto itself, turning right at 8.002.
+	var failing atomic.Bool
+	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/match" || failing.Load() {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		_, _ = w.Write([]byte(`{"paths":[{"points":{"coordinates":[[8.0,46.5],[8.002,46.5],[8.004,46.5]]},
+			"instructions":[{"sign":0,"interval":[0,1]},{"sign":2,"interval":[1,2]},{"sign":4,"interval":[2,2]}]}]}`))
+	}))
+	t.Cleanup(gh.Close)
+	s := newTestServerWith(t, func(d *Deps) {
+		d.Router = &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}}
+	})
+	owner, other, anon := s.client(t), s.client(t), s.client(t)
+	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
+	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	_, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "private"))
+	var r savedRoute
+	_ = json.Unmarshal(body, &r)
+	path := "/api/v1/routes/" + r.ID + "/turns"
+
+	code, body := owner.do("GET", path, nil)
+	var out struct{ Turns []routing.Turn }
+	if err := json.Unmarshal(body, &out); code != http.StatusOK || err != nil {
+		t.Fatalf("turns: %d %s", code, body)
+	}
+	if len(out.Turns) != 1 || out.Turns[0].Kind != "right" || math.Abs(out.Turns[0].AlongM-153) > 2 {
+		t.Errorf("turns: %s", body)
+	}
+	if code, _ := anon.do("GET", path, nil); code != http.StatusUnauthorized {
+		t.Errorf("anonymous: %d", code)
+	}
+	if code, _ := other.do("GET", path, nil); code != http.StatusNotFound {
+		t.Errorf("someone else's private route: %d", code)
+	}
+	failing.Store(true)
+	if code, _ := owner.do("GET", path, nil); code != http.StatusServiceUnavailable {
+		t.Errorf("GraphHopper down: %d", code)
 	}
 }

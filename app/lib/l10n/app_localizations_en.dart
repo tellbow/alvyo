@@ -153,4 +153,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String watchOutside(String reason) {
     return 'Not imported: $reason';
   }
+
+  @override
+  String get turnSharpLeft => 'Turn sharp left';
+
+  @override
+  String get turnLeft => 'Turn left';
+
+  @override
+  String get turnSlightLeft => 'Turn slightly left';
+
+  @override
+  String get turnKeepLeft => 'Keep left';
+
+  @override
+  String get turnUTurn => 'Turn around';
+
+  @override
+  String get turnSlightRight => 'Turn slightly right';
+
+  @override
+  String get turnRight => 'Turn right';
+
+  @override
+  String get turnSharpRight => 'Turn sharp right';
+
+  @override
+  String get turnKeepRight => 'Keep right';
+
+  @override
+  String turnIn(int metres, String turn) {
+    return 'In $metres metres, $turn';
+  }
+
+  @override
+  String get navVoiceOn => 'Turn on voice prompts';
+
+  @override
+  String get navVoiceOff => 'Turn off voice prompts';
 }

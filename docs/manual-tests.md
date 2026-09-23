@@ -15,14 +15,30 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **No false alarms**: with real GPS jitter, in forests and on switchbacks,
       no warning while on the path (thresholds: 2 positions over 50 m, back
       under 30 m).
-- [ ] **Out-and-back routes and loops**: the progress keeps going forward on the
-      way back.
+- [ ] **Loops**: the progress keeps going forward past the start.
 - [ ] **Remaining time** compared with the time actually needed, at the pace set
       in the account.
+- [ ] **Spoken turns** on a planned route, phone in the pocket with the screen
+      locked: «In 100 Metern links abbiegen» about 100 m before a junction and
+      «Links abbiegen» about 20 m before it, then «Ziel erreicht». Heard over
+      music (turned down meanwhile) and with the silent switch on; the voice
+      (Swiss if installed, else German) and the timing at walking speed are
+      right. Only simulated so far: the prompts and the iOS voice channel,
+      not listened to.
+- [ ] **Turns that are there**: every announced turn is a real junction, none
+      is missing where the route leaves the main path; in villages (sidewalks,
+      crossings) not too many. The turns are GraphHopper's for the OSM paths,
+      checked on synthetic lines only (`api/internal/routing/turns_live_test.go`).
+- [ ] **Out-and-back route** (to a summit and back the same way): the turns on
+      the way back are announced, the progress keeps growing. The U-turn
+      itself may not be announced.
+- [ ] **Voice button**: off stops the prompts for this hike (it is on again
+      at the next start).
 - [ ] **Following on the map** at walking speed: the map glides to the position
       at zoom 15; panning stops following, the button brings it back.
 - [ ] **Offline map without reception** (airplane mode): the saved route and its
-      map open, the position shows on it.
+      map open, the position shows on it, the turns are announced (saved with
+      the map; a map saved before this version has none offline).
 - [ ] **Saving an offline map** goes on after leaving the route screen, and a
       download broken off (reception lost, app in the background for long)
       continues where it stopped when saving again.
@@ -49,5 +65,7 @@ Checked so far only in the simulator, with made-up or simulated positions
 
 ## Server
 
+- [ ] **Turns for imported Komoot tours**: planned ones get turns, recorded ones
+      (GPS tracks) none or few; nothing announced along a straight leg.
 - [ ] **Long Watch hikes** (8 h, a position every second) upload within the
       50,000-point limit; the app sends points 5 m apart.

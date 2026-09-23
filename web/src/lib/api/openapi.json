@@ -3768,6 +3768,50 @@
         ],
         "type": "object"
       },
+      "Turn": {
+        "additionalProperties": false,
+        "properties": {
+          "along_m": {
+            "description": "Metres from the start of the route",
+            "format": "double",
+            "type": "number"
+          },
+          "kind": {
+            "enum": [
+              "sharp_left",
+              "left",
+              "slight_left",
+              "keep_left",
+              "u_turn",
+              "slight_right",
+              "right",
+              "sharp_right",
+              "keep_right"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "along_m",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "TurnsOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/Turn"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "turns"
+        ],
+        "type": "object"
+      },
       "UpdateCollectionInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -9691,6 +9735,59 @@
         "summary": "Switch comments on or off (owner)",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/routes/{id}/turns": {
+      "get": {
+        "description": "The route's line matched onto the path network. Where it does not follow the network, as GPS tracks and straight legs do not, there are no turns.",
+        "operationId": "get-route-turns",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnsOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Turns along a route, for spoken navigation",
+        "tags": [
+          "routes"
         ]
       }
     },

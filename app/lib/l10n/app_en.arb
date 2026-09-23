@@ -44,5 +44,17 @@
   "watchNoTrack": "This workout has no GPS track.",
   "watchEmpty": "No hikes in Apple Health in the last 60 days. Record them with the Workout app on your Apple Watch («Hiking» or «Outdoor Walk»). If you did not allow access: Settings → Apps → Health → Data Access & Devices → odysgeh.",
   "watchUnavailable": "Apple Health is not available on this device.",
-  "watchOutside": "Not imported: {reason}"
+  "watchOutside": "Not imported: {reason}",
+  "turnSharpLeft": "Turn sharp left",
+  "turnLeft": "Turn left",
+  "turnSlightLeft": "Turn slightly left",
+  "turnKeepLeft": "Keep left",
+  "turnUTurn": "Turn around",
+  "turnSlightRight": "Turn slightly right",
+  "turnRight": "Turn right",
+  "turnSharpRight": "Turn sharp right",
+  "turnKeepRight": "Keep right",
+  "turnIn": "In {metres} metres, {turn}",
+  "navVoiceOn": "Turn on voice prompts",
+  "navVoiceOff": "Turn off voice prompts"
 }

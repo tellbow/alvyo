@@ -146,12 +146,17 @@ class RouteTracker {
     );
   }
 
+  /// Within the window, going back costs this many metres per metre: on
+  /// the way back of an out-and-back route, the way there is just as near.
+  static const _backCost = 0.5;
+
   _Match _nearest(Fix fix, (double, double)? window) {
     final cosLat = cos(fix.lat * pi / 180);
     // Local metres around the fix.
     double x(List<double> p) => (p[0] - fix.lon) * cosLat * _mPerDeg;
     double y(List<double> p) => (p[1] - fix.lat) * _mPerDeg;
     _Match? best;
+    var bestScore = double.infinity;
     for (var i = 1; i < line.length; i++) {
       if (window != null && (_cumM[i] < window.$1 || _cumM[i - 1] > window.$2)) continue;
       final ax = x(line[i - 1]), ay = y(line[i - 1]), bx = x(line[i]), by = y(line[i]);
@@ -160,10 +165,13 @@ class RouteTracker {
       final t = len2 == 0 ? 0.0 : ((-ax * dx - ay * dy) / len2).clamp(0.0, 1.0);
       final px = ax + t * dx, py = ay + t * dy;
       final d = sqrt(px * px + py * py);
-      if (best == null || d < best.distanceM) {
+      final along = _cumM[i - 1] + t * (_cumM[i] - _cumM[i - 1]);
+      final score = window == null ? d : d + _backCost * max(0.0, (_alongM ?? 0) - along);
+      if (score < bestScore) {
+        bestScore = score;
         best = _Match(
           distanceM: d,
-          alongM: _cumM[i - 1] + t * (_cumM[i] - _cumM[i - 1]),
+          alongM: along,
           minutes: _cumMin[i - 1] + t * (_cumMin[i] - _cumMin[i - 1]),
           at: [line[i - 1][0] + t * (line[i][0] - line[i - 1][0]), line[i - 1][1] + t * (line[i][1] - line[i - 1][1])],
         );

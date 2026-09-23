@@ -72,6 +72,17 @@ class RouteDetail extends RouteSummary {
   final List<List<double>> line;
 }
 
+/// A junction where the route turns, [alongM] metres from its start; the
+/// kind is left, sharp_right, keep_left, u_turn and so on.
+class Turn {
+  const Turn(this.alongM, this.kind);
+  Turn.fromJson(Map<String, dynamic> j) : alongM = (j['along_m'] as num).toDouble(), kind = j['kind'] as String;
+  final double alongM;
+  final String kind;
+
+  Map<String, dynamic> toJson() => {'along_m': alongM, 'kind': kind};
+}
+
 /// One layer of an offline map on the server.
 class PackFile {
   PackFile.fromJson(Map<String, dynamic> j)
@@ -158,6 +169,13 @@ class Api {
   }
 
   Future<RouteDetail> route(String id) async => RouteDetail.fromJson(await _get('/routes/$id') as Map<String, dynamic>);
+
+  /// The turns along a route, for spoken navigation; none where it does not
+  /// follow the path network.
+  Future<List<Turn>> turns(String routeId) async {
+    final j = await _get('/routes/$routeId/turns') as Map<String, dynamic>;
+    return [for (final t in j['turns'] as List) Turn.fromJson(t as Map<String, dynamic>)];
+  }
 
   /// Saves a recorded hike as a route; uploading the same [id] again is fine.
   /// Returns the route id.

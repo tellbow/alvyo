@@ -56,7 +56,7 @@ class _RouteScreenState extends State<RouteScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final summary = await Navigator.of(context).push<HikeSummary>(
       MaterialPageRoute(
-        builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack),
+        builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack, turns: _pack?.turns),
       ),
     );
     if (!mounted) return;

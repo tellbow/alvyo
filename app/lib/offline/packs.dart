@@ -8,7 +8,7 @@ import '../api.dart';
 
 /// A route saved on the phone with its offline map.
 class SavedPack {
-  SavedPack(this.key, this.files, this.route);
+  SavedPack(this.key, this.files, this.route, this.turns);
 
   /// The server's pack key when saved; another key means the route changed.
   final String key;
@@ -16,6 +16,9 @@ class SavedPack {
   /// PMTiles file by layer.
   final Map<String, String> files;
   final RouteDetail route;
+
+  /// For spoken navigation; null if they could not be had when saving.
+  final List<Turn>? turns;
 }
 
 /// Offline maps of routes. The server builds them as PMTiles (national map
@@ -44,6 +47,10 @@ class PackStore {
       // Names only: the app's directory moves with app updates on iOS.
       {for (final e in (m['files'] as Map<String, dynamic>).entries) e.key: '${dir.path}/${e.value}'},
       RouteDetail.fromJson(m['route'] as Map<String, dynamic>),
+      switch (m['turns']) {
+        final List<dynamic> ts => [for (final t in ts) Turn.fromJson(t as Map<String, dynamic>)],
+        _ => null,
+      },
     );
   }
 
@@ -70,6 +77,12 @@ class PackStore {
     required void Function(bool downloading, double share) progress,
   }) async {
     final route = await api.route(routeId);
+    List<Turn>? turns;
+    try {
+      turns = await api.turns(routeId);
+    } on Exception {
+      // saved without; navigating asks again when online
+    }
     var st = await api.buildPack(routeId);
     while (st.state != 'ready') {
       if (st.state == 'failed') throw ApiException(500, 'the offline map could not be built');
@@ -124,6 +137,7 @@ class PackStore {
         'key': st.key,
         'files': {for (final f in st.files) f.layer: f.name},
         'route': route.json,
+        if (turns != null) 'turns': [for (final t in turns) t.toJson()],
       }),
     );
     await tmp.rename(manifest.path);

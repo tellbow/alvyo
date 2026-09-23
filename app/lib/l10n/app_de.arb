@@ -85,5 +85,28 @@
         "type": "String"
       }
     }
+  },
+  "turnSharpLeft": "Scharf links abbiegen",
+  "turnLeft": "Links abbiegen",
+  "turnSlightLeft": "Leicht links abbiegen",
+  "turnKeepLeft": "Links halten",
+  "turnUTurn": "Umkehren",
+  "turnSlightRight": "Leicht rechts abbiegen",
+  "turnRight": "Rechts abbiegen",
+  "turnSharpRight": "Scharf rechts abbiegen",
+  "turnKeepRight": "Rechts halten",
+  "turnIn": "In {metres} Metern {turn}",
+  "navVoiceOn": "Ansagen einschalten",
+  "navVoiceOff": "Ansagen ausschalten",
+  "@turnIn": {
+    "description": "Said about 100 m before a turn; {turn} is one of the turn texts, starting lower case.",
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      },
+      "turn": {
+        "type": "String"
+      }
+    }
   }
 }

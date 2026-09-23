@@ -14,7 +14,9 @@ import '../map_style.dart';
 import '../navigation/alerts.dart';
 import '../navigation/gps.dart';
 import '../navigation/recording.dart';
+import '../navigation/speech.dart';
 import '../navigation/tracker.dart';
+import '../navigation/turns.dart';
 import '../offline/packs.dart';
 import '../route_layers.dart';
 
@@ -26,16 +28,19 @@ class HikeSummary {
 }
 
 /// Hiking a route: the position on the (offline) map, how far it is still,
-/// a warning when leaving the route, and a recording of the hike.
+/// the next turn, spoken too, a warning when leaving the route, and a
+/// recording of the hike.
 class NavigateScreen extends StatefulWidget {
   const NavigateScreen({
     super.key,
     required this.api,
     required this.route,
     this.pack,
+    this.turns,
     this.positions,
     this.recordings,
     this.alerts,
+    this.speech,
   });
 
   final Api api;
@@ -44,10 +49,14 @@ class NavigateScreen extends StatefulWidget {
   /// The saved offline map, if any.
   final SavedPack? pack;
 
+  /// The turns saved with it; else they are asked for online.
+  final List<Turn>? turns;
+
   /// For tests: positions instead of the GPS.
   final Stream<Fix> Function()? positions;
   final Directory? recordings;
   final Alerts? alerts;
+  final Speech? speech;
 
   @override
   State<NavigateScreen> createState() => _NavigateScreenState();
@@ -56,6 +65,9 @@ class NavigateScreen extends StatefulWidget {
 class _NavigateScreenState extends State<NavigateScreen> {
   late final RouteTracker _tracker = RouteTracker(widget.route.line, durationS: widget.route.totals.durationS);
   late final Alerts _alerts = widget.alerts ?? Alerts();
+  late final Speech _speech = widget.speech ?? Speech();
+  late TurnGuide? _guide = widget.turns == null ? null : TurnGuide(widget.turns!);
+  bool _voice = true;
   Recording? _recording;
   StreamSubscription<Fix>? _sub;
   MapController? _map;
@@ -78,6 +90,14 @@ class _NavigateScreenState extends State<NavigateScreen> {
           if (mounted) setState(() => _tracker.speedFactor = m.speedFactor);
         })
         .catchError((_) {}); // offline: the signposts' pace
+    if (_guide == null) {
+      widget.api
+          .turns(widget.route.id)
+          .then((turns) {
+            if (mounted) setState(() => _guide = TurnGuide(turns));
+          })
+          .catchError((_) {}); // offline and not saved with the map: no turns
+    }
     _start();
     _clock = Timer.periodic(const Duration(seconds: 30), (_) => setState(() {})); // elapsed time
   }
@@ -128,8 +148,12 @@ class _NavigateScreenState extends State<NavigateScreen> {
         nativeDuration: const Duration(milliseconds: 400),
       );
     }
-    if (p == null || p.offRoute == wasOff || !mounted) return;
+    if (p == null || !mounted) return;
     final t = AppLocalizations.of(context);
+    if (_guide?.prompt(p) case final prompt? when _voice) {
+      await _speech.say(_promptText(t, prompt), Localizations.localeOf(context).languageCode);
+    }
+    if (p.offRoute == wasOff || !mounted) return;
     if (p.offRoute) {
       await HapticFeedback.vibrate();
       await _alerts.offRoute(t.navOffRouteTitle, t.navOffRoute(p.distanceToRouteM.round()));
@@ -230,7 +254,15 @@ class _NavigateScreenState extends State<NavigateScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(r.title),
-          actions: [TextButton(key: const Key('nav-finish'), onPressed: _finish, child: Text(t.navFinish))],
+          actions: [
+            IconButton(
+              key: const Key('nav-voice'),
+              onPressed: () => setState(() => _voice = !_voice),
+              icon: Icon(_voice ? Icons.volume_up : Icons.volume_off),
+              tooltip: _voice ? t.navVoiceOff : t.navVoiceOn,
+            ),
+            TextButton(key: const Key('nav-finish'), onPressed: _finish, child: Text(t.navFinish)),
+          ],
         ),
         body: Column(
           children: [
@@ -285,7 +317,15 @@ class _NavigateScreenState extends State<NavigateScreen> {
                 text: t.navOffRoute(p.distanceToRouteM.round()),
               )
             else if (p != null && p.arrived)
-              _Banner(color: Theme.of(context).colorScheme.primaryContainer, text: t.navArrived),
+              _Banner(color: Theme.of(context).colorScheme.primaryContainer, text: t.navArrived)
+            else if (p != null)
+              if (_guide?.next(p.doneM) case (final turn, final inM)?)
+                _Banner(
+                  key: const Key('nav-turn'),
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  icon: _turnIcons[turn.kind],
+                  text: '${turnText(t, turn.kind)} · ${formatDistance(inM)}',
+                ),
             SafeArea(
               top: false,
               child: Padding(
@@ -337,15 +377,56 @@ class _Stat extends StatelessWidget {
 }
 
 class _Banner extends StatelessWidget {
-  const _Banner({super.key, required this.color, required this.text});
+  const _Banner({super.key, required this.color, required this.text, this.icon});
   final Color color;
   final String text;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
     color: color,
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
+    child: Row(
+      children: [
+        if (icon != null) ...[Icon(icon), const SizedBox(width: 8)],
+        Expanded(child: Text(text, style: Theme.of(context).textTheme.titleSmall)),
+      ],
+    ),
   );
 }
+
+/// What a prompt says.
+String _promptText(AppLocalizations t, Prompt p) => switch (p) {
+  Prompt(turn: null) => t.navArrived,
+  Prompt(turn: final turn?, inM: final metres?) => t.turnIn(metres, _lowerFirst(turnText(t, turn.kind))),
+  Prompt(turn: final turn?) => turnText(t, turn.kind),
+};
+
+String _lowerFirst(String s) => s.isEmpty ? s : s[0].toLowerCase() + s.substring(1);
+
+/// The text of a turn kind (see Turn).
+String turnText(AppLocalizations t, String kind) => switch (kind) {
+  'sharp_left' => t.turnSharpLeft,
+  'left' => t.turnLeft,
+  'slight_left' => t.turnSlightLeft,
+  'keep_left' => t.turnKeepLeft,
+  'u_turn' => t.turnUTurn,
+  'slight_right' => t.turnSlightRight,
+  'right' => t.turnRight,
+  'sharp_right' => t.turnSharpRight,
+  'keep_right' => t.turnKeepRight,
+  _ => kind,
+};
+
+const _turnIcons = {
+  'sharp_left': Icons.turn_sharp_left,
+  'left': Icons.turn_left,
+  'slight_left': Icons.turn_slight_left,
+  'keep_left': Icons.fork_left,
+  'u_turn': Icons.u_turn_left,
+  'slight_right': Icons.turn_slight_right,
+  'right': Icons.turn_right,
+  'sharp_right': Icons.turn_sharp_right,
+  'keep_right': Icons.fork_right,
+};

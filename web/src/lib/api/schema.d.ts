@@ -1452,6 +1452,26 @@ export interface paths {
         patch: operations["update-route-social"];
         trace?: never;
     };
+    "/routes/{id}/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Turns along a route, for spoken navigation
+         * @description The route's line matched onto the path network. Where it does not follow the network, as GPS tracks and straight legs do not, there are no turns.
+         */
+        get: operations["get-route-turns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routing/leg": {
         parameters: {
             query?: never;
@@ -2771,6 +2791,18 @@ export interface components {
             start: string;
             /** Format: int64 */
             transfers: number;
+        };
+        Turn: {
+            /**
+             * Format: double
+             * @description Metres from the start of the route
+             */
+            along_m: number;
+            /** @enum {string} */
+            kind: "sharp_left" | "left" | "slight_left" | "keep_left" | "u_turn" | "slight_right" | "right" | "sharp_right" | "keep_right";
+        };
+        TurnsOutputBody: {
+            turns: components["schemas"]["Turn"][];
         };
         UpdateCollectionInputBody: {
             description?: string;
@@ -6525,6 +6557,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-route-turns": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TurnsOutputBody"];
                 };
             };
             /** @description Error */

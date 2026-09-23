@@ -363,6 +363,78 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Nicht importiert: {reason}'**
   String watchOutside(String reason);
+
+  /// No description provided for @turnSharpLeft.
+  ///
+  /// In de, this message translates to:
+  /// **'Scharf links abbiegen'**
+  String get turnSharpLeft;
+
+  /// No description provided for @turnLeft.
+  ///
+  /// In de, this message translates to:
+  /// **'Links abbiegen'**
+  String get turnLeft;
+
+  /// No description provided for @turnSlightLeft.
+  ///
+  /// In de, this message translates to:
+  /// **'Leicht links abbiegen'**
+  String get turnSlightLeft;
+
+  /// No description provided for @turnKeepLeft.
+  ///
+  /// In de, this message translates to:
+  /// **'Links halten'**
+  String get turnKeepLeft;
+
+  /// No description provided for @turnUTurn.
+  ///
+  /// In de, this message translates to:
+  /// **'Umkehren'**
+  String get turnUTurn;
+
+  /// No description provided for @turnSlightRight.
+  ///
+  /// In de, this message translates to:
+  /// **'Leicht rechts abbiegen'**
+  String get turnSlightRight;
+
+  /// No description provided for @turnRight.
+  ///
+  /// In de, this message translates to:
+  /// **'Rechts abbiegen'**
+  String get turnRight;
+
+  /// No description provided for @turnSharpRight.
+  ///
+  /// In de, this message translates to:
+  /// **'Scharf rechts abbiegen'**
+  String get turnSharpRight;
+
+  /// No description provided for @turnKeepRight.
+  ///
+  /// In de, this message translates to:
+  /// **'Rechts halten'**
+  String get turnKeepRight;
+
+  /// Said about 100 m before a turn; {turn} is one of the turn texts, starting lower case.
+  ///
+  /// In de, this message translates to:
+  /// **'In {metres} Metern {turn}'**
+  String turnIn(int metres, String turn);
+
+  /// No description provided for @navVoiceOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Ansagen einschalten'**
+  String get navVoiceOn;
+
+  /// No description provided for @navVoiceOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Ansagen ausschalten'**
+  String get navVoiceOff;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

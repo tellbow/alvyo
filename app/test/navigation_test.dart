@@ -116,6 +116,31 @@ void main() {
       expect(last, closeTo(1990, 15));
     });
 
+    test('an out-and-back route on the same path goes on forward on the way back', () {
+      final there = [for (var e = 0.0; e <= 1000; e += 20) at(e)];
+      final tr = RouteTracker([...there, ...there.reversed.skip(1)], durationS: 3000);
+      var last = -1.0;
+      for (final e in [for (var e = 900.0; e <= 1000; e += 10) e, for (var e = 990.0; e >= 0; e -= 10) e]) {
+        final p = tr.update(fix(e, 2))!;
+        expect(p.doneM, greaterThan(last), reason: 'at $e m east');
+        last = p.doneM;
+      }
+      expect(last, closeTo(2000, 5));
+    });
+
+    test('walking back along the route goes back', () {
+      final tr = RouteTracker(straight, durationS: 1800);
+      for (var e = 0.0; e <= 600; e += 10) {
+        tr.update(fix(e));
+      }
+      Progress? p;
+      for (var e = 590.0; e >= 450; e -= 10) {
+        p = tr.update(fix(e));
+      }
+      expect(p!.doneM, closeTo(450, 10));
+      expect(p.offRoute, isFalse);
+    });
+
     test('a shortcut to a later part is followed', () {
       final tr = RouteTracker(straight, durationS: 1800);
       tr.update(fix(100));

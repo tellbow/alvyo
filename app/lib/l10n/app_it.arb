@@ -44,5 +44,17 @@
   "watchNoTrack": "Questo allenamento non ha una traccia GPS.",
   "watchEmpty": "Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l'app Allenamento su Apple Watch («Escursionismo» o «Camminata all'aperto»). Se non hai consentito l'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → odysgeh.",
   "watchUnavailable": "Apple Salute non è disponibile su questo dispositivo.",
-  "watchOutside": "Non importata: {reason}"
+  "watchOutside": "Non importata: {reason}",
+  "turnSharpLeft": "Svolta decisamente a sinistra",
+  "turnLeft": "Svolta a sinistra",
+  "turnSlightLeft": "Svolta leggermente a sinistra",
+  "turnKeepLeft": "Tieni la sinistra",
+  "turnUTurn": "Torna indietro",
+  "turnSlightRight": "Svolta leggermente a destra",
+  "turnRight": "Svolta a destra",
+  "turnSharpRight": "Svolta decisamente a destra",
+  "turnKeepRight": "Tieni la destra",
+  "turnIn": "Tra {metres} metri, {turn}",
+  "navVoiceOn": "Attiva gli annunci vocali",
+  "navVoiceOff": "Disattiva gli annunci vocali"
 }

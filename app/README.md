@@ -2,8 +2,12 @@
 
 Flutter app for iOS (Android later): log in, list your routes, show a route on
 the swisstopo national map and save it offline, and hike it: your position on
-the map, how far and how long it is still, a warning (also as a notification)
-when you leave the route, and a recording of the hike. Offline maps are
+the map, how far and how long it is still, the next turn, also spoken (about
+100 m before and at the junction, with the screen locked too), a warning (also
+as a notification) when you leave the route, and a recording of the hike. The
+turns come from the API (`GET /routes/{id}/turns`: the line matched onto the
+path network with GraphHopper; recorded GPS tracks get none) and are saved
+with the offline map. Offline maps are
 PMTiles packs built by the API (`docs/adr/0004-offline-maps.md`); saved routes
 open without a connection. Finished hikes are uploaded as routes (`POST
 /hikes`), right away or once online, and show in «Meine Routen» with the date.

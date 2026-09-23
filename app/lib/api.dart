@@ -44,9 +44,16 @@ class RouteSummary {
     : id = j['id'] as String,
       title = j['title'] as String,
       owner = j['owner_username'] as String,
-      totals = Totals.fromJson(j['totals'] as Map<String, dynamic>);
+      totals = Totals.fromJson(j['totals'] as Map<String, dynamic>),
+      hikedAt = switch (j['hike']) {
+        {'at': final String at} => DateTime.parse(at),
+        _ => null,
+      };
   final String id, title, owner;
   final Totals totals;
+
+  /// When it was hiked, for hikes recorded with the app.
+  final DateTime? hikedAt;
 }
 
 /// A route with its line (lon, lat, elevation per point).
@@ -151,6 +158,29 @@ class Api {
   }
 
   Future<RouteDetail> route(String id) async => RouteDetail.fromJson(await _get('/routes/$id') as Map<String, dynamic>);
+
+  /// Saves a recorded hike as a route; uploading the same [id] again is fine.
+  /// Returns the route id.
+  Future<String> uploadHike({
+    required String id,
+    String? routeId,
+    required String title,
+    required List<({double lon, double lat, DateTime time})> points,
+  }) async {
+    final r = await _http.post(
+      _uri('/hikes'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'id': id,
+        'route_id': ?routeId,
+        'title': title,
+        'points': [
+          for (final p in points) {'lon': p.lon, 'lat': p.lat, 't': p.time.toUtc().toIso8601String()},
+        ],
+      }),
+    );
+    return (_decode(r) as Map<String, dynamic>)['id'] as String;
+  }
 
   /// Has the server build the offline map of a route, unless it is built.
   Future<PackStatus> buildPack(String routeId) async => PackStatus.fromJson(

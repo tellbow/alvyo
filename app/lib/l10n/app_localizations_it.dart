@@ -64,4 +64,93 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get routesOffline => 'Offline – solo percorsi salvati';
+
+  @override
+  String get navStart => 'Inizia l\'escursione';
+
+  @override
+  String get navResume => 'Riprendi l\'escursione';
+
+  @override
+  String get navDone => 'Percorso';
+
+  @override
+  String get navRemaining => 'Mancano';
+
+  @override
+  String get navElapsed => 'In cammino';
+
+  @override
+  String navOffRoute(int metres) {
+    return 'A $metres m dal percorso';
+  }
+
+  @override
+  String get navOffRouteTitle => 'Fuori percorso';
+
+  @override
+  String get navArrived => 'Arrivo raggiunto';
+
+  @override
+  String get navWaiting => 'In attesa del GPS …';
+
+  @override
+  String get navFinish => 'Termina';
+
+  @override
+  String get navFinishQuestion => 'Terminare l\'escursione e salvare la registrazione?';
+
+  @override
+  String get navContinue => 'Continua';
+
+  @override
+  String get navNoPermission => 'L\'app ha bisogno della tua posizione. Consentila nelle impostazioni.';
+
+  @override
+  String navSaved(String distance, String duration) {
+    return 'Registrata: $distance in $duration. Verrà caricata appena sei online.';
+  }
+
+  @override
+  String get navFollow => 'Segui la mia posizione';
+
+  @override
+  String navUploaded(String distance, String duration) {
+    return 'Salvata in I miei percorsi: $distance in $duration';
+  }
+
+  @override
+  String routesHiked(String date) {
+    return 'Percorsa il $date';
+  }
+
+  @override
+  String get watchTitle => 'Da Apple Watch';
+
+  @override
+  String get watchHike => 'Escursione';
+
+  @override
+  String get watchWalk => 'Camminata';
+
+  @override
+  String get watchImport => 'Importa';
+
+  @override
+  String get watchImported => 'Importata – in I miei percorsi';
+
+  @override
+  String get watchNoTrack => 'Questo allenamento non ha una traccia GPS.';
+
+  @override
+  String get watchEmpty =>
+      'Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l\'app Allenamento su Apple Watch («Escursionismo» o «Camminata all\'aperto»). Se non hai consentito l\'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → odysgeh.';
+
+  @override
+  String get watchUnavailable => 'Apple Salute non è disponibile su questo dispositivo.';
+
+  @override
+  String watchOutside(String reason) {
+    return 'Non importata: $reason';
+  }
 }

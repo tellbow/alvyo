@@ -64,4 +64,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get routesOffline => 'Offline – saved routes only';
+
+  @override
+  String get navStart => 'Start hike';
+
+  @override
+  String get navResume => 'Resume hike';
+
+  @override
+  String get navDone => 'Walked';
+
+  @override
+  String get navRemaining => 'To go';
+
+  @override
+  String get navElapsed => 'Underway';
+
+  @override
+  String navOffRoute(int metres) {
+    return '$metres m off the route';
+  }
+
+  @override
+  String get navOffRouteTitle => 'Off the route';
+
+  @override
+  String get navArrived => 'Destination reached';
+
+  @override
+  String get navWaiting => 'Waiting for GPS …';
+
+  @override
+  String get navFinish => 'Finish';
+
+  @override
+  String get navFinishQuestion => 'Finish the hike and save the recording?';
+
+  @override
+  String get navContinue => 'Keep going';
+
+  @override
+  String get navNoPermission => 'This needs your location. Allow it in Settings.';
+
+  @override
+  String navSaved(String distance, String duration) {
+    return 'Recorded: $distance in $duration. It will be uploaded once you are online.';
+  }
+
+  @override
+  String get navFollow => 'Follow my position';
+
+  @override
+  String navUploaded(String distance, String duration) {
+    return 'Saved to My routes: $distance in $duration';
+  }
+
+  @override
+  String routesHiked(String date) {
+    return 'Hiked on $date';
+  }
+
+  @override
+  String get watchTitle => 'From Apple Watch';
+
+  @override
+  String get watchHike => 'Hike';
+
+  @override
+  String get watchWalk => 'Walk';
+
+  @override
+  String get watchImport => 'Import';
+
+  @override
+  String get watchImported => 'Imported – in My routes';
+
+  @override
+  String get watchNoTrack => 'This workout has no GPS track.';
+
+  @override
+  String get watchEmpty =>
+      'No hikes in Apple Health in the last 60 days. Record them with the Workout app on your Apple Watch («Hiking» or «Outdoor Walk»). If you did not allow access: Settings → Apps → Health → Data Access & Devices → odysgeh.';
+
+  @override
+  String get watchUnavailable => 'Apple Health is not available on this device.';
+
+  @override
+  String watchOutside(String reason) {
+    return 'Not imported: $reason';
+  }
 }

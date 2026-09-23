@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
@@ -8,7 +6,11 @@ import '../camera.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
+import '../navigation/recording.dart';
+import '../navigation/uploads.dart';
 import '../offline/packs.dart';
+import '../route_layers.dart';
+import 'navigate_screen.dart';
 
 /// A route on the national map, with offline saving.
 class RouteScreen extends StatefulWidget {
@@ -26,7 +28,39 @@ class _RouteScreenState extends State<RouteScreen> {
   late Future<RouteDetail> _route = _load();
   SavedPack? _pack;
   bool _outdated = false;
+  bool _resumable = false; // a hike on this route is still being recorded
   ({bool downloading, double share})? _progress; // while saving
+
+  @override
+  void initState() {
+    super.initState();
+    Recording.defaultRoot().then(Recording.active).then((rec) {
+      if (mounted && rec?.routeId == widget.id) setState(() => _resumable = true);
+    });
+  }
+
+  Future<void> _hike(RouteDetail r) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final summary = await Navigator.of(context).push<HikeSummary>(
+      MaterialPageRoute(
+        builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack),
+      ),
+    );
+    if (!mounted) return;
+    setState(() => _resumable = false);
+    if (summary == null) return;
+    final uploaded = await uploadHikes(widget.api, await Recording.defaultRoot()).catchError((_) => 0);
+    final distance = formatDistance(summary.distanceM), duration = formatDuration(summary.duration.inSeconds);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          key: const Key('nav-saved'),
+          uploaded > 0 ? t.navUploaded(distance, duration) : t.navSaved(distance, duration),
+        ),
+      ),
+    );
+  }
 
   /// The saved copy if there is one, so it opens offline; else the server's.
   Future<RouteDetail> _load() async {
@@ -40,36 +74,6 @@ class _RouteScreenState extends State<RouteScreen> {
         })
         .catchError((_) {}); // offline: keep what is saved
     return pack.route;
-  }
-
-  Future<void> _showLine(StyleController style, RouteDetail r) async {
-    final geojson = jsonEncode({
-      'type': 'Feature',
-      'properties': {},
-      'geometry': {
-        'type': 'LineString',
-        'coordinates': [
-          for (final c in r.line) [c[0], c[1]],
-        ],
-      },
-    });
-    await style.addSource(GeoJsonSource(id: 'route', data: geojson));
-    await style.addLayer(
-      const LineStyleLayer(
-        id: 'route-casing',
-        sourceId: 'route',
-        paint: {'line-color': '#ffffff', 'line-width': 7},
-        layout: {'line-cap': 'round', 'line-join': 'round'},
-      ),
-    );
-    await style.addLayer(
-      const LineStyleLayer(
-        id: 'route-line',
-        sourceId: 'route',
-        paint: {'line-color': '#7e22ce', 'line-width': 4},
-        layout: {'line-cap': 'round', 'line-join': 'round'},
-      ),
-    );
   }
 
   Future<void> _save() async {
@@ -136,7 +140,7 @@ class _RouteScreenState extends State<RouteScreen> {
                         initCenter: Geographic(lon: view.lon, lat: view.lat),
                         initZoom: view.zoom,
                       ),
-                      onStyleLoaded: (style) => _showLine(style, r),
+                      onStyleLoaded: (style) => addRouteLine(style, r.line),
                     );
                   },
                 ),
@@ -153,6 +157,13 @@ class _RouteScreenState extends State<RouteScreen> {
                         '↑ ${r.totals.ascentM.round()} m ↓ ${r.totals.descentM.round()} m · '
                         '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
                         style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.icon(
+                        key: const Key('nav-start'),
+                        onPressed: _progress == null ? () => _hike(r) : null,
+                        icon: const Icon(Icons.hiking),
+                        label: Text(_resumable ? t.navResume : t.navStart),
                       ),
                       const SizedBox(height: 8),
                       if (_progress case final p?) ...[
@@ -174,7 +185,7 @@ class _RouteScreenState extends State<RouteScreen> {
                           label: Text(t.offlineSaved),
                         ),
                       ] else
-                        FilledButton.icon(
+                        FilledButton.tonalIcon(
                           key: const Key('offline-save'),
                           onPressed: _save,
                           icon: const Icon(Icons.download),

@@ -207,6 +207,162 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Offline – nur gespeicherte Routen'**
   String get routesOffline;
+
+  /// No description provided for @navStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderung starten'**
+  String get navStart;
+
+  /// No description provided for @navResume.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderung fortsetzen'**
+  String get navResume;
+
+  /// No description provided for @navDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Gegangen'**
+  String get navDone;
+
+  /// No description provided for @navRemaining.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch'**
+  String get navRemaining;
+
+  /// No description provided for @navElapsed.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterwegs'**
+  String get navElapsed;
+
+  /// No description provided for @navOffRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'{metres} m neben der Route'**
+  String navOffRoute(int metres);
+
+  /// No description provided for @navOffRouteTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht mehr auf der Route'**
+  String get navOffRouteTitle;
+
+  /// No description provided for @navArrived.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel erreicht'**
+  String get navArrived;
+
+  /// No description provided for @navWaiting.
+  ///
+  /// In de, this message translates to:
+  /// **'Warte auf GPS …'**
+  String get navWaiting;
+
+  /// No description provided for @navFinish.
+  ///
+  /// In de, this message translates to:
+  /// **'Beenden'**
+  String get navFinish;
+
+  /// No description provided for @navFinishQuestion.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderung beenden und die Aufzeichnung speichern?'**
+  String get navFinishQuestion;
+
+  /// No description provided for @navContinue.
+  ///
+  /// In de, this message translates to:
+  /// **'Weitergehen'**
+  String get navContinue;
+
+  /// No description provided for @navNoPermission.
+  ///
+  /// In de, this message translates to:
+  /// **'Dafür braucht die App deinen Standort. Erlaube ihn in den Einstellungen.'**
+  String get navNoPermission;
+
+  /// No description provided for @navSaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufgezeichnet: {distance} in {duration}. Wird hochgeladen, sobald du online bist.'**
+  String navSaved(String distance, String duration);
+
+  /// No description provided for @navFollow.
+  ///
+  /// In de, this message translates to:
+  /// **'Meiner Position folgen'**
+  String get navFollow;
+
+  /// No description provided for @navUploaded.
+  ///
+  /// In de, this message translates to:
+  /// **'Gespeichert unter «Meine Routen»: {distance} in {duration}'**
+  String navUploaded(String distance, String duration);
+
+  /// No description provided for @routesHiked.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewandert am {date}'**
+  String routesHiked(String date);
+
+  /// No description provided for @watchTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Von der Apple Watch'**
+  String get watchTitle;
+
+  /// No description provided for @watchHike.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderung'**
+  String get watchHike;
+
+  /// No description provided for @watchWalk.
+  ///
+  /// In de, this message translates to:
+  /// **'Spaziergang'**
+  String get watchWalk;
+
+  /// No description provided for @watchImport.
+  ///
+  /// In de, this message translates to:
+  /// **'Importieren'**
+  String get watchImport;
+
+  /// No description provided for @watchImported.
+  ///
+  /// In de, this message translates to:
+  /// **'Importiert – in «Meine Routen»'**
+  String get watchImported;
+
+  /// No description provided for @watchNoTrack.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieses Training hat keine GPS-Strecke.'**
+  String get watchNoTrack;
+
+  /// No description provided for @watchEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → odysgeh.'**
+  String get watchEmpty;
+
+  /// No description provided for @watchUnavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'Apple Health ist auf diesem Gerät nicht verfügbar.'**
+  String get watchUnavailable;
+
+  /// No description provided for @watchOutside.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht importiert: {reason}'**
+  String watchOutside(String reason);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -18,5 +18,72 @@
   "offlineDownloading": "Die Offline-Karte wird geladen …",
   "offlineOutdated": "Route geändert – Offline-Karte aktualisieren",
   "offlineFailed": "Die Offline-Karte konnte nicht gespeichert werden.",
-  "routesOffline": "Offline – nur gespeicherte Routen"
+  "routesOffline": "Offline – nur gespeicherte Routen",
+  "navStart": "Wanderung starten",
+  "navResume": "Wanderung fortsetzen",
+  "navDone": "Gegangen",
+  "navRemaining": "Noch",
+  "navElapsed": "Unterwegs",
+  "navOffRoute": "{metres} m neben der Route",
+  "@navOffRoute": {
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "navOffRouteTitle": "Nicht mehr auf der Route",
+  "navArrived": "Ziel erreicht",
+  "navWaiting": "Warte auf GPS …",
+  "navFinish": "Beenden",
+  "navFinishQuestion": "Wanderung beenden und die Aufzeichnung speichern?",
+  "navContinue": "Weitergehen",
+  "navNoPermission": "Dafür braucht die App deinen Standort. Erlaube ihn in den Einstellungen.",
+  "navSaved": "Aufgezeichnet: {distance} in {duration}. Wird hochgeladen, sobald du online bist.",
+  "@navSaved": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "navFollow": "Meiner Position folgen",
+  "navUploaded": "Gespeichert unter «Meine Routen»: {distance} in {duration}",
+  "@navUploaded": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "routesHiked": "Gewandert am {date}",
+  "@routesHiked": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "watchTitle": "Von der Apple Watch",
+  "watchHike": "Wanderung",
+  "watchWalk": "Spaziergang",
+  "watchImport": "Importieren",
+  "watchImported": "Importiert – in «Meine Routen»",
+  "watchNoTrack": "Dieses Training hat keine GPS-Strecke.",
+  "watchEmpty": "Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → odysgeh.",
+  "watchUnavailable": "Apple Health ist auf diesem Gerät nicht verfügbar.",
+  "watchOutside": "Nicht importiert: {reason}",
+  "@watchOutside": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  }
 }

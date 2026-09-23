@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
+import '../navigation/recording.dart';
+import '../navigation/uploads.dart';
 import '../offline/packs.dart';
 import 'route_screen.dart';
+import 'watch_screen.dart';
 
 /// The user's routes; the saved ones when the server cannot be reached.
 class RoutesScreen extends StatefulWidget {
@@ -21,7 +24,9 @@ class _RoutesScreenState extends State<RoutesScreen> {
 
   Future<(List<RouteSummary>, bool)> _load() async {
     try {
-      return (await widget.api.routes(), false);
+      final routes = await widget.api.routes();
+      _uploadHikes();
+      return (routes, false);
     } catch (e) {
       if (e is ApiException && e.status < 500) rethrow;
       final saved = await (await PackStore.open()).savedRoutes();
@@ -30,16 +35,37 @@ class _RoutesScreenState extends State<RoutesScreen> {
     }
   }
 
+  /// Hikes recorded while offline go up now; the list then shows them.
+  Future<void> _uploadHikes() async {
+    final n = await uploadHikes(widget.api, await Recording.defaultRoot()).catchError((_) => 0);
+    if (n > 0 && mounted) _reload();
+  }
+
+  void _reload() => setState(() {
+    _routes = _load();
+  });
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(t.routesTitle),
-        actions: [IconButton(onPressed: widget.onLogout, icon: const Icon(Icons.logout), tooltip: t.logout)],
+        actions: [
+          IconButton(
+            key: const Key('watch'),
+            onPressed: () async {
+              await Navigator.of(context).push(MaterialPageRoute(builder: (_) => WatchScreen(api: widget.api)));
+              if (mounted) _reload();
+            },
+            icon: const Icon(Icons.watch),
+            tooltip: t.watchTitle,
+          ),
+          IconButton(onPressed: widget.onLogout, icon: const Icon(Icons.logout), tooltip: t.logout),
+        ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => setState(() => _routes = _load()),
+        onRefresh: () async => _reload(),
         child: FutureBuilder(
           future: _routes,
           builder: (context, snap) {
@@ -61,15 +87,23 @@ class _RoutesScreenState extends State<RoutesScreen> {
                 final r = routes[offline ? i - 1 : i];
                 return ListTile(
                   title: Text(r.title),
+                  leading: r.hikedAt != null
+                      ? Icon(Icons.hiking, semanticLabel: t.routesHiked(formatDate(r.hikedAt!)))
+                      : null,
                   subtitle: Text(
+                    '${r.hikedAt != null ? '${t.routesHiked(formatDate(r.hikedAt!))} · ' : ''}'
                     '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
                     '↑ ${r.totals.ascentM.round()} m · ${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
                   ),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => RouteScreen(api: widget.api, id: r.id, title: r.title),
-                    ),
-                  ),
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => RouteScreen(api: widget.api, id: r.id, title: r.title),
+                      ),
+                    );
+                    // A hike may have been recorded and uploaded meanwhile.
+                    if (mounted) _reload();
+                  },
                 );
               },
             );

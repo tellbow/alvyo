@@ -3,6 +3,18 @@
 <plist version="1.0">
 <dict>
 	<!-- Plain HTTP to a server on the local network (development); the public server uses HTTPS. -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>odysgeh imports the hikes you recorded with your Apple Watch.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>odysgeh shows where you are on the route and records your hike.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>odysgeh records your hike while the phone is locked.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>odysgeh records your hike while the phone is locked.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

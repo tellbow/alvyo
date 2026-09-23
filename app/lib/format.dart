@@ -13,3 +13,9 @@ String formatSac(int grade, int max) {
   if (grade == 0) return '–';
   return max > grade ? 'T$grade–T$max' : 'T$grade';
 }
+
+/// A date as in Switzerland: 23.09.2026.
+String formatDate(DateTime d) {
+  final l = d.toLocal();
+  return '${l.day.toString().padLeft(2, '0')}.${l.month.toString().padLeft(2, '0')}.${l.year}';
+}

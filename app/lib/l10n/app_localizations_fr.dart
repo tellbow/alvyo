@@ -64,4 +64,93 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get routesOffline => 'Hors ligne – itinéraires enregistrés uniquement';
+
+  @override
+  String get navStart => 'Commencer la randonnée';
+
+  @override
+  String get navResume => 'Reprendre la randonnée';
+
+  @override
+  String get navDone => 'Parcouru';
+
+  @override
+  String get navRemaining => 'Reste';
+
+  @override
+  String get navElapsed => 'En route';
+
+  @override
+  String navOffRoute(int metres) {
+    return 'À $metres m de l\'itinéraire';
+  }
+
+  @override
+  String get navOffRouteTitle => 'Hors de l\'itinéraire';
+
+  @override
+  String get navArrived => 'Arrivée atteinte';
+
+  @override
+  String get navWaiting => 'En attente du GPS …';
+
+  @override
+  String get navFinish => 'Terminer';
+
+  @override
+  String get navFinishQuestion => 'Terminer la randonnée et enregistrer le tracé ?';
+
+  @override
+  String get navContinue => 'Continuer';
+
+  @override
+  String get navNoPermission => 'L\'app a besoin de ta position. Autorise-la dans les réglages.';
+
+  @override
+  String navSaved(String distance, String duration) {
+    return 'Enregistré : $distance en $duration. Envoi dès que tu seras en ligne.';
+  }
+
+  @override
+  String get navFollow => 'Suivre ma position';
+
+  @override
+  String navUploaded(String distance, String duration) {
+    return 'Enregistré dans Mes itinéraires : $distance en $duration';
+  }
+
+  @override
+  String routesHiked(String date) {
+    return 'Randonnée du $date';
+  }
+
+  @override
+  String get watchTitle => 'Depuis l\'Apple Watch';
+
+  @override
+  String get watchHike => 'Randonnée';
+
+  @override
+  String get watchWalk => 'Marche';
+
+  @override
+  String get watchImport => 'Importer';
+
+  @override
+  String get watchImported => 'Importé – dans Mes itinéraires';
+
+  @override
+  String get watchNoTrack => 'Cet entraînement n\'a pas de tracé GPS.';
+
+  @override
+  String get watchEmpty =>
+      'Aucune randonnée des 60 derniers jours dans Apple Health. Enregistre-les avec l\'app Exercice de l\'Apple Watch («Randonnée» ou «Marche en extérieur»). Si tu n\'as pas autorisé l\'accès : Réglages → Apps → Santé → Accès aux données et appareils → odysgeh.';
+
+  @override
+  String get watchUnavailable => 'Apple Santé n\'est pas disponible sur cet appareil.';
+
+  @override
+  String watchOutside(String reason) {
+    return 'Non importé : $reason';
+  }
 }

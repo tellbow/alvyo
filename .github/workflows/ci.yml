@@ -43,3 +43,22 @@ jobs:
       - run: bun run check
       - run: bun run lint
       - run: bun run test:unit --run --passWithNoTests
+
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.8
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test
+      - run: flutter analyze
+      # Unit and widget tests; the integration tests need a simulator and the
+      # dev stack (app/README.md).
+      - run: flutter test

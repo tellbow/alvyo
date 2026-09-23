@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../map_style.dart';
 import '../navigation/recording.dart';
 import '../navigation/uploads.dart';
+import '../offline/downloads.dart';
 import '../offline/packs.dart';
 import '../route_layers.dart';
 import 'navigate_screen.dart';
@@ -29,13 +30,24 @@ class _RouteScreenState extends State<RouteScreen> {
   SavedPack? _pack;
   bool _outdated = false;
   bool _resumable = false; // a hike on this route is still being recorded
-  ({bool downloading, double share})? _progress; // while saving
+  final _downloads = PackDownloads.instance;
 
   @override
   void initState() {
     super.initState();
     Recording.defaultRoot().then(Recording.active).then((rec) {
       if (mounted && rec?.routeId == widget.id) setState(() => _resumable = true);
+    });
+    // Saving since the screen was open before.
+    _downloads.running(widget.id)?.then(_saved).catchError((_) {});
+  }
+
+  void _saved(SavedPack pack) {
+    if (!mounted) return;
+    setState(() {
+      _pack = pack;
+      _outdated = false;
+      _route = Future.value(pack.route);
     });
   }
 
@@ -76,32 +88,14 @@ class _RouteScreenState extends State<RouteScreen> {
     return pack.route;
   }
 
+  /// Goes on when the screen is left; see PackDownloads.
   Future<void> _save() async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    setState(() => _progress = (downloading: false, share: 0));
     try {
-      final pack = await (await _store).save(
-        widget.api,
-        widget.id,
-        progress: (downloading, share) {
-          if (mounted) setState(() => _progress = (downloading: downloading, share: share));
-        },
-        cancelled: () => !mounted,
-      );
-      if (mounted) {
-        setState(() {
-          _pack = pack;
-          _outdated = false;
-          _route = Future.value(pack.route);
-        });
-      }
-    } on SaveCancelled {
-      // left the screen
+      _saved(await _downloads.save(widget.api, widget.id));
     } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(t.offlineFailed)));
-    } finally {
-      if (mounted) setState(() => _progress = null);
+      if (mounted) messenger.showSnackBar(SnackBar(content: Text(t.offlineFailed)));
     }
   }
 
@@ -159,38 +153,46 @@ class _RouteScreenState extends State<RouteScreen> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      FilledButton.icon(
-                        key: const Key('nav-start'),
-                        onPressed: _progress == null ? () => _hike(r) : null,
-                        icon: const Icon(Icons.hiking),
-                        label: Text(_resumable ? t.navResume : t.navStart),
+                      ValueListenableBuilder(
+                        valueListenable: _downloads.progress(widget.id),
+                        builder: (context, progress, _) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            FilledButton.icon(
+                              key: const Key('nav-start'),
+                              onPressed: progress == null ? () => _hike(r) : null,
+                              icon: const Icon(Icons.hiking),
+                              label: Text(_resumable ? t.navResume : t.navStart),
+                            ),
+                            const SizedBox(height: 8),
+                            if (progress case final p?) ...[
+                              Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
+                              const SizedBox(height: 4),
+                              LinearProgressIndicator(value: p.share),
+                            ] else if (pack != null) ...[
+                              if (_outdated)
+                                FilledButton.icon(
+                                  key: const Key('offline-update'),
+                                  onPressed: _save,
+                                  icon: const Icon(Icons.sync),
+                                  label: Text(t.offlineOutdated),
+                                ),
+                              OutlinedButton.icon(
+                                key: const Key('offline-remove'),
+                                onPressed: _remove,
+                                icon: const Icon(Icons.offline_pin),
+                                label: Text(t.offlineSaved),
+                              ),
+                            ] else
+                              FilledButton.tonalIcon(
+                                key: const Key('offline-save'),
+                                onPressed: _save,
+                                icon: const Icon(Icons.download),
+                                label: Text(t.offlineSave),
+                              ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      if (_progress case final p?) ...[
-                        Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
-                        const SizedBox(height: 4),
-                        LinearProgressIndicator(value: p.share),
-                      ] else if (pack != null) ...[
-                        if (_outdated)
-                          FilledButton.icon(
-                            key: const Key('offline-update'),
-                            onPressed: _save,
-                            icon: const Icon(Icons.sync),
-                            label: Text(t.offlineOutdated),
-                          ),
-                        OutlinedButton.icon(
-                          key: const Key('offline-remove'),
-                          onPressed: _remove,
-                          icon: const Icon(Icons.offline_pin),
-                          label: Text(t.offlineSaved),
-                        ),
-                      ] else
-                        FilledButton.tonalIcon(
-                          key: const Key('offline-save'),
-                          onPressed: _save,
-                          icon: const Icon(Icons.download),
-                          label: Text(t.offlineSave),
-                        ),
                     ],
                   ),
                 ),

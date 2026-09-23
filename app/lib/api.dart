@@ -190,9 +190,12 @@ class Api {
   Future<PackStatus> packStatus(String routeId) async =>
       PackStatus.fromJson(await _get('/routes/$routeId/pack') as Map<String, dynamic>);
 
-  /// Starts the download of one layer of a route's offline map (PMTiles).
-  Future<http.StreamedResponse> packFile(String routeId, String layer) async {
-    final r = await _http.send(http.Request('GET', _uri('/routes/$routeId/pack/$layer'))..headers.addAll(_headers));
+  /// Starts the download of one layer of a route's offline map (PMTiles),
+  /// [from] a byte offset to continue a broken off download (206 then).
+  Future<http.StreamedResponse> packFile(String routeId, String layer, {int from = 0}) async {
+    final req = http.Request('GET', _uri('/routes/$routeId/pack/$layer'))..headers.addAll(_headers);
+    if (from > 0) req.headers['Range'] = 'bytes=$from-';
+    final r = await _http.send(req);
     if (r.statusCode >= 400) _decode(await http.Response.fromStream(r));
     return r;
   }

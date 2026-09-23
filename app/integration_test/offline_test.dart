@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:odysgeh/api.dart';
@@ -60,6 +61,8 @@ void main() {
     final route = (await store.savedRoutes()).singleWhere((r) => r.title == 'Sargans–Weisstannen');
     final pack = (await store.saved(route.id))!;
     expect(pack.files.keys, unorderedEquals(['landeskarte', 'wanderwege']));
+    // Kept out of iCloud backups (the native side answers with the flag).
+    expect(await const MethodChannel('odysgeh/backup').invokeMethod<bool>('exclude', store.root.path), isTrue);
     for (final f in pack.files.values) {
       debugPrint('${f.split('/').last}: ${File(f).lengthSync()} bytes');
     }

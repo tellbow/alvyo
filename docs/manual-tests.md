@@ -23,6 +23,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       at zoom 15; panning stops following, the button brings it back.
 - [ ] **Offline map without reception** (airplane mode): the saved route and its
       map open, the position shows on it.
+- [ ] **Saving an offline map** goes on after leaving the route screen, and a
+      download broken off (reception lost, app in the background for long)
+      continues where it stopped when saving again.
+- [ ] **iCloud backup**: offline maps are not in it (Settings → your name →
+      iCloud → Manage storage → Backups: odysgeh stays small).
 - [ ] **App stopped mid-hike** (swipe it away, open it again): the route offers
       «Wanderung fortsetzen» and the hike goes on.
 - [ ] **Upload later**: finish a hike without reception; once online, it goes up

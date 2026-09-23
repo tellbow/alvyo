@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../api.dart';
@@ -16,9 +17,6 @@ class SavedPack {
   final Map<String, String> files;
   final RouteDetail route;
 }
-
-/// The caller stopped the save.
-class SaveCancelled implements Exception {}
 
 /// Offline maps of routes. The server builds them as PMTiles (national map
 /// and hiking trails within 1 km, zoom 10–16); they are kept in
@@ -65,47 +63,52 @@ class PackStore {
 
   /// Has the server build the offline map of a route, then downloads it and
   /// replaces an older one. [progress] gets whether it downloads yet and the
-  /// share done (0–1); [cancelled] is asked in between.
+  /// share done (0–1).
   Future<SavedPack> save(
     Api api,
     String routeId, {
     required void Function(bool downloading, double share) progress,
-    bool Function()? cancelled,
   }) async {
-    void check() {
-      if (cancelled?.call() ?? false) throw SaveCancelled();
-    }
-
     final route = await api.route(routeId);
     var st = await api.buildPack(routeId);
     while (st.state != 'ready') {
       if (st.state == 'failed') throw ApiException(500, 'the offline map could not be built');
       progress(false, st.total == 0 ? 0 : st.done / st.total);
       await Future<void>.delayed(poll);
-      check();
       st = await api.packStatus(routeId);
       if (st.state == 'missing') st = await api.buildPack(routeId); // the server restarted or the route changed
     }
 
     final dir = _dir(routeId);
     await dir.create(recursive: true);
+    await _excludeFromBackup();
     final total = st.files.fold<int>(0, (n, f) => n + f.bytes);
     var done = 0;
     for (final f in st.files) {
       if (!RegExp(r'^[\w.-]+\.pmtiles$').hasMatch(f.name)) throw ApiException(500, 'unexpected file ${f.name}');
       final file = File('${dir.path}/${f.name}');
       if (!await file.exists() || await file.length() != f.bytes) {
+        // A broken off download of the same file (the name holds the key)
+        // goes on where it stopped.
         final part = File('${file.path}.part');
-        final sink = part.openWrite();
-        try {
-          await for (final chunk in (await api.packFile(routeId, f.layer)).stream) {
-            check();
-            sink.add(chunk);
-            done += chunk.length;
-            progress(true, total == 0 ? 1 : done / total);
+        var have = await part.exists() ? await part.length() : 0;
+        if (have > f.bytes) have = 0;
+        if (have < f.bytes) {
+          final resp = await api.packFile(routeId, f.layer, from: have);
+          if (resp.statusCode != 206) have = 0; // the whole file after all
+          done += have;
+          final sink = part.openWrite(mode: have > 0 ? FileMode.append : FileMode.write);
+          try {
+            await for (final chunk in resp.stream) {
+              sink.add(chunk);
+              done += chunk.length;
+              progress(true, total == 0 ? 1 : done / total);
+            }
+          } finally {
+            await sink.close();
           }
-        } finally {
-          await sink.close();
+        } else {
+          done += have;
         }
         if (await part.length() != f.bytes) throw ApiException(500, 'the download of ${f.layer} broke off');
         await part.rename(file.path);
@@ -130,6 +133,17 @@ class PackStore {
       if (e is File && !keep.contains(e.uri.pathSegments.last)) await e.delete();
     }
     return (await saved(routeId))!;
+  }
+
+  /// Offline maps can be downloaded again: they stay out of iCloud backups
+  /// (AppDelegate.swift).
+  Future<void> _excludeFromBackup() async {
+    if (!Platform.isIOS) return;
+    try {
+      await const MethodChannel('odysgeh/backup').invokeMethod<bool>('exclude', root.path);
+    } on PlatformException {
+      // backed up after all; not worth failing the save
+    }
   }
 
   Future<void> delete(String routeId) async {

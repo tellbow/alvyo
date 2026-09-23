@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -28,16 +29,27 @@ type Store struct {
 
 const summaryColumns = `r.id, u.username, r.title, r.description, r.visibility, r.profile,
 	r.distance_m, r.ascent_m, r.descent_m, r.duration_s, r.duration_reverse_s,
-	r.ele_min_m, r.ele_max_m, r.sac_grade, r.sac_max, r.version, r.created_at, r.updated_at`
+	r.ele_min_m, r.ele_max_m, r.sac_grade, r.sac_max, r.version, r.created_at, r.updated_at,
+	r.hiked_at, r.hiked_s, r.planned_route_id`
 
 func scanSummary(row pgx.Row, extra ...any) (Summary, error) {
 	var s Summary
 	var id uuid.UUID
+	var hikedAt *time.Time
+	var hikedS *int
+	var planned *uuid.UUID
 	dest := []any{&id, &s.OwnerUsername, &s.Title, &s.Description, &s.Visibility, &s.Profile,
 		&s.Totals.DistanceM, &s.Totals.AscentM, &s.Totals.DescentM, &s.Totals.DurationS, &s.Totals.DurationReverseS,
-		&s.Totals.EleMinM, &s.Totals.EleMaxM, &s.Totals.SACGrade, &s.Totals.SACMax, &s.Version, &s.CreatedAt, &s.UpdatedAt}
+		&s.Totals.EleMinM, &s.Totals.EleMaxM, &s.Totals.SACGrade, &s.Totals.SACMax, &s.Version, &s.CreatedAt, &s.UpdatedAt,
+		&hikedAt, &hikedS, &planned}
 	err := row.Scan(append(dest, extra...)...)
 	s.ID = id.String()
+	if hikedAt != nil && hikedS != nil {
+		s.Hike = &Hike{At: *hikedAt, DurationS: *hikedS}
+		if planned != nil {
+			s.Hike.PlannedRouteID = planned.String()
+		}
+	}
 	return s, err
 }
 
@@ -163,6 +175,14 @@ func (s *Store) SetSource(ctx context.Context, id uuid.UUID, source, ref string)
 	if pgErr := (*pgconn.PgError)(nil); errors.As(err, &pgErr) && pgErr.Code == "23505" { // unique_violation
 		return ErrDuplicate
 	}
+	return err
+}
+
+// SetHike records when a route recorded with the app was hiked and which
+// planned route it followed (nil: none).
+func (s *Store) SetHike(ctx context.Context, id uuid.UUID, at time.Time, seconds int, planned *uuid.UUID) error {
+	_, err := s.DB.Exec(ctx, `UPDATE routes SET hiked_at = $2, hiked_s = $3, planned_route_id = $4 WHERE id = $1`,
+		id, at, seconds, planned)
 	return err
 }
 

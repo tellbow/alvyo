@@ -994,6 +994,46 @@
         ],
         "type": "object"
       },
+      "Found": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "description": "lon, lat",
+            "items": {
+              "format": "double",
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "detail": {
+            "description": "Stop modes, the OSM hut type, or the kind of name and its municipality",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "pt_stop",
+              "hut",
+              "hotel",
+              "campsite",
+              "name",
+              "address"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "detail",
+          "kind",
+          "at"
+        ],
+        "type": "object"
+      },
       "Grant": {
         "additionalProperties": false,
         "properties": {
@@ -1074,6 +1114,29 @@
         },
         "required": [
           "salt1"
+        ],
+        "type": "object"
+      },
+      "HikePoint": {
+        "additionalProperties": false,
+        "properties": {
+          "lat": {
+            "format": "double",
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "type": "number"
+          },
+          "t": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lon",
+          "lat",
+          "t"
         ],
         "type": "object"
       },
@@ -2890,6 +2953,11 @@
             "minimum": 5.9,
             "type": "number"
           },
+          "name": {
+            "description": "The place it was found as by search",
+            "maxLength": 120,
+            "type": "string"
+          },
           "straight": {
             "description": "The leg arriving at this anchor is a straight line",
             "type": "boolean"
@@ -2919,6 +2987,9 @@
           },
           "description": {
             "type": "string"
+          },
+          "hike": {
+            "$ref": "#/components/schemas/RouteHike"
           },
           "id": {
             "format": "uuid",
@@ -2991,6 +3062,30 @@
         ],
         "type": "object"
       },
+      "RouteHike": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "duration_s": {
+            "description": "From the first to the last position, breaks included",
+            "format": "int64",
+            "type": "integer"
+          },
+          "planned_route_id": {
+            "description": "The planned route that was followed",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "duration_s"
+        ],
+        "type": "object"
+      },
       "RouteListOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -3015,6 +3110,9 @@
           },
           "description": {
             "type": "string"
+          },
+          "hike": {
+            "$ref": "#/components/schemas/RouteHike"
           },
           "id": {
             "format": "uuid",
@@ -3080,6 +3178,9 @@
           },
           "description": {
             "type": "string"
+          },
+          "hike": {
+            "$ref": "#/components/schemas/RouteHike"
           },
           "id": {
             "format": "uuid",
@@ -3235,6 +3336,21 @@
           "max",
           "breakdown",
           "unofficial_m"
+        ],
+        "type": "object"
+      },
+      "SearchPlacesOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/Found"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "places"
         ],
         "type": "object"
       },
@@ -3814,6 +3930,54 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "UploadHikeInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "description": "The app's id of the recording: uploading it again returns the route made the first time",
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "points": {
+            "description": "In the order recorded",
+            "items": {
+              "$ref": "#/components/schemas/HikePoint"
+            },
+            "maxItems": 50000,
+            "minItems": 2,
+            "type": "array"
+          },
+          "route_id": {
+            "description": "The planned route that was followed",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "points"
+        ],
+        "type": "object"
+      },
+      "UploadHikeOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
         "type": "object"
       },
       "UserEntity": {
@@ -5377,6 +5541,48 @@
         "summary": "Public routes and journeys of the people I follow, newest first",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/hikes": {
+      "post": {
+        "description": "The track gets elevation and trail data like an import, and the route knows when it was hiked, how long it took and the planned route. 201 for a new route, 200 when the recording was uploaded before; 503 when the elevation service is unavailable (upload again later).",
+        "operationId": "upload-hike",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadHikeInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadHikeOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Save a hike recorded with the app as a private route",
+        "tags": [
+          "routes"
         ]
       }
     },
@@ -7941,6 +8147,77 @@
           }
         },
         "summary": "Stops, huts and accommodation near a point, nearest first",
+        "tags": [
+          "places"
+        ]
+      }
+    },
+    "/places/search": {
+      "get": {
+        "description": "Our stops, huts and accommodation first, then swisstopo's geographical names (places, peaks, passes, lakes …); addresses when the text has a house number.",
+        "operationId": "search-places",
+        "parameters": [
+          {
+            "explode": false,
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 80,
+              "minLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Map centre: among equally good matches, the nearest come first",
+            "explode": false,
+            "in": "query",
+            "name": "lon",
+            "schema": {
+              "default": 8.23,
+              "description": "Map centre: among equally good matches, the nearest come first",
+              "format": "double",
+              "maximum": 10.6,
+              "minimum": 5.9,
+              "type": "number"
+            }
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "lat",
+            "schema": {
+              "default": 46.8,
+              "format": "double",
+              "maximum": 47.9,
+              "minimum": 45.8,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchPlacesOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Find places by name, for route planning",
         "tags": [
           "places"
         ]

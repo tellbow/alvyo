@@ -425,6 +425,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/hikes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save a hike recorded with the app as a private route
+         * @description The track gets elevation and trail data like an import, and the route knows when it was hiked, how long it took and the planned route. 201 for a new route, 200 when the recording was uploaded before; 503 when the elevation service is unavailable (upload again later).
+         */
+        post: operations["upload-hike"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/imports": {
         parameters: {
             query?: never;
@@ -1070,6 +1090,26 @@ export interface paths {
         };
         /** Stops, huts and accommodation near a point, nearest first */
         get: operations["nearby-places"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/places/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find places by name, for route planning
+         * @description Our stops, huts and accommodation first, then swisstopo's geographical names (places, peaks, passes, lakes …); addresses when the text has a house number.
+         */
+        get: operations["search-places"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1888,6 +1928,15 @@ export interface components {
             /** Format: email */
             email: string;
         };
+        Found: {
+            /** @description lon, lat */
+            at: number[];
+            /** @description Stop modes, the OSM hut type, or the kind of name and its municipality */
+            detail: string;
+            /** @enum {string} */
+            kind: "pt_stop" | "hut" | "hotel" | "campsite" | "name" | "address";
+            name: string;
+        };
         Grant: {
             /** Format: date-time */
             created_at: string;
@@ -1909,6 +1958,14 @@ export interface components {
         HMACGetSecretInputs: {
             salt1: string;
             salt2?: string;
+        };
+        HikePoint: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+            /** Format: date-time */
+            t: string;
         };
         IdentitiesOutputBody: {
             identities: components["schemas"]["IdentityInfo"][];
@@ -2453,6 +2510,8 @@ export interface components {
             lat: number;
             /** Format: double */
             lon: number;
+            /** @description The place it was found as by search */
+            name?: string;
             /** @description The leg arriving at this anchor is a straight line */
             straight?: boolean;
         };
@@ -2462,6 +2521,7 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             description: string;
+            hike?: components["schemas"]["RouteHike"];
             /** Format: uuid */
             id: string;
             journey_id?: string;
@@ -2480,6 +2540,20 @@ export interface components {
             /** @enum {string} */
             visibility: "private" | "unlisted" | "public";
         };
+        RouteHike: {
+            /** Format: date-time */
+            at: string;
+            /**
+             * Format: int64
+             * @description From the first to the last position, breaks included
+             */
+            duration_s: number;
+            /**
+             * Format: uuid
+             * @description The planned route that was followed
+             */
+            planned_route_id?: string;
+        };
         RouteListOutputBody: {
             routes: components["schemas"]["RouteSummary"][];
         };
@@ -2487,6 +2561,7 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             description: string;
+            hike?: components["schemas"]["RouteHike"];
             /** Format: uuid */
             id: string;
             owner_username: string;
@@ -2506,6 +2581,7 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             description: string;
+            hike?: components["schemas"]["RouteHike"];
             /** Format: uuid */
             id: string;
             owner_username: string;
@@ -2566,6 +2642,9 @@ export interface components {
              * @description Metres graded by guess (off the official network, no OSM sac_scale)
              */
             unofficial_m: number;
+        };
+        SearchPlacesOutputBody: {
+            places: components["schemas"]["Found"][];
         };
         SessionOutputBody: {
             user: components["schemas"]["Me"];
@@ -2742,6 +2821,19 @@ export interface components {
              * @enum {string}
              */
             transfer_before?: "pt" | "cablecar" | "other" | "";
+        };
+        UploadHikeInputBody: {
+            /** @description The app's id of the recording: uploading it again returns the route made the first time */
+            id: string;
+            /** @description In the order recorded */
+            points: components["schemas"]["HikePoint"][];
+            /** @description The planned route that was followed */
+            route_id?: string;
+            title: string;
+        };
+        UploadHikeOutputBody: {
+            /** Format: uuid */
+            id: string;
         };
         UserEntity: {
             displayName: string;
@@ -3727,6 +3819,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeedOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "upload-hike": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadHikeInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadHikeOutputBody"];
                 };
             };
             /** @description Error */
@@ -5413,6 +5538,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NearbyPlacesOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "search-places": {
+        parameters: {
+            query: {
+                q: string;
+                /** @description Map centre: among equally good matches, the nearest come first */
+                lon?: number;
+                lat?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchPlacesOutputBody"];
                 };
             };
             /** @description Error */

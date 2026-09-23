@@ -6,10 +6,11 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
-	import type { Journey, Me, Route } from '$lib/api/client';
+	import type { FoundPlace, Journey, Me, Route } from '$lib/api/client';
 	import StageSavePanel from '$lib/journeys/StageSavePanel.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
+	import PlaceSearch from './PlaceSearch.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import SavePanel from './SavePanel.svelte';
 	import StatsPanel from './StatsPanel.svelte';
@@ -85,6 +86,35 @@
 		m.doubleClickZoom.disable(); // double-click removes anchors
 	}
 
+	function center(): [number, number] | undefined {
+		const c = map?.getCenter();
+		return c ? [c.lng, c.lat] : undefined;
+	}
+
+	/** A place found by search becomes the new last point; the map shows it. */
+	function addPlace(p: FoundPlace) {
+		planner.add(p.at[0], p.at[1], p.name);
+		if (!map || !lib) return;
+		const pts = planner.anchors;
+		if (pts.length === 1) {
+			map.flyTo({ center: [p.at[0], p.at[1]], zoom: Math.max(map.getZoom(), 13) });
+			return;
+		}
+		const b = pts.reduce(
+			(acc, a) => acc.extend([a.lon, a.lat]),
+			new lib.LngLatBounds([pts[0].lon, pts[0].lat], [pts[0].lon, pts[0].lat])
+		);
+		map.fitBounds(b, { padding: 80, maxZoom: 15 });
+	}
+
+	const searchLabel = $derived(
+		planner.anchors.length === 0
+			? m.plan_search_start()
+			: planner.anchors.length === 1
+				? m.plan_search_end()
+				: m.plan_search_more()
+	);
+
 	function onkeydown(e: KeyboardEvent) {
 		if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return;
 		if ((e.target as HTMLElement).closest('input, textarea')) return;
@@ -141,6 +171,54 @@
 					<option value="alpine">{m.plan_profile_alpine()}</option>
 				</select>
 			</label>
+
+			<section data-testid="points">
+				<h3 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
+					{m.plan_points()}
+				</h3>
+				{#if planner.anchors.length > 0}
+					<ol class="mb-2 flex flex-col gap-1 text-sm">
+						{#each planner.anchors as a, i (a.id)}
+							{@const kind = i === 0 ? 'start' : i === planner.anchors.length - 1 ? 'end' : 'via'}
+							<li class="flex items-center gap-2" data-testid="point">
+								<span class="anchor anchor-{kind} shrink-0" style="cursor: default"
+									>{kind === 'via' ? i : ''}</span
+								>
+								<span class="min-w-0 flex-1 truncate" class:text-stone-500={!a.name}
+									>{a.name ?? m.plan_point_map()}</span
+								>
+								<button
+									type="button"
+									class="icon"
+									aria-label={m.plan_point_up()}
+									title={m.plan_point_up()}
+									disabled={i === 0}
+									onclick={() => planner.reorder(i, i - 1)}>↑</button
+								>
+								<button
+									type="button"
+									class="icon"
+									aria-label={m.plan_point_down()}
+									title={m.plan_point_down()}
+									disabled={i === planner.anchors.length - 1}
+									onclick={() => planner.reorder(i, i + 1)}>↓</button
+								>
+								<button
+									type="button"
+									class="icon"
+									aria-label={m.plan_point_remove()}
+									title={m.plan_point_remove()}
+									onclick={() => planner.remove(a.id)}>×</button
+								>
+							</li>
+						{/each}
+					</ol>
+				{/if}
+				<PlaceSearch label={searchLabel} near={center} onpick={addPlace} />
+				{#if planner.anchors.length > 1}
+					<p class="mt-1 text-xs text-stone-500">{m.plan_points_hint()}</p>
+				{/if}
+			</section>
 
 			<div class="flex flex-wrap gap-2 text-sm">
 				<button type="button" class="btn" disabled={!planner.canUndo} onclick={() => planner.undo()}
@@ -238,5 +316,16 @@
 	}
 	.btn:disabled {
 		opacity: 0.4;
+	}
+	.icon {
+		width: 1.5rem;
+		border-radius: 0.25rem;
+		color: var(--color-stone-600);
+	}
+	.icon:hover:not(:disabled) {
+		background: var(--color-stone-100);
+	}
+	.icon:disabled {
+		opacity: 0.3;
 	}
 </style>

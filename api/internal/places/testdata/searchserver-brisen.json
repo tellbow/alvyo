@@ -1,0 +1,175 @@
+{
+ "results": [
+  {
+   "attrs": {
+    "detail": "brisen isenthal",
+    "geom_quadindex": "030203001013120200332",
+    "geom_st_box2d": "BOX(8.458321 46.898772,8.458321 46.898772)",
+    "label": "<i>Hauptgipfel</i> <b>Brisen</b> (UR) - Isenthal",
+    "lat": 46.89876937866211,
+    "lon": 8.458330154418945,
+    "num": 1,
+    "objectclass": "TLM_NAME_PKT",
+    "origin": "gazetteer",
+    "rank": 6,
+    "x": 8.458330154418945,
+    "y": 46.89876937866211,
+    "zoomlevel": 10
+   },
+   "id": 395688,
+   "weight": 100
+  },
+  {
+   "attrs": {
+    "detail": "obere brisenmatt welschenrohr-gaensbrunnen",
+    "geom_quadindex": "021120030021121300322",
+    "geom_st_box2d": "BOX(7.493435 47.272229,7.493435 47.272229)",
+    "label": "<i>Ort</i> <b>Obere Brisenmatt</b> (SO) - Welschenrohr-Gänsbrunnen",
+    "lat": 47.27223205566406,
+    "lon": 7.493439674377441,
+    "num": 1,
+    "objectclass": "TLM_SIEDLUNGSNAME",
+    "origin": "gazetteer",
+    "rank": 5,
+    "x": 7.493439674377441,
+    "y": 47.27223205566406,
+    "zoomlevel": 10
+   },
+   "id": 246814,
+   "weight": 4
+  },
+  {
+   "attrs": {
+    "detail": "untere brisenmatt welschenrohr-gaensbrunnen",
+    "geom_quadindex": "021120030030231123122",
+    "geom_st_box2d": "BOX(7.495809 47.271224,7.495809 47.271224)",
+    "label": "<i>Ort</i> <b>Untere Brisenmatt</b> (SO) - Welschenrohr-Gänsbrunnen",
+    "lat": 47.2712287902832,
+    "lon": 7.495813369750977,
+    "num": 1,
+    "objectclass": "TLM_SIEDLUNGSNAME",
+    "origin": "gazetteer",
+    "rank": 5,
+    "x": 7.495813369750977,
+    "y": 47.2712287902832,
+    "zoomlevel": 10
+   },
+   "id": 301743,
+   "weight": 4
+  },
+  {
+   "attrs": {
+    "detail": "brisenhuesli lommiswil",
+    "geom_quadindex": "021120202130210211023",
+    "geom_st_box2d": "BOX(7.458121 47.221133,7.458121 47.221133)",
+    "label": "<i>Flurname swisstopo</i> <b>Brisenhüsli</b> (SO) - Lommiswil",
+    "lat": 47.22113800048828,
+    "lon": 7.458125114440918,
+    "num": 1,
+    "objectclass": "TLM_FLURNAME",
+    "origin": "gazetteer",
+    "rank": 6,
+    "x": 7.458125114440918,
+    "y": 47.22113800048828,
+    "zoomlevel": 10
+   },
+   "id": 12320,
+   "weight": 6
+  },
+  {
+   "attrs": {
+    "detail": "hoh brisen isenthal",
+    "geom_quadindex": "030203001103333003001",
+    "geom_st_box2d": "BOX(8.465625 46.897519,8.465625 46.897519)",
+    "label": "<i>Hauptgipfel</i> <b>Hoh Brisen</b> (UR) - Isenthal",
+    "lat": 46.897518157958984,
+    "lon": 8.4656343460083,
+    "num": 1,
+    "objectclass": "TLM_NAME_PKT",
+    "origin": "gazetteer",
+    "rank": 6,
+    "x": 8.4656343460083,
+    "y": 46.897518157958984,
+    "zoomlevel": 10
+   },
+   "id": 119706,
+   "weight": 6
+  },
+  {
+   "attrs": {
+    "detail": "brisenhaus beckenried",
+    "geom_quadindex": "030201223103212102031",
+    "geom_st_box2d": "BOX(8.464188 46.914917,8.464188 46.914917)",
+    "label": "<i>Gebaeude</i> <b>Brisenhaus</b> (NW) - Beckenried",
+    "lat": 46.9149169921875,
+    "lon": 8.46419620513916,
+    "num": 1,
+    "objectclass": "TLM_GEBAEUDE",
+    "origin": "gazetteer",
+    "rank": 6,
+    "x": 8.46419620513916,
+    "y": 46.9149169921875,
+    "zoomlevel": 9
+   },
+   "id": 266039,
+   "weight": 6
+  },
+  {
+   "attrs": {
+    "detail": "brisenmatt welschenrohr-gaensbrunnen",
+    "geom_quadindex": "021120030030203100332",
+    "geom_st_box2d": "BOX(7.494999 47.271568,7.494999 47.271568)",
+    "label": "<i>Flurname swisstopo</i> <b>Brisenmatt</b> (SO) - Welschenrohr-Gänsbrunnen",
+    "lat": 47.27157211303711,
+    "lon": 7.495003700256348,
+    "num": 1,
+    "objectclass": "TLM_FLURNAME",
+    "origin": "gazetteer",
+    "rank": 6,
+    "x": 7.495003700256348,
+    "y": 47.27157211303711,
+    "zoomlevel": 10
+   },
+   "id": 427694,
+   "weight": 6
+  },
+  {
+   "attrs": {
+    "detail": "brisenhaus beckenried",
+    "geom_quadindex": "030201223103212102031",
+    "geom_st_box2d": "BOX(8.464189 46.914917,8.464189 46.914917)",
+    "label": "<i>Gebaeude Einzelhaus</i> <b>Brisenhaus</b> (NW) - Beckenried",
+    "lat": 46.914913177490234,
+    "lon": 8.464197158813477,
+    "num": 1,
+    "objectclass": "tlm_gebaeude",
+    "origin": "gazetteer",
+    "rank": 6,
+    "x": 8.464197158813477,
+    "y": 46.914913177490234,
+    "zoomlevel": 10
+   },
+   "id": 444063,
+   "weight": 6
+  },
+  {
+   "attrs": {
+    "detail": "eggen|surenenpass attinghausen",
+    "geom_quadindex": "030203123220210100113",
+    "geom_st_box2d": "BOX(8.545673 46.836443,8.545673 46.836443)",
+    "label": "<i>Pass</i> <b>Eggen|Surenenpass</b> (UR) - Attinghausen",
+    "lat": 46.83644104003906,
+    "lon": 8.54568099975586,
+    "num": 1,
+    "objectclass": "TLM_NAME_PKT",
+    "origin": "gazetteer",
+    "rank": 6,
+    "x": 8.54568099975586,
+    "y": 46.83644104003906,
+    "zoomlevel": 10
+   },
+   "id": 257791,
+   "weight": 6
+  }
+ ]
+}

@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import { hikeDate } from '$lib/util/locale';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 
@@ -42,7 +43,14 @@
 						href={resolve('/routes/[id]', { id: r.id })}
 						class="flex items-center gap-4 px-4 py-3 hover:bg-stone-50"
 					>
-						<span class="flex-1 font-medium">{r.title}</span>
+						<span class="flex flex-1 flex-col">
+							<span class="font-medium">{r.title}</span>
+							{#if r.hike}
+								<span class="text-xs text-stone-500" data-testid="hiked"
+									>{m.routes_hiked({ date: hikeDate(r.hike.at) })}</span
+								>
+							{/if}
+						</span>
 						<span class="text-sm text-stone-600 tabular-nums"
 							>{formatDistance(r.totals.distance_m)}</span
 						>

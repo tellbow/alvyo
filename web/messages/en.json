@@ -52,7 +52,7 @@
 	"map_ovl_hangneigung": "Slopes over 30°",
 	"map_ovl_relief": "Hillshade",
 	"plan_hint_login": "Log in to plan routes.",
-	"plan_hint_click": "Click the map to set start, via points and destination. Drag points to move them; double-click removes one.",
+	"plan_hint_click": "Search for start and destination, or click the map. Clicking the line adds an intermediate point; drag points to move them, double-click removes one.",
 	"plan_profile": "Profile",
 	"plan_profile_hike": "Hiking (up to T3)",
 	"plan_profile_alpine": "Alpine hiking (up to T6)",
@@ -417,5 +417,18 @@
 	"oidc_linked": "Connected. You can now log in with it too.",
 	"account_delete_recent": "Your account has no password: to confirm, you must have logged in within the last 15 minutes.",
 	"account_delete_login_again": "Please log in again, then try again right away.",
-	"nav_language": "Language"
+	"nav_language": "Language",
+	"plan_points": "Points",
+	"plan_point_map": "Point on the map",
+	"plan_point_up": "Move up",
+	"plan_point_down": "Move down",
+	"plan_point_remove": "Remove",
+	"plan_search_start": "Search for the start …",
+	"plan_search_end": "Search for the destination …",
+	"plan_search_more": "Search for a further destination …",
+	"plan_points_hint": "A new point becomes the destination; ↑ makes it an intermediate point.",
+	"place_kind_address": "Address",
+	"route_hiked": "Hiked on {date} · {duration} underway",
+	"route_hiked_planned": "planned route",
+	"routes_hiked": "Hiked on {date}"
 }

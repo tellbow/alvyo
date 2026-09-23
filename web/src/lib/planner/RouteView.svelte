@@ -9,6 +9,7 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
+	import { hikeDate } from '$lib/util/locale';
 	import AddToCollection from '$lib/collections/AddToCollection.svelte';
 	import Social from '$lib/community/Social.svelte';
 	import { Gallery } from '$lib/photos/gallery.svelte';
@@ -113,6 +114,21 @@
 					{m.route_by({ user: route.owner_username })}
 				{/if}
 			</p>
+			{#if route.hike}
+				<p class="text-sm text-stone-600" data-testid="hike">
+					{m.route_hiked({
+						date: hikeDate(route.hike.at),
+						duration: formatDuration(route.hike.duration_s)
+					})}
+					{#if route.hike.planned_route_id}
+						·
+						<a
+							href={resolve('/routes/[id]', { id: route.hike.planned_route_id })}
+							class="text-emerald-800 underline">{m.route_hiked_planned()}</a
+						>
+					{/if}
+				</p>
+			{/if}
 		</div>
 		{#if route.description}<p class="text-sm whitespace-pre-line">{route.description}</p>{/if}
 		{#if route.can_edit}

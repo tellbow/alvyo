@@ -52,7 +52,7 @@
 	"map_ovl_hangneigung": "Pendenza oltre 30°",
 	"map_ovl_relief": "Rilievo",
 	"plan_hint_login": "Accedi per pianificare percorsi.",
-	"plan_hint_click": "Clicca sulla carta per impostare partenza, punti intermedi e arrivo. I punti si possono spostare; un doppio clic rimuove un punto.",
+	"plan_hint_click": "Cerca partenza e arrivo o clicca sulla carta. Un clic sulla linea aggiunge un punto intermedio; i punti si possono spostare, un doppio clic ne rimuove uno.",
 	"plan_profile": "Profilo",
 	"plan_profile_hike": "Escursionismo (fino a T3)",
 	"plan_profile_alpine": "Escursionismo alpino (fino a T6)",
@@ -417,5 +417,18 @@
 	"oidc_linked": "Collegato. Ora puoi accedere anche così.",
 	"account_delete_recent": "Il tuo account non ha una password: per confermare devi aver effettuato l'accesso negli ultimi 15 minuti.",
 	"account_delete_login_again": "Accedi di nuovo e riprova subito dopo.",
-	"nav_language": "Lingua"
+	"nav_language": "Lingua",
+	"plan_points": "Punti",
+	"plan_point_map": "Punto sulla carta",
+	"plan_point_up": "Sposta su",
+	"plan_point_down": "Sposta giù",
+	"plan_point_remove": "Rimuovi",
+	"plan_search_start": "Cerca la partenza …",
+	"plan_search_end": "Cerca l'arrivo …",
+	"plan_search_more": "Cerca un'altra destinazione …",
+	"plan_points_hint": "Un nuovo punto diventa l'arrivo; con ↑ diventa un punto intermedio.",
+	"place_kind_address": "Indirizzo",
+	"route_hiked": "Percorsa il {date} · {duration} in cammino",
+	"route_hiked_planned": "percorso pianificato",
+	"routes_hiked": "Percorsa il {date}"
 }

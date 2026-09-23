@@ -38,6 +38,8 @@ type Limits struct {
 	Photo   *ratelimit.Limiter
 	// Offline map packs fetch many tiles.
 	Pack *ratelimit.Limiter
+	// Place searches while typing, per user.
+	Search *ratelimit.Limiter
 }
 
 // DefaultLimits are generous for people and tight for scripts.
@@ -59,6 +61,7 @@ func DefaultLimits() Limits {
 		Report:          ratelimit.New(time.Minute, 10),
 		Photo:           ratelimit.New(3*time.Second, 30),
 		Pack:            ratelimit.New(time.Minute, 20),
+		Search:          ratelimit.New(time.Second, 30),
 	}
 }
 

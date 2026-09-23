@@ -52,7 +52,7 @@
 	"map_ovl_hangneigung": "Hangneigung über 30°",
 	"map_ovl_relief": "Relief",
 	"plan_hint_login": "Melde dich an, um Routen zu planen.",
-	"plan_hint_click": "Klicke auf die Karte, um Start, Zwischenpunkte und Ziel zu setzen. Punkte lassen sich verschieben; Doppelklick entfernt einen Punkt.",
+	"plan_hint_click": "Suche Start und Ziel oder klicke auf die Karte. Ein Klick auf die Linie fügt einen Zwischenpunkt ein; Punkte lassen sich verschieben, Doppelklick entfernt einen.",
 	"plan_profile": "Profil",
 	"plan_profile_hike": "Wandern (bis T3)",
 	"plan_profile_alpine": "Alpinwandern (bis T6)",
@@ -417,5 +417,18 @@
 	"oidc_linked": "Verbunden. Du kannst dich jetzt auch damit anmelden.",
 	"account_delete_recent": "Dein Konto hat kein Passwort: Zum Bestätigen musst du dich in den letzten 15 Minuten angemeldet haben.",
 	"account_delete_login_again": "Bitte melde dich neu an und versuche es dann gleich noch einmal.",
-	"nav_language": "Sprache"
+	"nav_language": "Sprache",
+	"plan_points": "Wegpunkte",
+	"plan_point_map": "Punkt auf der Karte",
+	"plan_point_up": "Nach oben",
+	"plan_point_down": "Nach unten",
+	"plan_point_remove": "Entfernen",
+	"plan_search_start": "Start suchen …",
+	"plan_search_end": "Ziel suchen …",
+	"plan_search_more": "Weiteres Ziel suchen …",
+	"plan_points_hint": "Ein neuer Punkt wird zum Ziel; mit ↑ wird er zum Zwischenpunkt.",
+	"place_kind_address": "Adresse",
+	"route_hiked": "Gewandert am {date} · {duration} unterwegs",
+	"route_hiked_planned": "geplante Route",
+	"routes_hiked": "Gewandert am {date}"
 }

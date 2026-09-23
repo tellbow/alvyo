@@ -15,6 +15,7 @@ type Anchor struct {
 	Lon      float64 `json:"lon" minimum:"5.9" maximum:"10.6"`
 	Lat      float64 `json:"lat" minimum:"45.8" maximum:"47.9"`
 	Straight bool    `json:"straight" required:"false" doc:"The leg arriving at this anchor is a straight line"`
+	Name     string  `json:"name,omitempty" required:"false" maxLength:"120" doc:"The place it was found as by search"`
 }
 
 // Content is what a client submits for a route's geometry.
@@ -44,6 +45,13 @@ type Meta struct {
 	Visibility  string `json:"visibility" enum:"private,unlisted,public"`
 }
 
+// Hike is when a route recorded with the app was hiked.
+type Hike struct {
+	At             time.Time `json:"at"`
+	DurationS      int       `json:"duration_s" doc:"From the first to the last position, breaks included"`
+	PlannedRouteID string    `json:"planned_route_id,omitempty" format:"uuid" doc:"The planned route that was followed"`
+}
+
 // Summary is a route in lists.
 type Summary struct {
 	ID            string `json:"id" format:"uuid"`
@@ -54,6 +62,8 @@ type Summary struct {
 	Version   int       `json:"version"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	// Hike is set for routes recorded with the app.
+	Hike *Hike `json:"hike,omitempty"`
 }
 
 // Route is a full route including its planner state.

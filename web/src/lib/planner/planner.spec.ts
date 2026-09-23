@@ -117,4 +117,46 @@ describe('Planner', () => {
 		p.markSaved();
 		expect(p.dirty).toBe(false);
 	});
+
+	it('reorders points, reusing legs it already knows', async () => {
+		const { planner: p, calls } = setup();
+		p.add(8.0, 46.0, 'Start');
+		p.add(8.1, 46.1);
+		p.add(8.2, 46.2, 'Ziel');
+		await p.idle();
+		expect(calls).toHaveLength(2);
+
+		p.reorder(2, 1); // the destination becomes the intermediate point
+		await p.idle();
+		expect(p.anchors.map((a) => a.name)).toEqual(['Start', 'Ziel', undefined]);
+		// 8.2→8.1 is the known leg reversed; only 8.0→8.2 is new.
+		expect(calls).toHaveLength(3);
+		expect(p.complete).toBe(true);
+
+		p.reorder(1, 0);
+		expect(p.anchors[0].name).toBe('Ziel');
+		expect(p.anchors[0].straight).toBe(false);
+		p.reorder(0, -1); // out of range: nothing
+		p.undo();
+		expect(p.anchors.map((a) => a.name)).toEqual(['Start', 'Ziel', undefined]);
+	});
+
+	it('keeps names of points found by search until they are moved', async () => {
+		const { planner: p } = setup();
+		p.add(8.0, 46.0, 'Gitschenen');
+		p.add(8.1, 46.1, 'Brisenhaus');
+		await p.idle();
+		expect(p.content().anchors).toEqual([
+			{ lon: 8.0, lat: 46.0, straight: false, name: 'Gitschenen' },
+			{ lon: 8.1, lat: 46.1, straight: false, name: 'Brisenhaus' }
+		]);
+		p.markSaved();
+		p.move(p.anchors[1].id, 8.12, 46.1);
+		expect(p.anchors[1].name).toBeUndefined();
+		expect(p.dirty).toBe(true);
+
+		const q = setup().planner;
+		q.load(p.content());
+		expect(q.anchors.map((a) => a.name)).toEqual(['Gitschenen', undefined]);
+	});
 });

@@ -18,7 +18,7 @@ The API calls these services; allow them if egress is restricted:
 
 | Host | For |
 |---|---|
-| `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import) |
+| `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
 | `api.opentransportdata.swiss` | Connections (OJP), only if `ODYSGEH_OJP_TOKEN` is set |
 | `api.komoot.de` | Komoot import. This is Komoot's unofficial API: when Komoot changes it, the import fails with 502, while GPX, KML, TCX and FIT upload keep working. |
 

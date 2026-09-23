@@ -1,5 +1,6 @@
 // Package places looks up reference places for stage starts and ends: public
-// transport stops and huts and accommodation.
+// transport stops and huts and accommodation. Search also finds swisstopo's
+// geographical names and addresses.
 package places
 
 import (
@@ -49,6 +50,8 @@ type Query struct {
 // Store reads places.
 type Store struct {
 	DB *pgxpool.Pool
+	// Names adds swisstopo's names to Search; nil: only our places.
+	Names Names
 }
 
 // Nearby returns places around a point, nearest first: within 3 km, or 30 km

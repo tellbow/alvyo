@@ -99,6 +99,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerCollections(api, d)
 	registerConnections(api, d)
 	registerImports(api, d)
+	registerHikes(api, d)
 	registerDiscover(api, d)
 	registerCommunity(api, d)
 	registerPhotos(api, d)

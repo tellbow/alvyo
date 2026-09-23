@@ -8,6 +8,7 @@ export type Route = components['schemas']['RouteBody'];
 export type RouteSummary = components['schemas']['RouteSummary'];
 export type JourneySummary = components['schemas']['JourneySummary'];
 export type Place = components['schemas']['Place'];
+export type FoundPlace = components['schemas']['Found'];
 
 /** Huma cannot mark nested objects as nullable; the API sends null for these. */
 type Nullable<T, K extends keyof T> = Omit<T, K> & { [P in K]: T[P] | null };

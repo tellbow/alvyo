@@ -1,5 +1,12 @@
 <script lang="ts">
-	import type { FilterSpecification, GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl';
+	import type {
+		FilterSpecification,
+		GeoJSONSource,
+		Map as MapLibreMap,
+		MapLayerMouseEvent,
+		MapMouseEvent,
+		Marker
+	} from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { ROUTE_PREFIX } from '$lib/map/styles';
 	import { legFeatures } from './geojson';
@@ -26,6 +33,8 @@
 
 	const LEGS = `${ROUTE_PREFIX}legs`;
 	const HOVER = `${ROUTE_PREFIX}hover`;
+	/** Dashed lines to the neighbouring points while a point or the line is dragged. */
+	const DRAG = `${ROUTE_PREFIX}drag`;
 	/** Layers that count as "the route" for clicks. */
 	export const LINE_LAYERS = [`${ROUTE_PREFIX}line`, `${ROUTE_PREFIX}line-straight`];
 	const COLOR = '#a21caf';
@@ -40,6 +49,7 @@
 			attribution: '© OpenStreetMap contributors'
 		});
 		map.addSource(HOVER, { type: 'geojson', data: empty });
+		map.addSource(DRAG, { type: 'geojson', data: empty });
 		const ok: FilterSpecification = ['==', ['get', 'state'], 'ok'];
 		map.addLayer({
 			id: `${ROUTE_PREFIX}casing`,
@@ -76,6 +86,12 @@
 			}
 		});
 		map.addLayer({
+			id: `${ROUTE_PREFIX}drag`,
+			type: 'line',
+			source: DRAG,
+			paint: { 'line-color': COLOR, 'line-width': 3, 'line-dasharray': [2, 2], 'line-opacity': 0.8 }
+		});
+		map.addLayer({
 			id: `${ROUTE_PREFIX}hover`,
 			type: 'circle',
 			source: HOVER,
@@ -86,6 +102,17 @@
 				'circle-stroke-width': 2
 			}
 		});
+	}
+
+	/** Shows dashed lines from the neighbouring points to `at`; without `at`, hides them. */
+	function band(at?: [number, number], before?: number, after?: number) {
+		const line = [before, after].flatMap((i) =>
+			i !== undefined && i >= 0 && i < planner.anchors.length ? [snapped(i)] : []
+		);
+		if (at) line.splice(before !== undefined && before >= 0 ? 1 : 0, 0, at);
+		(map.getSource(DRAG) as GeoJSONSource | undefined)?.setData(
+			at && line.length > 1 ? { type: 'LineString', coordinates: line } : empty
+		);
 	}
 
 	function render() {
@@ -107,15 +134,43 @@
 		map.on('style.load', onStyle);
 		const onEnter = () => (map.getCanvas().style.cursor = editable ? 'pointer' : '');
 		const onLeave = () => (map.getCanvas().style.cursor = '');
+		// Press on the line and drag: a new point where it is released, between
+		// the ends of that leg. A click without dragging is handled by the
+		// planner (a point where clicked).
+		const onDown = (e: MapLayerMouseEvent) => {
+			const leg = Number(e.features?.[0]?.properties?.leg);
+			// Presses on a point's marker reach the map too; the marker drags itself.
+			if (e.originalEvent.target !== map.getCanvas()) return;
+			if (!editable || e.originalEvent.button !== 0 || Number.isNaN(leg)) return;
+			e.preventDefault(); // no map panning
+			const start = e.point;
+			let at: [number, number] | undefined;
+			const onMove = (ev: MapMouseEvent) => {
+				if (!at && ev.point.dist(start) < 3) return; // MapLibre's click tolerance
+				at = [ev.lngLat.lng, ev.lngLat.lat];
+				map.getCanvas().style.cursor = 'grabbing';
+				band(at, leg, leg + 1);
+			};
+			const onUp = () => {
+				map.off('mousemove', onMove);
+				band();
+				map.getCanvas().style.cursor = '';
+				if (at) planner.insert(leg + 1, at[0], at[1]);
+			};
+			map.on('mousemove', onMove);
+			window.addEventListener('mouseup', onUp, { once: true });
+		};
 		for (const id of LINE_LAYERS) {
 			map.on('mouseenter', id, onEnter);
 			map.on('mouseleave', id, onLeave);
+			map.on('mousedown', id, onDown);
 		}
 		return () => {
 			map.off('style.load', onStyle);
 			for (const id of LINE_LAYERS) {
 				map.off('mouseenter', id, onEnter);
 				map.off('mouseleave', id, onLeave);
+				map.off('mousedown', id, onDown);
 			}
 		};
 	});
@@ -162,8 +217,14 @@
 					.setLngLat([a.lon, a.lat])
 					.addTo(map);
 				const id = a.id;
+				marker.on('drag', () => {
+					const p = markers.get(id)!.getLngLat();
+					const i = planner.anchors.findIndex((x) => x.id === id);
+					band([p.lng, p.lat], i - 1, i + 1);
+				});
 				marker.on('dragend', () => {
 					const p = markers.get(id)!.getLngLat();
+					band();
 					planner.move(id, p.lng, p.lat);
 				});
 				el.addEventListener('dblclick', (e) => {

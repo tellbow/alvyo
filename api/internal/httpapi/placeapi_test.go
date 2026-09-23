@@ -74,3 +74,48 @@ func TestPlacesAPI(t *testing.T) {
 		t.Errorf("unknown place: %d %s", code, body)
 	}
 }
+
+func TestSearchPlacesAPI(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	if _, err := s.db.Exec(context.Background(), `INSERT INTO places (kind, name, detail, source, source_id, geom)
+		VALUES ('pt_stop', 'Weisstannen, Oberdorf', 'Bus', 'didok', '8509965', ST_SetSRID(ST_MakePoint(9.35, 47.03), 4326))`); err != nil {
+		t.Fatal(err)
+	}
+	c := s.client(t)
+	if code, _ := c.do("GET", "/api/v1/places/search?q=weiss", nil); code != http.StatusUnauthorized {
+		t.Errorf("anonymous: %d", code)
+	}
+	c.do("POST", "/api/v1/auth/signup", signupBody("search@example.ch", "search"))
+
+	code, body := c.do("GET", "/api/v1/places/search?q=weisstannen&lon=9.3&lat=47", nil)
+	var res struct {
+		Places []struct {
+			Name, Detail, Kind string
+			At                 [2]float64
+		} `json:"places"`
+	}
+	if err := json.Unmarshal(body, &res); code != http.StatusOK || err != nil || len(res.Places) != 1 ||
+		res.Places[0].Kind != "pt_stop" || res.Places[0].Detail != "Bus" || res.Places[0].At != [2]float64{9.35, 47.03} {
+		t.Fatalf("search: %d %s", code, body)
+	}
+	if code, _ := c.do("GET", "/api/v1/places/search?q=w", nil); code != http.StatusUnprocessableEntity {
+		t.Errorf("one letter: %d", code)
+	}
+
+	// A point found by search keeps its name in the saved route.
+	route := newRouteBody("Named", "private")
+	route["anchors"].([]map[string]any)[0]["name"] = "Weisstannen, Oberdorf"
+	_, body = c.do("POST", "/api/v1/routes", route)
+	var saved struct {
+		ID      string `json:"id"`
+		Anchors []struct {
+			Name string `json:"name"`
+		} `json:"anchors"`
+	}
+	_ = json.Unmarshal(body, &saved)
+	_, body = c.do("GET", "/api/v1/routes/"+saved.ID, nil)
+	_ = json.Unmarshal(body, &saved)
+	if len(saved.Anchors) != 3 || saved.Anchors[0].Name != "Weisstannen, Oberdorf" || saved.Anchors[1].Name != "" {
+		t.Errorf("anchors %s", body)
+	}
+}

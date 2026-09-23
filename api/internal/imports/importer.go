@@ -76,7 +76,7 @@ func (im *Importer) Content(ctx context.Context, t Track) (routes.Content, error
 
 // Source says where tracks come from, for skipping repeated imports.
 type Source struct {
-	Kind string // gpx, kml, tcx, fit, komoot
+	Kind string // gpx, kml, tcx, fit, komoot, recorded (with the app)
 	Ref  string // e.g. the Komoot tour id; "" for files
 }
 

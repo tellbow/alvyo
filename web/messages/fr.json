@@ -52,7 +52,7 @@
 	"map_ovl_hangneigung": "Pentes de plus de 30°",
 	"map_ovl_relief": "Relief",
 	"plan_hint_login": "Connecte-toi pour planifier des itinéraires.",
-	"plan_hint_click": "Clique sur la carte pour placer le départ, les points intermédiaires et l'arrivée. Les points peuvent être déplacés ; un double-clic supprime un point.",
+	"plan_hint_click": "Cherche le départ et l'arrivée ou clique sur la carte. Un clic sur la ligne ajoute un point intermédiaire ; les points peuvent être déplacés, un double-clic en supprime un.",
 	"plan_profile": "Profil",
 	"plan_profile_hike": "Randonnée (jusqu'à T3)",
 	"plan_profile_alpine": "Randonnée alpine (jusqu'à T6)",
@@ -417,5 +417,18 @@
 	"oidc_linked": "Connecté. Tu peux désormais aussi te connecter avec.",
 	"account_delete_recent": "Ton compte n'a pas de mot de passe : pour confirmer, tu dois t'être connecté·e au cours des 15 dernières minutes.",
 	"account_delete_login_again": "Reconnecte-toi, puis réessaie tout de suite.",
-	"nav_language": "Langue"
+	"nav_language": "Langue",
+	"plan_points": "Points",
+	"plan_point_map": "Point sur la carte",
+	"plan_point_up": "Vers le haut",
+	"plan_point_down": "Vers le bas",
+	"plan_point_remove": "Supprimer",
+	"plan_search_start": "Chercher le départ …",
+	"plan_search_end": "Chercher l'arrivée …",
+	"plan_search_more": "Chercher une autre destination …",
+	"plan_points_hint": "Un nouveau point devient l'arrivée ; ↑ en fait un point intermédiaire.",
+	"place_kind_address": "Adresse",
+	"route_hiked": "Randonnée du {date} · {duration} en route",
+	"route_hiked_planned": "itinéraire prévu",
+	"routes_hiked": "Randonnée du {date}"
 }

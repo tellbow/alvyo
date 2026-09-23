@@ -70,6 +70,72 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 	expect(legRequests).toHaveLength(4);
 });
 
+test('drag the line to a different path', async ({ page, context }) => {
+	await context.addInitScript(() => {
+		localStorage.setItem(
+			'odysgeh.map',
+			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
+		);
+	});
+	const id = `drag${Date.now().toString(36)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Dragger',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	type LegBody = { to: { lon: number; lat: number } };
+	const legRequests: LegBody[] = [];
+	page.on('request', (r) => {
+		if (r.url().includes('/api/v1/routing/leg')) legRequests.push(r.postDataJSON());
+	});
+
+	await page.goto('/plan');
+	const canvas = page.locator('canvas.maplibregl-canvas');
+	const box = (await canvas.boundingBox())!;
+	const cx = box.x + box.width / 2;
+	const cy = box.y + box.height / 2;
+	await page.mouse.click(cx - 200, cy);
+	await page.mouse.click(cx + 200, cy);
+	const legs = page.getByTestId('leg');
+	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	// As a straight line the leg certainly runs through the middle.
+	await legs.nth(0).getByLabel('Gerade Linie').check();
+	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	const before = legRequests.length;
+
+	await page.mouse.move(cx, cy);
+	await page.mouse.down();
+	await page.mouse.move(cx + 20, cy + 60, { steps: 4 });
+	await page.mouse.move(cx + 40, cy + 120, { steps: 4 });
+	await page.screenshot({ path: 'test-results/drag.png' });
+	await page.mouse.up();
+
+	// One new point where it was released; only its two legs are computed.
+	await expect(page.getByTestId('anchor')).toHaveCount(3);
+	await expect(legs).toHaveCount(2);
+	await expect.poll(() => legRequests.length).toBe(before + 2);
+	await expect(legs.nth(1)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	// MapLibre's zoom 0 is 512 px wide: at zoom 14 a pixel is 360° / 2^23 of
+	// longitude, and × cos(latitude) of latitude. Released 40 px right and
+	// 120 px down of the centre.
+	const px = 360 / 2 ** 23;
+	const released = {
+		lon: 8.04 + 40 * px,
+		lat: 46.665 - 120 * px * Math.cos((46.665 * Math.PI) / 180)
+	};
+	const to = legRequests[before].to;
+	expect(Math.abs(to.lon - released.lon)).toBeLessThan(0.0005);
+	expect(Math.abs(to.lat - released.lat)).toBeLessThan(0.0005);
+
+	// The map did not pan while dragging: the start marker stayed.
+	const start = (await page.getByTestId('anchor').nth(0).boundingBox())!;
+	expect(Math.abs(start.x + start.width / 2 - (cx - 200))).toBeLessThan(40);
+});
+
 test('planning needs an account', async ({ page }) => {
 	await page.goto('/plan');
 	await expect(page.getByTestId('planner-panel')).toContainText('Melde dich an');

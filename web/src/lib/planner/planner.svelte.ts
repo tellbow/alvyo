@@ -2,8 +2,11 @@ import { SvelteMap } from 'svelte/reactivity';
 import type { Leg } from '$lib/api/client';
 import { combine, legKey, reverseLeg, totals, type Profile } from './route';
 
-/** A point the user placed; `straight` applies to the leg arriving here. */
-export type Anchor = { id: number; lon: number; lat: number; straight: boolean };
+/**
+ * A point the user placed; `straight` applies to the leg arriving here, and
+ * `name` is the place it was found as by search.
+ */
+export type Anchor = { id: number; lon: number; lat: number; straight: boolean; name?: string };
 
 export type LegRequest = {
 	from: { lon: number; lat: number };
@@ -29,7 +32,7 @@ export type FetchLeg = (req: LegRequest) => Promise<Leg>;
 /** What a route stores of the planner: enough to resume editing. */
 export type PlannerContent = {
 	profile: Profile;
-	anchors: { lon: number; lat: number; straight?: boolean }[];
+	anchors: { lon: number; lat: number; straight?: boolean; name?: string }[];
 	legs: Leg[];
 };
 
@@ -80,7 +83,7 @@ export class Planner {
 	load(c: PlannerContent) {
 		this.profile = c.profile;
 		this.anchors = c.anchors.map((a) => ({
-			...this.#anchor(a.lon, a.lat),
+			...this.#anchor(a.lon, a.lat, a.name),
 			straight: a.straight ?? false
 		}));
 		c.legs.forEach((leg, i) => {
@@ -97,7 +100,12 @@ export class Planner {
 	content(): PlannerContent {
 		return {
 			profile: this.profile,
-			anchors: this.anchors.map((a) => ({ lon: a.lon, lat: a.lat, straight: a.straight })),
+			anchors: this.anchors.map((a) => ({
+				lon: a.lon,
+				lat: a.lat,
+				straight: a.straight,
+				...(a.name ? { name: a.name } : {})
+			})),
 			legs: this.readyLegs
 		};
 	}
@@ -106,8 +114,8 @@ export class Planner {
 		this.#savedFingerprint = this.#fingerprint();
 	}
 
-	add(lon: number, lat: number) {
-		this.#change(() => this.anchors.push(this.#anchor(lon, lat)));
+	add(lon: number, lat: number, name?: string) {
+		this.#change(() => this.anchors.push(this.#anchor(lon, lat, name)));
 	}
 
 	/** Inserts an anchor before position `index` (e.g. when dragging a leg). */
@@ -115,10 +123,21 @@ export class Planner {
 		this.#change(() => this.anchors.splice(index, 0, this.#anchor(lon, lat)));
 	}
 
+	/** Moves an anchor on the map; it is no longer the place it was found as. */
 	move(id: number, lon: number, lat: number) {
 		this.#change(() => {
 			const a = this.anchors.find((x) => x.id === id);
-			if (a) Object.assign(a, { lon, lat });
+			if (a) Object.assign(a, { lon, lat, name: undefined });
+		});
+	}
+
+	/** Moves the anchor at `from` to position `to` in the order. */
+	reorder(from: number, to: number) {
+		if (to < 0 || to >= this.anchors.length || from === to) return;
+		this.#change(() => {
+			const [a] = this.anchors.splice(from, 1);
+			this.anchors.splice(to, 0, a);
+			this.anchors[0].straight = false;
 		});
 	}
 
@@ -175,11 +194,14 @@ export class Planner {
 	}
 
 	#fingerprint(): string {
-		return JSON.stringify([this.profile, this.anchors.map((a) => [a.lon, a.lat, a.straight])]);
+		return JSON.stringify([
+			this.profile,
+			this.anchors.map((a) => [a.lon, a.lat, a.straight, a.name])
+		]);
 	}
 
-	#anchor(lon: number, lat: number): Anchor {
-		return { id: this.#nextId++, lon, lat, straight: false };
+	#anchor(lon: number, lat: number, name?: string): Anchor {
+		return { id: this.#nextId++, lon, lat, straight: false, name };
 	}
 
 	#key(from: Anchor, to: Anchor) {

@@ -11,6 +11,9 @@ with the offline map. Offline maps are
 PMTiles packs built by the API (`docs/adr/0004-offline-maps.md`); saved routes
 open without a connection. Finished hikes are uploaded as routes (`POST
 /hikes`), right away or once online, and show in «Meine Routen» with the date.
+Journeys are in their own tab: their stages with date, numbers, stops, gaps
+and accommodation; each stage opens as a route, and «Save all stages offline»
+saves every stage's map and keeps the journey for opening it offline.
 Hikes recorded with the Apple Watch's Workout app («Hiking» or «Outdoor Walk»)
 are imported from Apple Health the same way (the watch button in the list;
 HealthKit works with a free Apple ID).
@@ -46,13 +49,17 @@ flutter test integration_test -d <simulator>    # against the local dev stack
 ```
 
 The integration tests expect the API and the web dev server (:5173) from
-`docs/development.md`, an account `appdemo` / `sehr-geheim-123` and its route
-«Sargans–Weisstannen»:
+`docs/development.md`, an account `appdemo` / `sehr-geheim-123`, its route
+«Sargans–Weisstannen» and its journey «Via Alpina» (a GPX with the tracks
+«Gaflei – Sargans» and «Sargans – Weisstannen», imported as a journey):
 
 - `offline_test.dart` saves the route offline and opens it with an
   unreachable server;
 - `navigate_test.dart` hikes it with made-up positions: progress, off the route
-  and back, arrival, recording;
+  and back, arrival, recording; the spoken turns (a fake voice) and the iOS
+  voice channel;
+- `journey_test.dart` opens the journey, saves all stages offline and opens it
+  and a stage with an unreachable server;
 - `gps_test.dart` uses the real GPS path and needs the simulator to grant the
   location and move along the route, started once the test app is installed:
 

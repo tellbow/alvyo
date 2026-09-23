@@ -52,6 +52,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       the track and time are right; a paused workout (several route parts)
       comes out as one hike; a workout without GPS says so.
 - [ ] **Health access refused**: the watch screen explains where to allow it.
+- [ ] **Journeys** with more stages (a real multi-week one): «Save all stages
+      offline» with a mobile connection, leaving the screen meanwhile; the
+      journey and every stage open in airplane mode. Only tried with two
+      stages on the local server.
 - [ ] **Free Apple ID expiry**: after 7 days the app no longer starts;
       `flutter run --release` renews it.
 

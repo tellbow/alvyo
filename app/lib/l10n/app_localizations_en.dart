@@ -191,4 +191,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navVoiceOff => 'Turn off voice prompts';
+
+  @override
+  String get journeysTitle => 'Journeys';
+
+  @override
+  String get journeysEmpty => 'No journeys yet. Plan them on the website.';
+
+  @override
+  String get journeysOffline => 'Offline – saved journeys only';
+
+  @override
+  String journeyStagesCount(int done, int total) {
+    return '$done of $total stages';
+  }
+
+  @override
+  String journeyStage(int n) {
+    return 'Stage $n';
+  }
+
+  @override
+  String get journeyNoRoute => 'No route yet';
+
+  @override
+  String get statusDone => 'Done';
+
+  @override
+  String get statusSkipped => 'Skipped';
+
+  @override
+  String gapWarning(String distance) {
+    return '$distance from the end of the previous stage';
+  }
+
+  @override
+  String gapTransfer(String how) {
+    return 'Covered by $how';
+  }
+
+  @override
+  String get transferPt => 'public transport';
+
+  @override
+  String get transferCablecar => 'cable car';
+
+  @override
+  String get transferOther => 'other means';
+
+  @override
+  String stageAccommodation(String name) {
+    return 'Accommodation: $name';
+  }
+
+  @override
+  String get stageBooked => 'booked';
+
+  @override
+  String get journeySaveAll => 'Save all stages offline';
+
+  @override
+  String journeySaving(int n, int total) {
+    return 'Saving stage $n of $total …';
+  }
+
+  @override
+  String get journeySaved => 'All stages saved offline';
 }

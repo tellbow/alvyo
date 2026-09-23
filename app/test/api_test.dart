@@ -84,4 +84,96 @@ void main() {
     expect(r.line.last, [8.002, 46.5, 1020]);
     await expectLater(api.route('nope'), throwsA(isA<ApiException>().having((e) => e.status, 'status', 404)));
   });
+
+  test('journeys: the list, and one with its stages', () async {
+    Map<String, dynamic> stage(String id, String title, {Map<String, dynamic>? route, Map<String, dynamic>? extra}) => {
+      'id': id,
+      'position': 0,
+      'title': title,
+      'planned_date': null,
+      'status': 'planned',
+      'done_on': null,
+      'transfer_before': null,
+      'notes': '',
+      'start_place': null,
+      'end_place': null,
+      'accommodation': '',
+      'accommodation_booked': false,
+      'route': route,
+      'gap': null,
+      ...?extra,
+    };
+    final client = MockClient((req) async {
+      switch (req.url.path) {
+        case '/api/v1/journeys':
+          return http.Response(
+            jsonEncode({
+              'journeys': [
+                {
+                  'id': 'j1',
+                  'title': 'Via Alpina',
+                  'stages': 3,
+                  'stages_done': 1,
+                  'distance_m': 32634.0,
+                  'ascent_m': 1118.0,
+                  'duration_s': 34463,
+                },
+              ],
+            }),
+            200,
+          );
+        case '/api/v1/journeys/j1':
+          return http.Response(
+            jsonEncode({
+              'id': 'j1',
+              'title': 'Via Alpina',
+              'totals': totals,
+              'progress': {'stages_done': 1, 'stages_total': 3},
+              'stage_list': [
+                stage(
+                  's1',
+                  'Gaflei – Sargans',
+                  route: {'id': 'r1', 'totals': totals},
+                  extra: {
+                    'status': 'done',
+                    'start_place': {'name': 'Gaflei, Klinik'},
+                    'end_place': {'name': 'Sargans'},
+                  },
+                ),
+                stage(
+                  's2',
+                  'Sargans – Weisstannen',
+                  route: {'id': 'r2', 'totals': totals},
+                  extra: {
+                    'planned_date': '2026-10-02',
+                    'transfer_before': 'pt',
+                    'gap': {'metres': 2100.0, 'status': 'transfer'},
+                    'accommodation': 'Gasthaus Alpenhof',
+                    'accommodation_booked': true,
+                  },
+                ),
+                stage('s3', ''),
+              ],
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+      }
+      return http.Response('', 404);
+    });
+    final api = Api('https://odysgeh.test', token: 't', client: client);
+    final list = await api.journeys();
+    expect((list.single.title, list.single.stages, list.single.stagesDone), ('Via Alpina', 3, 1));
+
+    final j = await api.journey('j1');
+    expect((j.stagesDone, j.stagesTotal, j.totals.durationS), (1, 3, 1800));
+    final [s1, s2, s3] = j.stages;
+    expect((s1.status, s1.startPlace, s1.endPlace, s1.routeId), ('done', 'Gaflei, Klinik', 'Sargans', 'r1'));
+    expect(s2.plannedDate, DateTime(2026, 10, 2));
+    expect((s2.gapStatus, s2.gapM, s2.transferBefore), ('transfer', 2100.0, 'pt'));
+    expect((s2.accommodation, s2.booked), ('Gasthaus Alpenhof', true));
+    expect((s3.routeId, s3.totals, s3.gapStatus), (null, null, null));
+    final offline = JourneySummary.of(j);
+    expect((offline.stages, offline.stagesDone, offline.distanceM), (3, 1, 1500.0));
+  });
 }

@@ -191,4 +191,70 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get navVoiceOff => 'Disattiva gli annunci vocali';
+
+  @override
+  String get journeysTitle => 'Trekking a tappe';
+
+  @override
+  String get journeysEmpty => 'Ancora nessun trekking a tappe. Pianificali sul sito.';
+
+  @override
+  String get journeysOffline => 'Offline – solo trekking a tappe salvati';
+
+  @override
+  String journeyStagesCount(int done, int total) {
+    return '$done tappe su $total';
+  }
+
+  @override
+  String journeyStage(int n) {
+    return 'Tappa $n';
+  }
+
+  @override
+  String get journeyNoRoute => 'Ancora nessun percorso';
+
+  @override
+  String get statusDone => 'Percorsa';
+
+  @override
+  String get statusSkipped => 'Saltata';
+
+  @override
+  String gapWarning(String distance) {
+    return '$distance di distanza dalla fine della tappa precedente';
+  }
+
+  @override
+  String gapTransfer(String how) {
+    return 'Collegata con $how';
+  }
+
+  @override
+  String get transferPt => 'trasporti pubblici';
+
+  @override
+  String get transferCablecar => 'funivia';
+
+  @override
+  String get transferOther => 'altro mezzo';
+
+  @override
+  String stageAccommodation(String name) {
+    return 'Alloggio: $name';
+  }
+
+  @override
+  String get stageBooked => 'prenotato';
+
+  @override
+  String get journeySaveAll => 'Salva tutte le tappe offline';
+
+  @override
+  String journeySaving(int n, int total) {
+    return 'Salvataggio della tappa $n di $total …';
+  }
+
+  @override
+  String get journeySaved => 'Tutte le tappe salvate offline';
 }

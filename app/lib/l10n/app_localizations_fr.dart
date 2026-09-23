@@ -191,4 +191,70 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get navVoiceOff => 'Désactive les annonces vocales';
+
+  @override
+  String get journeysTitle => 'Randonnées par étapes';
+
+  @override
+  String get journeysEmpty => 'Pas encore de randonnées par étapes. Planifie-les sur le site.';
+
+  @override
+  String get journeysOffline => 'Hors ligne – randonnées par étapes enregistrées uniquement';
+
+  @override
+  String journeyStagesCount(int done, int total) {
+    return '$done étapes sur $total';
+  }
+
+  @override
+  String journeyStage(int n) {
+    return 'Étape $n';
+  }
+
+  @override
+  String get journeyNoRoute => 'Pas encore d\'itinéraire';
+
+  @override
+  String get statusDone => 'Parcourue';
+
+  @override
+  String get statusSkipped => 'Sautée';
+
+  @override
+  String gapWarning(String distance) {
+    return '$distance d\'écart avec la fin de l\'étape précédente';
+  }
+
+  @override
+  String gapTransfer(String how) {
+    return 'Reliée par $how';
+  }
+
+  @override
+  String get transferPt => 'transports publics';
+
+  @override
+  String get transferCablecar => 'remontée mécanique';
+
+  @override
+  String get transferOther => 'autre moyen';
+
+  @override
+  String stageAccommodation(String name) {
+    return 'Hébergement : $name';
+  }
+
+  @override
+  String get stageBooked => 'réservé';
+
+  @override
+  String get journeySaveAll => 'Enregistrer toutes les étapes hors ligne';
+
+  @override
+  String journeySaving(int n, int total) {
+    return 'Enregistrement de l\'étape $n sur $total …';
+  }
+
+  @override
+  String get journeySaved => 'Toutes les étapes enregistrées hors ligne';
 }

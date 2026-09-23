@@ -435,6 +435,114 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ansagen ausschalten'**
   String get navVoiceOff;
+
+  /// No description provided for @journeysTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentouren'**
+  String get journeysTitle;
+
+  /// No description provided for @journeysEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Etappentouren. Plane sie auf der Website.'**
+  String get journeysEmpty;
+
+  /// No description provided for @journeysOffline.
+  ///
+  /// In de, this message translates to:
+  /// **'Offline – nur gespeicherte Etappentouren'**
+  String get journeysOffline;
+
+  /// No description provided for @journeyStagesCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{done} von {total} Etappen'**
+  String journeyStagesCount(int done, int total);
+
+  /// No description provided for @journeyStage.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe {n}'**
+  String journeyStage(int n);
+
+  /// No description provided for @journeyNoRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Route'**
+  String get journeyNoRoute;
+
+  /// No description provided for @statusDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewandert'**
+  String get statusDone;
+
+  /// No description provided for @statusSkipped.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausgelassen'**
+  String get statusSkipped;
+
+  /// No description provided for @gapWarning.
+  ///
+  /// In de, this message translates to:
+  /// **'{distance} Abstand zum Ende der vorherigen Etappe'**
+  String gapWarning(String distance);
+
+  /// {how} is transferPt, transferCablecar or transferOther.
+  ///
+  /// In de, this message translates to:
+  /// **'Überbrückt mit {how}'**
+  String gapTransfer(String how);
+
+  /// No description provided for @transferPt.
+  ///
+  /// In de, this message translates to:
+  /// **'öffentlichem Verkehr'**
+  String get transferPt;
+
+  /// No description provided for @transferCablecar.
+  ///
+  /// In de, this message translates to:
+  /// **'Seilbahn'**
+  String get transferCablecar;
+
+  /// No description provided for @transferOther.
+  ///
+  /// In de, this message translates to:
+  /// **'anders'**
+  String get transferOther;
+
+  /// No description provided for @stageAccommodation.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkunft: {name}'**
+  String stageAccommodation(String name);
+
+  /// No description provided for @stageBooked.
+  ///
+  /// In de, this message translates to:
+  /// **'gebucht'**
+  String get stageBooked;
+
+  /// No description provided for @journeySaveAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Etappen offline speichern'**
+  String get journeySaveAll;
+
+  /// No description provided for @journeySaving.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe {n} von {total} wird gespeichert …'**
+  String journeySaving(int n, int total);
+
+  /// No description provided for @journeySaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Etappen offline gespeichert'**
+  String get journeySaved;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

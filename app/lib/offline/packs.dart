@@ -68,6 +68,37 @@ class PackStore {
     return out..sort((a, b) => a.title.compareTo(b.title));
   }
 
+  File _journeyFile(String id) => File('${root.path}/journey-$id.json');
+
+  /// Keeps a journey's stage list to open it offline; the stages' maps are
+  /// saved as routes.
+  Future<void> saveJourney(JourneyDetail j) async {
+    await root.create(recursive: true);
+    final file = _journeyFile(j.id);
+    final tmp = File('${file.path}.tmp');
+    await tmp.writeAsString(jsonEncode(j.json));
+    await tmp.rename(file.path);
+  }
+
+  Future<JourneyDetail?> savedJourney(String id) async {
+    final file = _journeyFile(id);
+    if (!await file.exists()) return null;
+    return JourneyDetail.fromJson(jsonDecode(await file.readAsString()) as Map<String, dynamic>);
+  }
+
+  /// All saved journeys, by title.
+  Future<List<JourneyDetail>> savedJourneys() async {
+    if (!await root.exists()) return [];
+    final out = <JourneyDetail>[];
+    await for (final f in root.list()) {
+      final name = f.uri.pathSegments.last;
+      if (f is File && name.startsWith('journey-') && name.endsWith('.json')) {
+        out.add(JourneyDetail.fromJson(jsonDecode(await f.readAsString()) as Map<String, dynamic>));
+      }
+    }
+    return out..sort((a, b) => a.title.compareTo(b.title));
+  }
+
   /// Has the server build the offline map of a route, then downloads it and
   /// replaces an older one. [progress] gets whether it downloads yet and the
   /// share done (0–1).

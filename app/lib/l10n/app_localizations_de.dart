@@ -191,4 +191,70 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get navVoiceOff => 'Ansagen ausschalten';
+
+  @override
+  String get journeysTitle => 'Etappentouren';
+
+  @override
+  String get journeysEmpty => 'Noch keine Etappentouren. Plane sie auf der Website.';
+
+  @override
+  String get journeysOffline => 'Offline – nur gespeicherte Etappentouren';
+
+  @override
+  String journeyStagesCount(int done, int total) {
+    return '$done von $total Etappen';
+  }
+
+  @override
+  String journeyStage(int n) {
+    return 'Etappe $n';
+  }
+
+  @override
+  String get journeyNoRoute => 'Noch keine Route';
+
+  @override
+  String get statusDone => 'Gewandert';
+
+  @override
+  String get statusSkipped => 'Ausgelassen';
+
+  @override
+  String gapWarning(String distance) {
+    return '$distance Abstand zum Ende der vorherigen Etappe';
+  }
+
+  @override
+  String gapTransfer(String how) {
+    return 'Überbrückt mit $how';
+  }
+
+  @override
+  String get transferPt => 'öffentlichem Verkehr';
+
+  @override
+  String get transferCablecar => 'Seilbahn';
+
+  @override
+  String get transferOther => 'anders';
+
+  @override
+  String stageAccommodation(String name) {
+    return 'Unterkunft: $name';
+  }
+
+  @override
+  String get stageBooked => 'gebucht';
+
+  @override
+  String get journeySaveAll => 'Alle Etappen offline speichern';
+
+  @override
+  String journeySaving(int n, int total) {
+    return 'Etappe $n von $total wird gespeichert …';
+  }
+
+  @override
+  String get journeySaved => 'Alle Etappen offline gespeichert';
 }

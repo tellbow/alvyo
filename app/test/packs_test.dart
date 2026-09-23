@@ -132,6 +132,32 @@ void main() {
     expect(await store.savedRoutes(), isEmpty);
   });
 
+  test('a journey kept for offline, apart from the routes', () async {
+    final store = PackStore(root);
+    expect(await store.savedJourneys(), isEmpty);
+    Map<String, dynamic> journey(String id, String title) => {
+      'id': id,
+      'title': title,
+      'totals': {
+        'distance_m': 1500.0,
+        'ascent_m': 120.0,
+        'descent_m': 30.0,
+        'duration_s': 1800,
+        'sac_grade': 2,
+        'sac_max': 3,
+      },
+      'progress': {'stages_done': 0, 'stages_total': 0},
+      'stage_list': <Object>[],
+    };
+    await store.saveJourney(JourneyDetail.fromJson(journey('j2', 'Zweite')));
+    await store.saveJourney(JourneyDetail.fromJson(journey('j1', 'Via Alpina')));
+    await store.saveJourney(JourneyDetail.fromJson(journey('j1', 'Via Alpina, neu')));
+    expect([for (final j in await store.savedJourneys()) j.title], ['Via Alpina, neu', 'Zweite']);
+    expect((await store.savedJourney('j1'))!.title, 'Via Alpina, neu');
+    expect(await store.savedJourney('nope'), isNull);
+    expect(await store.savedRoutes(), isEmpty);
+  });
+
   test('saved without turns when they cannot be had', () async {
     final server = FakeServer()..turnsDown = true;
     final api = Api('https://odysgeh.test', token: 't', client: server.client);

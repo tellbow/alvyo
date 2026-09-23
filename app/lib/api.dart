@@ -83,6 +83,94 @@ class Turn {
   Map<String, dynamic> toJson() => {'along_m': alongM, 'kind': kind};
 }
 
+/// A journey in lists: a hike of several stages.
+class JourneySummary {
+  JourneySummary.fromJson(Map<String, dynamic> j)
+    : id = j['id'] as String,
+      title = j['title'] as String,
+      stages = (j['stages'] as num).toInt(),
+      stagesDone = (j['stages_done'] as num).toInt(),
+      distanceM = (j['distance_m'] as num).toDouble(),
+      ascentM = (j['ascent_m'] as num).toDouble(),
+      durationS = (j['duration_s'] as num).toInt();
+
+  /// The summary of a journey saved offline.
+  JourneySummary.of(JourneyDetail j)
+    : id = j.id,
+      title = j.title,
+      stages = j.stages.length,
+      stagesDone = j.stagesDone,
+      distanceM = j.totals.distanceM,
+      ascentM = j.totals.ascentM,
+      durationS = j.totals.durationS;
+  final String id, title;
+  final int stages, stagesDone, durationS;
+  final double distanceM, ascentM;
+}
+
+/// A stage of a journey.
+class Stage {
+  Stage.fromJson(Map<String, dynamic> j)
+    : id = j['id'] as String,
+      title = j['title'] as String,
+      plannedDate = switch (j['planned_date']) {
+        final String d => DateTime.parse(d),
+        _ => null,
+      },
+      status = j['status'] as String,
+      transferBefore = j['transfer_before'] as String?,
+      startPlace = (j['start_place'] as Map<String, dynamic>?)?['name'] as String?,
+      endPlace = (j['end_place'] as Map<String, dynamic>?)?['name'] as String?,
+      accommodation = j['accommodation'] as String? ?? '',
+      booked = j['accommodation_booked'] as bool? ?? false,
+      routeId = (j['route'] as Map<String, dynamic>?)?['id'] as String?,
+      totals = switch (j['route']) {
+        {'totals': final Map<String, dynamic> t} => Totals.fromJson(t),
+        _ => null,
+      },
+      gapStatus = (j['gap'] as Map<String, dynamic>?)?['status'] as String?,
+      gapM = ((j['gap'] as Map<String, dynamic>?)?['metres'] as num?)?.toDouble() ?? 0;
+  final String id, title;
+  final DateTime? plannedDate;
+
+  /// planned, done or skipped.
+  final String status;
+
+  /// How the gap to the previous stage is covered: pt, cablecar or other.
+  final String? transferBefore;
+  final String? startPlace, endPlace;
+  final String accommodation;
+  final bool booked;
+
+  /// The stage's route, a route like the others; none planned yet if null.
+  final String? routeId;
+  final Totals? totals;
+
+  /// To the end of the previous stage: ok, warning, gap or transfer.
+  final String? gapStatus;
+  final double gapM;
+}
+
+/// A journey with its stages.
+class JourneyDetail {
+  JourneyDetail.fromJson(this.json)
+    : id = json['id'] as String,
+      title = json['title'] as String,
+      stages = [for (final s in json['stage_list'] as List) Stage.fromJson(s as Map<String, dynamic>)],
+      totals = Totals.fromJson(json['totals'] as Map<String, dynamic>),
+      stagesDone = ((json['progress'] as Map<String, dynamic>)['stages_done'] as num).toInt(),
+      stagesTotal = ((json['progress'] as Map<String, dynamic>)['stages_total'] as num).toInt();
+
+  /// As the server sent it, to keep a copy offline.
+  final Map<String, dynamic> json;
+  final String id, title;
+  final List<Stage> stages;
+  final Totals totals;
+
+  /// Skipped stages do not count.
+  final int stagesDone, stagesTotal;
+}
+
 /// One layer of an offline map on the server.
 class PackFile {
   PackFile.fromJson(Map<String, dynamic> j)
@@ -167,6 +255,15 @@ class Api {
     final j = await _get('/routes') as Map<String, dynamic>;
     return [for (final r in j['routes'] as List) RouteSummary.fromJson(r as Map<String, dynamic>)];
   }
+
+  /// The user's own journeys.
+  Future<List<JourneySummary>> journeys() async {
+    final j = await _get('/journeys') as Map<String, dynamic>;
+    return [for (final r in j['journeys'] as List) JourneySummary.fromJson(r as Map<String, dynamic>)];
+  }
+
+  Future<JourneyDetail> journey(String id) async =>
+      JourneyDetail.fromJson(await _get('/journeys/$id') as Map<String, dynamic>);
 
   Future<RouteDetail> route(String id) async => RouteDetail.fromJson(await _get('/routes/$id') as Map<String, dynamic>);
 

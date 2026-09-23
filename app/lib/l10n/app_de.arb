@@ -108,5 +108,72 @@
         "type": "String"
       }
     }
-  }
+  },
+  "journeysTitle": "Etappentouren",
+  "journeysEmpty": "Noch keine Etappentouren. Plane sie auf der Website.",
+  "journeysOffline": "Offline – nur gespeicherte Etappentouren",
+  "journeyStagesCount": "{done} von {total} Etappen",
+  "@journeyStagesCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyStage": "Etappe {n}",
+  "@journeyStage": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "journeyNoRoute": "Noch keine Route",
+  "statusDone": "Gewandert",
+  "statusSkipped": "Ausgelassen",
+  "gapWarning": "{distance} Abstand zum Ende der vorherigen Etappe",
+  "@gapWarning": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "gapTransfer": "Überbrückt mit {how}",
+  "@gapTransfer": {
+    "description": "{how} is transferPt, transferCablecar or transferOther.",
+    "placeholders": {
+      "how": {
+        "type": "String"
+      }
+    }
+  },
+  "transferPt": "öffentlichem Verkehr",
+  "transferCablecar": "Seilbahn",
+  "transferOther": "anders",
+  "stageAccommodation": "Unterkunft: {name}",
+  "@stageAccommodation": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "stageBooked": "gebucht",
+  "journeySaveAll": "Alle Etappen offline speichern",
+  "journeySaving": "Etappe {n} von {total} wird gespeichert …",
+  "@journeySaving": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "journeySaved": "Alle Etappen offline gespeichert"
 }

@@ -1,0 +1,22 @@
+{
+  "@@locale": "de",
+  "appTitle": "odysgeh",
+  "loginTitle": "Anmelden",
+  "server": "Server",
+  "login": "E-Mail oder Benutzername",
+  "password": "Passwort",
+  "loginSubmit": "Anmelden",
+  "loginInvalid": "E-Mail/Benutzername oder Passwort ist falsch.",
+  "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuche es nochmals.",
+  "errorServer": "Der Server ist nicht erreichbar.",
+  "routesTitle": "Meine Routen",
+  "routesEmpty": "Noch keine Routen. Plane sie auf der Website.",
+  "logout": "Abmelden",
+  "offlineSave": "Offline speichern",
+  "offlineSaved": "Offline gespeichert – entfernen",
+  "offlinePreparing": "Die Offline-Karte wird vorbereitet …",
+  "offlineDownloading": "Die Offline-Karte wird geladen …",
+  "offlineOutdated": "Route geändert – Offline-Karte aktualisieren",
+  "offlineFailed": "Die Offline-Karte konnte nicht gespeichert werden.",
+  "routesOffline": "Offline – nur gespeicherte Routen"
+}

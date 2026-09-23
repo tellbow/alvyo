@@ -1,0 +1,22 @@
+{
+  "@@locale": "en",
+  "appTitle": "odysgeh",
+  "loginTitle": "Log in",
+  "server": "Server",
+  "login": "E-mail or username",
+  "password": "Password",
+  "loginSubmit": "Log in",
+  "loginInvalid": "Wrong e-mail/username or password.",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "errorServer": "The server cannot be reached.",
+  "routesTitle": "My routes",
+  "routesEmpty": "No routes yet. Plan them on the website.",
+  "logout": "Log out",
+  "offlineSave": "Save offline",
+  "offlineSaved": "Saved offline – remove",
+  "offlinePreparing": "Preparing the offline map …",
+  "offlineDownloading": "Downloading the offline map …",
+  "offlineOutdated": "Route changed – update the offline map",
+  "offlineFailed": "The offline map could not be saved.",
+  "routesOffline": "Offline – saved routes only"
+}

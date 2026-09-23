@@ -1,0 +1,22 @@
+{
+  "@@locale": "fr",
+  "appTitle": "odysgeh",
+  "loginTitle": "Se connecter",
+  "server": "Serveur",
+  "login": "E-mail ou nom d'utilisateur",
+  "password": "Mot de passe",
+  "loginSubmit": "Se connecter",
+  "loginInvalid": "E-mail/nom d'utilisateur ou mot de passe incorrect.",
+  "errorGeneric": "Quelque chose n'a pas fonctionné. Merci de réessayer.",
+  "errorServer": "Le serveur n'est pas joignable.",
+  "routesTitle": "Mes itinéraires",
+  "routesEmpty": "Pas encore d'itinéraires. Planifie-les sur le site.",
+  "logout": "Se déconnecter",
+  "offlineSave": "Enregistrer hors ligne",
+  "offlineSaved": "Enregistré hors ligne – supprimer",
+  "offlinePreparing": "Préparation de la carte hors ligne …",
+  "offlineDownloading": "Téléchargement de la carte hors ligne …",
+  "offlineOutdated": "Itinéraire modifié – mettre à jour la carte hors ligne",
+  "offlineFailed": "La carte hors ligne n'a pas pu être enregistrée.",
+  "routesOffline": "Hors ligne – itinéraires enregistrés uniquement"
+}

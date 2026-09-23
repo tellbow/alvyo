@@ -1,0 +1,22 @@
+{
+  "@@locale": "it",
+  "appTitle": "odysgeh",
+  "loginTitle": "Accedi",
+  "server": "Server",
+  "login": "E-mail o nome utente",
+  "password": "Password",
+  "loginSubmit": "Accedi",
+  "loginInvalid": "E-mail/nome utente o password errati.",
+  "errorGeneric": "Qualcosa è andato storto. Riprova.",
+  "errorServer": "Il server non è raggiungibile.",
+  "routesTitle": "I miei percorsi",
+  "routesEmpty": "Ancora nessun percorso. Pianificali sul sito.",
+  "logout": "Esci",
+  "offlineSave": "Salva offline",
+  "offlineSaved": "Salvato offline – rimuovi",
+  "offlinePreparing": "Preparazione della mappa offline …",
+  "offlineDownloading": "Download della mappa offline …",
+  "offlineOutdated": "Percorso modificato – aggiorna la mappa offline",
+  "offlineFailed": "Non è stato possibile salvare la mappa offline.",
+  "routesOffline": "Offline – solo percorsi salvati"
+}

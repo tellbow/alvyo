@@ -13,7 +13,7 @@ void main() {
   setUp(() => root = Directory.systemTemp.createTempSync('recordings'));
   tearDown(() => root.deleteSync(recursive: true));
 
-  void hike(String started, String title, {List<double> accuracies = const [5, 5, 80, 5]}) {
+  void hike(String started, String title, {List<double> accuracies = const [5, 5, 80, 5], String? owner}) {
     final t0 = DateTime.parse(started);
     File('${root.path}/done/${started.replaceAll(':', '-')}.json')
       ..createSync(recursive: true)
@@ -21,6 +21,7 @@ void main() {
         jsonEncode({
           'route_id': 'r1',
           'title': title,
+          'owner': ?owner,
           'started': started,
           'fixes': [
             for (var i = 0; i < accuracies.length; i++)
@@ -119,5 +120,30 @@ void main() {
     expect(points.length, inInclusiveRange(25, 27));
     expect(points.first.time, t0);
     expect(points.last.time, t0.add(const Duration(seconds: 100)));
+  });
+
+  test("another account's hikes wait for it", () async {
+    hike('2026-09-20T08:00:00.000Z', 'Annas', owner: 'u-anna');
+    hike('2026-09-21T08:00:00.000Z', 'Beas', owner: 'u-bea');
+    hike('2026-09-22T08:00:00.000Z', 'Alt'); // from before owners were kept
+    final titles = <String>[];
+    Api as(String? user) => Api(
+      'https://odysgeh.test',
+      token: 't',
+      userId: user,
+      client: MockClient((req) async {
+        titles.add((jsonDecode(req.body) as Map<String, dynamic>)['title'] as String);
+        return http.Response(jsonEncode({'id': 'new'}), 201);
+      }),
+    );
+    List<String> left() => [for (final f in Directory('${root.path}/done').listSync()) f.uri.pathSegments.last]..sort();
+
+    expect(await uploadHikes(as('u-bea'), root), 2);
+    expect(titles, unorderedEquals(['Beas, 21.09.2026', 'Alt, 22.09.2026']));
+    expect(left(), ['2026-09-20T08-00-00.000Z.json']);
+    // Not knowing who is logged in, nobody's is sent.
+    expect(await uploadHikes(as(null), root), 0);
+    expect(await uploadHikes(as('u-anna'), root), 1);
+    expect(left(), isEmpty);
   });
 }

@@ -257,4 +257,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get journeySaved => 'Alle Etappen offline gespeichert';
+
+  @override
+  String navSwitchQuestion(String title) {
+    return 'Du zeichnest gerade «$title» auf. Diese Wanderung beenden und hier eine neue beginnen? Die bisherige Aufzeichnung bleibt gespeichert.';
+  }
+
+  @override
+  String get navSwitch => 'Beenden und hier beginnen';
+
+  @override
+  String get cancel => 'Abbrechen';
 }

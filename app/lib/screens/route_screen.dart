@@ -37,7 +37,8 @@ class _RouteScreenState extends State<RouteScreen> {
   void initState() {
     super.initState();
     Recording.defaultRoot().then(Recording.active).then((rec) {
-      if (mounted && rec?.routeId == widget.id) setState(() => _resumable = true);
+      final resume = Recording.before(rec, widget.id, widget.api.userId) == Before.resume;
+      if (mounted && resume) setState(() => _resumable = true);
     });
     // Saving since the screen was open before.
     _downloads.running(widget.id)?.then(_saved).catchError((_) {});
@@ -57,6 +58,32 @@ class _RouteScreenState extends State<RouteScreen> {
     _hiking = true;
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final active = await Recording.active(await Recording.defaultRoot());
+    if (!mounted) return;
+    if (Recording.before(active, r.id, widget.api.userId) == Before.ask) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(t.navSwitchQuestion(active!.title)),
+          actions: [
+            TextButton(
+              key: const Key('nav-switch-cancel'),
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(t.cancel),
+            ),
+            FilledButton(
+              key: const Key('nav-switch-confirm'),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(t.navSwitch),
+            ),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) {
+        _hiking = false;
+        return;
+      }
+    }
     final summary = await Navigator.of(context).push<HikeSummary>(
       MaterialPageRoute(
         builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack, turns: _pack?.turns),

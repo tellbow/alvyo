@@ -29,6 +29,19 @@ class _OdysgehAppState extends State<OdysgehApp> {
     setState(() => _api = null);
   }
 
+  /// A session saved before the account was kept with it learns the
+  /// account once online.
+  void _learnUser(Api? api) {
+    if (api == null || api.userId != null) return;
+    api
+        .me()
+        .then((m) async {
+          api.userId = m.id;
+          await _session.save(api);
+        })
+        .catchError((_) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -50,6 +63,7 @@ class _OdysgehAppState extends State<OdysgehApp> {
           if (!_restoredOnce) {
             _api = snap.data;
             _restoredOnce = true;
+            _learnUser(_api);
           }
           final api = _api;
           if (api == null) {

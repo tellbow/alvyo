@@ -257,4 +257,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get journeySaved => 'Tutte le tappe salvate offline';
+
+  @override
+  String navSwitchQuestion(String title) {
+    return 'Stai registrando «$title». Terminare questa escursione e iniziarne una nuova qui? Quanto registrato finora viene conservato.';
+  }
+
+  @override
+  String get navSwitch => 'Termina e inizia qui';
+
+  @override
+  String get cancel => 'Annulla';
 }

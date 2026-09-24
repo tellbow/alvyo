@@ -5,8 +5,8 @@ import '../api.dart';
 import '../format.dart';
 import 'tracker.dart';
 
-/// Uploads finished hikes (see Recording.finish) and deletes each once the
-/// server has it. Hikes the server can never take (outside Switzerland, too
+/// Uploads the finished hikes (see Recording.finish) of the logged-in account
+/// and deletes each once the server has it; another account's wait for it. Hikes the server can never take (outside Switzerland, too
 /// short) are deleted too; the others wait for the next try, unreadable ones
 /// are set aside (.bad). Returns how many were uploaded.
 Future<int> uploadHikes(Api api, Directory recordings) async {
@@ -20,6 +20,8 @@ Future<int> uploadHikes(Api api, Directory recordings) async {
     final List<({double lon, double lat, DateTime time})> points;
     try {
       j = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final owner = j['owner'] as String?;
+      if (owner != null && owner != api.userId) continue;
       started = DateTime.parse(j['started'] as String);
       points = uploadPoints([for (final f in j['fixes'] as List) Fix.fromJson(f as Map<String, dynamic>)]);
     } on Object {

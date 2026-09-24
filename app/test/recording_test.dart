@@ -80,4 +80,28 @@ void main() {
     final fixes = [fix(0), fix(1), fix(5, acc: 80), fix(2)];
     expect(trackLengthM(fixes), closeTo(2 * 111.3, 1));
   });
+
+  test('a recording keeps its account; another account never resumes it', () async {
+    final rec = await Recording.start(root, routeId: 'r1', title: 'Gratweg', owner: 'u-anna', now: t0);
+    await rec.add(fix(1));
+    final active = (await Recording.active(root))!;
+    expect(active.owner, 'u-anna');
+    expect(Recording.before(active, 'r1', 'u-anna'), Before.resume);
+    expect(Recording.before(active, 'r2', 'u-anna'), Before.ask, reason: 'another route: ask before ending it');
+    expect(Recording.before(active, 'r1', 'u-bea'), Before.setAside);
+    expect(Recording.before(active, 'r1', null), Before.resume, reason: 'account not known yet');
+    expect(Recording.before(null, 'r1', 'u-anna'), Before.start);
+
+    final file = await active.finish();
+    expect((jsonDecode(await file.readAsString()) as Map<String, dynamic>)['owner'], 'u-anna');
+  });
+
+  test('recordings from before accounts were kept belong to whoever is logged in', () async {
+    await Recording.start(root, routeId: 'r1', title: 'Alt', now: t0);
+    final active = (await Recording.active(root))!;
+    expect(active.owner, isNull);
+    expect(Recording.before(active, 'r1', 'u-bea'), Before.resume);
+    final file = await active.finish();
+    expect((jsonDecode(await file.readAsString()) as Map<String, dynamic>).containsKey('owner'), isFalse);
+  });
 }

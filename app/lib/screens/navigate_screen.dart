@@ -114,11 +114,13 @@ class _NavigateScreenState extends State<NavigateScreen> {
     }
     final root = widget.recordings ?? await Recording.defaultRoot();
     var rec = await Recording.active(root);
-    if (rec != null && rec.routeId != widget.route.id) {
-      await rec.finish(); // another route's hike: keep it, start this one
+    if (Recording.before(rec, widget.route.id, widget.api.userId) case Before.ask || Before.setAside) {
+      // Another route's hike (the route screen asked) or another account's:
+      // kept for uploading, and this one starts.
+      await rec!.finish();
       rec = null;
     }
-    rec ??= await Recording.start(root, routeId: widget.route.id, title: widget.route.title);
+    rec ??= await Recording.start(root, routeId: widget.route.id, title: widget.route.title, owner: widget.api.userId);
     // Resumed: continue where the hike was.
     for (final f in await rec.fixes()) {
       _progress = _tracker.update(f) ?? _progress;

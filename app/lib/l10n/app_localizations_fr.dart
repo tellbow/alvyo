@@ -257,4 +257,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get journeySaved => 'Toutes les étapes enregistrées hors ligne';
+
+  @override
+  String navSwitchQuestion(String title) {
+    return 'Tu enregistres « $title ». Terminer cette randonnée et en commencer une nouvelle ici ? L\'enregistrement fait jusqu\'ici est conservé.';
+  }
+
+  @override
+  String get navSwitch => 'Terminer et commencer ici';
+
+  @override
+  String get cancel => 'Annuler';
 }

@@ -543,6 +543,24 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Alle Etappen offline gespeichert'**
   String get journeySaved;
+
+  /// No description provided for @navSwitchQuestion.
+  ///
+  /// In de, this message translates to:
+  /// **'Du zeichnest gerade «{title}» auf. Diese Wanderung beenden und hier eine neue beginnen? Die bisherige Aufzeichnung bleibt gespeichert.'**
+  String navSwitchQuestion(String title);
+
+  /// No description provided for @navSwitch.
+  ///
+  /// In de, this message translates to:
+  /// **'Beenden und hier beginnen'**
+  String get navSwitch;
+
+  /// No description provided for @cancel.
+  ///
+  /// In de, this message translates to:
+  /// **'Abbrechen'**
+  String get cancel;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

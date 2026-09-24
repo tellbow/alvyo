@@ -68,6 +68,12 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **Free Apple ID expiry**: after 7 days the app no longer starts;
       `flutter run --release` renews it.
 
+- [ ] **Two accounts on one phone**: record a hike offline, log out, log in
+      as someone else: the hike is not uploaded to them, nor resumed; back
+      in the first account it uploads.
+- [ ] **Starting a hike on another route** while one is recorded asks
+      first; «Abbrechen» leaves the running hike as it was.
+
 ## Web
 
 - [ ] **Place search** with more names: villages, peaks, passes, huts, stops and

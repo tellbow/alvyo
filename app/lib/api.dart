@@ -14,13 +14,14 @@ class ApiException implements Exception {
 
 /// The logged-in user.
 class Me {
-  Me({required this.username, required this.displayName, required this.speedFactor});
+  Me({required this.id, required this.username, required this.displayName, required this.speedFactor});
   factory Me.fromJson(Map<String, dynamic> j) => Me(
+    id: j['id'] as String,
     username: j['username'] as String,
     displayName: j['display_name'] as String,
     speedFactor: (j['speed_factor'] as num?)?.toDouble() ?? 1,
   );
-  final String username;
+  final String id, username;
   final String displayName;
   final double speedFactor;
 }
@@ -210,7 +211,9 @@ class PackStatus {
 /// Client of the odysgeh API. Logging in yields the session token, which
 /// authenticates later calls as a Bearer token.
 class Api {
-  Api(String server, {this.token, http.Client? client}) : server = _normalized(server), _http = client ?? http.Client();
+  Api(String server, {this.token, this.userId, http.Client? client})
+    : server = _normalized(server),
+      _http = client ?? http.Client();
 
   /// Without trailing slashes, and https when typed without a scheme.
   static String _normalized(String server) {
@@ -220,6 +223,10 @@ class Api {
 
   final String server;
   String? token;
+
+  /// The logged-in account; recordings are kept for it (unknown until
+  /// known once online, for sessions from before it was saved).
+  String? userId;
   final http.Client _http;
 
   Uri _uri(String path) => Uri.parse('$server/api/v1$path');
@@ -256,7 +263,9 @@ class Api {
     final session = RegExp(r'odysgeh_session=([^;,\s]+)').firstMatch(r.headers['set-cookie'] ?? '');
     if (session == null) throw ApiException(500, 'no session in the answer');
     token = session.group(1);
-    return Me.fromJson(body['user'] as Map<String, dynamic>);
+    final me = Me.fromJson(body['user'] as Map<String, dynamic>);
+    userId = me.id;
+    return me;
   }
 
   Future<void> logout() async {

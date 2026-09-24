@@ -133,10 +133,7 @@ None: the next work comes from the backlog.
 
 ## Backlog
 
-- App: mark a stage as done after hiking it; recordings tied to the account
-  (after logging in as someone else, pending hikes upload to the new
-  account); starting a hike on another route ends the current one without
-  asking.
+- App: mark a stage as done after hiking it.
 - Community and moderation: moderators opening unlisted reported items;
   shadow-ban.
 - Routes: revisions; privacy zones (start and end of recorded hikes hidden);

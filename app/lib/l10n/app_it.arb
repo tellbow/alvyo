@@ -74,5 +74,8 @@
   "stageBooked": "prenotato",
   "journeySaveAll": "Salva tutte le tappe offline",
   "journeySaving": "Salvataggio della tappa {n} di {total} …",
-  "journeySaved": "Tutte le tappe salvate offline"
+  "journeySaved": "Tutte le tappe salvate offline",
+  "navSwitchQuestion": "Stai registrando «{title}». Terminare questa escursione e iniziarne una nuova qui? Quanto registrato finora viene conservato.",
+  "navSwitch": "Termina e inizia qui",
+  "cancel": "Annulla"
 }

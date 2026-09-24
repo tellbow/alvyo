@@ -5,15 +5,34 @@ import 'package:path_provider/path_provider.dart';
 
 import 'tracker.dart';
 
+/// What becomes of the recording in progress when a hike starts.
+enum Before {
+  /// Nothing in progress.
+  start,
+
+  /// It is this route's: go on with it.
+  resume,
+
+  /// It is another route's: ask before ending it.
+  ask,
+
+  /// Another account's: keep it for that account, start anew.
+  setAside,
+}
+
 /// A hike being recorded. Positions are appended to a file as they come, so
 /// nothing is lost when iOS stops the app; opening the route again resumes.
 /// Finished hikes wait in `<root>/done/` until they are uploaded.
 class Recording {
-  Recording._(this.root, this.routeId, this.title, this.started);
+  Recording._(this.root, this.routeId, this.title, this.started, this.owner);
 
   final Directory root;
   final String routeId, title;
   final DateTime started;
+
+  /// The account it is recorded for; it uploads only to that one. Null for
+  /// recordings from before owners were kept, and when not known yet.
+  final String? owner;
 
   static Future<Directory> defaultRoot() async =>
       Directory('${(await getApplicationSupportDirectory()).path}/recordings');
@@ -26,7 +45,13 @@ class Recording {
     final meta = _meta(root);
     if (!await meta.exists()) return null;
     final m = jsonDecode(await meta.readAsString()) as Map<String, dynamic>;
-    final r = Recording._(root, m['route_id'] as String, m['title'] as String, DateTime.parse(m['started'] as String));
+    final r = Recording._(
+      root,
+      m['route_id'] as String,
+      m['title'] as String,
+      DateTime.parse(m['started'] as String),
+      m['owner'] as String?,
+    );
     await r._endLine();
     return r;
   }
@@ -51,10 +76,11 @@ class Recording {
     Directory root, {
     required String routeId,
     required String title,
+    String? owner,
     DateTime? now,
   }) async {
     await root.create(recursive: true);
-    final r = Recording._(root, routeId, title, (now ?? DateTime.now()).toUtc());
+    final r = Recording._(root, routeId, title, (now ?? DateTime.now()).toUtc(), owner);
     try {
       await _meta(root).create(exclusive: true); // two starts at once: one wins
     } on FileSystemException {
@@ -65,7 +91,23 @@ class Recording {
     return r;
   }
 
-  Map<String, dynamic> _metaJson() => {'route_id': routeId, 'title': title, 'started': started.toIso8601String()};
+  Map<String, dynamic> _metaJson() => {
+    'route_id': routeId,
+    'title': title,
+    'started': started.toIso8601String(),
+    'owner': ?owner,
+  };
+
+  /// Whether it belongs to someone else than [user] (both known).
+  bool ownedByOther(String? user) => owner != null && user != null && owner != user;
+
+  /// What starting a hike on [routeId] for [user] means for the recording
+  /// in progress, [active].
+  static Before before(Recording? active, String routeId, String? user) {
+    if (active == null) return Before.start;
+    if (active.ownedByOther(user)) return Before.setAside;
+    return active.routeId == routeId ? Before.resume : Before.ask;
+  }
 
   /// Writes to a file, one after the other: appends that overlap would
   /// write at the same place.

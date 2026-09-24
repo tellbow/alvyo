@@ -14,15 +14,23 @@ class Session {
     final server = await _storage.read(key: 'server');
     final token = await _storage.read(key: 'token');
     if (server == null || token == null) return null;
-    return Api(server, token: token);
+    return Api(
+      server,
+      token: token,
+      userId: await _storage.read(key: 'user'),
+    );
   }
 
   Future<void> save(Api api) async {
     await _storage.write(key: 'server', value: api.server);
     await _storage.write(key: 'token', value: api.token);
+    await _storage.write(key: 'user', value: api.userId);
   }
 
-  Future<void> clear() => _storage.delete(key: 'token');
+  Future<void> clear() async {
+    await _storage.delete(key: 'token');
+    await _storage.delete(key: 'user');
+  }
 
   Future<String> lastServer() async => await _storage.read(key: 'server') ?? defaultServer;
 }

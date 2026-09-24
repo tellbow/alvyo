@@ -22,7 +22,7 @@ void main() {
           expect(jsonDecode(req.body), {'login': 'anna', 'password': 'geheim'});
           return http.Response(
             jsonEncode({
-              'user': {'username': 'anna', 'display_name': 'Anna', 'speed_factor': 1.0},
+              'user': {'id': 'u-anna', 'username': 'anna', 'display_name': 'Anna', 'speed_factor': 1.0},
             }),
             200,
             headers: {'set-cookie': 'odysgeh_session=tok123; Path=/; HttpOnly; SameSite=Lax'},
@@ -44,6 +44,7 @@ void main() {
     final me = await api.login('anna', 'geheim');
     expect(me.username, 'anna');
     expect(api.token, 'tok123');
+    expect(api.userId, 'u-anna', reason: 'recordings are kept for this account');
     final routes = await api.routes();
     expect(routes.single.title, 'Gratweg');
     expect(routes.single.totals.durationS, 1800);

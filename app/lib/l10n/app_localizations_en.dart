@@ -257,4 +257,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journeySaved => 'All stages saved offline';
+
+  @override
+  String navSwitchQuestion(String title) {
+    return 'You are recording “$title”. End that hike and start a new one here? What was recorded so far is kept.';
+  }
+
+  @override
+  String get navSwitch => 'End it and start here';
+
+  @override
+  String get cancel => 'Cancel';
 }

@@ -175,5 +175,15 @@
       }
     }
   },
-  "journeySaved": "Alle Etappen offline gespeichert"
+  "journeySaved": "Alle Etappen offline gespeichert",
+  "navSwitchQuestion": "Du zeichnest gerade «{title}» auf. Diese Wanderung beenden und hier eine neue beginnen? Die bisherige Aufzeichnung bleibt gespeichert.",
+  "navSwitch": "Beenden und hier beginnen",
+  "@navSwitchQuestion": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "cancel": "Abbrechen"
 }

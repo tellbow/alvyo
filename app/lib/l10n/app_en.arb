@@ -74,5 +74,8 @@
   "stageBooked": "booked",
   "journeySaveAll": "Save all stages offline",
   "journeySaving": "Saving stage {n} of {total} …",
-  "journeySaved": "All stages saved offline"
+  "journeySaved": "All stages saved offline",
+  "navSwitchQuestion": "You are recording “{title}”. End that hike and start a new one here? What was recorded so far is kept.",
+  "navSwitch": "End it and start here",
+  "cancel": "Cancel"
 }

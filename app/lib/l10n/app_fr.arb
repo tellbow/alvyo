@@ -74,5 +74,8 @@
   "stageBooked": "réservé",
   "journeySaveAll": "Enregistrer toutes les étapes hors ligne",
   "journeySaving": "Enregistrement de l'étape {n} sur {total} …",
-  "journeySaved": "Toutes les étapes enregistrées hors ligne"
+  "journeySaved": "Toutes les étapes enregistrées hors ligne",
+  "navSwitchQuestion": "Tu enregistres « {title} ». Terminer cette randonnée et en commencer une nouvelle ici ? L'enregistrement fait jusqu'ici est conservé.",
+  "navSwitch": "Terminer et commencer ici",
+  "cancel": "Annuler"
 }

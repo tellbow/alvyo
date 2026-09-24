@@ -48,7 +48,7 @@ A `v*` tag builds the images; Flux deploys them
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
-2026-09-23, 6–9 on 2026-09-24.
+2026-09-23, 6–11 on 2026-09-24.
 
 ### Done
 
@@ -70,8 +70,8 @@ From the project owner, numbered in the order given: 1–5 added on
 
 ### Open
 
-Proposed order: 6 (small), 9 (planner only), 8 (the day splitting), 7
-(reuses 8's splitting).
+Proposed order: 6 (small), 9 (planner only), 10 and 11 (tags, then the map
+that filters by them), 8 (the day splitting), 7 (reuses 8's splitting).
 
 #### 6. A GPX file into a stage
 
@@ -159,6 +159,61 @@ onto the other path instead, without a new point.
   were and the leg passes near the release point; off, it adds a point as
   now.
 - Related: dragging on touch screens (backlog).
+
+#### 10. Tags
+
+Routes, journeys and collections get tags, to sort one's own hikes: e.g.
+«Winter», «mit Kindern», «Tessin», «Wunschliste». Collections stay the
+curated, shareable lists; tags are quick labels to filter by.
+
+- Model: a `tags text[]` column on routes, journeys and collections (GIN
+  index), normalised (trimmed, case-insensitive when comparing, as typed
+  when shown), at most 20 tags of 40 characters each. Stage routes use their
+  journey's tags. Recorded hikes can have tags too.
+- API: `tags` in create and update (owner and editors, like the title);
+  `GET /me/tags` lists the user's tags with how often each is used, for
+  suggestions.
+- Web: a tag field with suggestions in the route and journey editors and on
+  collections; tags as chips in the lists («Meine Routen», journeys,
+  collections), a click filters by the tag.
+- App: tags shown in the lists; filtering there follows with 11 if wanted.
+- Open: are tags private labels of the owner, or shown to everyone who may
+  see the item (public pages, discovery)? Proposal: shown with the item, as
+  the title is, but only the owner's own tags are offered and filtered by.
+- Check: API tests (set and replace, normalisation, limits, the tag list
+  with counts, viewers cannot change tags); Playwright: tag two routes,
+  filter the list by one tag.
+
+#### 11. All my hikes on one map, with filters
+
+An overview of all one's routes, journeys (all their stages) and recorded
+hikes drawn on the map, narrowed by filters: tags, distance, hiking time and
+difficulty, each as a range with optional ends (between x and y, more than
+x, less than y).
+
+- Builds on Discover (`GET /discover`: lines simplified for the map view,
+  kind, hardest SAC grade, hiking time), which shows public items only.
+  Either a scope on it (`scope=mine`, also routes shared with me) or its own
+  endpoint `GET /me/map`, with the filters `tags` (any of them), `distance_min`,
+  `distance_max`, `duration_min`, `duration_max`, `sac_min`, `sac_max` and
+  `kind` (route, journey, recorded hike). Hiking time counts at the user's
+  pace, as Discover does; for journeys distance and time are the whole
+  journey's, with the longest stage as a further option.
+- Web: a map page for «Meine Routen» (like Discover): lines coloured by kind
+  or SAC grade, a list of what is in view next to it, the filters above
+  (tag chips, two-handled sliders or number fields for distance and time,
+  T1–T6 from and to). The address keeps the filters, to bookmark them.
+  Clicking a line or list entry opens the item.
+- Many items: the query is limited to the map view and simplifies lines by
+  zoom, like Discover; above a limit the page asks to zoom in or narrow the
+  filters.
+- App: an overview map there too is a possible follow-up (not asked for).
+- Open: several tags mean any of them (proposal) or all of them? Include
+  items shared with me and collections' items by default, or behind a
+  switch?
+- Check: API tests for each filter and their combinations, bounds included;
+  Playwright: with a tag and a distance range only the matching lines are
+  drawn and listed.
 
 ## Backlog
 

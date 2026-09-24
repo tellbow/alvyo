@@ -1,0 +1,67 @@
+{
+ "results": [
+  {
+   "layerBodId": "ch.bafu.wrz-wildruhezonen_portal",
+   "layerName": "Wildruhezonen",
+   "featureId": 30842,
+   "id": 30842,
+   "attributes": {
+    "wrz_name": "Grindelwald Spilmatten-Reetihorn (Nr. 1.00)",
+    "schutzs_de": "rechtsverbindlich",
+    "schutzs_it": "vincolante",
+    "schutzs_fr": "contraignant",
+    "bestimmung": "R10",
+    "best_de": "Zutrittsverbot",
+    "best_it": "Divieto di accesso",
+    "best_fr": "Interdiction d’accès",
+    "schutzzeit": "01.12. - 20.04.",
+    "grundlage": "Kommunaler Schutzbeschluss, Baureglement der Gemeinde",
+    "beschlussjahr": "2001",
+    "zusatzinformation": " ",
+    "kanton": "BE",
+    "url_kanton": "https://www.map.apps.be.ch/pub/synserver?project=a42pub_oereb_oeffen_DE&userprofile=geo&client=core&language=de",
+    "label": "Grindelwald Spilmatten-Reetihorn (Nr. 1.00)"
+   }
+  },
+  {
+   "layerBodId": "ch.bafu.wrz-wildruhezonen_portal",
+   "layerName": "Wildruhezonen",
+   "featureId": 30844,
+   "id": 30844,
+   "attributes": {
+    "wrz_name": "Grindelwald Firstweng-Luegenweid (Nr. 3.00)",
+    "schutzs_de": "rechtsverbindlich",
+    "schutzs_it": "vincolante",
+    "schutzs_fr": "contraignant",
+    "bestimmung": "R10",
+    "best_de": "Zutrittsverbot",
+    "best_it": "Divieto di accesso",
+    "best_fr": "Interdiction d’accès",
+    "schutzzeit": "01.12. - 20.04.",
+    "grundlage": "Kommunaler Schutzbeschluss, Baureglement der Gemeinde",
+    "beschlussjahr": "2001",
+    "zusatzinformation": " ",
+    "kanton": "BE",
+    "url_kanton": "https://www.map.apps.be.ch/pub/synserver?project=a42pub_oereb_oeffen_DE&userprofile=geo&client=core&language=de",
+    "label": "Grindelwald Firstweng-Luegenweid (Nr. 3.00)"
+   }
+  },
+  {
+   "layerBodId": "ch.bafu.bundesinventare-jagdbanngebiete",
+   "layerName": "Jagdbanngebiete",
+   "featureId": 1005,
+   "id": 1005,
+   "attributes": {
+    "objektnummer": "4",
+    "gebietsname": "Schwarzhorn",
+    "refobjblatt": "https://api3.geo.admin.ch/featureattachments/ch.bafu.bundesinventare-jagdbanngebiete/objectsheets/2023revision/nr4.pdf",
+    "flaeche_ha": 7102.1,
+    "typ_de": "Gebiet mit partiellen Schutzbestimmungen",
+    "typ_fr": "Zones soumises à des dispositions de protection partielle",
+    "typ_it": "Zone a protezione parziale",
+    "typ_en": "Area with partial protection regulations",
+    "label": "Schwarzhorn"
+   }
+  }
+ ]
+}

@@ -82,5 +82,12 @@
   "stageMarkPlanned": "Marquer de nouveau comme prévue",
   "navMarkStageDone": "Marquer l'étape comme faite",
   "stageConflict": "Quelqu'un a modifié l'étape entre-temps. Voici le nouvel état.",
-  "stageMarkedDone": "Étape marquée comme faite"
+  "stageMarkedDone": "Étape marquée comme faite",
+  "areasTitle": "Zones protégées sur le chemin",
+  "areasWildlifeRest": "zone de tranquillité",
+  "areasHuntingReserve": "district franc fédéral",
+  "areasBinding": "contraignant",
+  "areasRecommended": "recommandé",
+  "areasPeriod": "du {from} au {to}",
+  "areasStages": "Étape {list}"
 }

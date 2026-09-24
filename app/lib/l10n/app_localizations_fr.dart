@@ -283,4 +283,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get stageMarkedDone => 'Étape marquée comme faite';
+
+  @override
+  String get areasTitle => 'Zones protégées sur le chemin';
+
+  @override
+  String get areasWildlifeRest => 'zone de tranquillité';
+
+  @override
+  String get areasHuntingReserve => 'district franc fédéral';
+
+  @override
+  String get areasBinding => 'contraignant';
+
+  @override
+  String get areasRecommended => 'recommandé';
+
+  @override
+  String areasPeriod(String from, String to) {
+    return 'du $from au $to';
+  }
+
+  @override
+  String areasStages(String list) {
+    return 'Étape $list';
+  }
 }

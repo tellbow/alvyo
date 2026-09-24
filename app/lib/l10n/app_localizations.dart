@@ -591,6 +591,48 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Etappe als gewandert markiert'**
   String get stageMarkedDone;
+
+  /// No description provided for @areasTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Schutzgebiete auf dem Weg'**
+  String get areasTitle;
+
+  /// No description provided for @areasWildlifeRest.
+  ///
+  /// In de, this message translates to:
+  /// **'Wildruhezone'**
+  String get areasWildlifeRest;
+
+  /// No description provided for @areasHuntingReserve.
+  ///
+  /// In de, this message translates to:
+  /// **'Eidg. Jagdbanngebiet'**
+  String get areasHuntingReserve;
+
+  /// No description provided for @areasBinding.
+  ///
+  /// In de, this message translates to:
+  /// **'verbindlich'**
+  String get areasBinding;
+
+  /// No description provided for @areasRecommended.
+  ///
+  /// In de, this message translates to:
+  /// **'empfohlen'**
+  String get areasRecommended;
+
+  /// No description provided for @areasPeriod.
+  ///
+  /// In de, this message translates to:
+  /// **'{from} bis {to}'**
+  String areasPeriod(String from, String to);
+
+  /// No description provided for @areasStages.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe {list}'**
+  String areasStages(String list);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -32,6 +32,8 @@
 		wanderwege: 1,
 		wanderland: 1,
 		hangneigung: 0.6,
+		wildruhezonen: 0.7,
+		jagdbanngebiete: 0.6,
 		relief: 0.5
 	};
 

@@ -206,6 +206,47 @@ class JourneyDetail {
   final bool canEdit;
 }
 
+/// A protected area a route crosses: a wildlife rest area or a federal
+/// hunting reserve.
+class ProtectedArea {
+  ProtectedArea.fromJson(Map<String, dynamic> j)
+    : kind = j['kind'] as String,
+      name = j['name'] as String,
+      binding = j['binding'] as bool? ?? false,
+      rule = {for (final e in (j['rule'] as Map<String, dynamic>).entries) e.key: e.value as String},
+      period = switch (j['period']) {
+        {'from': final String from, 'to': final String to} => (from: from, to: to),
+        _ => null,
+      },
+      stages = [for (final s in j['stages'] as List? ?? const []) (s as num).toInt()];
+
+  /// wildlife_rest or hunting_reserve.
+  final String kind, name;
+  final bool binding;
+
+  /// The rule by language (de, fr, it, en).
+  final Map<String, String> rule;
+
+  /// When the rule applies, as MM-DD; null when always.
+  final ({String from, String to})? period;
+
+  /// The journey stages crossing it (from 1).
+  final List<int> stages;
+
+  /// The rule in [lang]; German where it has none.
+  String ruleIn(String lang) => (rule[lang]?.isNotEmpty ?? false) ? rule[lang]! : rule['de'] ?? '';
+
+  /// Whether [day] is in the period (always, without one).
+  bool appliesOn(DateTime day) {
+    final p = period;
+    if (p == null) return true;
+    final d = '${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+    return p.from.compareTo(p.to) <= 0
+        ? d.compareTo(p.from) >= 0 && d.compareTo(p.to) <= 0
+        : d.compareTo(p.from) >= 0 || d.compareTo(p.to) <= 0;
+  }
+}
+
 /// One layer of an offline map on the server.
 class PackFile {
   PackFile.fromJson(Map<String, dynamic> j)
@@ -316,6 +357,13 @@ class Api {
 
   /// The turns along a route, for spoken navigation; none where it does not
   /// follow the path network.
+  /// The protected areas a route, or a journey's stages, cross.
+  Future<List<ProtectedArea>> areas({String? routeId, String? journeyId}) async {
+    final j =
+        await _get(routeId != null ? '/routes/$routeId/areas' : '/journeys/$journeyId/areas') as Map<String, dynamic>;
+    return [for (final a in j['areas'] as List) ProtectedArea.fromJson(a as Map<String, dynamic>)];
+  }
+
   Future<List<Turn>> turns(String routeId) async {
     final j = await _get('/routes/$routeId/turns') as Map<String, dynamic>;
     return [for (final t in j['turns'] as List) Turn.fromJson(t as Map<String, dynamic>)];

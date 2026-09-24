@@ -506,5 +506,19 @@
 	"community_reply": "Rispondi",
 	"community_reply_placeholder": "La tua risposta …",
 	"community_edit": "Modifica",
-	"community_edited": "modificato"
+	"community_edited": "modificato",
+	"map_ovl_wildruhezonen": "Zone di tranquillità",
+	"map_ovl_jagdbanngebiete": "Bandite federali di caccia",
+	"areas_title": "Zone protette lungo il percorso",
+	"areas_kind_wildlife_rest": "Zona di tranquillità",
+	"areas_kind_hunting_reserve": "Bandita federale di caccia",
+	"areas_binding": "vincolante",
+	"areas_recommended": "raccomandato",
+	"areas_period": "dal {from} al {to}",
+	"areas_now": "in vigore ora",
+	"areas_on_date": "in vigore in un giorno pianificato",
+	"areas_stages": "Tappa {list}",
+	"areas_more": "Di più",
+	"areas_failed": "Non è stato possibile caricare le zone protette.",
+	"areas_source": "Fonte: UFAM / cantoni. Fanno stato le regole sul posto."
 }

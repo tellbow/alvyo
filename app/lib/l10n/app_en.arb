@@ -82,5 +82,12 @@
   "stageMarkPlanned": "Mark as planned again",
   "navMarkStageDone": "Mark the stage as hiked",
   "stageConflict": "Someone changed the stage in the meantime. Here is the new state.",
-  "stageMarkedDone": "Stage marked as hiked"
+  "stageMarkedDone": "Stage marked as hiked",
+  "areasTitle": "Protected areas on the way",
+  "areasWildlifeRest": "wildlife rest area",
+  "areasHuntingReserve": "federal hunting reserve",
+  "areasBinding": "binding",
+  "areasRecommended": "recommended",
+  "areasPeriod": "{from} to {to}",
+  "areasStages": "Stage {list}"
 }

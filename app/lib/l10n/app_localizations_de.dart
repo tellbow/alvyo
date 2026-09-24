@@ -283,4 +283,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get stageMarkedDone => 'Etappe als gewandert markiert';
+
+  @override
+  String get areasTitle => 'Schutzgebiete auf dem Weg';
+
+  @override
+  String get areasWildlifeRest => 'Wildruhezone';
+
+  @override
+  String get areasHuntingReserve => 'Eidg. Jagdbanngebiet';
+
+  @override
+  String get areasBinding => 'verbindlich';
+
+  @override
+  String get areasRecommended => 'empfohlen';
+
+  @override
+  String areasPeriod(String from, String to) {
+    return '$from bis $to';
+  }
+
+  @override
+  String areasStages(String list) {
+    return 'Etappe $list';
+  }
 }

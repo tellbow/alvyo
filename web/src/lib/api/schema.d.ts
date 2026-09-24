@@ -630,6 +630,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journeys/{id}/areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The protected areas a journey's stages cross, with the stages */
+        get: operations["journey-areas"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys/{id}/comments": {
         parameters: {
             query?: never;
@@ -812,7 +829,7 @@ export interface paths {
         put?: never;
         /**
          * Add a photo (owner and editors)
-         * @description JPEG, PNG or WebP up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.
+         * @description JPEG, PNG, WebP or HEIC up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.
          */
         post: operations["add-journey-photo"];
         delete?: never;
@@ -1293,6 +1310,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/routes/{id}/areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The protected areas a route crosses */
+        get: operations["route-areas"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/comments": {
         parameters: {
             query?: never;
@@ -1492,7 +1526,7 @@ export interface paths {
         put?: never;
         /**
          * Add a photo (owner and editors)
-         * @description JPEG, PNG or WebP up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.
+         * @description JPEG, PNG, WebP or HEIC up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.
          */
         post: operations["add-route-photo"];
         delete?: never;
@@ -1568,6 +1602,26 @@ export interface paths {
         get: operations["get-route-turns"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/routing/areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The protected areas a line crosses
+         * @description Wildlife rest areas (the Swiss National Park among them) and federal hunting reserves, from BAFU via geo.admin.
+         */
+        post: operations["line-areas"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1727,6 +1781,26 @@ export interface components {
              */
             position?: number;
             title?: string;
+        };
+        Area: {
+            /** @description Legally binding; otherwise a recommendation */
+            binding: boolean;
+            /** @description The layer's feature id */
+            id: string;
+            /** @enum {string} */
+            kind: "wildlife_rest" | "hunting_reserve";
+            /** @description The canton's or BAFU's page on it */
+            link?: string;
+            name: string;
+            /** @description More about the rules (German) */
+            note?: string;
+            period?: components["schemas"]["Period"];
+            /** @description e.g. no entry, or keep to the paths */
+            rule: components["schemas"]["Texts"];
+            stages?: number[];
+        };
+        AreasOutputBody: {
+            areas: components["schemas"]["Area"][];
         };
         AuthenticationExtensions: {
             appid?: string;
@@ -2443,6 +2517,10 @@ export interface components {
             through?: components["schemas"]["Point"];
             to: components["schemas"]["Point"];
         };
+        LineAreasInputBody: {
+            /** @description [lon, lat] per point */
+            line: number[][];
+        };
         LoginInputBody: {
             /** @description E-mail address or username */
             login: string;
@@ -2528,6 +2606,12 @@ export interface components {
         };
         PasskeysOutputBody: {
             passkeys: components["schemas"]["PasskeyInfo"][];
+        };
+        Period: {
+            /** @description MM-DD */
+            from: string;
+            /** @description MM-DD */
+            to: string;
         };
         Photo: {
             caption: string;
@@ -3028,6 +3112,12 @@ export interface components {
         };
         TagCountsOutputBody: {
             tags: components["schemas"]["Count"][];
+        };
+        Texts: {
+            de: string;
+            en?: string;
+            fr: string;
+            it: string;
         };
         TokenInputBody: {
             token: string;
@@ -4632,6 +4722,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "journey-areas": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreasOutputBody"];
+                };
             };
             /** @description Error */
             default: {
@@ -6383,6 +6507,40 @@ export interface operations {
             };
         };
     };
+    "route-areas": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreasOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "comment-route": {
         parameters: {
             query?: {
@@ -7166,6 +7324,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TurnsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "line-areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LineAreasInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreasOutputBody"];
                 };
             };
             /** @description Error */

@@ -44,6 +44,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
 | 0.5.0 | 2026-09-24 | A GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); fixes from a review of all parts: ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving |
+| next | — | On main since 0.5.0: keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging on touch screens; in the app: recordings per account, asking before switching hikes, ticking stages off, elevation profiles and ascent while hiking; protected areas (13). Deploying needs the two BAFU layers in the tile cache allowlist of the gitops copy (`tilecache-nginx.conf`) and web and app together (stage versions) |
 
 ## Requirements
 
@@ -99,6 +100,18 @@ From the project owner, numbered in the order given: 1–5 added on
     «Karte» on «Meine Routen» (`/routes/map`): lines coloured by kind or
     SAC grade, the list of what is in view, the filters in the address. An
     overview map in the app is a possible follow-up.
+13. **Protected areas along a route** (next). Routes, journeys (with the
+    stages) and the planner list the wildlife rest areas (Wildruhezonen; the
+    Swiss National Park is one of them) and federal hunting reserves they
+    cross: name, binding or recommended, the rule («Zutrittsverbot») and its
+    period, highlighted when it applies today or on a planned day, with the
+    canton's or BAFU's page. The rest areas come from the cantons and are
+    published by BAFU only as a map layer, so the API asks geo.admin's
+    identify service along the line (`POST /routing/areas`,
+    `GET /routes/{id}/areas`, `GET /journeys/{id}/areas`; cached 30 days
+    per line) instead of importing them. Web: overlays «Wildruhezonen» and
+    «Eidg. Jagdbanngebiete»; the app lists them on route and journey
+    screens.
 8. **Plan a multi-day hike from start, destination and days** (0.5.0).
    «Etappentour planen» (`/journeys/plan`): start, destination and points
    to pass, the number of days or the hours per day (at one's pace), an
@@ -130,8 +143,8 @@ From the project owner, numbered in the order given: 1–5 added on
 ### Open
 
 Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
-SchweizMobil, the swisstopo app and others. Order: 13, then 12; 14 waits
-for Garmin.
+SchweizMobil, the swisstopo app and others. Next: 12; 14 waits for
+Garmin.
 
 #### 12. Live location for contacts, and an alert when overdue
 
@@ -160,27 +173,6 @@ they last were, and are told if the hike does not end in time.
   hiker's other data, overdue mail exactly once, «später», expiry and
   deletion); Playwright: the live page; app tests for sending when the
   connection comes back.
-
-#### 13. Protected areas along a route
-
-A route through a wildlife rest area (Wildruhezone), a federal hunting
-reserve (eidg. Jagdbanngebiet) or the Swiss National Park says so, with
-what applies there (e.g. «1. Dezember bis 30. April: nur auf markierten
-Wegen»).
-
-- Data: BAFU on geo.admin (`ch.bafu.wrz-wildruhezonen_portal`,
-  `ch.bafu.bundesinventare-jagdbanngebiete`, the national park), imported
-  like the places into a table `protected_areas` (kind, name, the rules,
-  whether binding or recommended, the period, geometry); `make
-  areas-import`, and a cronjob in production.
-- API: the areas a line crosses (`POST /routing/areas`), and with every
-  route and journey (`protected_areas`, computed from the line).
-- Web: the planner, route and journey pages list them under the numbers,
-  with the period and a note when it applies on the hike's date; a map
-  overlay «Schutzgebiete».
-- App: the route and journey screens list them too.
-- Check: API tests with a fixture area (crossed, touched, outside;
-  seasonal); Playwright: a route through an area shows it.
 
 #### 14. Routes to Garmin devices (deferred)
 

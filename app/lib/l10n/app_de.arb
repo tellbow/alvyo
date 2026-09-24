@@ -190,5 +190,29 @@
   "stageMarkPlanned": "Wieder als geplant markieren",
   "navMarkStageDone": "Etappe als gewandert markieren",
   "stageConflict": "Jemand hat die Etappe inzwischen geändert. Hier ist der neue Stand.",
-  "stageMarkedDone": "Etappe als gewandert markiert"
+  "stageMarkedDone": "Etappe als gewandert markiert",
+  "areasTitle": "Schutzgebiete auf dem Weg",
+  "areasWildlifeRest": "Wildruhezone",
+  "areasHuntingReserve": "Eidg. Jagdbanngebiet",
+  "areasBinding": "verbindlich",
+  "areasRecommended": "empfohlen",
+  "areasPeriod": "{from} bis {to}",
+  "areasStages": "Etappe {list}",
+  "@areasPeriod": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "@areasStages": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  }
 }

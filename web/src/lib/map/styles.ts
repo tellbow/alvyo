@@ -8,10 +8,18 @@ export const SWISSTOPO_ATTRIBUTION =
 	'<a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener">© swisstopo</a>';
 
 export type BaseMapId = 'landeskarte' | 'landeskarte_grau' | 'luftbild' | 'basemap';
-export type OverlayId = 'wanderwege' | 'wanderland' | 'hangneigung' | 'relief';
+export type OverlayId =
+	'wanderwege' | 'wanderland' | 'hangneigung' | 'wildruhezonen' | 'jagdbanngebiete' | 'relief';
 
 export const BASE_MAPS: BaseMapId[] = ['landeskarte', 'landeskarte_grau', 'luftbild', 'basemap'];
-export const OVERLAYS: OverlayId[] = ['wanderwege', 'wanderland', 'hangneigung', 'relief'];
+export const OVERLAYS: OverlayId[] = [
+	'wanderwege',
+	'wanderland',
+	'hangneigung',
+	'wildruhezonen',
+	'jagdbanngebiete',
+	'relief'
+];
 
 /** swisstopo WMTS layers (EPSG:3857) served through our tile cache. */
 const RASTER: Record<string, { layer: string; ext: 'jpeg' | 'png'; maxzoom: number }> = {
@@ -21,6 +29,8 @@ const RASTER: Record<string, { layer: string; ext: 'jpeg' | 'png'; maxzoom: numb
 	wanderwege: { layer: 'ch.swisstopo.swisstlm3d-wanderwege', ext: 'png', maxzoom: 18 },
 	wanderland: { layer: 'ch.astra.wanderland', ext: 'png', maxzoom: 18 },
 	hangneigung: { layer: 'ch.swisstopo.hangneigung-ueber_30', ext: 'png', maxzoom: 17 },
+	wildruhezonen: { layer: 'ch.bafu.wrz-wildruhezonen_portal', ext: 'png', maxzoom: 18 },
+	jagdbanngebiete: { layer: 'ch.bafu.bundesinventare-jagdbanngebiete', ext: 'png', maxzoom: 18 },
 	relief: { layer: 'ch.swisstopo.swissalti3d-reliefschattierung', ext: 'png', maxzoom: 18 }
 };
 

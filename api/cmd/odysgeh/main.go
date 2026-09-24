@@ -24,6 +24,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/tellbow/odysgeh/api/internal/admin"
+	"github.com/tellbow/odysgeh/api/internal/areas"
 	"github.com/tellbow/odysgeh/api/internal/auth"
 	"github.com/tellbow/odysgeh/api/internal/collections"
 	"github.com/tellbow/odysgeh/api/internal/community"
@@ -135,6 +136,7 @@ func serve(ctx context.Context) error {
 		Importer:    &imports.Importer{Router: router, Routes: routeStore, Journeys: journeyStore},
 		Komoot:      &imports.Komoot{API: imports.KomootAPI},
 		Places:      &places.Store{DB: pool, Names: &places.GeoAdmin{}},
+		Areas:       &areas.Finder{DB: pool, UserAgent: "odysgeh/" + version + " (+https://github.com/tellbow/odysgeh)"},
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},
 		Discover:    &discover.Store{DB: pool},

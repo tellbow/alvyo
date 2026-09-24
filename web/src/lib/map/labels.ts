@@ -12,5 +12,7 @@ export const overlayLabel: Record<OverlayId, () => string> = {
 	wanderwege: m.map_ovl_wanderwege,
 	wanderland: m.map_ovl_wanderland,
 	hangneigung: m.map_ovl_hangneigung,
+	wildruhezonen: m.map_ovl_wildruhezonen,
+	jagdbanngebiete: m.map_ovl_jagdbanngebiete,
 	relief: m.map_ovl_relief
 };

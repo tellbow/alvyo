@@ -41,6 +41,74 @@
         },
         "type": "object"
       },
+      "Area": {
+        "additionalProperties": false,
+        "properties": {
+          "binding": {
+            "description": "Legally binding; otherwise a recommendation",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "The layer's feature id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "wildlife_rest",
+              "hunting_reserve"
+            ],
+            "type": "string"
+          },
+          "link": {
+            "description": "The canton's or BAFU's page on it",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "note": {
+            "description": "More about the rules (German)",
+            "type": "string"
+          },
+          "period": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/Texts",
+            "description": "e.g. no entry, or keep to the paths"
+          },
+          "stages": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "binding",
+          "rule"
+        ],
+        "type": "object"
+      },
+      "AreasOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/Area"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "areas"
+        ],
+        "type": "object"
+      },
       "AuthenticationExtensions": {
         "additionalProperties": false,
         "properties": {
@@ -2275,6 +2343,30 @@
         ],
         "type": "object"
       },
+      "LineAreasInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "line": {
+            "description": "[lon, lat] per point",
+            "items": {
+              "items": {
+                "format": "double",
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "maxItems": 50000,
+            "minItems": 2,
+            "type": "array"
+          }
+        },
+        "required": [
+          "line"
+        ],
+        "type": "object"
+      },
       "LoginInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -2553,6 +2645,24 @@
         },
         "required": [
           "passkeys"
+        ],
+        "type": "object"
+      },
+      "Period": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "description": "MM-DD",
+            "type": "string"
+          },
+          "to": {
+            "description": "MM-DD",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
         ],
         "type": "object"
       },
@@ -4190,6 +4300,29 @@
         },
         "required": [
           "tags"
+        ],
+        "type": "object"
+      },
+      "Texts": {
+        "additionalProperties": false,
+        "properties": {
+          "de": {
+            "type": "string"
+          },
+          "en": {
+            "type": "string"
+          },
+          "fr": {
+            "type": "string"
+          },
+          "it": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "de",
+          "fr",
+          "it"
         ],
         "type": "object"
       },
@@ -6891,6 +7024,58 @@
         ]
       }
     },
+    "/journeys/{id}/areas": {
+      "get": {
+        "operationId": "journey-areas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreasOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The protected areas a journey's stages cross, with the stages",
+        "tags": [
+          "routing"
+        ]
+      }
+    },
     "/journeys/{id}/comments": {
       "post": {
         "description": "Needs a verified e-mail address. The owner gets an e-mail (at most one per 15 minutes and item).",
@@ -7711,7 +7896,7 @@
         ]
       },
       "post": {
-        "description": "JPEG, PNG or WebP up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.",
+        "description": "JPEG, PNG, WebP or HEIC up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.",
         "operationId": "add-journey-photo",
         "parameters": [
           {
@@ -9671,6 +9856,58 @@
         ]
       }
     },
+    "/routes/{id}/areas": {
+      "get": {
+        "operationId": "route-areas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreasOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The protected areas a route crosses",
+        "tags": [
+          "routing"
+        ]
+      }
+    },
     "/routes/{id}/comments": {
       "post": {
         "description": "Needs a verified e-mail address. The owner gets an e-mail (at most one per 15 minutes and item).",
@@ -10556,7 +10793,7 @@
         ]
       },
       "post": {
-        "description": "JPEG, PNG or WebP up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.",
+        "description": "JPEG, PNG, WebP or HEIC up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.",
         "operationId": "add-route-photo",
         "parameters": [
           {
@@ -10943,6 +11180,48 @@
         "summary": "Turns along a route, for spoken navigation",
         "tags": [
           "routes"
+        ]
+      }
+    },
+    "/routing/areas": {
+      "post": {
+        "description": "Wildlife rest areas (the Swiss National Park among them) and federal hunting reserves, from BAFU via geo.admin.",
+        "operationId": "line-areas",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineAreasInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreasOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The protected areas a line crosses",
+        "tags": [
+          "routing"
         ]
       }
     },

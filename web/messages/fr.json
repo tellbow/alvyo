@@ -506,5 +506,19 @@
 	"community_reply": "Répondre",
 	"community_reply_placeholder": "Ta réponse …",
 	"community_edit": "Modifier",
-	"community_edited": "modifié"
+	"community_edited": "modifié",
+	"map_ovl_wildruhezonen": "Zones de tranquillité",
+	"map_ovl_jagdbanngebiete": "Districts francs fédéraux",
+	"areas_title": "Zones protégées sur le chemin",
+	"areas_kind_wildlife_rest": "Zone de tranquillité",
+	"areas_kind_hunting_reserve": "District franc fédéral",
+	"areas_binding": "contraignant",
+	"areas_recommended": "recommandé",
+	"areas_period": "du {from} au {to}",
+	"areas_now": "en vigueur maintenant",
+	"areas_on_date": "en vigueur un jour prévu",
+	"areas_stages": "Étape {list}",
+	"areas_more": "En savoir plus",
+	"areas_failed": "Les zones protégées n'ont pas pu être chargées.",
+	"areas_source": "Source : OFEV / cantons. Les règles sur place font foi."
 }

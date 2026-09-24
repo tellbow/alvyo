@@ -188,4 +188,24 @@ void main() {
     expect((offline.stages, offline.stagesDone, offline.distanceM), (3, 1, 1500.0));
     expect(offline.tags, isEmpty); // a copy saved before there were tags
   });
+
+  test('a protected area knows when its rule applies', () {
+    final winter = ProtectedArea.fromJson({
+      'kind': 'wildlife_rest',
+      'name': 'Z',
+      'binding': true,
+      'rule': {'de': 'Zutrittsverbot', 'fr': '', 'it': 'Divieto'},
+      'period': {'from': '12-01', 'to': '04-20'},
+    });
+    expect(winter.appliesOn(DateTime(2027, 1, 15)), isTrue);
+    expect(winter.appliesOn(DateTime(2027, 4, 21)), isFalse);
+    expect(winter.ruleIn('fr'), 'Zutrittsverbot', reason: 'empty: German');
+    expect(winter.ruleIn('it'), 'Divieto');
+    final always = ProtectedArea.fromJson({
+      'kind': 'hunting_reserve',
+      'name': 'R',
+      'rule': {'de': 'Teilschutz'},
+    });
+    expect(always.appliesOn(DateTime(2026, 8, 1)), isTrue);
+  });
 }

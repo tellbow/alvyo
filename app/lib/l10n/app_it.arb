@@ -82,5 +82,12 @@
   "stageMarkPlanned": "Segna di nuovo come pianificata",
   "navMarkStageDone": "Segna la tappa come fatta",
   "stageConflict": "Qualcuno ha modificato la tappa nel frattempo. Ecco lo stato attuale.",
-  "stageMarkedDone": "Tappa segnata come fatta"
+  "stageMarkedDone": "Tappa segnata come fatta",
+  "areasTitle": "Zone protette lungo il percorso",
+  "areasWildlifeRest": "zona di tranquillità",
+  "areasHuntingReserve": "bandita federale di caccia",
+  "areasBinding": "vincolante",
+  "areasRecommended": "raccomandato",
+  "areasPeriod": "dal {from} al {to}",
+  "areasStages": "Tappa {list}"
 }

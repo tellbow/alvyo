@@ -506,5 +506,19 @@
 	"community_reply": "Antworten",
 	"community_reply_placeholder": "Deine Antwort …",
 	"community_edit": "Bearbeiten",
-	"community_edited": "bearbeitet"
+	"community_edited": "bearbeitet",
+	"map_ovl_wildruhezonen": "Wildruhezonen",
+	"map_ovl_jagdbanngebiete": "Eidg. Jagdbanngebiete",
+	"areas_title": "Schutzgebiete auf dem Weg",
+	"areas_kind_wildlife_rest": "Wildruhezone",
+	"areas_kind_hunting_reserve": "Eidg. Jagdbanngebiet",
+	"areas_binding": "verbindlich",
+	"areas_recommended": "empfohlen",
+	"areas_period": "{from} bis {to}",
+	"areas_now": "gilt jetzt",
+	"areas_on_date": "gilt an einem geplanten Tag",
+	"areas_stages": "Etappe {list}",
+	"areas_more": "Mehr dazu",
+	"areas_failed": "Die Schutzgebiete konnten nicht geladen werden.",
+	"areas_source": "Quelle: BAFU / Kantone. Massgebend sind die Regeln vor Ort."
 }

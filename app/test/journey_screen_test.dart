@@ -71,6 +71,21 @@ class FakeServer {
         ],
       });
     }
+    if (p == '/journeys/j1/areas') {
+      return _json({
+        'areas': [
+          {
+            'kind': 'wildlife_rest',
+            'id': '1',
+            'name': 'Weisstannen Siez',
+            'binding': true,
+            'rule': {'de': 'Zutrittsverbot', 'fr': "Interdiction d'accès", 'it': 'Divieto di accesso'},
+            'period': {'from': '12-01', 'to': '04-20'},
+            'stages': [2],
+          },
+        ],
+      });
+    }
     if (p == '/journeys/j1/stages/s1' && req.method == 'PATCH') {
       if (req.headers['if-match'] != '"$s1Version"') {
         return http.Response(jsonEncode({'detail': 'the stage was changed in the meantime'}), 412);
@@ -215,6 +230,9 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('elevation-profile')), findsOneWidget, reason: 'all stages\' profile');
+    final area = find.text('Weisstannen Siez (Wildruhezone, verbindlich)\nZutrittsverbot · 1.12. bis 20.4. · Etappe 2');
+    await until(tester, area); // asked for after the journey
+    expect(area, findsOneWidget);
     // Without a title and route: numbered, and not to be opened.
     expect(find.text('Etappe 3'), findsOneWidget);
     expect(find.text('Noch keine Route\n800 m Abstand zum Ende der vorherigen Etappe'), findsOneWidget);

@@ -6,7 +6,14 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
-	import type { FoundPlace, Journey, Me, Route } from '$lib/api/client';
+	import {
+		api,
+		type FoundPlace,
+		type Journey,
+		type Me,
+		type ProtectedArea,
+		type Route
+	} from '$lib/api/client';
 	import StageSavePanel from '$lib/journeys/StageSavePanel.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
@@ -14,6 +21,7 @@
 	import RouteLayers from './RouteLayers.svelte';
 	import SavePanel from './SavePanel.svelte';
 	import StatsPanel from './StatsPanel.svelte';
+	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
 	import { fetchLeg } from './api';
 	import { Planner, type LegSlot } from './planner.svelte';
 	import { formatDistance, formatDuration, type Profile } from './route';
@@ -83,6 +91,31 @@
 	});
 
 	const ROUTE_LINES = ['route-line', 'route-line-straight'];
+
+	// The protected areas the planned line crosses, asked for once the line
+	// has stopped changing for a moment.
+	let areas = $state<ProtectedArea[]>();
+	let areasFailed = $state(false);
+	$effect(() => {
+		const line = planner.complete ? planner.line.coordinates.map((c) => [c[0], c[1]]) : [];
+		if (line.length < 2) {
+			areas = undefined;
+			return;
+		}
+		let stale = false;
+		const timer = setTimeout(async () => {
+			const { data } = await api().POST('/routing/areas', {
+				body: { line: line as [number, number][] }
+			});
+			if (stale) return;
+			areas = data?.areas;
+			areasFailed = !data;
+		}, 800);
+		return () => {
+			stale = true;
+			clearTimeout(timer);
+		};
+	});
 
 	function onready(m: MapLibreMap, l: typeof MapLibre) {
 		map = m;
@@ -301,6 +334,7 @@
 				<p class="text-sm text-stone-600">{m.plan_hint_click()}</p>
 			{:else}
 				<StatsPanel totals={planner.totals} {pace} />
+				<ProtectedAreas {areas} failed={areasFailed} />
 
 				<section>
 					<h3 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">

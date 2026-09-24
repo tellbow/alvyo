@@ -506,5 +506,19 @@
 	"community_reply": "Reply",
 	"community_reply_placeholder": "Your reply …",
 	"community_edit": "Edit",
-	"community_edited": "edited"
+	"community_edited": "edited",
+	"map_ovl_wildruhezonen": "Wildlife rest areas",
+	"map_ovl_jagdbanngebiete": "Federal hunting reserves",
+	"areas_title": "Protected areas on the way",
+	"areas_kind_wildlife_rest": "Wildlife rest area",
+	"areas_kind_hunting_reserve": "Federal hunting reserve",
+	"areas_binding": "binding",
+	"areas_recommended": "recommended",
+	"areas_period": "{from} to {to}",
+	"areas_now": "applies now",
+	"areas_on_date": "applies on a planned day",
+	"areas_stages": "Stage {list}",
+	"areas_more": "More",
+	"areas_failed": "The protected areas could not be loaded.",
+	"areas_source": "Source: FOEN / cantons. The rules on site apply."
 }

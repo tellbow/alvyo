@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../elevation_profile.dart';
+import '../protected_areas.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/downloads.dart';
@@ -23,6 +24,9 @@ class JourneyScreen extends StatefulWidget {
 class _JourneyScreenState extends State<JourneyScreen> {
   final Future<PackStore> _store = PackStore.open();
   late Future<JourneyDetail> _journey = _load();
+  late final Future<List<ProtectedArea>> _areas = widget.api
+      .areas(journeyId: widget.id)
+      .catchError((_) => <ProtectedArea>[]);
 
   /// Stage routes saved offline.
   var _saved = <String>{};
@@ -142,6 +146,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         ElevationProfile(distances: distances, elevations: elevations, breaks: breaks),
                         const SizedBox(height: 8),
                       ],
+                      ProtectedAreas(_areas, days: [for (final s in j.stages) ?s.plannedDate]),
                       if (_saving case final i?) ...[
                         Text(key: const Key('journey-saving'), t.journeySaving(i + 1, routed.length)),
                         const SizedBox(height: 4),

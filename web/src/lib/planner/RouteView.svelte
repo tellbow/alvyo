@@ -19,10 +19,23 @@
 	import ElevationProfile from './ElevationProfile.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import StatsPanel from './StatsPanel.svelte';
+	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
+	import type { ProtectedArea } from '$lib/api/client';
+	import { onMount } from 'svelte';
 	import { Planner } from './planner.svelte';
 	import { formatDistance, formatDuration, formatSAC, type Profile } from './route';
 
 	let { route, token, user }: { route: Route; token?: string; user: Me | null } = $props();
+
+	let areas = $state<ProtectedArea[]>();
+	let areasFailed = $state(false);
+	onMount(async () => {
+		const { data } = await api().GET('/routes/{id}/areas', {
+			params: { path: { id: route.id }, query: token ? { t: token } : {} }
+		});
+		areas = data?.areas;
+		areasFailed = !data;
+	});
 	// Link previews (Signal, WhatsApp, Slack …) read these tags from the SSR page.
 	const summary = $derived(
 		[
@@ -166,6 +179,7 @@
 			>{m.route_gpx()}</a
 		>
 		<StatsPanel totals={planner.totals} pace={user?.speed_factor ?? 1} />
+		<ProtectedAreas {areas} failed={areasFailed} />
 		{#if user && !route.journey_id}
 			<AddToCollection kind="route" id={route.id} />
 		{/if}

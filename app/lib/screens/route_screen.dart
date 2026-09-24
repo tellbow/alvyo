@@ -4,6 +4,7 @@ import 'package:maplibre/maplibre.dart';
 import '../api.dart';
 import '../camera.dart';
 import '../elevation_profile.dart';
+import '../protected_areas.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
@@ -28,6 +29,9 @@ class RouteScreen extends StatefulWidget {
 class _RouteScreenState extends State<RouteScreen> {
   final Future<PackStore> _store = PackStore.open();
   late Future<RouteDetail> _route = _load();
+  late final Future<List<ProtectedArea>> _areas = widget.api
+      .areas(routeId: widget.id)
+      .catchError((_) => <ProtectedArea>[]);
   SavedPack? _pack;
   bool _outdated = false;
   bool _resumable = false; // a hike on this route is still being recorded
@@ -209,6 +213,7 @@ class _RouteScreenState extends State<RouteScreen> {
                       ),
                       const SizedBox(height: 8),
                       ElevationProfile.ofLine(r.line),
+                      ProtectedAreas(_areas),
                       const SizedBox(height: 8),
                       ValueListenableBuilder(
                         valueListenable: _downloads.progress(widget.id),

@@ -283,4 +283,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stageMarkedDone => 'Stage marked as hiked';
+
+  @override
+  String get areasTitle => 'Protected areas on the way';
+
+  @override
+  String get areasWildlifeRest => 'wildlife rest area';
+
+  @override
+  String get areasHuntingReserve => 'federal hunting reserve';
+
+  @override
+  String get areasBinding => 'binding';
+
+  @override
+  String get areasRecommended => 'recommended';
+
+  @override
+  String areasPeriod(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String areasStages(String list) {
+    return 'Stage $list';
+  }
 }

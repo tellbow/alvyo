@@ -15,6 +15,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/tellbow/odysgeh/api/internal/areas"
 	"github.com/tellbow/odysgeh/api/internal/auth"
 	"github.com/tellbow/odysgeh/api/internal/collections"
 	"github.com/tellbow/odysgeh/api/internal/community"
@@ -47,6 +48,7 @@ type Deps struct {
 	Routes      *routes.Store
 	Journeys    *journeys.Store
 	Places      *places.Store
+	Areas       *areas.Finder // protected areas along routes
 	Grants      *grants.Store
 	Collections *collections.Store
 	Discover    *discover.Store
@@ -109,6 +111,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerAuth(api, d)
 	registerAccount(api, d)
 	registerRouting(api, d)
+	registerAreas(api, d)
 	registerRoutes(api, d)
 	registerJourneys(api, d)
 	registerJourneyPlan(api, d)

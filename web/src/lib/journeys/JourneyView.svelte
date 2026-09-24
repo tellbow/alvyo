@@ -4,7 +4,14 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Journey, type Me, type RouteSummary, type StagePatch } from '$lib/api/client';
+	import {
+		api,
+		type Journey,
+		type Me,
+		type ProtectedArea,
+		type RouteSummary,
+		type StagePatch
+	} from '$lib/api/client';
 	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
@@ -12,6 +19,7 @@
 	import { getLocale } from '$lib/paraglide/runtime';
 	import ElevationProfile from '$lib/planner/ElevationProfile.svelte';
 	import StatsPanel from '$lib/planner/StatsPanel.svelte';
+	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
 	import { formatDistance, type Profile3, type Totals } from '$lib/planner/route';
 	import { STAGE_RUN_COLORS } from './colors';
 	import Connections from './Connections.svelte';
@@ -52,6 +60,31 @@
 	let hoverIndex = $state<number>();
 	let confirming = $state(false); // deleting the journey
 	let myRoutes = $state<RouteSummary[]>([]);
+	let areas = $state<ProtectedArea[]>();
+	let areasFailed = $state(false);
+	// The stages' planned days, to say when an area's rules apply then.
+	const plannedDays = $derived(
+		journey.stage_list.flatMap((s) => (s.planned_date ? [s.planned_date] : []))
+	);
+
+	/** Asked again when a stage route changes (the version of the journey does not). */
+	const routeKey = $derived(journey.stage_list.map((s) => s.route?.id ?? '').join());
+	$effect(() => {
+		void routeKey;
+		let stale = false;
+		api()
+			.GET('/journeys/{id}/areas', {
+				params: { path: { id: journey.id }, query: token ? { t: token } : {} }
+			})
+			.then(({ data }) => {
+				if (stale) return;
+				areas = data?.areas;
+				areasFailed = !data;
+			});
+		return () => {
+			stale = true;
+		};
+	});
 	let error = $state('');
 
 	/** The combined profile in the shape ElevationProfile draws, coloured per stage. */
@@ -350,6 +383,7 @@
 
 		{#if journey.totals.distance_m > 0}
 			<StatsPanel {totals} pace={user?.speed_factor ?? 1} />
+			<ProtectedAreas {areas} failed={areasFailed} days={plannedDays} />
 		{/if}
 
 		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}

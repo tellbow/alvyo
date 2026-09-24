@@ -132,7 +132,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerOIDC(api, d)
 	registerPacks(api, d)
 
-	var h http.Handler = mux
+	h := withCompression(mux)
 	if d.Auth != nil {
 		h = withSession(h, d.Auth, d.secureCookies())
 	}

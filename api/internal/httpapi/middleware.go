@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/klauspost/compress/gzhttp"
+
 	"github.com/tellbow/odysgeh/api/internal/auth"
 )
 
@@ -172,4 +174,21 @@ func clearSessionCookie(secure bool) http.Cookie {
 		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
 	}
+}
+
+// compressible are the answers worth compressing: JSON, GPX and text.
+// Photos, offline map packs and zips are compressed already, and a pack
+// download must keep its byte ranges for resuming.
+var compressible = []string{
+	"application/json", "application/problem+json", "application/gpx+xml",
+	"application/xml", "image/svg+xml", "text/plain", "text/html", "text/csv",
+}
+
+// withCompression gzips (or zstd-compresses) text answers of 1 KB or more.
+func withCompression(next http.Handler) http.Handler {
+	wrap, err := gzhttp.NewWrapper(gzhttp.ContentTypes(compressible), gzhttp.MinSize(1024))
+	if err != nil {
+		panic(err) // fixed options
+	}
+	return wrap(next)
 }

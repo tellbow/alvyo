@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -91,5 +92,43 @@ func TestWriteDeadlineThroughMiddleware(t *testing.T) {
 	_ = resp.Body.Close()
 	if got != nil {
 		t.Errorf("SetWriteDeadline: %v", got)
+	}
+}
+
+func TestCompression(t *testing.T) {
+	h := withCompression(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/json":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write(bytes.Repeat([]byte(`{"a":1},`), 500))
+		case "/pack":
+			// Offline map packs: served with ranges, never compressed.
+			w.Header().Set("Content-Type", "application/vnd.pmtiles") // as packapi.go sends them
+			http.ServeContent(w, r, "x.pmtiles", time.Time{}, bytes.NewReader(bytes.Repeat([]byte("PMTiles"), 1000)))
+		case "/small":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{}`))
+		}
+	}))
+	srv := httptest.NewServer(h)
+	defer srv.Close()
+	get := func(path string) *http.Response {
+		req, _ := http.NewRequest("GET", srv.URL+path, nil)
+		req.Header.Set("Accept-Encoding", "gzip")
+		resp, err := http.DefaultTransport.RoundTrip(req) // keeps Content-Encoding as sent
+		if err != nil {
+			t.Fatal(err)
+		}
+		_ = resp.Body.Close()
+		return resp
+	}
+	if r := get("/json"); r.Header.Get("Content-Encoding") != "gzip" {
+		t.Errorf("JSON: %q", r.Header.Get("Content-Encoding"))
+	}
+	if r := get("/small"); r.Header.Get("Content-Encoding") != "" {
+		t.Errorf("small answer compressed")
+	}
+	if r := get("/pack"); r.Header.Get("Content-Encoding") != "" || r.Header.Get("Accept-Ranges") != "bytes" {
+		t.Errorf("pack: encoding %q, ranges %q", r.Header.Get("Content-Encoding"), r.Header.Get("Accept-Ranges"))
 	}
 }

@@ -40,7 +40,37 @@ const handleHeaders: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle: Handle = sequence(handleHeaders, handleParaglide, handleUser);
+/** Page HTML and page data as gzip: journeys carry their stages' lines and
+ * profile (100 KB and more). Static files come compressed already. */
+const handleCompression: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+	const type = response.headers.get('content-type') ?? '';
+	if (
+		!response.body ||
+		response.status !== 200 ||
+		response.headers.has('content-encoding') ||
+		!/^(text\/html|application\/json)/.test(type) ||
+		!/\bgzip\b/.test(event.request.headers.get('accept-encoding') ?? '')
+	) {
+		return response;
+	}
+	const headers = new Headers(response.headers);
+	headers.set('content-encoding', 'gzip');
+	headers.append('vary', 'Accept-Encoding');
+	headers.delete('content-length');
+	return new Response(response.body.pipeThrough(new CompressionStream('gzip')), {
+		status: response.status,
+		statusText: response.statusText,
+		headers
+	});
+};
+
+export const handle: Handle = sequence(
+	handleHeaders,
+	handleCompression,
+	handleParaglide,
+	handleUser
+);
 
 /**
  * Server-side requests to /api/* go straight to the Go API. SvelteKit does not

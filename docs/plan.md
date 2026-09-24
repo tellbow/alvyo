@@ -44,7 +44,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
 | 0.5.0 | 2026-09-24 | A GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); fixes from a review of all parts: ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving |
-| next | — | On main since 0.5.0: keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging on touch screens; in the app: recordings per account, asking before switching hikes, ticking stages off, elevation profiles and ascent while hiking; protected areas (13), live location for contacts (12). Deploying needs the two BAFU layers in the tile cache allowlist of the gitops copy (`tilecache-nginx.conf`) and web and app together (stage versions) |
+| 0.6.0 | 2026-09-24 | Live location for contacts with an overdue alert (12), protected areas along routes (13); keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging the line on touch screens; in the app: elevation profiles and ascent while hiking, recordings per account, asking before switching hikes, ticking stages off |
 
 ## Requirements
 
@@ -100,7 +100,7 @@ From the project owner, numbered in the order given: 1–5 added on
     «Karte» on «Meine Routen» (`/routes/map`): lines coloured by kind or
     SAC grade, the list of what is in view, the filters in the address. An
     overview map in the app is a possible follow-up.
-13. **Protected areas along a route** (next). Routes, journeys (with the
+13. **Protected areas along a route** (0.6.0). Routes, journeys (with the
     stages) and the planner list the wildlife rest areas (Wildruhezonen; the
     Swiss National Park is one of them) and federal hunting reserves they
     cross: name, binding or recommended, the rule («Zutrittsverbot») and its
@@ -112,7 +112,7 @@ From the project owner, numbered in the order given: 1–5 added on
     per line) instead of importing them. Web: overlays «Wildruhezonen» and
     «Eidg. Jagdbanngebiete»; the app lists them on route and journey
     screens.
-12. **Live location for contacts, and an alert when overdue** (next).
+12. **Live location for contacts, and an alert when overdue** (0.6.0).
     Contacts (name, e-mail, at most 10) are kept on the website under
     «Konto». Starting a hike in the app offers «Standort teilen» with the
     contacts chosen last time and the expected end (the route's hiking

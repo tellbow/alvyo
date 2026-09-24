@@ -1,4 +1,4 @@
-import createClient from 'openapi-fetch';
+import createClient, { type Middleware } from 'openapi-fetch';
 import type { components, paths } from './schema';
 
 export type Me = components['schemas']['Me'];
@@ -36,8 +36,25 @@ export type Profile = components['schemas']['ProfileOutputBody'];
  * hooks.server.ts rewrites it to the internal API address.
  */
 export function api(fetchFn: typeof fetch = fetch, origin = '') {
-	return createClient<paths>({ baseUrl: `${origin}/api/v1`, fetch: fetchFn });
+	const client = createClient<paths>({ baseUrl: `${origin}/api/v1`, fetch: fetchFn });
+	client.use(unreachable);
+	return client;
 }
+
+/**
+ * A request that gets no answer (offline, the API down) comes back as a 503
+ * answer, which every caller handles like other failures: nothing is left
+ * waiting with a spinner. Cancelled requests stay errors.
+ */
+const unreachable: Middleware = {
+	onError({ error }) {
+		if (error instanceof DOMException && error.name === 'AbortError') return;
+		return new Response(
+			JSON.stringify({ title: 'Service Unavailable', status: 503, detail: 'no connection' }),
+			{ status: 503, headers: { 'Content-Type': 'application/problem+json' } }
+		);
+	}
+};
 
 /** Locations of field errors in an API error, e.g. "body.email". */
 export function errorLocations(err: ApiError | undefined): string[] {

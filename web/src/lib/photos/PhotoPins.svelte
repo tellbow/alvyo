@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages';
 	import type { Map as MapLibreMap, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import type { Gallery } from './gallery.svelte';
@@ -15,7 +16,7 @@
 			el.type = 'button';
 			el.className =
 				'block size-9 overflow-hidden rounded-full border-2 border-white shadow-md bg-stone-200';
-			el.setAttribute('aria-label', p.caption || 'Foto');
+			el.setAttribute('aria-label', p.caption || m.photos_open());
 			el.dataset.testid = 'photo-pin';
 			const img = document.createElement('img');
 			img.src = gallery.src(p, 'thumb');

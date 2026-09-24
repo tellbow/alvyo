@@ -10,16 +10,16 @@ import { api } from '$lib/api/client';
 export { browserSupportsWebAuthn };
 
 /** Why a passkey step failed, for the message shown. */
-export type PasskeyProblem = 'cancelled' | 'password' | 'again' | 'rejected' | 'other';
+export type PasskeyProblem =
+	'cancelled' | 'password' | 'login' | 'unverified' | 'again' | 'rejected' | 'other';
 
-function problemOf(status: number): PasskeyProblem {
-	return status === 403
-		? 'password'
-		: status === 409
-			? 'again'
-			: status === 422
-				? 'rejected'
-				: 'other';
+function problemOf(status: number, detail = ''): PasskeyProblem {
+	if (status === 403) {
+		if (detail.startsWith('confirm your e-mail')) return 'unverified';
+		if (detail.startsWith('log in again')) return 'login'; // accounts without password
+		return 'password';
+	}
+	return status === 409 ? 'again' : status === 422 ? 'rejected' : 'other';
 }
 
 /** Logs in with a passkey the browser offers; undefined on success. */
@@ -45,10 +45,14 @@ export async function addPasskey(
 	name: string,
 	password: string
 ): Promise<PasskeyProblem | undefined> {
-	const { data: begin, response: r1 } = await api().POST('/me/passkeys/begin', {
+	const {
+		data: begin,
+		error,
+		response: r1
+	} = await api().POST('/me/passkeys/begin', {
 		body: password ? { password } : {}
 	});
-	if (!begin) return problemOf(r1.status);
+	if (!begin) return problemOf(r1.status, error?.detail);
 	let response;
 	try {
 		response = await startRegistration({

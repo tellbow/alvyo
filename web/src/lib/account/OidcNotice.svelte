@@ -13,9 +13,13 @@
 		busy: { text: m.error_too_many },
 		taken: { text: m.oidc_taken },
 		already: { text: m.oidc_already },
+		verify: { text: m.oidc_verify },
+		again: { text: m.oidc_again },
 		linked: { text: m.oidc_linked, ok: true }
 	};
-	const notice = $derived(messages[page.url.searchParams.get('oidc') ?? '']);
+	const outcome = $derived(page.url.searchParams.get('oidc') ?? '');
+	// Own keys only: ?oidc=constructor is not a message.
+	const notice = $derived(Object.hasOwn(messages, outcome) ? messages[outcome] : undefined);
 </script>
 
 {#if notice}

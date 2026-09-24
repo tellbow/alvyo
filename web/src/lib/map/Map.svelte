@@ -161,7 +161,11 @@
 		if (!map) return;
 		const c = map.getCenter();
 		const s: Saved = { base, overlays: [...overlays], center: [c.lng, c.lat], zoom: map.getZoom() };
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+		} catch {
+			// storage blocked or full: the view is not remembered
+		}
 	}
 </script>
 

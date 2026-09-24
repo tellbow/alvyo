@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures';
+import { linkFromMail } from './mailpit';
 
 const suffix = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
@@ -27,6 +28,9 @@ test('add a passkey, then log in with it without a password', async ({ page }) =
 		}
 	});
 	expect(res.status()).toBe(201);
+	// Passkeys only with the address confirmed: they outlast a password reset.
+	await page.goto(await linkFromMail(`${name}@example.ch`, '/verify-email'));
+	await expect(page.getByTestId('verify-status')).toHaveText('Deine E-Mail-Adresse ist bestätigt.');
 
 	await page.goto('/account');
 	const methods = page.getByTestId('signin-methods');
@@ -90,6 +94,14 @@ test('sign up with a provider; an existing account connects it after logging in'
 	await tab.getByLabel('Passwort').fill('sehr-geheim-123');
 	await tab.getByRole('button', { name: 'Anmelden', exact: true }).click();
 	await expect(tab.getByTestId('current-user')).toHaveText(owner);
+	// Connecting needs the address confirmed first.
+	await tab.goto('/account');
+	await tab.getByRole('link', { name: 'Test-ID verbinden' }).click();
+	await expect(tab.getByTestId('oidc-notice')).toContainText(
+		'Bestätige zuerst deine E-Mail-Adresse'
+	);
+	await tab.goto(await linkFromMail(`${owner}@example.ch`, '/verify-email'));
+	await expect(tab.getByTestId('verify-status')).toHaveText('Deine E-Mail-Adresse ist bestätigt.');
 	await tab.goto('/account');
 	await tab.getByRole('link', { name: 'Test-ID verbinden' }).click();
 	await tab.getByLabel('E-Mail').fill(`${owner}@example.ch`);

@@ -17,6 +17,8 @@
 	const uid = $props.id();
 	let q = $state('');
 	let results = $state<FoundPlace[]>();
+	/** The text the results were found for. */
+	let resultsFor = $state('');
 	let active = $state(-1);
 
 	$effect(() => {
@@ -34,6 +36,7 @@
 			});
 			if (stale) return;
 			results = data?.places ?? [];
+			resultsFor = text;
 			active = -1;
 		}, 250);
 		return () => {
@@ -56,6 +59,8 @@
 			active = (active + step + results.length) % results.length;
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
+			// Not a result of what was typed before: wait for the new ones.
+			if (resultsFor !== q.trim()) return;
 			pick(results[Math.max(active, 0)]);
 		} else if (e.key === 'Escape') {
 			results = undefined;

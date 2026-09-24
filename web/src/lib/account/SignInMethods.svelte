@@ -32,6 +32,8 @@
 	const problems: Record<PasskeyProblem, () => string> = {
 		cancelled: () => '',
 		password: m.account_delete_wrong,
+		login: m.account_delete_login_again,
+		unverified: m.passkey_unverified,
 		again: m.passkey_again,
 		rejected: m.passkey_rejected,
 		other: m.error_generic

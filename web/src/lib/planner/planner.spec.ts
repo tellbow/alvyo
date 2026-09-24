@@ -159,4 +159,59 @@ describe('Planner', () => {
 		q.load(p.content());
 		expect(q.anchors.map((a) => a.name)).toEqual(['Gitschenen', undefined]);
 	});
+
+	it('asks again for legs that failed for a passing reason, not for no path', async () => {
+		let status = 503;
+		const calls: LegRequest[] = [];
+		const p = new Planner(async (req) => {
+			calls.push(req);
+			if (status) throw new LegError(status);
+			return fakeLeg([
+				[req.from.lon, req.from.lat, 500],
+				[req.to.lon, req.to.lat, 600]
+			]);
+		});
+		p.add(8.0, 46.0);
+		p.add(8.1, 46.1);
+		await p.idle();
+		expect(p.legs[0].state).toBe('error');
+
+		status = 0; // the elevation service is back
+		p.retry();
+		await p.idle();
+		expect(p.legs[0].state).toBe('ok');
+		expect(calls).toHaveLength(2);
+
+		status = 422;
+		p.add(8.2, 46.2);
+		await p.idle();
+		p.retry();
+		await p.idle();
+		expect(p.legs[1].state).toBe('error');
+		expect(calls).toHaveLength(3); // no path stays no path
+	});
+
+	it('splitting a straight leg keeps both halves straight', async () => {
+		const { planner: p, calls } = setup();
+		p.add(8.0, 46.0);
+		p.add(8.2, 46.2);
+		p.setStraight(0, true);
+		p.insert(1, 8.1, 46.1);
+		await p.idle();
+		expect(p.anchors.map((a) => a.straight)).toEqual([false, true, true]);
+		expect(calls.slice(-2).every((c) => c.straight)).toBe(true);
+	});
+
+	it('changes made while saving stay unsaved', async () => {
+		const { planner: p } = setup();
+		p.add(8.0, 46.0);
+		p.add(8.1, 46.1);
+		await p.idle();
+		const sent = p.fingerprint();
+		p.add(8.2, 46.2); // while the request runs
+		p.markSaved(sent);
+		expect(p.dirty).toBe(true);
+		p.markSaved();
+		expect(p.dirty).toBe(false);
+	});
 });

@@ -13,7 +13,7 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 			})
 		);
 	});
-	const id = `plan${Date.now().toString(36)}`;
+	const id = `plan${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 	const signup = await page.request.post('/api/v1/auth/signup', {
 		data: {
 			email: `${id}@example.ch`,
@@ -68,6 +68,14 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 	await page.getByRole('button', { name: 'Umkehren' }).click();
 	await expect(legs.nth(1)).toHaveAttribute('data-state', 'ok');
 	expect(legRequests).toHaveLength(4);
+
+	// Clicks on a point are the point's own: one adds nothing, a double-click
+	// removes it and adds nothing either.
+	const anchors = page.getByTestId('anchor');
+	await anchors.nth(1).click();
+	await expect(anchors).toHaveCount(3);
+	await anchors.nth(1).dblclick();
+	await expect(anchors).toHaveCount(2);
 });
 
 test('drag the line to a different path', async ({ page, context }) => {
@@ -77,7 +85,7 @@ test('drag the line to a different path', async ({ page, context }) => {
 			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
 		);
 	});
-	const id = `drag${Date.now().toString(36)}`;
+	const id = `drag${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 	const signup = await page.request.post('/api/v1/auth/signup', {
 		data: {
 			email: `${id}@example.ch`,
@@ -107,7 +115,18 @@ test('drag the line to a different path', async ({ page, context }) => {
 	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
 	const before = legRequests.length;
 
-	await page.mouse.move(cx, cy);
+	// Pressed only once the line is drawn there (the pointer shows it), or
+	// the press would pan the map.
+	await expect
+		.poll(
+			async () => {
+				await page.mouse.move(cx + 1, cy);
+				await page.mouse.move(cx, cy);
+				return canvas.evaluate((c) => (c as HTMLCanvasElement).style.cursor);
+			},
+			{ timeout: 10_000 }
+		)
+		.toBe('pointer');
 	await page.mouse.down();
 	await page.mouse.move(cx + 20, cy + 60, { steps: 4 });
 	await page.mouse.move(cx + 40, cy + 120, { steps: 4 });

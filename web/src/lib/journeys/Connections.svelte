@@ -86,7 +86,7 @@
 		</p>
 	{:else if trips}
 		<ol class="flex flex-col gap-1.5">
-			{#each trips as trip (trip.start + trip.end)}
+			{#each trips as trip, i (i)}
 				<li class="rounded bg-white/70 px-1.5 py-1" data-testid="trip">
 					<p class="font-medium tabular-nums">
 						{hhmm(trip.start)} → {hhmm(trip.end)}

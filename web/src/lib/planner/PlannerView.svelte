@@ -76,7 +76,8 @@
 		map = m;
 		lib = l;
 		m.on('click', (e: MapMouseEvent) => {
-			if (!user) return;
+			// Clicks on a point (a marker above the map) are the point's own.
+			if (!user || e.originalEvent.target !== m.getCanvas()) return;
 			const hit = m.queryRenderedFeatures(e.point, {
 				layers: ROUTE_LINES.filter((id) => m.getLayer(id))
 			})[0];
@@ -264,7 +265,7 @@
 						{m.plan_legs()}
 					</h3>
 					<ol class="flex flex-col gap-2 text-sm">
-						{#each planner.legs as slot, i (slot.key)}
+						{#each planner.legs as slot, i (planner.anchors[i + 1]?.id ?? slot.key)}
 							<li
 								class="rounded-md border border-stone-200 p-2"
 								data-testid="leg"
@@ -294,7 +295,17 @@
 									</label>
 								</div>
 								{#if slot.state === 'error'}
-									<p class="mt-1 text-xs text-red-700" role="alert">{legError(slot)}</p>
+									<p class="mt-1 text-xs text-red-700" role="alert">
+										{legError(slot)}
+										{#if slot.status !== 422}
+											<button
+												type="button"
+												class="ml-1 underline"
+												data-testid="leg-retry"
+												onclick={() => planner.retry()}>{m.leg_retry()}</button
+											>
+										{/if}
+									</p>
 								{/if}
 							</li>
 						{/each}

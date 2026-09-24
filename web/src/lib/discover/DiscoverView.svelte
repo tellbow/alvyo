@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Map as MapLibreMap } from 'maplibre-gl';
-	import { untrack } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import { goto, replaceState } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -57,13 +57,20 @@
 				{ duration: 0 }
 			);
 		}
-		let timer: ReturnType<typeof setTimeout>;
 		mp.on('moveend', () => {
 			clearTimeout(timer);
 			timer = setTimeout(search, 250);
 		});
 		map = mp;
 	}
+
+	let timer: ReturnType<typeof setTimeout>;
+	onDestroy(() => {
+		// Left for another page: a search still under way must not rewrite
+		// that page's address.
+		clearTimeout(timer);
+		seq++;
+	});
 
 	let seq = 0;
 	async function search() {

@@ -61,35 +61,42 @@
 	async function save(e: SubmitEvent) {
 		e.preventDefault();
 		status = 'saving';
+		// What is sent is what counts as saved: changes made meanwhile stay unsaved.
+		const saving = planner.fingerprint();
+		const meta = JSON.stringify([title, visibility]);
 		const content = planner.content();
-		if (!route) {
-			const { data } = await api().POST('/routes', {
-				body: { title: title.trim(), visibility, ...content }
-			});
-			if (!data) {
-				status = 'failed';
+		try {
+			if (!route) {
+				const { data } = await api().POST('/routes', {
+					body: { title: title.trim(), visibility, ...content }
+				});
+				if (!data) {
+					status = 'failed';
+					return;
+				}
+				planner.markSaved(saving);
+				await goto(resolve('/plan/[id]', { id: data.id }), { replaceState: true });
 				return;
 			}
-			planner.markSaved();
-			await goto(resolve('/plan/[id]', { id: data.id }), { replaceState: true });
-			return;
-		}
-		const { data, response } = await api().PATCH('/routes/{id}', {
-			params: { path: { id: route.id }, header: { 'If-Match': `"${version}"` } },
-			body: {
-				title: title.trim(),
-				...(isOwner ? { visibility } : {}),
-				...(planner.dirty ? content : {})
+			const { data, response } = await api().PATCH('/routes/{id}', {
+				params: { path: { id: route.id }, header: { 'If-Match': `"${version}"` } },
+				body: {
+					title: title.trim(),
+					...(isOwner ? { visibility } : {}),
+					...(planner.dirty ? content : {})
+				}
+			});
+			if (data) {
+				version = data.version;
+				shareToken = data.share_token ?? '';
+				savedMeta = meta;
+				planner.markSaved(saving);
+				status = 'saved';
+			} else {
+				status = response.status === 412 ? 'conflict' : 'failed';
 			}
-		});
-		if (data) {
-			version = data.version;
-			shareToken = data.share_token ?? '';
-			savedMeta = JSON.stringify([title, visibility]);
-			planner.markSaved();
-			status = 'saved';
-		} else {
-			status = response.status === 412 ? 'conflict' : 'failed';
+		} catch {
+			status = 'failed'; // no connection
 		}
 	}
 </script>

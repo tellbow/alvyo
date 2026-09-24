@@ -113,10 +113,12 @@
 	// so a slower earlier response must not overwrite a later change.
 	let queue: Promise<unknown> = Promise.resolve();
 
-	function mutate(call: () => Promise<{ data?: Journey; response: Response }>) {
+	function mutate(call: () => Promise<{ data?: Journey; response: Response }> | undefined) {
 		const run = queue.then(async () => {
+			const request = call();
+			if (!request) return journey; // nothing left to change
 			error = '';
-			const { data } = await call();
+			const { data } = await request;
 			if (data) journey = data;
 			else error = m.error_generic();
 			return data;
@@ -162,10 +164,13 @@
 		}
 	}
 
-	async function move(i: number, delta: number) {
+	async function move(stage: string, delta: number) {
 		await mutate(() => {
-			// The order as it is once earlier changes are through.
+			// The order as it is once earlier changes are through; the stage
+			// is found by id, as those may have moved it.
 			const ids = journey.stage_list.map((s) => s.id);
+			const i = ids.indexOf(stage);
+			if (i < 0 || !ids[i + delta]) return undefined;
 			[ids[i], ids[i + delta]] = [ids[i + delta], ids[i]];
 			return api().PUT('/journeys/{id}/stages/order', {
 				params: { path: { id: journey.id } },
@@ -339,7 +344,7 @@
 					pace={user?.speed_factor ?? 1}
 					{q}
 					onpatch={(body) => patchStage(s.id, body)}
-					onmove={(delta) => move(i, delta)}
+					onmove={(delta) => move(s.id, delta)}
 					onremove={() => removeStage(s.id)}
 				/>
 			{/each}

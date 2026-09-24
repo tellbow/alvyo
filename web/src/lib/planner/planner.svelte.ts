@@ -110,17 +110,31 @@ export class Planner {
 		};
 	}
 
-	markSaved() {
-		this.#savedFingerprint = this.#fingerprint();
+	/** What the route is now, to mark as saved once the server has it. */
+	fingerprint(): string {
+		return this.#fingerprint();
+	}
+
+	/** Marks the route as saved: as it was when fingerprinted (changes made
+	 * while saving stay unsaved), or as it is. */
+	markSaved(fingerprint = this.#fingerprint()) {
+		this.#savedFingerprint = fingerprint;
 	}
 
 	add(lon: number, lat: number, name?: string) {
 		this.#change(() => this.anchors.push(this.#anchor(lon, lat, name)));
 	}
 
-	/** Inserts an anchor before position `index` (e.g. when dragging a leg). */
+	/** Inserts an anchor before position `index` (e.g. when dragging a leg);
+	 * both halves of a straight leg stay straight. */
 	insert(index: number, lon: number, lat: number) {
-		this.#change(() => this.anchors.splice(index, 0, this.#anchor(lon, lat)));
+		const straight = this.anchors[index]?.straight ?? false;
+		this.#change(() => this.anchors.splice(index, 0, { ...this.#anchor(lon, lat), straight }));
+	}
+
+	/** Asks again for the legs that failed for a passing reason. */
+	retry() {
+		this.#sync();
 	}
 
 	/** Moves an anchor on the map; it is no longer the place it was found as. */
@@ -234,7 +248,9 @@ export class Planner {
 			const from = this.anchors[i - 1];
 			const to = this.anchors[i];
 			const key = this.#key(from, to);
-			if (this.#cache.has(key)) continue;
+			const cached = this.#cache.get(key);
+			// Kept, except failures that may pass (no path nearby will not).
+			if (cached && !(cached.state === 'error' && cached.status !== 422)) continue;
 
 			const reversed = this.#cache.get(legKey(to, from, to.straight, this.profile));
 			if (reversed?.state === 'ok') {

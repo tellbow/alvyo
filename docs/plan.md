@@ -43,7 +43,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.2.0 | 2026-09-23 | Offline maps (PMTiles packs built by the API); the iOS app lists routes, shows them on the national map and saves them offline |
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
-| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); hut websites need `make places-import` once |
+| 0.5.0 | 2026-09-24 | A GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); fixes from a review of all parts: ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving |
 
 ## Requirements
 
@@ -67,11 +67,11 @@ From the project owner, numbered in the order given: 1–5 added on
 5. **Tracking with a watch** (0.3.0). Hikes recorded with the Apple Watch's
    Workout app are imported from Apple Health (works with a free Apple ID).
    A watchOS app of our own remains an option.
-6. **A GPX file into a stage** (next). In the journey editor, «Datei
+6. **A GPX file into a stage** (0.5.0). In the journey editor, «Datei
    importieren» gives a stage its route from a GPX, KML, TCX or FIT file in
    one step (`POST /journeys/{id}/stages/{stage}/import`, several tracks
    joined); a stage's route is only replaced after asking.
-9. **Dragging the line: a point, or a different path** (next). A switch in
+9. **Dragging the line: a point, or a different path** (0.5.0). A switch in
    the planner («Beim Ziehen: Zwischenpunkt / anderer Weg», remembered in
    the browser; Alt/⌥ flips it for one drag). «Anderer Weg» keeps the points:
    the leg takes the GraphHopper alternative passing closest to the release
@@ -80,7 +80,7 @@ From the project owner, numbered in the order given: 1–5 added on
    line; a double-click on it gives the shortest path back. GraphHopper 11
    offers alternatives with the CH profiles once its factors are loosened
    (paths up to twice as long, sharing up to 80 %), in about 30 ms.
-10. **Tags** (next). Routes (recorded hikes included), journeys and
+10. **Tags** (0.5.0). Routes (recorded hikes included), journeys and
     collections carry up to 20 tags of 40 characters, kept as typed and
     compared without case (`tags text[]`, GIN index on `lower_tags(tags)`);
     stage routes have their journey's. Owners and editors set them like the
@@ -88,7 +88,7 @@ From the project owner, numbered in the order given: 1–5 added on
     lists the user's own tags with counts for suggestions. Web: a tag field
     in the route editor, on journeys and on collections; chips in the lists
     filter them (`?tag=`). App: tags shown in the lists.
-11. **All my hikes on one map** (next). `GET /me/map`: one's routes,
+11. **All my hikes on one map** (0.5.0). `GET /me/map`: one's routes,
     journeys (all their stages) and recorded hikes in the map view, filtered
     by kind, tags (any of them), distance, hiking time (at one's pace) and
     SAC grade, each a range with optional ends; for journeys the whole
@@ -98,7 +98,7 @@ From the project owner, numbered in the order given: 1–5 added on
     «Karte» on «Meine Routen» (`/routes/map`): lines coloured by kind or
     SAC grade, the list of what is in view, the filters in the address. An
     overview map in the app is a possible follow-up.
-8. **Plan a multi-day hike from start, destination and days** (next).
+8. **Plan a multi-day hike from start, destination and days** (0.5.0).
    «Etappentour planen» (`/journeys/plan`): start, destination and points
    to pass, the number of days or the hours per day (at one's pace), an
    optional maximum per day (else 1.25 × the time per day, at least 1 h
@@ -116,7 +116,7 @@ From the project owner, numbered in the order given: 1–5 added on
    the routes, places and accommodation in one go. Live: Gaflei → Elm in
    three days ends in Sargans and Weisstannen, as the Via Alpina does
    (planned in about 3.5 s).
-7. **One long GPX file into several stages** (next). In the import
+7. **One long GPX file into several stages** (0.5.0). In the import
    dialog, «Als Etappentour, in N Etappen» for any file (several tracks
    are joined). The preview lists per stage the length, time, ascent and
    where it ends; nothing is created before «Etappentour erstellen»

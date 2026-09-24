@@ -2,8 +2,27 @@ import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { env } from '$env/dynamic/private';
 import { api } from '$lib/api/client';
-import { getTextDirection } from '$lib/paraglide/runtime';
+import { prefixLocale } from '$lib/i18n';
+import {
+	cookieName,
+	defineCustomServerStrategy,
+	getTextDirection,
+	locales
+} from '$lib/paraglide/runtime';
 import { paraglideMiddleware } from '$lib/paraglide/server';
+
+// Paraglide asks custom strategies before all others on the server; the
+// cookie must still win, as in the browser, or the two disagree.
+defineCustomServerStrategy('custom-prefix', {
+	getLocale: (request) => {
+		if (!request) return undefined;
+		const cookie = request.headers
+			.get('cookie')
+			?.match(new RegExp(`(?:^|;\\s*)${cookieName}=([^;]*)`));
+		if (cookie && (locales as readonly string[]).includes(cookie[1])) return undefined;
+		return prefixLocale(new URL(request.url).pathname);
+	}
+});
 
 /** Where the Go API is reachable from this server (not from browsers). */
 const apiInternalURL = () => env.API_INTERNAL_URL || 'http://localhost:8080';

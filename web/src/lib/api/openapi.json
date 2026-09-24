@@ -6374,6 +6374,72 @@
         ]
       }
     },
+    "/collections/{id}/og.png": {
+      "get": {
+        "description": "The items the caller may see; 404 while none has a line.",
+        "operationId": "get-collection-image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted collection",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted collection",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "contentEncoding": "base64",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Preview image of a collection for link previews (1200×630)",
+        "tags": [
+          "collections"
+        ]
+      }
+    },
     "/connections": {
       "get": {
         "description": "From the Swiss Open Journey Planner; answers are cached for 10 minutes. 503 when not configured.",
@@ -7989,6 +8055,72 @@
           }
         },
         "summary": "Replace the share link; the old link stops working",
+        "tags": [
+          "journeys"
+        ]
+      }
+    },
+    "/journeys/{id}/og.png": {
+      "get": {
+        "description": "404 while no stage has a route.",
+        "operationId": "get-journey-image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "contentEncoding": "base64",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Preview image of a journey for link previews (1200×630)",
         "tags": [
           "journeys"
         ]
@@ -11955,7 +12087,7 @@
     },
     "/sitemap": {
       "get": {
-        "description": "The most recently changed first, at most 50000.",
+        "description": "The most recently changed first, at most 12500.",
         "operationId": "sitemap",
         "responses": {
           "200": {

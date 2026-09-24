@@ -1,5 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import {
+		baseLocale,
+		deLocalizeUrl,
+		getLocale,
+		locales,
+		localizeUrl,
+		type Locale
+	} from '$lib/paraglide/runtime';
 
 	/**
 	 * Title, description and link-preview tags of a page. Pages that are not
@@ -14,8 +22,11 @@
 	}: { title: string; description?: string; image?: string; index?: boolean } = $props();
 
 	// Share links (?t=) and filters never become the address search engines
-	// show: one address per page.
-	const url = $derived(page.url.origin + page.url.pathname);
+	// show: one address per page and language (German without prefix).
+	const path = $derived(deLocalizeUrl(new URL(page.url.pathname, page.url.origin)));
+	const inLocale = (locale: Locale) => localizeUrl(path, { locale }).href;
+	const url = $derived(inLocale(getLocale()));
+	const OG_LOCALE: Record<Locale, string> = { de: 'de_CH', en: 'en_GB', fr: 'fr_CH', it: 'it_CH' };
 	const shown = $derived(index && !page.url.searchParams.has('t'));
 	const text = $derived(description && shorten(description.replace(/\s+/g, ' ').trim(), 200));
 
@@ -31,11 +42,16 @@
 	{#if text}<meta name="description" content={text} />{/if}
 	{#if shown}
 		<link rel="canonical" href={url} />
+		{#each locales as locale (locale)}
+			<link rel="alternate" hreflang={locale} href={inLocale(locale)} />
+		{/each}
+		<link rel="alternate" hreflang="x-default" href={inLocale(baseLocale)} />
 	{:else}
 		<meta name="robots" content="noindex" />
 	{/if}
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="odysgeh" />
+	<meta property="og:locale" content={OG_LOCALE[getLocale()]} />
 	<meta property="og:title" content={title} />
 	{#if text}<meta property="og:description" content={text} />{/if}
 	<meta property="og:url" content={shown ? url : page.url.href} />

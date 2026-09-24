@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"log/slog"
 	"mime"
 	"net/http"
@@ -223,9 +224,10 @@ func registerRoutes(api huma.API, d Deps) {
 			return nil, err
 		}
 		b, err := d.Images.PNG(fmt.Sprintf("%s-%d", r.ID, r.Version), og.Card{
-			Title:  r.Title,
-			Stats:  cardStats(r.Totals),
-			Points: r.Line(),
+			Title: r.Title,
+			Stats: cardStats(r.Totals),
+			Lines: [][][2]float64{lonLat(r.Line())},
+			Ends:  true,
 		})
 		if err != nil {
 			return nil, err
@@ -361,6 +363,23 @@ func cardStats(t routes.Totals) string {
 	}
 	return fmt.Sprintf("%.1f km · %s · ↑ %.0f m ↓ %.0f m · %s",
 		t.DistanceM/1000, og.Duration(t.DurationS), t.AscentM, t.DescentM, sac)
+}
+
+// lonLat drops the elevations of a line.
+func lonLat(line [][3]float64) [][2]float64 {
+	out := make([][2]float64, len(line))
+	for i, p := range line {
+		out[i] = [2]float64{p[0], p[1]}
+	}
+	return out
+}
+
+// imageKey names a card's image after its content: journeys and collections
+// change with their stages and items, not only with their own version.
+func imageKey(id string, card og.Card) string {
+	h := fnv.New64a()
+	_, _ = fmt.Fprintf(h, "%s\x00%s\x00%v", card.Title, card.Stats, card.Lines)
+	return fmt.Sprintf("%s-%x", id, h.Sum64())
 }
 
 func routeError(err error) error {

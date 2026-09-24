@@ -368,6 +368,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/collections/{id}/og.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview image of a collection for link previews (1200×630)
+         * @description The items the caller may see; 404 while none has a line.
+         */
+        get: operations["get-collection-image"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/connections": {
         parameters: {
             query?: never;
@@ -770,6 +790,26 @@ export interface paths {
         put?: never;
         /** Replace the share link; the old link stops working */
         post: operations["rotate-journey-link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journeys/{id}/og.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview image of a journey for link previews (1200×630)
+         * @description 404 while no stage has a route.
+         */
+        get: operations["get-journey-image"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1817,7 +1857,7 @@ export interface paths {
         };
         /**
          * Public routes, journeys, collections and profiles, for the sitemap
-         * @description The most recently changed first, at most 50000.
+         * @description The most recently changed first, at most 12500.
          */
         get: operations["sitemap"];
         put?: never;
@@ -4367,6 +4407,42 @@ export interface operations {
             };
         };
     };
+    "get-collection-image": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted collection */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Content-Type"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "find-connections": {
         parameters: {
             query: {
@@ -5371,6 +5447,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShareTokenOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-journey-image": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Content-Type"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
                 };
             };
             /** @description Error */

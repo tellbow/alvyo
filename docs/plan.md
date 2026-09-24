@@ -182,9 +182,8 @@ Connect's course import.
 - Operations: backups are kept on the cluster only; an off-site copy is
   missing.
 - Texts: the French and Italian texts to be reviewed by a native speaker.
-- Search engines: the language comes from a cookie or the browser, so
-  engines see German only; an address per language (`/fr/…`) would allow
-  `hreflang`. Journeys and collections have no link-preview image yet.
+- Logo: a draft (the emblem of `logo-draft.png`, without its lettering)
+  for the web and the app icon; a final one with a vector version.
 - M4: MeteoSwiss weather, highlights and points of interest, PDF stage sheets,
   3D terrain, closures, self-hosted Swiss Map Raster 25, full «how to get
   there» by public transport.

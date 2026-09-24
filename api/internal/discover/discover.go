@@ -181,8 +181,9 @@ type SitemapEntry struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// MaxSitemap is the most entries one sitemap file may hold.
-const MaxSitemap = 50000
+// MaxSitemap is the most entries listed: a sitemap file holds 50000
+// addresses, and each page is there in four languages.
+const MaxSitemap = 12500
 
 // Sitemap lists the public routes, journeys and collections of users who
 // are not banned, and the profiles of those who published a route or

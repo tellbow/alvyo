@@ -264,7 +264,9 @@ func TestEditorKeepsVisibility(t *testing.T) {
 	}
 }
 
-func TestRouteImage(t *testing.T) {
+// imageServer is a test server that renders preview images on blank tiles,
+// with a verified user «owner» logged in.
+func imageServer(t *testing.T) (*testServer, *client, func(c *client, path string) (int, string, string)) {
 	tile := image.NewRGBA(image.Rect(0, 0, 256, 256))
 	var buf bytes.Buffer
 	_ = jpeg.Encode(&buf, tile, nil)
@@ -279,27 +281,76 @@ func TestRouteImage(t *testing.T) {
 	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
 		t.Fatal(err)
 	}
-	image := func(c *client, id string) (int, string, string) {
+	image := func(c *client, path string) (int, string, string) {
 		t.Helper()
-		resp, err := c.http.Get(s.URL + "/api/v1/routes/" + id + "/og.png")
+		resp, err := c.http.Get(s.URL + "/api/v1/" + path + "/og.png")
 		if err != nil {
 			t.Fatal(err)
 		}
 		defer func() { _ = resp.Body.Close() }()
 		return resp.StatusCode, resp.Header.Get("Content-Type"), resp.Header.Get("Cache-Control")
 	}
+	return s, owner, image
+}
+
+func TestRouteImage(t *testing.T) {
+	s, owner, image := imageServer(t)
 	for _, tc := range []struct{ visibility, cache string }{{"public", "public"}, {"private", "private"}} {
 		_, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", tc.visibility))
 		var r savedRoute
 		_ = json.Unmarshal(body, &r)
-		code, ctype, cache := image(owner, r.ID)
+		code, ctype, cache := image(owner, "routes/"+r.ID)
 		if code != http.StatusOK || ctype != "image/png" || !strings.HasPrefix(cache, tc.cache+",") {
 			t.Errorf("%s route: %d %s %q", tc.visibility, code, ctype, cache)
 		}
 		if tc.visibility == "private" {
-			if code, _, _ := image(s.client(t), r.ID); code != http.StatusNotFound {
+			if code, _, _ := image(s.client(t), "routes/"+r.ID); code != http.StatusNotFound {
 				t.Errorf("private route to someone else: %d", code)
 			}
 		}
+	}
+}
+
+func TestJourneyAndCollectionImages(t *testing.T) {
+	s, owner, image := imageServer(t)
+	anon := s.client(t)
+
+	_, body := owner.do("POST", "/api/v1/journeys", map[string]any{"title": "Reise", "visibility": "public"})
+	var j journeyResp
+	_ = json.Unmarshal(body, &j)
+	// No stage route yet: nothing to show.
+	if code, _, _ := image(anon, "journeys/"+j.ID); code != http.StatusNotFound {
+		t.Errorf("journey without routes: %d", code)
+	}
+	_, body = owner.do("POST", "/api/v1/journeys/"+j.ID+"/stages", map[string]any{})
+	j = decodeJourney(t, body)
+	stage := lineRoute("", "", 8.02, 46.6, "T2")
+	delete(stage, "title")
+	delete(stage, "visibility")
+	if code, body := owner.do("POST", "/api/v1/journeys/"+j.ID+"/stages/"+j.StageList[0].ID+"/route", stage); code != http.StatusOK {
+		t.Fatalf("stage route: %d %s", code, body)
+	}
+	if code, ctype, cache := image(anon, "journeys/"+j.ID); code != http.StatusOK || ctype != "image/png" || !strings.HasPrefix(cache, "public,") {
+		t.Errorf("public journey: %d %s %q", code, ctype, cache)
+	}
+
+	// A collection shows the items the caller may see, and is never cached
+	// for others.
+	_, body = owner.do("POST", "/api/v1/collections", map[string]any{"title": "Gipfel", "visibility": "public"})
+	var c struct{ ID string }
+	_ = json.Unmarshal(body, &c)
+	_, body = owner.do("POST", "/api/v1/routes", newRouteBody("Geheim", "private"))
+	var r savedRoute
+	_ = json.Unmarshal(body, &r)
+	owner.do("POST", "/api/v1/collections/"+c.ID+"/items", map[string]any{"route_id": r.ID})
+	if code, _, cache := image(owner, "collections/"+c.ID); code != http.StatusOK || !strings.HasPrefix(cache, "private,") {
+		t.Errorf("collection to its owner: %d %q", code, cache)
+	}
+	if code, _, _ := image(anon, "collections/"+c.ID); code != http.StatusNotFound {
+		t.Errorf("collection of a private route to someone else: %d", code)
+	}
+	owner.do("POST", "/api/v1/collections/"+c.ID+"/items", map[string]any{"journey_id": j.ID})
+	if code, _, _ := image(anon, "collections/"+c.ID); code != http.StatusOK {
+		t.Errorf("collection with a public journey: %d", code)
 	}
 }

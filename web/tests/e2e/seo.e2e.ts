@@ -33,6 +33,13 @@ test('search engines: titles, one address per page, private pages left out, site
 		visibility: 'public',
 		description: 'Drei Tage über die Pässe.'
 	});
+	const withStage = await (
+		await page.request.post(`/api/v1/journeys/${journey.id}/stages`, { data: {} })
+	).json();
+	await page.request.post(
+		`/api/v1/journeys/${journey.id}/stages/${withStage.stage_list[0].id}/route`,
+		{ data: routeContent(8.05, 46.665) }
+	);
 
 	// As a search engine sees them: without a session.
 	const head = async (path: string) => {
@@ -40,6 +47,7 @@ test('search engines: titles, one address per page, private pages left out, site
 		expect(res.status()).toBe(200);
 		const html = await res.text();
 		return {
+			html,
 			title: html.match(/<title>([^<]*)<\/title>/)?.[1],
 			description: html.match(/<meta name="description" content="([^"]*)"/)?.[1],
 			canonical: html.match(/<link rel="canonical" href="([^"]*)"/)?.[1],
@@ -62,8 +70,31 @@ test('search engines: titles, one address per page, private pages left out, site
 	expect(r.noindex).toBe(false);
 
 	const j = await head(`/journeys/${journey.id}`);
-	expect(j.description).toMatch(/^Etappentour in 0 Etappen: .*Drei Tage über die Pässe\.$/);
+	expect(j.description).toMatch(/^Etappentour in 1 Etappen: .*Drei Tage über die Pässe\.$/);
 	expect(j.canonical).toMatch(new RegExp(`/journeys/${journey.id}$`));
+	// Link previews show the journey's stages on the map.
+	const ogImage = j.html.match(/<meta property="og:image" content="([^"]*)"/)?.[1];
+	expect(ogImage).toMatch(new RegExp(`/api/v1/journeys/${journey.id}/og\\.png\\?v=\\d+$`));
+	const image = await request.get(ogImage!);
+	expect(image.status()).toBe(200);
+	expect(image.headers()['content-type']).toBe('image/png');
+
+	// Every language has its own address, and each names the others.
+	const en = await head(`/en/journeys/${journey.id}`);
+	expect(en.html).toContain('<html lang="en"');
+	expect(en.description).toMatch(/^Multi-day journey in 1 stages: /);
+	expect(en.canonical).toMatch(new RegExp(`/en/journeys/${journey.id}$`));
+	for (const [lang, prefix] of [
+		['de', ''],
+		['fr', '/fr'],
+		['x-default', '']
+	]) {
+		expect(en.html).toMatch(
+			new RegExp(
+				`<link rel="alternate" hreflang="${lang}" href="http://[^/]+${prefix}/journeys/${journey.id}"`
+			)
+		);
+	}
 
 	// A share link and the pages of an account are not for search engines.
 	const shared = await head(`/routes/${unlisted.id}?t=${unlisted.share_token}`);
@@ -76,7 +107,7 @@ test('search engines: titles, one address per page, private pages left out, site
 	const sitemap = await request.get('/sitemap.xml');
 	expect(sitemap.headers()['content-type']).toBe('application/xml');
 	const xml = await sitemap.text();
-	for (const path of [`/routes/${route.id}`, `/journeys/${journey.id}`, `/u/${id}`]) {
+	for (const path of [`/routes/${route.id}`, `/it/journeys/${journey.id}`, `/fr/u/${id}`]) {
 		expect(xml).toContain(`${path}</loc>`);
 	}
 	expect(xml).not.toContain(unlisted.id);

@@ -1,5 +1,6 @@
-// Package og renders social preview images (Open Graph, 1200×630) of routes:
-// the route on the swisstopo national map with its title and key numbers.
+// Package og renders social preview images (Open Graph, 1200×630) of routes,
+// journeys and collections: their lines on the swisstopo national map with
+// the title and key numbers.
 package og
 
 import (
@@ -36,9 +37,13 @@ var routeColor = color.RGBA{0xa2, 0x1c, 0xaf, 0xff}
 
 // Card is what the image shows.
 type Card struct {
-	Title  string
-	Stats  string       // e.g. "12.3 km · 4 h 15 min · ↑ 850 m · T3"
-	Points [][3]float64 // lon, lat, ele
+	Title string
+	Stats string // e.g. "12.3 km · 4 h 15 min · ↑ 850 m · T3"
+	// Lines are (lon, lat) lines: a route's, a journey's stages, a
+	// collection's items.
+	Lines [][][2]float64
+	// Ends marks the start of the first line and the end of the last.
+	Ends bool
 }
 
 // Renderer draws cards and caches them as PNG files.
@@ -48,8 +53,8 @@ type Renderer struct {
 	group    singleflight.Group
 }
 
-// PNG returns the image for key ("<route id>-<version>"), rendering it once.
-// The images of the route's other versions are removed then.
+// PNG returns the image for key ("<id>-<version>"), rendering it once.
+// The images of the item's other versions are removed then.
 func (r *Renderer) PNG(key string, card Card) ([]byte, error) {
 	path := filepath.Join(r.CacheDir, "og", key+".png")
 	if b, err := os.ReadFile(path); err == nil {
@@ -80,8 +85,12 @@ func (r *Renderer) PNG(key string, card Card) ([]byte, error) {
 }
 
 func (r *Renderer) render(card Card) ([]byte, error) {
-	if len(card.Points) < 2 {
-		return nil, fmt.Errorf("og: route has no line")
+	points := 0
+	for _, l := range card.Lines {
+		points += len(l)
+	}
+	if points < 2 {
+		return nil, fmt.Errorf("og: no line")
 	}
 	ctx := sm.NewContext()
 	ctx.SetSize(Width, Height-bandH)
@@ -94,18 +103,31 @@ func (r *Renderer) render(card Card) ([]byte, error) {
 		URLPattern:  strings.TrimSuffix(r.TilesURL, "/") + "/tiles/wmts/ch.swisstopo.pixelkarte-farbe/%[2]d/%[3]d/%[4]d.jpeg",
 	})
 
-	step := max(1, len(card.Points)/maxPoints)
-	var pos []s2.LatLng
-	for i := 0; i < len(card.Points); i += step {
-		p := card.Points[i]
-		pos = append(pos, s2.LatLngFromDegrees(p[1], p[0]))
+	step := max(1, points/maxPoints)
+	var paths [][]s2.LatLng
+	for _, l := range card.Lines {
+		if len(l) < 2 {
+			continue
+		}
+		var pos []s2.LatLng
+		for i := 0; i < len(l); i += step {
+			pos = append(pos, s2.LatLngFromDegrees(l[i][1], l[i][0]))
+		}
+		last := l[len(l)-1]
+		paths = append(paths, append(pos, s2.LatLngFromDegrees(last[1], last[0])))
 	}
-	last := card.Points[len(card.Points)-1]
-	pos = append(pos, s2.LatLngFromDegrees(last[1], last[0]))
-	ctx.AddObject(sm.NewPath(pos, color.White, 10))
-	ctx.AddObject(sm.NewPath(pos, routeColor, 6))
-	ctx.AddObject(sm.NewMarker(pos[0], color.RGBA{0x16, 0xa3, 0x4a, 0xff}, 18))
-	ctx.AddObject(sm.NewMarker(pos[len(pos)-1], routeColor, 18))
+	// All white casings first: a line is never hidden under another's.
+	for _, pos := range paths {
+		ctx.AddObject(sm.NewPath(pos, color.White, 10))
+	}
+	for _, pos := range paths {
+		ctx.AddObject(sm.NewPath(pos, routeColor, 6))
+	}
+	if card.Ends && len(paths) > 0 {
+		first, last := paths[0], paths[len(paths)-1]
+		ctx.AddObject(sm.NewMarker(first[0], color.RGBA{0x16, 0xa3, 0x4a, 0xff}, 18))
+		ctx.AddObject(sm.NewMarker(last[len(last)-1], routeColor, 18))
+	}
 
 	mapImg, err := ctx.Render()
 	if err != nil {

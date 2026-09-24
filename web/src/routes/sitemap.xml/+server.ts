@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { api } from '$lib/api/client';
+import { locales, localizeUrl } from '$lib/paraglide/runtime';
 import type { RequestHandler } from './$types';
 
 const PATHS = {
@@ -9,14 +10,23 @@ const PATHS = {
 	profile: '/u/'
 } as const;
 
-/** The public pages: the start, discover and about pages, and every public item. */
+/**
+ * The public pages in every language: the start, discover and about pages,
+ * and every public item.
+ */
 export const GET: RequestHandler = async ({ fetch, url }) => {
 	const { data } = await api(fetch, url.origin).GET('/sitemap');
 	if (!data) error(503);
-	const pages = ['/', '/discover', '/about'].map((p) => `<url><loc>${url.origin}${p}</loc></url>`);
+	const pages: string[] = [];
+	const add = (path: string, lastmod?: string) => {
+		for (const locale of locales) {
+			const loc = escape(localizeUrl(new URL(path, url.origin), { locale }).href);
+			pages.push(`<url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`);
+		}
+	};
+	for (const p of ['/', '/discover', '/about']) add(p);
 	for (const e of data.entries) {
-		const loc = escape(url.origin + PATHS[e.kind] + encodeURIComponent(e.id));
-		pages.push(`<url><loc>${loc}</loc><lastmod>${e.updated_at.slice(0, 10)}</lastmod></url>`);
+		add(PATHS[e.kind] + encodeURIComponent(e.id), e.updated_at.slice(0, 10));
 	}
 	return new Response(
 		'<?xml version="1.0" encoding="UTF-8"?>\n' +

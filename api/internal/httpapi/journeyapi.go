@@ -19,6 +19,7 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/auth"
 	"github.com/tellbow/odysgeh/api/internal/gpx"
 	"github.com/tellbow/odysgeh/api/internal/journeys"
+	"github.com/tellbow/odysgeh/api/internal/og"
 	"github.com/tellbow/odysgeh/api/internal/routes"
 	"github.com/tellbow/odysgeh/api/internal/routing"
 )
@@ -217,6 +218,36 @@ func registerJourneys(api huma.API, d Deps) {
 			return nil, err
 		}
 		return journeyResponse(j, role), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-journey-image", Method: http.MethodGet, Path: "/journeys/{id}/og.png",
+		Summary:     "Preview image of a journey for link previews (1200×630)",
+		Description: "404 while no stage has a route.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *journeyIDInput) (*imageOutput, error) {
+		j, _, err := loadJourney(ctx, d, in.ID, in.Token)
+		if err != nil {
+			return nil, err
+		}
+		card := og.Card{Title: j.Title, Stats: cardStats(j.Totals), Ends: true}
+		for _, s := range j.StageList {
+			if s.Route != nil {
+				card.Lines = append(card.Lines, s.Route.Line)
+			}
+		}
+		if len(card.Lines) == 0 {
+			return nil, huma.Error404NotFound("no stage has a route yet")
+		}
+		b, err := d.Images.PNG(imageKey(j.ID, card), card)
+		if err != nil {
+			return nil, err
+		}
+		cache := "private, max-age=3600" // not in shared caches unless anyone may see it
+		if j.Visibility == "public" {
+			cache = "public, max-age=3600"
+		}
+		return &imageOutput{ContentType: "image/png", CacheControl: cache, Body: b}, nil
 	})
 
 	huma.Register(api, huma.Operation{

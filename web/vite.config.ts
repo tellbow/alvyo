@@ -29,9 +29,13 @@ export default defineConfig({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide',
 			emitTsDeclarations: true,
-			// A choice in the language menu (cookie) wins over the browser's
-			// languages; German otherwise.
-			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+			// A choice in the language menu (cookie) wins, then the address
+			// (/en/…, /fr/…, /it/…: one per language for search engines), then
+			// the browser's languages; German, without prefix, otherwise.
+			// custom-prefix is defined in hooks.server.ts and hooks.client.ts:
+			// the url strategy alone would read every unprefixed address as
+			// German.
+			strategy: ['cookie', 'custom-prefix', 'preferredLanguage', 'url', 'baseLocale']
 		})
 	],
 	test: {

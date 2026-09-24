@@ -134,7 +134,7 @@ func registerDiscover(api huma.API, d Deps) {
 	huma.Register(api, huma.Operation{
 		OperationID: "sitemap", Method: http.MethodGet, Path: "/sitemap",
 		Summary:     "Public routes, journeys, collections and profiles, for the sitemap",
-		Description: "The most recently changed first, at most 50000.",
+		Description: "The most recently changed first, at most 12500.",
 		Tags:        []string{"discover"},
 	}, func(ctx context.Context, _ *struct{}) (*sitemapOutput, error) {
 		out := &sitemapOutput{}

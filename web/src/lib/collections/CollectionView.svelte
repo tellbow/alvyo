@@ -112,6 +112,9 @@
 <Seo
 	title={collection.title}
 	description={`${m.seo_collection_description({ owner: collection.owner_username, n: collection.item_list.length })} ${collection.description ?? ''}`}
+	image={collection.item_list.some((i) => i.lines.length)
+		? `${page.url.origin}/api/v1/collections/${collection.id}/og.png?v=${collection.version}${page.url.searchParams.has('t') ? `&t=${page.url.searchParams.get('t')}` : ''}`
+		: undefined}
 	index={collection.visibility === 'public'}
 />
 

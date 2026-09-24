@@ -328,6 +328,9 @@
 			formatSAC(journey.totals.sac_grade, journey.totals.sac_max)
 		].join(' · ')
 	})} ${journey.description ?? ''}`}
+	image={journey.stage_list.some((s) => s.route)
+		? `${page.url.origin}/api/v1/journeys/${journey.id}/og.png?v=${journey.version}${token ? `&t=${token}` : ''}`
+		: undefined}
 	index={journey.visibility === 'public'}
 />
 

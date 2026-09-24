@@ -14,6 +14,7 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/auth"
 	"github.com/tellbow/odysgeh/api/internal/collections"
 	"github.com/tellbow/odysgeh/api/internal/grants"
+	"github.com/tellbow/odysgeh/api/internal/og"
 )
 
 type collectionBody struct {
@@ -224,6 +225,31 @@ func registerCollections(api huma.API, d Deps) {
 			return nil, err
 		}
 		return collectionResponse(c, role), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-collection-image", Method: http.MethodGet, Path: "/collections/{id}/og.png",
+		Summary:     "Preview image of a collection for link previews (1200×630)",
+		Description: "The items the caller may see; 404 while none has a line.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *collectionIDInput) (*imageOutput, error) {
+		c, _, err := loadCollection(ctx, d, in.ID, in.Token)
+		if err != nil {
+			return nil, err
+		}
+		card := og.Card{Title: c.Title, Stats: "@" + c.OwnerUsername}
+		for _, it := range c.ItemList {
+			card.Lines = append(card.Lines, it.Lines...)
+		}
+		if len(card.Lines) == 0 {
+			return nil, huma.Error404NotFound("no item has a line")
+		}
+		b, err := d.Images.PNG(imageKey(c.ID, card), card)
+		if err != nil {
+			return nil, err
+		}
+		// Which items show depends on the caller: never in shared caches.
+		return &imageOutput{ContentType: "image/png", CacheControl: "private, max-age=3600", Body: b}, nil
 	})
 
 	huma.Register(api, huma.Operation{

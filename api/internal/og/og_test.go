@@ -34,9 +34,10 @@ func TestRenderAndCache(t *testing.T) {
 	srv, requests := tileServer(t)
 	r := &Renderer{TilesURL: srv.URL, CacheDir: t.TempDir()}
 	card := Card{
-		Title:  "Via Alpina 1: Gaflei – Sargans, a title long enough to need shortening somewhere",
-		Stats:  "18.7 km · 4 h 45 min · ↑ 35 m ↓ 990 m · T2–T3",
-		Points: [][3]float64{{9.5428, 47.1447, 1480}, {9.50, 47.10, 900}, {9.4456, 47.0449, 480}},
+		Title: "Via Alpina 1: Gaflei – Sargans, a title long enough to need shortening somewhere",
+		Stats: "18.7 km · 4 h 45 min · ↑ 35 m ↓ 990 m · T2–T3",
+		Lines: [][][2]float64{{{9.5428, 47.1447}, {9.50, 47.10}, {9.4456, 47.0449}}},
+		Ends:  true,
 	}
 	b, err := r.PNG("route-1", card)
 	if err != nil {

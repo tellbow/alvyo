@@ -154,7 +154,36 @@
 	let showConnections = $state<string>(); // stage id
 
 	function patchStage(stage: string, body: StagePatch) {
-		return mutate(() => api().PATCH('/journeys/{id}/stages/{stage}', { ...path(stage), body }));
+		return mutate(
+			() => {
+				// The stage as it is once earlier changes are through.
+				const version = journey.stage_list.find((s) => s.id === stage)?.version;
+				if (version === undefined) return undefined;
+				return api().PATCH('/journeys/{id}/stages/{stage}', {
+					params: {
+						path: { id: journey.id, stage },
+						header: { 'If-Match': `"${version}"` }
+					},
+					body
+				});
+			},
+			(r) => {
+				if (r.status !== 412) return m.error_generic();
+				// Someone else changed the stage: show theirs, keep nothing of ours.
+				void reload();
+				return m.stage_conflict();
+			}
+		);
+	}
+
+	// Counts conflicts: the stage cards are drawn anew, so no field keeps
+	// text that was not saved.
+	let conflicts = $state(0);
+
+	async function reload() {
+		const { data } = await api().GET('/journeys/{id}', { params: { path: { id: journey.id } } });
+		if (data) journey = data as Journey;
+		conflicts++;
 	}
 
 	async function addStage(copyRouteId?: string) {
@@ -325,80 +354,82 @@
 
 		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
 
-		<ol class="flex flex-col gap-2" data-testid="stage-list">
-			{#each journey.stage_list as s, i (s.id)}
-				{#if s.gap && s.gap.status !== 'ok'}
-					<li
-						class="rounded-md px-2 py-1 text-xs {s.gap.status === 'transfer'
-							? 'bg-sky-50 text-sky-900'
-							: 'bg-amber-50 text-amber-900'}"
-						data-testid="gap"
-						data-status={s.gap.status}
-					>
-						{m.gap_warning({ distance: formatDistance(s.gap.metres) })}
-						{#if canEdit}
-							<label class="mt-1 flex items-center gap-1">
-								{m.gap_transfer()}
-								<select
-									class="rounded border border-stone-300 px-1 py-0.5"
-									value={s.transfer_before ?? ''}
-									onchange={(e) =>
-										patchStage(s.id, {
-											transfer_before: e.currentTarget.value as StagePatch['transfer_before']
-										})}
+		{#key conflicts}
+			<ol class="flex flex-col gap-2" data-testid="stage-list">
+				{#each journey.stage_list as s, i (s.id)}
+					{#if s.gap && s.gap.status !== 'ok'}
+						<li
+							class="rounded-md px-2 py-1 text-xs {s.gap.status === 'transfer'
+								? 'bg-sky-50 text-sky-900'
+								: 'bg-amber-50 text-amber-900'}"
+							data-testid="gap"
+							data-status={s.gap.status}
+						>
+							{m.gap_warning({ distance: formatDistance(s.gap.metres) })}
+							{#if canEdit}
+								<label class="mt-1 flex items-center gap-1">
+									{m.gap_transfer()}
+									<select
+										class="rounded border border-stone-300 px-1 py-0.5"
+										value={s.transfer_before ?? ''}
+										onchange={(e) =>
+											patchStage(s.id, {
+												transfer_before: e.currentTarget.value as StagePatch['transfer_before']
+											})}
+									>
+										<option value="">{m.transfer_none()}</option>
+										<option value="pt">{m.transfer_pt()}</option>
+										<option value="cablecar">{m.transfer_cablecar()}</option>
+										<option value="other">{m.transfer_other()}</option>
+									</select>
+								</label>
+							{/if}
+							{#if transferUrl(i)}
+								<!-- External timetable link: resolve() does not apply. -->
+								<!-- eslint-disable svelte/no-navigation-without-resolve -->
+								<a
+									href={transferUrl(i)}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="mt-1 block underline"
+									data-testid="sbb-transfer">{m.sbb_transfer()} ↗</a
 								>
-									<option value="">{m.transfer_none()}</option>
-									<option value="pt">{m.transfer_pt()}</option>
-									<option value="cablecar">{m.transfer_cablecar()}</option>
-									<option value="other">{m.transfer_other()}</option>
-								</select>
-							</label>
-						{/if}
-						{#if transferUrl(i)}
-							<!-- External timetable link: resolve() does not apply. -->
-							<!-- eslint-disable svelte/no-navigation-without-resolve -->
-							<a
-								href={transferUrl(i)}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="mt-1 block underline"
-								data-testid="sbb-transfer">{m.sbb_transfer()} ↗</a
-							>
-							<!-- eslint-enable svelte/no-navigation-without-resolve -->
-						{/if}
-						{#if user}
-							{@const stops = transferStops(i)}
-							{#if stops?.from.ref && stops.to.ref}
-								<button
-									type="button"
-									class="mt-1 underline"
-									disabled={!hydrated.value}
-									onclick={() => (showConnections = showConnections === s.id ? undefined : s.id)}
-								>
-									{showConnections === s.id ? m.connections_hide() : m.connections_show()}
-								</button>
-								{#if showConnections === s.id}
-									<Connections from={stops.from} to={stops.to} date={s.planned_date} />
+								<!-- eslint-enable svelte/no-navigation-without-resolve -->
+							{/if}
+							{#if user}
+								{@const stops = transferStops(i)}
+								{#if stops?.from.ref && stops.to.ref}
+									<button
+										type="button"
+										class="mt-1 underline"
+										disabled={!hydrated.value}
+										onclick={() => (showConnections = showConnections === s.id ? undefined : s.id)}
+									>
+										{showConnections === s.id ? m.connections_hide() : m.connections_show()}
+									</button>
+									{#if showConnections === s.id}
+										<Connections from={stops.from} to={stops.to} date={s.planned_date} />
+									{/if}
 								{/if}
 							{/if}
-						{/if}
-					</li>
-				{/if}
-				<StageCard
-					journeyId={journey.id}
-					stage={s}
-					index={i}
-					count={journey.stage_list.length}
-					{canEdit}
-					pace={user?.speed_factor ?? 1}
-					{q}
-					onpatch={(body) => patchStage(s.id, body)}
-					onmove={(delta) => move(s.id, delta)}
-					onremove={() => removeStage(s.id)}
-					onimport={(file) => importStage(s.id, file)}
-				/>
-			{/each}
-		</ol>
+						</li>
+					{/if}
+					<StageCard
+						journeyId={journey.id}
+						stage={s}
+						index={i}
+						count={journey.stage_list.length}
+						{canEdit}
+						pace={user?.speed_factor ?? 1}
+						{q}
+						onpatch={(body) => patchStage(s.id, body)}
+						onmove={(delta) => move(s.id, delta)}
+						onremove={() => removeStage(s.id)}
+						onimport={(file) => importStage(s.id, file)}
+					/>
+				{/each}
+			</ol>
+		{/key}
 
 		{#if canEdit}
 			<div class="flex flex-col gap-2 text-sm">

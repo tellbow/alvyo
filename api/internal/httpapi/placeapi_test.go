@@ -65,12 +65,13 @@ func TestPlacesAPI(t *testing.T) {
 	if _, end := stagePlaces(body); end == nil || end.ID != stop || !end.Suggested {
 		t.Errorf("suggested end %+v", end)
 	}
-	code, body = c.do("PATCH", "/api/v1/journeys/"+j.ID+"/stages/"+sid, map[string]any{"start_place_id": stop})
+	jp := "/api/v1/journeys/" + j.ID
+	code, body = c.do("PATCH", jp+"/stages/"+sid, map[string]any{"start_place_id": stop}, stageMatch(t, c, jp, sid)...)
 	if start, _ := stagePlaces(body); code != http.StatusOK || start == nil || start.ID != stop || start.Suggested {
 		t.Errorf("chosen start: %d %s", code, body)
 	}
-	if code, body := c.do("PATCH", "/api/v1/journeys/"+j.ID+"/stages/"+sid,
-		map[string]any{"end_place_id": "00000000-0000-0000-0000-000000000000"}); code != http.StatusUnprocessableEntity {
+	if code, body := c.do("PATCH", jp+"/stages/"+sid,
+		map[string]any{"end_place_id": "00000000-0000-0000-0000-000000000000"}, stageMatch(t, c, jp, sid)...); code != http.StatusUnprocessableEntity {
 		t.Errorf("unknown place: %d %s", code, body)
 	}
 }

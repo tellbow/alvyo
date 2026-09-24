@@ -23,6 +23,7 @@ var (
 	ErrNotFound      = errors.New("journey not found")
 	ErrStageNotFound = errors.New("stage not found")
 	ErrVersion       = errors.New("journey was changed by someone else")
+	ErrStageVersion  = errors.New("stage was changed by someone else")
 	ErrHasRoute      = errors.New("stage already has a route")
 	ErrBadOrder      = errors.New("order must list every stage exactly once")
 	ErrNotYours      = errors.New("route belongs to someone else")
@@ -193,7 +194,7 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID) (Journey, error) {
 	}
 
 	rows, err := s.DB.Query(ctx, `
-		SELECT st.id, st.position, st.title, to_char(st.planned_date, 'YYYY-MM-DD'), st.status,
+		SELECT st.id, st.version, st.position, st.title, to_char(st.planned_date, 'YYYY-MM-DD'), st.status,
 			to_char(st.done_on, 'YYYY-MM-DD'), st.transfer_before, st.notes, st.accommodation, st.accommodation_booked,
 			r.id, r.distance_m, r.ascent_m, r.descent_m, r.duration_s, r.duration_reverse_s,
 			r.ele_min_m, r.ele_max_m, r.sac_grade, r.sac_max,
@@ -217,7 +218,7 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID) (Journey, error) {
 		var dist, asc, desc, dur, durRev, eleMin, eleMax, sacGrade, sacMax *int
 		var line, legs []byte
 		var sp, ep placeRow
-		if err := rows.Scan(&sid, &st.Position, &st.Title, &st.PlannedDate, &st.Status, &st.DoneOn, &st.TransferBefore,
+		if err := rows.Scan(&sid, &st.Version, &st.Position, &st.Title, &st.PlannedDate, &st.Status, &st.DoneOn, &st.TransferBefore,
 			&st.Notes, &st.Accommodation, &st.AccommodationBooked,
 			&rid, &dist, &asc, &desc, &dur, &durRev, &eleMin, &eleMax, &sacGrade, &sacMax, &line, &legs,
 			&sp.id, &sp.kind, &sp.name, &sp.detail, &sp.ref, &sp.lon, &sp.lat, &sp.dist, &sp.suggested,
@@ -444,8 +445,8 @@ type StagePatch struct {
 	Booked         *bool
 }
 
-// UpdateStage changes a stage's fields.
-func (s *Store) UpdateStage(ctx context.Context, journeyID, stageID uuid.UUID, p StagePatch) error {
+// UpdateStage changes a stage's fields if it is still at version.
+func (s *Store) UpdateStage(ctx context.Context, journeyID, stageID uuid.UUID, version int, p StagePatch) error {
 	return s.tx(ctx, journeyID, func(tx pgx.Tx) error {
 		res, err := tx.Exec(ctx, `UPDATE stages SET
 			title = coalesce($3, title),
@@ -458,10 +459,10 @@ func (s *Store) UpdateStage(ctx context.Context, journeyID, stageID uuid.UUID, p
 			end_place_id = CASE WHEN $10::text IS NULL THEN end_place_id ELSE nullif($10, '')::uuid END,
 			accommodation = coalesce($11, accommodation),
 			accommodation_booked = coalesce($12, accommodation_booked),
-			updated_at = now()
-			WHERE id = $2 AND journey_id = $1`,
+			version = version + 1, updated_at = now()
+			WHERE id = $2 AND journey_id = $1 AND version = $13`,
 			journeyID, stageID, p.Title, p.PlannedDate, p.Status, p.DoneOn, p.TransferBefore, p.Notes,
-			p.StartPlaceID, p.EndPlaceID, p.Accommodation, p.Booked)
+			p.StartPlaceID, p.EndPlaceID, p.Accommodation, p.Booked, version)
 		if pgErr := (*pgconn.PgError)(nil); errors.As(err, &pgErr) && pgErr.Code == "23503" { // foreign_key_violation
 			return fmt.Errorf("%w: unknown place", routes.ErrInvalid)
 		}
@@ -469,6 +470,14 @@ func (s *Store) UpdateStage(ctx context.Context, journeyID, stageID uuid.UUID, p
 			return err
 		}
 		if res.RowsAffected() == 0 {
+			var exists bool
+			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM stages WHERE id = $2 AND journey_id = $1)`,
+				journeyID, stageID).Scan(&exists); err != nil {
+				return err
+			}
+			if exists {
+				return ErrStageVersion
+			}
 			return ErrStageNotFound
 		}
 		return nil

@@ -24,7 +24,12 @@ test('connections for a public transport transfer between stages', async ({ page
 	const [s1, s2] = two.stage_list.map((s: { id: string }) => s.id);
 	await page.request.post(`${api}/stages/${s1}/route`, { data: routeContent(9.34116, 46.9892) });
 	await page.request.post(`${api}/stages/${s2}/route`, { data: routeContent(9.17306, 46.92227) });
-	await page.request.patch(`${api}/stages/${s2}`, { data: { transfer_before: 'pt' } });
+	// Adding a route leaves the stage's version as it was.
+	const patched = await page.request.patch(`${api}/stages/${s2}`, {
+		headers: { 'If-Match': `"${two.stage_list[1].version}"` },
+		data: { transfer_before: 'pt' }
+	});
+	expect(patched.status()).toBe(200);
 
 	// The journey planner is stubbed: tests must not spend the OJP quota.
 	let asked: URL | undefined;

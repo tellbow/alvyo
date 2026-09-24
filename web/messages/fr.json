@@ -501,5 +501,6 @@
 	"import_mode_single": "Comme itinéraire",
 	"import_mode_stages": "Comme randonnée par étapes, en",
 	"import_mode_stages_unit": "étapes",
-	"import_stages_nights": "Enregistrée sur {days} jours – avec {days} étapes, elle est découpée aux nuits."
+	"import_stages_nights": "Enregistrée sur {days} jours – avec {days} étapes, elle est découpée aux nuits.",
+	"stage_conflict": "Quelqu'un a modifié cette étape entre-temps. Voici le nouvel état – ta modification n'a pas été enregistrée."
 }

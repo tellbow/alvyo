@@ -111,3 +111,40 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 	await expect(page.getByTestId('stage')).toHaveCount(1);
 	await expect(page.getByTestId('stage-marker')).toHaveCount(1);
 });
+
+test('a stage changed by someone else meanwhile is not overwritten', async ({ page }) => {
+	const id = `conf${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Two',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	const created = await page.request.post('/api/v1/journeys', { data: { title: 'Zu zweit' } });
+	const journeyId = (await created.json()).id as string;
+	const added = await page.request.post(`/api/v1/journeys/${journeyId}/stages`, {
+		data: { title: 'Tag 1' }
+	});
+	const stage = (await added.json()).stage_list[0];
+
+	await page.goto(`/journeys/${journeyId}`);
+	const card = page.getByTestId('stage').first();
+	await expect(card.getByLabel('Titel')).toHaveValue('Tag 1');
+
+	// Another editor renames the stage; this page still shows the old version.
+	const other = await page.request.patch(`/api/v1/journeys/${journeyId}/stages/${stage.id}`, {
+		headers: { 'If-Match': `"${stage.version}"` },
+		data: { title: 'Tag 1 (von Bea)' }
+	});
+	expect(other.status()).toBe(200);
+
+	await card.getByLabel('Titel').fill('Tag 1 (von mir)');
+	await card.getByLabel('Titel').press('Tab');
+	await expect(page.getByRole('alert')).toContainText(
+		'Jemand hat diese Etappe inzwischen geändert'
+	);
+	await expect(card.getByLabel('Titel')).toHaveValue('Tag 1 (von Bea)');
+});

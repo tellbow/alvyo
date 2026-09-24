@@ -85,6 +85,7 @@ type addStageInput struct {
 type updateStageInput struct {
 	ID      string `path:"id" format:"uuid"`
 	StageID string `path:"stage" format:"uuid"`
+	IfMatch string `header:"If-Match" required:"true" doc:"The stage's version the change is based on"`
 	Body    struct {
 		Title          *string `json:"title,omitempty" maxLength:"120"`
 		PlannedDate    *string `json:"planned_date,omitempty" pattern:"^(\\d{4}-\\d{2}-\\d{2})?$" doc:"YYYY-MM-DD, empty to clear"`
@@ -319,8 +320,12 @@ func registerJourneys(api huma.API, d Deps) {
 		if err != nil {
 			return nil, huma.Error404NotFound("stage not found")
 		}
+		version, err := strconv.Atoi(strings.Trim(strings.TrimPrefix(in.IfMatch, "W/"), `"`))
+		if err != nil {
+			return nil, huma.Error400BadRequest("If-Match must be the stage version")
+		}
 		b := in.Body
-		return mutateJourney(ctx, store, j, role, store.UpdateStage(ctx, uuid.MustParse(j.ID), sid, journeys.StagePatch{
+		return mutateJourney(ctx, store, j, role, store.UpdateStage(ctx, uuid.MustParse(j.ID), sid, version, journeys.StagePatch{
 			Title: b.Title, PlannedDate: b.PlannedDate, Status: b.Status, DoneOn: b.DoneOn,
 			TransferBefore: b.TransferBefore, Notes: b.Notes,
 			StartPlaceID: b.StartPlaceID, EndPlaceID: b.EndPlaceID, Accommodation: b.Accommodation, Booked: b.Booked,
@@ -474,6 +479,8 @@ func journeyError(err error) error {
 		return huma.Error404NotFound("stage not found")
 	case errors.Is(err, journeys.ErrVersion):
 		return huma.Error412PreconditionFailed("the journey was changed in the meantime; reload it")
+	case errors.Is(err, journeys.ErrStageVersion):
+		return huma.Error412PreconditionFailed("the stage was changed in the meantime; reload the journey")
 	case errors.Is(err, journeys.ErrHasRoute):
 		return huma.Error409Conflict("this stage already has a route")
 	case errors.Is(err, journeys.ErrBadOrder):

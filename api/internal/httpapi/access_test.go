@@ -61,6 +61,9 @@ func TestAccessMatrix(t *testing.T) {
 	}
 
 	etag := func(path string) []string {
+		if path == "stage" {
+			return stageMatch(t, owner, "/api/v1/journeys/"+j.ID, stage)
+		}
 		code, body := owner.do("GET", path, nil)
 		if code != http.StatusOK {
 			t.Fatalf("etag %s: %d", path, code)
@@ -82,7 +85,7 @@ func TestAccessMatrix(t *testing.T) {
 	for _, tc := range []struct {
 		action, method, path string
 		body                 any
-		ifMatch              string // path to read the version from
+		ifMatch              string // path to read the version from, or "stage"
 		want                 [6]int
 	}{
 		{"view route", "GET", r, nil, "", [6]int{404, 404, 404, 200, 200, 200}},
@@ -92,7 +95,7 @@ func TestAccessMatrix(t *testing.T) {
 		{"rotate route link", "POST", r + "/link/rotate", nil, "", [6]int{404, 404, 404, 403, 403, 200}},
 		{"view journey", "GET", jr, nil, "", [6]int{404, 404, 404, 200, 200, 200}},
 		{"download journey", "GET", jr + "/gpx", nil, "", [6]int{404, 404, 404, 200, 200, 200}},
-		{"edit stage", "PATCH", jr + "/stages/" + stage, title, "", [6]int{404, 404, 404, 403, 200, 200}},
+		{"edit stage", "PATCH", jr + "/stages/" + stage, title, "stage", [6]int{404, 404, 404, 403, 200, 200}},
 		{"add stage", "POST", jr + "/stages", map[string]any{}, "", [6]int{404, 404, 404, 403, 200, 200}},
 		{"view stage route", "GET", sr, nil, "", [6]int{404, 404, 404, 200, 200, 200}},
 		{"edit stage route", "PATCH", sr, title, sr, [6]int{404, 404, 404, 403, 200, 200}},

@@ -67,6 +67,7 @@ type Gap struct {
 // Stage is one day (or part) of a journey.
 type Stage struct {
 	ID             string  `json:"id" format:"uuid"`
+	Version        int     `json:"version" doc:"Send as If-Match when changing the stage"`
 	Position       int     `json:"position"`
 	Title          string  `json:"title"`
 	PlannedDate    *string `json:"planned_date" format:"date"`

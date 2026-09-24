@@ -96,13 +96,13 @@ func TestJourneyLifecycle(t *testing.T) {
 
 	// A transfer acknowledges the gap; progress counts done and ignores skipped.
 	pt, done, skipped := "pt", "done", "skipped"
-	if err := s.UpdateStage(ctx, jid, st(2), StagePatch{TransferBefore: &pt}); err != nil {
+	if err := s.UpdateStage(ctx, jid, st(2), 1, StagePatch{TransferBefore: &pt}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.UpdateStage(ctx, jid, st(0), StagePatch{Status: &done}); err != nil {
+	if err := s.UpdateStage(ctx, jid, st(0), 1, StagePatch{Status: &done}); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.UpdateStage(ctx, jid, st(1), StagePatch{Status: &skipped}); err != nil {
+	if err := s.UpdateStage(ctx, jid, st(1), 1, StagePatch{Status: &skipped}); err != nil {
 		t.Fatal(err)
 	}
 	j, _ = s.Get(ctx, jid)
@@ -211,6 +211,16 @@ func TestStagePlaces(t *testing.T) {
 		}
 		return j
 	}
+	// version is the stage's current version, to change it.
+	version := func(id uuid.UUID) int {
+		for _, st := range get().StageList {
+			if st.ID == id.String() {
+				return st.Version
+			}
+		}
+		t.Fatalf("no stage %s", id)
+		return 0
+	}
 
 	j = get()
 	sp, ep := j.StageList[0].StartPlace, j.StageList[0].EndPlace
@@ -226,7 +236,7 @@ func TestStagePlaces(t *testing.T) {
 
 	// An explicit choice wins, even far away; clearing it brings back the suggestion.
 	empty, acc, booked := "", "Gasthaus", true
-	if err := s.UpdateStage(ctx, jid, st0, StagePatch{EndPlaceID: &hotel, StartPlaceID: &far,
+	if err := s.UpdateStage(ctx, jid, st0, version(st0), StagePatch{EndPlaceID: &hotel, StartPlaceID: &far,
 		Accommodation: &acc, Booked: &booked}); err != nil {
 		t.Fatal(err)
 	}
@@ -241,7 +251,7 @@ func TestStagePlaces(t *testing.T) {
 	if s0.Accommodation != "Gasthaus" || !s0.AccommodationBooked {
 		t.Errorf("accommodation %q booked=%v", s0.Accommodation, s0.AccommodationBooked)
 	}
-	if err := s.UpdateStage(ctx, jid, st0, StagePatch{EndPlaceID: &empty}); err != nil {
+	if err := s.UpdateStage(ctx, jid, st0, version(st0), StagePatch{EndPlaceID: &empty}); err != nil {
 		t.Fatal(err)
 	}
 	if ep := get().StageList[0].EndPlace; ep == nil || ep.ID != hut || !ep.Suggested {
@@ -249,14 +259,18 @@ func TestStagePlaces(t *testing.T) {
 	}
 
 	// A place on a stage without a route has no distance.
-	if err := s.UpdateStage(ctx, jid, st1, StagePatch{StartPlaceID: &hut}); err != nil {
+	if err := s.UpdateStage(ctx, jid, st1, version(st1), StagePatch{StartPlaceID: &hut}); err != nil {
 		t.Fatal(err)
 	}
 	if sp := get().StageList[1].StartPlace; sp == nil || sp.ID != hut || sp.DistanceM != 0 {
 		t.Errorf("place without route %+v", sp)
 	}
+	// A change based on an older version is refused.
+	if err := s.UpdateStage(ctx, jid, st1, version(st1)-1, StagePatch{StartPlaceID: &empty}); !errors.Is(err, ErrStageVersion) {
+		t.Errorf("stale version: %v", err)
+	}
 	unknown := uuid.NewString()
-	if err := s.UpdateStage(ctx, jid, st1, StagePatch{StartPlaceID: &unknown}); !errors.Is(err, routes.ErrInvalid) {
+	if err := s.UpdateStage(ctx, jid, st1, version(st1), StagePatch{StartPlaceID: &unknown}); !errors.Is(err, routes.ErrInvalid) {
 		t.Errorf("unknown place: %v", err)
 	}
 
@@ -264,7 +278,7 @@ func TestStagePlaces(t *testing.T) {
 	if _, err := pool.Exec(ctx, `DELETE FROM places WHERE name IN ('Start stop', 'End hut')`); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.UpdateStage(ctx, jid, st0, StagePatch{StartPlaceID: &empty}); err != nil {
+	if err := s.UpdateStage(ctx, jid, st0, version(st0), StagePatch{StartPlaceID: &empty}); err != nil {
 		t.Fatal(err)
 	}
 	if sp := get().StageList[0].StartPlace; sp != nil {

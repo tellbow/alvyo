@@ -501,5 +501,6 @@
 	"import_mode_single": "Als Route",
 	"import_mode_stages": "Als Etappentour, in",
 	"import_mode_stages_unit": "Etappen",
-	"import_stages_nights": "Aufgezeichnet an {days} Tagen – mit {days} Etappen wird bei den Nächten geteilt."
+	"import_stages_nights": "Aufgezeichnet an {days} Tagen – mit {days} Etappen wird bei den Nächten geteilt.",
+	"stage_conflict": "Jemand hat diese Etappe inzwischen geändert. Hier ist der neue Stand – deine Änderung ist nicht gespeichert."
 }

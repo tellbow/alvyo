@@ -2295,6 +2295,11 @@ export interface components {
             title: string;
             /** @enum {string|null} */
             transfer_before: "pt" | "cablecar" | "other" | null;
+            /**
+             * Format: int64
+             * @description Send as If-Match when changing the stage
+             */
+            version: number;
         };
         JourneyStageRoute: {
             end: number[];
@@ -5416,7 +5421,10 @@ export interface operations {
     "update-stage": {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The stage's version the change is based on */
+                "If-Match": string;
+            };
             path: {
                 id: string;
                 stage: string;

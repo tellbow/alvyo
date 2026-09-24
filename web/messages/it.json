@@ -501,5 +501,6 @@
 	"import_mode_single": "Come percorso",
 	"import_mode_stages": "Come escursione a tappe, in",
 	"import_mode_stages_unit": "tappe",
-	"import_stages_nights": "Registrata in {days} giorni – con {days} tappe viene divisa alle notti."
+	"import_stages_nights": "Registrata in {days} giorni – con {days} tappe viene divisa alle notti.",
+	"stage_conflict": "Qualcuno ha modificato questa tappa nel frattempo. Ecco lo stato attuale – la tua modifica non è stata salvata."
 }

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 )
@@ -41,6 +42,28 @@ func decodeJourney(t *testing.T, body []byte) journeyResp {
 		t.Fatalf("%v: %s", err, body)
 	}
 	return j
+}
+
+// stageMatch is the If-Match header for a stage at its current version.
+func stageMatch(t *testing.T, c *client, journeyPath, stageID string) []string {
+	t.Helper()
+	_, body := c.do("GET", journeyPath, nil)
+	var j struct {
+		StageList []struct {
+			ID      string `json:"id"`
+			Version int    `json:"version"`
+		} `json:"stage_list"`
+	}
+	if err := json.Unmarshal(body, &j); err != nil {
+		t.Fatal(err)
+	}
+	for _, st := range j.StageList {
+		if st.ID == stageID {
+			return []string{"If-Match", fmt.Sprintf(`"%d"`, st.Version)}
+		}
+	}
+	t.Fatalf("no stage %s in %s", stageID, body)
+	return nil
 }
 
 func stageRouteBody(lon0 float64) map[string]any {
@@ -93,16 +116,27 @@ func TestJourneyAPI(t *testing.T) {
 	routePath := "/api/v1/routes/" + j.StageList[0].Route.ID
 
 	// Stage edits: date, status, clearing the date again.
-	code, body = owner.do("PATCH", base+"/stages/"+st1, map[string]any{"planned_date": "2026-10-03", "status": "done"})
+	stale := stageMatch(t, owner, base, st1)
+	code, body = owner.do("PATCH", base+"/stages/"+st1, map[string]any{"planned_date": "2026-10-03", "status": "done"}, stale...)
 	j = decodeJourney(t, body)
 	if code != http.StatusOK || *j.StageList[0].PlannedDate != "2026-10-03" || j.Progress.StagesDone != 1 {
 		t.Fatalf("patch stage: %d %s", code, body)
 	}
-	_, body = owner.do("PATCH", base+"/stages/"+st1, map[string]any{"planned_date": ""})
+	// Based on the version before that change: refused, nothing overwritten.
+	if code, body := owner.do("PATCH", base+"/stages/"+st1, map[string]any{"status": "planned"}, stale...); code != http.StatusPreconditionFailed {
+		t.Errorf("stale stage version: %d %s", code, body)
+	}
+	if code, _ := owner.do("PATCH", base+"/stages/"+st1, map[string]any{"status": "planned"}); code != http.StatusUnprocessableEntity {
+		t.Errorf("no If-Match: %d", code)
+	}
+	_, body = owner.do("PATCH", base+"/stages/"+st1, map[string]any{"planned_date": ""}, stageMatch(t, owner, base, st1)...)
 	if j = decodeJourney(t, body); j.StageList[0].PlannedDate != nil {
 		t.Errorf("date not cleared: %v", *j.StageList[0].PlannedDate)
 	}
-	if code, _ := owner.do("PATCH", base+"/stages/"+st1, map[string]any{"planned_date": "3.10.2026"}); code != http.StatusUnprocessableEntity {
+	if j = decodeJourney(t, body); j.Progress.StagesDone != 1 {
+		t.Errorf("the refused change went through: %d done", j.Progress.StagesDone)
+	}
+	if code, _ := owner.do("PATCH", base+"/stages/"+st1, map[string]any{"planned_date": "3.10.2026"}, stageMatch(t, owner, base, st1)...); code != http.StatusUnprocessableEntity {
 		t.Errorf("bad date: %d", code)
 	}
 
@@ -112,7 +146,7 @@ func TestJourneyAPI(t *testing.T) {
 		{"done_on": "2026-13-01"},
 		{"start_place_id": "------------------------------------"},
 	} {
-		if code, body := owner.do("PATCH", base+"/stages/"+st1, bad); code != http.StatusUnprocessableEntity {
+		if code, body := owner.do("PATCH", base+"/stages/"+st1, bad, stageMatch(t, owner, base, st1)...); code != http.StatusUnprocessableEntity {
 			t.Errorf("%v: %d %s", bad, code, body)
 		}
 	}

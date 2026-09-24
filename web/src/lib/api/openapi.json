@@ -472,11 +472,24 @@
             "description": "The viewer wrote it, owns the item or moderates",
             "type": "boolean"
           },
+          "can_edit": {
+            "description": "The viewer wrote it",
+            "type": "boolean"
+          },
           "created_at": {
             "format": "date-time",
             "type": "string"
           },
+          "edited_at": {
+            "format": "date-time",
+            "type": "string"
+          },
           "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "parent_id": {
+            "description": "The comment this replies to",
             "format": "uuid",
             "type": "string"
           }
@@ -487,6 +500,7 @@
           "author_name",
           "body",
           "created_at",
+          "can_edit",
           "can_delete"
         ],
         "type": "object"
@@ -497,6 +511,11 @@
           "body": {
             "maxLength": 2000,
             "minLength": 1,
+            "type": "string"
+          },
+          "parent_id": {
+            "description": "Reply to this comment",
+            "format": "uuid",
             "type": "string"
           }
         },
@@ -962,6 +981,20 @@
         "required": [
           "items",
           "more"
+        ],
+        "type": "object"
+      },
+      "EditCommentInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
         ],
         "type": "object"
       },
@@ -3943,7 +3976,7 @@
             "type": "boolean"
           },
           "comments": {
-            "description": "Oldest first; without comments of people the viewer blocked",
+            "description": "Oldest first, replies among them; without comments of people the viewer blocked and replies to those",
             "items": {
               "$ref": "#/components/schemas/Comment"
             },
@@ -6976,6 +7009,73 @@
         "tags": [
           "community"
         ]
+      },
+      "patch": {
+        "operationId": "edit-journey-comment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "comment",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditCommentInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Change the text of one's own comment",
+        "tags": [
+          "community"
+        ]
       }
     },
     "/journeys/{id}/gpx": {
@@ -9686,6 +9786,73 @@
           }
         },
         "summary": "Delete a comment (its author, the owner or a moderator)",
+        "tags": [
+          "community"
+        ]
+      },
+      "patch": {
+        "operationId": "edit-route-comment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "comment",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditCommentInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Change the text of one's own comment",
         "tags": [
           "community"
         ]

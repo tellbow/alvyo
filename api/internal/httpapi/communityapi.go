@@ -34,6 +34,16 @@ type commentInput struct {
 	ID    string `path:"id" format:"uuid"`
 	Token string `query:"t"`
 	Body  struct {
+		Body     string `json:"body" minLength:"1" maxLength:"2000"`
+		ParentID string `json:"parent_id,omitempty" format:"uuid" doc:"Reply to this comment"`
+	}
+}
+
+type editCommentInput struct {
+	ID        string `path:"id" format:"uuid"`
+	CommentID string `path:"comment" format:"uuid"`
+	Token     string `query:"t"`
+	Body      struct {
 		Body string `json:"body" minLength:"1" maxLength:"2000"`
 	}
 }
@@ -289,7 +299,35 @@ func registerSocialItem(api huma.API, d Deps, it socialItem) {
 		if !d.Limits.Comment.Allow(u.ID.String()) {
 			return nil, errTooMany
 		}
-		if err := d.Community.AddComment(ctx, t, u, in.Body.Body); err != nil {
+		if err := d.Community.AddComment(ctx, t, u, in.Body.Body, optionalID(in.Body.ParentID)); err != nil {
+			return nil, communityError(err)
+		}
+		return social(ctx, t)
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "edit-" + it.opName + "-comment", Method: http.MethodPatch, Path: it.path + "/{id}/comments/{comment}",
+		Summary: "Change the text of one's own comment", Tags: tags,
+	}, func(ctx context.Context, in *editCommentInput) (*socialOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if strings.TrimSpace(in.Body.Body) == "" {
+			return nil, huma.Error422UnprocessableEntity("the comment is empty")
+		}
+		t, _, err := it.load(ctx, in.ID, in.Token)
+		if err != nil {
+			return nil, err
+		}
+		cid, err := uuid.Parse(in.CommentID)
+		if err != nil {
+			return nil, huma.Error404NotFound("comment not found")
+		}
+		if !d.Limits.Comment.Allow(u.ID.String()) {
+			return nil, errTooMany
+		}
+		if err := d.Community.EditComment(ctx, t, cid, u.ID, in.Body.Body); err != nil {
 			return nil, communityError(err)
 		}
 		return social(ctx, t)

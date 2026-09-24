@@ -138,7 +138,7 @@ None: the next work comes from the backlog.
   account); starting a hike on another route ends the current one without
   asking.
 - Community and moderation: moderators opening unlisted reported items;
-  editing comments and replies; shadow-ban.
+  shadow-ban.
 - Routes: revisions; privacy zones (start and end of recorded hikes hidden);
   a border buffer for routes near and across the border; the routing gap at
   Chamanna Jenatsch.

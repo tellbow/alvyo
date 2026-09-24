@@ -34,23 +34,23 @@ func TestAddCommentErrors(t *testing.T) {
 	s := &Store{DB: pool}
 	target := Target{Kind: Journey, ID: journey, OwnerID: owner.ID, Title: "Via Alpina"}
 
-	if err := s.AddComment(ctx, target, owner, "Schön"); err != nil {
+	if err := s.AddComment(ctx, target, owner, "Schön", nil); err != nil {
 		t.Fatal(err)
 	}
 	// A comment the database refuses is an error, not "blocked".
-	if err := s.AddComment(ctx, target, fan, strings.Repeat("x", 2001)); err == nil || errors.Is(err, ErrBlocked) || errors.Is(err, ErrCommentsOff) {
+	if err := s.AddComment(ctx, target, fan, strings.Repeat("x", 2001), nil); err == nil || errors.Is(err, ErrBlocked) || errors.Is(err, ErrCommentsOff) {
 		t.Errorf("too long: %v", err)
 	}
 	if _, err := pool.Exec(ctx, `INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2)`, owner.ID, fan.ID); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.AddComment(ctx, target, fan, "Hallo"); !errors.Is(err, ErrBlocked) {
+	if err := s.AddComment(ctx, target, fan, "Hallo", nil); !errors.Is(err, ErrBlocked) {
 		t.Errorf("blocked: %v", err)
 	}
 	if err := s.SetCommentsEnabled(ctx, target, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.AddComment(ctx, target, owner, "Hallo"); !errors.Is(err, ErrCommentsOff) {
+	if err := s.AddComment(ctx, target, owner, "Hallo", nil); !errors.Is(err, ErrCommentsOff) {
 		t.Errorf("off: %v", err)
 	}
 }

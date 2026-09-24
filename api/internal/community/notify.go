@@ -99,6 +99,42 @@ func (s *Store) notifyComment(ctx context.Context, t Target, author dbq.User, bo
 	})
 }
 
+// notifyReply tells the author of comment parent on t that author replied.
+func (s *Store) notifyReply(ctx context.Context, t Target, to, parent uuid.UUID, author dbq.User, body string) {
+	r, ok := s.wants(ctx, to, "notify_comments")
+	if !ok || !s.due(ctx, to, "replies:"+parent.String()) {
+		return
+	}
+	link := s.PublicURL + "/" + t.Kind.table() + "/" + t.ID.String()
+	if runes := []rune(body); len(runes) > 300 {
+		body = string(runes[:300]) + " …"
+	}
+	var subject, text string
+	switch r.locale {
+	case "fr":
+		subject = fmt.Sprintf("%s a répondu à ton commentaire sur « %s »", author.DisplayName, t.Title)
+		text = fmt.Sprintf("Bonjour\n\n%s (@%s) a répondu à ton commentaire sur « %s » :\n\n%s\n\n%s\n\n"+
+			"Les autres réponses des 15 prochaines minutes s'y trouvent aussi, sans e-mail supplémentaire.\n"+
+			"Régler les notifications : %s/account\n", author.DisplayName, author.Username, t.Title, body, link, s.PublicURL)
+	case "it":
+		subject = fmt.Sprintf("%s ha risposto al tuo commento su «%s»", author.DisplayName, t.Title)
+		text = fmt.Sprintf("Ciao\n\n%s (@%s) ha risposto al tuo commento su «%s»:\n\n%s\n\n%s\n\n"+
+			"Le altre risposte dei prossimi 15 minuti le trovi lì, senza un'altra e-mail.\n"+
+			"Impostazioni delle notifiche: %s/account\n", author.DisplayName, author.Username, t.Title, body, link, s.PublicURL)
+	case "de":
+		subject = fmt.Sprintf("%s hat auf deinen Kommentar zu «%s» geantwortet", author.DisplayName, t.Title)
+		text = fmt.Sprintf("Hallo\n\n%s (@%s) hat auf deinen Kommentar zu «%s» geantwortet:\n\n%s\n\n%s\n\n"+
+			"Weitere Antworten der nächsten 15 Minuten siehst du dort, ohne eigene E-Mail.\n"+
+			"Benachrichtigungen einstellen: %s/account\n", author.DisplayName, author.Username, t.Title, body, link, s.PublicURL)
+	default:
+		subject = fmt.Sprintf("%s replied to your comment on “%s”", author.DisplayName, t.Title)
+		text = fmt.Sprintf("Hi\n\n%s (@%s) replied to your comment on “%s”:\n\n%s\n\n%s\n\n"+
+			"Further replies in the next 15 minutes are there too, without another e-mail.\n"+
+			"Notification settings: %s/account\n", author.DisplayName, author.Username, t.Title, body, link, s.PublicURL)
+	}
+	s.send(ctx, mailer.Message{To: r.email, Subject: subject, Text: text})
+}
+
 func (s *Store) notifyFollow(ctx context.Context, follower dbq.User, followed uuid.UUID) {
 	r, ok := s.wants(ctx, followed, "notify_follows")
 	if !ok || !s.due(ctx, followed, "follows") {

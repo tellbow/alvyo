@@ -502,5 +502,9 @@
 	"import_mode_stages": "Als Etappentour, in",
 	"import_mode_stages_unit": "Etappen",
 	"import_stages_nights": "Aufgezeichnet an {days} Tagen – mit {days} Etappen wird bei den Nächten geteilt.",
-	"stage_conflict": "Jemand hat diese Etappe inzwischen geändert. Hier ist der neue Stand – deine Änderung ist nicht gespeichert."
+	"stage_conflict": "Jemand hat diese Etappe inzwischen geändert. Hier ist der neue Stand – deine Änderung ist nicht gespeichert.",
+	"community_reply": "Antworten",
+	"community_reply_placeholder": "Deine Antwort …",
+	"community_edit": "Bearbeiten",
+	"community_edited": "bearbeitet"
 }

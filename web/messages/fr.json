@@ -502,5 +502,9 @@
 	"import_mode_stages": "Comme randonnée par étapes, en",
 	"import_mode_stages_unit": "étapes",
 	"import_stages_nights": "Enregistrée sur {days} jours – avec {days} étapes, elle est découpée aux nuits.",
-	"stage_conflict": "Quelqu'un a modifié cette étape entre-temps. Voici le nouvel état – ta modification n'a pas été enregistrée."
+	"stage_conflict": "Quelqu'un a modifié cette étape entre-temps. Voici le nouvel état – ta modification n'a pas été enregistrée.",
+	"community_reply": "Répondre",
+	"community_reply_placeholder": "Ta réponse …",
+	"community_edit": "Modifier",
+	"community_edited": "modifié"
 }

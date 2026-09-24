@@ -109,3 +109,45 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 	await page.reload();
 	await expect(page.getByTestId('comment').filter({ hasText: s })).toHaveCount(0);
 });
+
+test('reply to a comment, and edit one', async ({ page, browser }) => {
+	const s = suffix();
+	const owner = `own${s}`;
+	await member(page.request, owner, 'Olga Owner');
+	const created = await page.request.post('/api/v1/routes', {
+		data: { title: `Gratweg ${s}`, visibility: 'public', ...routeContent(8.04, 46.665) }
+	});
+	const { id } = await created.json();
+	const askContext = await browser.newContext();
+	const ask = await askContext.newPage();
+	const asker = `ask${s}`;
+	await member(ask.request, asker, 'Anna Asker');
+
+	await ask.goto(`/routes/${id}`);
+	const social = ask.getByTestId('social');
+	await social.getByLabel('Kommentar schreiben …').fill('Wie steil ist das?');
+	await social.getByRole('button', { name: 'Kommentieren' }).click();
+	await expect(social.getByTestId('comment')).toContainText('Wie steil ist das?');
+
+	// The owner answers under the question; the asker hears of it.
+	await page.goto(`/routes/${id}`);
+	const own = page.getByTestId('social');
+	await own.getByTestId('comment').getByRole('button', { name: 'Antworten' }).click();
+	await own.getByLabel('Deine Antwort …').fill('T3, mit Ketten.');
+	await own.getByRole('button', { name: 'Antworten' }).last().click();
+	await expect(own.getByTestId('replies').getByTestId('comment')).toContainText('T3, mit Ketten.');
+	await mailMatching(`${asker}@example.ch`, /Olga Owner \(@own\w+\) hat auf deinen Kommentar/);
+
+	// The asker edits the question; it says so.
+	await ask.reload();
+	const question = social.getByTestId('comment').first();
+	await question.getByRole('button', { name: 'Bearbeiten' }).click();
+	await question.getByLabel('Bearbeiten').fill('Wie steil ist das nach dem Gipfel?');
+	await question.getByRole('button', { name: 'Speichern' }).click();
+	await expect(question).toContainText('Wie steil ist das nach dem Gipfel?');
+	await expect(question).toContainText('bearbeitet');
+	// Nobody else can edit it.
+	await page.reload();
+	await expect(own.getByRole('button', { name: 'Bearbeiten' })).toHaveCount(1); // the owner's reply
+	await askContext.close();
+});

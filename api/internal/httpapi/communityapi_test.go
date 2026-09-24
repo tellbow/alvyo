@@ -290,3 +290,92 @@ func TestCommunity(t *testing.T) {
 		t.Error("the reported user was not banned")
 	}
 }
+
+func TestCommentRepliesAndEdits(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	ctx := context.Background()
+	signup := func(name string) *client {
+		c := s.client(t)
+		c.do("POST", "/api/v1/auth/signup", signupBody(name+"@example.ch", name))
+		if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now() WHERE username = $1`, name); err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	owner, anna, bea := signup("owner"), signup("anna"), signup("bea")
+	_, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "public"))
+	var route savedRoute
+	_ = json.Unmarshal(body, &route)
+	r := "/api/v1/routes/" + route.ID
+
+	type comment struct {
+		ID       string  `json:"id"`
+		ParentID string  `json:"parent_id"`
+		Author   string  `json:"author_username"`
+		Body     string  `json:"body"`
+		EditedAt *string `json:"edited_at"`
+		CanEdit  bool    `json:"can_edit"`
+	}
+	comments := func(c *client, method string, body any, path string) []comment {
+		t.Helper()
+		code, raw := c.do(method, path, body)
+		if code != http.StatusOK {
+			t.Fatalf("%s %s: %d %s", method, path, code, raw)
+		}
+		var sc struct{ Comments []comment }
+		_ = json.Unmarshal(raw, &sc)
+		return sc.Comments
+	}
+
+	cs := comments(anna, "POST", map[string]any{"body": "Wie steil ist der Grat?"}, r+"/comments")
+	top := cs[0].ID
+	before := len(s.mail.Sent())
+	cs = comments(bea, "POST", map[string]any{"body": "Ziemlich, T3.", "parent_id": top}, r+"/comments")
+	// A reply to a reply belongs to the same comment.
+	cs = comments(owner, "POST", map[string]any{"body": "Ja, T3.", "parent_id": cs[1].ID}, r+"/comments")
+	if len(cs) != 3 || cs[1].ParentID != top || cs[2].ParentID != top || cs[0].ParentID != "" {
+		t.Fatalf("replies: %+v", cs)
+	}
+	// Anna hears of the replies, once within 15 minutes; the owner heard of
+	// Anna's comment just before, which covers the replies too.
+	var subjects []string
+	for _, m := range s.mail.Sent()[before:] {
+		subjects = append(subjects, m.To+": "+m.Subject)
+	}
+	want := []string{"anna@example.ch: Test User hat auf deinen Kommentar zu «Gratweg» geantwortet"}
+	if strings.Join(subjects, "|") != strings.Join(want, "|") {
+		t.Errorf("mails:\n%s", strings.Join(subjects, "\n"))
+	}
+	if code, raw := bea.do("POST", r+"/comments", map[string]any{"body": "?", "parent_id": "01a0d22d-6521-7e24-97e6-d80c376cae63"}); code != http.StatusNotFound {
+		t.Errorf("reply to an unknown comment: %d %s", code, raw)
+	}
+
+	// Only the author edits, and it shows.
+	if code, _ := owner.do("PATCH", r+"/comments/"+top, map[string]any{"body": "Nein"}); code != http.StatusForbidden {
+		t.Errorf("owner edits anna's comment: %d", code)
+	}
+	cs = comments(anna, "PATCH", map[string]any{"body": "Wie steil ist der Grat nach dem Gipfel?"}, r+"/comments/"+top)
+	if cs[0].Body != "Wie steil ist der Grat nach dem Gipfel?" || cs[0].EditedAt == nil || !cs[0].CanEdit || cs[1].CanEdit {
+		t.Errorf("edited: %+v", cs)
+	}
+	if code, _ := anna.do("PATCH", r+"/comments/"+top, map[string]any{"body": "  "}); code != http.StatusUnprocessableEntity {
+		t.Errorf("emptied: %d", code)
+	}
+	owner.do("PATCH", r+"/social", map[string]any{"comments_enabled": false})
+	if code, _ := anna.do("PATCH", r+"/comments/"+top, map[string]any{"body": "Noch einmal"}); code != http.StatusForbidden {
+		t.Errorf("edit while comments are off: %d", code)
+	}
+	owner.do("PATCH", r+"/social", map[string]any{"comments_enabled": true})
+
+	// Replies to a comment one does not see (blocked author) are not shown.
+	if code, raw := bea.do("PUT", "/api/v1/users/anna/block", nil); code >= 300 {
+		t.Fatalf("block: %d %s", code, raw)
+	}
+	if cs = comments(bea, "GET", nil, r+"/social"); len(cs) != 0 {
+		t.Errorf("bea sees %+v", cs)
+	}
+	// Deleting a comment takes its replies along.
+	if cs = comments(anna, "DELETE", nil, r+"/comments/"+top); len(cs) != 0 {
+		t.Errorf("after delete: %+v", cs)
+	}
+}

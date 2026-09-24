@@ -664,7 +664,8 @@ export interface paths {
         delete: operations["delete-journey-comment"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Change the text of one's own comment */
+        patch: operations["edit-journey-comment"];
         trace?: never;
     };
     "/journeys/{id}/gpx": {
@@ -1326,7 +1327,8 @@ export interface paths {
         delete: operations["delete-route-comment"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Change the text of one's own comment */
+        patch: operations["edit-route-comment"];
         trace?: never;
     };
     "/routes/{id}/gpx": {
@@ -1865,13 +1867,27 @@ export interface components {
             body: string;
             /** @description The viewer wrote it, owns the item or moderates */
             can_delete: boolean;
+            /** @description The viewer wrote it */
+            can_edit: boolean;
             /** Format: date-time */
             created_at: string;
+            /** Format: date-time */
+            edited_at?: string;
             /** Format: uuid */
             id: string;
+            /**
+             * Format: uuid
+             * @description The comment this replies to
+             */
+            parent_id?: string;
         };
         CommentInputBody: {
             body: string;
+            /**
+             * Format: uuid
+             * @description Reply to this comment
+             */
+            parent_id?: string;
         };
         ConnectionsOutputBody: {
             trips: components["schemas"]["TransitTrip"][];
@@ -2018,6 +2034,9 @@ export interface components {
             items: components["schemas"]["DiscoverItem"][];
             /** @description There are more results than shown: zoom in or narrow the filters */
             more: boolean;
+        };
+        EditCommentInputBody: {
+            body: string;
         };
         ErrorDetail: {
             /** @description Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id' */
@@ -2951,7 +2970,7 @@ export interface components {
             can_comment: boolean;
             /** @description The viewer owns the item or moderates: may switch comments off and delete any */
             can_moderate: boolean;
-            /** @description Oldest first; without comments of people the viewer blocked */
+            /** @description Oldest first, replies among them; without comments of people the viewer blocked and replies to those */
             comments: components["schemas"]["Comment"][];
             comments_enabled: boolean;
             /** @description The viewer likes it */
@@ -4696,6 +4715,44 @@ export interface operations {
             };
         };
     };
+    "edit-journey-comment": {
+        parameters: {
+            query?: {
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                comment: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditCommentInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "get-journey-gpx": {
         parameters: {
             query?: {
@@ -6376,6 +6433,44 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "edit-route-comment": {
+        parameters: {
+            query?: {
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                comment: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditCommentInputBody"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

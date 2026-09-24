@@ -63,12 +63,15 @@ type Viewer struct {
 
 // Comment is a comment on a route or journey.
 type Comment struct {
-	ID             string    `json:"id" format:"uuid"`
-	AuthorUsername string    `json:"author_username"`
-	AuthorName     string    `json:"author_name"`
-	Body           string    `json:"body"`
-	CreatedAt      time.Time `json:"created_at"`
-	CanDelete      bool      `json:"can_delete" doc:"The viewer wrote it, owns the item or moderates"`
+	ID             string     `json:"id" format:"uuid"`
+	ParentID       string     `json:"parent_id,omitempty" format:"uuid" doc:"The comment this replies to"`
+	AuthorUsername string     `json:"author_username"`
+	AuthorName     string     `json:"author_name"`
+	Body           string     `json:"body"`
+	CreatedAt      time.Time  `json:"created_at"`
+	EditedAt       *time.Time `json:"edited_at,omitempty"`
+	CanEdit        bool       `json:"can_edit" doc:"The viewer wrote it"`
+	CanDelete      bool       `json:"can_delete" doc:"The viewer wrote it, owns the item or moderates"`
 }
 
 // Social is the likes and comments of an item as a viewer sees them.
@@ -76,7 +79,7 @@ type Social struct {
 	Likes           int       `json:"likes"`
 	Liked           bool      `json:"liked" doc:"The viewer likes it"`
 	CommentsEnabled bool      `json:"comments_enabled"`
-	Comments        []Comment `json:"comments" doc:"Oldest first; without comments of people the viewer blocked"`
+	Comments        []Comment `json:"comments" doc:"Oldest first, replies among them; without comments of people the viewer blocked and replies to those"`
 	// BlockedByOwner: the owner blocked the viewer, who may not comment.
 	BlockedByOwner bool `json:"-"`
 }
@@ -93,10 +96,13 @@ func (s *Store) Social(ctx context.Context, t Target, v Viewer) (Social, error) 
 	if err != nil {
 		return out, fmt.Errorf("community: social: %w", err)
 	}
-	rows, err := s.DB.Query(ctx, `SELECT c.id, u.username, u.display_name, c.body, c.created_at, c.author_id
-		FROM comments c JOIN users u ON u.id = c.author_id
-		WHERE c.`+col+` = $1 AND u.banned_at IS NULL
-			AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker_id = $2 AND b.blocked_id = c.author_id)
+	rows, err := s.DB.Query(ctx, `WITH visible AS (
+			SELECT c.* FROM comments c JOIN users u ON u.id = c.author_id
+			WHERE c.`+col+` = $1 AND u.banned_at IS NULL
+				AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker_id = $2 AND b.blocked_id = c.author_id))
+		SELECT c.id, c.parent_id, u.username, u.display_name, c.body, c.created_at, c.edited_at, c.author_id
+		FROM visible c JOIN users u ON u.id = c.author_id
+		WHERE c.parent_id IS NULL OR c.parent_id IN (SELECT id FROM visible)
 		ORDER BY c.created_at LIMIT $3`, t.ID, v.ID, MaxComments)
 	if err != nil {
 		return out, fmt.Errorf("community: comments: %w", err)
@@ -105,10 +111,15 @@ func (s *Store) Social(ctx context.Context, t Target, v Viewer) (Social, error) 
 	for rows.Next() {
 		var c Comment
 		var id, author uuid.UUID
-		if err := rows.Scan(&id, &c.AuthorUsername, &c.AuthorName, &c.Body, &c.CreatedAt, &author); err != nil {
+		var parent *uuid.UUID
+		if err := rows.Scan(&id, &parent, &c.AuthorUsername, &c.AuthorName, &c.Body, &c.CreatedAt, &c.EditedAt, &author); err != nil {
 			return out, err
 		}
 		c.ID = id.String()
+		if parent != nil {
+			c.ParentID = parent.String()
+		}
+		c.CanEdit = v.ID != uuid.Nil && author == v.ID
 		c.CanDelete = v.ID != uuid.Nil && (author == v.ID || t.OwnerID == v.ID || v.Moderator)
 		out.Comments = append(out.Comments, c)
 	}
@@ -134,15 +145,31 @@ func (s *Store) SetCommentsEnabled(ctx context.Context, t Target, on bool) error
 	return err
 }
 
-// AddComment adds author's comment on t and tells the owner by e-mail.
-func (s *Store) AddComment(ctx context.Context, t Target, author dbq.User, body string) error {
+// AddComment adds author's comment on t, or a reply to the comment parent,
+// and tells the owner (and the author of the comment replied to) by e-mail.
+// A reply to a reply goes to the same comment: replies are one level.
+func (s *Store) AddComment(ctx context.Context, t Target, author dbq.User, body string, parent *uuid.UUID) error {
 	body = strings.TrimSpace(body)
+	var parentAuthor *uuid.UUID
+	if parent != nil {
+		var top uuid.UUID
+		err := s.DB.QueryRow(ctx, `SELECT coalesce(parent_id, id), (SELECT author_id FROM comments
+				WHERE id = coalesce(c.parent_id, c.id))
+			FROM comments c WHERE id = $1 AND `+t.Kind.column()+` = $2`, *parent, t.ID).Scan(&top, &parentAuthor)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return fmt.Errorf("community: reply: %w", err)
+		}
+		parent = &top
+	}
 	var id uuid.UUID
-	err := s.DB.QueryRow(ctx, `INSERT INTO comments (author_id, `+t.Kind.column()+`, body)
-		SELECT $1, i.id, $3 FROM `+t.Kind.table()+` i
+	err := s.DB.QueryRow(ctx, `INSERT INTO comments (author_id, `+t.Kind.column()+`, body, parent_id)
+		SELECT $1, i.id, $3, $4 FROM `+t.Kind.table()+` i
 		WHERE i.id = $2 AND i.comments_enabled
 			AND NOT EXISTS (SELECT 1 FROM blocks WHERE blocker_id = i.owner_id AND blocked_id = $1)
-		RETURNING id`, author.ID, t.ID, body).Scan(&id)
+		RETURNING id`, author.ID, t.ID, body, parent).Scan(&id)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return fmt.Errorf("community: comment: %w", err)
 	}
@@ -159,7 +186,37 @@ func (s *Store) AddComment(ctx context.Context, t Target, author dbq.User, body 
 	if t.OwnerID != author.ID {
 		s.notifyComment(ctx, t, author, body)
 	}
+	if parentAuthor != nil && *parentAuthor != author.ID && *parentAuthor != t.OwnerID {
+		s.notifyReply(ctx, t, *parentAuthor, *parent, author, body)
+	}
 	return nil
+}
+
+// EditComment changes the text of a comment on t; only its author may, and
+// only while comments are on.
+func (s *Store) EditComment(ctx context.Context, t Target, id uuid.UUID, author uuid.UUID, body string) error {
+	res, err := s.DB.Exec(ctx, `UPDATE comments c SET body = $4, edited_at = now()
+		FROM `+t.Kind.table()+` i
+		WHERE c.id = $1 AND c.`+t.Kind.column()+` = $2 AND c.author_id = $3 AND i.id = $2 AND i.comments_enabled`,
+		id, t.ID, author, strings.TrimSpace(body))
+	if err != nil {
+		return fmt.Errorf("community: edit comment: %w", err)
+	}
+	if res.RowsAffected() == 1 {
+		return nil
+	}
+	var mine, on bool
+	err = s.DB.QueryRow(ctx, `SELECT author_id = $3, (SELECT comments_enabled FROM `+t.Kind.table()+` WHERE id = $2)
+		FROM comments WHERE id = $1 AND `+t.Kind.column()+` = $2`, id, t.ID, author).Scan(&mine, &on)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return ErrNotFound
+	case err != nil:
+		return err
+	case !mine:
+		return ErrForbidden
+	}
+	return ErrCommentsOff
 }
 
 // DeleteComment removes a comment on t. Its author, t's owner and

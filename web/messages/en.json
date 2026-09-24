@@ -502,5 +502,9 @@
 	"import_mode_stages": "As a journey, in",
 	"import_mode_stages_unit": "stages",
 	"import_stages_nights": "Recorded on {days} days – with {days} stages it is split at the nights.",
-	"stage_conflict": "Someone changed this stage in the meantime. Here is the new state – your change was not saved."
+	"stage_conflict": "Someone changed this stage in the meantime. Here is the new state – your change was not saved.",
+	"community_reply": "Reply",
+	"community_reply_placeholder": "Your reply …",
+	"community_edit": "Edit",
+	"community_edited": "edited"
 }

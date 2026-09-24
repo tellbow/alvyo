@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 
 	let { data } = $props();
 	const contact = env.PUBLIC_CONTACT_EMAIL;
 </script>
 
-<svelte:head><title>{m.about_title()} · odysgeh</title></svelte:head>
+<Seo title={m.about_title()} description={m.about_intro()} />
 
 <main class="mx-auto w-full max-w-2xl overflow-y-auto px-4 py-8 text-stone-800">
 	<h1 class="text-2xl font-semibold">{m.about_title()}</h1>

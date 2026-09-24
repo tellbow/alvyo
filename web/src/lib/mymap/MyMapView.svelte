@@ -10,6 +10,7 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 	import TagChips from '$lib/tags/TagChips.svelte';
@@ -145,7 +146,7 @@
 	}
 </script>
 
-<svelte:head><title>{m.mymap_title()} · odysgeh</title></svelte:head>
+<Seo title={m.mymap_title()} index={false} />
 
 <main class="flex min-h-0 flex-1">
 	<section class="relative flex-1">

@@ -4,6 +4,7 @@
 	import AuthCard from '$lib/components/AuthCard.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 
 	const hydrated = new Hydrated();
 
@@ -18,6 +19,8 @@
 		else error = response.status === 429 ? m.error_too_many() : m.error_generic();
 	}
 </script>
+
+<Seo title={m.forgot_title()} index={false} />
 
 <AuthCard title={m.forgot_title()}>
 	{#if sent}

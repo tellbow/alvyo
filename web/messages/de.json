@@ -537,5 +537,16 @@
 	"live_none": "Noch kein Standort übermittelt.",
 	"live_gone": "Dieser Link gilt nicht mehr.",
 	"live_emergency": "Im Notfall in den Bergen: Rega 1414, oder 112.",
-	"live_coords": "Koordinaten"
+	"live_coords": "Koordinaten",
+	"seo_home_title": "Wanderungen in der Schweiz planen und teilen",
+	"seo_home_description": "Wanderungen auf den Landeskarten von swisstopo planen, mit offiziellen Wanderzeiten und SAC-Skala. Etappentouren, Offline-Karten in der App und öffentliche Touren entdecken.",
+	"seo_discover_description": "Öffentliche Wanderungen und Etappentouren in der Schweiz auf der Karte finden, nach Schwierigkeit und Wanderzeit gefiltert.",
+	"seo_profile_description": "Öffentliche Wanderungen und Etappentouren von {name}.",
+	"seo_route_description": "Wanderung: {stats}.",
+	"seo_journey_description": "Etappentour in {stages} Etappen: {stats}.",
+	"seo_collection_description": "Sammlung von {owner}: {n} Touren.",
+	"home_feature_plan": "Routen auf den Landeskarten von swisstopo planen, mit Wanderzeiten nach der offiziellen Formel und der SAC-Skala.",
+	"home_feature_journeys": "Mehrtägige Etappentouren mit Unterkünften und der Anreise mit dem öffentlichen Verkehr.",
+	"home_feature_app": "Mit der iPhone-App unterwegs navigieren, auch ohne Netz, und Wanderungen aufzeichnen.",
+	"home_feature_discover": "Öffentliche Touren anderer entdecken, Sammlungen anlegen und Touren aus Komoot oder GPX-Dateien übernehmen."
 }

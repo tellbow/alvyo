@@ -7,6 +7,7 @@
 	import AuthCard from '$lib/components/AuthCard.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { safeRedirect } from '$lib/util/redirect';
 	import { onMount } from 'svelte';
 	import { browserSupportsWebAuthn, loginWithPasskey } from '$lib/account/passkeys';
@@ -56,6 +57,8 @@
 		}
 	}
 </script>
+
+<Seo title={m.login_title()} index={false} />
 
 <AuthCard title={m.login_title()}>
 	<OidcNotice />

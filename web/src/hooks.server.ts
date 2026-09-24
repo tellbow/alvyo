@@ -40,7 +40,7 @@ const handleHeaders: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-/** Page HTML and page data as gzip: journeys carry their stages' lines and
+/** Page HTML, page data and the sitemap as gzip: journeys carry their stages' lines and
  * profile (100 KB and more). Static files come compressed already. */
 const handleCompression: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
@@ -49,7 +49,7 @@ const handleCompression: Handle = async ({ event, resolve }) => {
 		!response.body ||
 		response.status !== 200 ||
 		response.headers.has('content-encoding') ||
-		!/^(text\/html|application\/json)/.test(type) ||
+		!/^(text\/html|application\/json|application\/xml)/.test(type) ||
 		!/\bgzip\b/.test(event.request.headers.get('accept-encoding') ?? '')
 	) {
 		return response;

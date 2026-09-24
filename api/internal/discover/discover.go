@@ -173,3 +173,44 @@ func (s *Store) User(ctx context.Context, username string) (User, error) {
 	}
 	return u, err
 }
+
+// SitemapEntry is a public page for search engines.
+type SitemapEntry struct {
+	Kind      string    `json:"kind" enum:"route,journey,collection,profile"`
+	ID        string    `json:"id" doc:"The item's id; for profiles the username"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// MaxSitemap is the most entries one sitemap file may hold.
+const MaxSitemap = 50000
+
+// Sitemap lists the public routes, journeys and collections of users who
+// are not banned, and the profiles of those who published a route or
+// journey, the most recently changed first.
+func (s *Store) Sitemap(ctx context.Context) ([]SitemapEntry, error) {
+	rows, err := s.DB.Query(ctx, `
+WITH items AS (
+	SELECT 'route' AS kind, r.id::text AS id, r.owner_id, r.updated_at
+	FROM routes r WHERE r.visibility = 'public' AND r.journey_id IS NULL
+	UNION ALL
+	SELECT 'journey', j.id::text, j.owner_id, j.updated_at
+	FROM journeys j WHERE j.visibility = 'public'
+	UNION ALL
+	SELECT 'collection', c.id::text, c.owner_id, c.updated_at
+	FROM collections c WHERE c.visibility = 'public'
+), shown AS (
+	SELECT i.* FROM items i JOIN users u ON u.id = i.owner_id AND u.banned_at IS NULL
+)
+SELECT kind, id, updated_at FROM shown
+UNION ALL
+SELECT 'profile', u.username, max(s.updated_at)
+FROM shown s JOIN users u ON u.id = s.owner_id
+WHERE s.kind <> 'collection'
+GROUP BY u.username
+ORDER BY 3 DESC
+LIMIT $1`, MaxSitemap)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowToStructByPos[SitemapEntry])
+}

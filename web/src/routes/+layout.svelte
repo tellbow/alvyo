@@ -1,6 +1,5 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
@@ -37,8 +36,6 @@
 		resent = response.ok;
 	}
 </script>
-
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <div class="flex h-dvh flex-col bg-stone-50 text-stone-900">
 	<header class="flex items-center gap-6 border-b border-stone-200 bg-white px-4 py-2">

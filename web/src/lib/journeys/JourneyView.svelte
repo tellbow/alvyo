@@ -20,7 +20,14 @@
 	import ElevationProfile from '$lib/planner/ElevationProfile.svelte';
 	import StatsPanel from '$lib/planner/StatsPanel.svelte';
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
-	import { formatDistance, type Profile3, type Totals } from '$lib/planner/route';
+	import {
+		formatDistance,
+		formatDuration,
+		formatSAC,
+		type Profile3,
+		type Totals
+	} from '$lib/planner/route';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { STAGE_RUN_COLORS } from './colors';
 	import Connections from './Connections.svelte';
 	import JourneyLayers from './JourneyLayers.svelte';
@@ -310,7 +317,19 @@
 	}
 </script>
 
-<svelte:head><title>{journey.title} · odysgeh</title></svelte:head>
+<Seo
+	title={journey.title}
+	description={`${m.seo_journey_description({
+		stages: journey.stage_list.length,
+		stats: [
+			formatDistance(journey.totals.distance_m),
+			formatDuration(journey.totals.duration_s),
+			`↑ ${Math.round(journey.totals.ascent_m)} m`,
+			formatSAC(journey.totals.sac_grade, journey.totals.sac_max)
+		].join(' · ')
+	})} ${journey.description ?? ''}`}
+	index={journey.visibility === 'public'}
+/>
 
 <main class="flex min-h-0 flex-1">
 	<section class="relative flex-1">

@@ -537,5 +537,16 @@
 	"live_none": "Ancora nessuna posizione.",
 	"live_gone": "Questo link non è più valido.",
 	"live_emergency": "In caso di emergenza in montagna: Rega 1414, o 112.",
-	"live_coords": "Coordinate"
+	"live_coords": "Coordinate",
+	"seo_home_title": "Pianificare e condividere escursioni in Svizzera",
+	"seo_home_description": "Pianifica le tue escursioni sulle carte nazionali di swisstopo, con i tempi di marcia ufficiali e la scala CAS. Escursioni a tappe, mappe offline nell'app e itinerari pubblici da scoprire.",
+	"seo_discover_description": "Trova sulla mappa escursioni ed escursioni a tappe pubbliche in Svizzera, filtrate per difficoltà e tempo di marcia.",
+	"seo_profile_description": "Escursioni ed escursioni a tappe pubbliche di {name}.",
+	"seo_route_description": "Escursione: {stats}.",
+	"seo_journey_description": "Escursione in {stages} tappe: {stats}.",
+	"seo_collection_description": "Raccolta di {owner}: {n} itinerari.",
+	"home_feature_plan": "Pianifica i percorsi sulle carte nazionali di swisstopo, con i tempi di marcia secondo la formula ufficiale e la scala CAS.",
+	"home_feature_journeys": "Escursioni di più giorni con alloggi e viaggio con i trasporti pubblici.",
+	"home_feature_app": "Naviga con l'app per iPhone, anche senza rete, e registra le tue escursioni.",
+	"home_feature_discover": "Scopri gli itinerari pubblici degli altri, crea raccolte e importa percorsi da Komoot o da file GPX."
 }

@@ -537,5 +537,16 @@
 	"live_none": "No position yet.",
 	"live_gone": "This link no longer works.",
 	"live_emergency": "In a mountain emergency: Rega 1414, or 112.",
-	"live_coords": "Coordinates"
+	"live_coords": "Coordinates",
+	"seo_home_title": "Plan and share hikes in Switzerland",
+	"seo_home_description": "Plan hikes on the swisstopo national maps, with official hiking times and the SAC scale. Multi-day journeys, offline maps in the app and public routes to discover.",
+	"seo_discover_description": "Find public hikes and multi-day journeys in Switzerland on the map, filtered by difficulty and hiking time.",
+	"seo_profile_description": "Public hikes and multi-day journeys by {name}.",
+	"seo_route_description": "Hike: {stats}.",
+	"seo_journey_description": "Multi-day journey in {stages} stages: {stats}.",
+	"seo_collection_description": "Collection by {owner}: {n} routes.",
+	"home_feature_plan": "Plan routes on the swisstopo national maps, with hiking times from the official formula and the SAC scale.",
+	"home_feature_journeys": "Multi-day journeys with accommodation and the way there by public transport.",
+	"home_feature_app": "Navigate with the iPhone app, even without a network, and record your hikes.",
+	"home_feature_discover": "Discover other people's public routes, build collections and bring in routes from Komoot or GPX files."
 }

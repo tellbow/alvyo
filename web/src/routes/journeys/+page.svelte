@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { formatDistance, formatDuration } from '$lib/planner/route';
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagFilter from '$lib/tags/TagFilter.svelte';
@@ -34,6 +35,8 @@
 		if (j) await goto(resolve('/journeys/[id]', { id: j.id }));
 	}
 </script>
+
+<Seo title={m.journeys_title()} index={false} />
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
 	<h1 class="text-2xl font-semibold">{m.journeys_title()}</h1>

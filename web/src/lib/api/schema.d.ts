@@ -1808,6 +1808,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sitemap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Public routes, journeys, collections and profiles, for the sitemap
+         * @description The most recently changed first, at most 50000.
+         */
+        get: operations["sitemap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{username}": {
         parameters: {
             query?: never;
@@ -2249,6 +2269,14 @@ export interface components {
             items: components["schemas"]["DiscoverItem"][];
             /** @description There are more results than shown: zoom in or narrow the filters */
             more: boolean;
+        };
+        DiscoverSitemapEntry: {
+            /** @description The item's id; for profiles the username */
+            id: string;
+            /** @enum {string} */
+            kind: "route" | "journey" | "collection" | "profile";
+            /** Format: date-time */
+            updated_at: string;
         };
         EditCommentInputBody: {
             body: string;
@@ -3211,6 +3239,9 @@ export interface components {
             username: string;
             /** @description Leave empty (spam trap) */
             website?: string;
+        };
+        SitemapOutputBody: {
+            entries: components["schemas"]["DiscoverSitemapEntry"][];
         };
         Skipped: {
             name: string;
@@ -7902,6 +7933,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SharedOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    sitemap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SitemapOutputBody"];
                 };
             };
             /** @description Error */

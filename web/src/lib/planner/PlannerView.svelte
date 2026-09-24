@@ -6,6 +6,7 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import {
 		api,
 		type FoundPlace,
@@ -182,6 +183,8 @@
 		return m.leg_error_other();
 	}
 </script>
+
+<Seo title={route?.title ?? m.nav_plan()} index={false} />
 
 <svelte:window {onkeydown} />
 

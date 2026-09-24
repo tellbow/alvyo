@@ -537,5 +537,16 @@
 	"live_none": "Pas encore de position.",
 	"live_gone": "Ce lien n'est plus valable.",
 	"live_emergency": "En cas d'urgence en montagne : Rega 1414, ou 112.",
-	"live_coords": "Coordonnées"
+	"live_coords": "Coordonnées",
+	"seo_home_title": "Planifier et partager des randonnées en Suisse",
+	"seo_home_description": "Planifie tes randonnées sur les cartes nationales de swisstopo, avec les temps de marche officiels et l'échelle CAS. Randonnées par étapes, cartes hors ligne dans l'app et itinéraires publics à découvrir.",
+	"seo_discover_description": "Trouve sur la carte des randonnées et des randonnées par étapes publiques en Suisse, filtrées par difficulté et temps de marche.",
+	"seo_profile_description": "Randonnées et randonnées par étapes publiques de {name}.",
+	"seo_route_description": "Randonnée : {stats}.",
+	"seo_journey_description": "Randonnée en {stages} étapes : {stats}.",
+	"seo_collection_description": "Collection de {owner} : {n} itinéraires.",
+	"home_feature_plan": "Planifie tes itinéraires sur les cartes nationales de swisstopo, avec les temps de marche selon la formule officielle et l'échelle CAS.",
+	"home_feature_journeys": "Randonnées de plusieurs jours avec hébergements et trajet en transports publics.",
+	"home_feature_app": "Navigue avec l'app iPhone, même sans réseau, et enregistre tes randonnées.",
+	"home_feature_discover": "Découvre les itinéraires publics des autres, crée des collections et reprends des itinéraires de Komoot ou de fichiers GPX."
 }

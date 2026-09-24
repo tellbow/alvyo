@@ -11,6 +11,7 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 
@@ -127,7 +128,7 @@
 	}
 </script>
 
-<svelte:head><title>{m.discover_title()} · odysgeh</title></svelte:head>
+<Seo title={m.discover_title()} description={m.seo_discover_description()} />
 
 <main class="flex min-h-0 flex-1">
 	<section class="relative flex-1">

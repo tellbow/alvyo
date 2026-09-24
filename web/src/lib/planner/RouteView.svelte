@@ -9,6 +9,7 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { hikeDate } from '$lib/util/locale';
 	import AddToCollection from '$lib/collections/AddToCollection.svelte';
 	import Social from '$lib/community/Social.svelte';
@@ -86,19 +87,12 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{route.title} · odysgeh</title>
-	<meta name="description" content={summary} />
-	<meta property="og:type" content="website" />
-	<meta property="og:site_name" content="odysgeh" />
-	<meta property="og:title" content={route.title} />
-	<meta property="og:description" content={summary} />
-	<meta property="og:url" content={page.url.href} />
-	<meta property="og:image" content={imageUrl} />
-	<meta property="og:image:width" content="1200" />
-	<meta property="og:image:height" content="630" />
-	<meta name="twitter:card" content="summary_large_image" />
-</svelte:head>
+<Seo
+	title={route.title}
+	description={`${m.seo_route_description({ stats: summary })} ${route.description ?? ''}`}
+	image={imageUrl}
+	index={route.visibility === 'public' && !route.journey_id}
+/>
 
 <main class="flex min-h-0 flex-1">
 	<section class="relative flex-1">

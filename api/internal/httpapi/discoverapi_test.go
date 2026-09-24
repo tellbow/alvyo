@@ -161,4 +161,27 @@ func TestDiscover(t *testing.T) {
 			t.Errorf("profile %s: %d, want 404", name, code)
 		}
 	}
+
+	// The sitemap: public items of users not banned, and their profiles;
+	// no stage routes, nothing private or unlisted.
+	for _, c := range []struct{ title, visibility string }{{"Gipfel", "public"}, {"Entwurf", "private"}} {
+		if code, body := hiker.do("POST", "/api/v1/collections", map[string]any{"title": c.title, "visibility": c.visibility}); code != http.StatusCreated {
+			t.Fatalf("collection %s: %d %s", c.title, code, body)
+		}
+	}
+	code, body = anon.do("GET", "/api/v1/sitemap", nil)
+	var sm struct {
+		Entries []struct{ Kind, ID string } `json:"entries"`
+	}
+	_ = json.Unmarshal(body, &sm)
+	kinds := map[string]int{}
+	for _, e := range sm.Entries {
+		kinds[e.Kind]++
+		if e.Kind == "profile" && e.ID != "wanderer" {
+			t.Errorf("sitemap profile %s", e.ID)
+		}
+	}
+	if code != http.StatusOK || kinds["route"] != 3 || kinds["journey"] != 1 || kinds["collection"] != 1 || kinds["profile"] != 1 {
+		t.Errorf("sitemap: %d %v %s", code, kinds, body)
+	}
 }

@@ -6,6 +6,7 @@
 	import AuthCard from '$lib/components/AuthCard.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 
 	const hydrated = new Hydrated();
 
@@ -19,6 +20,8 @@
 		status = response.ok ? 'done' : 'failed';
 	}
 </script>
+
+<Seo title={m.reset_title()} index={false} />
 
 <AuthCard title={m.reset_title()}>
 	{#if status === 'done'}

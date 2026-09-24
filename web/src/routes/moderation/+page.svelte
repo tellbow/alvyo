@@ -3,6 +3,7 @@
 	import { api } from '$lib/api/client';
 	import type { components } from '$lib/api/schema';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { intlLocale } from '$lib/util/locale';
 
 	type Report = components['schemas']['Report'];
@@ -51,7 +52,7 @@
 	}
 </script>
 
-<svelte:head><title>{m.moderation_title()} · odysgeh</title></svelte:head>
+<Seo title={m.moderation_title()} index={false} />
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
 	<h1 class="text-2xl font-semibold">{m.moderation_title()}</h1>

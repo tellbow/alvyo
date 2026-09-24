@@ -3,6 +3,7 @@
 	import { api } from '$lib/api/client';
 	import ReportButton from '$lib/community/ReportButton.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { intlLocale } from '$lib/util/locale';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
@@ -44,7 +45,10 @@
 	);
 </script>
 
-<svelte:head><title>{profile.display_name} · odysgeh</title></svelte:head>
+<Seo
+	title={profile.display_name}
+	description={m.seo_profile_description({ name: profile.display_name })}
+/>
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
 	<h1 class="text-2xl font-semibold">{profile.display_name}</h1>

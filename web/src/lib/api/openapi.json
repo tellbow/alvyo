@@ -1109,6 +1109,34 @@
         ],
         "type": "object"
       },
+      "DiscoverSitemapEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "description": "The item's id; for profiles the username",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "route",
+              "journey",
+              "collection",
+              "profile"
+            ],
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "updated_at"
+        ],
+        "type": "object"
+      },
       "EditCommentInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -4198,6 +4226,21 @@
           "username",
           "display_name",
           "password"
+        ],
+        "type": "object"
+      },
+      "SitemapOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/DiscoverSitemapEntry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries"
         ],
         "type": "object"
       },
@@ -11907,6 +11950,38 @@
         "summary": "Routes, journeys and collections others shared with the logged-in user",
         "tags": [
           "sharing"
+        ]
+      }
+    },
+    "/sitemap": {
+      "get": {
+        "description": "The most recently changed first, at most 50000.",
+        "operationId": "sitemap",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SitemapOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Public routes, journeys, collections and profiles, for the sitemap",
+        "tags": [
+          "discover"
         ]
       }
     },

@@ -69,6 +69,12 @@ type profileOutput struct {
 	}
 }
 
+type sitemapOutput struct {
+	Body struct {
+		Entries []discover.SitemapEntry `json:"entries"`
+	}
+}
+
 // maxProfileRoutes bounds the routes listed on a profile page.
 const maxProfileRoutes = 200
 
@@ -123,6 +129,18 @@ func registerDiscover(api huma.API, d Deps) {
 		out := &myMapOutput{}
 		out.Body.Items, out.Body.More = items, more
 		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "sitemap", Method: http.MethodGet, Path: "/sitemap",
+		Summary:     "Public routes, journeys, collections and profiles, for the sitemap",
+		Description: "The most recently changed first, at most 50000.",
+		Tags:        []string{"discover"},
+	}, func(ctx context.Context, _ *struct{}) (*sitemapOutput, error) {
+		out := &sitemapOutput{}
+		var err error
+		out.Body.Entries, err = d.Discover.Sitemap(ctx)
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{

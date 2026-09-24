@@ -7,6 +7,7 @@
 	import AuthCard from '$lib/components/AuthCard.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import OidcNotice from '$lib/account/OidcNotice.svelte';
 	import SignInMethods from '$lib/account/SignInMethods.svelte';
 	import Contacts from '$lib/account/Contacts.svelte';
@@ -47,6 +48,8 @@
 		}
 	}
 </script>
+
+<Seo title={m.account_title()} index={false} />
 
 <AuthCard title={m.account_title()}>
 	<OidcNotice />

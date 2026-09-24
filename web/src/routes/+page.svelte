@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 </script>
+
+<Seo title="odysgeh – {m.seo_home_title()}" description={m.seo_home_description()} />
 
 <main class="mx-auto mt-16 max-w-2xl px-4">
 	<h1 class="text-4xl font-semibold tracking-tight">odysgeh</h1>
@@ -20,4 +23,10 @@
 			{m.discover_title()}
 		</a>
 	</div>
+	<ul class="mt-10 list-disc space-y-2 pl-5 text-stone-700">
+		<li>{m.home_feature_plan()}</li>
+		<li>{m.home_feature_journeys()}</li>
+		<li>{m.home_feature_app()}</li>
+		<li>{m.home_feature_discover()}</li>
+	</ul>
 </main>

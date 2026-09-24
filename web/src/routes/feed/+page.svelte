@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { intlLocale } from '$lib/util/locale';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
@@ -30,7 +31,7 @@
 	}
 </script>
 
-<svelte:head><title>{m.feed_title()} · odysgeh</title></svelte:head>
+<Seo title={m.feed_title()} index={false} />
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
 	<h1 class="text-2xl font-semibold">{m.feed_title()}</h1>

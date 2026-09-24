@@ -5,6 +5,7 @@
 	import { api } from '$lib/api/client';
 	import AuthCard from '$lib/components/AuthCard.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 
 	let status = $state<'pending' | 'ok' | 'failed'>('pending');
 
@@ -17,6 +18,8 @@
 		if (response.ok) await invalidateAll();
 	});
 </script>
+
+<Seo title={m.verify_title()} index={false} />
 
 <AuthCard title={m.verify_title()}>
 	<p role="status" data-testid="verify-status">

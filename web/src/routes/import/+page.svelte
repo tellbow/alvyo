@@ -2,9 +2,12 @@
 	import FileImport from '$lib/imports/FileImport.svelte';
 	import KomootImport from '$lib/imports/KomootImport.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 
 	let { data } = $props();
 </script>
+
+<Seo title={m.import_title()} index={false} />
 
 <main class="mx-auto flex w-full max-w-4xl flex-col gap-6 overflow-y-auto px-4 py-8">
 	<div>

@@ -10,6 +10,7 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
@@ -108,7 +109,11 @@
 	}
 </script>
 
-<svelte:head><title>{collection.title} · odysgeh</title></svelte:head>
+<Seo
+	title={collection.title}
+	description={`${m.seo_collection_description({ owner: collection.owner_username, n: collection.item_list.length })} ${collection.description ?? ''}`}
+	index={collection.visibility === 'public'}
+/>
 
 <main class="flex min-h-0 flex-1">
 	<section class="relative flex-1">

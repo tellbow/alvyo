@@ -6,6 +6,7 @@
 	import AuthCard from '$lib/components/AuthCard.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import ProviderButtons from '$lib/account/ProviderButtons.svelte';
 
@@ -41,6 +42,8 @@
 		else errors.form = m.error_generic();
 	}
 </script>
+
+<Seo title={m.signup_title()} index={false} />
 
 <AuthCard title={m.signup_title()}>
 	<form method="post" onsubmit={submit} class="flex flex-col gap-4">

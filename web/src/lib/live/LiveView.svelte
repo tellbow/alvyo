@@ -9,6 +9,7 @@
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { intlLocale } from '$lib/util/locale';
 
 	type View = components['schemas']['View'];
@@ -79,10 +80,7 @@
 	onDestroy(() => marker?.remove());
 </script>
 
-<svelte:head
-	><title>{view ? m.live_title({ hiker: view.hiker }) : m.live_gone()} · odysgeh</title
-	></svelte:head
->
+<Seo title={view ? m.live_title({ hiker: view.hiker }) : m.live_gone()} index={false} />
 
 {#if !view}
 	<main class="mx-auto max-w-xl px-4 py-12">

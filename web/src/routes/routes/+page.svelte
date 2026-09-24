@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import Seo from '$lib/seo/Seo.svelte';
 	import { hikeDate } from '$lib/util/locale';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
@@ -23,6 +24,8 @@
 		if (response.ok) shared = shared.filter((r) => r.id !== id);
 	}
 </script>
+
+<Seo title={m.routes_title()} index={false} />
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
 	<div class="mb-6 flex items-center justify-between">

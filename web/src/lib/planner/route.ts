@@ -8,10 +8,12 @@ export function legKey(
 	from: { lon: number; lat: number },
 	to: { lon: number; lat: number },
 	straight: boolean,
-	profile: Profile
+	profile: Profile,
+	through?: { lon: number; lat: number }
 ): string {
 	const p = (x: number) => x.toFixed(6);
-	return `${p(from.lon)},${p(from.lat)}>${p(to.lon)},${p(to.lat)}|${straight ? 'straight' : profile}`;
+	const key = `${p(from.lon)},${p(from.lat)}>${p(to.lon)},${p(to.lat)}|${straight ? 'straight' : profile}`;
+	return through && !straight ? `${key}|${p(through.lon)},${p(through.lat)}` : key;
 }
 
 /** The same leg walked the other way: no need to route it again. */

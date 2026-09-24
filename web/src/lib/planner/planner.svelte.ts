@@ -2,17 +2,28 @@ import { SvelteMap } from 'svelte/reactivity';
 import type { Leg } from '$lib/api/client';
 import { combine, legKey, reverseLeg, totals, type Profile } from './route';
 
+type LonLat = { lon: number; lat: number };
+
 /**
- * A point the user placed; `straight` applies to the leg arriving here, and
- * `name` is the place it was found as by search.
+ * A point the user placed; `straight` and `through` (where the line was
+ * dragged onto another path) apply to the leg arriving here, and `name` is
+ * the place it was found as by search.
  */
-export type Anchor = { id: number; lon: number; lat: number; straight: boolean; name?: string };
+export type Anchor = {
+	id: number;
+	lon: number;
+	lat: number;
+	straight: boolean;
+	through?: LonLat;
+	name?: string;
+};
 
 export type LegRequest = {
 	from: { lon: number; lat: number };
 	to: { lon: number; lat: number };
 	profile: Profile;
 	straight: boolean;
+	through?: LonLat;
 };
 
 /** Why a leg failed, by HTTP status (see messages in the UI). */
@@ -32,7 +43,7 @@ export type FetchLeg = (req: LegRequest) => Promise<Leg>;
 /** What a route stores of the planner: enough to resume editing. */
 export type PlannerContent = {
 	profile: Profile;
-	anchors: { lon: number; lat: number; straight?: boolean; name?: string }[];
+	anchors: { lon: number; lat: number; straight?: boolean; through?: LonLat; name?: string }[];
 	legs: Leg[];
 };
 
@@ -84,7 +95,8 @@ export class Planner {
 		this.profile = c.profile;
 		this.anchors = c.anchors.map((a) => ({
 			...this.#anchor(a.lon, a.lat, a.name),
-			straight: a.straight ?? false
+			straight: a.straight ?? false,
+			...(a.through ? { through: a.through } : {})
 		}));
 		c.legs.forEach((leg, i) => {
 			const key = this.#key(this.anchors[i], this.anchors[i + 1]);
@@ -104,6 +116,7 @@ export class Planner {
 				lon: a.lon,
 				lat: a.lat,
 				straight: a.straight,
+				...(a.through ? { through: a.through } : {}),
 				...(a.name ? { name: a.name } : {})
 			})),
 			legs: this.readyLegs
@@ -129,7 +142,23 @@ export class Planner {
 	 * both halves of a straight leg stay straight. */
 	insert(index: number, lon: number, lat: number) {
 		const straight = this.anchors[index]?.straight ?? false;
-		this.#change(() => this.anchors.splice(index, 0, { ...this.#anchor(lon, lat), straight }));
+		this.#change(() => {
+			this.anchors.splice(index, 0, { ...this.#anchor(lon, lat), straight });
+			delete this.anchors[index + 1]?.through; // the new point shapes the leg now
+		});
+	}
+
+	/** Moves leg `index` onto the path closest to lon/lat, without a new point. */
+	reroute(index: number, lon: number, lat: number) {
+		this.#change(() => {
+			const to = this.anchors[index + 1];
+			if (to) to.through = { lon, lat };
+		});
+	}
+
+	/** Lets leg `index` take the shortest path again. */
+	unshape(index: number) {
+		this.#change(() => delete this.anchors[index + 1]?.through);
 	}
 
 	/** Asks again for the legs that failed for a passing reason. */
@@ -149,16 +178,20 @@ export class Planner {
 	reorder(from: number, to: number) {
 		if (to < 0 || to >= this.anchors.length || from === to) return;
 		this.#change(() => {
+			const before = this.#previous();
 			const [a] = this.anchors.splice(from, 1);
 			this.anchors.splice(to, 0, a);
 			this.anchors[0].straight = false;
+			this.#dropStaleThrough(before);
 		});
 	}
 
 	remove(id: number) {
 		this.#change(() => {
+			const before = this.#previous();
 			this.anchors = this.anchors.filter((a) => a.id !== id);
 			if (this.anchors[0]) this.anchors[0].straight = false;
+			this.#dropStaleThrough(before);
 		});
 	}
 
@@ -178,9 +211,12 @@ export class Planner {
 	reverse() {
 		this.#change(() => {
 			const rev = [...this.anchors].reverse();
-			// The straight flag belongs to the leg's end, which is now its start.
-			const flags = rev.map((_, i) => (i === 0 ? false : rev[i - 1].straight));
-			this.anchors = rev.map((a, i) => ({ ...a, straight: flags[i] }));
+			// Straight and through belong to the leg's end, which is now its start.
+			this.anchors = rev.map((a, i) => ({
+				...a,
+				straight: rev[i - 1]?.straight ?? false,
+				through: rev[i - 1]?.through
+			}));
 		});
 	}
 
@@ -210,7 +246,7 @@ export class Planner {
 	#fingerprint(): string {
 		return JSON.stringify([
 			this.profile,
-			this.anchors.map((a) => [a.lon, a.lat, a.straight, a.name])
+			this.anchors.map((a) => [a.lon, a.lat, a.straight, a.through, a.name])
 		]);
 	}
 
@@ -219,7 +255,20 @@ export class Planner {
 	}
 
 	#key(from: Anchor, to: Anchor) {
-		return legKey(from, to, to.straight, this.profile);
+		return legKey(from, to, to.straight, this.profile, to.through);
+	}
+
+	/** Each anchor's predecessor, by id. */
+	#previous() {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- a local lookup, not state
+		return new Map(this.anchors.map((a, i) => [a.id, this.anchors[i - 1]?.id]));
+	}
+
+	/** A leg that now starts elsewhere forgets the path it was dragged onto. */
+	#dropStaleThrough(before: Map<number, number | undefined>) {
+		this.anchors.forEach((a, i) => {
+			if (before.get(a.id) !== this.anchors[i - 1]?.id) delete a.through;
+		});
 	}
 
 	#change(fn: () => void) {
@@ -231,7 +280,10 @@ export class Planner {
 	}
 
 	#snapshot(): Snapshot {
-		return { anchors: this.anchors.map((a) => ({ ...a })), profile: this.profile };
+		return {
+			anchors: this.anchors.map((a) => ({ ...a, through: a.through && { ...a.through } })),
+			profile: this.profile
+		};
 	}
 
 	#restore(s: Snapshot) {
@@ -252,7 +304,7 @@ export class Planner {
 			// Kept, except failures that may pass (no path nearby will not).
 			if (cached && !(cached.state === 'error' && cached.status !== 422)) continue;
 
-			const reversed = this.#cache.get(legKey(to, from, to.straight, this.profile));
+			const reversed = this.#cache.get(legKey(to, from, to.straight, this.profile, to.through));
 			if (reversed?.state === 'ok') {
 				this.#cache.set(key, { key, state: 'ok', leg: reverseLeg(reversed.leg) });
 				continue;
@@ -262,7 +314,8 @@ export class Planner {
 				from: { lon: from.lon, lat: from.lat },
 				to: { lon: to.lon, lat: to.lat },
 				profile: this.profile,
-				straight: to.straight
+				straight: to.straight,
+				...(to.through && !to.straight ? { through: to.through } : {})
 			};
 			const p = this.#fetchLeg(req).then(
 				(leg) => void this.#cache.set(key, { key, state: 'ok', leg }),

@@ -22,6 +22,9 @@ const (
 	minTrailRun = 40
 	// snapWarning (metres): warn when a click is far from the nearest path.
 	snapWarning = 100
+	// throughM (metres): a path this close to where the line was dragged
+	// counts as the path meant.
+	throughM = 100
 )
 
 // Profiles offered to users (GraphHopper profile names).
@@ -42,6 +45,9 @@ type LegRequest struct {
 	From, To geo.Point
 	Profile  string // "hike" or "alpine"
 	Straight bool   // straight line instead of following paths
+	// Through is where the line was dragged onto another path: the leg
+	// takes the path that passes closest to it.
+	Through *geo.Point
 }
 
 // Leg is a computed leg with everything the planner displays.
@@ -107,13 +113,19 @@ func (r *Router) Leg(ctx context.Context, req LegRequest) (Leg, error) {
 	details := map[string][]interval{}
 	leg := Leg{Warnings: []string{}}
 	if !req.Straight {
-		gh, err := r.GraphHopper.route(ctx, req.From, req.To, req.Profile)
+		var gh ghRoute
+		var err error
+		if req.Through != nil {
+			gh, err = r.routeThrough(ctx, req)
+		} else {
+			gh, err = r.GraphHopper.route(ctx, req.From, req.To, req.Profile)
+		}
 		if err != nil {
 			return Leg{}, err
 		}
 		pts, details = gh.Points, gh.Details
-		if len(gh.Snapped) == 2 {
-			leg.Snap = Snap{FromM: geo.Distance(req.From, gh.Snapped[0]), ToM: geo.Distance(req.To, gh.Snapped[1])}
+		if n := len(gh.Snapped); n >= 2 {
+			leg.Snap = Snap{FromM: geo.Distance(req.From, gh.Snapped[0]), ToM: geo.Distance(req.To, gh.Snapped[n-1])}
 		}
 	}
 	if len(pts) < 2 {
@@ -145,6 +157,34 @@ func (r *Router) Leg(ctx context.Context, req LegRequest) (Leg, error) {
 		leg.Warnings = append(leg.Warnings, "snap_far_to")
 	}
 	return leg, nil
+}
+
+// routeThrough takes the one of GraphHopper's alternatives that passes
+// closest to req.Through, if one comes within throughM; otherwise the path
+// through the point itself, which then shapes the leg.
+func (r *Router) routeThrough(ctx context.Context, req LegRequest) (ghRoute, error) {
+	alts, err := r.GraphHopper.routes(ctx, []geo.Point{req.From, req.To}, req.Profile, true)
+	if err != nil {
+		return ghRoute{}, err
+	}
+	best, bestM := 0, math.Inf(1)
+	for i, a := range alts {
+		if len(a.Points) == 0 {
+			continue
+		}
+		f := newFinder(a.Points)
+		if _, off := f.find(*req.Through); off < bestM {
+			best, bestM = i, off
+		}
+	}
+	if bestM <= throughM {
+		return alts[best], nil
+	}
+	via, err := r.GraphHopper.routes(ctx, []geo.Point{req.From, *req.Through, req.To}, req.Profile, false)
+	if err != nil {
+		return ghRoute{}, err
+	}
+	return via[0], nil
 }
 
 // Track computes legs along a given line, e.g. an imported GPS track,

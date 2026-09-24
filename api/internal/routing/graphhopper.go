@@ -64,16 +64,39 @@ type ghResponse struct {
 }
 
 func (g *GraphHopper) route(ctx context.Context, from, to geo.Point, profile string) (ghRoute, error) {
-	body, _ := json.Marshal(map[string]any{
-		"points":         [][2]float64{{from.Lon, from.Lat}, {to.Lon, to.Lat}},
+	rs, err := g.routes(ctx, []geo.Point{from, to}, profile, false)
+	if err != nil {
+		return ghRoute{}, err
+	}
+	return rs[0], nil
+}
+
+// routes returns the path through pts, or with alternatives the path between
+// two points and up to four others.
+func (g *GraphHopper) routes(ctx context.Context, pts []geo.Point, profile string, alternatives bool) ([]ghRoute, error) {
+	points := make([][2]float64, len(pts))
+	for i, p := range pts {
+		points[i] = [2]float64{p.Lon, p.Lat}
+	}
+	params := map[string]any{
+		"points":         points,
 		"profile":        profile,
 		"points_encoded": false,
 		"instructions":   false,
 		"details":        detailKeys,
-	})
+	}
+	if alternatives {
+		// GraphHopper's defaults rarely find one on trails; paths up to twice
+		// as long that share up to 80 % with the best one are wanted here.
+		params["algorithm"] = "alternative_route"
+		params["alternative_route.max_paths"] = 5
+		params["alternative_route.max_weight_factor"] = 2
+		params["alternative_route.max_share_factor"] = 0.8
+	}
+	body, _ := json.Marshal(params)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimSuffix(g.URL, "/")+"/route", bytes.NewReader(body))
 	if err != nil {
-		return ghRoute{}, err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	client := g.Client
@@ -82,36 +105,39 @@ func (g *GraphHopper) route(ctx context.Context, from, to geo.Point, profile str
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return ghRoute{}, fmt.Errorf("routing: graphhopper: %w", err)
+		return nil, fmt.Errorf("routing: graphhopper: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
 	if err != nil {
-		return ghRoute{}, fmt.Errorf("routing: graphhopper: %w", err)
+		return nil, fmt.Errorf("routing: graphhopper: %w", err)
 	}
 	var r ghResponse
 	if err := json.Unmarshal(raw, &r); err != nil {
-		return ghRoute{}, fmt.Errorf("routing: graphhopper returned %s: %w", resp.Status, err)
+		return nil, fmt.Errorf("routing: graphhopper returned %s: %w", resp.Status, err)
 	}
 	if resp.StatusCode != http.StatusOK || len(r.Paths) == 0 {
-		return ghRoute{}, classifyError(resp.StatusCode, r)
+		return nil, classifyError(resp.StatusCode, r)
 	}
 
-	p := r.Paths[0]
-	out := ghRoute{Details: map[string][]interval{}}
-	for _, c := range p.Points.Coordinates {
-		out.Points = append(out.Points, geo.Point{Lon: c[0], Lat: c[1]})
-	}
-	for _, c := range p.SnappedWaypoints.Coordinates {
-		out.Snapped = append(out.Snapped, geo.Point{Lon: c[0], Lat: c[1]})
-	}
-	for key, list := range p.Details {
-		for _, d := range list {
-			from, _ := d[0].(float64)
-			to, _ := d[1].(float64)
-			out.Details[key] = append(out.Details[key], interval{From: int(from), To: int(to), Value: detailValue(d[2])})
+	out := make([]ghRoute, len(r.Paths))
+	for i, p := range r.Paths {
+		o := ghRoute{Details: map[string][]interval{}}
+		for _, c := range p.Points.Coordinates {
+			o.Points = append(o.Points, geo.Point{Lon: c[0], Lat: c[1]})
 		}
+		for _, c := range p.SnappedWaypoints.Coordinates {
+			o.Snapped = append(o.Snapped, geo.Point{Lon: c[0], Lat: c[1]})
+		}
+		for key, list := range p.Details {
+			for _, d := range list {
+				from, _ := d[0].(float64)
+				to, _ := d[1].(float64)
+				o.Details[key] = append(o.Details[key], interval{From: int(from), To: int(to), Value: detailValue(d[2])})
+			}
+		}
+		out[i] = o
 	}
 	return out, nil
 }

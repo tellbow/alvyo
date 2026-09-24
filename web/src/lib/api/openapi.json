@@ -2032,6 +2032,10 @@
             "description": "Draw a straight line instead of following paths",
             "type": "boolean"
           },
+          "through": {
+            "$ref": "#/components/schemas/Point",
+            "description": "Where the line was dragged onto another path: the leg takes the path closest to it"
+          },
           "to": {
             "$ref": "#/components/schemas/Point"
           }
@@ -2961,6 +2965,10 @@
           "straight": {
             "description": "The leg arriving at this anchor is a straight line",
             "type": "boolean"
+          },
+          "through": {
+            "$ref": "#/components/schemas/RouteLonLat",
+            "description": "The leg arriving at this anchor was dragged onto the path closest to this point"
           }
         },
         "required": [
@@ -3098,6 +3106,28 @@
         },
         "required": [
           "routes"
+        ],
+        "type": "object"
+      },
+      "RouteLonLat": {
+        "additionalProperties": false,
+        "properties": {
+          "lat": {
+            "format": "double",
+            "maximum": 47.9,
+            "minimum": 45.8,
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "maximum": 10.6,
+            "minimum": 5.9,
+            "type": "number"
+          }
+        },
+        "required": [
+          "lon",
+          "lat"
         ],
         "type": "object"
       },

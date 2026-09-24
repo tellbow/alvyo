@@ -214,4 +214,64 @@ describe('Planner', () => {
 		p.markSaved();
 		expect(p.dirty).toBe(false);
 	});
+
+	it('a leg dragged onto another path keeps it until its start changes', async () => {
+		const { planner: p, calls } = setup();
+		p.add(8.0, 46.0);
+		p.add(8.1, 46.1);
+		p.add(8.2, 46.2);
+		await p.idle();
+		p.reroute(0, 8.05, 46.06);
+		await p.idle();
+		expect(p.anchors).toHaveLength(3);
+		expect(calls.at(-1)?.through).toEqual({ lon: 8.05, lat: 46.06 });
+		expect(p.content().anchors[1].through).toEqual({ lon: 8.05, lat: 46.06 });
+		expect(p.dirty).toBe(true);
+
+		// Walked the other way, the same leg (now the second) keeps the path.
+		const before = calls.length;
+		p.reverse();
+		await p.idle();
+		expect(calls).toHaveLength(before);
+		expect(p.anchors.map((a) => a.through)).toEqual([
+			undefined,
+			undefined,
+			{ lon: 8.05, lat: 46.06 }
+		]);
+		p.undo();
+		p.undo();
+		expect(p.anchors[1].through).toBeUndefined();
+		p.redo();
+
+		// Moving the end keeps it; a new point in the leg or removing its start drops it.
+		p.move(p.anchors[1].id, 8.11, 46.11);
+		expect(p.anchors[1].through).toBeDefined();
+		p.insert(1, 8.03, 46.03);
+		expect(p.anchors[2].through).toBeUndefined();
+		p.undo();
+		p.remove(p.anchors[0].id);
+		expect(p.anchors[0].through).toBeUndefined();
+		p.undo();
+		p.unshape(0);
+		expect(p.anchors[1].through).toBeUndefined();
+	});
+
+	it('a saved route resumes with its dragged paths', () => {
+		const { planner: p, calls } = setup();
+		const leg = fakeLeg([
+			[8.0, 46.0, 500],
+			[8.1, 46.1, 600]
+		]);
+		p.load({
+			profile: 'hike',
+			anchors: [
+				{ lon: 8.0, lat: 46.0 },
+				{ lon: 8.1, lat: 46.1, through: { lon: 8.05, lat: 46.06 } }
+			],
+			legs: [leg]
+		});
+		expect(p.complete).toBe(true);
+		expect(calls).toHaveLength(0);
+		expect(p.dirty).toBe(false);
+	});
 });

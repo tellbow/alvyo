@@ -71,6 +71,21 @@ func TestRouteLifecycle(t *testing.T) {
 	}
 	path := "/api/v1/routes/" + r.ID
 
+	// A leg dragged onto another path keeps the point it was dragged to.
+	body2 := newRouteBody("Umweg", "private")
+	body2["anchors"].([]map[string]any)[1]["through"] = map[string]any{"lon": 8.001, "lat": 46.501}
+	_, body = owner.do("POST", "/api/v1/routes", body2)
+	var shaped struct {
+		Anchors []struct {
+			Through *struct{ Lon, Lat float64 } `json:"through"`
+		} `json:"anchors"`
+	}
+	_ = json.Unmarshal(body, &shaped)
+	if len(shaped.Anchors) != 3 || shaped.Anchors[0].Through != nil || shaped.Anchors[1].Through == nil ||
+		shaped.Anchors[1].Through.Lon != 8.001 {
+		t.Errorf("through not kept: %s", body)
+	}
+
 	// Private: only the owner sees it.
 	if code, _ := other.do("GET", path, nil); code != http.StatusNotFound {
 		t.Errorf("other sees private route: %d", code)

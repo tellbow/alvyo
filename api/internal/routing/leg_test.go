@@ -267,3 +267,79 @@ func TestTrack(t *testing.T) {
 		t.Errorf("rest joined: %d legs, %v", len(legs), err)
 	}
 }
+
+// alternativesServer answers alternative_route requests with a path along
+// 46.66° N and one bulging north to 46.67°, and via requests with the path
+// through the given points.
+func alternativesServer(t *testing.T) (*httptest.Server, *[]int) {
+	var calls []int // points per request; negative with alternatives
+	path := func(pts ...[2]float64) map[string]any {
+		coords := make([][]float64, len(pts))
+		for i, p := range pts {
+			coords[i] = []float64{p[0], p[1]}
+		}
+		return map[string]any{
+			"points":            map[string]any{"coordinates": coords},
+			"snapped_waypoints": map[string]any{"coordinates": [][]float64{coords[0], coords[len(coords)-1]}},
+		}
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Points    [][2]float64 `json:"points"`
+			Algorithm string       `json:"algorithm"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		var paths []map[string]any
+		if req.Algorithm == "alternative_route" {
+			calls = append(calls, -len(req.Points))
+			paths = append(paths,
+				path([2]float64{8.00, 46.66}, [2]float64{8.02, 46.66}),
+				path([2]float64{8.00, 46.66}, [2]float64{8.01, 46.67}, [2]float64{8.02, 46.66}))
+		} else {
+			calls = append(calls, len(req.Points))
+			paths = append(paths, path(req.Points...))
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"paths": paths})
+	}))
+	t.Cleanup(srv.Close)
+	return srv, &calls
+}
+
+func TestLegThrough(t *testing.T) {
+	pool := testdb.New(t)
+	srv, calls := alternativesServer(t)
+	r := &Router{GraphHopper: &GraphHopper{URL: srv.URL}, Elevation: slopeSampler{}, Trails: &TrailMatcher{DB: pool}}
+	from, to := geo.Point{Lon: 8.00, Lat: 46.66}, geo.Point{Lon: 8.02, Lat: 46.66}
+	passes := func(leg Leg, p geo.Point) bool {
+		for _, c := range leg.Coordinates {
+			if geo.Distance(p, geo.Point{Lon: c[0], Lat: c[1]}) < 15 {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Released 50 m off the northern alternative: that one is taken.
+	near := geo.Point{Lon: 8.01, Lat: 46.6695}
+	leg, err := r.Leg(context.Background(), LegRequest{From: from, To: to, Profile: "hike", Through: &near})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !passes(leg, geo.Point{Lon: 8.01, Lat: 46.67}) || len(*calls) != 1 || (*calls)[0] != -2 {
+		t.Errorf("northern alternative not taken (calls %v)", *calls)
+	}
+
+	// Released where no alternative passes: the leg goes through the point.
+	*calls = nil
+	far := geo.Point{Lon: 8.01, Lat: 46.65}
+	leg, err = r.Leg(context.Background(), LegRequest{From: from, To: to, Profile: "hike", Through: &far})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !passes(leg, far) || len(*calls) != 2 || (*calls)[1] != 3 {
+		t.Errorf("leg not routed through the point (calls %v)", *calls)
+	}
+	if leg.Snap.FromM > 1 || leg.Snap.ToM > 1 {
+		t.Errorf("snap %+v: from the first and last waypoint", leg.Snap)
+	}
+}

@@ -2274,6 +2274,8 @@ export interface components {
             profile: "hike" | "alpine";
             /** @description Draw a straight line instead of following paths */
             straight?: boolean;
+            /** @description Where the line was dragged onto another path: the leg takes the path closest to it */
+            through?: components["schemas"]["Point"];
             to: components["schemas"]["Point"];
         };
         LoginInputBody: {
@@ -2554,6 +2556,8 @@ export interface components {
             name?: string;
             /** @description The leg arriving at this anchor is a straight line */
             straight?: boolean;
+            /** @description The leg arriving at this anchor was dragged onto the path closest to this point */
+            through?: components["schemas"]["RouteLonLat"];
         };
         RouteBody: {
             anchors: components["schemas"]["RouteAnchor"][];
@@ -2596,6 +2600,12 @@ export interface components {
         };
         RouteListOutputBody: {
             routes: components["schemas"]["RouteSummary"][];
+        };
+        RouteLonLat: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
         };
         RouteShared: {
             /** Format: date-time */

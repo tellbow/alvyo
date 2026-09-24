@@ -74,6 +74,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       addresses, also French and Italian names.
 - [ ] **Dragging the line** onto a nearby path: GraphHopper snaps the new point
       to the nearest foot path, which may be a road next to the trail.
+- [ ] **Dragging onto another path** («Anderer Weg») on real trails: the
+      alternative GraphHopper offers is the path meant (valley or ridge, left
+      or right of a lake); where none is, the leg through the release point
+      does not double back. Alt (⌥) on Windows and Linux, where the window
+      manager may take Alt-drag.
 - [ ] Dragging the line on a **touch screen** is not built yet (mouse only).
 
 ## Server

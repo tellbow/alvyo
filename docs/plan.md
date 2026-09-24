@@ -43,7 +43,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.2.0 | 2026-09-23 | Offline maps (PMTiles packs built by the API); the iOS app lists routes, shows them on the national map and saves them offline |
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
-| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6) |
+| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9) |
 
 ## Requirements
 
@@ -71,11 +71,19 @@ From the project owner, numbered in the order given: 1–5 added on
    importieren» gives a stage its route from a GPX, KML, TCX or FIT file in
    one step (`POST /journeys/{id}/stages/{stage}/import`, several tracks
    joined); a stage's route is only replaced after asking.
+9. **Dragging the line: a point, or a different path** (next). A switch in
+   the planner («Beim Ziehen: Zwischenpunkt / anderer Weg», remembered in
+   the browser; Alt/⌥ flips it for one drag). «Anderer Weg» keeps the points:
+   the leg takes the GraphHopper alternative passing closest to the release
+   point, or, if none comes within 100 m, the path through it. The point is
+   kept on the leg's end anchor (`through`), drawn as a small dot on the
+   line; a double-click on it gives the shortest path back. GraphHopper 11
+   offers alternatives with the CH profiles once its factors are loosened
+   (paths up to twice as long, sharing up to 80 %), in about 30 ms.
 
 ### Open
 
-Proposed order: 9 (planner only), 10 and 11 (tags, then the map
-that filters by them), 8 (the day splitting), 7 (reuses 8's splitting).
+Proposed order: 10 and 11 (tags, then the map that filters by them), 8 (the day splitting), 7 (reuses 8's splitting).
 
 #### 7. One long GPX file into several stages
 
@@ -124,28 +132,6 @@ hotels and guest houses, campsites, or a stop to travel home.
   Gaflei → Elm in three days ends near Sargans and Weisstannen, as the Via
   Alpina stages do; Playwright: plan, accept, a journey of three stages with
   accommodation.
-
-#### 9. Dragging the line: a point, or a different path
-
-Today dragging the line always adds an intermediate point where it is
-released. Wanted: the choice to move the whole leg between the two points
-onto the other path instead, without a new point.
-
-- UI: dragging adds a point by default; a switch in the planner («Beim
-  Ziehen: Zwischenpunkt / anderer Weg») changes that, and holding Alt (⌥)
-  while dragging uses the other way once. Alternative to decide: ask after
-  each release, in a small menu with both choices.
-- «Anderer Weg»: GraphHopper's alternative routes between the two points,
-  taking the one that passes closest to where the line was released. If
-  none comes near (about 100 m), route through the release point and keep
-  it as a hidden shaping point (not in the list of points, small on the
-  map), so the leg follows that path.
-- To check: whether GraphHopper 11 offers alternative routes with our CH
-  profiles, or needs the flexible mode (slower) for them.
-- Check: Playwright: with the switch on, a drag leaves the points as they
-  were and the leg passes near the release point; off, it adds a point as
-  now.
-- Related: dragging on touch screens (backlog).
 
 #### 10. Tags
 

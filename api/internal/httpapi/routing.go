@@ -27,6 +27,7 @@ type legInput struct {
 		To       Point  `json:"to"`
 		Profile  string `json:"profile,omitempty" enum:"hike,alpine" default:"hike" doc:"hike: up to SAC T3; alpine: up to T6"`
 		Straight bool   `json:"straight,omitempty" doc:"Draw a straight line instead of following paths"`
+		Through  *Point `json:"through,omitempty" doc:"Where the line was dragged onto another path: the leg takes the path closest to it"`
 	}
 }
 
@@ -68,9 +69,14 @@ func registerRouting(api huma.API, d Deps) {
 		if !d.Limits.LegUser.Allow(u.ID.String()) {
 			return nil, errTooMany
 		}
-		leg, err := d.Router.Leg(ctx, routing.LegRequest{
+		req := routing.LegRequest{
 			From: in.Body.From.geo(), To: in.Body.To.geo(), Profile: in.Body.Profile, Straight: in.Body.Straight,
-		})
+		}
+		if in.Body.Through != nil {
+			p := in.Body.Through.geo()
+			req.Through = &p
+		}
+		leg, err := d.Router.Leg(ctx, req)
 		switch {
 		case errors.Is(err, routing.ErrPointNotFound), errors.Is(err, routing.ErrOutOfBounds):
 			return nil, huma.Error422UnprocessableEntity("no path near this point")

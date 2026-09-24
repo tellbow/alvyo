@@ -155,6 +155,104 @@ test('drag the line to a different path', async ({ page, context }) => {
 	expect(Math.abs(start.x + start.width / 2 - (cx - 200))).toBeLessThan(40);
 });
 
+test('drag the line onto another path without a new point', async ({ page, context }) => {
+	await context.addInitScript(() => {
+		localStorage.setItem(
+			'odysgeh.map',
+			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
+		);
+	});
+	const id = `path${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Pathfinder',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	type LonLat = { lon: number; lat: number };
+	const requests: { through?: LonLat }[] = [];
+	const legs: { coordinates: number[][] }[] = [];
+	page.on('request', (r) => {
+		if (r.url().includes('/api/v1/routing/leg')) requests.push(r.postDataJSON());
+	});
+	page.on('response', async (r) => {
+		if (r.url().includes('/api/v1/routing/leg') && r.ok()) legs.push(await r.json());
+	});
+
+	await page.goto('/plan');
+	const canvas = page.locator('canvas.maplibregl-canvas');
+	const box = (await canvas.boundingBox())!;
+	const cx = box.x + box.width / 2;
+	const cy = box.y + box.height / 2;
+	// Where a position is on the screen (see the test above for the scale).
+	const px = 360 / 2 ** 23;
+	const cos = Math.cos((46.665 * Math.PI) / 180);
+	const screen = (lon: number, lat: number) => ({
+		x: cx + (lon - 8.04) / px,
+		y: cy - (lat - 46.665) / (px * cos)
+	});
+	const position = (x: number, y: number): LonLat => ({
+		lon: 8.04 + (x - cx) * px,
+		lat: 46.665 - (y - cy) * px * cos
+	});
+
+	await page.getByLabel('Anderer Weg').check();
+	await page.mouse.click(cx - 200, cy);
+	await page.mouse.click(cx + 200, cy);
+	const legItems = page.getByTestId('leg');
+	await expect(legItems.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+
+	/** Presses the middle of the line and releases it 100 px further down. */
+	const drag = async (alt: boolean) => {
+		const line = legs.at(-1)!.coordinates;
+		const mid = line[Math.floor(line.length / 2)];
+		const from = screen(mid[0], mid[1]);
+		await expect
+			.poll(
+				async () => {
+					await page.mouse.move(from.x + 1, from.y);
+					await page.mouse.move(from.x, from.y);
+					return canvas.evaluate((c) => (c as HTMLCanvasElement).style.cursor);
+				},
+				{ timeout: 10_000 }
+			)
+			.toBe('pointer');
+		await page.mouse.down();
+		await page.mouse.move(from.x, from.y + 50, { steps: 4 });
+		await page.mouse.move(from.x, from.y + 100, { steps: 4 });
+		if (alt) await page.keyboard.down('Alt');
+		await page.mouse.up();
+		if (alt) await page.keyboard.up('Alt');
+		return position(from.x, from.y + 100);
+	};
+
+	// The leg moves: the same two points, a leg request through the release
+	// point, and the new line passes near it.
+	const released = await drag(false);
+	await expect.poll(() => requests.at(-1)?.through).toBeDefined();
+	const through = requests.at(-1)!.through!;
+	expect(Math.abs(through.lon - released.lon)).toBeLessThan(0.0005);
+	expect(Math.abs(through.lat - released.lat)).toBeLessThan(0.0005);
+	await expect(legItems.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	await expect(page.getByTestId('anchor')).toHaveCount(2);
+	await expect(page.getByTestId('through')).toHaveCount(1);
+	const k = 111_000;
+	const nearest = Math.min(
+		...legs
+			.at(-1)!
+			.coordinates.map((c) => Math.hypot((c[0] - through.lon) * k * cos, (c[1] - through.lat) * k))
+	);
+	expect(nearest).toBeLessThan(150);
+
+	// With Alt held, dragging adds a point as before.
+	await drag(true);
+	await expect(page.getByTestId('anchor')).toHaveCount(3);
+	await expect(page.getByTestId('through')).toHaveCount(0);
+});
+
 test('planning needs an account', async ({ page }) => {
 	await page.goto('/plan');
 	await expect(page.getByTestId('planner-panel')).toContainText('Melde dich an');

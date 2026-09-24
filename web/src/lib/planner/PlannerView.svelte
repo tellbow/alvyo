@@ -34,6 +34,18 @@
 	let map = $state<MapLibreMap>();
 	let lib = $state<typeof MapLibre>();
 	let hoverIndex = $state<number>();
+	// What dragging the line does; remembered in this browser.
+	const DRAG_KEY = 'odysgeh.dragPath';
+	let dragPath = $state(false);
+
+	function setDragPath(on: boolean) {
+		dragPath = on;
+		try {
+			localStorage.setItem(DRAG_KEY, on ? '1' : '');
+		} catch {
+			// storage blocked: the choice lasts for this page
+		}
+	}
 
 	const planner = new Planner(fetchLeg);
 	// svelte-ignore state_referenced_locally
@@ -75,6 +87,11 @@
 	function onready(m: MapLibreMap, l: typeof MapLibre) {
 		map = m;
 		lib = l;
+		try {
+			dragPath = localStorage.getItem(DRAG_KEY) === '1';
+		} catch {
+			// storage blocked: the default
+		}
 		m.on('click', (e: MapMouseEvent) => {
 			// Clicks on a point (a marker above the map) are the point's own.
 			if (!user || e.originalEvent.target !== m.getCanvas()) return;
@@ -140,7 +157,7 @@
 		<Map bind:base bind:overlays {onready} />
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
-			<RouteLayers {map} {lib} {planner} {hover} {ghosts} />
+			<RouteLayers {map} {lib} {planner} {hover} {ghosts} {dragPath} />
 		{/if}
 		{#if planner.line.coordinates.length > 1}
 			<div
@@ -172,6 +189,31 @@
 					<option value="alpine">{m.plan_profile_alpine()}</option>
 				</select>
 			</label>
+
+			<fieldset class="flex flex-col gap-1 text-sm" data-testid="drag-mode">
+				<legend class="mb-1 font-medium">{m.plan_drag()}</legend>
+				<div class="flex gap-3">
+					<label class="flex items-center gap-1">
+						<input
+							type="radio"
+							name="drag-mode"
+							checked={!dragPath}
+							onchange={() => setDragPath(false)}
+						/>
+						{m.plan_drag_point()}
+					</label>
+					<label class="flex items-center gap-1">
+						<input
+							type="radio"
+							name="drag-mode"
+							checked={dragPath}
+							onchange={() => setDragPath(true)}
+						/>
+						{m.plan_drag_path()}
+					</label>
+				</div>
+				<p class="text-xs text-stone-500">{m.plan_drag_hint()}</p>
+			</fieldset>
 
 			<section data-testid="points">
 				<h3 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">

@@ -9,6 +9,7 @@
 	} from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { ROUTE_PREFIX } from '$lib/map/styles';
+	import { m } from '$lib/paraglide/messages';
 	import { legFeatures } from './geojson';
 	import type { Planner } from './planner.svelte';
 
@@ -18,7 +19,8 @@
 		planner,
 		hover,
 		editable = true,
-		ghosts = []
+		ghosts = [],
+		dragPath = false
 	}: {
 		map: MapLibreMap;
 		lib: typeof MapLibre;
@@ -29,6 +31,8 @@
 		editable?: boolean;
 		/** reference points, e.g. the ends of neighbouring journey stages */
 		ghosts?: { at: number[]; label: string }[];
+		/** dragging the line moves the leg onto another path instead of adding a point (Alt flips it) */
+		dragPath?: boolean;
 	} = $props();
 
 	const LEGS = `${ROUTE_PREFIX}legs`;
@@ -135,8 +139,9 @@
 		const onEnter = () => (map.getCanvas().style.cursor = editable ? 'pointer' : '');
 		const onLeave = () => (map.getCanvas().style.cursor = '');
 		// Press on the line and drag: a new point where it is released, between
-		// the ends of that leg. A click without dragging is handled by the
-		// planner (a point where clicked).
+		// the ends of that leg, or the leg moved onto the path nearest to it
+		// (dragPath, or Alt held on release). A click without dragging is
+		// handled by the planner (a point where clicked).
 		const onDown = (e: MapLayerMouseEvent) => {
 			const leg = Number(e.features?.[0]?.properties?.leg);
 			// Presses on a point's marker reach the map too; the marker drags itself.
@@ -151,11 +156,15 @@
 				map.getCanvas().style.cursor = 'grabbing';
 				band(at, leg, leg + 1);
 			};
-			const onUp = () => {
+			const onUp = (ev: MouseEvent) => {
 				map.off('mousemove', onMove);
 				band();
 				map.getCanvas().style.cursor = '';
-				if (at) planner.insert(leg + 1, at[0], at[1]);
+				if (!at) return;
+				// A straight line has no path to move onto.
+				if (dragPath !== ev.altKey && !planner.anchors[leg + 1]?.straight) {
+					planner.reroute(leg, at[0], at[1]);
+				} else planner.insert(leg + 1, at[0], at[1]);
 			};
 			map.on('mousemove', onMove);
 			window.addEventListener('mouseup', onUp, { once: true });
@@ -177,7 +186,7 @@
 
 	$effect(() => {
 		// Track the reactive inputs, then draw.
-		void [planner.anchors.map((a) => [a.lon, a.lat, a.straight]), planner.legs, hover];
+		void [planner.anchors.map((a) => [a.lon, a.lat, a.straight, a.through]), planner.legs, hover];
 		render();
 	});
 
@@ -253,6 +262,38 @@
 		markers.clear();
 	});
 
+	/** Where leg i passes closest to p: the dot of a leg dragged onto a path. */
+	function onLeg(i: number, p: { lon: number; lat: number }): [number, number] {
+		const slot = planner.legs[i];
+		if (slot?.state !== 'ok') return [p.lon, p.lat];
+		const k = Math.cos((p.lat * Math.PI) / 180);
+		let best: [number, number] = [p.lon, p.lat];
+		let bestD = Infinity;
+		for (const c of slot.leg.coordinates) {
+			const d = ((c[0] - p.lon) * k) ** 2 + (c[1] - p.lat) ** 2;
+			if (d < bestD) [best, bestD] = [[c[0], c[1]], d];
+		}
+		return best;
+	}
+
+	$effect(() => {
+		const placed = planner.anchors.flatMap((a, i) => {
+			if (!a.through || a.straight) return [];
+			const el = document.createElement('div');
+			el.appendChild(document.createElement('div'));
+			const dot = el.firstElementChild as HTMLElement;
+			dot.className = 'through';
+			dot.title = editable ? m.plan_through_title() : '';
+			dot.dataset.testid = 'through';
+			el.addEventListener('dblclick', (e) => {
+				e.stopPropagation();
+				if (editable) planner.unshape(i - 1);
+			});
+			return [new lib.Marker({ element: el }).setLngLat(onLeg(i - 1, a.through)).addTo(map)];
+		});
+		return () => placed.forEach((mk) => mk.remove());
+	});
+
 	$effect(() => {
 		const placed = ghosts.map((g) => {
 			const el = document.createElement('div');
@@ -289,6 +330,14 @@
 		border: 3px solid #78716c;
 		background: #e7e5e4;
 		opacity: 0.9;
+	}
+	:global(.through) {
+		width: 10px;
+		height: 10px;
+		border-radius: 9999px;
+		border: 2px solid #a21caf;
+		background: #fff;
+		cursor: default;
 	}
 	:global(.anchor-start) {
 		background: #16a34a;

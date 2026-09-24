@@ -45,6 +45,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
 | 0.5.0 | 2026-09-24 | A GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); fixes from a review of all parts: ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving |
 | 0.6.0 | 2026-09-24 | Live location for contacts with an overdue alert (12), protected areas along routes (13); keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging the line on touch screens; in the app: elevation profiles and ascent while hiking, recordings per account, asking before switching hikes, ticking stages off |
+| 0.7.0 | 2026-09-24 | Search engines: titles, descriptions, canonical addresses, noindex for private pages, a sitemap and an address per language (/en/, /fr/, /it/ with hreflang); link-preview images of journeys and collections; compressed answers; map tiles refused while busy are asked for again; the draft logo on the web and as app icon |
 
 ## Requirements
 

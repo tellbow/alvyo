@@ -30,6 +30,7 @@ class _RouteScreenState extends State<RouteScreen> {
   SavedPack? _pack;
   bool _outdated = false;
   bool _resumable = false; // a hike on this route is still being recorded
+  bool _hiking = false;
   final _downloads = PackDownloads.instance;
 
   @override
@@ -52,6 +53,8 @@ class _RouteScreenState extends State<RouteScreen> {
   }
 
   Future<void> _hike(RouteDetail r) async {
+    if (_hiking) return; // a double tap would record twice
+    _hiking = true;
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final summary = await Navigator.of(context).push<HikeSummary>(
@@ -59,6 +62,7 @@ class _RouteScreenState extends State<RouteScreen> {
         builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack, turns: _pack?.turns),
       ),
     );
+    _hiking = false;
     if (!mounted) return;
     setState(() => _resumable = false);
     if (summary == null) return;

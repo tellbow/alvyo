@@ -22,6 +22,9 @@ class FakeServer {
 
   /// Turns fail, as with a server before them or GraphHopper down.
   var turnsDown = false;
+
+  /// The next download gets a Wi-Fi login page instead.
+  var portal = false;
   final files = {'landeskarte': utf8.encode('PMTiles-lk'), 'wanderwege': utf8.encode('PMTiles-ww')};
 
   Map<String, dynamic> status() => {
@@ -85,6 +88,10 @@ class FakeServer {
         ranges.add(req.headers['range']);
         if (RegExp(r'^bytes=(\d+)-$').firstMatch(req.headers['range'] ?? '') case final m?) {
           return http.Response.bytes(body.sublist(int.parse(m[1]!)), 206);
+        }
+        if (portal) {
+          portal = false;
+          return http.Response('<html>Bitte anmelden</html>', 200);
         }
         if (breakAfter case final n?) {
           breakAfter = null; // the connection drops once
@@ -156,6 +163,19 @@ void main() {
     expect((await store.savedJourney('j1'))!.title, 'Via Alpina, neu');
     expect(await store.savedJourney('nope'), isNull);
     expect(await store.savedRoutes(), isEmpty);
+  });
+
+  test('a Wi-Fi login page instead of the map is not kept', () async {
+    final server = FakeServer()..portal = true;
+    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final store = PackStore(root, poll: Duration.zero);
+    await expectLater(store.save(api, 'r1', progress: (_, _) {}), throwsA(isA<ApiException>()));
+    expect(root.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.part')), isEmpty);
+
+    server.polls = 0;
+    final pack = await store.save(api, 'r1', progress: (_, _) {});
+    expect(File(pack.files['landeskarte']!).readAsStringSync(), 'PMTiles-lk');
+    expect(server.ranges.last, isNull, reason: 'downloaded whole, not resumed after the page');
   });
 
   test('saved without turns when they cannot be had', () async {

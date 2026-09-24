@@ -15,13 +15,19 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **No false alarms**: with real GPS jitter, in forests and on switchbacks,
       no warning while on the path (thresholds: 2 positions over 50 m, back
       under 30 m).
-- [ ] **Loops**: the progress keeps going forward past the start.
+- [ ] **Loops**: starting at the trailhead says nothing about arriving; the
+      progress keeps going forward, «Ziel erreicht» at the end.
+- [ ] **Location switched off mid-hike** (Control Centre or Settings): the
+      banner says «Warte auf GPS …» until positions come again.
+- [ ] **Logged out elsewhere** (or the session expired): opening the app shows
+      the login, not «Server nicht erreichbar».
 - [ ] **Remaining time** compared with the time actually needed, at the pace set
       in the account.
 - [ ] **Spoken turns** on a planned route, phone in the pocket with the screen
       locked: «In 100 Metern links abbiegen» about 100 m before a junction and
       «Links abbiegen» about 20 m before it, then «Ziel erreicht». Heard over
-      music (turned down meanwhile) and with the silent switch on; the voice
+      music (turned down meanwhile, back to full volume half a second after
+      each prompt) and with the silent switch on; the voice
       (Swiss if installed, else German) and the timing at walking speed are
       right. Only simulated so far: the prompts and the iOS voice channel,
       not listened to.
@@ -42,6 +48,9 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **Saving an offline map** goes on after leaving the route screen, and a
       download broken off (reception lost, app in the background for long)
       continues where it stopped when saving again.
+- [ ] **Saving an offline map in a hut's or station's Wi-Fi** that first shows
+      a login page: the save fails and works once logged in to the Wi-Fi,
+      without a broken map.
 - [ ] **iCloud backup**: offline maps are not in it (Settings → your name →
       iCloud → Manage storage → Backups: odysgeh stays small).
 - [ ] **App stopped mid-hike** (swipe it away, open it again): the route offers

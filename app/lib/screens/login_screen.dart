@@ -39,9 +39,10 @@ class _LoginScreenState extends State<LoginScreen> {
       await widget.session.save(api);
       widget.onLoggedIn(api);
     } on ApiException catch (e) {
-      setState(() => _error = e.status == 401 ? t.loginInvalid : t.errorGeneric);
-    } on Exception {
-      setState(() => _error = t.errorServer);
+      if (mounted) setState(() => _error = e.status == 401 ? t.loginInvalid : t.errorGeneric);
+    } catch (_) {
+      // offline, no such server, or an address that is none
+      if (mounted) setState(() => _error = t.errorServer);
     } finally {
       if (mounted) setState(() => _busy = false);
     }

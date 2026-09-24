@@ -26,7 +26,24 @@ class Recording {
     final meta = _meta(root);
     if (!await meta.exists()) return null;
     final m = jsonDecode(await meta.readAsString()) as Map<String, dynamic>;
-    return Recording._(root, m['route_id'] as String, m['title'] as String, DateTime.parse(m['started'] as String));
+    final r = Recording._(root, m['route_id'] as String, m['title'] as String, DateTime.parse(m['started'] as String));
+    await r._endLine();
+    return r;
+  }
+
+  /// Ends a line cut off when the app was stopped while writing, so that the
+  /// positions to come are not joined to it.
+  Future<void> _endLine() async {
+    if (!await _fixes.exists()) return;
+    final f = await _fixes.open();
+    final n = await f.length();
+    var last = 10;
+    if (n > 0) {
+      await f.setPosition(n - 1);
+      last = await f.readByte();
+    }
+    await f.close();
+    if (last != 10) await _fixes.writeAsString('\n', mode: FileMode.append);
   }
 
   /// Starts recording a hike on a route; one at a time.
@@ -36,9 +53,13 @@ class Recording {
     required String title,
     DateTime? now,
   }) async {
-    if (await active(root) != null) throw StateError('a hike is already being recorded');
     await root.create(recursive: true);
     final r = Recording._(root, routeId, title, (now ?? DateTime.now()).toUtc());
+    try {
+      await _meta(root).create(exclusive: true); // two starts at once: one wins
+    } on FileSystemException {
+      throw StateError('a hike is already being recorded');
+    }
     await r._fixes.writeAsString('');
     await _meta(root).writeAsString(jsonEncode(r._metaJson()));
     return r;
@@ -46,12 +67,34 @@ class Recording {
 
   Map<String, dynamic> _metaJson() => {'route_id': routeId, 'title': title, 'started': started.toIso8601String()};
 
-  Future<void> add(Fix fix) => _fixes.writeAsString('${jsonEncode(fix.toJson())}\n', mode: FileMode.append);
+  /// Writes to a file, one after the other: appends that overlap would
+  /// write at the same place.
+  static final _writes = <String, Future<void>>{};
 
-  Future<List<Fix>> fixes() async => [
-    for (final l in await _fixes.readAsLines())
-      if (l.isNotEmpty) Fix.fromJson(jsonDecode(l) as Map<String, dynamic>),
-  ];
+  Future<void> add(Fix fix) {
+    final path = _fixes.path;
+    final line = '${jsonEncode(fix.toJson())}\n';
+    final done = (_writes[path] ?? Future.value()).then((_) async {
+      await _fixes.writeAsString(line, mode: FileMode.append);
+    });
+    _writes[path] = done.catchError((_) {});
+    return done;
+  }
+
+  /// The positions so far; a line cut off when the app was stopped while
+  /// writing is left out.
+  Future<List<Fix>> fixes() async {
+    await _writes[_fixes.path];
+    final out = <Fix>[];
+    for (final l in await _fixes.readAsLines()) {
+      try {
+        if (l.isNotEmpty) out.add(Fix.fromJson(jsonDecode(l) as Map<String, dynamic>));
+      } on FormatException {
+        // cut off
+      }
+    }
+    return out;
+  }
 
   /// Ends the recording and keeps it for uploading; returns its file.
   Future<File> finish() async {
@@ -59,9 +102,11 @@ class Recording {
     await done.create(recursive: true);
     final name = started.toIso8601String().replaceAll(':', '-');
     final out = File('${done.path}/$name.json');
-    await out.writeAsString(jsonEncode({..._metaJson(), 'fixes': await fixes()}));
-    await _fixes.delete();
+    final tmp = File('${out.path}.tmp');
+    await tmp.writeAsString(jsonEncode({..._metaJson(), 'fixes': await fixes()}));
+    await tmp.rename(out.path);
     await _meta(root).delete();
+    await _fixes.delete();
     return out;
   }
 }

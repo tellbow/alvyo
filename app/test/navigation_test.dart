@@ -141,6 +141,35 @@ void main() {
       expect(p.offRoute, isFalse);
     });
 
+    test('a loop starts at its start, and arrives at its end', () {
+      // 500 m squares: east, north, west, back south to the trailhead.
+      final loop = [
+        for (var e = 0.0; e < 500; e += 20) at(e),
+        for (var n = 0.0; n < 500; n += 20) at(500, n),
+        for (var e = 500.0; e > 0; e -= 20) at(e, 500),
+        for (var n = 500.0; n >= 0; n -= 20) at(0, n),
+      ];
+      final tr = RouteTracker(loop, durationS: 1800);
+      final first = tr.update(fix(-3, 2))!; // at the trailhead, nearer the loop's last metres
+      expect(first.doneM, lessThan(10));
+      expect(first.arrived, isFalse);
+      Progress? p;
+      for (var e = 20.0; e < 500; e += 20) {
+        p = tr.update(fix(e));
+      }
+      for (var n = 0.0; n <= 500; n += 20) {
+        p = tr.update(fix(500, n));
+      }
+      for (var e = 480.0; e >= 0; e -= 20) {
+        p = tr.update(fix(e, 500));
+      }
+      for (var n = 480.0; n >= 0; n -= 20) {
+        p = tr.update(fix(0, n));
+      }
+      expect(p!.arrived, isTrue);
+      expect(p.doneM, closeTo(2000, 30));
+    });
+
     test('a shortcut to a later part is followed', () {
       final tr = RouteTracker(straight, durationS: 1800);
       tr.update(fix(100));

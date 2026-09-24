@@ -83,8 +83,18 @@ final class Speech: NSObject, AVSpeechSynthesizerDelegate {
   }
 
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-    if !synthesizer.isSpeaking {
-      // Other audio back to full volume.
+    release()
+  }
+
+  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+    release()
+  }
+
+  /// Other audio back to full volume once nothing is being said. Right after
+  /// the last word the session can still be busy, so a moment later.
+  private func release() {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+      guard let self, !self.synthesizer.isSpeaking else { return }
       try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
   }

@@ -77,6 +77,10 @@ class _NavigateScreenState extends State<NavigateScreen> {
   bool _follow = true;
   bool _denied = false;
 
+  /// The GPS reported a problem (e.g. location switched off) since the last
+  /// position.
+  bool _gpsLost = false;
+
   /// While following the position; panning or zooming stops following.
   static const _followZoom = 15.0;
   Timer? _clock;
@@ -103,6 +107,11 @@ class _NavigateScreenState extends State<NavigateScreen> {
   }
 
   Future<void> _start() async {
+    // Asked first: without the location, nothing is recorded.
+    if (widget.positions == null && !await locationAllowed()) {
+      if (mounted) setState(() => _denied = true);
+      return;
+    }
     final root = widget.recordings ?? await Recording.defaultRoot();
     var rec = await Recording.active(root);
     if (rec != null && rec.routeId != widget.route.id) {
@@ -114,13 +123,14 @@ class _NavigateScreenState extends State<NavigateScreen> {
     for (final f in await rec.fixes()) {
       _progress = _tracker.update(f) ?? _progress;
     }
-    if (widget.positions == null && !await locationAllowed()) {
-      if (mounted) setState(() => _denied = true);
-      return;
-    }
     if (!mounted) return;
     setState(() => _recording = rec);
-    _sub = (widget.positions ?? gpsFixes)().listen(_onFix);
+    _sub = (widget.positions ?? gpsFixes)().listen(
+      _onFix,
+      onError: (Object _) {
+        if (mounted) setState(() => _gpsLost = true);
+      },
+    );
     unawaited(_alerts.init()); // asks for notifications without holding up the GPS
   }
 
@@ -132,6 +142,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
     setState(() {
       _fix = fix;
       _progress = p ?? _progress;
+      _gpsLost = false;
     });
     await _style?.updateGeoJsonSource(
       id: 'me',
@@ -310,7 +321,13 @@ class _NavigateScreenState extends State<NavigateScreen> {
                 ],
               ),
             ),
-            if (p != null && p.offRoute)
+            if (_gpsLost)
+              _Banner(
+                key: const Key('nav-gps-lost'),
+                color: Theme.of(context).colorScheme.errorContainer,
+                text: t.navWaiting,
+              )
+            else if (p != null && p.offRoute)
               _Banner(
                 key: const Key('nav-off-route'),
                 color: Theme.of(context).colorScheme.errorContainer,

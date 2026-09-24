@@ -154,6 +154,12 @@ class PackStore {
         } else {
           done += have;
         }
+        // Not the map, e.g. the login page of a hut's Wi-Fi: start over
+        // rather than resume after it.
+        if (!await _isPmtiles(part)) {
+          await part.delete();
+          throw ApiException(500, 'the download of ${f.layer} is not a map');
+        }
         if (await part.length() != f.bytes) throw ApiException(500, 'the download of ${f.layer} broke off');
         await part.rename(file.path);
       } else {
@@ -178,6 +184,13 @@ class PackStore {
       if (e is File && !keep.contains(e.uri.pathSegments.last)) await e.delete();
     }
     return (await saved(routeId))!;
+  }
+
+  /// Whether a file starts like a PMTiles archive (or like the start of one,
+  /// when only a few bytes came).
+  static Future<bool> _isPmtiles(File f) async {
+    final head = await f.openRead(0, 7).fold<List<int>>([], (a, b) => a..addAll(b));
+    return 'PMTiles'.startsWith(String.fromCharCodes(head));
   }
 
   /// Offline maps can be downloaded again: they stay out of iCloud backups

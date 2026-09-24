@@ -47,8 +47,11 @@ void main() {
         if (!online) throw http.ClientException('offline');
         final b = jsonDecode(req.body) as Map<String, dynamic>;
         bodies.add(b);
+        if ((b['title'] as String).length > 120) {
+          return http.Response(jsonEncode({'detail': 'validation failed'}), 422);
+        }
         return b['title'] == 'Outside, 21.09.2026'
-            ? http.Response(jsonEncode({'detail': 'outside'}), 422)
+            ? http.Response(jsonEncode({'detail': 'the hike leaves Switzerland and Liechtenstein'}), 422)
             : http.Response(jsonEncode({'id': 'new'}), 201);
       }),
     );
@@ -64,6 +67,41 @@ void main() {
     expect(sent['id'], '2026-09-20T08:00:00.000Z');
     expect(sent['route_id'], 'r1');
     expect((sent['points'] as List).length, 3, reason: 'the inaccurate position is left out');
+  });
+
+  test('a long route title fits; an unreadable hike is set aside', () async {
+    hike('2026-09-20T08:00:00.000Z', 'Sehr lange Etappe ' * 10);
+    File('${root.path}/done/2026-09-19T08-00-00.000Z.json').writeAsStringSync('{"route_id":');
+    final titles = <String>[];
+    final api = Api(
+      'https://odysgeh.test',
+      token: 't',
+      client: MockClient((req) async {
+        final title = (jsonDecode(req.body) as Map<String, dynamic>)['title'] as String;
+        titles.add(title);
+        return title.length > 120
+            ? http.Response(jsonEncode({'detail': 'validation failed'}), 422)
+            : http.Response(jsonEncode({'id': 'new'}), 201);
+      }),
+    );
+    expect(await uploadHikes(api, root), 1);
+    expect(titles.single.length, lessThanOrEqualTo(120));
+    expect(titles.single, endsWith('Etappe, 20.09.2026'));
+    expect(
+      [for (final f in Directory('${root.path}/done').listSync()) f.uri.pathSegments.last],
+      ['2026-09-19T08-00-00.000Z.json.bad'],
+    );
+  });
+
+  test('a refusal the server may lift later keeps the hike', () async {
+    hike('2026-09-20T08:00:00.000Z', 'Gratweg');
+    final api = Api(
+      'https://odysgeh.test',
+      token: 't',
+      client: MockClient((_) async => http.Response(jsonEncode({'detail': 'validation failed'}), 422)),
+    );
+    expect(await uploadHikes(api, root), 0);
+    expect(Directory('${root.path}/done').listSync(), hasLength(1));
   });
 
   test('points closer than 5 m are left out, but not the last', () {

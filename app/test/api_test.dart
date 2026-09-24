@@ -49,6 +49,12 @@ void main() {
     expect(routes.single.totals.durationS, 1800);
   });
 
+  test('the server address is tidied', () {
+    expect(Api('odysgeh.tellbow.ch').server, 'https://odysgeh.tellbow.ch');
+    expect(Api(' https://odysgeh.tellbow.ch// ').server, 'https://odysgeh.tellbow.ch');
+    expect(Api('http://localhost:5173').server, 'http://localhost:5173');
+  });
+
   test('route detail joins the legs; errors carry the status', () async {
     final client = MockClient((req) async {
       if (req.url.path == '/api/v1/routes/r1') {

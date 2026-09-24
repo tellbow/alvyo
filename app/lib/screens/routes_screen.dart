@@ -30,6 +30,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
       _uploadHikes();
       return (routes, false);
     } catch (e) {
+      if (e is ApiException && e.status == 401) {
+        // The session ended (logged out elsewhere, or expired): log in again.
+        WidgetsBinding.instance.addPostFrameCallback((_) => widget.onLogout());
+      }
       if (e is ApiException && e.status < 500) rethrow;
       final saved = await (await PackStore.open()).savedRoutes();
       if (saved.isEmpty) rethrow;

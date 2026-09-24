@@ -109,7 +109,10 @@ class RouteTracker {
   double get lengthM => _cumM.last;
 
   Progress? _last;
-  double? _alongM;
+
+  /// Where on the route the last position was; the start before the first,
+  /// so that a loop does not begin at its end.
+  double _alongM = 0;
   var _farInARow = 0;
   var _off = false;
 
@@ -118,8 +121,8 @@ class RouteTracker {
   /// The progress after [fix]; inaccurate positions keep the last progress.
   Progress? update(Fix fix) {
     if (fix.accuracyM > maxAccuracyM || line.length < 2) return _last;
-    var match = _nearest(fix, _alongM == null ? null : (_alongM! - _behindM, _alongM! + _aheadM));
-    if (_alongM != null && match.distanceM > offRouteM) {
+    var match = _nearest(fix, (_alongM - _behindM, _alongM + _aheadM));
+    if (match.distanceM > offRouteM) {
       // Lost within the window: maybe a shortcut to a later part.
       final anywhere = _nearest(fix, null);
       if (anywhere.distanceM < offRouteM) match = anywhere;
@@ -166,7 +169,7 @@ class RouteTracker {
       final px = ax + t * dx, py = ay + t * dy;
       final d = sqrt(px * px + py * py);
       final along = _cumM[i - 1] + t * (_cumM[i] - _cumM[i - 1]);
-      final score = window == null ? d : d + _backCost * max(0.0, (_alongM ?? 0) - along);
+      final score = window == null ? d : d + _backCost * max(0.0, _alongM - along);
       if (score < bestScore) {
         bestScore = score;
         best = _Match(
@@ -177,7 +180,7 @@ class RouteTracker {
         );
       }
     }
-    return best ?? _Match(distanceM: double.infinity, alongM: _alongM ?? 0, minutes: 0, at: line.first);
+    return best ?? _Match(distanceM: double.infinity, alongM: _alongM, minutes: 0, at: line.first);
   }
 
   static double _distance(List<double> a, List<double> b) {

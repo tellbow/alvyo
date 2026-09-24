@@ -198,9 +198,13 @@ class PackStatus {
 /// Client of the odysgeh API. Logging in yields the session token, which
 /// authenticates later calls as a Bearer token.
 class Api {
-  Api(String server, {this.token, http.Client? client})
-    : server = server.replaceAll(RegExp(r'/+$'), ''),
-      _http = client ?? http.Client();
+  Api(String server, {this.token, http.Client? client}) : server = _normalized(server), _http = client ?? http.Client();
+
+  /// Without trailing slashes, and https when typed without a scheme.
+  static String _normalized(String server) {
+    final s = server.trim().replaceAll(RegExp(r'/+$'), '');
+    return s.contains('://') ? s : 'https://$s';
+  }
 
   final String server;
   String? token;

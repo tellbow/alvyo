@@ -12,7 +12,11 @@ map, public profiles, likes, comments, following with a news feed, reports
 and a moderation queue, photos (metadata removed, pinned along the route),
 passkeys and sign-in with OpenID Connect providers, German, English, French
 and Italian, link previews. Hiking times match the official SchweizMobil
-figures ([docs/hiking-time.md](docs/hiking-time.md)). Next: the mobile app. Deployment: [docs/operations.md](docs/operations.md).
+figures ([docs/hiking-time.md](docs/hiking-time.md)). The iOS app shows
+routes on the national map, saves them offline, navigates with spoken turns,
+records hikes and imports Apple Watch workouts ([app/README.md](app/README.md)).
+Plan, status and what comes next: [docs/plan.md](docs/plan.md). Deployment:
+[docs/operations.md](docs/operations.md).
 
 ## Layout
 
@@ -21,9 +25,9 @@ figures ([docs/hiking-time.md](docs/hiking-time.md)). Next: the mobile app. Depl
 | `swiss/` | Go module: Swiss domain logic (hiking time, SAC, LV95, elevation, OJP) |
 | `api/`   | Go module: HTTP API (`odysgeh` binary)                                |
 | `web/`   | SvelteKit web app                                                     |
-| `app/`   | Flutter app (milestone M3)                                            |
+| `app/`   | Flutter app (iOS)                                                     |
 | `infra/` | Docker Compose, GraphHopper, tile cache, data import                  |
-| `docs/`  | ADRs, data sources, hiking-time calibration                           |
+| `docs/`  | Plan, ADRs, hiking-time calibration, development and operations       |
 
 ## Development
 

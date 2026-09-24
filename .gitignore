@@ -15,3 +15,7 @@ coverage.out
 *.pmtiles
 /infra/backups/
 /data/
+
+# Claude Code: personal, not shared
+CLAUDE.local.md
+.claude/settings.local.json

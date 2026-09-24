@@ -308,4 +308,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String areasStages(String list) {
     return 'Stage $list';
   }
+
+  @override
+  String liveSharedUntil(String time) {
+    return 'Position shared · end planned at $time';
+  }
+
+  @override
+  String get liveLater => 'Later';
+
+  @override
+  String get liveLaterFailed => 'That needs a connection. Please try again in a moment.';
+
+  @override
+  String get liveShareTitle => 'Share your position';
+
+  @override
+  String get liveShareIntro =>
+      'The chosen contacts get a link showing where you are. If the hike has not ended 30 minutes after the planned end, they get an e-mail with the last position.';
+
+  @override
+  String get liveShareEnd => 'Planned end';
+
+  @override
+  String get liveShareStart => 'Share and start';
+
+  @override
+  String get liveShareSkip => 'Without sharing';
+
+  @override
+  String get liveShareFailed => 'Sharing did not work; the hike is recorded anyway.';
+
+  @override
+  String get liveNoContacts => 'Add contacts to share with on the website under “Account”.';
 }

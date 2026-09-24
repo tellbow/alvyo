@@ -247,6 +247,29 @@ class ProtectedArea {
   }
 }
 
+/// Someone the hiker shares hikes with.
+class Contact {
+  Contact.fromJson(Map<String, dynamic> j)
+    : id = j['id'] as String,
+      name = j['name'] as String,
+      email = j['email'] as String;
+  final String id, name, email;
+}
+
+/// A hike shared with contacts.
+class LiveShare {
+  LiveShare.fromJson(Map<String, dynamic> j)
+    : id = j['id'] as String,
+      token = j['token'] as String? ?? '',
+      expectedEnd = DateTime.parse(j['expected_end'] as String),
+      recipients = [for (final r in j['recipients'] as List? ?? const []) r as String];
+
+  /// The link is /live/{token}.
+  final String id, token;
+  final DateTime expectedEnd;
+  final List<String> recipients;
+}
+
 /// One layer of an offline map on the server.
 class PackFile {
   PackFile.fromJson(Map<String, dynamic> j)
@@ -357,6 +380,46 @@ class Api {
 
   /// The turns along a route, for spoken navigation; none where it does not
   /// follow the path network.
+  Future<List<Contact>> contacts() async {
+    final j = await _get('/me/contacts') as Map<String, dynamic>;
+    return [for (final c in j['contacts'] as List) Contact.fromJson(c as Map<String, dynamic>)];
+  }
+
+  Future<dynamic> _send(String method, String path, [Object? body]) async {
+    final req = http.Request(method, _uri(path))..headers.addAll({..._headers, 'Content-Type': 'application/json'});
+    if (body != null) req.body = jsonEncode(body);
+    return _decode(await http.Response.fromStream(await _http.send(req)));
+  }
+
+  /// Shares a hike's position with [contactIds]; they get the link by e-mail.
+  Future<LiveShare> startLive({
+    String? routeId,
+    required String title,
+    required List<String> contactIds,
+    required DateTime expectedEnd,
+  }) async => LiveShare.fromJson(
+    await _send('POST', '/live', {
+          'route_id': ?routeId,
+          'title': title,
+          'contact_ids': contactIds,
+          'expected_end': expectedEnd.toUtc().toIso8601String(),
+        })
+        as Map<String, dynamic>,
+  );
+
+  Future<void> livePositions(String id, List<({double lon, double lat, DateTime time})> points) =>
+      _send('POST', '/live/$id/positions', {
+        'points': [
+          for (final p in points) {'lon': p.lon, 'lat': p.lat, 't': p.time.toUtc().toIso8601String()},
+        ],
+      });
+
+  /// Moves the expected end («später»).
+  Future<void> extendLive(String id, DateTime end) =>
+      _send('PATCH', '/live/$id', {'expected_end': end.toUtc().toIso8601String()});
+
+  Future<void> endLive(String id) => _send('POST', '/live/$id/end');
+
   /// The protected areas a route, or a journey's stages, cross.
   Future<List<ProtectedArea>> areas({String? routeId, String? journeyId}) async {
     final j =

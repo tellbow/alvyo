@@ -9,6 +9,7 @@
 	import { m } from '$lib/paraglide/messages';
 	import OidcNotice from '$lib/account/OidcNotice.svelte';
 	import SignInMethods from '$lib/account/SignInMethods.svelte';
+	import Contacts from '$lib/account/Contacts.svelte';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();
@@ -74,6 +75,8 @@
 			{m.account_notify_follows()}
 		</label>
 	</div>
+
+	<Contacts />
 
 	{#if blocked.length > 0}
 		<h2 class="mt-8 text-lg font-semibold">{m.account_blocked()}</h2>

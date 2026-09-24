@@ -6,6 +6,11 @@ linters:
     - gocritic
     - misspell
     - revive
+  settings:
+    misspell:
+      # E-mails in French and Italian use words that are English misspellings.
+      ignore-rules:
+        - terminato
 formatters:
   enable:
     - gofmt

@@ -89,5 +89,15 @@
   "areasBinding": "binding",
   "areasRecommended": "recommended",
   "areasPeriod": "{from} to {to}",
-  "areasStages": "Stage {list}"
+  "areasStages": "Stage {list}",
+  "liveSharedUntil": "Position shared · end planned at {time}",
+  "liveLater": "Later",
+  "liveLaterFailed": "That needs a connection. Please try again in a moment.",
+  "liveShareTitle": "Share your position",
+  "liveShareIntro": "The chosen contacts get a link showing where you are. If the hike has not ended 30 minutes after the planned end, they get an e-mail with the last position.",
+  "liveShareEnd": "Planned end",
+  "liveShareStart": "Share and start",
+  "liveShareSkip": "Without sharing",
+  "liveShareFailed": "Sharing did not work; the hike is recorded anyway.",
+  "liveNoContacts": "Add contacts to share with on the website under “Account”."
 }

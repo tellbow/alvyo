@@ -520,5 +520,22 @@
 	"areas_stages": "Stage {list}",
 	"areas_more": "More",
 	"areas_failed": "The protected areas could not be loaded.",
-	"areas_source": "Source: FOEN / cantons. The rules on site apply."
+	"areas_source": "Source: FOEN / cantons. The rules on site apply.",
+	"contacts_title": "Contacts for shared hikes",
+	"contacts_intro": "When you start a hike in the app, you can show chosen contacts where you are. If the hike has not ended 30 minutes after the expected end, they get an e-mail with the last position.",
+	"contacts_name": "Name",
+	"contacts_email": "E-mail",
+	"contacts_add": "Add",
+	"contacts_remove": "Remove",
+	"contacts_duplicate": "This address is a contact already.",
+	"contacts_full": "At most 10 contacts.",
+	"live_title": "{hiker} is out hiking",
+	"live_ended": "Hike ended",
+	"live_overdue": "Overdue: the hike should have ended at {time}.",
+	"live_expected": "Expected end: {time}",
+	"live_last": "Last position: {time}",
+	"live_none": "No position yet.",
+	"live_gone": "This link no longer works.",
+	"live_emergency": "In a mountain emergency: Rega 1414, or 112.",
+	"live_coords": "Coordinates"
 }

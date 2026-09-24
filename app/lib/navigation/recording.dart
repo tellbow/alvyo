@@ -34,6 +34,18 @@ class Recording {
   /// recordings from before owners were kept, and when not known yet.
   final String? owner;
 
+  /// The live share of this hike, if shared with contacts, and when it
+  /// should end.
+  String? liveId;
+  DateTime? expectedEnd;
+
+  /// Keeps the live share with the recording, for a resumed hike.
+  Future<void> setLive(String id, DateTime end) async {
+    liveId = id;
+    expectedEnd = end;
+    await _meta(root).writeAsString(jsonEncode(_metaJson()));
+  }
+
   static Future<Directory> defaultRoot() async =>
       Directory('${(await getApplicationSupportDirectory()).path}/recordings');
 
@@ -45,13 +57,19 @@ class Recording {
     final meta = _meta(root);
     if (!await meta.exists()) return null;
     final m = jsonDecode(await meta.readAsString()) as Map<String, dynamic>;
-    final r = Recording._(
-      root,
-      m['route_id'] as String,
-      m['title'] as String,
-      DateTime.parse(m['started'] as String),
-      m['owner'] as String?,
-    );
+    final r =
+        Recording._(
+            root,
+            m['route_id'] as String,
+            m['title'] as String,
+            DateTime.parse(m['started'] as String),
+            m['owner'] as String?,
+          )
+          ..liveId = m['live_id'] as String?
+          ..expectedEnd = switch (m['expected_end']) {
+            final String e => DateTime.parse(e),
+            _ => null,
+          };
     await r._endLine();
     return r;
   }
@@ -96,6 +114,8 @@ class Recording {
     'title': title,
     'started': started.toIso8601String(),
     'owner': ?owner,
+    'live_id': ?liveId,
+    if (expectedEnd case final e?) 'expected_end': e.toUtc().toIso8601String(),
   };
 
   /// Whether it belongs to someone else than [user] (both known).

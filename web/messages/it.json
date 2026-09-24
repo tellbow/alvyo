@@ -520,5 +520,22 @@
 	"areas_stages": "Tappa {list}",
 	"areas_more": "Di più",
 	"areas_failed": "Non è stato possibile caricare le zone protette.",
-	"areas_source": "Fonte: UFAM / cantoni. Fanno stato le regole sul posto."
+	"areas_source": "Fonte: UFAM / cantoni. Fanno stato le regole sul posto.",
+	"contacts_title": "Contatti per le escursioni condivise",
+	"contacts_intro": "Quando inizi un'escursione nell'app, puoi mostrare la tua posizione ai contatti scelti. Se l'escursione non è terminata 30 minuti dopo la fine prevista, ricevono un'e-mail con l'ultima posizione.",
+	"contacts_name": "Nome",
+	"contacts_email": "E-mail",
+	"contacts_add": "Aggiungi",
+	"contacts_remove": "Rimuovi",
+	"contacts_duplicate": "Questo indirizzo è già un contatto.",
+	"contacts_full": "Al massimo 10 contatti.",
+	"live_title": "{hiker} è in escursione",
+	"live_ended": "Escursione terminata",
+	"live_overdue": "In ritardo: l'escursione doveva terminare alle {time}.",
+	"live_expected": "Fine prevista: {time}",
+	"live_last": "Ultima posizione: {time}",
+	"live_none": "Ancora nessuna posizione.",
+	"live_gone": "Questo link non è più valido.",
+	"live_emergency": "In caso di emergenza in montagna: Rega 1414, o 112.",
+	"live_coords": "Coordinate"
 }

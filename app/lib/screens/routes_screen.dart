@@ -4,6 +4,7 @@ import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/recording.dart';
+import '../navigation/live.dart';
 import '../navigation/uploads.dart';
 import '../offline/packs.dart';
 import 'journeys_list.dart';
@@ -44,7 +45,9 @@ class _RoutesScreenState extends State<RoutesScreen> {
 
   /// Hikes recorded while offline go up now; the list then shows them.
   Future<void> _uploadHikes() async {
-    final n = await uploadHikes(widget.api, await Recording.defaultRoot()).catchError((_) => 0);
+    final root = await Recording.defaultRoot();
+    await LiveOutbox(root).flush(widget.api).catchError((_) => 0); // ends of shared hikes sent offline
+    final n = await uploadHikes(widget.api, root).catchError((_) => 0);
     if (n > 0 && mounted) _reload();
   }
 

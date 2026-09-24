@@ -214,5 +214,22 @@
         "type": "String"
       }
     }
+  },
+  "liveSharedUntil": "Standort geteilt · Ende geplant um {time}",
+  "liveLater": "Später",
+  "liveLaterFailed": "Ohne Verbindung geht das nicht. Versuche es gleich noch einmal.",
+  "liveShareTitle": "Standort teilen",
+  "liveShareIntro": "Die gewählten Kontakte bekommen einen Link mit deinem Standort. Ist die Wanderung 30 Minuten nach dem geplanten Ende nicht beendet, bekommen sie eine E-Mail mit dem letzten Standort.",
+  "liveShareEnd": "Geplantes Ende",
+  "liveShareStart": "Teilen und losgehen",
+  "liveShareSkip": "Ohne Teilen",
+  "liveShareFailed": "Das Teilen hat nicht geklappt; die Wanderung wird trotzdem aufgezeichnet.",
+  "liveNoContacts": "Kontakte zum Teilen legst du auf der Website unter «Konto» an.",
+  "@liveSharedUntil": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

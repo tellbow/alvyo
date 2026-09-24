@@ -983,6 +983,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Share a hike's position with some contacts
+         * @description They get the link by e-mail, and an e-mail with the last position if the hike has not ended 30 minutes after the expected end. A share still running ends.
+         */
+        post: operations["start-live"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/live/view/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A shared hike, for those with the link
+         * @description No login: the link is the key. Works until 24 hours after the end.
+         */
+        get: operations["live-view"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/live/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Move the expected end («später») */
+        patch: operations["extend-live"];
+        trace?: never;
+    };
+    "/live/{id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End the sharing */
+        post: operations["end-live"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/live/{id}/positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Positions of a shared hike (also those recorded while offline) */
+        post: operations["live-positions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -1014,6 +1105,41 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The people one shares hikes with */
+        get: operations["list-contacts"];
+        put?: never;
+        /** Add a contact (at most 10) */
+        post: operations["add-contact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a contact */
+        delete: operations["delete-contact"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1759,6 +1885,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AddContactInputBody: {
+            /** Format: email */
+            email: string;
+            name: string;
+        };
         AddItemInputBody: {
             /** Format: uuid */
             journey_id?: string;
@@ -1966,6 +2097,16 @@ export interface components {
         ConnectionsOutputBody: {
             trips: components["schemas"]["TransitTrip"][];
         };
+        Contact: {
+            /** Format: email */
+            email: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        ContactsOutputBody: {
+            contacts: components["schemas"]["Contact"][];
+        };
         Count: {
             /** Format: int64 */
             count: number;
@@ -2153,6 +2294,10 @@ export interface components {
              */
             type: string;
         };
+        ExtendLiveInputBody: {
+            /** Format: date-time */
+            expected_end: string;
+        };
         FeedItem: {
             /** Format: double */
             ascent_m: number;
@@ -2194,6 +2339,14 @@ export interface components {
             name: string;
             /** Format: int64 */
             tiles: number;
+        };
+        Fix: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+            /** Format: date-time */
+            t: string;
         };
         ForgotInputBody: {
             /** Format: email */
@@ -2521,6 +2674,9 @@ export interface components {
             /** @description [lon, lat] per point */
             line: number[][];
         };
+        LivePositionsInputBody: {
+            points: components["schemas"]["Fix"][];
+        };
         LoginInputBody: {
             /** @description E-mail address or username */
             login: string;
@@ -2698,6 +2854,14 @@ export interface components {
             title?: string;
         };
         Point: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+        };
+        Position: {
+            /** Format: date-time */
+            at: string;
             /** Format: double */
             lat: number;
             /** Format: double */
@@ -3015,6 +3179,16 @@ export interface components {
             /** @description E-mail when someone follows me */
             notify_follows?: boolean;
         };
+        Share: {
+            /** Format: date-time */
+            expected_end: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Names of those who got the link */
+            recipients: string[];
+            /** @description The link is /live/{token} */
+            token: string;
+        };
         ShareTokenOutputBody: {
             share_token: string;
         };
@@ -3094,6 +3268,20 @@ export interface components {
             /** Format: int64 */
             target_s: number;
             /** @description The track's name, for the journey */
+            title: string;
+        };
+        StartLiveInputBody: {
+            contact_ids: string[];
+            /**
+             * Format: date-time
+             * @description The contacts are alerted 30 minutes after it
+             */
+            expected_end: string;
+            /**
+             * Format: uuid
+             * @description The route hiked, to show it
+             */
+            route_id?: string;
             title: string;
         };
         Status: {
@@ -3261,6 +3449,22 @@ export interface components {
             source: string;
             /** @description Deployed version (git SHA or tag) */
             version: string;
+        };
+        View: {
+            /** Format: date-time */
+            ended_at: string | null;
+            /** Format: date-time */
+            expected_end: string;
+            /** @description The hiker's display name */
+            hiker: string;
+            last: components["schemas"]["Position"];
+            /** @description Not ended 30 minutes after the expected end */
+            overdue: boolean;
+            route: number[][];
+            /** Format: date-time */
+            started_at: string;
+            title: string;
+            way: components["schemas"]["Position"][];
         };
     };
     responses: never;
@@ -5718,6 +5922,165 @@ export interface operations {
             };
         };
     };
+    "start-live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartLiveInputBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Share"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "live-view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["View"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "extend-live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtendLiveInputBody"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "end-live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "live-positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LivePositionsInputBody"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "get-me": {
         parameters: {
             query?: never;
@@ -5829,6 +6192,97 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["BlockedOutputBody"];
                 };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "add-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddContactInputBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Contact"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "delete-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error */
             default: {

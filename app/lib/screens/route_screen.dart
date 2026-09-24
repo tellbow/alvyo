@@ -13,6 +13,7 @@ import '../navigation/uploads.dart';
 import '../offline/downloads.dart';
 import '../offline/packs.dart';
 import '../route_layers.dart';
+import 'live_sheet.dart';
 import 'navigate_screen.dart';
 
 /// A route on the national map, with offline saving.
@@ -89,9 +90,23 @@ class _RouteScreenState extends State<RouteScreen> {
         return;
       }
     }
+    // A new hike (not one resumed) can be shared with contacts.
+    LiveShare? live;
+    if (Recording.before(active, r.id, widget.api.userId) != Before.resume) {
+      final root = await Recording.defaultRoot();
+      if (!mounted) {
+        _hiking = false;
+        return;
+      }
+      live = await askToShare(context, api: widget.api, route: r, recordings: root);
+      if (!mounted) {
+        _hiking = false;
+        return;
+      }
+    }
     final summary = await Navigator.of(context).push<HikeSummary>(
       MaterialPageRoute(
-        builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack, turns: _pack?.turns),
+        builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack, turns: _pack?.turns, live: live),
       ),
     );
     _hiking = false;

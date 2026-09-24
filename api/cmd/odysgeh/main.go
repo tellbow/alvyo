@@ -35,6 +35,7 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/httpapi"
 	"github.com/tellbow/odysgeh/api/internal/imports"
 	"github.com/tellbow/odysgeh/api/internal/journeys"
+	"github.com/tellbow/odysgeh/api/internal/live"
 	"github.com/tellbow/odysgeh/api/internal/mailer"
 	"github.com/tellbow/odysgeh/api/internal/og"
 	"github.com/tellbow/odysgeh/api/internal/packs"
@@ -118,6 +119,8 @@ func serve(ctx context.Context) error {
 	go packService.PruneEvery(ctx, time.Hour)
 	photoStore := &photos.Store{DB: pool, Files: &photos.Files{Dir: cfg.PhotosDir}}
 	go photoStore.SweepEvery(ctx, time.Minute) // files of deleted photos
+	liveStore := &live.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
+	go liveStore.CheckEvery(ctx, time.Minute) // overdue hikes, old positions
 	var planner httpapi.Planner
 	if cfg.OJPToken != "" {
 		planner = &ojp.Client{URL: cfg.OJPURL, Token: cfg.OJPToken, RequestorRef: "odysgeh/" + version}
@@ -136,6 +139,7 @@ func serve(ctx context.Context) error {
 		Importer:    &imports.Importer{Router: router, Routes: routeStore, Journeys: journeyStore},
 		Komoot:      &imports.Komoot{API: imports.KomootAPI},
 		Places:      &places.Store{DB: pool, Names: &places.GeoAdmin{}},
+		Live:        liveStore,
 		Areas:       &areas.Finder{DB: pool, UserAgent: "odysgeh/" + version + " (+https://github.com/tellbow/odysgeh)"},
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},

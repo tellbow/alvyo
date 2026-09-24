@@ -77,6 +77,13 @@ Checked so far only in the simulator, with made-up or simulated positions
       gewandert markieren» in the message marks it (online); in the journey
       the check next to a stage does the same and back.
 
+- [ ] **A shared hike on a real hike** (production, real e-mail): the contact
+      gets the link, follows the position (with dead spots in a valley),
+      «Später» works; ended without a connection, the end reaches the server
+      once back online and nobody is alerted. An overdue alert (set the end
+      a few minutes ahead) reaches contact and hiker, and the all-clear
+      after «Später».
+
 ## Web
 
 - [ ] **Place search** with more names: villages, peaks, passes, huts, stops and

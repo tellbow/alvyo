@@ -23,6 +23,7 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/grants"
 	"github.com/tellbow/odysgeh/api/internal/imports"
 	"github.com/tellbow/odysgeh/api/internal/journeys"
+	"github.com/tellbow/odysgeh/api/internal/live"
 	"github.com/tellbow/odysgeh/api/internal/og"
 	"github.com/tellbow/odysgeh/api/internal/packs"
 	"github.com/tellbow/odysgeh/api/internal/photos"
@@ -49,6 +50,7 @@ type Deps struct {
 	Journeys    *journeys.Store
 	Places      *places.Store
 	Areas       *areas.Finder // protected areas along routes
+	Live        *live.Store   // hikes shared with contacts
 	Grants      *grants.Store
 	Collections *collections.Store
 	Discover    *discover.Store
@@ -112,6 +114,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerAccount(api, d)
 	registerRouting(api, d)
 	registerAreas(api, d)
+	registerLive(api, d)
 	registerRoutes(api, d)
 	registerJourneys(api, d)
 	registerJourneyPlan(api, d)

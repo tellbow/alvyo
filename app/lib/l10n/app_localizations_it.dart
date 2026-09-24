@@ -308,4 +308,37 @@ class AppLocalizationsIt extends AppLocalizations {
   String areasStages(String list) {
     return 'Tappa $list';
   }
+
+  @override
+  String liveSharedUntil(String time) {
+    return 'Posizione condivisa · fine prevista alle $time';
+  }
+
+  @override
+  String get liveLater => 'Più tardi';
+
+  @override
+  String get liveLaterFailed => 'Serve una connessione. Riprova tra un momento.';
+
+  @override
+  String get liveShareTitle => 'Condividi la posizione';
+
+  @override
+  String get liveShareIntro =>
+      'I contatti scelti ricevono un link con la tua posizione. Se l\'escursione non è terminata 30 minuti dopo la fine prevista, ricevono un\'e-mail con l\'ultima posizione.';
+
+  @override
+  String get liveShareEnd => 'Fine prevista';
+
+  @override
+  String get liveShareStart => 'Condividi e parti';
+
+  @override
+  String get liveShareSkip => 'Senza condividere';
+
+  @override
+  String get liveShareFailed => 'La condivisione non è riuscita; l\'escursione viene registrata comunque.';
+
+  @override
+  String get liveNoContacts => 'Aggiungi i contatti sul sito web in «Account».';
 }

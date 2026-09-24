@@ -19,3 +19,9 @@ String formatDate(DateTime d) {
   final l = d.toLocal();
   return '${l.day.toString().padLeft(2, '0')}.${l.month.toString().padLeft(2, '0')}.${l.year}';
 }
+
+/// A time of day, «16:05», in the phone's time zone.
+String formatTime(DateTime t) {
+  final l = t.toLocal();
+  return '${l.hour.toString().padLeft(2, '0')}:${l.minute.toString().padLeft(2, '0')}';
+}

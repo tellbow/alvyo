@@ -520,5 +520,22 @@
 	"areas_stages": "Etappe {list}",
 	"areas_more": "Mehr dazu",
 	"areas_failed": "Die Schutzgebiete konnten nicht geladen werden.",
-	"areas_source": "Quelle: BAFU / Kantone. Massgebend sind die Regeln vor Ort."
+	"areas_source": "Quelle: BAFU / Kantone. Massgebend sind die Regeln vor Ort.",
+	"contacts_title": "Kontakte für geteilte Wanderungen",
+	"contacts_intro": "Starte in der App eine Wanderung, kannst du ausgewählten Kontakten deinen Standort zeigen. Ist die Wanderung 30 Minuten nach dem geplanten Ende nicht beendet, bekommen sie eine E-Mail mit dem letzten Standort.",
+	"contacts_name": "Name",
+	"contacts_email": "E-Mail",
+	"contacts_add": "Hinzufügen",
+	"contacts_remove": "Entfernen",
+	"contacts_duplicate": "Diese Adresse ist schon ein Kontakt.",
+	"contacts_full": "Höchstens 10 Kontakte.",
+	"live_title": "{hiker} ist unterwegs",
+	"live_ended": "Wanderung beendet",
+	"live_overdue": "Überfällig: die Wanderung sollte seit {time} zu Ende sein.",
+	"live_expected": "Geplantes Ende: {time}",
+	"live_last": "Letzter Standort: {time}",
+	"live_none": "Noch kein Standort übermittelt.",
+	"live_gone": "Dieser Link gilt nicht mehr.",
+	"live_emergency": "Im Notfall in den Bergen: Rega 1414, oder 112.",
+	"live_coords": "Koordinaten"
 }

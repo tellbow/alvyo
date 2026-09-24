@@ -633,6 +633,66 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Etappe {list}'**
   String areasStages(String list);
+
+  /// No description provided for @liveSharedUntil.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort geteilt · Ende geplant um {time}'**
+  String liveSharedUntil(String time);
+
+  /// No description provided for @liveLater.
+  ///
+  /// In de, this message translates to:
+  /// **'Später'**
+  String get liveLater;
+
+  /// No description provided for @liveLaterFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Verbindung geht das nicht. Versuche es gleich noch einmal.'**
+  String get liveLaterFailed;
+
+  /// No description provided for @liveShareTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort teilen'**
+  String get liveShareTitle;
+
+  /// No description provided for @liveShareIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Die gewählten Kontakte bekommen einen Link mit deinem Standort. Ist die Wanderung 30 Minuten nach dem geplanten Ende nicht beendet, bekommen sie eine E-Mail mit dem letzten Standort.'**
+  String get liveShareIntro;
+
+  /// No description provided for @liveShareEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'Geplantes Ende'**
+  String get liveShareEnd;
+
+  /// No description provided for @liveShareStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilen und losgehen'**
+  String get liveShareStart;
+
+  /// No description provided for @liveShareSkip.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Teilen'**
+  String get liveShareSkip;
+
+  /// No description provided for @liveShareFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Teilen hat nicht geklappt; die Wanderung wird trotzdem aufgezeichnet.'**
+  String get liveShareFailed;
+
+  /// No description provided for @liveNoContacts.
+  ///
+  /// In de, this message translates to:
+  /// **'Kontakte zum Teilen legst du auf der Website unter «Konto» an.'**
+  String get liveNoContacts;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1,6 +1,26 @@
 {
   "components": {
     "schemas": {
+      "AddContactInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 254,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ],
+        "type": "object"
+      },
       "AddItemInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -607,6 +627,43 @@
         ],
         "type": "object"
       },
+      "Contact": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "type": "object"
+      },
+      "ContactsOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "contacts": {
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "contacts"
+        ],
+        "type": "object"
+      },
       "Count": {
         "additionalProperties": false,
         "properties": {
@@ -1135,6 +1192,19 @@
         },
         "type": "object"
       },
+      "ExtendLiveInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_end": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_end"
+        ],
+        "type": "object"
+      },
       "FeedItem": {
         "additionalProperties": false,
         "properties": {
@@ -1247,6 +1317,33 @@
           "name",
           "bytes",
           "tiles"
+        ],
+        "type": "object"
+      },
+      "Fix": {
+        "additionalProperties": false,
+        "properties": {
+          "lat": {
+            "format": "double",
+            "maximum": 48.2,
+            "minimum": 45.5,
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "maximum": 11,
+            "minimum": 5.5,
+            "type": "number"
+          },
+          "t": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lon",
+          "lat",
+          "t"
         ],
         "type": "object"
       },
@@ -2367,6 +2464,23 @@
         ],
         "type": "object"
       },
+      "LivePositionsInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/Fix"
+            },
+            "maxItems": 2000,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "points"
+        ],
+        "type": "object"
+      },
       "LoginInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -2955,6 +3069,29 @@
         "required": [
           "lon",
           "lat"
+        ],
+        "type": "object"
+      },
+      "Position": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lat": {
+            "format": "double",
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lon",
+          "lat",
+          "at"
         ],
         "type": "object"
       },
@@ -3946,6 +4083,37 @@
         },
         "type": "object"
       },
+      "Share": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_end": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recipients": {
+            "description": "Names of those who got the link",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "token": {
+            "description": "The link is /live/{token}",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "token",
+          "expected_end",
+          "recipients"
+        ],
+        "type": "object"
+      },
       "ShareTokenOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -4245,6 +4413,40 @@
           "stages",
           "target_s",
           "max_s"
+        ],
+        "type": "object"
+      },
+      "StartLiveInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "contact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          },
+          "expected_end": {
+            "description": "The contacts are alerted 30 minutes after it",
+            "format": "date-time",
+            "type": "string"
+          },
+          "route_id": {
+            "description": "The route hiked, to show it",
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "contact_ids",
+          "expected_end"
         ],
         "type": "object"
       },
@@ -4785,6 +4987,70 @@
         "required": [
           "version",
           "source"
+        ],
+        "type": "object"
+      },
+      "View": {
+        "additionalProperties": false,
+        "properties": {
+          "ended_at": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expected_end": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "hiker": {
+            "description": "The hiker's display name",
+            "type": "string"
+          },
+          "last": {
+            "$ref": "#/components/schemas/Position"
+          },
+          "overdue": {
+            "description": "Not ended 30 minutes after the expected end",
+            "type": "boolean"
+          },
+          "route": {
+            "items": {
+              "items": {
+                "format": "double",
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "started_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "way": {
+            "items": {
+              "$ref": "#/components/schemas/Position"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "title",
+          "hiker",
+          "started_at",
+          "expected_end",
+          "ended_at",
+          "overdue",
+          "last",
+          "way",
+          "route"
         ],
         "type": "object"
       }
@@ -8645,6 +8911,216 @@
         ]
       }
     },
+    "/live": {
+      "post": {
+        "description": "They get the link by e-mail, and an e-mail with the last position if the hike has not ended 30 minutes after the expected end. A share still running ends.",
+        "operationId": "start-live",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartLiveInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Share"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Share a hike's position with some contacts",
+        "tags": [
+          "live"
+        ]
+      }
+    },
+    "/live/view/{token}": {
+      "get": {
+        "description": "No login: the link is the key. Works until 24 hours after the end.",
+        "operationId": "live-view",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "A shared hike, for those with the link",
+        "tags": [
+          "live"
+        ]
+      }
+    },
+    "/live/{id}": {
+      "patch": {
+        "operationId": "extend-live",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtendLiveInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Move the expected end («später»)",
+        "tags": [
+          "live"
+        ]
+      }
+    },
+    "/live/{id}/end": {
+      "post": {
+        "operationId": "end-live",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "End the sharing",
+        "tags": [
+          "live"
+        ]
+      }
+    },
+    "/live/{id}/positions": {
+      "post": {
+        "operationId": "live-positions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LivePositionsInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Positions of a shared hike (also those recorded while offline)",
+        "tags": [
+          "live"
+        ]
+      }
+    },
     "/me": {
       "delete": {
         "operationId": "delete-me",
@@ -8782,6 +9258,111 @@
         "summary": "Users I blocked",
         "tags": [
           "me"
+        ]
+      }
+    },
+    "/me/contacts": {
+      "get": {
+        "operationId": "list-contacts",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactsOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The people one shares hikes with",
+        "tags": [
+          "live"
+        ]
+      },
+      "post": {
+        "operationId": "add-contact",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddContactInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Add a contact (at most 10)",
+        "tags": [
+          "live"
+        ]
+      }
+    },
+    "/me/contacts/{id}": {
+      "delete": {
+        "operationId": "delete-contact",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Remove a contact",
+        "tags": [
+          "live"
         ]
       }
     },

@@ -44,7 +44,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
 | 0.5.0 | 2026-09-24 | A GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); fixes from a review of all parts: ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving |
-| next | — | On main since 0.5.0: keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging on touch screens; in the app: recordings per account, asking before switching hikes, ticking stages off, elevation profiles and ascent while hiking; protected areas (13). Deploying needs the two BAFU layers in the tile cache allowlist of the gitops copy (`tilecache-nginx.conf`) and web and app together (stage versions) |
+| next | — | On main since 0.5.0: keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging on touch screens; in the app: recordings per account, asking before switching hikes, ticking stages off, elevation profiles and ascent while hiking; protected areas (13), live location for contacts (12). Deploying needs the two BAFU layers in the tile cache allowlist of the gitops copy (`tilecache-nginx.conf`) and web and app together (stage versions) |
 
 ## Requirements
 
@@ -112,6 +112,24 @@ From the project owner, numbered in the order given: 1–5 added on
     per line) instead of importing them. Web: overlays «Wildruhezonen» and
     «Eidg. Jagdbanngebiete»; the app lists them on route and journey
     screens.
+12. **Live location for contacts, and an alert when overdue** (next).
+    Contacts (name, e-mail, at most 10) are kept on the website under
+    «Konto». Starting a hike in the app offers «Standort teilen» with the
+    contacts chosen last time and the expected end (the route's hiking
+    time at one's pace + 1 h, changeable); the contacts get the link
+    (`/live/{token}`, no account needed: the route, the way so far, the
+    last position and its time). The app sends a position a minute every 5
+    minutes, and what it could not send once the connection is back;
+    «Später» moves the end an hour; ending the hike ends the sharing (sent
+    later if offline, so nobody is alerted about a hike that ended). A job
+    every minute e-mails the contacts, and the hiker, once when a hike has
+    not ended 30 minutes after the expected end, with the last position in
+    WGS84 and LV95 and the emergency numbers; «Später» or the end after an
+    alert sends an all-clear. The link works until 24 hours after the end;
+    shares and positions are deleted 7 days after it. Starting needs a
+    verified address and counts against the invitation limit (it sends
+    e-mail). A reminder on the phone shortly before the expected end is a
+    possible follow-up.
 8. **Plan a multi-day hike from start, destination and days** (0.5.0).
    «Etappentour planen» (`/journeys/plan`): start, destination and points
    to pass, the number of days or the hours per day (at one's pace), an
@@ -143,36 +161,7 @@ From the project owner, numbered in the order given: 1–5 added on
 ### Open
 
 Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
-SchweizMobil, the swisstopo app and others. Next: 12; 14 waits for
-Garmin.
-
-#### 12. Live location for contacts, and an alert when overdue
-
-A hiker alone on a T3+ route with poor coverage: people at home see where
-they last were, and are told if the hike does not end in time.
-
-- Contacts in the account: name and e-mail, at most 10 (web «Konto» and
-  the app).
-- Starting a hike in the app: «Standort teilen mit …» (the contacts chosen
-  last time are preselected) and the expected end, proposed as now + the
-  route's hiking time at one's pace + 1 h, changeable. Without contacts
-  chosen nothing is shared.
-- The app sends its position every 5 minutes and when the connection comes
-  back (`POST /live/{id}/positions`); the server keeps one position per
-  5 minutes. Contacts get an e-mail at the start with a link
-  (`/live/{token}`, no account needed): the route, the last position and
-  its time, the expected end. Ending the hike ends the sharing; the link
-  then shows «beendet» and expires after 24 hours.
-- Overdue: a job every minute finds shared hikes not ended 30 minutes after
-  the expected end and e-mails the contacts once, with the last position
-  (and coordinates for Rega), and the hiker too. «Später» in the app moves
-  the expected end.
-- Privacy (revDSG): only when chosen for the hike; positions are deleted 7
-  days after the end.
-- Check: API tests (start, positions thinned, public page without the
-  hiker's other data, overdue mail exactly once, «später», expiry and
-  deletion); Playwright: the live page; app tests for sending when the
-  connection comes back.
+SchweizMobil, the swisstopo app and others. 14 waits for Garmin.
 
 #### 14. Routes to Garmin devices (deferred)
 

@@ -14,6 +14,7 @@ import '../l10n/app_localizations.dart';
 import '../map_style.dart';
 import '../navigation/alerts.dart';
 import '../navigation/gps.dart';
+import '../navigation/live.dart';
 import '../navigation/recording.dart';
 import '../navigation/speech.dart';
 import '../navigation/tracker.dart';
@@ -42,6 +43,7 @@ class NavigateScreen extends StatefulWidget {
     this.recordings,
     this.alerts,
     this.speech,
+    this.live,
   });
 
   final Api api;
@@ -59,6 +61,9 @@ class NavigateScreen extends StatefulWidget {
   final Alerts? alerts;
   final Speech? speech;
 
+  /// The hike was just shared with contacts (see [LiveShare]).
+  final LiveShare? live;
+
   @override
   State<NavigateScreen> createState() => _NavigateScreenState();
 }
@@ -74,6 +79,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
   late TurnGuide? _guide = widget.turns == null ? null : TurnGuide(widget.turns!);
   bool _voice = true;
   Recording? _recording;
+  LiveSender? _live;
   StreamSubscription<Fix>? _sub;
   MapController? _map;
   StyleController? _style;
@@ -126,6 +132,8 @@ class _NavigateScreenState extends State<NavigateScreen> {
       rec = null;
     }
     rec ??= await Recording.start(root, routeId: widget.route.id, title: widget.route.title, owner: widget.api.userId);
+    if (widget.live case final live?) await rec.setLive(live.id, live.expectedEnd);
+    if (rec.liveId case final id?) _live = LiveSender(widget.api, id);
     // Resumed: continue where the hike was.
     for (final f in await rec.fixes()) {
       _progress = _tracker.update(f) ?? _progress;
@@ -143,6 +151,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
 
   Future<void> _onFix(Fix fix) async {
     await _recording?.add(fix);
+    unawaited(_live?.add(fix));
     final wasOff = _progress?.offRoute ?? false;
     final p = _tracker.update(fix);
     if (!mounted) return;
@@ -240,6 +249,10 @@ class _NavigateScreenState extends State<NavigateScreen> {
     await _alerts.clear();
     final rec = _recording;
     HikeSummary? summary;
+    if (rec?.liveId case final id?) {
+      // The contacts must not be alerted about a hike that ended.
+      await LiveOutbox(rec!.root).end(widget.api, id);
+    }
     if (rec != null) {
       final fixes = await rec.fixes();
       await rec.finish();
@@ -249,6 +262,26 @@ class _NavigateScreenState extends State<NavigateScreen> {
       );
     }
     if (mounted) Navigator.of(context).pop(summary);
+  }
+
+  /// «Später»: the expected end one hour on.
+  Future<void> _later() async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final rec = _recording;
+    final id = rec?.liveId;
+    if (rec == null || id == null) return;
+    final base = rec.expectedEnd != null && rec.expectedEnd!.isAfter(DateTime.now())
+        ? rec.expectedEnd!
+        : DateTime.now();
+    final end = base.add(const Duration(hours: 1));
+    try {
+      await widget.api.extendLive(id, end);
+      await rec.setLive(id, end);
+      if (mounted) setState(() {});
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.liveLaterFailed)));
+    }
   }
 
   @override
@@ -328,6 +361,24 @@ class _NavigateScreenState extends State<NavigateScreen> {
                 ],
               ),
             ),
+            if (_recording?.expectedEnd case final end? when _recording?.liveId != null)
+              Material(
+                key: const Key('nav-live'),
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.share_location, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(t.liveSharedUntil(formatTime(end)), style: Theme.of(context).textTheme.bodySmall),
+                      ),
+                      TextButton(key: const Key('nav-live-later'), onPressed: _later, child: Text(t.liveLater)),
+                    ],
+                  ),
+                ),
+              ),
             if (_gpsLost)
               _Banner(
                 key: const Key('nav-gps-lost'),

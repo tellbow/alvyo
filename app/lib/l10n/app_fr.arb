@@ -89,5 +89,15 @@
   "areasBinding": "contraignant",
   "areasRecommended": "recommandé",
   "areasPeriod": "du {from} au {to}",
-  "areasStages": "Étape {list}"
+  "areasStages": "Étape {list}",
+  "liveSharedUntil": "Position partagée · fin prévue à {time}",
+  "liveLater": "Plus tard",
+  "liveLaterFailed": "Il faut une connexion. Réessaie dans un instant.",
+  "liveShareTitle": "Partager ta position",
+  "liveShareIntro": "Les contacts choisis reçoivent un lien avec ta position. Si la randonnée n'est pas terminée 30 minutes après la fin prévue, ils reçoivent un e-mail avec la dernière position.",
+  "liveShareEnd": "Fin prévue",
+  "liveShareStart": "Partager et partir",
+  "liveShareSkip": "Sans partager",
+  "liveShareFailed": "Le partage n'a pas fonctionné ; la randonnée est tout de même enregistrée.",
+  "liveNoContacts": "Ajoute des contacts sur le site web sous « Compte »."
 }

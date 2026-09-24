@@ -89,5 +89,15 @@
   "areasBinding": "vincolante",
   "areasRecommended": "raccomandato",
   "areasPeriod": "dal {from} al {to}",
-  "areasStages": "Tappa {list}"
+  "areasStages": "Tappa {list}",
+  "liveSharedUntil": "Posizione condivisa · fine prevista alle {time}",
+  "liveLater": "Più tardi",
+  "liveLaterFailed": "Serve una connessione. Riprova tra un momento.",
+  "liveShareTitle": "Condividi la posizione",
+  "liveShareIntro": "I contatti scelti ricevono un link con la tua posizione. Se l'escursione non è terminata 30 minuti dopo la fine prevista, ricevono un'e-mail con l'ultima posizione.",
+  "liveShareEnd": "Fine prevista",
+  "liveShareStart": "Condividi e parti",
+  "liveShareSkip": "Senza condividere",
+  "liveShareFailed": "La condivisione non è riuscita; l'escursione viene registrata comunque.",
+  "liveNoContacts": "Aggiungi i contatti sul sito web in «Account»."
 }

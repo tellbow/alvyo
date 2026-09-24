@@ -43,7 +43,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.2.0 | 2026-09-23 | Offline maps (PMTiles packs built by the API); the iOS app lists routes, shows them on the national map and saves them offline |
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
-| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8); hut websites need `make places-import` once |
+| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); hut websites need `make places-import` once |
 
 ## Requirements
 
@@ -116,28 +116,19 @@ From the project owner, numbered in the order given: 1–5 added on
    the routes, places and accommodation in one go. Live: Gaflei → Elm in
    three days ends in Sargans and Weisstannen, as the Via Alpina does
    (planned in about 3.5 s).
+7. **One long GPX file into several stages** (next). In the import
+   dialog, «Als Etappentour, in N Etappen» for any file (several tracks
+   are joined). The preview lists per stage the length, time, ascent and
+   where it ends; nothing is created before «Etappentour erstellen»
+   (`POST /imports/stages`, then `POST /journeys` with the stages). Times
+   are read from GPX, TCX, KML and FIT: a pause of 5 hours or more is a
+   night, and a recording with nights proposes as many stages as days,
+   split there, each ending at the nearest place within 400 m. Another
+   number of stages, or a file without times, is split as in 8.
 
 ### Open
 
-Next: 7, which reuses 8's day splitting (`api/internal/stageplan`).
-
-#### 7. One long GPX file into several stages
-
-A file with several tracks already becomes a journey with a stage per track.
-A single long track (a multi-day route, or a recording of several days)
-should be split as well.
-
-- Where to split: at the nights of a recording (a gap of several hours in
-  the time stamps); otherwise the user gives the number of days or the hours
-  per day, and the line is split as in requirement 8: at huts, hotels,
-  campsites or stops near it, into days of similar Swiss hiking time.
-- Web: in the import dialog, «Als Etappentour, in N Etappen» with a preview
-  (per stage: length, time, ascent, where it ends) before anything is
-  created.
-- Open: split at the nights of a recording without asking, or always show
-  the preview first? (Proposal: always the preview.)
-- Check: unit tests for the split (time gaps; days with places); API test: a
-  three-day recording becomes three stages; Playwright: import with preview.
+None: the next work comes from the backlog.
 
 ## Backlog
 

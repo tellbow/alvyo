@@ -536,6 +536,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/imports/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose the stages of a long track: at the nights of a recording, or by days or hours
+         * @description The tracks of the file are joined. Nothing is saved: POST /journeys with the stages does. Split by days or hours, the stages end at huts, hotels, campsites or stops near the track.
+         */
+        post: operations["import-stages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys": {
         parameters: {
             query?: never;
@@ -2959,6 +2979,15 @@ export interface components {
             /** @enum {string} */
             profile: "hike" | "alpine";
         };
+        StagesImportOutputBody: {
+            /** Format: int64 */
+            max_s: number;
+            stages: components["schemas"]["Stage"][];
+            /** Format: int64 */
+            target_s: number;
+            /** @description The track's name, for the journey */
+            title: string;
+        };
         Status: {
             /**
              * Format: int64
@@ -2985,6 +3014,11 @@ export interface components {
             /** @description Entirely within Switzerland and Liechtenstein (else it cannot be imported) */
             inside: boolean;
             name: string;
+            /**
+             * Format: int64
+             * @description Pauses of 5 hours or more in a recording: it can become a stage per day
+             */
+            nights: number;
             /** Format: int64 */
             points: number;
         };
@@ -4293,6 +4327,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportPreviewOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "import-stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: int64
+                     * @description Number of stages; with neither this nor hours_per_day, a recording is split at its nights
+                     */
+                    days?: number;
+                    /** @description Comma-separated place ids to end the stages at (from a proposal's earlier and later) */
+                    ends?: string;
+                    /** Format: binary */
+                    file: string;
+                    /**
+                     * Format: double
+                     * @description Hiking time per stage (Swiss hiking time)
+                     */
+                    hours_per_day?: number;
+                    /** Format: double */
+                    max_hours?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StagesImportOutputBody"];
                 };
             };
             /** @description Error */

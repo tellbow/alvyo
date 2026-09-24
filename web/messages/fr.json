@@ -496,5 +496,10 @@
 	"jplan_create": "Créer la randonnée par étapes",
 	"jplan_failed": "La planification n'a pas fonctionné. Réessaie dans un instant.",
 	"jplan_no_path": "Il n'y a pas de chemin entre ces points avec ce profil.",
-	"jplan_summary": "{days} jours · {distance}"
+	"jplan_summary": "{days} jours · {distance}",
+	"import_mode_single_question": "Comment veux-tu importer la trace ?",
+	"import_mode_single": "Comme itinéraire",
+	"import_mode_stages": "Comme randonnée par étapes, en",
+	"import_mode_stages_unit": "étapes",
+	"import_stages_nights": "Enregistrée sur {days} jours – avec {days} étapes, elle est découpée aux nuits."
 }

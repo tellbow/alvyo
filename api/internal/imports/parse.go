@@ -13,6 +13,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/muktihari/fit/decoder"
 	"github.com/muktihari/fit/profile/filedef"
@@ -34,6 +35,26 @@ var ErrFormat = errors.New("imports: unknown file format")
 type Track struct {
 	Name   string
 	Points []geo.Point
+	// Times are when the points were recorded, parallel to Points; zero
+	// where the file has none (planned routes). Nil for none at all.
+	Times []time.Time
+}
+
+// add appends a point and when it was recorded (zero: unknown).
+func (t *Track) add(p geo.Point, at time.Time) {
+	if !at.IsZero() && t.Times == nil {
+		t.Times = make([]time.Time, len(t.Points))
+	}
+	t.Points = append(t.Points, p)
+	if t.Times != nil {
+		t.Times = append(t.Times, at)
+	}
+}
+
+// parseTime reads an XML timestamp; zero if there is none.
+func parseTime(s string) time.Time {
+	at, _ := time.Parse(time.RFC3339, strings.TrimSpace(s))
+	return at
 }
 
 // Parse reads the tracks of a GPX, KML, TCX or FIT file. The format comes
@@ -67,7 +88,7 @@ func Parse(filename string, r io.Reader) (format string, tracks []Track, err err
 	base := strings.TrimSuffix(path.Base(filename), path.Ext(filename))
 	out := tracks[:0]
 	for i, t := range tracks {
-		t.Points = clean(t.Points)
+		t = clean(t)
 		if len(t.Points) < 2 {
 			continue
 		}
@@ -109,25 +130,30 @@ func newXMLDecoder(r io.Reader) *xml.Decoder {
 }
 
 // clean drops invalid points and consecutive duplicates.
-func clean(pts []geo.Point) []geo.Point {
-	out := make([]geo.Point, 0, len(pts))
-	for _, p := range pts {
+func clean(t Track) Track {
+	out := Track{Name: t.Name}
+	for i, p := range t.Points {
 		if math.IsNaN(p.Lon) || math.IsNaN(p.Lat) || p.Lon < -180 || p.Lon > 180 || p.Lat < -90 || p.Lat > 90 ||
 			(p.Lon == 0 && p.Lat == 0) {
 			continue
 		}
-		if n := len(out); n > 0 && out[n-1] == p {
+		if n := len(out.Points); n > 0 && out.Points[n-1] == p {
 			continue
 		}
-		out = append(out, p)
+		var at time.Time
+		if t.Times != nil {
+			at = t.Times[i]
+		}
+		out.add(p, at)
 	}
 	return out
 }
 
 func parseGPX(r io.Reader) ([]Track, error) {
 	type pt struct {
-		Lat float64 `xml:"lat,attr"`
-		Lon float64 `xml:"lon,attr"`
+		Lat  float64 `xml:"lat,attr"`
+		Lon  float64 `xml:"lon,attr"`
+		Time string  `xml:"time"`
 	}
 	var doc struct {
 		Name   string `xml:"metadata>name"`
@@ -150,7 +176,7 @@ func parseGPX(r io.Reader) ([]Track, error) {
 		tr := Track{Name: t.Name}
 		for _, s := range t.Segments {
 			for _, p := range s.Points {
-				tr.Points = append(tr.Points, geo.Point{Lon: p.Lon, Lat: p.Lat})
+				tr.add(geo.Point{Lon: p.Lon, Lat: p.Lat}, parseTime(p.Time))
 			}
 		}
 		out = append(out, tr)
@@ -222,21 +248,26 @@ func parseKML(r io.Reader) ([]Track, error) {
 			out = append(out, tr)
 		case "Track": // gx:Track
 			var gt struct {
+				When   []string `xml:"when"`
 				Coords []string `xml:"coord"`
 			}
 			if err := d.DecodeElement(&gt, &se); err != nil {
 				return nil, err
 			}
 			tr := Track{Name: name}
-			for _, c := range gt.Coords {
+			for i, c := range gt.Coords {
 				f := strings.Fields(c)
 				if len(f) < 2 {
 					continue
 				}
 				lon, e1 := strconv.ParseFloat(f[0], 64)
 				lat, e2 := strconv.ParseFloat(f[1], 64)
+				var at time.Time
+				if len(gt.When) == len(gt.Coords) {
+					at = parseTime(gt.When[i])
+				}
 				if e1 == nil && e2 == nil {
-					tr.Points = append(tr.Points, geo.Point{Lon: lon, Lat: lat})
+					tr.add(geo.Point{Lon: lon, Lat: lat}, at)
 				}
 			}
 			out = append(out, tr)
@@ -247,8 +278,9 @@ func parseKML(r io.Reader) ([]Track, error) {
 // parseTCX reads activities (one track per activity) and courses.
 func parseTCX(r io.Reader) ([]Track, error) {
 	type trackpoint struct {
-		Lat *float64 `xml:"Position>LatitudeDegrees"`
-		Lon *float64 `xml:"Position>LongitudeDegrees"`
+		Time string   `xml:"Time"`
+		Lat  *float64 `xml:"Position>LatitudeDegrees"`
+		Lon  *float64 `xml:"Position>LongitudeDegrees"`
 	}
 	var doc struct {
 		Activities []struct {
@@ -267,7 +299,7 @@ func parseTCX(r io.Reader) ([]Track, error) {
 	add := func(tr *Track, pts []trackpoint) {
 		for _, p := range pts {
 			if p.Lat != nil && p.Lon != nil { // pauses have no position
-				tr.Points = append(tr.Points, geo.Point{Lon: *p.Lon, Lat: *p.Lat})
+				tr.add(geo.Point{Lon: *p.Lon, Lat: *p.Lat}, parseTime(p.Time))
 			}
 		}
 	}
@@ -299,7 +331,7 @@ func parseFIT(r io.Reader) ([]Track, error) {
 	switch f := lis.File().(type) {
 	case *filedef.Activity:
 		for _, rec := range f.Records {
-			tr.Points = append(tr.Points, geo.Point{Lon: rec.PositionLongDegrees(), Lat: rec.PositionLatDegrees()})
+			tr.add(geo.Point{Lon: rec.PositionLongDegrees(), Lat: rec.PositionLatDegrees()}, rec.Timestamp)
 		}
 	case *filedef.Course:
 		if f.Course != nil {

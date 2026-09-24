@@ -496,5 +496,10 @@
 	"jplan_create": "Create journey",
 	"jplan_failed": "Planning did not work. Please try again in a moment.",
 	"jplan_no_path": "There is no way between these points with this profile.",
-	"jplan_summary": "{days} days · {distance}"
+	"jplan_summary": "{days} days · {distance}",
+	"import_mode_single_question": "How do you want to import the track?",
+	"import_mode_single": "As a route",
+	"import_mode_stages": "As a journey, in",
+	"import_mode_stages_unit": "stages",
+	"import_stages_nights": "Recorded on {days} days – with {days} stages it is split at the nights."
 }

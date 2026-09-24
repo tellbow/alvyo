@@ -4069,6 +4069,36 @@
         ],
         "type": "object"
       },
+      "StagesImportOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "max_s": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "target_s": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "title": {
+            "description": "The track's name, for the journey",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "stages",
+          "target_s",
+          "max_s"
+        ],
+        "type": "object"
+      },
       "Status": {
         "additionalProperties": false,
         "properties": {
@@ -4152,6 +4182,11 @@
           "name": {
             "type": "string"
           },
+          "nights": {
+            "description": "Pauses of 5 hours or more in a recording: it can become a stage per day",
+            "format": "int64",
+            "type": "integer"
+          },
           "points": {
             "format": "int64",
             "type": "integer"
@@ -4161,7 +4196,8 @@
           "name",
           "points",
           "distance_m",
-          "inside"
+          "inside",
+          "nights"
         ],
         "type": "object"
       },
@@ -6397,6 +6433,99 @@
           }
         },
         "summary": "The tracks in a GPX, KML, TCX or FIT file",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/imports/stages": {
+      "post": {
+        "description": "The tracks of the file are joined. Nothing is saved: POST /journeys with the stages does. Split by days or hours, the stages end at huts, hotels, campsites or stops near the track.",
+        "operationId": "import-stages",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "encoding": {
+                "days": {
+                  "contentType": "text/plain"
+                },
+                "ends": {
+                  "contentType": "text/plain"
+                },
+                "file": {
+                  "contentType": "application/octet-stream"
+                },
+                "hours_per_day": {
+                  "contentType": "text/plain"
+                },
+                "max_hours": {
+                  "contentType": "text/plain"
+                }
+              },
+              "schema": {
+                "properties": {
+                  "days": {
+                    "description": "Number of stages; with neither this nor hours_per_day, a recording is split at its nights",
+                    "format": "int64",
+                    "maximum": 60,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "ends": {
+                    "description": "Comma-separated place ids to end the stages at (from a proposal's earlier and later)",
+                    "type": "string"
+                  },
+                  "file": {
+                    "contentEncoding": "binary",
+                    "contentMediaType": "application/octet-stream",
+                    "format": "binary",
+                    "type": "string"
+                  },
+                  "hours_per_day": {
+                    "description": "Hiking time per stage (Swiss hiking time)",
+                    "format": "double",
+                    "maximum": 16,
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "max_hours": {
+                    "format": "double",
+                    "maximum": 20,
+                    "minimum": 0,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StagesImportOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Propose the stages of a long track: at the nights of a recording, or by days or hours",
         "tags": [
           "imports"
         ]

@@ -344,3 +344,94 @@ func TestImportIntoStage(t *testing.T) {
 		t.Errorf("stranger: %d, want 404", code)
 	}
 }
+
+// recordedDay is a GPX track segment of a day's walk east from lon at
+// 46.66° N, 30 points recorded from 08:00 on date, a minute apart.
+func recordedDay(lon float64, date string) string {
+	var b strings.Builder
+	for i := range 30 {
+		fmt.Fprintf(&b, `<trkpt lat="46.66" lon="%f"><time>%sT08:%02d:00Z</time></trkpt>`, lon+float64(i)*0.001, date, i)
+	}
+	return b.String()
+}
+
+func TestImportStages(t *testing.T) {
+	gh := straightGraphHopper(t)
+	s := newTestServerWith(t, func(d *Deps) {
+		router := &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh}, Elevation: flatSampler{}, Trails: &routing.TrailMatcher{DB: d.DB}}
+		d.Importer = &imports.Importer{Router: router, Routes: d.Routes, Journeys: d.Journeys}
+	})
+	place := func(kind, name string, lon float64) string {
+		var id string
+		if err := s.db.QueryRow(context.Background(), `INSERT INTO places (kind, name, source, source_id, geom)
+			VALUES ($1, $2, 'osm', $2, ST_SetSRID(ST_MakePoint($3, 46.6605), 4326)) RETURNING id`, kind, name, lon).Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		return id
+	}
+	hut := place("hut", "Tageshütte", 8.0295) // where day 1 ends
+	inn := place("hotel", "Gasthaus Mitte", 8.045)
+
+	recording := gpxDoc(`<trk><name>Drei Tage</name><trkseg>` + recordedDay(8.00, "2026-07-04") +
+		recordedDay(8.03, "2026-07-05") + recordedDay(8.06, "2026-07-06") + `</trkseg></trk>`)
+	c := s.client(t)
+	if code, _ := c.upload("/api/v1/imports/stages", "drei.gpx", recording); code != http.StatusUnauthorized {
+		t.Errorf("anonymous: %d", code)
+	}
+	c.do("POST", "/api/v1/auth/signup", signupBody("stager@example.ch", "stager"))
+
+	code, body := c.upload("/api/v1/imports/preview", "drei.gpx", recording)
+	var preview struct{ Tracks []trackSummary }
+	_ = json.Unmarshal(body, &preview)
+	if code != http.StatusOK || len(preview.Tracks) != 1 || preview.Tracks[0].Nights != 2 {
+		t.Fatalf("preview: %d %s", code, body)
+	}
+
+	stages := func(code int, body []byte) proposal {
+		t.Helper()
+		if code != http.StatusOK {
+			t.Fatalf("stages: %d %s", code, body)
+		}
+		var p proposal
+		_ = json.Unmarshal(body, &p)
+		return p
+	}
+
+	// A stage per day of the recording; the first night at the hut.
+	p := stages(c.upload("/api/v1/imports/stages", "drei.gpx", recording))
+	if len(p.Stages) != 3 || p.Stages[0].EndPlace == nil || p.Stages[0].EndPlace.ID != hut ||
+		p.Stages[0].Accommodation != "Tageshütte" || p.Stages[1].StartPlace == nil || p.Stages[1].StartPlace.ID != hut ||
+		p.Stages[1].EndPlace != nil || p.Stages[2].EndPlace != nil {
+		t.Fatalf("stages: %+v", p.Stages)
+	}
+	var created []map[string]any
+	for _, st := range p.Stages {
+		s := map[string]any{"profile": st.Profile, "anchors": st.Anchors, "legs": st.Legs, "accommodation": st.Accommodation}
+		if st.EndPlace != nil {
+			s["end_place_id"] = st.EndPlace.ID
+		}
+		created = append(created, s)
+	}
+	code, body = c.do("POST", "/api/v1/journeys", map[string]any{"title": "Drei Tage", "stages": created})
+	if j := decodeJourney(t, body); code != http.StatusCreated || len(j.StageList) != 3 || j.StageList[2].Route == nil {
+		t.Fatalf("journey: %d %s", code, body)
+	}
+
+	// A planned route has no nights: it is split by the days asked for, at
+	// the guest house half way.
+	planned := gpxDoc(line("Weg", 8.0, 46.66, 91))
+	if code, body := c.upload("/api/v1/imports/stages", "weg.gpx", planned); code != http.StatusUnprocessableEntity {
+		t.Errorf("no nights, no days: %d %s", code, body)
+	}
+	p = stages(c.upload("/api/v1/imports/stages", "weg.gpx", planned, "days", "2"))
+	if len(p.Stages) != 2 || p.Stages[0].EndPlace == nil || p.Stages[0].EndPlace.ID != inn {
+		t.Errorf("two days: %+v", p.Stages)
+	}
+	// The same split for a recording when days are given.
+	if p = stages(c.upload("/api/v1/imports/stages", "drei.gpx", recording, "days", "2")); len(p.Stages) != 2 {
+		t.Errorf("recording in two days: %d stages", len(p.Stages))
+	}
+	if code, _ := c.upload("/api/v1/imports/stages", "weg.gpx", planned, "days", "2", "ends", "nope"); code != http.StatusUnprocessableEntity {
+		t.Errorf("bad end: %d", code)
+	}
+}

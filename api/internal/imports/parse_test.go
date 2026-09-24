@@ -3,6 +3,7 @@ package imports
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -91,6 +92,58 @@ func TestParseFIT(t *testing.T) {
 	}
 	if p := tracks[0].Points[3]; p.Lon < 8.0039 || p.Lon > 8.0041 || p.Lat < 46.4999 || p.Lat > 46.5001 {
 		t.Errorf("last point %+v", p)
+	}
+	if ts := tracks[0].Times; len(ts) != 4 || !ts[3].Equal(start.Add(4*time.Second)) {
+		t.Errorf("times %v", ts)
+	}
+}
+
+// TestNights splits a recording of three days, with a lunch break, at the
+// nights; the times come from GPX, TCX and KML alike.
+func TestNights(t *testing.T) {
+	day := func(date string, lon float64) string {
+		var b strings.Builder
+		for i, clock := range []string{"08:00", "10:00", "11:00", "12:00", "16:00"} { // 10–11: lunch
+			fmt.Fprintf(&b, `<trkpt lat="46.5" lon="%.3f"><time>%sT%s:00Z</time></trkpt>`, lon+float64(i)*0.001, date, clock)
+		}
+		return b.String()
+	}
+	gpx := `<gpx><trk><name>Drei Tage</name><trkseg>` + day("2026-07-04", 8.0) + day("2026-07-05", 8.01) +
+		day("2026-07-06", 8.02) + `</trkseg></trk></gpx>`
+	_, tracks, err := Parse("x.gpx", strings.NewReader(gpx))
+	if err != nil {
+		t.Fatal(err)
+	}
+	days := Nights(tracks[0])
+	if len(days) != 3 || len(days[0].Points) != 5 || len(days[2].Points) != 5 || !days[1].Times[0].Equal(time.Date(2026, 7, 5, 8, 0, 0, 0, time.UTC)) {
+		t.Fatalf("days: %+v", days)
+	}
+	// Joined again (e.g. several tracks), the nights stay.
+	if n := len(Nights(Join("x", days))); n != 3 {
+		t.Errorf("joined: %d days", n)
+	}
+
+	// Planned routes have no times: one day.
+	_, planned, _ := Parse("p.gpx", strings.NewReader(`<gpx><rte><rtept lat="46.5" lon="8.0"/><rtept lat="46.5" lon="8.1"/></rte></gpx>`))
+	if planned[0].Times != nil || len(Nights(planned[0])) != 1 {
+		t.Errorf("planned: %+v", planned[0])
+	}
+
+	tcx := `<TrainingCenterDatabase><Activities><Activity><Lap><Track>
+		<Trackpoint><Time>2026-07-04T16:00:00Z</Time><Position><LatitudeDegrees>46.5</LatitudeDegrees><LongitudeDegrees>8.0</LongitudeDegrees></Position></Trackpoint>
+		<Trackpoint><Time>2026-07-05T08:00:00Z</Time><Position><LatitudeDegrees>46.5</LatitudeDegrees><LongitudeDegrees>8.001</LongitudeDegrees></Position></Trackpoint>
+		<Trackpoint><Time>2026-07-05T09:00:00Z</Time><Position><LatitudeDegrees>46.5</LatitudeDegrees><LongitudeDegrees>8.002</LongitudeDegrees></Position></Trackpoint>
+		</Track></Lap></Activity></Activities></TrainingCenterDatabase>`
+	_, tracks, _ = Parse("x.tcx", strings.NewReader(tcx))
+	if n := len(Nights(tracks[0])); n != 2 {
+		t.Errorf("tcx: %d days", n)
+	}
+	kml := `<kml xmlns:gx="http://www.google.com/kml/ext/2.2"><Placemark><gx:Track>
+		<when>2026-07-04T16:00:00Z</when><when>2026-07-05T08:00:00Z</when>
+		<gx:coord>8.0 46.5 0</gx:coord><gx:coord>8.001 46.5 0</gx:coord></gx:Track></Placemark></kml>`
+	_, tracks, _ = Parse("x.kml", strings.NewReader(kml))
+	if n := len(Nights(tracks[0])); n != 2 {
+		t.Errorf("kml: %d days", n)
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -142,10 +143,41 @@ func (im *Importer) Journey(ctx context.Context, owner uuid.UUID, name string, t
 func Join(name string, tracks []Track) Track {
 	out := Track{Name: name}
 	for _, t := range tracks {
-		out.Points = append(out.Points, t.Points...)
+		for i, p := range t.Points {
+			var at time.Time
+			if t.Times != nil {
+				at = t.Times[i]
+			}
+			out.add(p, at)
+		}
 	}
-	out.Points = clean(out.Points)
-	return out
+	return clean(out)
+}
+
+// nightGap: a pause this long in a recording is a night; a long lunch
+// break is not.
+const nightGap = 5 * time.Hour
+
+// Nights splits a recording at its nights, pauses of nightGap or more. A
+// track without times, or without such a pause, stays whole.
+func Nights(t Track) []Track {
+	var days []Track
+	from := 0
+	for i := 1; i < len(t.Points) && t.Times != nil; i++ {
+		a, b := t.Times[i-1], t.Times[i]
+		if !a.IsZero() && !b.IsZero() && b.Sub(a) >= nightGap {
+			days = append(days, Track{Name: t.Name, Points: t.Points[from:i], Times: t.Times[from:i]})
+			from = i
+		}
+	}
+	if from == 0 {
+		return []Track{t}
+	}
+	last := Track{Name: t.Name, Points: t.Points[from:]}
+	if t.Times != nil {
+		last.Times = t.Times[from:]
+	}
+	return append(days, last)
 }
 
 // Reason classifies an import error for the report.

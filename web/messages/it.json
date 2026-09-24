@@ -496,5 +496,10 @@
 	"jplan_create": "Crea escursione a tappe",
 	"jplan_failed": "La pianificazione non è riuscita. Riprova tra un momento.",
 	"jplan_no_path": "Non c'è un sentiero tra questi punti con questo profilo.",
-	"jplan_summary": "{days} giorni · {distance}"
+	"jplan_summary": "{days} giorni · {distance}",
+	"import_mode_single_question": "Come vuoi importare la traccia?",
+	"import_mode_single": "Come percorso",
+	"import_mode_stages": "Come escursione a tappe, in",
+	"import_mode_stages_unit": "tappe",
+	"import_stages_nights": "Registrata in {days} giorni – con {days} tappe viene divisa alle notti."
 }

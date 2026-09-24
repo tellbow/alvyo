@@ -149,6 +149,6 @@ func (k *Komoot) Track(ctx context.Context, s KomootSession, id int64) (Track, e
 	for _, c := range r.Embedded.Coordinates.Items {
 		t.Points = append(t.Points, geo.Point{Lon: c.Lng, Lat: c.Lat})
 	}
-	t.Points = clean(t.Points)
+	t = clean(t)
 	return t, nil
 }

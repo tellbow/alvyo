@@ -95,6 +95,12 @@ func (p *Planner) Plan(ctx context.Context, req Request) (Proposal, error) {
 		}
 		legs = append(legs, l)
 	}
+	return p.Split(ctx, legs, req)
+}
+
+// Split splits a line given as legs (routed, or an imported track) into
+// days; req.Points are not used.
+func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (Proposal, error) {
 	tr := FromLegs(legs)
 	secs := tr.Seconds()
 	near, err := p.near(ctx, tr)
@@ -161,6 +167,60 @@ func (p *Planner) Plan(ctx context.Context, req Request) (Proposal, error) {
 			st.Earlier, st.Later = neighbours(near, to, lo, hi, preferred)
 		}
 		out.Stages = append(out.Stages, st)
+	}
+	return out, nil
+}
+
+// dayEndM: a place this close to where a recorded day ends is where the
+// hiker probably slept.
+const dayEndM = 400
+
+// ByDay makes a stage of each day's legs, e.g. the days of a recording,
+// ending at the nearest place, if one is close.
+func (p *Planner) ByDay(ctx context.Context, days [][]routing.Leg, profile string) (Proposal, error) {
+	var all []routing.Leg
+	for _, d := range days {
+		all = append(all, d...)
+	}
+	tr := FromLegs(all)
+	near, err := p.near(ctx, tr)
+	if err != nil {
+		return Proposal{}, err
+	}
+	out := Proposal{}
+	var from *place
+	a, n := 0, 0
+	for k, d := range days {
+		size := len(FromLegs(d).Coords)
+		if k > 0 {
+			// A day that starts where the last ended shares its vertex;
+			// otherwise it starts at the next one.
+			if geo.Distance(point(tr.Coords[a]), point(d[0].Coordinates[0])) < jointM {
+				size--
+			} else {
+				a++
+			}
+		}
+		n += size
+		b := n - 1
+		var to *place
+		if k < len(days)-1 {
+			end := point(tr.Coords[b])
+			for i := range near {
+				d := geo.Distance(end, at(near[i].At))
+				if d <= dayEndM && (to == nil || d < geo.Distance(end, at(to.At))) {
+					pl := near[i]
+					pl.offM = 0 // slept there: no way to it is added
+					to = &pl
+				}
+			}
+		}
+		st, err := p.stage(ctx, tr, a, b, from, to, profile)
+		if err != nil {
+			return Proposal{}, err
+		}
+		out.Stages = append(out.Stages, st)
+		from, a = to, b
 	}
 	return out, nil
 }

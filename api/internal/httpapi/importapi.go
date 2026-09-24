@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +20,9 @@ import (
 	"github.com/tellbow/odysgeh/api/internal/auth"
 	"github.com/tellbow/odysgeh/api/internal/imports"
 	"github.com/tellbow/odysgeh/api/internal/journeys"
+	"github.com/tellbow/odysgeh/api/internal/routes"
+	"github.com/tellbow/odysgeh/api/internal/routing"
+	"github.com/tellbow/odysgeh/api/internal/stageplan"
 	"github.com/tellbow/odysgeh/swiss/geo"
 )
 
@@ -52,6 +56,24 @@ type trackSummary struct {
 	Points    int     `json:"points"`
 	DistanceM float64 `json:"distance_m"`
 	Inside    bool    `json:"inside" doc:"Entirely within Switzerland and Liechtenstein (else it cannot be imported)"`
+	Nights    int     `json:"nights" doc:"Pauses of 5 hours or more in a recording: it can become a stage per day"`
+}
+
+type stagesImportInput struct {
+	RawBody huma.MultipartFormFiles[struct {
+		File        huma.FormFile `form:"file" required:"true"`
+		Days        int           `form:"days" required:"false" minimum:"0" maximum:"60" doc:"Number of stages; with neither this nor hours_per_day, a recording is split at its nights"`
+		HoursPerDay float64       `form:"hours_per_day" required:"false" minimum:"0" maximum:"16" doc:"Hiking time per stage (Swiss hiking time)"`
+		MaxHours    float64       `form:"max_hours" required:"false" minimum:"0" maximum:"20"`
+		Ends        string        `form:"ends" required:"false" doc:"Comma-separated place ids to end the stages at (from a proposal's earlier and later)"`
+	}]
+}
+
+type stagesImportOutput struct {
+	Body struct {
+		stageplan.Proposal
+		Title string `json:"title" doc:"The track's name, for the journey"`
+	}
 }
 
 type importPreviewOutput struct {
@@ -185,6 +207,7 @@ func registerImports(api huma.API, d Deps) {
 				Name: t.Name, Points: len(t.Points),
 				DistanceM: float64(int(geo.CumulativeDistance(t.Points)[len(t.Points)-1])),
 				Inside:    inside(t.Points),
+				Nights:    len(imports.Nights(t)) - 1,
 			})
 		}
 		return out, nil
@@ -245,6 +268,86 @@ func registerImports(api huma.API, d Deps) {
 			}
 			out.Body.Routes = append(out.Body.Routes, importedRoute{ID: r.ID, Title: r.Title})
 		}
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "import-stages", Method: http.MethodPost, Path: "/imports/stages",
+		Summary: "Propose the stages of a long track: at the nights of a recording, or by days or hours",
+		Description: "The tracks of the file are joined. Nothing is saved: POST /journeys with the stages does. " +
+			"Split by days or hours, the stages end at huts, hotels, campsites or stops near the track.",
+		Tags: tags, MaxBodyBytes: imports.MaxFileBytes + 1<<20,
+	}, func(ctx context.Context, in *stagesImportInput) (*stagesImportOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		form := in.RawBody.Data()
+		_, tracks, err := parse(form.File)
+		if err != nil {
+			return nil, err
+		}
+		track := tracks[0]
+		if len(tracks) > 1 {
+			track = imports.Join(track.Name, tracks)
+		}
+		planner := &stageplan.Planner{Router: d.Importer.Router, DB: d.DB}
+		content := func(t imports.Track) (routes.Content, error) {
+			c, err := d.Importer.Content(ctx, t)
+			if err != nil && imports.Reason(err) != "other" {
+				return c, huma.Error422UnprocessableEntity(err.Error())
+			}
+			return c, err
+		}
+		var proposal stageplan.Proposal
+		if form.Days == 0 && form.HoursPerDay == 0 {
+			nights := imports.Nights(track)
+			if len(nights) < 2 {
+				return nil, huma.Error422UnprocessableEntity("the track has no nights: give days or hours_per_day")
+			}
+			if !d.Limits.Import.AllowN(u.ID.String(), len(nights)) {
+				return nil, huma.Error429TooManyRequests("too many imports; try again in a few minutes")
+			}
+			var days [][]routing.Leg
+			profile := "hike"
+			for _, t := range nights {
+				c, err := content(t)
+				if err != nil {
+					return nil, err
+				}
+				days = append(days, c.Legs)
+				if c.Profile == "alpine" {
+					profile = "alpine"
+				}
+			}
+			proposal, err = planner.ByDay(ctx, days, profile)
+		} else {
+			if !d.Limits.Import.Allow(u.ID.String()) {
+				return nil, huma.Error429TooManyRequests("too many imports; try again in a few minutes")
+			}
+			var c routes.Content
+			if c, err = content(track); err != nil {
+				return nil, err
+			}
+			var ends []string
+			for id := range strings.SplitSeq(form.Ends, ",") {
+				if id = strings.TrimSpace(id); id != "" {
+					ends = append(ends, id)
+				}
+			}
+			proposal, err = planner.Split(ctx, c.Legs, stageplan.Request{
+				Profile: c.Profile, Ends: ends,
+				Days: stageplan.Days{N: form.Days, TargetS: form.HoursPerDay * 3600, MaxS: form.MaxHours * 3600},
+			})
+		}
+		switch {
+		case errors.Is(err, stageplan.ErrUnknownEnd):
+			return nil, huma.Error422UnprocessableEntity(err.Error())
+		case err != nil:
+			return nil, err
+		}
+		out := &stagesImportOutput{}
+		out.Body.Proposal, out.Body.Title = proposal, track.Name
 		return out, nil
 	})
 

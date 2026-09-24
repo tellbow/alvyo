@@ -496,5 +496,10 @@
 	"jplan_create": "Etappentour erstellen",
 	"jplan_failed": "Die Planung hat nicht geklappt. Versuche es gleich noch einmal.",
 	"jplan_no_path": "Zwischen diesen Punkten gibt es mit diesem Profil keinen Weg.",
-	"jplan_summary": "{days} Tage · {distance}"
+	"jplan_summary": "{days} Tage · {distance}",
+	"import_mode_single_question": "Wie willst du den Track importieren?",
+	"import_mode_single": "Als Route",
+	"import_mode_stages": "Als Etappentour, in",
+	"import_mode_stages_unit": "Etappen",
+	"import_stages_nights": "Aufgezeichnet an {days} Tagen – mit {days} Etappen wird bei den Nächten geteilt."
 }

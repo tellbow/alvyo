@@ -172,3 +172,41 @@ test('a GPX file becomes the route of a stage', async ({ page }) => {
 	await expect(stage2).toContainText(/\b[6-8]\d\d m/);
 	await expect(stage2.getByTestId('stage-import-replace')).toHaveCount(0);
 });
+
+test('a recording of three days becomes a journey of three stages, after a preview', async ({
+	page
+}) => {
+	await signup(page, 'recorder');
+	// 30 points a day heading east, a minute apart, the nights in between.
+	const days = ['2026-07-04', '2026-07-05', '2026-07-06'].map((date, d) =>
+		Array.from(
+			{ length: 30 },
+			(_, i) =>
+				`<trkpt lat="46.99" lon="${(9.3 + d * 0.03 + i * 0.001).toFixed(4)}"><time>${date}T08:${String(i).padStart(2, '0')}:00Z</time></trkpt>`
+		).join('')
+	);
+	const gpx = `<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Drei Tage</name><trkseg>${days.join('')}</trkseg></trk></gpx>`;
+	await page.goto('/import');
+	const dialog = page.getByTestId('file-import');
+	await dialog.getByLabel('Datei hochladen').setInputFiles({
+		name: 'drei-tage.gpx',
+		mimeType: 'application/gpx+xml',
+		buffer: Buffer.from(gpx)
+	});
+	await expect(dialog.getByTestId('import-tracks').getByRole('listitem')).toHaveCount(1);
+	await dialog.getByLabel('Als Etappentour, in').check();
+	await expect(dialog.getByLabel('Etappen', { exact: true })).toHaveValue('3');
+	await expect(dialog).toContainText('Aufgezeichnet an 3 Tagen');
+
+	// Nothing is created before the preview is accepted.
+	await dialog.getByRole('button', { name: 'Etappen vorschlagen' }).click();
+	const stages = dialog.getByTestId('import-stages').getByRole('listitem');
+	await expect(stages).toHaveCount(3, { timeout: 30_000 });
+	await expect(stages.nth(2).getByTestId('import-stage-end')).toContainText('bis zum Ziel');
+	const journeys = await page.request.get('/api/v1/journeys');
+	expect((await journeys.json()).journeys).toHaveLength(0);
+
+	await dialog.getByRole('button', { name: 'Etappentour erstellen' }).click();
+	await expect(page.getByTestId('journey-title')).toHaveText('Drei Tage');
+	await expect(page.getByTestId('stage')).toHaveCount(3);
+});

@@ -3,6 +3,7 @@ import 'package:maplibre/maplibre.dart';
 
 import '../api.dart';
 import '../camera.dart';
+import '../elevation_profile.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
@@ -206,6 +207,8 @@ class _RouteScreenState extends State<RouteScreen> {
                         '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      const SizedBox(height: 8),
+                      ElevationProfile.ofLine(r.line),
                       const SizedBox(height: 8),
                       ValueListenableBuilder(
                         valueListenable: _downloads.progress(widget.id),

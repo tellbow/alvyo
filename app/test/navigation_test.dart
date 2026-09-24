@@ -95,6 +95,21 @@ void main() {
       expect(p.doneM, closeTo(1000, 1)); // half the distance, well over half the time
     });
 
+    test('the climb done and still to come add up to the route\'s ascent', () {
+      // 300 m up, flat, 100 m down, 200 m up again: 500 m of ascent.
+      final line = [at(0, 0, 500), at(1000, 0, 800), at(2000, 0, 800), at(2500, 0, 700), at(3500, 0, 900)];
+      final tr = RouteTracker(line, durationS: 3600, ascentM: 550); // the server counts a little more
+      final start = tr.update(fix(0))!;
+      expect(start.ascentDoneM, 0);
+      expect(start.ascentRemainingM, closeTo(550, 0.5));
+      final half = tr.update(fix(500))!; // half way up the first climb
+      expect(half.ascentDoneM, closeTo(150 * 550 / 500, 1));
+      expect(half.ascentDoneM + half.ascentRemainingM, closeTo(550, 0.5));
+      final downhill = tr.update(fix(2400))!;
+      expect(downhill.ascentDoneM, closeTo(300 * 550 / 500, 1), reason: 'descents add nothing');
+      expect(tr.update(fix(3500))!.ascentRemainingM, closeTo(0, 0.5));
+    });
+
     test('an out-and-back route does not jump to the other direction', () {
       // 1 km east, then back west 10 m further north (the other side of the path).
       final outAndBack = [for (var e = 0.0; e <= 1000; e += 20) at(e), for (var e = 1000.0; e >= 0; e -= 20) at(e, 10)];

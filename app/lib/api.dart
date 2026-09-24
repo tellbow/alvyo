@@ -191,6 +191,17 @@ class JourneyDetail {
   /// Skipped stages do not count.
   final int stagesDone, stagesTotal;
 
+  /// The combined profile of all stages: metres along (gaps between stages
+  /// not counted), [lon, lat, elevation], and where each stage starts.
+  ({List<double> distances, List<double> elevations, List<int> breaks}) get profile {
+    final p = json['profile'] as Map<String, dynamic>? ?? const {};
+    return (
+      distances: [for (final d in p['distance'] as List? ?? const []) (d as num).toDouble()],
+      elevations: [for (final pt in p['points'] as List? ?? const []) ((pt as List)[2] as num).toDouble()],
+      breaks: [for (final b in p['breaks'] as List? ?? const []) (b as num).toInt()],
+    );
+  }
+
   /// The user may change it (owner or editor).
   final bool canEdit;
 }

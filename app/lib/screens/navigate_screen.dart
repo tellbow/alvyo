@@ -8,6 +8,7 @@ import 'package:maplibre/maplibre.dart';
 
 import '../api.dart';
 import '../camera.dart';
+import '../elevation_profile.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
@@ -63,7 +64,11 @@ class NavigateScreen extends StatefulWidget {
 }
 
 class _NavigateScreenState extends State<NavigateScreen> {
-  late final RouteTracker _tracker = RouteTracker(widget.route.line, durationS: widget.route.totals.durationS);
+  late final RouteTracker _tracker = RouteTracker(
+    widget.route.line,
+    durationS: widget.route.totals.durationS,
+    ascentM: widget.route.totals.ascentM,
+  );
   late final Alerts _alerts = widget.alerts ?? Alerts();
   late final Speech _speech = widget.speech ?? Speech();
   late TurnGuide? _guide = widget.turns == null ? null : TurnGuide(widget.turns!);
@@ -353,20 +358,28 @@ class _NavigateScreenState extends State<NavigateScreen> {
                     ? Text(t.navNoPermission)
                     : p == null
                     ? Text(t.navWaiting)
-                    : Row(
-                        key: const Key('nav-progress'),
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _Stat(t.navDone, formatDistance(p.doneM)),
-                          _Stat(
-                            t.navRemaining,
-                            '${formatDistance(p.remainingM)} · ${formatDuration(p.remaining.inSeconds)}',
+                          ElevationProfile.ofLine(widget.route.line, markerM: p.doneM, height: 80),
+                          const SizedBox(height: 4),
+                          Row(
+                            key: const Key('nav-progress'),
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _Stat(t.navDone, '${formatDistance(p.doneM)} · ↑ ${p.ascentDoneM.round()} m'),
+                              _Stat(
+                                t.navRemaining,
+                                '${formatDistance(p.remainingM)} · ${formatDuration(p.remaining.inSeconds)}\n'
+                                '↑ ${p.ascentRemainingM.round()} m',
+                              ),
+                              if (_recording != null)
+                                _Stat(
+                                  t.navElapsed,
+                                  formatDuration(DateTime.now().difference(_recording!.started).inSeconds),
+                                ),
+                            ],
                           ),
-                          if (_recording != null)
-                            _Stat(
-                              t.navElapsed,
-                              formatDuration(DateTime.now().difference(_recording!.started).inSeconds),
-                            ),
                         ],
                       ),
               ),

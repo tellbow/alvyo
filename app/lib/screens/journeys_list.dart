@@ -66,7 +66,7 @@ class _JourneysListState extends State<JourneysList> {
                   children: [
                     Text(
                       '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
-                      '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)}',
+                      '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)} · ↑ ${j.ascentM.round()} m',
                     ),
                     if (j.tags.isNotEmpty) TagChips(j.tags),
                   ],

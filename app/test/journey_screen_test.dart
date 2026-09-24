@@ -87,6 +87,16 @@ class FakeServer {
         'can_edit': canEdit,
         'totals': {..._totals, 'distance_m': 32634.0, 'ascent_m': 1118.0, 'duration_s': 34463},
         'progress': {'stages_done': s1Status == 'done' ? 1 : 0, 'stages_total': 3},
+        'profile': {
+          'distance': [0, 1000, 2000, 3000],
+          'points': [
+            [9.5, 47.1, 1000],
+            [9.51, 47.1, 1200],
+            [9.52, 47.1, 900],
+            [9.53, 47.1, 1100],
+          ],
+          'breaks': [0, 2],
+        },
         'stage_list': [
           _stage('s1', 'Gaflei – Sargans', 'r1', {
             'start_place': {'name': 'Gaflei, Klinik'},
@@ -191,7 +201,7 @@ void main() {
     final server = FakeServer();
     final api = Api('https://odysgeh.test', token: 't', client: server.client);
     await pumpList(tester, api, find.text('Via Alpina'));
-    expect(find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min'), findsOneWidget);
+    expect(find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'), findsOneWidget);
 
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Gaflei – Sargans'));
@@ -204,6 +214,7 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(find.byKey(const Key('elevation-profile')), findsOneWidget, reason: 'all stages\' profile');
     // Without a title and route: numbered, and not to be opened.
     expect(find.text('Etappe 3'), findsOneWidget);
     expect(find.text('Noch keine Route\n800 m Abstand zum Ende der vorherigen Etappe'), findsOneWidget);
@@ -221,7 +232,7 @@ void main() {
     server.offline = true;
     await pumpList(tester, api, find.byKey(const Key('journeys-offline')));
     expect(find.byKey(const Key('journeys-offline')), findsOneWidget);
-    expect(find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min'), findsOneWidget);
+    expect(find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'), findsOneWidget);
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Sargans – Weisstannen'));
     expect(find.text('Sargans – Weisstannen'), findsOneWidget);

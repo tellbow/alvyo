@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../elevation_profile.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/downloads.dart';
@@ -133,6 +134,14 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
+                      if (j.profile case (
+                        :final distances,
+                        :final elevations,
+                        :final breaks,
+                      ) when distances.length > 1 && distances.length == elevations.length) ...[
+                        ElevationProfile(distances: distances, elevations: elevations, breaks: breaks),
+                        const SizedBox(height: 8),
+                      ],
                       if (_saving case final i?) ...[
                         Text(key: const Key('journey-saving'), t.journeySaving(i + 1, routed.length)),
                         const SizedBox(height: 4),

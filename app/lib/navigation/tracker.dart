@@ -38,9 +38,14 @@ class Progress {
     required this.offRoute,
     required this.arrived,
     required this.at,
+    this.ascentDoneM = 0,
+    this.ascentRemainingM = 0,
   });
 
   final double doneM, remainingM;
+
+  /// Climbed so far and still to climb, along the route.
+  final double ascentDoneM, ascentRemainingM;
 
   /// Walking time for the rest, at the hiker's pace.
   final Duration remaining;
@@ -73,15 +78,20 @@ double trackLengthM(List<Fix> fixes) {
 /// 1) times the hiker's [speedFactor], shared out along the line by the Swiss
 /// hiking time formula, so that climbs count for more than descents.
 class RouteTracker {
-  RouteTracker(this.line, {required this.durationS, this.speedFactor = 1}) {
+  RouteTracker(this.line, {required this.durationS, this.speedFactor = 1, double? ascentM}) {
     _cumM.add(0);
     _cumMin.add(0);
+    _cumUp.add(0);
     for (var i = 1; i < line.length; i++) {
       final d = _distance(line[i - 1], line[i]);
       final dh = line[i].length > 2 && line[i - 1].length > 2 ? line[i][2] - line[i - 1][2] : 0.0;
       _cumM.add(_cumM.last + d);
       _cumMin.add(_cumMin.last + segmentMinutes(d, dh));
+      _cumUp.add(_cumUp.last + max(0.0, dh));
     }
+    // The climbs along the line, scaled to the route's ascent as the server
+    // counts it (on a finer profile), so that done and to go add up to it.
+    _upScale = ascentM != null && _cumUp.last > 0 ? ascentM / _cumUp.last : 1;
   }
 
   final List<List<double>> line;
@@ -91,6 +101,8 @@ class RouteTracker {
   double speedFactor;
   final _cumM = <double>[];
   final _cumMin = <double>[];
+  final _cumUp = <double>[];
+  late final double _upScale;
 
   /// Positions farther than this from the route, twice in a row, are off it.
   static const offRouteM = 50.0;
@@ -138,6 +150,7 @@ class RouteTracker {
 
     final share = _cumMin.last == 0 ? 1 - match.alongM / lengthM : 1 - match.minutes / _cumMin.last;
     final remainingM = lengthM - match.alongM;
+    final upDone = match.up * _upScale, upAll = _cumUp.last * _upScale;
     return _last = Progress(
       doneM: match.alongM,
       remainingM: remainingM,
@@ -146,6 +159,8 @@ class RouteTracker {
       offRoute: _off,
       arrived: remainingM < 30 && match.distanceM < offRouteM,
       at: match.at,
+      ascentDoneM: upDone,
+      ascentRemainingM: max(0.0, upAll - upDone),
     );
   }
 
@@ -176,11 +191,12 @@ class RouteTracker {
           distanceM: d,
           alongM: along,
           minutes: _cumMin[i - 1] + t * (_cumMin[i] - _cumMin[i - 1]),
+          up: _cumUp[i - 1] + t * (_cumUp[i] - _cumUp[i - 1]),
           at: [line[i - 1][0] + t * (line[i][0] - line[i - 1][0]), line[i - 1][1] + t * (line[i][1] - line[i - 1][1])],
         );
       }
     }
-    return best ?? _Match(distanceM: double.infinity, alongM: _alongM, minutes: 0, at: line.first);
+    return best ?? _Match(distanceM: double.infinity, alongM: _alongM, minutes: 0, up: 0, at: line.first);
   }
 
   static double _distance(List<double> a, List<double> b) {
@@ -191,7 +207,7 @@ class RouteTracker {
 }
 
 class _Match {
-  _Match({required this.distanceM, required this.alongM, required this.minutes, required this.at});
-  final double distanceM, alongM, minutes;
+  _Match({required this.distanceM, required this.alongM, required this.minutes, required this.up, required this.at});
+  final double distanceM, alongM, minutes, up;
   final List<double> at;
 }

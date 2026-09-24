@@ -443,5 +443,11 @@
 	"place_kind_address": "Adresse",
 	"route_hiked": "Randonnée du {date} · {duration} en route",
 	"route_hiked_planned": "itinéraire prévu",
-	"routes_hiked": "Randonnée du {date}"
+	"routes_hiked": "Randonnée du {date}",
+	"tags_label": "Étiquettes",
+	"tags_placeholder": "Ajouter une étiquette …",
+	"tags_remove": "Retirer l'étiquette « {tag} »",
+	"tags_filter_by": "N'afficher que « {tag} »",
+	"tags_filtered": "Seulement avec l'étiquette « {tag} »",
+	"tags_filter_clear": "Tout afficher"
 }

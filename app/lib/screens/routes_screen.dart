@@ -8,6 +8,7 @@ import '../navigation/uploads.dart';
 import '../offline/packs.dart';
 import 'journeys_list.dart';
 import 'route_screen.dart';
+import 'tag_chips.dart';
 import 'watch_screen.dart';
 
 /// The user's routes, and journeys in a second tab; the saved ones when the
@@ -106,10 +107,17 @@ class _RoutesScreenState extends State<RoutesScreen> {
                         leading: r.hikedAt != null
                             ? Icon(Icons.hiking, semanticLabel: t.routesHiked(formatDate(r.hikedAt!)))
                             : null,
-                        subtitle: Text(
-                          '${r.hikedAt != null ? '${t.routesHiked(formatDate(r.hikedAt!))} · ' : ''}'
-                          '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
-                          '↑ ${r.totals.ascentM.round()} m · ${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 4,
+                          children: [
+                            Text(
+                              '${r.hikedAt != null ? '${t.routesHiked(formatDate(r.hikedAt!))} · ' : ''}'
+                              '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
+                              '↑ ${r.totals.ascentM.round()} m · ${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
+                            ),
+                            if (r.tags.isNotEmpty) TagChips(r.tags),
+                          ],
                         ),
                         onTap: () async {
                           await Navigator.of(context).push(

@@ -30,7 +30,8 @@ type Store struct {
 const summaryColumns = `r.id, u.username, r.title, r.description, r.visibility, r.profile,
 	r.distance_m, r.ascent_m, r.descent_m, r.duration_s, r.duration_reverse_s,
 	r.ele_min_m, r.ele_max_m, r.sac_grade, r.sac_max, r.version, r.created_at, r.updated_at,
-	r.hiked_at, r.hiked_s, r.planned_route_id`
+	r.hiked_at, r.hiked_s, r.planned_route_id,
+	CASE WHEN r.journey_id IS NULL THEN r.tags ELSE (SELECT j.tags FROM journeys j WHERE j.id = r.journey_id) END`
 
 func scanSummary(row pgx.Row, extra ...any) (Summary, error) {
 	var s Summary
@@ -41,7 +42,7 @@ func scanSummary(row pgx.Row, extra ...any) (Summary, error) {
 	dest := []any{&id, &s.OwnerUsername, &s.Title, &s.Description, &s.Visibility, &s.Profile,
 		&s.Totals.DistanceM, &s.Totals.AscentM, &s.Totals.DescentM, &s.Totals.DurationS, &s.Totals.DurationReverseS,
 		&s.Totals.EleMinM, &s.Totals.EleMaxM, &s.Totals.SACGrade, &s.Totals.SACMax, &s.Version, &s.CreatedAt, &s.UpdatedAt,
-		&hikedAt, &hikedS, &planned}
+		&hikedAt, &hikedS, &planned, &s.Tags}
 	err := row.Scan(append(dest, extra...)...)
 	s.ID = id.String()
 	if hikedAt != nil && hikedS != nil {
@@ -87,14 +88,14 @@ func (s *Store) create(ctx context.Context, q Querier, ownerID uuid.UUID, journe
 	err = q.QueryRow(ctx, `
 		INSERT INTO routes (owner_id, title, description, visibility, profile, anchors, legs, geom,
 			distance_m, ascent_m, descent_m, duration_s, duration_reverse_s, ele_min_m, ele_max_m, sac_grade, sac_max,
-			share_token, journey_id)
+			share_token, journey_id, tags)
 		VALUES ($1, $2, $3, $4::visibility, $5, $6, $7, ST_GeomFromText($8, 4326),
 			$9, $10, $11, $12, $13, $14, $15, $16, $17,
-			CASE WHEN $4::visibility = 'unlisted' THEN $18 END, $19)
+			CASE WHEN $4::visibility = 'unlisted' THEN $18 END, $19, coalesce($20::text[], '{}'))
 		RETURNING id`,
 		ownerID, m.Title, m.Description, m.Visibility, c.Profile, anchors, legs, a.wkt,
 		round(t.DistanceM), round(t.AscentM), round(t.DescentM), t.DurationS, t.DurationReverseS,
-		round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken(), journeyID,
+		round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken(), journeyID, m.Tags,
 	).Scan(&id)
 	if err != nil {
 		return Route{}, fmt.Errorf("routes: create: %w", err)
@@ -246,9 +247,9 @@ func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c
 	var err error
 	if c == nil {
 		res, err = s.DB.Exec(ctx, `UPDATE routes SET title = $3, description = $4, visibility = $5::visibility,
-			share_token = `+keepOrNewToken+`,
+			share_token = `+keepOrNewToken+`, tags = `+ownTags7+`,
 			version = version + 1, updated_at = now() WHERE id = $1 AND version = $2`,
-			id, version, m.Title, m.Description, m.Visibility, NewShareToken())
+			id, version, m.Title, m.Description, m.Visibility, NewShareToken(), m.Tags)
 	} else {
 		a, aerr := assemble(*c)
 		if aerr != nil {
@@ -263,12 +264,12 @@ func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c
 			anchors = $7, legs = $8, geom = ST_GeomFromText($9, 4326),
 			distance_m = $10, ascent_m = $11, descent_m = $12, duration_s = $13, duration_reverse_s = $14,
 			ele_min_m = $15, ele_max_m = $16, sac_grade = $17, sac_max = $18,
-			share_token = `+keepOrNewToken19+`,
+			share_token = `+keepOrNewToken19+`, tags = `+ownTags20+`,
 			version = version + 1, updated_at = now()
 			WHERE id = $1 AND version = $2`,
 			id, version, m.Title, m.Description, m.Visibility, c.Profile, anchors, legs, a.wkt,
 			round(t.DistanceM), round(t.AscentM), round(t.DescentM), t.DurationS, t.DurationReverseS,
-			round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken())
+			round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken(), m.Tags)
 	}
 	if err != nil {
 		return Route{}, fmt.Errorf("routes: update: %w", err)
@@ -287,6 +288,9 @@ func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c
 const (
 	keepOrNewToken   = `CASE WHEN $5::visibility = 'unlisted' THEN COALESCE(share_token, $6) ELSE share_token END`
 	keepOrNewToken19 = `CASE WHEN $5::visibility = 'unlisted' THEN COALESCE(share_token, $19) ELSE share_token END`
+	// Stage routes have their journey's tags, not their own.
+	ownTags7  = `CASE WHEN journey_id IS NULL THEN coalesce($7::text[], '{}') ELSE tags END`
+	ownTags20 = `CASE WHEN journey_id IS NULL THEN coalesce($20::text[], '{}') ELSE tags END`
 )
 
 // RotateShareToken replaces the share token, which breaks existing links.

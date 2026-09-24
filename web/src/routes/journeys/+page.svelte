@@ -1,15 +1,22 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
 	import { formatDistance, formatDuration } from '$lib/planner/route';
+	import TagChips from '$lib/tags/TagChips.svelte';
+	import TagFilter from '$lib/tags/TagFilter.svelte';
+	import { hasTag } from '$lib/tags/tags';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();
 	// svelte-ignore state_referenced_locally
 	let shared = $state(data.shared);
+	const tag = $derived(page.url.searchParams.get('tag'));
+	const journeys = $derived(data.journeys.filter((j) => hasTag(j.tags, tag)));
+	const byTag = (t: string) => `?tag=${encodeURIComponent(t)}`;
 
 	async function leave(id: string) {
 		const { response } = await api().DELETE('/journeys/{id}/access', {
@@ -54,6 +61,7 @@
 		</button>
 	</form>
 
+	<div class="mt-6"><TagFilter /></div>
 	{#if data.journeys.length === 0}
 		<p class="mt-6 text-stone-600">{m.journeys_empty()}</p>
 	{:else}
@@ -61,23 +69,25 @@
 			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
 			data-testid="journey-list"
 		>
-			{#each data.journeys as j (j.id)}
-				<li>
-					<a
-						href={resolve('/journeys/[id]', { id: j.id })}
-						class="flex items-center gap-4 px-4 py-3 hover:bg-stone-50"
+			{#each journeys as j (j.id)}
+				<!-- The title's link covers the row; the tags link above it. -->
+				<li class="relative flex items-center gap-4 px-4 py-3 hover:bg-stone-50">
+					<span class="flex flex-1 flex-col gap-1">
+						<a
+							href={resolve('/journeys/[id]', { id: j.id })}
+							class="font-medium after:absolute after:inset-0">{j.title}</a
+						>
+						<TagChips tags={j.tags} href={byTag} />
+					</span>
+					<span class="text-sm text-stone-600"
+						>{m.journey_stages_count({ done: j.stages_done, total: j.stages })}</span
 					>
-						<span class="flex-1 font-medium">{j.title}</span>
-						<span class="text-sm text-stone-600"
-							>{m.journey_stages_count({ done: j.stages_done, total: j.stages })}</span
-						>
-						<span class="w-20 text-sm text-stone-600 tabular-nums"
-							>{formatDistance(j.distance_m)}</span
-						>
-						<span class="w-24 text-sm text-stone-600 tabular-nums"
-							>{formatDuration(j.duration_s)}</span
-						>
-					</a>
+					<span class="w-20 text-sm text-stone-600 tabular-nums"
+						>{formatDistance(j.distance_m)}</span
+					>
+					<span class="w-24 text-sm text-stone-600 tabular-nums"
+						>{formatDuration(j.duration_s)}</span
+					>
 				</li>
 			{/each}
 		</ul>

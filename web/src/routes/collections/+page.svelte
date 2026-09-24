@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import TagChips from '$lib/tags/TagChips.svelte';
+	import TagFilter from '$lib/tags/TagFilter.svelte';
+	import { hasTag } from '$lib/tags/tags';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 
 	let { data } = $props();
@@ -10,6 +14,9 @@
 	let title = $state('');
 	// svelte-ignore state_referenced_locally
 	let shared = $state(data.shared);
+	const tag = $derived(page.url.searchParams.get('tag'));
+	const collections = $derived(data.collections.filter((c) => hasTag(c.tags, tag)));
+	const byTag = (t: string) => `?tag=${encodeURIComponent(t)}`;
 
 	async function create(e: SubmitEvent) {
 		e.preventDefault();
@@ -48,6 +55,7 @@
 		</button>
 	</form>
 
+	<div class="mt-6"><TagFilter /></div>
 	{#if data.collections.length === 0}
 		<p class="mt-6 text-stone-600">{m.collections_empty()}</p>
 	{:else}
@@ -55,15 +63,17 @@
 			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
 			data-testid="collection-list"
 		>
-			{#each data.collections as c (c.id)}
-				<li>
-					<a
-						href={resolve('/collections/[id]', { id: c.id })}
-						class="flex items-center gap-4 px-4 py-3 hover:bg-stone-50"
-					>
-						<span class="flex-1 font-medium">{c.title}</span>
-						<span class="text-sm text-stone-600">{m.collection_items_count({ n: c.items })}</span>
-					</a>
+			{#each collections as c (c.id)}
+				<!-- The title's link covers the row; the tags link above it. -->
+				<li class="relative flex items-center gap-4 px-4 py-3 hover:bg-stone-50">
+					<span class="flex flex-1 flex-col gap-1">
+						<a
+							href={resolve('/collections/[id]', { id: c.id })}
+							class="font-medium after:absolute after:inset-0">{c.title}</a
+						>
+						<TagChips tags={c.tags} href={byTag} />
+					</span>
+					<span class="text-sm text-stone-600">{m.collection_items_count({ n: c.items })}</span>
 				</li>
 			{/each}
 		</ul>

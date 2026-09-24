@@ -15,6 +15,7 @@
 	import { Gallery } from '$lib/photos/gallery.svelte';
 	import PhotoPins from '$lib/photos/PhotoPins.svelte';
 	import Photos from '$lib/photos/Photos.svelte';
+	import TagChips from '$lib/tags/TagChips.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import StatsPanel from './StatsPanel.svelte';
@@ -114,6 +115,7 @@
 					{m.route_by({ user: route.owner_username })}
 				{/if}
 			</p>
+			<div class="mt-1"><TagChips tags={route.tags} /></div>
 			{#if route.hike}
 				<p class="text-sm text-stone-600" data-testid="hike">
 					{m.route_hiked({

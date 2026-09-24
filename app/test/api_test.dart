@@ -64,6 +64,7 @@ void main() {
             'title': 'Gratweg',
             'owner_username': 'anna',
             'totals': totals,
+            'tags': ['Winter', 'mit Kindern'],
             'legs': [
               {
                 'coordinates': [
@@ -88,6 +89,7 @@ void main() {
     final r = await api.route('r1');
     expect(r.line.length, 4);
     expect(r.line.last, [8.002, 46.5, 1020]);
+    expect(r.tags, ['Winter', 'mit Kindern']);
     await expectLater(api.route('nope'), throwsA(isA<ApiException>().having((e) => e.status, 'status', 404)));
   });
 
@@ -123,6 +125,7 @@ void main() {
                   'distance_m': 32634.0,
                   'ascent_m': 1118.0,
                   'duration_s': 34463,
+                  'tags': ['Tessin'],
                 },
               ],
             }),
@@ -170,6 +173,7 @@ void main() {
     final api = Api('https://odysgeh.test', token: 't', client: client);
     final list = await api.journeys();
     expect((list.single.title, list.single.stages, list.single.stagesDone), ('Via Alpina', 3, 1));
+    expect(list.single.tags, ['Tessin']);
 
     final j = await api.journey('j1');
     expect((j.stagesDone, j.stagesTotal, j.totals.durationS), (1, 3, 1800));
@@ -181,5 +185,6 @@ void main() {
     expect((s3.routeId, s3.totals, s3.gapStatus), (null, null, null));
     final offline = JourneySummary.of(j);
     expect((offline.stages, offline.stagesDone, offline.distanceM), (3, 1, 1500.0));
+    expect(offline.tags, isEmpty); // a copy saved before there were tags
   });
 }

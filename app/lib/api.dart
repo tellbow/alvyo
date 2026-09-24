@@ -45,12 +45,16 @@ class RouteSummary {
       title = j['title'] as String,
       owner = j['owner_username'] as String,
       totals = Totals.fromJson(j['totals'] as Map<String, dynamic>),
+      tags = _tags(j['tags']),
       hikedAt = switch (j['hike']) {
         {'at': final String at} => DateTime.parse(at),
         _ => null,
       };
   final String id, title, owner;
   final Totals totals;
+
+  /// The owner's labels; a stage route has its journey's.
+  final List<String> tags;
 
   /// When it was hiked, for hikes recorded with the app.
   final DateTime? hikedAt;
@@ -92,7 +96,8 @@ class JourneySummary {
       stagesDone = (j['stages_done'] as num).toInt(),
       distanceM = (j['distance_m'] as num).toDouble(),
       ascentM = (j['ascent_m'] as num).toDouble(),
-      durationS = (j['duration_s'] as num).toInt();
+      durationS = (j['duration_s'] as num).toInt(),
+      tags = _tags(j['tags']);
 
   /// The summary of a journey saved offline.
   JourneySummary.of(JourneyDetail j)
@@ -102,11 +107,16 @@ class JourneySummary {
       stagesDone = j.stagesDone,
       distanceM = j.totals.distanceM,
       ascentM = j.totals.ascentM,
-      durationS = j.totals.durationS;
+      durationS = j.totals.durationS,
+      tags = j.tags;
   final String id, title;
   final int stages, stagesDone, durationS;
   final double distanceM, ascentM;
+  final List<String> tags;
 }
+
+/// Tags as the server sends them; none in copies saved before there were tags.
+List<String> _tags(Object? v) => [for (final t in v as List? ?? const []) t as String];
 
 /// A stage of a journey.
 class Stage {
@@ -159,11 +169,13 @@ class JourneyDetail {
       stages = [for (final s in json['stage_list'] as List) Stage.fromJson(s as Map<String, dynamic>)],
       totals = Totals.fromJson(json['totals'] as Map<String, dynamic>),
       stagesDone = ((json['progress'] as Map<String, dynamic>)['stages_done'] as num).toInt(),
-      stagesTotal = ((json['progress'] as Map<String, dynamic>)['stages_total'] as num).toInt();
+      stagesTotal = ((json['progress'] as Map<String, dynamic>)['stages_total'] as num).toInt(),
+      tags = _tags(json['tags']);
 
   /// As the server sent it, to keep a copy offline.
   final Map<String, dynamic> json;
   final String id, title;
+  final List<String> tags;
   final List<Stage> stages;
   final Totals totals;
 

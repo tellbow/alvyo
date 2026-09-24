@@ -27,6 +27,8 @@ type Meta struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Visibility  string `json:"visibility" enum:"private,unlisted,public"`
+	// Tags also apply to the stage routes.
+	Tags []string `json:"tags"`
 }
 
 // Summary is a journey in lists.

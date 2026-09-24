@@ -5,6 +5,7 @@
 	import { page } from '$app/state';
 	import { api, type Me, type Route } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import TagInput from '$lib/tags/TagInput.svelte';
 	import type { Planner } from './planner.svelte';
 
 	let { planner, user, route }: { planner: Planner; user: Me; route?: Route } = $props();
@@ -20,15 +21,19 @@
 	// svelte-ignore state_referenced_locally
 	let visibility = $state<Visibility>((route?.visibility as Visibility) ?? 'private');
 	// svelte-ignore state_referenced_locally
+	let tags = $state<string[]>(route?.tags ?? []);
+	// svelte-ignore state_referenced_locally
 	let version = $state(route?.version ?? 0);
 	// svelte-ignore state_referenced_locally
 	let shareToken = $state(route?.share_token ?? '');
 	// svelte-ignore state_referenced_locally
-	let savedMeta = $state(JSON.stringify([route?.title ?? '', route?.visibility ?? 'private']));
+	let savedMeta = $state(
+		JSON.stringify([route?.title ?? '', route?.visibility ?? 'private', route?.tags ?? []])
+	);
 	let status = $state<'idle' | 'saving' | 'saved' | 'conflict' | 'failed'>('idle');
 	let copied = $state(false);
 
-	const metaDirty = $derived(JSON.stringify([title, visibility]) !== savedMeta);
+	const metaDirty = $derived(JSON.stringify([title, visibility, tags]) !== savedMeta);
 	const canSave = $derived(
 		title.trim() !== '' &&
 			planner.complete &&
@@ -63,12 +68,12 @@
 		status = 'saving';
 		// What is sent is what counts as saved: changes made meanwhile stay unsaved.
 		const saving = planner.fingerprint();
-		const meta = JSON.stringify([title, visibility]);
+		const meta = JSON.stringify([title, visibility, tags]);
 		const content = planner.content();
 		try {
 			if (!route) {
 				const { data } = await api().POST('/routes', {
-					body: { title: title.trim(), visibility, ...content }
+					body: { title: title.trim(), visibility, tags, ...content }
 				});
 				if (!data) {
 					status = 'failed';
@@ -82,6 +87,7 @@
 				params: { path: { id: route.id }, header: { 'If-Match': `"${version}"` } },
 				body: {
 					title: title.trim(),
+					tags,
 					...(isOwner ? { visibility } : {}),
 					...(planner.dirty ? content : {})
 				}
@@ -116,6 +122,10 @@
 			class="rounded-md border border-stone-300 px-2 py-1.5"
 		/>
 	</label>
+	<div class="flex flex-col gap-1 text-sm">
+		<span class="font-medium">{m.tags_label()}</span>
+		<TagInput bind:tags />
+	</div>
 	{#if isOwner}
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium">{m.field_visibility()}</span>

@@ -569,7 +569,7 @@ export interface paths {
         delete: operations["delete-journey"];
         options?: never;
         head?: never;
-        /** Change a journey's title, description or visibility */
+        /** Change a journey's title, description, visibility or tags */
         patch: operations["update-journey"];
         trace?: never;
     };
@@ -1042,6 +1042,26 @@ export interface paths {
         post?: never;
         /** Remove a passkey (not the last way to log in) */
         delete: operations["delete-passkey"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The tags on the logged-in user's routes, journeys and collections
+         * @description With how often each is used, most used first; for suggestions and filters.
+         */
+        get: operations["list-my-tags"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1689,6 +1709,7 @@ export interface components {
             role: "owner" | "editor" | "viewer";
             /** @description Owner only; the link is /collections/{id}?t=token */
             share_token?: string;
+            tags: string[];
             title: string;
             /** Format: date-time */
             updated_at: string;
@@ -1748,6 +1769,7 @@ export interface components {
             owner_username: string;
             /** @enum {string} */
             role: "viewer" | "editor";
+            tags: string[];
             title: string;
             /** Format: date-time */
             updated_at: string;
@@ -1768,6 +1790,7 @@ export interface components {
              */
             items: number;
             owner_username: string;
+            tags: string[];
             title: string;
             /** Format: date-time */
             updated_at: string;
@@ -1793,8 +1816,16 @@ export interface components {
         ConnectionsOutputBody: {
             trips: components["schemas"]["TransitTrip"][];
         };
+        Count: {
+            /** Format: int64 */
+            count: number;
+            /** @description The spelling used most */
+            tag: string;
+        };
         CreateCollectionInputBody: {
             description?: string;
+            /** @description At most 20, each up to 40 characters; repeats (ignoring case) are dropped */
+            tags?: string[];
             title: string;
             /**
              * @default private
@@ -1804,6 +1835,8 @@ export interface components {
         };
         CreateJourneyInputBody: {
             description?: string;
+            /** @description At most 20, each up to 40 characters; repeats (ignoring case) are dropped */
+            tags?: string[];
             title: string;
             /**
              * @default private
@@ -1817,6 +1850,8 @@ export interface components {
             legs: components["schemas"]["Leg"][];
             /** @enum {string} */
             profile: "hike" | "alpine";
+            /** @description At most 20, each up to 40 characters; repeats (ignoring case) are dropped */
+            tags?: string[];
             title: string;
             /**
              * @default private
@@ -2072,6 +2107,7 @@ export interface components {
             stages: number;
             /** Format: int64 */
             stages_done: number;
+            tags: string[];
             title: string;
             totals: components["schemas"]["RouteTotals"];
             /** Format: date-time */
@@ -2125,6 +2161,7 @@ export interface components {
             stages: number;
             /** Format: int64 */
             stages_done: number;
+            tags: string[];
             title: string;
             /** Format: date-time */
             updated_at: string;
@@ -2181,6 +2218,7 @@ export interface components {
             stages: number;
             /** Format: int64 */
             stages_done: number;
+            tags: string[];
             title: string;
             /** Format: date-time */
             updated_at: string;
@@ -2575,6 +2613,7 @@ export interface components {
             /** @enum {string} */
             role: "owner" | "editor" | "viewer";
             share_token?: string;
+            tags: string[];
             title: string;
             totals: components["schemas"]["RouteTotals"];
             /** Format: date-time */
@@ -2618,6 +2657,7 @@ export interface components {
             profile: string;
             /** @enum {string} */
             role: "viewer" | "editor";
+            tags: string[];
             title: string;
             totals: components["schemas"]["RouteTotals"];
             /** Format: date-time */
@@ -2636,6 +2676,7 @@ export interface components {
             id: string;
             owner_username: string;
             profile: string;
+            tags: string[];
             title: string;
             totals: components["schemas"]["RouteTotals"];
             /** Format: date-time */
@@ -2780,6 +2821,9 @@ export interface components {
             /** Format: int64 */
             total: number;
         };
+        TagCountsOutputBody: {
+            tags: components["schemas"]["Count"][];
+        };
         TokenInputBody: {
             token: string;
         };
@@ -2836,6 +2880,8 @@ export interface components {
         };
         UpdateCollectionInputBody: {
             description?: string;
+            /** @description Replaces the tags; [] removes them */
+            tags?: string[];
             title?: string;
             /** @enum {string} */
             visibility?: "private" | "unlisted" | "public";
@@ -2850,6 +2896,8 @@ export interface components {
         };
         UpdateJourneyInputBody: {
             description?: string;
+            /** @description Replaces the tags; [] removes them */
+            tags?: string[];
             title?: string;
             /** @enum {string} */
             visibility?: "private" | "unlisted" | "public";
@@ -2860,6 +2908,8 @@ export interface components {
             legs?: components["schemas"]["Leg"][];
             /** @enum {string} */
             profile?: "hike" | "alpine";
+            /** @description Replaces the tags; [] removes them. Not for stage routes, which have their journey's */
+            tags?: string[];
             title?: string;
             /** @enum {string} */
             visibility?: "private" | "unlisted" | "public";
@@ -5506,6 +5556,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PasskeysOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-my-tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagCountsOutputBody"];
                 };
             };
             /** @description Error */

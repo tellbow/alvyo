@@ -166,6 +166,12 @@
             "description": "Owner only; the link is /collections/{id}?t=token",
             "type": "string"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -198,7 +204,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -346,6 +353,12 @@
             ],
             "type": "string"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -376,7 +389,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -401,6 +415,12 @@
           },
           "owner_username": {
             "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "title": {
             "type": "string"
@@ -431,7 +451,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -499,12 +520,38 @@
         ],
         "type": "object"
       },
+      "Count": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "tag": {
+            "description": "The spelling used most",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tag",
+          "count"
+        ],
+        "type": "object"
+      },
       "CreateCollectionInputBody": {
         "additionalProperties": false,
         "properties": {
           "description": {
             "maxLength": 5000,
             "type": "string"
+          },
+          "tags": {
+            "description": "At most 20, each up to 40 characters; repeats (ignoring case) are dropped",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
           },
           "title": {
             "maxLength": 120,
@@ -532,6 +579,14 @@
           "description": {
             "maxLength": 5000,
             "type": "string"
+          },
+          "tags": {
+            "description": "At most 20, each up to 40 characters; repeats (ignoring case) are dropped",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
           },
           "title": {
             "maxLength": 120,
@@ -582,6 +637,14 @@
               "alpine"
             ],
             "type": "string"
+          },
+          "tags": {
+            "description": "At most 20, each up to 40 characters; repeats (ignoring case) are dropped",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
           },
           "title": {
             "maxLength": 120,
@@ -1342,6 +1405,12 @@
             "format": "int64",
             "type": "integer"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -1384,7 +1453,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -1536,6 +1606,12 @@
             "format": "int64",
             "type": "integer"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -1570,7 +1646,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -1749,6 +1826,12 @@
             "format": "int64",
             "type": "integer"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -1782,7 +1865,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -3029,6 +3113,12 @@
           "share_token": {
             "type": "string"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -3066,7 +3156,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -3161,6 +3252,12 @@
             ],
             "type": "string"
           },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -3195,7 +3292,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -3221,6 +3319,12 @@
           },
           "profile": {
             "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "title": {
             "type": "string"
@@ -3255,7 +3359,8 @@
           "updated_at",
           "title",
           "description",
-          "visibility"
+          "visibility",
+          "tags"
         ],
         "type": "object"
       },
@@ -3674,6 +3779,21 @@
         ],
         "type": "object"
       },
+      "TagCountsOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/Count"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "tags"
+        ],
+        "type": "object"
+      },
       "TokenInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -3849,6 +3969,14 @@
             "maxLength": 5000,
             "type": "string"
           },
+          "tags": {
+            "description": "Replaces the tags; [] removes them",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
           "title": {
             "maxLength": 120,
             "minLength": 1,
@@ -3887,6 +4015,14 @@
           "description": {
             "maxLength": 5000,
             "type": "string"
+          },
+          "tags": {
+            "description": "Replaces the tags; [] removes them",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
           },
           "title": {
             "maxLength": 120,
@@ -3931,6 +4067,14 @@
               "alpine"
             ],
             "type": "string"
+          },
+          "tags": {
+            "description": "Replaces the tags; [] removes them. Not for stage routes, which have their journey's",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
           },
           "title": {
             "maxLength": 120,
@@ -6166,7 +6310,7 @@
             "description": "Error"
           }
         },
-        "summary": "Change a journey's title, description or visibility",
+        "summary": "Change a journey's title, description, visibility or tags",
         "tags": [
           "journeys"
         ]
@@ -8061,6 +8205,38 @@
         "summary": "Remove a passkey (not the last way to log in)",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/me/tags": {
+      "get": {
+        "description": "With how often each is used, most used first; for suggestions and filters.",
+        "operationId": "list-my-tags",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagCountsOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The tags on the logged-in user's routes, journeys and collections",
+        "tags": [
+          "tags"
         ]
       }
     },

@@ -35,9 +35,10 @@ type collectionIDInput struct {
 
 type createCollectionInput struct {
 	Body struct {
-		Title       string `json:"title" minLength:"1" maxLength:"120"`
-		Description string `json:"description,omitempty" maxLength:"5000"`
-		Visibility  string `json:"visibility,omitempty" enum:"private,unlisted,public" default:"private"`
+		Title       string   `json:"title" minLength:"1" maxLength:"120"`
+		Description string   `json:"description,omitempty" maxLength:"5000"`
+		Visibility  string   `json:"visibility,omitempty" enum:"private,unlisted,public" default:"private"`
+		Tags        []string `json:"tags,omitempty" maxItems:"20" doc:"At most 20, each up to 40 characters; repeats (ignoring case) are dropped"`
 	}
 }
 
@@ -45,9 +46,10 @@ type updateCollectionInput struct {
 	ID      string `path:"id" format:"uuid"`
 	IfMatch string `header:"If-Match" required:"true"`
 	Body    struct {
-		Title       *string `json:"title,omitempty" minLength:"1" maxLength:"120"`
-		Description *string `json:"description,omitempty" maxLength:"5000"`
-		Visibility  *string `json:"visibility,omitempty" enum:"private,unlisted,public"`
+		Title       *string  `json:"title,omitempty" minLength:"1" maxLength:"120"`
+		Description *string  `json:"description,omitempty" maxLength:"5000"`
+		Visibility  *string  `json:"visibility,omitempty" enum:"private,unlisted,public"`
+		Tags        []string `json:"tags,omitempty" maxItems:"20" doc:"Replaces the tags; [] removes them"`
 	}
 }
 
@@ -176,8 +178,13 @@ func registerCollections(api huma.API, d Deps) {
 		if err := checkPublish(u, in.Body.Visibility); err != nil {
 			return nil, err
 		}
+		labels, err := normalizeTags(in.Body.Tags)
+		if err != nil {
+			return nil, err
+		}
 		id, err := store.Create(ctx, u.ID, collections.Meta{
 			Title: strings.TrimSpace(in.Body.Title), Description: in.Body.Description, Visibility: in.Body.Visibility,
+			Tags: labels,
 		})
 		if err != nil {
 			return nil, err
@@ -237,6 +244,11 @@ func registerCollections(api huma.API, d Deps) {
 		}
 		if in.Body.Description != nil {
 			m.Description = *in.Body.Description
+		}
+		if in.Body.Tags != nil {
+			if m.Tags, err = normalizeTags(in.Body.Tags); err != nil {
+				return nil, err
+			}
 		}
 		if in.Body.Visibility != nil && *in.Body.Visibility != c.Visibility {
 			if role < access.Owner {

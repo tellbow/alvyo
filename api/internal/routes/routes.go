@@ -50,6 +50,8 @@ type Meta struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Visibility  string `json:"visibility" enum:"private,unlisted,public"`
+	// Tags of a stage route are its journey's.
+	Tags []string `json:"tags"`
 }
 
 // Hike is when a route recorded with the app was hiked.

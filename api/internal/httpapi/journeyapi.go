@@ -42,9 +42,10 @@ type journeyIDInput struct {
 
 type createJourneyInput struct {
 	Body struct {
-		Title       string `json:"title" minLength:"1" maxLength:"120"`
-		Description string `json:"description,omitempty" maxLength:"5000"`
-		Visibility  string `json:"visibility,omitempty" enum:"private,unlisted,public" default:"private"`
+		Title       string   `json:"title" minLength:"1" maxLength:"120"`
+		Description string   `json:"description,omitempty" maxLength:"5000"`
+		Visibility  string   `json:"visibility,omitempty" enum:"private,unlisted,public" default:"private"`
+		Tags        []string `json:"tags,omitempty" maxItems:"20" doc:"At most 20, each up to 40 characters; repeats (ignoring case) are dropped"`
 	}
 }
 
@@ -52,9 +53,10 @@ type updateJourneyInput struct {
 	ID      string `path:"id" format:"uuid"`
 	IfMatch string `header:"If-Match" required:"true"`
 	Body    struct {
-		Title       *string `json:"title,omitempty" minLength:"1" maxLength:"120"`
-		Description *string `json:"description,omitempty" maxLength:"5000"`
-		Visibility  *string `json:"visibility,omitempty" enum:"private,unlisted,public"`
+		Title       *string  `json:"title,omitempty" minLength:"1" maxLength:"120"`
+		Description *string  `json:"description,omitempty" maxLength:"5000"`
+		Visibility  *string  `json:"visibility,omitempty" enum:"private,unlisted,public"`
+		Tags        []string `json:"tags,omitempty" maxItems:"20" doc:"Replaces the tags; [] removes them"`
 	}
 }
 
@@ -151,8 +153,13 @@ func registerJourneys(api huma.API, d Deps) {
 		if err := checkPublish(u, in.Body.Visibility); err != nil {
 			return nil, err
 		}
+		labels, err := normalizeTags(in.Body.Tags)
+		if err != nil {
+			return nil, err
+		}
 		j, err := store.Create(ctx, u.ID, journeys.Meta{
 			Title: strings.TrimSpace(in.Body.Title), Description: in.Body.Description, Visibility: in.Body.Visibility,
+			Tags: labels,
 		})
 		if err != nil {
 			return nil, journeyError(err)
@@ -190,7 +197,7 @@ func registerJourneys(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "update-journey", Method: http.MethodPatch, Path: "/journeys/{id}",
-		Summary: "Change a journey's title, description or visibility", Tags: tags,
+		Summary: "Change a journey's title, description, visibility or tags", Tags: tags,
 	}, func(ctx context.Context, in *updateJourneyInput) (*journeyOutput, error) {
 		j, role, err := journeyAs(ctx, d, in.ID, access.Editor)
 		if err != nil {
@@ -206,6 +213,11 @@ func registerJourneys(api huma.API, d Deps) {
 		}
 		if in.Body.Description != nil {
 			m.Description = *in.Body.Description
+		}
+		if in.Body.Tags != nil {
+			if m.Tags, err = normalizeTags(in.Body.Tags); err != nil {
+				return nil, err
+			}
 		}
 		if in.Body.Visibility != nil && *in.Body.Visibility != j.Visibility && role < access.Owner {
 			return nil, forbidden(access.Owner, "journey")

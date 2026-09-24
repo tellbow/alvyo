@@ -40,9 +40,10 @@ type Store struct {
 // Create stores a new journey.
 func (s *Store) Create(ctx context.Context, ownerID uuid.UUID, m Meta) (Journey, error) {
 	var id uuid.UUID
-	err := s.DB.QueryRow(ctx, `INSERT INTO journeys (owner_id, title, description, visibility, share_token)
-		VALUES ($1, $2, $3, $4::visibility, CASE WHEN $4::visibility = 'unlisted' THEN $5 END) RETURNING id`,
-		ownerID, m.Title, m.Description, m.Visibility, routes.NewShareToken()).Scan(&id)
+	err := s.DB.QueryRow(ctx, `INSERT INTO journeys (owner_id, title, description, visibility, share_token, tags)
+		VALUES ($1, $2, $3, $4::visibility, CASE WHEN $4::visibility = 'unlisted' THEN $5 END, coalesce($6::text[], '{}'))
+		RETURNING id`,
+		ownerID, m.Title, m.Description, m.Visibility, routes.NewShareToken(), m.Tags).Scan(&id)
 	if err != nil {
 		return Journey{}, fmt.Errorf("journeys: create: %w", err)
 	}
@@ -51,7 +52,7 @@ func (s *Store) Create(ctx context.Context, ownerID uuid.UUID, m Meta) (Journey,
 
 // listSQL selects journey summaries; callers add joins and conditions.
 const listSQL = `
-	SELECT j.id, u.username, j.title, j.description, j.visibility, j.version, j.created_at, j.updated_at,
+	SELECT j.id, u.username, j.title, j.description, j.visibility, j.tags, j.version, j.created_at, j.updated_at,
 		count(st.id), count(st.id) FILTER (WHERE st.status = 'done'),
 		coalesce(sum(r.distance_m), 0), coalesce(sum(r.ascent_m), 0), coalesce(sum(r.duration_s), 0)%s
 	FROM journeys j
@@ -65,7 +66,7 @@ const listSQL = `
 func scanSummary(row pgx.Row, extra ...any) (Summary, error) {
 	var sm Summary
 	var id uuid.UUID
-	err := row.Scan(append([]any{&id, &sm.OwnerUsername, &sm.Title, &sm.Description, &sm.Visibility, &sm.Version,
+	err := row.Scan(append([]any{&id, &sm.OwnerUsername, &sm.Title, &sm.Description, &sm.Visibility, &sm.Tags, &sm.Version,
 		&sm.CreatedAt, &sm.UpdatedAt, &sm.Stages, &sm.StagesDone, &sm.DistanceM, &sm.AscentM, &sm.DurationS}, extra...)...)
 	sm.ID = id.String()
 	return sm, err
@@ -134,10 +135,10 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID) (Journey, error) {
 	var jid, owner uuid.UUID
 	var token *string
 	err := s.DB.QueryRow(ctx, `
-		SELECT j.id, u.username, j.title, j.description, j.visibility, j.version, j.created_at, j.updated_at,
+		SELECT j.id, u.username, j.title, j.description, j.visibility, j.tags, j.version, j.created_at, j.updated_at,
 			j.owner_id, j.share_token
 		FROM journeys j JOIN users u ON u.id = j.owner_id WHERE j.id = $1`, id).
-		Scan(&jid, &j.OwnerUsername, &j.Title, &j.Description, &j.Visibility, &j.Version, &j.CreatedAt, &j.UpdatedAt,
+		Scan(&jid, &j.OwnerUsername, &j.Title, &j.Description, &j.Visibility, &j.Tags, &j.Version, &j.CreatedAt, &j.UpdatedAt,
 			&owner, &token)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Journey{}, ErrNotFound
@@ -297,8 +298,8 @@ func (s *Store) Access(ctx context.Context, id uuid.UUID) (access.Resource, erro
 func (s *Store) UpdateMeta(ctx context.Context, id uuid.UUID, version int, m Meta) (Journey, error) {
 	res, err := s.DB.Exec(ctx, `UPDATE journeys SET title = $3, description = $4, visibility = $5::visibility,
 		share_token = CASE WHEN $5::visibility = 'unlisted' THEN coalesce(share_token, $6) ELSE share_token END,
-		version = version + 1, updated_at = now() WHERE id = $1 AND version = $2`,
-		id, version, m.Title, m.Description, m.Visibility, routes.NewShareToken())
+		tags = coalesce($7::text[], '{}'), version = version + 1, updated_at = now() WHERE id = $1 AND version = $2`,
+		id, version, m.Title, m.Description, m.Visibility, routes.NewShareToken(), m.Tags)
 	if err != nil {
 		return Journey{}, fmt.Errorf("journeys: update: %w", err)
 	}

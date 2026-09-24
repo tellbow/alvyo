@@ -51,6 +51,7 @@ type createRouteInput struct {
 		Title       string          `json:"title" minLength:"1" maxLength:"120"`
 		Description string          `json:"description,omitempty" maxLength:"5000"`
 		Visibility  string          `json:"visibility,omitempty" enum:"private,unlisted,public" default:"private"`
+		Tags        []string        `json:"tags,omitempty" maxItems:"20" doc:"At most 20, each up to 40 characters; repeats (ignoring case) are dropped"`
 		Profile     string          `json:"profile" enum:"hike,alpine"`
 		Anchors     []routes.Anchor `json:"anchors" minItems:"2" maxItems:"200"`
 		Legs        []routing.Leg   `json:"legs" minItems:"1" maxItems:"199"`
@@ -75,6 +76,7 @@ type updateRouteInput struct {
 		Title       *string         `json:"title,omitempty" minLength:"1" maxLength:"120"`
 		Description *string         `json:"description,omitempty" maxLength:"5000"`
 		Visibility  *string         `json:"visibility,omitempty" enum:"private,unlisted,public"`
+		Tags        []string        `json:"tags,omitempty" maxItems:"20" doc:"Replaces the tags; [] removes them. Not for stage routes, which have their journey's"`
 		Profile     *string         `json:"profile,omitempty" enum:"hike,alpine"`
 		Anchors     []routes.Anchor `json:"anchors,omitempty" maxItems:"200"`
 		Legs        []routing.Leg   `json:"legs,omitempty" maxItems:"199"`
@@ -114,8 +116,12 @@ func registerRoutes(api huma.API, d Deps) {
 		if err := checkPublish(u, in.Body.Visibility); err != nil {
 			return nil, err
 		}
+		labels, err := normalizeTags(in.Body.Tags)
+		if err != nil {
+			return nil, err
+		}
 		r, err := store.Create(ctx, u.ID,
-			routes.Meta{Title: strings.TrimSpace(in.Body.Title), Description: in.Body.Description, Visibility: in.Body.Visibility},
+			routes.Meta{Title: strings.TrimSpace(in.Body.Title), Description: in.Body.Description, Visibility: in.Body.Visibility, Tags: labels},
 			routes.Content{Profile: in.Body.Profile, Anchors: in.Body.Anchors, Legs: in.Body.Legs})
 		if err != nil {
 			return nil, routeError(err)
@@ -258,6 +264,14 @@ func registerRoutes(api huma.API, d Deps) {
 		}
 		if b.Visibility != nil && r.JourneyID != "" {
 			return nil, huma.Error422UnprocessableEntity("a stage route has the visibility of its journey")
+		}
+		if b.Tags != nil && r.JourneyID != "" {
+			return nil, huma.Error422UnprocessableEntity("a stage route has the tags of its journey")
+		}
+		if b.Tags != nil {
+			if meta.Tags, err = normalizeTags(b.Tags); err != nil {
+				return nil, err
+			}
 		}
 		if b.Visibility != nil && *b.Visibility != r.Visibility && role < access.Owner {
 			return nil, forbidden(access.Owner, "route")

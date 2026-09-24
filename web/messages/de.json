@@ -443,5 +443,11 @@
 	"place_kind_address": "Adresse",
 	"route_hiked": "Gewandert am {date} · {duration} unterwegs",
 	"route_hiked_planned": "geplante Route",
-	"routes_hiked": "Gewandert am {date}"
+	"routes_hiked": "Gewandert am {date}",
+	"tags_label": "Tags",
+	"tags_placeholder": "Tag hinzufügen …",
+	"tags_remove": "Tag «{tag}» entfernen",
+	"tags_filter_by": "Nur «{tag}» zeigen",
+	"tags_filtered": "Nur mit Tag «{tag}»",
+	"tags_filter_clear": "Alle zeigen"
 }

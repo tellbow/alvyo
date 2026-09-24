@@ -443,5 +443,11 @@
 	"place_kind_address": "Address",
 	"route_hiked": "Hiked on {date} · {duration} underway",
 	"route_hiked_planned": "planned route",
-	"routes_hiked": "Hiked on {date}"
+	"routes_hiked": "Hiked on {date}",
+	"tags_label": "Tags",
+	"tags_placeholder": "Add a tag …",
+	"tags_remove": "Remove tag “{tag}”",
+	"tags_filter_by": "Show only “{tag}”",
+	"tags_filtered": "Only tagged “{tag}”",
+	"tags_filter_clear": "Show all"
 }

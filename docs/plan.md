@@ -43,7 +43,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.2.0 | 2026-09-23 | Offline maps (PMTiles packs built by the API); the iOS app lists routes, shows them on the national map and saves them offline |
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
-| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9) |
+| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10) |
 
 ## Requirements
 
@@ -80,10 +80,19 @@ From the project owner, numbered in the order given: 1–5 added on
    line; a double-click on it gives the shortest path back. GraphHopper 11
    offers alternatives with the CH profiles once its factors are loosened
    (paths up to twice as long, sharing up to 80 %), in about 30 ms.
+10. **Tags** (next). Routes (recorded hikes included), journeys and
+    collections carry up to 20 tags of 40 characters, kept as typed and
+    compared without case (`tags text[]`, GIN index on `lower_tags(tags)`);
+    stage routes have their journey's. Owners and editors set them like the
+    title; they are shown with the item wherever it is seen. `GET /me/tags`
+    lists the user's own tags with counts for suggestions. Web: a tag field
+    in the route editor, on journeys and on collections; chips in the lists
+    filter them (`?tag=`). App: tags shown in the lists.
 
 ### Open
 
-Proposed order: 10 and 11 (tags, then the map that filters by them), 8 (the day splitting), 7 (reuses 8's splitting).
+Proposed order: 11 (the map that filters by tags), 8 (the day splitting),
+7 (reuses 8's splitting).
 
 #### 7. One long GPX file into several stages
 
@@ -132,30 +141,6 @@ hotels and guest houses, campsites, or a stop to travel home.
   Gaflei → Elm in three days ends near Sargans and Weisstannen, as the Via
   Alpina stages do; Playwright: plan, accept, a journey of three stages with
   accommodation.
-
-#### 10. Tags
-
-Routes, journeys and collections get tags, to sort one's own hikes: e.g.
-«Winter», «mit Kindern», «Tessin», «Wunschliste». Collections stay the
-curated, shareable lists; tags are quick labels to filter by.
-
-- Model: a `tags text[]` column on routes, journeys and collections (GIN
-  index), normalised (trimmed, case-insensitive when comparing, as typed
-  when shown), at most 20 tags of 40 characters each. Stage routes use their
-  journey's tags. Recorded hikes can have tags too.
-- API: `tags` in create and update (owner and editors, like the title);
-  `GET /me/tags` lists the user's tags with how often each is used, for
-  suggestions.
-- Web: a tag field with suggestions in the route and journey editors and on
-  collections; tags as chips in the lists («Meine Routen», journeys,
-  collections), a click filters by the tag.
-- App: tags shown in the lists; filtering there follows with 11 if wanted.
-- Open: are tags private labels of the owner, or shown to everyone who may
-  see the item (public pages, discovery)? Proposal: shown with the item, as
-  the title is, but only the owner's own tags are offered and filtered by.
-- Check: API tests (set and replace, normalisation, limits, the tag list
-  with counts, viewers cannot change tags); Playwright: tag two routes,
-  filter the list by one tag.
 
 #### 11. All my hikes on one map, with filters
 

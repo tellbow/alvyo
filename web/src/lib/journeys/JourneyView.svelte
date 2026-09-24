@@ -24,6 +24,8 @@
 	import Photos from '$lib/photos/Photos.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import StageCard from './StageCard.svelte';
+	import TagChips from '$lib/tags/TagChips.svelte';
+	import TagInput from '$lib/tags/TagInput.svelte';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 
 	let {
@@ -229,6 +231,15 @@
 		);
 	}
 
+	function setTags(tags: string[]) {
+		return mutate(() =>
+			api().PATCH('/journeys/{id}', {
+				params: { path: { id: journey.id }, header: { 'If-Match': `"${journey.version}"` } },
+				body: { tags }
+			})
+		);
+	}
+
 	async function loadMyRoutes() {
 		if (myRoutes.length > 0) return;
 		const { data } = await api().GET('/routes');
@@ -278,6 +289,13 @@
 					{m.route_by({ user: journey.owner_username })}
 				{/if}
 			</p>
+			<div class="mt-2">
+				{#if canEdit}
+					<TagInput tags={journey.tags} onchange={setTags} />
+				{:else}
+					<TagChips tags={journey.tags} />
+				{/if}
+			</div>
 		</div>
 
 		<div>

@@ -13,6 +13,8 @@
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
+	import TagChips from '$lib/tags/TagChips.svelte';
+	import TagInput from '$lib/tags/TagInput.svelte';
 	import CollectionLayers from './CollectionLayers.svelte';
 
 	let { collection: initial, user }: { collection: Collection; user: Me | null } = $props();
@@ -69,6 +71,7 @@
 		title?: string;
 		description?: string;
 		visibility?: 'private' | 'unlisted' | 'public';
+		tags?: string[];
 	}) {
 		return mutate(() =>
 			api().PATCH('/collections/{id}', { params: { path: id(), header: ifMatch() }, body })
@@ -148,6 +151,13 @@
 			{:else if collection.description}
 				<p class="mt-2 text-sm whitespace-pre-line">{collection.description}</p>
 			{/if}
+			<div class="mt-2">
+				{#if canEdit}
+					<TagInput tags={collection.tags} onchange={(tags) => patch({ tags })} />
+				{:else}
+					<TagChips tags={collection.tags} />
+				{/if}
+			</div>
 		</div>
 
 		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}

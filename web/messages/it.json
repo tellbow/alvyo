@@ -443,5 +443,11 @@
 	"place_kind_address": "Indirizzo",
 	"route_hiked": "Percorsa il {date} · {duration} in cammino",
 	"route_hiked_planned": "percorso pianificato",
-	"routes_hiked": "Percorsa il {date}"
+	"routes_hiked": "Percorsa il {date}",
+	"tags_label": "Etichette",
+	"tags_placeholder": "Aggiungi un'etichetta …",
+	"tags_remove": "Rimuovi l'etichetta «{tag}»",
+	"tags_filter_by": "Mostra solo «{tag}»",
+	"tags_filtered": "Solo con l'etichetta «{tag}»",
+	"tags_filter_clear": "Mostra tutto"
 }

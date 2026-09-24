@@ -114,6 +114,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerPlaces(api, d)
 	registerGrants(api, d)
 	registerCollections(api, d)
+	registerTags(api, d)
 	registerConnections(api, d)
 	registerImports(api, d)
 	registerHikes(api, d)

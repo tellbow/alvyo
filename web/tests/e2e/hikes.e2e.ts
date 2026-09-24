@@ -35,9 +35,9 @@ test('a hike recorded with the app shows when it was hiked and its planned route
 	await page.goto('/routes');
 	const hike = page
 		.getByTestId('route-list')
-		.getByRole('link', { name: /Bachalpsee, 20\.09\.2026/ });
+		.locator(':scope > li', { hasText: /Bachalpsee, 20\.09\.2026/ });
 	await expect(hike).toContainText('Gewandert am 20.09.2026');
-	await hike.click();
+	await hike.getByRole('link', { name: /Bachalpsee/ }).click();
 	await expect(page.getByTestId('hike')).toHaveText(
 		/Gewandert am 20\.09\.2026 · 50 min unterwegs · geplante Route/
 	);

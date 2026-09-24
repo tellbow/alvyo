@@ -33,9 +33,10 @@ var (
 
 // Meta is the descriptive part of a collection.
 type Meta struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Visibility  string `json:"visibility" enum:"private,unlisted,public"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Visibility  string   `json:"visibility" enum:"private,unlisted,public"`
+	Tags        []string `json:"tags"`
 }
 
 // Summary is a collection in lists.
@@ -96,7 +97,7 @@ type Store struct {
 }
 
 const summarySQL = `
-	SELECT c.id, u.username, c.title, c.description, c.visibility, c.version, c.created_at, c.updated_at,
+	SELECT c.id, u.username, c.title, c.description, c.visibility, c.tags, c.version, c.created_at, c.updated_at,
 		(SELECT count(*) FROM collection_items ci WHERE ci.collection_id = c.id)%s
 	FROM collections c JOIN users u ON u.id = c.owner_id
 	%s
@@ -105,7 +106,7 @@ const summarySQL = `
 func scanSummary(row pgx.Row, extra ...any) (Summary, error) {
 	var sm Summary
 	var id uuid.UUID
-	err := row.Scan(append([]any{&id, &sm.OwnerUsername, &sm.Title, &sm.Description, &sm.Visibility, &sm.Version,
+	err := row.Scan(append([]any{&id, &sm.OwnerUsername, &sm.Title, &sm.Description, &sm.Visibility, &sm.Tags, &sm.Version,
 		&sm.CreatedAt, &sm.UpdatedAt, &sm.Items}, extra...)...)
 	sm.ID = id.String()
 	return sm, err
@@ -114,9 +115,10 @@ func scanSummary(row pgx.Row, extra ...any) (Summary, error) {
 // Create stores a new collection.
 func (s *Store) Create(ctx context.Context, ownerID uuid.UUID, m Meta) (uuid.UUID, error) {
 	var id uuid.UUID
-	err := s.DB.QueryRow(ctx, `INSERT INTO collections (owner_id, title, description, visibility, share_token)
-		VALUES ($1, $2, $3, $4::visibility, CASE WHEN $4::visibility = 'unlisted' THEN $5 END) RETURNING id`,
-		ownerID, m.Title, m.Description, m.Visibility, routes.NewShareToken()).Scan(&id)
+	err := s.DB.QueryRow(ctx, `INSERT INTO collections (owner_id, title, description, visibility, share_token, tags)
+		VALUES ($1, $2, $3, $4::visibility, CASE WHEN $4::visibility = 'unlisted' THEN $5 END, coalesce($6::text[], '{}'))
+		RETURNING id`,
+		ownerID, m.Title, m.Description, m.Visibility, routes.NewShareToken(), m.Tags).Scan(&id)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("collections: create: %w", err)
 	}
@@ -269,8 +271,8 @@ func decodeLines(geom *string) ([][][2]float64, error) {
 func (s *Store) UpdateMeta(ctx context.Context, id uuid.UUID, version int, m Meta) error {
 	res, err := s.DB.Exec(ctx, `UPDATE collections SET title = $3, description = $4, visibility = $5::visibility,
 		share_token = CASE WHEN $5::visibility = 'unlisted' THEN coalesce(share_token, $6) ELSE share_token END,
-		version = version + 1, updated_at = now() WHERE id = $1 AND version = $2`,
-		id, version, m.Title, m.Description, m.Visibility, routes.NewShareToken())
+		tags = coalesce($7::text[], '{}'), version = version + 1, updated_at = now() WHERE id = $1 AND version = $2`,
+		id, version, m.Title, m.Description, m.Visibility, routes.NewShareToken(), m.Tags)
 	if err != nil {
 		return fmt.Errorf("collections: update: %w", err)
 	}

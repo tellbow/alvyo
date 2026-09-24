@@ -97,6 +97,8 @@ func TestAccessMatrix(t *testing.T) {
 		{"view stage route", "GET", sr, nil, "", [6]int{404, 404, 404, 200, 200, 200}},
 		{"edit stage route", "PATCH", sr, title, sr, [6]int{404, 404, 404, 403, 200, 200}},
 		{"edit journey title", "PATCH", jr, title, jr, [6]int{404, 404, 404, 403, 200, 200}},
+		{"tag journey", "PATCH", jr, map[string]any{"tags": []string{"Winter"}}, jr, [6]int{404, 404, 404, 403, 200, 200}},
+		{"tag route", "PATCH", r, map[string]any{"tags": []string{"Winter"}}, r, [6]int{404, 404, 404, 403, 200, 200}},
 		{"list journey grants", "GET", jr + "/grants", nil, "", [6]int{404, 404, 404, 403, 403, 200}},
 		{"invite to journey", "POST", jr + "/grants", map[string]any{"username": "str", "role": "viewer"}, "", [6]int{404, 404, 404, 403, 403, 200}},
 		{"share route by link", "PATCH", r, map[string]any{"visibility": "unlisted"}, r, [6]int{404, 404, 404, 403, 403, 200}},

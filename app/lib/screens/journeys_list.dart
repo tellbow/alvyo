@@ -5,6 +5,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/packs.dart';
 import 'journey_screen.dart';
+import 'tag_chips.dart';
 
 /// The user's journeys; the saved ones when the server cannot be reached.
 class JourneysList extends StatefulWidget {
@@ -59,9 +60,16 @@ class _JourneysListState extends State<JourneysList> {
               final j = journeys[offline ? i - 1 : i];
               return ListTile(
                 title: Text(j.title),
-                subtitle: Text(
-                  '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
-                  '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)}',
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Text(
+                      '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
+                      '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)}',
+                    ),
+                    if (j.tags.isNotEmpty) TagChips(j.tags),
+                  ],
                 ),
                 onTap: () async {
                   await Navigator.of(context).push(

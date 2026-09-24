@@ -6,7 +6,7 @@ official Swiss hiking times, SAC difficulty, and multi-week stage journeys.
 Status: early development. Working: accounts, route planning on the swisstopo
 map (Swiss hiking time, SAC grade, elevation profile, breakdowns), saving and
 editing routes, multi-week stage journeys (stops, huts, public transport
-connections), sharing by link and by invitation, collections, GPX export,
+connections), sharing by link and by invitation, collections, tags, GPX export,
 import from GPX, KML, TCX, FIT and Komoot, discovery of public hikes on the
 map, public profiles, likes, comments, following with a news feed, reports
 and a moderation queue, photos (metadata removed, pinned along the route),

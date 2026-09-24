@@ -157,6 +157,7 @@ type Collection struct {
 	Version     int32
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	Tags        []string
 }
 
 type CollectionItem struct {
@@ -205,6 +206,15 @@ type Grant struct {
 	CollectionID *uuid.UUID
 }
 
+type Identity struct {
+	Provider   string
+	Subject    string
+	UserID     uuid.UUID
+	Email      *string
+	CreatedAt  time.Time
+	LastUsedAt *time.Time
+}
+
 type Journey struct {
 	ID              uuid.UUID
 	OwnerID         uuid.UUID
@@ -217,6 +227,7 @@ type Journey struct {
 	UpdatedAt       time.Time
 	CommentsEnabled bool
 	PublishedAt     *time.Time
+	Tags            []string
 }
 
 type Like struct {
@@ -230,6 +241,35 @@ type MailThrottle struct {
 	UserID uuid.UUID
 	Topic  string
 	SentAt time.Time
+}
+
+type Passkey struct {
+	ID         []byte
+	UserID     uuid.UUID
+	Name       string
+	Credential []byte
+	CreatedAt  time.Time
+	LastUsedAt *time.Time
+}
+
+type Photo struct {
+	ID         uuid.UUID
+	UploaderID uuid.UUID
+	RouteID    *uuid.UUID
+	JourneyID  *uuid.UUID
+	Caption    string
+	Width      int32
+	Height     int32
+	Bytes      int32
+	TakenAt    *time.Time
+	Geom       interface{}
+	Position   int32
+	CreatedAt  time.Time
+}
+
+type PhotoTrash struct {
+	ID        uuid.UUID
+	DeletedAt time.Time
 }
 
 type Place struct {
@@ -258,6 +298,7 @@ type Report struct {
 	ResolvedAt *time.Time
 	ResolvedBy *uuid.UUID
 	Resolution *string
+	PhotoID    *uuid.UUID
 }
 
 type Route struct {
@@ -289,6 +330,10 @@ type Route struct {
 	SourceRef        *string
 	CommentsEnabled  bool
 	PublishedAt      *time.Time
+	HikedAt          *time.Time
+	HikedS           *int32
+	PlannedRouteID   *uuid.UUID
+	Tags             []string
 }
 
 type Session struct {

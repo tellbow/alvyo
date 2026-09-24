@@ -129,7 +129,66 @@ From the project owner, numbered in the order given: 1–5 added on
 
 ### Open
 
-None: the next work comes from the backlog.
+Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
+SchweizMobil, the swisstopo app and others. Order: 13, then 12; 14 waits
+for Garmin.
+
+#### 12. Live location for contacts, and an alert when overdue
+
+A hiker alone on a T3+ route with poor coverage: people at home see where
+they last were, and are told if the hike does not end in time.
+
+- Contacts in the account: name and e-mail, at most 10 (web «Konto» and
+  the app).
+- Starting a hike in the app: «Standort teilen mit …» (the contacts chosen
+  last time are preselected) and the expected end, proposed as now + the
+  route's hiking time at one's pace + 1 h, changeable. Without contacts
+  chosen nothing is shared.
+- The app sends its position every 5 minutes and when the connection comes
+  back (`POST /live/{id}/positions`); the server keeps one position per
+  5 minutes. Contacts get an e-mail at the start with a link
+  (`/live/{token}`, no account needed): the route, the last position and
+  its time, the expected end. Ending the hike ends the sharing; the link
+  then shows «beendet» and expires after 24 hours.
+- Overdue: a job every minute finds shared hikes not ended 30 minutes after
+  the expected end and e-mails the contacts once, with the last position
+  (and coordinates for Rega), and the hiker too. «Später» in the app moves
+  the expected end.
+- Privacy (revDSG): only when chosen for the hike; positions are deleted 7
+  days after the end.
+- Check: API tests (start, positions thinned, public page without the
+  hiker's other data, overdue mail exactly once, «später», expiry and
+  deletion); Playwright: the live page; app tests for sending when the
+  connection comes back.
+
+#### 13. Protected areas along a route
+
+A route through a wildlife rest area (Wildruhezone), a federal hunting
+reserve (eidg. Jagdbanngebiet) or the Swiss National Park says so, with
+what applies there (e.g. «1. Dezember bis 30. April: nur auf markierten
+Wegen»).
+
+- Data: BAFU on geo.admin (`ch.bafu.wrz-wildruhezonen_portal`,
+  `ch.bafu.bundesinventare-jagdbanngebiete`, the national park), imported
+  like the places into a table `protected_areas` (kind, name, the rules,
+  whether binding or recommended, the period, geometry); `make
+  areas-import`, and a cronjob in production.
+- API: the areas a line crosses (`POST /routing/areas`), and with every
+  route and journey (`protected_areas`, computed from the line).
+- Web: the planner, route and journey pages list them under the numbers,
+  with the period and a note when it applies on the hike's date; a map
+  overlay «Schutzgebiete».
+- App: the route and journey screens list them too.
+- Check: API tests with a fixture area (crossed, touched, outside;
+  seasonal); Playwright: a route through an area shows it.
+
+#### 14. Routes to Garmin devices (deferred)
+
+Komoot put sending routes to Garmin behind its paywall in 2025. Garmin's
+Courses API needs an application to the Garmin Connect Developer Program
+(company details, approval not guaranteed); the project owner applies
+first. Until then routes reach a Garmin through the GPX export and Garmin
+Connect's course import.
 
 ## Backlog
 

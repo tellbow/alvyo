@@ -27,6 +27,7 @@ test('photos: upload, pin along the route, caption and view', async ({ page, bro
 
 	await page.goto(`/routes/${route}`);
 	const photos = page.getByTestId('photos');
+	await expect(photos.locator('input[type=file]')).toBeEnabled();
 	await photos.locator('input[type=file]').setInputFiles([
 		{ name: 'along-the-route.jpg', mimeType: 'image/jpeg', buffer: alongTheRoute },
 		{ name: 'plan.png', mimeType: 'image/png', buffer: plainPng }
@@ -85,6 +86,7 @@ test('an iPhone photo in HEIC is taken as a JPEG', async ({ page }) => {
 
 	await page.goto(`/routes/${route}`);
 	const photos = page.getByTestId('photos');
+	await expect(photos.locator('input[type=file]')).toBeEnabled();
 	await photos
 		.locator('input[type=file]')
 		.setInputFiles([{ name: 'IMG_0001.HEIC', mimeType: 'image/heic', buffer: heic }]);

@@ -30,14 +30,14 @@ test('a GPX file with several tracks becomes a journey', async ({ page }) => {
 	await expect(page).toHaveURL(/\/import$/);
 
 	const gpx = `<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">${track('Tag 1', 9.3, 46.99)}${track('Tag 2', 9.33, 46.99)}${track('Mailand', 9.19, 45.46)}</gpx>`;
-	await page
-		.getByTestId('file-import')
-		.getByLabel('Datei hochladen')
-		.setInputFiles({
-			name: 'durchquerung.gpx',
-			mimeType: 'application/gpx+xml',
-			buffer: Buffer.from(gpx)
-		});
+	// The input takes files once the page has hydrated.
+	const input = page.getByTestId('file-import').getByLabel('Datei hochladen');
+	await expect(input).toBeEnabled();
+	await input.setInputFiles({
+		name: 'durchquerung.gpx',
+		mimeType: 'application/gpx+xml',
+		buffer: Buffer.from(gpx)
+	});
 
 	const tracks = page.getByTestId('import-tracks');
 	await expect(tracks.getByRole('listitem')).toHaveCount(3);
@@ -151,6 +151,8 @@ test('a GPX file becomes the route of a stage', async ({ page }) => {
 	await page.goto(`/journeys/${id}`);
 	const stage2 = page.getByTestId('stage').nth(1);
 	await expect(stage2).toContainText('Noch keine Route');
+	// Hydrated (the layout mounts last): a file set before is lost.
+	await expect(page.getByLabel('Sprache')).toBeEnabled();
 
 	const gpx = (n: number) => ({
 		name: 'tag2.gpx',
@@ -188,6 +190,7 @@ test('a recording of three days becomes a journey of three stages, after a previ
 	const gpx = `<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Drei Tage</name><trkseg>${days.join('')}</trkseg></trk></gpx>`;
 	await page.goto('/import');
 	const dialog = page.getByTestId('file-import');
+	await expect(dialog.getByLabel('Datei hochladen')).toBeEnabled();
 	await dialog.getByLabel('Datei hochladen').setInputFiles({
 		name: 'drei-tage.gpx',
 		mimeType: 'application/gpx+xml',

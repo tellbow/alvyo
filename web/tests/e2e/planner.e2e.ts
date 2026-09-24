@@ -178,8 +178,13 @@ test('drag the line onto another path without a new point', async ({ page, conte
 	page.on('request', (r) => {
 		if (r.url().includes('/api/v1/routing/leg')) requests.push(r.postDataJSON());
 	});
-	page.on('response', async (r) => {
-		if (r.url().includes('/api/v1/routing/leg') && r.ok()) legs.push(await r.json());
+	page.on('response', (r) => {
+		// Answers still arriving when the test ends are not needed.
+		if (r.url().includes('/api/v1/routing/leg') && r.ok())
+			r.json().then(
+				(leg) => legs.push(leg),
+				() => {}
+			);
 	});
 
 	await page.goto('/plan');
@@ -204,6 +209,8 @@ test('drag the line onto another path without a new point', async ({ page, conte
 	await page.mouse.click(cx + 200, cy);
 	const legItems = page.getByTestId('leg');
 	await expect(legItems.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	// The leg's JSON is read after the page may already show it.
+	await expect.poll(() => legs.length).toBe(1);
 
 	/** Presses the middle of the line and releases it 100 px further down. */
 	const drag = async (alt: boolean) => {
@@ -237,6 +244,7 @@ test('drag the line onto another path without a new point', async ({ page, conte
 	expect(Math.abs(through.lon - released.lon)).toBeLessThan(0.0005);
 	expect(Math.abs(through.lat - released.lat)).toBeLessThan(0.0005);
 	await expect(legItems.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	await expect.poll(() => legs.length).toBe(2);
 	await expect(page.getByTestId('anchor')).toHaveCount(2);
 	await expect(page.getByTestId('through')).toHaveCount(1);
 	const k = 111_000;

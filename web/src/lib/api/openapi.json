@@ -839,6 +839,104 @@
         ],
         "type": "object"
       },
+      "DiscoverMineItem": {
+        "additionalProperties": false,
+        "properties": {
+          "ascent_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "distance_m": {
+            "description": "Journeys: all stages together",
+            "format": "double",
+            "type": "number"
+          },
+          "duration_s": {
+            "description": "Journeys: all stages together",
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "route",
+              "journey",
+              "hike"
+            ],
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "items": {
+                "items": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "longest_m": {
+            "description": "Journeys: the longest stage; otherwise as distance_m",
+            "format": "double",
+            "type": "number"
+          },
+          "longest_s": {
+            "description": "Journeys: the longest stage; otherwise as duration_s",
+            "format": "int64",
+            "type": "integer"
+          },
+          "owner_username": {
+            "type": "string"
+          },
+          "sac_grade": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "sac_max": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "stages": {
+            "description": "Journeys only",
+            "format": "int64",
+            "type": "integer"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "title",
+          "owner_username",
+          "tags",
+          "distance_m",
+          "ascent_m",
+          "duration_s",
+          "longest_m",
+          "longest_s",
+          "sac_grade",
+          "sac_max",
+          "stages",
+          "lines"
+        ],
+        "type": "object"
+      },
       "DiscoverOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -2217,6 +2315,26 @@
           "has_password",
           "notify_comments",
           "notify_follows"
+        ],
+        "type": "object"
+      },
+      "MyMapOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DiscoverMineItem"
+            },
+            "type": "array"
+          },
+          "more": {
+            "description": "There are more results than shown: zoom in or narrow the filters",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "more"
         ],
         "type": "object"
       },
@@ -8052,6 +8170,180 @@
         "summary": "Disconnect a provider (not the last way to log in)",
         "tags": [
           "me"
+        ]
+      }
+    },
+    "/me/map": {
+      "get": {
+        "description": "Nearest to the centre of the view first, at most 200.",
+        "operationId": "my-map",
+        "parameters": [
+          {
+            "description": "The map view: west,south,east,north (WGS84)",
+            "explode": false,
+            "in": "query",
+            "name": "bbox",
+            "required": true,
+            "schema": {
+              "description": "The map view: west,south,east,north (WGS84)",
+              "examples": [
+                "7.9,46.55,8.1,46.7"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only these kinds (hike: recorded with the app); all if none",
+            "explode": true,
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "description": "Only these kinds (hike: recorded with the app); all if none",
+              "items": {
+                "enum": [
+                  "route",
+                  "journey",
+                  "hike"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "Items with any of these tags (without case); all if none",
+            "explode": true,
+            "in": "query",
+            "name": "tags",
+            "schema": {
+              "description": "Items with any of these tags (without case); all if none",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            }
+          },
+          {
+            "description": "Also the routes and journeys others shared with me",
+            "explode": false,
+            "in": "query",
+            "name": "shared",
+            "schema": {
+              "description": "Also the routes and journeys others shared with me",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Metres; 0 for no bound",
+            "explode": false,
+            "in": "query",
+            "name": "distance_min",
+            "schema": {
+              "description": "Metres; 0 for no bound",
+              "format": "double",
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "description": "Metres; 0 for no bound",
+            "explode": false,
+            "in": "query",
+            "name": "distance_max",
+            "schema": {
+              "description": "Metres; 0 for no bound",
+              "format": "double",
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "description": "Hiking time (s); 0 for no bound",
+            "explode": false,
+            "in": "query",
+            "name": "duration_min",
+            "schema": {
+              "description": "Hiking time (s); 0 for no bound",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Hiking time (s); 0 for no bound",
+            "explode": false,
+            "in": "query",
+            "name": "duration_max",
+            "schema": {
+              "description": "Hiking time (s); 0 for no bound",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Hardest SAC grade at least; 0 for no bound",
+            "explode": false,
+            "in": "query",
+            "name": "sac_min",
+            "schema": {
+              "description": "Hardest SAC grade at least; 0 for no bound",
+              "format": "int64",
+              "maximum": 6,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Hardest SAC grade at most; 0 for no bound",
+            "explode": false,
+            "in": "query",
+            "name": "sac_max",
+            "schema": {
+              "description": "Hardest SAC grade at most; 0 for no bound",
+              "format": "int64",
+              "maximum": 6,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Journeys: the distance and time bounds apply to the longest stage, not the whole journey",
+            "explode": false,
+            "in": "query",
+            "name": "longest_stage",
+            "schema": {
+              "description": "Journeys: the distance and time bounds apply to the longest stage, not the whole journey",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyMapOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The logged-in user's routes, journeys and recorded hikes in a map view",
+        "tags": [
+          "discover"
         ]
       }
     },

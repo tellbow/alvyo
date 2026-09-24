@@ -9,7 +9,8 @@
 		map,
 		items,
 		highlight,
-		onclick
+		onclick,
+		color = stageColor
 	}: {
 		map: MapLibreMap;
 		/** Collection items, or anything else with an id and lines (discovery). */
@@ -17,6 +18,8 @@
 		highlight?: string;
 		/** Called with the id of a clicked line. */
 		onclick?: (id: string) => void;
+		/** Colour of the i-th item's line; by default cycled like stages. */
+		color?: (i: number) => string;
 	} = $props();
 
 	const SRC = `${ROUTE_PREFIX}collection`;
@@ -26,7 +29,7 @@
 			type: 'FeatureCollection',
 			features: items.map((it, i) => ({
 				type: 'Feature',
-				properties: { id: it.id, color: stageColor(i), highlight: it.id === highlight },
+				properties: { id: it.id, color: color(i), highlight: it.id === highlight },
 				geometry: { type: 'MultiLineString', coordinates: it.lines }
 			}))
 		};
@@ -73,7 +76,7 @@
 	});
 
 	$effect(() => {
-		void [items, highlight];
+		void [items, highlight, color];
 		(map.getSource(SRC) as GeoJSONSource | undefined)?.setData(features());
 	});
 

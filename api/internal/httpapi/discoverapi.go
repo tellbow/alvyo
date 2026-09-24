@@ -12,6 +12,7 @@ import (
 
 	"github.com/tellbow/odysgeh/api/internal/community"
 	"github.com/tellbow/odysgeh/api/internal/discover"
+	"github.com/tellbow/odysgeh/api/internal/grants"
 	"github.com/tellbow/odysgeh/api/internal/journeys"
 	"github.com/tellbow/odysgeh/api/internal/routes"
 )
@@ -28,6 +29,27 @@ type discoverOutput struct {
 	Body struct {
 		Items []discover.Item `json:"items"`
 		More  bool            `json:"more" doc:"There are more results than shown: zoom in or narrow the filters"`
+	}
+}
+
+type myMapInput struct {
+	BBox         string   `query:"bbox" required:"true" doc:"The map view: west,south,east,north (WGS84)" example:"7.9,46.55,8.1,46.7"`
+	Kind         []string `query:"kind,explode" enum:"route,journey,hike" doc:"Only these kinds (hike: recorded with the app); all if none"`
+	Tags         []string `query:"tags,explode" maxItems:"20" doc:"Items with any of these tags (without case); all if none"`
+	Shared       bool     `query:"shared" doc:"Also the routes and journeys others shared with me"`
+	DistanceMin  float64  `query:"distance_min" minimum:"0" doc:"Metres; 0 for no bound"`
+	DistanceMax  float64  `query:"distance_max" minimum:"0" doc:"Metres; 0 for no bound"`
+	DurationMin  int      `query:"duration_min" minimum:"0" doc:"Hiking time (s); 0 for no bound"`
+	DurationMax  int      `query:"duration_max" minimum:"0" doc:"Hiking time (s); 0 for no bound"`
+	SACMin       int      `query:"sac_min" minimum:"0" maximum:"6" doc:"Hardest SAC grade at least; 0 for no bound"`
+	SACMax       int      `query:"sac_max" minimum:"0" maximum:"6" doc:"Hardest SAC grade at most; 0 for no bound"`
+	LongestStage bool     `query:"longest_stage" doc:"Journeys: the distance and time bounds apply to the longest stage, not the whole journey"`
+}
+
+type myMapOutput struct {
+	Body struct {
+		Items []discover.MineItem `json:"items"`
+		More  bool                `json:"more" doc:"There are more results than shown: zoom in or narrow the filters"`
 	}
 }
 
@@ -69,6 +91,36 @@ func registerDiscover(api huma.API, d Deps) {
 			return nil, err
 		}
 		out := &discoverOutput{}
+		out.Body.Items, out.Body.More = items, more
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "my-map", Method: http.MethodGet, Path: "/me/map",
+		Summary:     "The logged-in user's routes, journeys and recorded hikes in a map view",
+		Description: "Nearest to the centre of the view first, at most 200.",
+		Tags:        []string{"discover"},
+	}, func(ctx context.Context, in *myMapInput) (*myMapOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		w, s, e, n, ok := parseBBox(in.BBox)
+		if !ok {
+			return nil, huma.Error422UnprocessableEntity("bbox must be west,south,east,north with west < east and south < north")
+		}
+		id, email := grants.Grantee(u)
+		items, more, err := d.Discover.Mine(ctx, discover.MineQuery{
+			UserID: id, VerifiedEmail: email, West: w, South: s, East: e, North: n,
+			Kinds: in.Kind, Tags: in.Tags, Shared: in.Shared,
+			MinDistanceM: in.DistanceMin, MaxDistanceM: in.DistanceMax,
+			MinDurationS: in.DurationMin, MaxDurationS: in.DurationMax,
+			MinSAC: in.SACMin, MaxSAC: in.SACMax, LongestStage: in.LongestStage,
+		})
+		if err != nil {
+			return nil, err
+		}
+		out := &myMapOutput{}
 		out.Body.Items, out.Body.More = items, more
 		return out, nil
 	})

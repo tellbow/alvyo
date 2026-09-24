@@ -28,6 +28,7 @@ export type CollectionSummary = components['schemas']['CollectionSummary'];
 export type CollectionItem = components['schemas']['CollectionItem'];
 export type SharedCollection = components['schemas']['CollectionShared'];
 export type DiscoverItem = components['schemas']['DiscoverItem'];
+export type MyMapItem = components['schemas']['DiscoverMineItem'];
 export type Profile = components['schemas']['ProfileOutputBody'];
 
 /**

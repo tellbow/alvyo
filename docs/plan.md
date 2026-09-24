@@ -43,7 +43,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.2.0 | 2026-09-23 | Offline maps (PMTiles packs built by the API); the iOS app lists routes, shows them on the national map and saves them offline |
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
-| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10) |
+| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11) |
 
 ## Requirements
 
@@ -88,11 +88,20 @@ From the project owner, numbered in the order given: 1–5 added on
     lists the user's own tags with counts for suggestions. Web: a tag field
     in the route editor, on journeys and on collections; chips in the lists
     filter them (`?tag=`). App: tags shown in the lists.
+11. **All my hikes on one map** (next). `GET /me/map`: one's routes,
+    journeys (all their stages) and recorded hikes in the map view, filtered
+    by kind, tags (any of them), distance, hiking time (at one's pace) and
+    SAC grade, each a range with optional ends; for journeys the whole
+    journey or, on request, the longest stage. Routes and journeys shared
+    with me behind a switch; collections' items are not included. At most
+    200, nearest to the centre first, lines simplified by zoom. Web:
+    «Karte» on «Meine Routen» (`/routes/map`): lines coloured by kind or
+    SAC grade, the list of what is in view, the filters in the address. An
+    overview map in the app is a possible follow-up.
 
 ### Open
 
-Proposed order: 11 (the map that filters by tags), 8 (the day splitting),
-7 (reuses 8's splitting).
+Proposed order: 8 (the day splitting), 7 (reuses 8's splitting).
 
 #### 7. One long GPX file into several stages
 
@@ -141,37 +150,6 @@ hotels and guest houses, campsites, or a stop to travel home.
   Gaflei → Elm in three days ends near Sargans and Weisstannen, as the Via
   Alpina stages do; Playwright: plan, accept, a journey of three stages with
   accommodation.
-
-#### 11. All my hikes on one map, with filters
-
-An overview of all one's routes, journeys (all their stages) and recorded
-hikes drawn on the map, narrowed by filters: tags, distance, hiking time and
-difficulty, each as a range with optional ends (between x and y, more than
-x, less than y).
-
-- Builds on Discover (`GET /discover`: lines simplified for the map view,
-  kind, hardest SAC grade, hiking time), which shows public items only.
-  Either a scope on it (`scope=mine`, also routes shared with me) or its own
-  endpoint `GET /me/map`, with the filters `tags` (any of them), `distance_min`,
-  `distance_max`, `duration_min`, `duration_max`, `sac_min`, `sac_max` and
-  `kind` (route, journey, recorded hike). Hiking time counts at the user's
-  pace, as Discover does; for journeys distance and time are the whole
-  journey's, with the longest stage as a further option.
-- Web: a map page for «Meine Routen» (like Discover): lines coloured by kind
-  or SAC grade, a list of what is in view next to it, the filters above
-  (tag chips, two-handled sliders or number fields for distance and time,
-  T1–T6 from and to). The address keeps the filters, to bookmark them.
-  Clicking a line or list entry opens the item.
-- Many items: the query is limited to the map view and simplifies lines by
-  zoom, like Discover; above a limit the page asks to zoom in or narrow the
-  filters.
-- App: an overview map there too is a possible follow-up (not asked for).
-- Open: several tags mean any of them (proposal) or all of them? Include
-  items shared with me and collections' items by default, or behind a
-  switch?
-- Check: API tests for each filter and their combinations, bounds included;
-  Playwright: with a tag and a distance range only the matching lines are
-  drawn and listed.
 
 ## Backlog
 

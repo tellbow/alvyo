@@ -995,6 +995,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The logged-in user's routes, journeys and recorded hikes in a map view
+         * @description Nearest to the centre of the view first, at most 200.
+         */
+        get: operations["my-map"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/passkeys": {
         parameters: {
             query?: never;
@@ -1911,6 +1931,47 @@ export interface components {
             stages: number;
             title: string;
         };
+        DiscoverMineItem: {
+            /** Format: double */
+            ascent_m: number;
+            /**
+             * Format: double
+             * @description Journeys: all stages together
+             */
+            distance_m: number;
+            /**
+             * Format: int64
+             * @description Journeys: all stages together
+             */
+            duration_s: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "route" | "journey" | "hike";
+            lines: number[][][];
+            /**
+             * Format: double
+             * @description Journeys: the longest stage; otherwise as distance_m
+             */
+            longest_m: number;
+            /**
+             * Format: int64
+             * @description Journeys: the longest stage; otherwise as duration_s
+             */
+            longest_s: number;
+            owner_username: string;
+            /** Format: int64 */
+            sac_grade: number;
+            /** Format: int64 */
+            sac_max: number;
+            /**
+             * Format: int64
+             * @description Journeys only
+             */
+            stages: number;
+            tags: string[];
+            title: string;
+        };
         DiscoverOutputBody: {
             items: components["schemas"]["DiscoverItem"][];
             /** @description There are more results than shown: zoom in or narrow the filters */
@@ -2345,6 +2406,11 @@ export interface components {
              */
             speed_factor: number;
             username: string;
+        };
+        MyMapOutputBody: {
+            items: components["schemas"]["DiscoverMineItem"][];
+            /** @description There are more results than shown: zoom in or narrow the filters */
+            more: boolean;
         };
         NearbyPlacesOutputBody: {
             places: components["schemas"]["Place"][];
@@ -5430,6 +5496,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdentitiesOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "my-map": {
+        parameters: {
+            query: {
+                /** @description The map view: west,south,east,north (WGS84) */
+                bbox: string;
+                /** @description Only these kinds (hike: recorded with the app); all if none */
+                kind?: ("route" | "journey" | "hike")[];
+                /** @description Items with any of these tags (without case); all if none */
+                tags?: string[];
+                /** @description Also the routes and journeys others shared with me */
+                shared?: boolean;
+                /** @description Metres; 0 for no bound */
+                distance_min?: number;
+                /** @description Metres; 0 for no bound */
+                distance_max?: number;
+                /** @description Hiking time (s); 0 for no bound */
+                duration_min?: number;
+                /** @description Hiking time (s); 0 for no bound */
+                duration_max?: number;
+                /** @description Hardest SAC grade at least; 0 for no bound */
+                sac_min?: number;
+                /** @description Hardest SAC grade at most; 0 for no bound */
+                sac_max?: number;
+                /** @description Journeys: the distance and time bounds apply to the longest stage, not the whole journey */
+                longest_stage?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyMapOutputBody"];
                 };
             };
             /** @description Error */

@@ -28,6 +28,7 @@
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-2xl font-semibold">{m.routes_title()}</h1>
 		<div class="flex items-center gap-4">
+			<a href={resolve('/routes/map')} class="text-sm hover:text-emerald-700">{m.mymap_link()}</a>
 			<a href={resolve('/import')} class="text-sm hover:text-emerald-700">{m.import_link()}</a>
 			<a
 				href={resolve('/plan')}

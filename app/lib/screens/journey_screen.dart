@@ -112,7 +112,13 @@ class _JourneyScreenState extends State<JourneyScreen> {
           final j = snap.data!;
           final routed = [for (final s in j.stages) ?s.routeId];
           return RefreshIndicator(
-            onRefresh: () async => setState(() => _journey = _load()),
+            onRefresh: () async {
+              final next = _load();
+              setState(() {
+                _journey = next;
+              });
+              await next; // the spinner stays until it is there
+            },
             child: ListView(
               children: [
                 Padding(

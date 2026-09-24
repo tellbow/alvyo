@@ -273,4 +273,16 @@ void main() {
     await until(tester, find.text('Gaflei – Sargans'));
     expect(find.byKey(const Key('stage-done-0')), findsNothing);
   });
+
+  testWidgets('pulling the journey down loads it again', (tester) async {
+    final server = FakeServer();
+    await pumpList(tester, Api('https://odysgeh.test', token: 't', client: server.client), find.text('Via Alpina'));
+    await tester.tap(find.text('Via Alpina'));
+    await until(tester, find.text('Gaflei – Sargans'));
+    server.s1Status = 'done'; // changed elsewhere
+    await tester.fling(find.text('Gaflei – Sargans'), const Offset(0, 400), 1000);
+    await until(tester, find.text('1 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'));
+    expect(find.text('1 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

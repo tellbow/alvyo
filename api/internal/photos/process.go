@@ -13,6 +13,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/gen2brain/heic" // registers the HEIC decoder
 	"github.com/rwcarlsen/goexif/exif"
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp" // registers the WebP decoder
@@ -28,7 +29,7 @@ const (
 
 // Errors of Process.
 var (
-	ErrFormat   = errors.New("photos: not a JPEG, PNG or WebP image")
+	ErrFormat   = errors.New("photos: not a JPEG, PNG, WebP or HEIC image")
 	ErrTooLarge = errors.New("photos: image too large")
 )
 
@@ -74,6 +75,12 @@ func Process(r io.Reader) (Processed, error) {
 
 	var p Processed
 	orientation := 1
+	if format == "heic" {
+		// Decoded upright already; the EXIF gives when and where.
+		if x, err := heic.DecodeExif(bytes.NewReader(data)); err == nil {
+			p.TakenAt, p.Lon, p.Lat = heicMeta(x)
+		}
+	}
 	if format == "jpeg" {
 		if tiff := exifTIFF(data); tiff != nil && saneTIFF(tiff) {
 			if x, err := exif.Decode(bytes.NewReader(tiff)); err == nil {
@@ -133,12 +140,31 @@ func readTime(x *exif.Exif) *time.Time {
 	if err != nil {
 		return nil
 	}
-	// Wall clock time of the camera, taken as Swiss time.
+	return wallClock(t)
+}
+
+// wallClock takes the camera's time as Swiss time, if it is plausible.
+func wallClock(t time.Time) *time.Time {
 	t = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, zurich)
 	if t.Year() < 1990 || t.After(time.Now().Add(48*time.Hour)) {
 		return nil
 	}
 	return &t
+}
+
+// heicMeta reads when and where a HEIC photo was taken.
+func heicMeta(x *heic.Exif) (at *time.Time, lon, lat *float64) {
+	for _, s := range []string{x.DateTimeOriginal, x.DateTime} {
+		if t, err := time.Parse("2006:01:02 15:04:05", s); err == nil {
+			at = wallClock(t)
+			break
+		}
+	}
+	la, lo := x.GPSLatitude, x.GPSLongitude
+	if !math.IsNaN(la) && !math.IsNaN(lo) && math.Abs(la) <= 90 && math.Abs(lo) <= 180 && (la != 0 || lo != 0) {
+		lon, lat = &lo, &la
+	}
+	return at, lon, lat
 }
 
 func readPosition(x *exif.Exif) (lon, lat *float64) {

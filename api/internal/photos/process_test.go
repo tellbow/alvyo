@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"math"
+	"os"
 	"runtime"
 	"strings"
 	"testing"
@@ -51,6 +52,41 @@ func TestProcessJPEGWithEXIF(t *testing.T) {
 	thumb, _ := jpeg.DecodeConfig(bytes.NewReader(p.Thumb))
 	if thumb.Height != ThumbPx {
 		t.Errorf("thumb %d×%d", thumb.Width, thumb.Height)
+	}
+}
+
+// TestProcessHEIC reads an iPhone-style HEIC: made with macOS sips from a
+// 64×48 phototest JPEG with orientation 6, taken 2026-07-04 09:30 at
+// 8.04, 46.66.
+func TestProcessHEIC(t *testing.T) {
+	src, err := os.ReadFile("testdata/geo.heic")
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := Process(bytes.NewReader(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Width != 48 || p.Height != 64 {
+		t.Errorf("large %d×%d, want upright 48×64", p.Width, p.Height)
+	}
+	if p.Lon == nil || math.Abs(*p.Lon-8.04) > 1e-4 || math.Abs(*p.Lat-46.66) > 1e-4 {
+		t.Errorf("position %v %v", p.Lon, p.Lat)
+	}
+	if p.TakenAt == nil || p.TakenAt.UTC().Format("2006-01-02 15:04") != "2026-07-04 07:30" {
+		t.Errorf("taken at %v", p.TakenAt)
+	}
+	img, err := jpeg.Decode(bytes.NewReader(p.Large))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Turned clockwise, the red quarter is top right.
+	bb := img.Bounds()
+	if !red(img.At(bb.Max.X-bb.Dx()/8, bb.Min.Y+bb.Dy()/8)) || red(img.At(bb.Min.X+bb.Dx()/8, bb.Min.Y+bb.Dy()/8)) {
+		t.Error("not upright")
+	}
+	if bytes.Contains(p.Large, []byte("Exif")) {
+		t.Error("EXIF data kept")
 	}
 }
 

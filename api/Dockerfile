@@ -9,7 +9,9 @@ RUN cd api && go mod download
 COPY swiss swiss
 COPY api api
 ARG VERSION=dev TARGETOS TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /odysgeh ./api/cmd/odysgeh
+# nodynamic: HEIC photos are decoded by the embedded WebAssembly decoder,
+# never a system libheif.
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -tags nodynamic -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /odysgeh ./api/cmd/odysgeh
 # Writable for the nonroot user; new Docker volumes mounted there take this owner.
 RUN mkdir -p /out/cache /out/data/photos
 

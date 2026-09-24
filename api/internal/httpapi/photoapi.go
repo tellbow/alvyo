@@ -70,7 +70,7 @@ func photoError(err error) error {
 	case errors.Is(err, photos.ErrOrder):
 		return huma.Error422UnprocessableEntity("the order must list every photo once")
 	case errors.Is(err, photos.ErrFormat):
-		return huma.Error415UnsupportedMediaType("this is not a JPEG, PNG or WebP image")
+		return huma.Error415UnsupportedMediaType("this is not a JPEG, PNG, WebP or HEIC image")
 	case errors.Is(err, photos.ErrTooLarge):
 		return huma.Error413RequestEntityTooLarge("the image is too large (at most 20 MB and 60 megapixels)")
 	}
@@ -155,7 +155,7 @@ func registerPhotoItem(api huma.API, d Deps, it socialItem) {
 	huma.Register(api, huma.Operation{
 		OperationID: "add-" + it.opName + "-photo", Method: http.MethodPost, Path: it.path + "/{id}/photos",
 		Summary:     "Add a photo (owner and editors)",
-		Description: "JPEG, PNG or WebP up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.",
+		Description: "JPEG, PNG, WebP or HEIC up to 20 MB. Metadata is removed; a GPS position within 500 m of the route pins the photo on the map, other positions are dropped.",
 		Tags:        tags, MaxBodyBytes: photos.MaxUploadBytes + 1<<20,
 	}, func(ctx context.Context, in *photoUploadInput) (*photosOutput, error) {
 		t, err := editable(ctx, in.ID)

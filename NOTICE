@@ -18,6 +18,9 @@ Algorithms:
   Re-implemented in Go (swiss/hikingtime).
 
 Code derived from third-party projects is listed below with its license.
+- HEIC photos are decoded with github.com/gen2brain/heic (MIT), which embeds
+  the Rust heic decoder (github.com/imazen/heic, AGPL-3.0-only) compiled to
+  WebAssembly.
 - api/internal/imports/komoot.go: use of Komoot's unofficial API (login, tour
   list, tour coordinates) follows the Komoot plugin of wanderer
   (github.com/open-wanderer/wanderer, plugins/komoot), AGPL-3.0.

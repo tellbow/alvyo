@@ -65,3 +65,32 @@ test('photos: upload, pin along the route, caption and view', async ({ page, bro
 	await expect(view).toHaveCount(0);
 	await visitor.close();
 });
+
+test('an iPhone photo in HEIC is taken as a JPEG', async ({ page }) => {
+	const id = `heic${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const email = `${id}@example.ch`;
+	await page.request.post('/api/v1/auth/signup', {
+		data: { email, username: id, display_name: 'Hanna Heic', password: 'sehr-geheim-123' }
+	});
+	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
+	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
+	const created = await page.request.post('/api/v1/routes', {
+		data: { title: `Heicweg ${id}`, ...routeContent(8.04, 46.665) }
+	});
+	const route = (await created.json()).id as string;
+	// 48×64 upright, made with macOS sips (see the API's photo tests).
+	const heic = readFileSync(
+		new URL('../../../api/internal/photos/testdata/geo.heic', import.meta.url)
+	);
+
+	await page.goto(`/routes/${route}`);
+	const photos = page.getByTestId('photos');
+	await photos
+		.locator('input[type=file]')
+		.setInputFiles([{ name: 'IMG_0001.HEIC', mimeType: 'image/heic', buffer: heic }]);
+	await expect(photos.getByRole('listitem')).toHaveCount(1);
+	const thumb = photos.getByRole('listitem').locator('img');
+	await expect
+		.poll(() => thumb.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight]))
+		.toEqual([48, 64]);
+});

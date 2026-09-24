@@ -142,7 +142,6 @@ None: the next work comes from the backlog.
 - Routes: revisions; privacy zones (start and end of recorded hikes hidden);
   a border buffer for routes near and across the border; the routing gap at
   Chamanna Jenatsch.
-- Photos in HEIC.
 - Journeys: cancelled trains and buses are not shown in connections (OJP).
 - Operations: backups are kept on the cluster only; an off-site copy is
   missing.

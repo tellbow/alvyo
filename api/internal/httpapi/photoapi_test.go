@@ -139,6 +139,15 @@ func TestPhotos(t *testing.T) {
 	if code, _ := owner.do("PUT", r+"/photos/order", map[string]any{"ids": []string{p2.ID}}); code != http.StatusUnprocessableEntity {
 		t.Errorf("incomplete order: %d, want 422", code)
 	}
+	// One twice (and one missing): refused, and the order stays.
+	if code, _ := owner.do("PUT", r+"/photos/order", map[string]any{"ids": []string{p0.ID, p0.ID, p1.ID}}); code != http.StatusUnprocessableEntity {
+		t.Errorf("order with a photo twice: %d, want 422", code)
+	}
+	_, raw = owner.do("GET", r+"/photos", nil)
+	_ = json.Unmarshal(raw, &ps)
+	if len(ps.Photos) != 3 || ps.Photos[0].ID != p2.ID || ps.Photos[1].ID != p0.ID || ps.Photos[2].ID != p1.ID {
+		t.Errorf("order after a refused one: %s", raw)
+	}
 
 	// Private routes keep their photos private; a reported photo stays
 	// visible to moderators.

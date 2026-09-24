@@ -48,7 +48,8 @@ type Renderer struct {
 	group    singleflight.Group
 }
 
-// PNG returns the image for key (route id and version), rendering it once.
+// PNG returns the image for key ("<route id>-<version>"), rendering it once.
+// The images of the route's other versions are removed then.
 func (r *Renderer) PNG(key string, card Card) ([]byte, error) {
 	path := filepath.Join(r.CacheDir, "og", key+".png")
 	if b, err := os.ReadFile(path); err == nil {
@@ -61,6 +62,14 @@ func (r *Renderer) PNG(key string, card Card) ([]byte, error) {
 		}
 		if err := writeAtomic(path, b); err != nil {
 			return nil, err
+		}
+		if i := strings.LastIndex(key, "-"); i > 0 {
+			old, _ := filepath.Glob(filepath.Join(r.CacheDir, "og", key[:i+1]+"*.png"))
+			for _, p := range old {
+				if p != path {
+					_ = os.Remove(p)
+				}
+			}
 		}
 		return b, nil
 	})

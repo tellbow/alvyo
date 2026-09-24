@@ -16,6 +16,7 @@ import (
 
 	"github.com/muktihari/fit/decoder"
 	"github.com/muktihari/fit/profile/filedef"
+	"golang.org/x/net/html/charset"
 
 	"github.com/tellbow/odysgeh/swiss/geo"
 )
@@ -39,7 +40,7 @@ type Track struct {
 // from the content; the file name only helps to name unnamed tracks.
 func Parse(filename string, r io.Reader) (format string, tracks []Track, err error) {
 	br := bufio.NewReader(io.LimitReader(r, MaxFileBytes+1))
-	head, _ := br.Peek(512)
+	head, _ := br.Peek(4096) // room for a long comment before the root
 	switch {
 	case len(head) >= 12 && string(head[8:12]) == ".FIT":
 		format = "fit"
@@ -87,7 +88,7 @@ func Parse(filename string, r io.Reader) (format string, tracks []Track, err err
 
 // xmlRoot returns the local name of the first element.
 func xmlRoot(head []byte) string {
-	d := xml.NewDecoder(bytes.NewReader(head))
+	d := newXMLDecoder(bytes.NewReader(head))
 	for {
 		tok, err := d.Token()
 		if err != nil {
@@ -97,6 +98,14 @@ func xmlRoot(head []byte) string {
 			return se.Name.Local
 		}
 	}
+}
+
+// newXMLDecoder reads XML in any declared encoding: older tools write GPX
+// files in ISO-8859-1 or Windows-1252.
+func newXMLDecoder(r io.Reader) *xml.Decoder {
+	d := xml.NewDecoder(r)
+	d.CharsetReader = charset.NewReaderLabel
+	return d
 }
 
 // clean drops invalid points and consecutive duplicates.
@@ -133,7 +142,7 @@ func parseGPX(r io.Reader) ([]Track, error) {
 			Points []pt   `xml:"rtept"`
 		} `xml:"rte"`
 	}
-	if err := xml.NewDecoder(r).Decode(&doc); err != nil {
+	if err := newXMLDecoder(r).Decode(&doc); err != nil {
 		return nil, fmt.Errorf("imports: gpx: %w", err)
 	}
 	var out []Track
@@ -161,7 +170,7 @@ func parseGPX(r io.Reader) ([]Track, error) {
 
 // parseKML reads LineStrings and gx:Tracks of all placemarks.
 func parseKML(r io.Reader) ([]Track, error) {
-	d := xml.NewDecoder(r)
+	d := newXMLDecoder(r)
 	var out []Track
 	var name string
 	var inPlacemark bool
@@ -252,7 +261,7 @@ func parseTCX(r io.Reader) ([]Track, error) {
 			Points []trackpoint `xml:"Track>Trackpoint"`
 		} `xml:"Courses>Course"`
 	}
-	if err := xml.NewDecoder(r).Decode(&doc); err != nil {
+	if err := newXMLDecoder(r).Decode(&doc); err != nil {
 		return nil, fmt.Errorf("imports: tcx: %w", err)
 	}
 	add := func(tr *Track, pts []trackpoint) {

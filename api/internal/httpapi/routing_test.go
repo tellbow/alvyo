@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"sync/atomic"
 	"testing"
 
@@ -143,5 +144,24 @@ func TestRouteTurns(t *testing.T) {
 	failing.Store(true)
 	if code, _ := owner.do("GET", path, nil); code != http.StatusServiceUnavailable {
 		t.Errorf("GraphHopper down: %d", code)
+	}
+}
+
+func TestInternalErrorsHidden(t *testing.T) {
+	// GraphHopper fails with a message of its own: the client sees only that
+	// something went wrong.
+	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"message":"java.lang.OutOfMemoryError at /opt/graphhopper/secret"}`))
+	}))
+	t.Cleanup(gh.Close)
+	s := newTestServerWith(t, func(d *Deps) {
+		d.Router = &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}, Elevation: flatSampler{}}
+	})
+	c := s.client(t)
+	c.do("POST", "/api/v1/auth/signup", signupBody("fiona@example.ch", "fiona"))
+	code, body := c.do("POST", "/api/v1/routing/leg", legBody(8.0535))
+	if code != http.StatusInternalServerError || strings.Contains(string(body), "secret") || strings.Contains(string(body), "graphhopper") {
+		t.Errorf("leg: %d %s", code, body)
 	}
 }

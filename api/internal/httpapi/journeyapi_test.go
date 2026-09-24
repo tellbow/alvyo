@@ -106,6 +106,17 @@ func TestJourneyAPI(t *testing.T) {
 		t.Errorf("bad date: %d", code)
 	}
 
+	// Values that only look right are refused too, not a server error.
+	for _, bad := range []map[string]any{
+		{"planned_date": "2026-02-30"},
+		{"done_on": "2026-13-01"},
+		{"start_place_id": "------------------------------------"},
+	} {
+		if code, body := owner.do("PATCH", base+"/stages/"+st1, bad); code != http.StatusUnprocessableEntity {
+			t.Errorf("%v: %d %s", bad, code, body)
+		}
+	}
+
 	// Private: nobody else sees the journey or its stage routes.
 	for _, c := range []*client{other, anon} {
 		if code, _ := c.do("GET", base, nil); code != http.StatusNotFound {
@@ -150,6 +161,26 @@ func TestJourneyAPI(t *testing.T) {
 	zr, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
 	if err != nil || len(zr.File) != 2 || zr.File[0].Name != "01-etappe-1.gpx" {
 		t.Errorf("zip: %v %d files", err, len(zr.File))
+	}
+
+	// A new link: the old one opens neither the journey nor its stages.
+	if code, _ := anon.do("POST", base+"/link/rotate", nil); code != http.StatusNotFound {
+		t.Errorf("rotate by someone else: %d", code)
+	}
+	code, body = owner.do("POST", base+"/link/rotate", nil)
+	var rot struct {
+		ShareToken string `json:"share_token"`
+	}
+	if err := json.Unmarshal(body, &rot); code != http.StatusOK || err != nil || rot.ShareToken == j.ShareToken || len(rot.ShareToken) != 22 {
+		t.Fatalf("rotate: %d %s", code, body)
+	}
+	for _, p := range []string{base, routePath, base + "/gpx"} {
+		if code, _ := anon.do("GET", p+"?t="+j.ShareToken, nil); code != http.StatusNotFound {
+			t.Errorf("%s with the old link: %d", p, code)
+		}
+		if code, _ := anon.do("GET", p+"?t="+rot.ShareToken, nil); code != http.StatusOK {
+			t.Errorf("%s with the new link: %d", p, code)
+		}
 	}
 
 	// Reorder, delete a stage (and its route), delete the journey.

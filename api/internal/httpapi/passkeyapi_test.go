@@ -22,11 +22,20 @@ func TestPasskeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Only with the address confirmed: a passkey outlasts a password reset.
+	code, body := c.do("POST", "/api/v1/me/passkeys/begin", map[string]any{"password": "sehr-geheim-123"})
+	if code != http.StatusForbidden || !strings.Contains(string(body), "confirm your e-mail") {
+		t.Errorf("begin before confirming the address: %d %s", code, body)
+	}
+	if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now()`); err != nil {
+		t.Fatal(err)
+	}
+
 	// Adding a passkey needs the password again.
 	if code, _ := c.do("POST", "/api/v1/me/passkeys/begin", map[string]any{"password": "falsch"}); code != http.StatusForbidden {
 		t.Errorf("begin with a wrong password: %d, want 403", code)
 	}
-	code, body := c.do("POST", "/api/v1/me/passkeys/begin", map[string]any{"password": "sehr-geheim-123"})
+	code, body = c.do("POST", "/api/v1/me/passkeys/begin", map[string]any{"password": "sehr-geheim-123"})
 	var begin struct {
 		Ceremony string          `json:"ceremony"`
 		Options  json.RawMessage `json:"options"`

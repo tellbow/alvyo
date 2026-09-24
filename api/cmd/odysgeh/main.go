@@ -154,8 +154,10 @@ func serve(ctx context.Context) error {
 		Handler:           handler,
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       2 * time.Minute, // uploads (photos, track files) of 20 MB from phones
-		WriteTimeout:      60 * time.Second,
-		IdleTimeout:       120 * time.Second,
+		// From the end of the headers, so it includes reading the upload;
+		// offline map downloads extend it (packWriteTimeout).
+		WriteTimeout: 3 * time.Minute,
+		IdleTimeout:  120 * time.Second,
 	}
 
 	errc := make(chan error, 1)

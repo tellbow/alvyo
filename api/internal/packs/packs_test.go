@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -106,7 +107,7 @@ func TestBuild(t *testing.T) {
 	want := Corridor([][]geo.Point{line}, BufferM)
 	v1, v2 := [][]geo.Point{line}, [][]geo.Point{line[:1]}
 	var last int
-	files, err := b.Build(context.Background(), Key("route", "r1", v1), "route-r1-", want, func(done, _ int) { last = done })
+	files, err := b.Build(context.Background(), Key("route", "r1", v1), want, func(done, _ int) { last = done })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,9 +158,10 @@ func TestBuild(t *testing.T) {
 	}
 
 	// A new version replaces the old files.
-	if _, err := b.Build(context.Background(), Key("route", "r1", v2), "route-r1-", want[:3], nil); err != nil {
+	if _, err := b.Build(context.Background(), Key("route", "r1", v2), want[:3], nil); err != nil {
 		t.Fatal(err)
 	}
+	b.RemoveOthers(Key("route", "r1", v2), "route-r1-")
 	if _, ok := b.Existing(Key("route", "r1", v1)); ok {
 		t.Error("old version still there")
 	}
@@ -200,5 +202,108 @@ func TestPrune(t *testing.T) {
 	(&Service{Builder: &Builder{Dir: dir}, MaxAge: 7 * 24 * time.Hour, MaxBytes: 250}).Prune()
 	if got := strings.Join(left(), " "); got != "new.pmtiles recent.pmtiles" {
 		t.Errorf("left %q, want the two most recently used", got)
+	}
+}
+
+func TestBuildTwiceSameFile(t *testing.T) {
+	// Tiles arrive in any order; the file is the same, so that a download
+	// broken off before a rebuild resumes on the same bytes.
+	tiles := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Duration(rand.IntN(3)) * time.Millisecond)
+		_, _ = w.Write([]byte("tile:" + r.URL.Path))
+	}))
+	defer tiles.Close()
+	want := Corridor([][]geo.Point{{{Lon: 7.9, Lat: 46.6}, {Lon: 7.95, Lat: 46.61}}}, BufferM)
+	var files [2][]byte
+	for i := range files {
+		dir := t.TempDir()
+		built, err := (&Builder{TilesURL: tiles.URL, Dir: dir, Parallel: 8}).Build(context.Background(), "route-r1-abc", want, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		files[i], _ = os.ReadFile(filepath.Join(dir, built[0].Name))
+	}
+	if !bytes.Equal(files[0], files[1]) {
+		t.Error("two builds of the same pack differ")
+	}
+}
+
+func TestPrunePacksWhole(t *testing.T) {
+	dir := t.TempDir()
+	now := time.Now()
+	write := func(name string, size int, age time.Duration) {
+		p := filepath.Join(dir, name)
+		if err := os.WriteFile(p, make([]byte, size), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Chtimes(p, now.Add(-age), now.Add(-age)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	day := 24 * time.Hour
+	// Downloaded yesterday (its map touched), built 8 days ago: kept whole.
+	write("route-a-1.json", 10, 8*day)
+	write("route-a-1-landeskarte.pmtiles", 100, day)
+	write("route-a-1-wanderwege.pmtiles", 100, 8*day)
+	// Not used for 8 days: all its files go.
+	write("route-b-1.json", 10, 8*day)
+	write("route-b-1-landeskarte.pmtiles", 100, 8*day)
+	// A build under way, and one that crashed long ago.
+	write("route-c-2-landeskarte.pmtiles.tmp-123", 100, time.Minute)
+	write("route-d-1-landeskarte.pmtiles.data-456", 100, 3*time.Hour)
+	// Just built, bigger than the budget on its own: kept while in use.
+	write("route-e-1.json", 10, time.Minute)
+	write("route-e-1-landeskarte.pmtiles", 1000, time.Minute)
+
+	left := func() string {
+		entries, _ := os.ReadDir(dir)
+		var names []string
+		for _, e := range entries {
+			names = append(names, e.Name())
+		}
+		return strings.Join(names, " ")
+	}
+	(&Service{Builder: &Builder{Dir: dir}, MaxAge: 7 * day}).Prune()
+	if got, want := left(), "route-a-1-landeskarte.pmtiles route-a-1-wanderwege.pmtiles route-a-1.json "+
+		"route-c-2-landeskarte.pmtiles.tmp-123 route-e-1-landeskarte.pmtiles route-e-1.json"; got != want {
+		t.Errorf("by age: left %s\nwant %s", got, want)
+	}
+	// Over the budget: the least recently used pack goes, the one in use stays.
+	(&Service{Builder: &Builder{Dir: dir}, MaxAge: 7 * day, MaxBytes: 500}).Prune()
+	if got, want := left(), "route-c-2-landeskarte.pmtiles.tmp-123 route-e-1-landeskarte.pmtiles route-e-1.json"; got != want {
+		t.Errorf("by size: left %s\nwant %s", got, want)
+	}
+}
+
+func TestOlderBuildKeepsNewer(t *testing.T) {
+	// The route is changed while its first pack builds: the first build,
+	// finishing last, must not remove the pack of the new version.
+	tiles := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("tile"))
+	}))
+	defer tiles.Close()
+	s := &Service{Builder: &Builder{TilesURL: tiles.URL, Dir: t.TempDir()}}
+	few := []Tile{{Z: 16, X: 34200, Y: 23184}}
+	release := make(chan struct{})
+	s.Ensure("route-r1-old", "route-r1-", func(context.Context) ([]Tile, error) {
+		<-release // still working out its tiles
+		return few, nil
+	})
+	s.Ensure("route-r1-new", "route-r1-", func(context.Context) ([]Tile, error) { return few, nil })
+	wait := func(key string) {
+		t.Helper()
+		for range 500 {
+			if s.Status(key).State == "ready" {
+				return
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+		t.Fatalf("%s: %+v", key, s.Status(key))
+	}
+	wait("route-r1-new")
+	close(release)
+	wait("route-r1-old")
+	if st := s.Status("route-r1-new"); st.State != "ready" {
+		t.Errorf("new version after the old build: %+v", st)
 	}
 }

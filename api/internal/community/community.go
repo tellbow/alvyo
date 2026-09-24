@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/tellbow/odysgeh/api/internal/dbq"
@@ -142,7 +143,10 @@ func (s *Store) AddComment(ctx context.Context, t Target, author dbq.User, body 
 		WHERE i.id = $2 AND i.comments_enabled
 			AND NOT EXISTS (SELECT 1 FROM blocks WHERE blocker_id = i.owner_id AND blocked_id = $1)
 		RETURNING id`, author.ID, t.ID, body).Scan(&id)
-	if err != nil {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return fmt.Errorf("community: comment: %w", err)
+	}
+	if err != nil { // nothing inserted: find out why
 		var on bool
 		if qerr := s.DB.QueryRow(ctx, `SELECT comments_enabled FROM `+t.Kind.table()+` WHERE id = $1`, t.ID).Scan(&on); qerr != nil {
 			return fmt.Errorf("community: comment: %w", err)

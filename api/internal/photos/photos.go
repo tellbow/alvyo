@@ -126,19 +126,32 @@ func (s *Store) Update(ctx context.Context, t Target, id uuid.UUID, caption *str
 	return err
 }
 
-// Order puts the photos of t in the order of ids, which must list each once.
+// Order puts the photos of t in the order of ids, which must list each once;
+// otherwise nothing changes.
 func (s *Store) Order(ctx context.Context, t Target, ids []uuid.UUID) error {
-	res, err := s.DB.Exec(ctx, `UPDATE photos p SET position = o.n
-		FROM unnest($2::uuid[]) WITH ORDINALITY AS o(id, n)
-		WHERE p.id = o.id AND p.`+t.column()+` = $1
-			AND (SELECT count(*) FROM photos WHERE `+t.column()+` = $1) = cardinality($2::uuid[])`, t.ID, ids)
-	if err != nil {
-		return err
+	seen := map[uuid.UUID]bool{}
+	for _, id := range ids {
+		if seen[id] {
+			return ErrOrder
+		}
+		seen[id] = true
 	}
-	if int(res.RowsAffected()) != len(ids) || len(ids) == 0 {
+	if len(ids) == 0 {
 		return ErrOrder
 	}
-	return nil
+	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+		res, err := tx.Exec(ctx, `UPDATE photos p SET position = o.n
+			FROM unnest($2::uuid[]) WITH ORDINALITY AS o(id, n)
+			WHERE p.id = o.id AND p.`+t.column()+` = $1
+				AND (SELECT count(*) FROM photos WHERE `+t.column()+` = $1) = cardinality($2::uuid[])`, t.ID, ids)
+		if err != nil {
+			return err
+		}
+		if int(res.RowsAffected()) != len(ids) {
+			return ErrOrder // someone else's photo among them: rolled back
+		}
+		return nil
+	})
 }
 
 // Delete removes a photo of t; its files go right away.

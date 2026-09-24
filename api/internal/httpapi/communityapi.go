@@ -319,7 +319,7 @@ func registerSocialItem(api huma.API, d Deps, it socialItem) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "update-" + it.opName + "-social", Method: http.MethodPatch, Path: it.path + "/{id}/social",
-		Summary: "Switch comments on or off (owner)", Tags: tags,
+		Summary: "Switch comments on or off (owner or moderator)", Tags: tags,
 	}, func(ctx context.Context, in *socialSettingsInput) (*socialOutput, error) {
 		if _, err := requireUser(ctx); err != nil {
 			return nil, err
@@ -328,7 +328,7 @@ func registerSocialItem(api huma.API, d Deps, it socialItem) {
 		if err != nil {
 			return nil, err
 		}
-		if role < access.Owner {
+		if v, _, _ := communityViewer(ctx); role < access.Owner && !v.Moderator {
 			return nil, forbidden(access.Owner, it.opName)
 		}
 		if err := d.Community.SetCommentsEnabled(ctx, t, in.Body.CommentsEnabled); err != nil {

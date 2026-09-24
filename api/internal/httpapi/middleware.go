@@ -121,6 +121,10 @@ func (s *statusRecorder) WriteHeader(code int) {
 	s.ResponseWriter.WriteHeader(code)
 }
 
+// Unwrap lets http.ResponseController reach the connection, e.g. to extend
+// the write deadline of a long download.
+func (s *statusRecorder) Unwrap() http.ResponseWriter { return s.ResponseWriter }
+
 // withAccessLog logs every request at debug level and server errors at error.
 // withSecurityHeaders sets headers every response needs, independent of the
 // reverse proxy in front.

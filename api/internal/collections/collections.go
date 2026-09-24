@@ -383,13 +383,14 @@ func (s *Store) DeleteItem(ctx context.Context, id, itemID uuid.UUID) error {
 	})
 }
 
-// tx runs fn in a transaction and marks the collection as changed.
+// tx runs fn in a transaction and marks the collection as changed. Marking
+// it first locks it: changes to its items (counted, then shifted) go one
+// after the other.
 func (s *Store) tx(ctx context.Context, id uuid.UUID, fn func(pgx.Tx) error) error {
 	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
-		if err := fn(tx); err != nil {
+		if _, err := tx.Exec(ctx, `UPDATE collections SET updated_at = now() WHERE id = $1`, id); err != nil {
 			return err
 		}
-		_, err := tx.Exec(ctx, `UPDATE collections SET updated_at = now() WHERE id = $1`, id)
-		return err
+		return fn(tx)
 	})
 }

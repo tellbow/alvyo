@@ -4,6 +4,7 @@ package photos
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"image"
 	"image/jpeg"
@@ -74,10 +75,12 @@ func Process(r io.Reader) (Processed, error) {
 	var p Processed
 	orientation := 1
 	if format == "jpeg" {
-		if x, err := exif.Decode(bytes.NewReader(data)); err == nil {
-			orientation = readOrientation(x)
-			p.TakenAt = readTime(x)
-			p.Lon, p.Lat = readPosition(x)
+		if tiff := exifTIFF(data); tiff != nil && saneTIFF(tiff) {
+			if x, err := exif.Decode(bytes.NewReader(tiff)); err == nil {
+				orientation = readOrientation(x)
+				p.TakenAt = readTime(x)
+				p.Lon, p.Lat = readPosition(x)
+			}
 		}
 	}
 
@@ -182,4 +185,75 @@ func orient(img image.Image, o int) image.Image {
 		}
 	}
 	return dst
+}
+
+// exifTIFF returns the EXIF data (TIFF) of a JPEG, from its APP1 segment.
+func exifTIFF(jpg []byte) []byte {
+	if len(jpg) < 4 || jpg[0] != 0xFF || jpg[1] != 0xD8 {
+		return nil
+	}
+	for i := 2; i+4 <= len(jpg) && jpg[i] == 0xFF; {
+		marker, n := jpg[i+1], int(binary.BigEndian.Uint16(jpg[i+2:]))
+		if marker == 0xDA || n < 2 || i+2+n > len(jpg) { // image data, or broken
+			return nil
+		}
+		if seg := jpg[i+4 : i+2+n]; marker == 0xE1 && bytes.HasPrefix(seg, []byte("Exif\x00\x00")) {
+			return seg[6:]
+		}
+		i += 2 + n
+	}
+	return nil
+}
+
+// tiffTypeSize is the size of one value of each TIFF field type.
+var tiffTypeSize = map[uint16]uint64{1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8, 11: 4, 12: 8}
+
+// saneTIFF reports whether EXIF data may go to goexif, which believes the
+// value counts of its entries: a crafted count makes it allocate gigabytes.
+// Every entry's value must fit in the data; the directories goexif reads
+// (IFD0 and the ones after it, Exif, GPS, interoperability) are checked.
+func saneTIFF(t []byte) bool {
+	if len(t) < 8 {
+		return false
+	}
+	var order binary.ByteOrder
+	switch string(t[:2]) {
+	case "II":
+		order = binary.LittleEndian
+	case "MM":
+		order = binary.BigEndian
+	default:
+		return false
+	}
+	size := uint64(len(t))
+	todo, seen := []uint32{order.Uint32(t[4:])}, map[uint32]bool{}
+	for len(todo) > 0 {
+		off := todo[0]
+		todo = todo[1:]
+		if seen[off] {
+			continue
+		}
+		seen[off] = true
+		if uint64(off)+2 > size {
+			return false
+		}
+		n := uint64(order.Uint16(t[off:]))
+		end := uint64(off) + 2 + 12*n
+		if end+4 > size {
+			return false
+		}
+		for e := uint64(off) + 2; e < end; e += 12 {
+			id, typ, count := order.Uint16(t[e:]), order.Uint16(t[e+2:]), order.Uint32(t[e+4:])
+			if tiffTypeSize[typ]*uint64(count) > size {
+				return false
+			}
+			if id == 0x8769 || id == 0x8825 || id == 0xA005 { // Exif, GPS, interoperability
+				todo = append(todo, order.Uint32(t[e+8:]))
+			}
+		}
+		if next := order.Uint32(t[end:]); next != 0 {
+			todo = append(todo, next)
+		}
+	}
+	return true
 }

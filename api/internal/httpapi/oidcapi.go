@@ -117,11 +117,24 @@ func registerOIDC(api huma.API, d Deps) {
 			if err != nil {
 				return back("/login?redirect=%2Faccount", ""), nil
 			}
+			// Only the address's owner, just logged in: a provider stays
+			// connected through password resets and ended sessions, so it
+			// must not come from whoever signed up with someone else's
+			// address, or from a session left open.
+			if u.EmailVerifiedAt == nil {
+				return back("/account", "verify"), nil
+			}
+			if d.Auth.RecentLogin(ctx, u, sessionToken(ctx)) != nil {
+				return back("/account", "again"), nil
+			}
 			link, redirect = u.ID, "/account"
 		}
 		to, state, err := d.OIDC.Start(ctx, in.Provider, redirect, link)
 		if errors.Is(err, auth.ErrUnknownProvider) {
 			return nil, huma.Error404NotFound("no such provider")
+		}
+		if errors.Is(err, auth.ErrOIDCBusy) {
+			return back(redirect, "busy"), nil
 		}
 		if err != nil {
 			slog.ErrorContext(ctx, "oidc start", "provider", in.Provider, "err", err)

@@ -192,7 +192,8 @@ func registerImports(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
-		if !d.Limits.Import.Allow(u.ID.String()) {
+		// Each track is matched and its elevations sampled: they count.
+		if !d.Limits.Import.AllowN(u.ID.String(), len(tracks)) {
 			return nil, huma.Error429TooManyRequests("too many imports; try again in a few minutes")
 		}
 		out := &importOutput{}

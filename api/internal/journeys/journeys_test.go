@@ -271,3 +271,84 @@ func TestStagePlaces(t *testing.T) {
 		t.Errorf("start without a place nearby: %+v", sp)
 	}
 }
+
+func TestAddStagesAtOnce(t *testing.T) {
+	// Stages added at the same moment (two editors, a double click) all get
+	// a place of their own.
+	ctx := context.Background()
+	pool := testdb.New(t)
+	var owner uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('j@example.ch', 'hiker', 'H') RETURNING id`).Scan(&owner); err != nil {
+		t.Fatal(err)
+	}
+	s := &Store{DB: pool, Routes: &routes.Store{DB: pool}}
+	j, err := s.Create(ctx, owner, Meta{Title: "Via Alpina", Visibility: "private"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	jid := uuid.MustParse(j.ID)
+	errs := make(chan error, 12)
+	for i := range 12 {
+		go func() {
+			first := 0
+			n := NewStage{}
+			if i%2 == 0 {
+				n.Position = &first // inserted at the front, shifting the others
+			}
+			errs <- s.AddStage(ctx, jid, owner, n)
+		}()
+	}
+	for range 12 {
+		if err := <-errs; err != nil {
+			t.Error(err)
+		}
+	}
+	j, _ = s.Get(ctx, jid)
+	for i, st := range j.StageList {
+		if st.Position != i {
+			t.Fatalf("positions: %d at %d", st.Position, i)
+		}
+	}
+	if len(j.StageList) != 12 {
+		t.Errorf("%d stages", len(j.StageList))
+	}
+}
+
+func TestTinyLoopStage(t *testing.T) {
+	// A stage route that is a loop of a few metres simplifies to nothing;
+	// the journey still opens.
+	ctx := context.Background()
+	pool := testdb.New(t)
+	var owner uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('j@example.ch', 'hiker', 'H') RETURNING id`).Scan(&owner); err != nil {
+		t.Fatal(err)
+	}
+	s := &Store{DB: pool, Routes: &routes.Store{DB: pool}}
+	j, err := s.Create(ctx, owner, Meta{Title: "Klein", Visibility: "private"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	jid := uuid.MustParse(j.ID)
+	if err := s.AddStage(ctx, jid, owner, NewStage{}); err != nil {
+		t.Fatal(err)
+	}
+	j, _ = s.Get(ctx, jid)
+	loop := [][3]float64{{8, 46.5, 1000}, {8.00002, 46.5, 1000}, {8.00002, 46.50002, 1000}, {8, 46.5, 1000}}
+	run := func(v string) []routing.Run { return []routing.Run{{From: 0, To: 3, Value: v}} }
+	c := routes.Content{
+		Profile: "hike",
+		Anchors: []routes.Anchor{{Lon: 8, Lat: 46.5}, {Lon: 8, Lat: 46.5}},
+		Legs: []routing.Leg{{Coordinates: loop, SAC: routing.SACSummary{Max: 1},
+			Details: routing.Details{SAC: run("T1"), Surface: run("paved"), WayType: run("road"), Trail: run("none")}}},
+	}
+	if _, err := s.SetStageRoute(ctx, jid, uuid.MustParse(j.StageList[0].ID), owner, "Runde", c); err != nil {
+		t.Fatal(err)
+	}
+	j, err = s.Get(ctx, jid)
+	if err != nil {
+		t.Fatalf("journey with a tiny loop: %v", err)
+	}
+	if r := j.StageList[0].Route; r == nil || len(r.Line) < 2 {
+		t.Errorf("stage route %+v", r)
+	}
+}

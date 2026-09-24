@@ -829,7 +829,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Switch comments on or off (owner) */
+        /** Switch comments on or off (owner or moderator) */
         patch: operations["update-journey-social"];
         trace?: never;
     };
@@ -1448,7 +1448,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Switch comments on or off (owner) */
+        /** Switch comments on or off (owner or moderator) */
         patch: operations["update-route-social"];
         trace?: never;
     };

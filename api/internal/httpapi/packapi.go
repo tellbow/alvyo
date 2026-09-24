@@ -31,6 +31,10 @@ type packItem struct {
 
 var errNoPacks = huma.Error503ServiceUnavailable("offline maps are not configured")
 
+// packWriteTimeout is how long a pack download may take; the app resumes
+// broken off downloads.
+const packWriteTimeout = 30 * time.Minute
+
 func registerPacks(api huma.API, d Deps) {
 	items := []packItem{
 		{kind: "route", path: "/routes", lines: func(ctx context.Context, rawID, token string) (uuid.UUID, [][]geo.Point, error) {
@@ -148,10 +152,12 @@ func registerPackItem(api huma.API, d Deps, it packItem) {
 				return
 			}
 			defer func() { _ = f.Close() }()
-			now := time.Now()
-			_ = os.Chtimes(path, now, now) // in use: keep it when pruning
+			d.Packs.Builder.Touch(k) // in use: keep it when pruning
 			w.Header().Set("Content-Type", "application/vnd.pmtiles")
 			w.Header().Set("Cache-Control", "private, max-age=86400")
+			// Some hundred MB over a mountain hut's connection take longer
+			// than the server's write timeout.
+			_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(packWriteTimeout))
 			http.ServeContent(w, r, name, time.Time{}, f)
 		}}, nil
 	})

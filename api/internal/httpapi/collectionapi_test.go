@@ -176,3 +176,43 @@ func TestCollections(t *testing.T) {
 		t.Errorf("route after deleting the collection: %d", code)
 	}
 }
+
+func TestCollectionLink(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	anna, anon := s.client(t), s.client(t)
+	anna.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna"))
+	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
+		t.Fatal(err)
+	}
+	code, body := anna.do("POST", "/api/v1/collections", map[string]any{"title": "Herbst", "visibility": "unlisted"})
+	var c struct {
+		ID         string `json:"id"`
+		ShareToken string `json:"share_token"`
+	}
+	if err := json.Unmarshal(body, &c); code != http.StatusCreated || err != nil || c.ShareToken == "" {
+		t.Fatalf("create: %d %s", code, body)
+	}
+	base := "/api/v1/collections/" + c.ID
+	if code, _ := anon.do("GET", base, nil); code != http.StatusNotFound {
+		t.Errorf("without the link: %d", code)
+	}
+	if code, _ := anon.do("GET", base+"?t="+c.ShareToken, nil); code != http.StatusOK {
+		t.Errorf("with the link: %d", code)
+	}
+	if code, _ := anon.do("POST", base+"/link/rotate", nil); code != http.StatusNotFound {
+		t.Errorf("rotate by someone else: %d", code)
+	}
+	code, body = anna.do("POST", base+"/link/rotate", nil)
+	var rot struct {
+		ShareToken string `json:"share_token"`
+	}
+	if err := json.Unmarshal(body, &rot); code != http.StatusOK || err != nil || rot.ShareToken == c.ShareToken {
+		t.Fatalf("rotate: %d %s", code, body)
+	}
+	if code, _ := anon.do("GET", base+"?t="+c.ShareToken, nil); code != http.StatusNotFound {
+		t.Errorf("with the old link: %d", code)
+	}
+	if code, _ := anon.do("GET", base+"?t="+rot.ShareToken, nil); code != http.StatusOK {
+		t.Errorf("with the new link: %d", code)
+	}
+}

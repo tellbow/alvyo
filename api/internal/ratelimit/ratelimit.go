@@ -30,7 +30,11 @@ func New(every time.Duration, burst int) *Limiter {
 }
 
 // Allow reports whether a request for key may proceed now.
-func (l *Limiter) Allow(key string) bool {
+func (l *Limiter) Allow(key string) bool { return l.AllowN(key, 1) }
+
+// AllowN is Allow for a request that counts n times, e.g. a file of n
+// tracks; at most the burst, so that any request can pass when rested.
+func (l *Limiter) AllowN(key string, n int) bool {
 	now := time.Now()
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -45,7 +49,7 @@ func (l *Limiter) Allow(key string) bool {
 		l.buckets[key] = b
 	}
 	b.seen = now
-	return b.lim.AllowN(now, 1)
+	return b.lim.AllowN(now, min(n, l.burst))
 }
 
 // prune drops buckets that have been idle long enough to be full again.

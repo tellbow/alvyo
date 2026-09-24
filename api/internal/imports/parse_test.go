@@ -104,3 +104,19 @@ func TestParseRejects(t *testing.T) {
 		t.Error("broken gpx accepted")
 	}
 }
+
+func TestParseEncodingsAndComments(t *testing.T) {
+	// From older tools: ISO-8859-1 (ü as one byte), or a long comment first.
+	latin1 := "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
+		"<gpx version=\"1.1\"><trk><name>Gr\xfcnhorn</name><trkseg>" +
+		"<trkpt lat=\"46.6\" lon=\"8.0\"/><trkpt lat=\"46.61\" lon=\"8.01\"/></trkseg></trk></gpx>"
+	commented := "<?xml version=\"1.0\"?>\n<!--" + strings.Repeat(" exported by an old tool ", 60) + "-->\n" +
+		"<gpx version=\"1.1\"><trk><name>Alt</name><trkseg>" +
+		"<trkpt lat=\"46.6\" lon=\"8.0\"/><trkpt lat=\"46.61\" lon=\"8.01\"/></trkseg></trk></gpx>"
+	for want, file := range map[string]string{"Grünhorn": latin1, "Alt": commented} {
+		format, tracks, err := Parse("track.gpx", strings.NewReader(file))
+		if err != nil || format != "gpx" || len(tracks) != 1 || tracks[0].Name != want || len(tracks[0].Points) != 2 {
+			t.Errorf("%s: %s %v %+v", want, format, err, tracks)
+		}
+	}
+}

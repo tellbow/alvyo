@@ -224,7 +224,11 @@ func registerRoutes(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
-		return &imageOutput{ContentType: "image/png", CacheControl: "public, max-age=3600", Body: b}, nil
+		cache := "private, max-age=3600" // not in shared caches unless anyone may see it
+		if r.Visibility == "public" && r.JourneyID == "" {
+			cache = "public, max-age=3600"
+		}
+		return &imageOutput{ContentType: "image/png", CacheControl: cache, Body: b}, nil
 	})
 
 	huma.Register(api, huma.Operation{
@@ -258,7 +262,7 @@ func registerRoutes(api huma.API, d Deps) {
 		if b.Visibility != nil && *b.Visibility != r.Visibility && role < access.Owner {
 			return nil, forbidden(access.Owner, "route")
 		}
-		if b.Visibility != nil {
+		if b.Visibility != nil && *b.Visibility != r.Visibility {
 			u, _ := auth.UserFrom(ctx)
 			if err := checkPublish(u, *b.Visibility); err != nil {
 				return nil, err

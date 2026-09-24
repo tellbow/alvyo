@@ -168,7 +168,10 @@ func TestCommunity(t *testing.T) {
 	if code, _ := fan.social("PATCH", r+"/social", map[string]any{"comments_enabled": true}); code != http.StatusForbidden {
 		t.Errorf("fan switches comments: %d, want 403", code)
 	}
-	owner.social("PATCH", r+"/social", map[string]any{"comments_enabled": true})
+	// A moderator may too, as can_moderate says.
+	if code, sc := mod.social("PATCH", r+"/social", map[string]any{"comments_enabled": true}); code != http.StatusOK || !sc.CommentsEnabled {
+		t.Errorf("moderator switches comments on: %d", code)
+	}
 
 	// Reports and moderation: removing deletes the comment and closes all
 	// reports on it.
@@ -256,6 +259,24 @@ func TestCommunity(t *testing.T) {
 	fan.social("POST", j+"/comments?t="+journey.ShareToken, map[string]any{"body": "Noch einer"})
 	if mails() != before {
 		t.Error("e-mail sent although switched off")
+	}
+
+	// Unfollowing empties the feed; unblocking lets the troll follow again.
+	if _, body := fan.do("DELETE", "/api/v1/users/owner/follow", nil); !strings.Contains(string(body), `"followers":0`) ||
+		!strings.Contains(string(body), `"followed":false`) {
+		t.Errorf("unfollow: %s", body)
+	}
+	if _, body := fan.do("GET", "/api/v1/feed", nil); strings.Contains(string(body), "Gratweg") {
+		t.Errorf("feed after unfollowing: %s", body)
+	}
+	if _, body := owner.do("DELETE", "/api/v1/users/troll/block", nil); !strings.Contains(string(body), `"blocked":false`) {
+		t.Errorf("unblock: %s", body)
+	}
+	if _, body := owner.do("GET", "/api/v1/me/blocks", nil); strings.Contains(string(body), "troll") {
+		t.Errorf("block list after unblocking: %s", body)
+	}
+	if code, _ := troll.do("PUT", "/api/v1/users/owner/follow", nil); code != http.StatusOK {
+		t.Errorf("follow after being unblocked: %d", code)
 	}
 
 	// Reporting a user and removing bans them.

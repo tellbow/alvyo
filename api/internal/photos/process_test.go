@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"math"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -75,5 +76,36 @@ func TestProcessOtherInput(t *testing.T) {
 	copy(b[i+5:], []byte{0x23, 0x28, 0x23, 0x28})
 	if _, err := Process(bytes.NewReader(b)); !errors.Is(err, ErrTooLarge) {
 		t.Errorf("9000×9000: %v", err)
+	}
+}
+
+func TestProcessCraftedEXIF(t *testing.T) {
+	// An orientation that claims 2³¹+1 values: goexif would allocate 16 GiB
+	// for it. The photo is taken, without its EXIF data.
+	tiff := []byte("II*\x00\x08\x00\x00\x00" + // little endian, IFD0 at 8
+		"\x01\x00" + // one entry
+		"\x12\x01\x03\x00\x01\x00\x00\x80\x00\x00\x00\x00" + // 0x0112 SHORT ×(2³¹+1)
+		"\x00\x00\x00\x00") // no next IFD
+	if saneTIFF(tiff) {
+		t.Fatal("crafted count accepted")
+	}
+	var img bytes.Buffer
+	_ = jpeg.Encode(&img, image.NewRGBA(image.Rect(0, 0, 64, 48)), nil)
+	seg := append([]byte("Exif\x00\x00"), tiff...)
+	app1 := append([]byte{0xFF, 0xE1, byte((len(seg) + 2) >> 8), byte(len(seg) + 2)}, seg...)
+	jpg := append(append(append([]byte{}, img.Bytes()[:2]...), app1...), img.Bytes()[2:]...)
+	if exifTIFF(jpg) == nil {
+		t.Fatal("EXIF segment not found")
+	}
+
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	p, err := Process(bytes.NewReader(jpg))
+	runtime.ReadMemStats(&after)
+	if err != nil || p.Lon != nil || p.Width != 64 {
+		t.Errorf("process: %v %+v", err, p)
+	}
+	if grew := after.TotalAlloc - before.TotalAlloc; grew > 64<<20 {
+		t.Errorf("allocated %d MiB", grew>>20)
 	}
 }

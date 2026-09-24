@@ -7261,7 +7261,7 @@
             "description": "Error"
           }
         },
-        "summary": "Switch comments on or off (owner)",
+        "summary": "Switch comments on or off (owner or moderator)",
         "tags": [
           "community"
         ]
@@ -9732,7 +9732,7 @@
             "description": "Error"
           }
         },
-        "summary": "Switch comments on or off (owner)",
+        "summary": "Switch comments on or off (owner or moderator)",
         "tags": [
           "community"
         ]

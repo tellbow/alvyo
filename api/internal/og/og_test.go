@@ -8,6 +8,7 @@ import (
 	"image/png"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 )
@@ -63,6 +64,15 @@ func TestRenderAndCache(t *testing.T) {
 	}
 	if requests.Load() != before {
 		t.Error("second call rendered again instead of using the cache")
+	}
+
+	// A new version of the route: the old image goes, not to fill the cache.
+	if _, err := r.PNG("route-2", card); err != nil {
+		t.Fatal(err)
+	}
+	left, _ := filepath.Glob(filepath.Join(r.CacheDir, "og", "*.png"))
+	if len(left) != 1 || filepath.Base(left[0]) != "route-2.png" {
+		t.Errorf("cached images %v", left)
 	}
 }
 

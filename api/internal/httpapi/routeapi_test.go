@@ -1,11 +1,18 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"image"
+	"image/jpeg"
 	"net/http"
+	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/tellbow/odysgeh/api/internal/og"
 )
 
 func routeLeg(lon0 float64) map[string]any {
@@ -207,5 +214,77 @@ func TestShareLink(t *testing.T) {
 	owner.do("PATCH", path, map[string]any{"visibility": "private"}, "If-Match", `"1"`)
 	if code, _ := anon.do("GET", path+"?t="+rot.ShareToken, nil); code != http.StatusNotFound {
 		t.Errorf("token on private route: %d", code)
+	}
+}
+
+func TestEditorKeepsVisibility(t *testing.T) {
+	// An editor who has not confirmed the address yet saves a title together
+	// with the unchanged visibility, as the web app sends it.
+	s := newTestServer(t, Limits{})
+	owner, editor := s.client(t), s.client(t)
+	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
+	editor.do("POST", "/api/v1/auth/signup", signupBody("editor@example.ch", "editor"))
+	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now() WHERE username = 'owner'`); err != nil {
+		t.Fatal(err)
+	}
+	for _, kind := range []string{"routes", "journeys"} {
+		body := newRouteBody("Gratweg", "public")
+		if kind == "journeys" {
+			body = map[string]any{"title": "Via Alpina", "visibility": "public"}
+		}
+		code, created := owner.do("POST", "/api/v1/"+kind, body)
+		var item struct {
+			ID      string `json:"id"`
+			Version int    `json:"version"`
+		}
+		if err := json.Unmarshal(created, &item); code != http.StatusCreated || err != nil {
+			t.Fatalf("%s: %d %s", kind, code, created)
+		}
+		base := "/api/v1/" + kind + "/" + item.ID
+		owner.do("POST", base+"/grants", map[string]any{"username": "editor", "role": "editor"})
+		code, resp := editor.do("PATCH", base, map[string]any{"title": "Neu", "visibility": "public"}, "If-Match", `"`+strconv.Itoa(item.Version)+`"`)
+		if code != http.StatusOK {
+			t.Errorf("%s: %d %s", kind, code, resp)
+		}
+	}
+}
+
+func TestRouteImage(t *testing.T) {
+	tile := image.NewRGBA(image.Rect(0, 0, 256, 256))
+	var buf bytes.Buffer
+	_ = jpeg.Encode(&buf, tile, nil)
+	tiles := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "image/jpeg")
+		_, _ = w.Write(buf.Bytes())
+	}))
+	t.Cleanup(tiles.Close)
+	s := newTestServerWith(t, func(d *Deps) { d.Images = &og.Renderer{TilesURL: tiles.URL, CacheDir: t.TempDir()} })
+	owner := s.client(t)
+	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
+	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
+		t.Fatal(err)
+	}
+	image := func(c *client, id string) (int, string, string) {
+		t.Helper()
+		resp, err := c.http.Get(s.URL + "/api/v1/routes/" + id + "/og.png")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+		return resp.StatusCode, resp.Header.Get("Content-Type"), resp.Header.Get("Cache-Control")
+	}
+	for _, tc := range []struct{ visibility, cache string }{{"public", "public"}, {"private", "private"}} {
+		_, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", tc.visibility))
+		var r savedRoute
+		_ = json.Unmarshal(body, &r)
+		code, ctype, cache := image(owner, r.ID)
+		if code != http.StatusOK || ctype != "image/png" || !strings.HasPrefix(cache, tc.cache+",") {
+			t.Errorf("%s route: %d %s %q", tc.visibility, code, ctype, cache)
+		}
+		if tc.visibility == "private" {
+			if code, _, _ := image(s.client(t), r.ID); code != http.StatusNotFound {
+				t.Errorf("private route to someone else: %d", code)
+			}
+		}
 	}
 }

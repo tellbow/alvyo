@@ -155,7 +155,7 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID) (Journey, error) {
 			to_char(st.done_on, 'YYYY-MM-DD'), st.transfer_before, st.notes, st.accommodation, st.accommodation_booked,
 			r.id, r.distance_m, r.ascent_m, r.descent_m, r.duration_s, r.duration_reverse_s,
 			r.ele_min_m, r.ele_max_m, r.sac_grade, r.sac_max,
-			ST_AsGeoJSON(ST_Simplify(ST_Force2D(r.geom), 0.00005), 6), r.legs,
+			ST_AsGeoJSON(ST_Simplify(ST_Force2D(r.geom), 0.00005, true), 6), r.legs, -- true: a tiny loop stays a line
 			sp.id, sp.kind, sp.name, sp.detail, sp.ref, sp.lon, sp.lat, sp.dist, sp.suggested,
 			ep.id, ep.kind, ep.name, ep.detail, ep.ref, ep.lon, ep.lat, ep.dist, ep.suggested
 		FROM stages st LEFT JOIN routes r ON r.id = st.route_id
@@ -512,11 +512,12 @@ func (s *Store) SetStageRoute(ctx context.Context, journeyID, stageID, ownerID u
 // tx runs fn in a transaction and marks the journey as changed.
 func (s *Store) tx(ctx context.Context, journeyID uuid.UUID, fn func(pgx.Tx) error) error {
 	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
-		if err := fn(tx); err != nil {
+		// Marking the journey changed first locks it: changes to its stages
+		// (counted, then shifted) go one after the other.
+		if _, err := tx.Exec(ctx, `UPDATE journeys SET updated_at = now() WHERE id = $1`, journeyID); err != nil {
 			return err
 		}
-		_, err := tx.Exec(ctx, `UPDATE journeys SET updated_at = now() WHERE id = $1`, journeyID)
-		return err
+		return fn(tx)
 	})
 }
 

@@ -27,9 +27,10 @@ type Service struct {
 	MaxAge   time.Duration
 	MaxBytes int64
 
-	mu   sync.Mutex
-	jobs map[string]*job
-	sem  chan struct{}
+	mu     sync.Mutex
+	jobs   map[string]*job
+	latest map[string]string // the newest key asked for, by prefix
+	sem    chan struct{}
 }
 
 type job struct {
@@ -39,6 +40,15 @@ type job struct {
 
 // maxBuilds run at the same time; more wait.
 const maxBuilds = 2
+
+// buildTimeout bounds a build once it runs: the biggest pack (MaxTiles in
+// both layers) at the tile cache's pace of 40 tiles a second takes 50
+// minutes.
+const buildTimeout = 90 * time.Minute
+
+// inUse: packs used this recently are not pruned (being downloaded, or
+// just built).
+const inUse = 10 * time.Minute
 
 // Status reports the pack under key.
 func (s *Service) Status(key string) Status {
@@ -66,8 +76,10 @@ func (s *Service) Ensure(key, prefix string, tiles func(context.Context) ([]Tile
 	s.mu.Lock()
 	if s.jobs == nil {
 		s.jobs = map[string]*job{}
+		s.latest = map[string]string{}
 		s.sem = make(chan struct{}, maxBuilds)
 	}
+	s.latest[prefix] = key
 	if j := s.jobs[key]; j != nil && !j.failed {
 		s.mu.Unlock()
 		return s.Status(key)
@@ -77,16 +89,16 @@ func (s *Service) Ensure(key, prefix string, tiles func(context.Context) ([]Tile
 	s.mu.Unlock()
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-		defer cancel()
 		s.sem <- struct{}{}
 		defer func() { <-s.sem }()
+		ctx, cancel := context.WithTimeout(context.Background(), buildTimeout) // from when it runs
+		defer cancel()
 		err := func() error {
 			ts, err := tiles(ctx)
 			if err != nil {
 				return err
 			}
-			_, err = s.Builder.Build(ctx, key, prefix, ts, func(done, total int) {
+			_, err = s.Builder.Build(ctx, key, ts, func(done, total int) {
 				s.mu.Lock()
 				j.done, j.total = done, total
 				s.mu.Unlock()
@@ -101,45 +113,76 @@ func (s *Service) Ensure(key, prefix string, tiles func(context.Context) ([]Tile
 			return
 		}
 		delete(s.jobs, key)
+		// Older versions go, unless a newer one was asked for meanwhile
+		// (this build is then the old one).
+		if s.latest[prefix] == key {
+			s.Builder.RemoveOthers(key, prefix)
+		}
 		go s.Prune() // keep within MaxBytes between the regular runs
 	}()
 	return Status{State: "building", Key: key}
 }
 
-// Prune deletes packs not used for MaxAge, then the oldest ones until all
-// packs together take at most MaxBytes. Downloads count as use.
+// Prune deletes packs not used for MaxAge, then the least recently used
+// until all packs together take at most MaxBytes. A pack's files go
+// together; downloads count as use (Touch). Packs used in the last minutes
+// and builds under way stay; what a crashed build left behind goes.
 func (s *Service) Prune() {
 	entries, err := os.ReadDir(s.Builder.Dir)
 	if err != nil {
 		return
 	}
-	type file struct {
-		path string
-		size int64
-		used time.Time
+	type pack struct {
+		paths []string
+		size  int64
+		used  time.Time
 	}
-	var files []file
-	var total int64
+	packs := map[string]*pack{}
 	for _, e := range entries {
 		info, err := e.Info()
 		if err != nil || e.IsDir() {
 			continue
 		}
 		p := filepath.Join(s.Builder.Dir, e.Name())
-		if s.MaxAge > 0 && time.Since(info.ModTime()) > s.MaxAge {
-			_ = os.Remove(p)
+		if building(e.Name()) {
+			if time.Since(info.ModTime()) > buildTimeout {
+				_ = os.Remove(p)
+			}
 			continue
 		}
-		files = append(files, file{p, info.Size(), info.ModTime()})
-		total += info.Size()
+		k := packOf(e.Name())
+		if packs[k] == nil {
+			packs[k] = &pack{}
+		}
+		pk := packs[k]
+		pk.paths = append(pk.paths, p)
+		pk.size += info.Size()
+		if info.ModTime().After(pk.used) {
+			pk.used = info.ModTime()
+		}
 	}
-	sort.Slice(files, func(i, j int) bool { return files[i].used.Before(files[j].used) })
-	for _, f := range files {
-		if s.MaxBytes == 0 || total <= s.MaxBytes {
+	remove := func(pk *pack) {
+		for _, p := range pk.paths {
+			_ = os.Remove(p)
+		}
+	}
+	var kept []*pack
+	var total int64
+	for _, pk := range packs {
+		if s.MaxAge > 0 && time.Since(pk.used) > s.MaxAge {
+			remove(pk)
+			continue
+		}
+		kept = append(kept, pk)
+		total += pk.size
+	}
+	sort.Slice(kept, func(i, j int) bool { return kept[i].used.Before(kept[j].used) })
+	for _, pk := range kept {
+		if s.MaxBytes == 0 || total <= s.MaxBytes || time.Since(pk.used) < inUse {
 			break
 		}
-		_ = os.Remove(f.path)
-		total -= f.size
+		remove(pk)
+		total -= pk.size
 	}
 }
 

@@ -20,10 +20,14 @@ var (
 	ErrUnknownProvider = errors.New("auth: unknown sign-in provider")
 	ErrOIDCState       = errors.New("auth: sign-in expired or was started elsewhere")
 	ErrOIDC            = errors.New("auth: the provider's answer was not accepted")
+	ErrOIDCBusy        = errors.New("auth: too many sign-ins under way")
 )
 
 // oidcStateTTL bounds the time a person may spend at the provider.
 const oidcStateTTL = 10 * time.Minute
+
+// maxOIDCStates bounds the sign-ins under way (kept in memory).
+const maxOIDCStates = 10000
 
 // OIDCProvider is an OpenID Connect provider from the configuration.
 type OIDCProvider struct {
@@ -135,6 +139,10 @@ func (o *OIDC) Start(ctx context.Context, provider, redirect string, link uuid.U
 		if time.Now().After(v.until) {
 			delete(o.states, k)
 		}
+	}
+	if len(o.states) >= maxOIDCStates { // a flood of starts, never finished
+		o.mu.Unlock()
+		return "", "", ErrOIDCBusy
 	}
 	o.states[state] = st
 	o.mu.Unlock()

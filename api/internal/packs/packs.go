@@ -196,10 +196,9 @@ func (b *Builder) Path(name string) (string, bool) {
 	return filepath.Join(b.Dir, name), true
 }
 
-// Build writes the pack for tiles under key and removes older packs with
-// the same prefix (older versions of the same route or journey).
-// progress reports tiles done of all layers.
-func (b *Builder) Build(ctx context.Context, key, prefix string, tiles []Tile, progress func(done, total int)) ([]File, error) {
+// Build writes the pack for tiles under key. progress reports tiles done
+// of all layers.
+func (b *Builder) Build(ctx context.Context, key string, tiles []Tile, progress func(done, total int)) ([]File, error) {
 	if len(tiles) > MaxTiles {
 		return nil, ErrTooLarge
 	}
@@ -232,17 +231,57 @@ func (b *Builder) Build(ctx context.Context, key, prefix string, tiles []Tile, p
 	if err := os.WriteFile(filepath.Join(b.Dir, key+".json"), meta, 0o640); err != nil {
 		return nil, err
 	}
-	// Older versions of this pack are no longer needed.
-	old, _ := filepath.Glob(filepath.Join(b.Dir, prefix+"*"))
-	for _, p := range old {
-		if !strings.HasPrefix(filepath.Base(p), key) {
-			_ = os.Remove(p)
-		}
-	}
 	return files, nil
 }
 
+// RemoveOthers removes the packs with prefix other than key (older versions
+// of the same route or journey); files of builds under way stay.
+func (b *Builder) RemoveOthers(key, prefix string) {
+	old, _ := filepath.Glob(filepath.Join(b.Dir, prefix+"*"))
+	for _, p := range old {
+		if name := filepath.Base(p); !strings.HasPrefix(name, key) && !building(name) {
+			_ = os.Remove(p)
+		}
+	}
+}
+
+// Touch marks a pack as used now, so that pruning keeps it.
+func (b *Builder) Touch(key string) {
+	now := time.Now()
+	for _, name := range b.names(key) {
+		_ = os.Chtimes(filepath.Join(b.Dir, name), now, now)
+	}
+}
+
+// names are the files of a pack.
+func (b *Builder) names(key string) []string {
+	names := []string{key + ".json"}
+	for _, l := range Layers {
+		names = append(names, key+"-"+l.ID+".pmtiles")
+	}
+	return names
+}
+
+// packOf is the key of the pack a file belongs to.
+func packOf(name string) string {
+	if k, ok := strings.CutSuffix(name, ".json"); ok {
+		return k
+	}
+	for _, l := range Layers {
+		if k, ok := strings.CutSuffix(name, "-"+l.ID+".pmtiles"); ok {
+			return k
+		}
+	}
+	return name
+}
+
+// building reports whether a file is one of a build under way.
+func building(name string) bool {
+	return strings.Contains(name, ".data-") || strings.Contains(name, ".tmp-")
+}
+
 type fetched struct {
+	i    int // position in tiles
 	t    Tile
 	data []byte
 }
@@ -255,7 +294,7 @@ func (b *Builder) buildLayer(ctx context.Context, key string, l Layer, tiles []T
 	}
 	defer func() { _ = os.Remove(data.Name()); _ = data.Close() }()
 
-	jobs := make(chan Tile)
+	jobs := make(chan int) // positions in tiles
 	results := make(chan fetched)
 	errc := make(chan error, 1)
 	ctx, cancel := context.WithCancel(ctx)
@@ -267,7 +306,8 @@ func (b *Builder) buildLayer(ctx context.Context, key string, l Layer, tiles []T
 	var wg sync.WaitGroup
 	for range parallel {
 		wg.Go(func() {
-			for t := range jobs {
+			for i := range jobs {
+				t := tiles[i]
 				body, err := b.fetch(ctx, l, t)
 				if err != nil {
 					select {
@@ -278,7 +318,7 @@ func (b *Builder) buildLayer(ctx context.Context, key string, l Layer, tiles []T
 					return
 				}
 				select {
-				case results <- fetched{t, body}:
+				case results <- fetched{i, t, body}:
 				case <-ctx.Done():
 					return
 				}
@@ -287,9 +327,9 @@ func (b *Builder) buildLayer(ctx context.Context, key string, l Layer, tiles []T
 	}
 	go func() {
 		defer close(jobs)
-		for _, t := range tiles {
+		for i := range tiles {
 			select {
-			case jobs <- t:
+			case jobs <- i:
 			case <-ctx.Done():
 				return
 			}
@@ -297,29 +337,43 @@ func (b *Builder) buildLayer(ctx context.Context, key string, l Layer, tiles []T
 	}()
 	go func() { wg.Wait(); close(results) }()
 
-	// Tiles are written as they arrive; identical tiles (e.g. empty trail
+	// Tiles are written in the order asked for, whatever order they arrive
+	// in, so that building a pack again gives the same file (and a download
+	// broken off before can resume on it). Identical tiles (e.g. empty trail
 	// tiles) are stored once.
 	var entries []entry
 	byContent := map[[32]byte]entry{}
 	var offset uint64
-	for r := range results {
-		tick()
+	add := func(r fetched) error {
 		if r.data == nil {
-			continue // no tile here
+			return nil // no tile here
 		}
 		id := tileID(r.t.Z, r.t.X, r.t.Y)
 		sum := sha256.Sum256(r.data)
 		if e, ok := byContent[sum]; ok {
 			entries = append(entries, entry{tileID: id, offset: e.offset, length: e.length, runLength: 1})
-			continue
+			return nil
 		}
 		if _, err := data.Write(r.data); err != nil {
-			return File{}, err
+			return err
 		}
 		e := entry{tileID: id, offset: offset, length: uint32(len(r.data)), runLength: 1}
 		byContent[sum] = e
 		entries = append(entries, e)
 		offset += uint64(len(r.data))
+		return nil
+	}
+	early, next := map[int]fetched{}, 0 // arrived before their turn
+	for r := range results {
+		tick()
+		early[r.i] = r
+		for f, ok := early[next]; ok; f, ok = early[next] {
+			delete(early, next)
+			next++
+			if err := add(f); err != nil {
+				return File{}, err
+			}
+		}
 	}
 	select {
 	case err := <-errc:

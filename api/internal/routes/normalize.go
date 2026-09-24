@@ -24,6 +24,9 @@ const (
 // Covered area (Switzerland and Liechtenstein with a margin), as in the API.
 const minLon, maxLon, minLat, maxLat = 5.9, 10.6, 45.8, 47.9
 
+// Elevations a route may have (metres; Switzerland: 193 to 4634).
+const minEle, maxEle = -500, 5000
+
 // ErrInvalid wraps validation errors of submitted routes.
 var ErrInvalid = errors.New("invalid route")
 
@@ -44,6 +47,9 @@ func normalizeLeg(l routing.Leg) (routing.Leg, error) {
 	for i, c := range l.Coordinates {
 		if !finite(c[0], c[1], c[2]) || c[0] < minLon || c[0] > maxLon || c[1] < minLat || c[1] > maxLat {
 			return l, invalid("point %d outside the covered area", i)
+		}
+		if c[2] < minEle || c[2] > maxEle {
+			return l, invalid("point %d: elevation %.0f m", i, c[2])
 		}
 		pts[i] = geo.Point{Lon: c[0], Lat: c[1]}
 		ele[i] = c[2]

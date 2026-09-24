@@ -216,6 +216,12 @@ func (s *Service) Confirm(ctx context.Context, u dbq.User, password, sessionToke
 		}
 		return nil
 	}
+	return s.RecentLogin(ctx, u, sessionToken)
+}
+
+// RecentLogin checks that the session was logged in within the last 15
+// minutes (ErrLoginAgain otherwise).
+func (s *Service) RecentLogin(ctx context.Context, u dbq.User, sessionToken string) error {
 	var fresh bool
 	err := s.DB.QueryRow(ctx, `SELECT created_at > $2 FROM sessions WHERE token_hash = $1 AND user_id = $3`,
 		hashToken(sessionToken), s.now().Add(-recentLogin), u.ID).Scan(&fresh)
@@ -263,16 +269,17 @@ func (s *Service) ForgotPassword(ctx context.Context, email string) error {
 // ResetPassword sets a new password with a reset token and ends all sessions.
 // Receiving the e-mail also proves the address, so it counts as verified.
 func (s *Service) ResetPassword(ctx context.Context, token, password string) error {
-	hash, err := HashPassword(password)
-	if err != nil {
-		return err
-	}
 	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
 		q := dbq.New(tx)
 		userID, err := q.UseEmailToken(ctx, dbq.UseEmailTokenParams{TokenHash: hashToken(token), Purpose: "reset"})
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrInvalidToken
 		}
+		if err != nil {
+			return err
+		}
+		// Hashed only for a valid token: hashing is costly by design.
+		hash, err := HashPassword(password)
 		if err != nil {
 			return err
 		}

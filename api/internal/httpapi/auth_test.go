@@ -271,4 +271,16 @@ func TestPasswordResetFlow(t *testing.T) {
 	if code, _ := c.do("POST", "/api/v1/auth/login", map[string]any{"login": "eva", "password": "neues-passwort-456"}); code != http.StatusOK {
 		t.Errorf("login with new password: %d", code)
 	}
+	if code, _ := c.do("POST", "/api/v1/auth/password/reset", map[string]any{"token": token, "password": "noch-ein-passwort"}); code != http.StatusBadRequest {
+		t.Errorf("the same token again: %d, want 400", code)
+	}
+
+	// Guessing tokens is limited.
+	last := 0
+	for range 25 {
+		last, _ = c.do("POST", "/api/v1/auth/password/reset", map[string]any{"token": "geraten-geraten-geraten", "password": "egal-egal-egal"})
+	}
+	if last != http.StatusTooManyRequests {
+		t.Errorf("25th guess: %d, want 429", last)
+	}
 }

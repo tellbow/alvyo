@@ -98,6 +98,10 @@ func registerPasskeys(api huma.API, d Deps) {
 		if !d.Limits.LoginAccount.Allow(u.Username) {
 			return nil, errTooMany
 		}
+		// A passkey outlasts password resets: only for the address's owner.
+		if u.EmailVerifiedAt == nil {
+			return nil, huma.Error403Forbidden("confirm your e-mail address first")
+		}
 		if err := d.Auth.Confirm(ctx, u, in.Body.Password, sessionToken(ctx)); err != nil {
 			return nil, confirmError(err)
 		}

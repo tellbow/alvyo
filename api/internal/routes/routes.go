@@ -145,12 +145,8 @@ func addTotals(t *Totals, l routing.Leg) {
 	t.DurationReverseS += l.DurationReverseS
 	t.EleMinM = min(t.EleMinM, l.EleMinM)
 	t.EleMaxM = max(t.EleMaxM, l.EleMaxM)
-	switch {
-	case l.SAC.Grade > t.SACGrade:
-		t.SACGrade, t.SACMax = l.SAC.Grade, l.SAC.Max
-	case l.SAC.Grade == t.SACGrade:
-		t.SACMax = max(t.SACMax, l.SAC.Max)
-	}
+	t.SACGrade = max(t.SACGrade, l.SAC.Grade)
+	t.SACMax = max(t.SACMax, l.SAC.Max, l.SAC.Grade)
 }
 
 // jointTolerance (metres): consecutive legs closer than this share a vertex.

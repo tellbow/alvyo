@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/tellbow/odysgeh/api/internal/testdb"
 )
@@ -71,5 +72,24 @@ func getJSON(t *testing.T, url string, v any) {
 	}
 	if err := json.Unmarshal(body, v); err != nil {
 		t.Fatalf("GET %s: %v: %s", url, err, body)
+	}
+}
+
+func TestWriteDeadlineThroughMiddleware(t *testing.T) {
+	// Long downloads extend their write deadline; the access log's recorder
+	// must let that through.
+	var got error
+	h := withAccessLog(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		got = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(time.Minute))
+	}))
+	srv := httptest.NewServer(h)
+	defer srv.Close()
+	resp, err := http.Get(srv.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = resp.Body.Close()
+	if got != nil {
+		t.Errorf("SetWriteDeadline: %v", got)
 	}
 }

@@ -21,6 +21,7 @@ type Limits struct {
 	SignupIP     *ratelimit.Limiter
 	ForgotIP     *ratelimit.Limiter
 	ForgotEmail  *ratelimit.Limiter
+	ResetIP      *ratelimit.Limiter // guesses at reset tokens
 	ResendUser   *ratelimit.Limiter
 	LegUser      *ratelimit.Limiter
 	Invite       *ratelimit.Limiter // invitations send e-mail
@@ -50,6 +51,7 @@ func DefaultLimits() Limits {
 		SignupIP:        ratelimit.New(10*time.Minute, 5),
 		ForgotIP:        ratelimit.New(10*time.Minute, 5),
 		ForgotEmail:     ratelimit.New(20*time.Minute, 3),
+		ResetIP:         ratelimit.New(6*time.Second, 20),
 		ResendUser:      ratelimit.New(20*time.Minute, 3),
 		LegUser:         ratelimit.New(time.Second, 60), // planning bursts, 60/min sustained
 		Invite:          ratelimit.New(3*time.Minute, 20),
@@ -282,6 +284,9 @@ func registerAuth(api huma.API, d Deps) {
 		Summary: "Set a new password with a reset token; ends all sessions", Tags: tags,
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *resetInput) (*struct{}, error) {
+		if !lim.ResetIP.Allow(clientIP(ctx)) {
+			return nil, errTooMany
+		}
 		if err := svc.ResetPassword(ctx, in.Body.Token, in.Body.Password); errors.Is(err, auth.ErrInvalidToken) {
 			return nil, huma.Error400BadRequest("invalid or expired token")
 		} else if err != nil {

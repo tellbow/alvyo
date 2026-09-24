@@ -61,7 +61,9 @@ func TestNormalizeRejects(t *testing.T) {
 	gappy.Details.Surface = []routing.Run{{From: 0, To: 1, Value: "gravel"}, {From: 2, To: 3, Value: "paved"}}
 	badValue := leg(8.0, 3)
 	badValue.Details.SAC[0].Value = "T9"
-	for name, l := range map[string]routing.Leg{"outside": outside, "gappy runs": gappy, "bad value": badValue} {
+	sky := leg(8.0, 3)
+	sky.Coordinates[2][2] = 1e12 // would overflow the stored totals
+	for name, l := range map[string]routing.Leg{"outside": outside, "gappy runs": gappy, "bad value": badValue, "elevation": sky} {
 		if _, err := normalizeLeg(l); !errors.Is(err, ErrInvalid) {
 			t.Errorf("%s: err = %v", name, err)
 		}

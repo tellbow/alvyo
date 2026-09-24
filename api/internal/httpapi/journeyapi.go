@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
@@ -81,6 +82,24 @@ type updateStageInput struct {
 		Accommodation  *string `json:"accommodation,omitempty" maxLength:"200"`
 		Booked         *bool   `json:"accommodation_booked,omitempty"`
 	}
+}
+
+// Resolve rejects dates and place ids that only look right (the patterns let
+// 2026-02-30 through), which the database would refuse.
+func (in *updateStageInput) Resolve(huma.Context) []error {
+	var errs []error
+	check := func(field string, v *string, ok func(string) bool) {
+		if v != nil && *v != "" && !ok(*v) {
+			errs = append(errs, &huma.ErrorDetail{Location: "body." + field, Message: "invalid value", Value: *v})
+		}
+	}
+	date := func(v string) bool { _, err := time.Parse(time.DateOnly, v); return err == nil }
+	id := func(v string) bool { _, err := uuid.Parse(v); return err == nil }
+	check("planned_date", in.Body.PlannedDate, date)
+	check("done_on", in.Body.DoneOn, date)
+	check("start_place_id", in.Body.StartPlaceID, id)
+	check("end_place_id", in.Body.EndPlaceID, id)
+	return errs
 }
 
 type stageIDInput struct {
@@ -191,7 +210,7 @@ func registerJourneys(api huma.API, d Deps) {
 		if in.Body.Visibility != nil && *in.Body.Visibility != j.Visibility && role < access.Owner {
 			return nil, forbidden(access.Owner, "journey")
 		}
-		if in.Body.Visibility != nil {
+		if in.Body.Visibility != nil && *in.Body.Visibility != j.Visibility {
 			u, _ := auth.UserFrom(ctx)
 			if err := checkPublish(u, *in.Body.Visibility); err != nil {
 				return nil, err

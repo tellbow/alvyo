@@ -3,6 +3,8 @@ package httpapi
 
 import (
 	"context"
+	"errors"
+	"log/slog"
 	"net/http"
 	"path"
 	"reflect"
@@ -60,6 +62,21 @@ type Deps struct {
 	PublicURL   string // origin of the web app: CSRF check and cookie Secure flag
 	TrustProxy  bool   // take the client IP from X-Forwarded-For
 	Limits      Limits // zero value: DefaultLimits
+}
+
+// Internal errors are logged, not shown: their messages can hold SQL, file
+// paths or the answers of other services.
+func init() {
+	newError := huma.NewError
+	huma.NewError = func(status int, msg string, errs ...error) huma.StatusError {
+		if status >= 500 {
+			if err := errors.Join(errs...); err != nil {
+				slog.Error("internal error", "status", status, "msg", msg, "err", err)
+			}
+			errs = nil
+		}
+		return newError(status, msg, errs...)
+	}
 }
 
 // New returns the root HTTP handler and the huma API (for OpenAPI export).

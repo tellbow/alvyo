@@ -49,6 +49,9 @@ func (im *Importer) Content(ctx context.Context, t Track) (routes.Content, error
 		}
 	}
 	pts := geo.Simplify(t.Points, simplifyM)
+	if len(pts) < 2 { // e.g. a Komoot tour without coordinates
+		return routes.Content{}, ErrShort
+	}
 	total := geo.CumulativeDistance(pts)[len(pts)-1]
 	if total < minTrackM {
 		return routes.Content{}, ErrShort

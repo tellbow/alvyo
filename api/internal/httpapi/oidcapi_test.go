@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -178,6 +179,24 @@ func TestOIDC(t *testing.T) {
 	}
 	if me(stranger).Username != "" {
 		t.Error("logged in to an existing account by e-mail")
+	}
+	// Only a verified address's owner, just logged in, connects a provider:
+	// it would outlast a password reset by the address's real owner.
+	ctx := context.Background()
+	if to := owner.location("/api/v1/auth/oidc/test/start?link=true"); to != origin+"/account?oidc=verify" {
+		t.Errorf("link before the address is confirmed: %s", to)
+	}
+	if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now() WHERE username = 'alt'`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.db.Exec(ctx, `UPDATE sessions SET created_at = now() - interval '1 hour'`); err != nil {
+		t.Fatal(err)
+	}
+	if to := owner.location("/api/v1/auth/oidc/test/start?link=true"); to != origin+"/account?oidc=again" {
+		t.Errorf("link from an old session: %s", to)
+	}
+	if _, err := s.db.Exec(ctx, `UPDATE sessions SET created_at = now()`); err != nil {
+		t.Fatal(err)
 	}
 	// Its owner connects the provider; then the provider logs in.
 	if to := signIn(owner, "/api/v1/auth/oidc/test/start?link=true", existing); to != origin+"/account?oidc=linked" {

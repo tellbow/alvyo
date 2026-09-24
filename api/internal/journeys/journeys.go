@@ -170,12 +170,8 @@ func addTotals(t *routes.Totals, s routes.Totals) {
 	t.DurationReverseS += s.DurationReverseS
 	t.EleMinM = min(t.EleMinM, s.EleMinM)
 	t.EleMaxM = max(t.EleMaxM, s.EleMaxM)
-	switch {
-	case s.SACGrade > t.SACGrade:
-		t.SACGrade, t.SACMax = s.SACGrade, s.SACMax
-	case s.SACGrade == t.SACGrade:
-		t.SACMax = max(t.SACMax, s.SACMax)
-	}
+	t.SACGrade = max(t.SACGrade, s.SACGrade)
+	t.SACMax = max(t.SACMax, s.SACMax, s.SACGrade)
 }
 
 // profile joins the stage lines into one elevation profile. Each stage gets a

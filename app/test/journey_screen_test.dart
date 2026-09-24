@@ -42,6 +42,14 @@ class FakeServer {
   var offline = false;
   final downloads = <String>[];
 
+  /// The user may change the journey.
+  var canEdit = false;
+
+  /// Stage 1 as the server has it; patches need its version.
+  var s1Status = 'planned';
+  var s1Version = 1;
+  final patches = <Map<String, dynamic>>[];
+
   http.Response _json(Object body) =>
       http.Response(jsonEncode(body), 200, headers: {'content-type': 'application/json; charset=utf-8'});
 
@@ -63,16 +71,28 @@ class FakeServer {
         ],
       });
     }
-    if (p == '/journeys/j1') {
+    if (p == '/journeys/j1/stages/s1' && req.method == 'PATCH') {
+      if (req.headers['if-match'] != '"$s1Version"') {
+        return http.Response(jsonEncode({'detail': 'the stage was changed in the meantime'}), 412);
+      }
+      final b = jsonDecode(req.body) as Map<String, dynamic>;
+      patches.add(b);
+      s1Status = b['status'] as String;
+      s1Version++;
+    }
+    if (p == '/journeys/j1' || p == '/journeys/j1/stages/s1') {
       return _json({
         'id': 'j1',
         'title': 'Via Alpina',
+        'can_edit': canEdit,
         'totals': {..._totals, 'distance_m': 32634.0, 'ascent_m': 1118.0, 'duration_s': 34463},
-        'progress': {'stages_done': 0, 'stages_total': 3},
+        'progress': {'stages_done': s1Status == 'done' ? 1 : 0, 'stages_total': 3},
         'stage_list': [
           _stage('s1', 'Gaflei – Sargans', 'r1', {
             'start_place': {'name': 'Gaflei, Klinik'},
             'end_place': {'name': 'Sargans'},
+            'status': s1Status,
+            'version': s1Version,
           }),
           _stage('s2', 'Sargans – Weisstannen', 'r2', {
             'planned_date': '2026-10-02',
@@ -218,5 +238,39 @@ void main() {
       find.text('Der Server ist nicht erreichbar.'),
     );
     expect(find.text('Der Server ist nicht erreichbar.'), findsOneWidget);
+  });
+
+  testWidgets('a stage is ticked off as hiked; a change by someone else meanwhile is shown', (tester) async {
+    final server = FakeServer()..canEdit = true;
+    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    await pumpList(tester, api, find.text('Via Alpina'));
+    await tester.tap(find.text('Via Alpina'));
+    await until(tester, find.byKey(const Key('stage-done-0')));
+    // Only stages with a route can be hiked.
+    expect(find.byKey(const Key('stage-done-2')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('stage-done-0')));
+    await until(tester, find.text('1 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'));
+    expect(server.patches.single['status'], 'done');
+    expect(server.patches.single['done_on'], matches(RegExp(r'^\d{4}-\d{2}-\d{2}$')));
+    expect(tester.widget<IconButton>(find.byKey(const Key('stage-done-0'))).isSelected, isTrue);
+
+    // Someone else set it back meanwhile: refused, and the new state shows.
+    server
+      ..s1Status = 'planned'
+      ..s1Version = 7;
+    await tester.tap(find.byKey(const Key('stage-done-0')));
+    await until(tester, find.text('Jemand hat die Etappe inzwischen geändert. Hier ist der neue Stand.'));
+    await until(tester, find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'));
+    expect(server.patches, hasLength(1));
+    expect(tester.widget<IconButton>(find.byKey(const Key('stage-done-0'))).isSelected, isFalse);
+  });
+
+  testWidgets('viewers cannot tick stages off', (tester) async {
+    final server = FakeServer();
+    await pumpList(tester, Api('https://odysgeh.test', token: 't', client: server.client), find.text('Via Alpina'));
+    await tester.tap(find.text('Via Alpina'));
+    await until(tester, find.text('Gaflei – Sargans'));
+    expect(find.byKey(const Key('stage-done-0')), findsNothing);
   });
 }

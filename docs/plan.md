@@ -133,7 +133,6 @@ None: the next work comes from the backlog.
 
 ## Backlog
 
-- App: mark a stage as done after hiking it.
 - Community and moderation: moderators opening unlisted reported items;
   shadow-ban.
 - Routes: revisions; privacy zones (start and end of recorded hikes hidden);

@@ -77,5 +77,10 @@
   "journeySaved": "Tutte le tappe salvate offline",
   "navSwitchQuestion": "Stai registrando «{title}». Terminare questa escursione e iniziarne una nuova qui? Quanto registrato finora viene conservato.",
   "navSwitch": "Termina e inizia qui",
-  "cancel": "Annulla"
+  "cancel": "Annulla",
+  "stageMarkDone": "Segna come fatta",
+  "stageMarkPlanned": "Segna di nuovo come pianificata",
+  "navMarkStageDone": "Segna la tappa come fatta",
+  "stageConflict": "Qualcuno ha modificato la tappa nel frattempo. Ecco lo stato attuale.",
+  "stageMarkedDone": "Tappa segnata come fatta"
 }

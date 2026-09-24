@@ -77,5 +77,10 @@
   "journeySaved": "All stages saved offline",
   "navSwitchQuestion": "You are recording “{title}”. End that hike and start a new one here? What was recorded so far is kept.",
   "navSwitch": "End it and start here",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "stageMarkDone": "Mark as hiked",
+  "stageMarkPlanned": "Mark as planned again",
+  "navMarkStageDone": "Mark the stage as hiked",
+  "stageConflict": "Someone changed the stage in the meantime. Here is the new state.",
+  "stageMarkedDone": "Stage marked as hiked"
 }

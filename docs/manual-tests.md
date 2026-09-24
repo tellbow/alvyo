@@ -73,6 +73,9 @@ Checked so far only in the simulator, with made-up or simulated positions
       in the first account it uploads.
 - [ ] **Starting a hike on another route** while one is recorded asks
       first; «Abbrechen» leaves the running hike as it was.
+- [ ] **A stage ticked off**: after hiking a stage's route, «Etappe als
+      gewandert markieren» in the message marks it (online); in the journey
+      the check next to a stage does the same and back.
 
 ## Web
 

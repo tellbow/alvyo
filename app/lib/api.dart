@@ -75,6 +75,9 @@ class RouteDetail extends RouteSummary {
   /// As the server sent it, to keep a copy offline.
   final Map<String, dynamic> json;
   final List<List<double>> line;
+
+  /// The journey this route is a stage of, if it is one.
+  String? get journeyId => json['journey_id'] as String?;
 }
 
 /// A junction where the route turns, [alongM] metres from its start; the
@@ -123,6 +126,7 @@ List<String> _tags(Object? v) => [for (final t in v as List? ?? const []) t as S
 class Stage {
   Stage.fromJson(Map<String, dynamic> j)
     : id = j['id'] as String,
+      version = (j['version'] as num?)?.toInt() ?? 1,
       title = j['title'] as String,
       plannedDate = switch (j['planned_date']) {
         final String d => DateTime.parse(d),
@@ -142,6 +146,9 @@ class Stage {
       gapStatus = (j['gap'] as Map<String, dynamic>?)?['status'] as String?,
       gapM = ((j['gap'] as Map<String, dynamic>?)?['metres'] as num?)?.toDouble() ?? 0;
   final String id, title;
+
+  /// Sent along when changing the stage, so as not to overwrite others.
+  final int version;
   final DateTime? plannedDate;
 
   /// planned, done or skipped.
@@ -171,6 +178,7 @@ class JourneyDetail {
       totals = Totals.fromJson(json['totals'] as Map<String, dynamic>),
       stagesDone = ((json['progress'] as Map<String, dynamic>)['stages_done'] as num).toInt(),
       stagesTotal = ((json['progress'] as Map<String, dynamic>)['stages_total'] as num).toInt(),
+      canEdit = json['can_edit'] as bool? ?? false,
       tags = _tags(json['tags']);
 
   /// As the server sent it, to keep a copy offline.
@@ -182,6 +190,9 @@ class JourneyDetail {
 
   /// Skipped stages do not count.
   final int stagesDone, stagesTotal;
+
+  /// The user may change it (owner or editor).
+  final bool canEdit;
 }
 
 /// One layer of an offline map on the server.
@@ -320,6 +331,20 @@ class Api {
       }),
     );
     return (_decode(r) as Map<String, dynamic>)['id'] as String;
+  }
+
+  /// Marks a stage as hiked (on [day]) or as planned again. Fails with 412
+  /// when someone changed the stage since it was loaded.
+  Future<JourneyDetail> setStageDone(String journeyId, Stage stage, bool done, {DateTime? day}) async {
+    final d = day ?? DateTime.now();
+    final date =
+        '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    final r = await _http.patch(
+      _uri('/journeys/$journeyId/stages/${stage.id}'),
+      headers: {..._headers, 'Content-Type': 'application/json', 'If-Match': '"${stage.version}"'},
+      body: jsonEncode(done ? {'status': 'done', 'done_on': date} : {'status': 'planned', 'done_on': ''}),
+    );
+    return JourneyDetail.fromJson(_decode(r) as Map<String, dynamic>);
   }
 
   /// Has the server build the offline map of a route, unless it is built.

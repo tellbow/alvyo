@@ -268,4 +268,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancel => 'Cancel';
+
+  @override
+  String get stageMarkDone => 'Mark as hiked';
+
+  @override
+  String get stageMarkPlanned => 'Mark as planned again';
+
+  @override
+  String get navMarkStageDone => 'Mark the stage as hiked';
+
+  @override
+  String get stageConflict => 'Someone changed the stage in the meantime. Here is the new state.';
+
+  @override
+  String get stageMarkedDone => 'Stage marked as hiked';
 }

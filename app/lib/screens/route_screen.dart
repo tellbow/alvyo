@@ -101,8 +101,31 @@ class _RouteScreenState extends State<RouteScreen> {
           key: const Key('nav-saved'),
           uploaded > 0 ? t.navUploaded(distance, duration) : t.navSaved(distance, duration),
         ),
+        duration: const Duration(seconds: 8),
+        // A stage's route: offer to tick the stage off.
+        action: r.journeyId == null
+            ? null
+            : SnackBarAction(
+                key: const Key('nav-stage-done'),
+                label: t.navMarkStageDone,
+                onPressed: () => _stageDone(r),
+              ),
       ),
     );
+  }
+
+  /// Marks the stage whose route [r] is as hiked today.
+  Future<void> _stageDone(RouteDetail r) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final j = await widget.api.journey(r.journeyId!);
+      final stage = j.stages.firstWhere((s) => s.routeId == r.id);
+      if (stage.status != 'done') await widget.api.setStageDone(j.id, stage, true);
+      messenger.showSnackBar(SnackBar(content: Text(key: const Key('nav-stage-marked'), t.stageMarkedDone)));
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
   }
 
   /// The saved copy if there is one, so it opens offline; else the server's.

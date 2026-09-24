@@ -268,4 +268,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cancel => 'Annuler';
+
+  @override
+  String get stageMarkDone => 'Marquer comme faite';
+
+  @override
+  String get stageMarkPlanned => 'Marquer de nouveau comme prévue';
+
+  @override
+  String get navMarkStageDone => 'Marquer l\'étape comme faite';
+
+  @override
+  String get stageConflict => 'Quelqu\'un a modifié l\'étape entre-temps. Voici le nouvel état.';
+
+  @override
+  String get stageMarkedDone => 'Étape marquée comme faite';
 }

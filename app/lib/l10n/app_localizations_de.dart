@@ -268,4 +268,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get cancel => 'Abbrechen';
+
+  @override
+  String get stageMarkDone => 'Als gewandert markieren';
+
+  @override
+  String get stageMarkPlanned => 'Wieder als geplant markieren';
+
+  @override
+  String get navMarkStageDone => 'Etappe als gewandert markieren';
+
+  @override
+  String get stageConflict => 'Jemand hat die Etappe inzwischen geändert. Hier ist der neue Stand.';
+
+  @override
+  String get stageMarkedDone => 'Etappe als gewandert markiert';
 }

@@ -268,4 +268,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get cancel => 'Annulla';
+
+  @override
+  String get stageMarkDone => 'Segna come fatta';
+
+  @override
+  String get stageMarkPlanned => 'Segna di nuovo come pianificata';
+
+  @override
+  String get navMarkStageDone => 'Segna la tappa come fatta';
+
+  @override
+  String get stageConflict => 'Qualcuno ha modificato la tappa nel frattempo. Ecco lo stato attuale.';
+
+  @override
+  String get stageMarkedDone => 'Tappa segnata come fatta';
 }

@@ -561,6 +561,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Abbrechen'**
   String get cancel;
+
+  /// No description provided for @stageMarkDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Als gewandert markieren'**
+  String get stageMarkDone;
+
+  /// No description provided for @stageMarkPlanned.
+  ///
+  /// In de, this message translates to:
+  /// **'Wieder als geplant markieren'**
+  String get stageMarkPlanned;
+
+  /// No description provided for @navMarkStageDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe als gewandert markieren'**
+  String get navMarkStageDone;
+
+  /// No description provided for @stageConflict.
+  ///
+  /// In de, this message translates to:
+  /// **'Jemand hat die Etappe inzwischen geändert. Hier ist der neue Stand.'**
+  String get stageConflict;
+
+  /// No description provided for @stageMarkedDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe als gewandert markiert'**
+  String get stageMarkedDone;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

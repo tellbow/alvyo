@@ -74,6 +74,31 @@ class _JourneyScreenState extends State<JourneyScreen> {
     await _checkSaved(j);
   }
 
+  /// Marks a stage hiked or planned again; on a conflict shows the stage as
+  /// it is now.
+  Future<void> _setDone(JourneyDetail j, Stage s, bool done) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final updated = await widget.api.setStageDone(j.id, s, done);
+      if (await (await _store).savedJourney(j.id) != null) await (await _store).saveJourney(updated);
+      if (mounted) {
+        setState(() {
+          _journey = Future.value(updated);
+        });
+      }
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.status == 412 ? t.stageConflict : t.errorServer)));
+      if (e.status == 412 && mounted) {
+        setState(() {
+          _journey = _load();
+        });
+      }
+    } on Exception {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -133,6 +158,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                     n: i + 1,
                     stage: s,
                     saved: _saved.contains(s.routeId),
+                    onDone: j.canEdit && s.routeId != null ? (done) => _setDone(j, s, done) : null,
                     onTap: switch (s.routeId) {
                       final id? => () async {
                         await Navigator.of(context).push(
@@ -159,10 +185,20 @@ class _JourneyScreenState extends State<JourneyScreen> {
 }
 
 class _StageTile extends StatelessWidget {
-  const _StageTile({super.key, required this.n, required this.stage, required this.saved, required this.onTap});
+  const _StageTile({
+    super.key,
+    required this.n,
+    required this.stage,
+    required this.saved,
+    required this.onDone,
+    required this.onTap,
+  });
   final int n;
   final Stage stage;
   final bool saved;
+
+  /// Marks the stage hiked (true) or planned again; null if the user may not.
+  final void Function(bool done)? onDone;
   final VoidCallback? onTap;
 
   @override
@@ -204,7 +240,21 @@ class _StageTile extends StatelessWidget {
       title: Text(s.title.isEmpty ? t.journeyStage(n) : s.title),
       subtitle: Text(lines.join('\n')),
       isThreeLine: lines.length > 1,
-      trailing: saved ? Icon(Icons.offline_pin, semanticLabel: t.offlineSaved) : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (saved) Icon(Icons.offline_pin, semanticLabel: t.offlineSaved),
+          if (onDone case final set?)
+            IconButton(
+              key: Key('stage-done-${n - 1}'),
+              isSelected: s.status == 'done',
+              icon: const Icon(Icons.check_circle_outline),
+              selectedIcon: const Icon(Icons.check_circle),
+              tooltip: s.status == 'done' ? t.stageMarkPlanned : t.stageMarkDone,
+              onPressed: () => set(s.status != 'done'),
+            ),
+        ],
+      ),
       enabled: onTap != null,
       onTap: onTap,
     );

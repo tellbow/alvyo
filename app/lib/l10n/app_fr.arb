@@ -77,5 +77,10 @@
   "journeySaved": "Toutes les étapes enregistrées hors ligne",
   "navSwitchQuestion": "Tu enregistres « {title} ». Terminer cette randonnée et en commencer une nouvelle ici ? L'enregistrement fait jusqu'ici est conservé.",
   "navSwitch": "Terminer et commencer ici",
-  "cancel": "Annuler"
+  "cancel": "Annuler",
+  "stageMarkDone": "Marquer comme faite",
+  "stageMarkPlanned": "Marquer de nouveau comme prévue",
+  "navMarkStageDone": "Marquer l'étape comme faite",
+  "stageConflict": "Quelqu'un a modifié l'étape entre-temps. Voici le nouvel état.",
+  "stageMarkedDone": "Étape marquée comme faite"
 }

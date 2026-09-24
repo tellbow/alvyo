@@ -20,7 +20,8 @@
 		q,
 		onpatch,
 		onmove,
-		onremove
+		onremove,
+		onimport
 	}: {
 		journeyId: string;
 		stage: JourneyStage;
@@ -33,9 +34,13 @@
 		onpatch: (body: StagePatch) => void;
 		onmove: (delta: number) => void;
 		onremove: () => void;
+		/** Uploads a track file as the stage's route (replacing it if there is one). */
+		onimport: (file: File) => Promise<unknown>;
 	} = $props();
 
 	let confirming = $state(false);
+	let replacing = $state(false); // asked before a file replaces the route
+	let importing = $state(false);
 	let picking = $state<'start' | 'end'>();
 
 	const ends = $derived(
@@ -59,11 +64,38 @@
 			: sbbTimetableUrl({ from: p.name, date, locale: getLocale() });
 	}
 
+	async function importFile(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		input.value = '';
+		if (!file) return;
+		replacing = false;
+		importing = true;
+		await onimport(file);
+		importing = false;
+	}
+
 	function pick(which: 'start' | 'end', id: string) {
 		picking = undefined;
 		onpatch(which === 'start' ? { start_place_id: id } : { end_place_id: id });
 	}
 </script>
+
+{#snippet fileButton(label: string)}
+	<label
+		class="cursor-pointer rounded px-2 py-1 ring-1 ring-stone-300 hover:bg-stone-50"
+		class:opacity-50={importing}
+	>
+		{label}
+		<input
+			type="file"
+			accept=".gpx,.kml,.tcx,.fit"
+			class="sr-only"
+			disabled={importing}
+			onchange={importFile}
+		/>
+	</label>
+{/snippet}
 
 <li
 	class="rounded-md border border-stone-200 p-2 text-sm"
@@ -209,6 +241,19 @@
 			</div>
 		</details>
 
+		{#if replacing}
+			<div
+				class="mt-2 flex flex-wrap items-center gap-2 text-xs"
+				data-testid="stage-import-replace"
+			>
+				<span>{m.stage_import_replace()}</span>
+				{@render fileButton(m.stage_import_choose())}
+				<button type="button" class="underline" onclick={() => (replacing = false)}>
+					{m.report_cancel()}
+				</button>
+			</div>
+		{/if}
+
 		<div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
 			<a
 				href={resolve('/journeys/[id]/stages/[stage]', { id: journeyId, stage: s.id })}
@@ -216,6 +261,18 @@
 			>
 				{s.route ? m.journey_edit_stage() : m.journey_plan_stage()}
 			</a>
+			{#if s.route && !replacing}
+				<button
+					type="button"
+					class="rounded px-2 py-1 ring-1 ring-stone-300 hover:bg-stone-50"
+					disabled={importing}
+					onclick={() => (replacing = true)}
+				>
+					{importing ? m.import_running() : m.stage_import()}
+				</button>
+			{:else if !s.route}
+				{@render fileButton(importing ? m.import_running() : m.stage_import())}
+			{/if}
 			<button
 				type="button"
 				class="px-1"

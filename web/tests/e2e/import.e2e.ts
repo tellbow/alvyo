@@ -14,10 +14,10 @@ async function signup(page: Page, name: string) {
 	expect(res.status()).toBe(201);
 }
 
-/** A GPX track of about 2.2 km heading east from lon/lat. */
-function track(name: string, lon: number, lat: number) {
+/** A GPX track of about 2.2 km (n points 76 m apart) heading east from lon/lat. */
+function track(name: string, lon: number, lat: number, n = 30) {
 	const pts = Array.from(
-		{ length: 30 },
+		{ length: n },
 		(_, i) => `<trkpt lat="${lat}" lon="${(lon + i * 0.001).toFixed(4)}"/>`
 	);
 	return `<trk><name>${name}</name><trkseg>${pts.join('')}</trkseg></trk>`;
@@ -139,4 +139,36 @@ test('Komoot tours are picked and imported in batches', async ({ page }) => {
 		tours.getByRole('listitem').first().getByRole('link', { name: 'importiert' })
 	).toBeVisible();
 	await expect(komoot).toContainText('0 ausgewählt');
+});
+
+test('a GPX file becomes the route of a stage', async ({ page }) => {
+	await signup(page, 'stager');
+	const res = await page.request.post('/api/v1/journeys', { data: { title: 'Zwei Tage' } });
+	const { id } = await res.json();
+	for (const title of ['Tag 1', 'Tag 2']) {
+		await page.request.post(`/api/v1/journeys/${id}/stages`, { data: { title } });
+	}
+	await page.goto(`/journeys/${id}`);
+	const stage2 = page.getByTestId('stage').nth(1);
+	await expect(stage2).toContainText('Noch keine Route');
+
+	const gpx = (n: number) => ({
+		name: 'tag2.gpx',
+		mimeType: 'application/gpx+xml',
+		buffer: Buffer.from(
+			`<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">${track('Tag 2', 9.33, 46.99, n)}</gpx>`
+		)
+	});
+	await stage2.getByLabel('Datei importieren').setInputFiles(gpx(30));
+	await expect(stage2).toContainText(/2\.\d km/);
+	await expect(page.getByTestId('stage-marker')).toHaveCount(1);
+
+	// A route is only replaced after asking.
+	await stage2.getByRole('button', { name: 'Datei importieren' }).click();
+	await expect(stage2.getByTestId('stage-import-replace')).toContainText(
+		'wird durch die Datei ersetzt'
+	);
+	await stage2.getByLabel('Datei wählen').setInputFiles(gpx(10));
+	await expect(stage2).toContainText(/\b[6-8]\d\d m/);
+	await expect(stage2.getByTestId('stage-import-replace')).toHaveCount(0);
 });

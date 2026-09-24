@@ -885,6 +885,26 @@ export interface paths {
         patch: operations["update-stage"];
         trace?: never;
     };
+    "/journeys/{id}/stages/{stage}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import a GPX, KML, TCX or FIT file as a stage's route
+         * @description Several tracks in the file are joined into one route.
+         */
+        post: operations["import-stage-route"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys/{id}/stages/{stage}/route": {
         parameters: {
             query?: never;
@@ -5077,6 +5097,48 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateStageInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "import-stage-route": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                stage: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    /** @description Replace the stage's route if it has one (409 otherwise) */
+                    replace?: boolean;
+                };
             };
         };
         responses: {

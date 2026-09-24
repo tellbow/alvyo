@@ -43,7 +43,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.2.0 | 2026-09-23 | Offline maps (PMTiles packs built by the API); the iOS app lists routes, shows them on the national map and saves them offline |
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
-| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving |
+| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6) |
 
 ## Requirements
 
@@ -67,28 +67,15 @@ From the project owner, numbered in the order given: 1–5 added on
 5. **Tracking with a watch** (0.3.0). Hikes recorded with the Apple Watch's
    Workout app are imported from Apple Health (works with a free Apple ID).
    A watchOS app of our own remains an option.
+6. **A GPX file into a stage** (next). In the journey editor, «Datei
+   importieren» gives a stage its route from a GPX, KML, TCX or FIT file in
+   one step (`POST /journeys/{id}/stages/{stage}/import`, several tracks
+   joined); a stage's route is only replaced after asking.
 
 ### Open
 
-Proposed order: 6 (small), 9 (planner only), 10 and 11 (tags, then the map
+Proposed order: 9 (planner only), 10 and 11 (tags, then the map
 that filters by them), 8 (the day splitting), 7 (reuses 8's splitting).
-
-#### 6. A GPX file into a stage
-
-In the journey editor, a stage gets its route from an uploaded file (GPX,
-KML, TCX, FIT) in one step. Today that takes two: import the file as a route,
-then copy it into the stage («Aus meinen Routen übernehmen»).
-
-- API: `POST /journeys/{id}/stages/{stage}/import` (multipart, like
-  `/imports`), for editors. Several tracks in the file are joined
-  (`imports.Join`), then `Importer.Content` → the stage's route. A stage that
-  has a route keeps it unless the request says to replace it (409 as today
-  otherwise). Counts per track against the import limit.
-- Web: «Datei importieren» next to «Route planen» and «Aus meinen Routen
-  übernehmen»; replacing a route asks first.
-- Check: API test (the stage gets the route; start and end places, the gap to
-  the previous stage and the journey totals follow; viewers get 403);
-  Playwright: import a GPX into stage 2 of a journey.
 
 #### 7. One long GPX file into several stages
 

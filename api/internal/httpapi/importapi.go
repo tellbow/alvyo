@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
@@ -14,7 +15,10 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
+	"github.com/tellbow/odysgeh/api/internal/access"
+	"github.com/tellbow/odysgeh/api/internal/auth"
 	"github.com/tellbow/odysgeh/api/internal/imports"
+	"github.com/tellbow/odysgeh/api/internal/journeys"
 	"github.com/tellbow/odysgeh/swiss/geo"
 )
 
@@ -26,6 +30,15 @@ type importFileForm struct {
 	File  huma.FormFile `form:"file" required:"true"`
 	Mode  string        `form:"mode" required:"false" enum:"route,routes,journey" doc:"Several tracks: one route, one route each, or a journey with a stage each"`
 	Title string        `form:"title" required:"false" maxLength:"120" doc:"Title of the route or journey; the track name otherwise"`
+}
+
+type stageImportInput struct {
+	ID      string `path:"id" format:"uuid"`
+	StageID string `path:"stage" format:"uuid"`
+	RawBody huma.MultipartFormFiles[struct {
+		File    huma.FormFile `form:"file" required:"true"`
+		Replace bool          `form:"replace" required:"false" doc:"Replace the stage's route if it has one (409 otherwise)"`
+	}]
 }
 
 type importPreviewInput struct {
@@ -233,6 +246,56 @@ func registerImports(api huma.API, d Deps) {
 			out.Body.Routes = append(out.Body.Routes, importedRoute{ID: r.ID, Title: r.Title})
 		}
 		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "import-stage-route", Method: http.MethodPost, Path: "/journeys/{id}/stages/{stage}/import",
+		Summary:     "Import a GPX, KML, TCX or FIT file as a stage's route",
+		Description: "Several tracks in the file are joined into one route.",
+		Tags:        []string{"journeys"}, MaxBodyBytes: imports.MaxFileBytes + 1<<20,
+	}, func(ctx context.Context, in *stageImportInput) (*journeyOutput, error) {
+		j, role, err := journeyAs(ctx, d, in.ID, access.Editor)
+		if err != nil {
+			return nil, err
+		}
+		u, _ := auth.UserFrom(ctx)
+		form := in.RawBody.Data()
+		idx := slices.IndexFunc(j.StageList, func(st journeys.Stage) bool { return st.ID == in.StageID })
+		if idx < 0 {
+			return nil, huma.Error404NotFound("stage not found")
+		}
+		st := j.StageList[idx]
+		if st.Route != nil && !form.Replace {
+			return nil, journeyError(journeys.ErrHasRoute)
+		}
+		_, tracks, err := parse(form.File)
+		if err != nil {
+			return nil, err
+		}
+		if !d.Limits.Import.AllowN(u.ID.String(), len(tracks)) {
+			return nil, huma.Error429TooManyRequests("too many imports; try again in a few minutes")
+		}
+		c, err := d.Importer.Content(ctx, imports.Join(tracks[0].Name, tracks))
+		if err != nil {
+			if imports.Reason(err) == "other" {
+				return nil, err
+			}
+			return nil, huma.Error422UnprocessableEntity(err.Error())
+		}
+		if st.Route == nil {
+			// The journey owner owns stage routes, whoever imports them.
+			_, err = d.Journeys.SetStageRoute(ctx, uuid.MustParse(j.ID), uuid.MustParse(st.ID),
+				uuid.MustParse(j.OwnerID), stageTitle(j, idx), c)
+			return mutateJourney(ctx, d.Journeys, j, role, err)
+		}
+		r, err := d.Routes.Get(ctx, uuid.MustParse(st.Route.ID))
+		if err != nil {
+			return nil, routeError(err)
+		}
+		if _, err := d.Routes.Update(ctx, uuid.MustParse(r.ID), r.Version, r.Meta, &c); err != nil {
+			return nil, routeError(err)
+		}
+		return mutateJourney(ctx, d.Journeys, j, role, nil)
 	})
 
 	// Komoot's tours, with those imported before marked.

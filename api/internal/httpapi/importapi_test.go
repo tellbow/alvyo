@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -251,5 +252,95 @@ func TestImportKomoot(t *testing.T) {
 	}
 	if code, _ := other.do("POST", "/api/v1/imports/komoot", map[string]any{"session": tours.Session, "tour_ids": []int{1}}); code != http.StatusUnauthorized {
 		t.Errorf("another user's import: %d, want 401", code)
+	}
+}
+
+func TestImportIntoStage(t *testing.T) {
+	s := newImportServer(t, "http://komoot.invalid")
+	var stop string
+	if err := s.db.QueryRow(context.Background(), `INSERT INTO places (kind, name, source, source_id, geom)
+		VALUES ('pt_stop', 'Faulhorn', 'didok', '1', ST_SetSRID(ST_MakePoint(8.059, 46.66), 4326)) RETURNING id`).Scan(&stop); err != nil {
+		t.Fatal(err)
+	}
+	owner, viewer, stranger := s.client(t), s.client(t), s.client(t)
+	owner.do("POST", "/api/v1/auth/signup", signupBody("stages@example.ch", "stages"))
+	viewer.do("POST", "/api/v1/auth/signup", signupBody("vie@example.ch", "vie"))
+	stranger.do("POST", "/api/v1/auth/signup", signupBody("str@example.ch", "str"))
+	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
+		t.Fatal(err)
+	}
+
+	_, body := owner.do("POST", "/api/v1/journeys", map[string]any{"title": "Zwei Tage"})
+	base := "/api/v1/journeys/" + decodeJourney(t, body).ID
+	owner.do("POST", base+"/stages", map[string]any{"title": "Tag 1"})
+	_, body = owner.do("POST", base+"/stages", map[string]any{"title": "Tag 2"})
+	st1, st2 := decodeJourney(t, body).StageList[0].ID, decodeJourney(t, body).StageList[1].ID
+	if code, body := owner.do("POST", base+"/grants", map[string]any{"username": "vie", "role": "viewer"}); code != http.StatusOK {
+		t.Fatalf("invite: %d %s", code, body)
+	}
+
+	type stageJourney struct {
+		StageList []struct {
+			Title string `json:"title"`
+			Route *struct {
+				ID     string `json:"id"`
+				Totals struct {
+					DistanceM float64 `json:"distance_m"`
+				} `json:"totals"`
+			} `json:"route"`
+			EndPlace *struct {
+				ID string `json:"id"`
+			} `json:"end_place"`
+			Gap *struct {
+				Status string `json:"status"`
+			} `json:"gap"`
+		} `json:"stage_list"`
+		Totals struct {
+			DistanceM float64 `json:"distance_m"`
+		} `json:"totals"`
+	}
+	imported := func(code int, body []byte) stageJourney {
+		t.Helper()
+		if code != http.StatusOK {
+			t.Fatalf("stage import: %d %s", code, body)
+		}
+		var j stageJourney
+		if err := json.Unmarshal(body, &j); err != nil {
+			t.Fatal(err)
+		}
+		return j
+	}
+
+	imported(owner.upload(base+"/stages/"+st1+"/import", "tag1.gpx", gpxDoc(line("Tag 1", 8.00, 46.66, 30))))
+	// Two tracks in the file are joined; stage 2 starts where stage 1 ends.
+	j := imported(owner.upload(base+"/stages/"+st2+"/import", "tag2.gpx",
+		gpxDoc(line("Vormittag", 8.03, 46.66, 15), line("Nachmittag", 8.045, 46.66, 15))))
+	st := j.StageList[1]
+	if st.Route == nil || st.Route.Totals.DistanceM < 2100 || st.Title != "Tag 2" ||
+		st.Gap == nil || st.Gap.Status != "ok" || st.EndPlace == nil || st.EndPlace.ID != stop ||
+		j.Totals.DistanceM < 4300 {
+		t.Fatalf("stage 2: %+v, totals %+v", st, j.Totals)
+	}
+	routeID := st.Route.ID
+
+	// A stage with a route keeps it unless the request replaces it.
+	shorter := gpxDoc(line("Kurz", 8.03, 46.66, 10))
+	if code, body := owner.upload(base+"/stages/"+st2+"/import", "kurz.gpx", shorter); code != http.StatusConflict {
+		t.Errorf("import over a route: %d %s", code, body)
+	}
+	j = imported(owner.upload(base+"/stages/"+st2+"/import", "kurz.gpx", shorter, "replace", "true"))
+	if st := j.StageList[1]; st.Route.ID != routeID || st.Route.Totals.DistanceM > 1000 || st.EndPlace != nil {
+		t.Errorf("replaced: %+v", st)
+	}
+	if code, body := owner.upload(base+"/stages/"+st2+"/import", "mailand.gpx", gpxDoc(line("Mailand", 9.19, 45.46, 5)), "replace", "true"); code != http.StatusUnprocessableEntity {
+		t.Errorf("outside: %d %s", code, body)
+	}
+
+	// Viewers may not import; others do not see the journey.
+	if code, _ := viewer.upload(base+"/stages/"+st1+"/import", "tag1.gpx", shorter, "replace", "true"); code != http.StatusForbidden {
+		t.Errorf("viewer: %d, want 403", code)
+	}
+	if code, _ := stranger.upload(base+"/stages/"+st1+"/import", "tag1.gpx", shorter, "replace", "true"); code != http.StatusNotFound {
+		t.Errorf("stranger: %d, want 404", code)
 	}
 }

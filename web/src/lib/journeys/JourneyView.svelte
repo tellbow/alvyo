@@ -113,14 +113,17 @@
 	// so a slower earlier response must not overwrite a later change.
 	let queue: Promise<unknown> = Promise.resolve();
 
-	function mutate(call: () => Promise<{ data?: Journey; response: Response }> | undefined) {
+	function mutate(
+		call: () => Promise<{ data?: Journey; response: Response }> | undefined,
+		failed: (r: Response) => string = () => m.error_generic()
+	) {
 		const run = queue.then(async () => {
 			const request = call();
 			if (!request) return journey; // nothing left to change
 			error = '';
-			const { data } = await request;
+			const { data, response } = await request;
 			if (data) journey = data;
-			else error = m.error_generic();
+			else error = failed(response);
 			return data;
 		});
 		queue = run.catch(() => {});
@@ -162,6 +165,33 @@
 		if (added && !copyRouteId) {
 			await goto(resolve('/journeys/[id]/stages/[stage]', { id: journey.id, stage: added.id }));
 		}
+	}
+
+	function importStage(stage: string, file: File) {
+		if (file.size > 20 * 1024 * 1024) {
+			error = m.import_too_big();
+			return Promise.resolve();
+		}
+		return mutate(
+			() => {
+				// Replace only a route that was there when the user confirmed.
+				const replace = !!journey.stage_list.find((s) => s.id === stage)?.route;
+				const fd = new FormData();
+				fd.append('file', file);
+				if (replace) fd.append('replace', 'true');
+				return api().POST('/journeys/{id}/stages/{stage}/import', {
+					...path(stage),
+					body: { file: '' },
+					bodySerializer: () => fd
+				});
+			},
+			(r) =>
+				r.status === 429
+					? m.import_rate()
+					: r.status === 422
+						? m.stage_import_failed()
+						: m.error_generic()
+		);
 	}
 
 	async function move(stage: string, delta: number) {
@@ -346,6 +376,7 @@
 					onpatch={(body) => patchStage(s.id, body)}
 					onmove={(delta) => move(s.id, delta)}
 					onremove={() => removeStage(s.id)}
+					onimport={(file) => importStage(s.id, file)}
 				/>
 			{/each}
 		</ol>

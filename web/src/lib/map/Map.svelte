@@ -15,6 +15,7 @@
 		type BaseMapId,
 		type OverlayId
 	} from './styles';
+	import { TILE_PROTOCOL, tileLoader } from './tiles';
 
 	let {
 		base = $bindable<BaseMapId>('landeskarte'),
@@ -64,6 +65,7 @@
 		]).then(([ml, worker]) => {
 			if (destroyed) return;
 			ml.setWorkerUrl(worker.default);
+			ml.addProtocol(TILE_PROTOCOL, tileLoader());
 			const m = new ml.Map({
 				container,
 				style: baseStyle(base, location.origin),

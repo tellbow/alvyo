@@ -36,7 +36,7 @@ describe('baseStyle', () => {
 		const s = baseStyle('landeskarte', 'https://odysgeh.ch') as StyleSpecification;
 		const src = s.sources.base as { tiles: string[]; bounds: number[] };
 		expect(src.tiles[0]).toBe(
-			'https://odysgeh.ch/tiles/wmts/ch.swisstopo.pixelkarte-farbe/{z}/{x}/{y}.jpeg'
+			'odysgeh-tile://https://odysgeh.ch/tiles/wmts/ch.swisstopo.pixelkarte-farbe/{z}/{x}/{y}.jpeg'
 		);
 		expect(src.bounds).toEqual([5.7, 45.6, 10.8, 48.0]);
 	});

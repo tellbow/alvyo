@@ -1,4 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
+import { TILE_PROTOCOL } from './tiles';
 
 /** Switzerland and Liechtenstein with a margin: no tiles are requested outside. */
 export const CH_BOUNDS: [number, number, number, number] = [5.7, 45.6, 10.8, 48.0];
@@ -40,7 +41,7 @@ function rasterSource(id: string, origin: string) {
 	const r = RASTER[id];
 	return {
 		type: 'raster' as const,
-		tiles: [`${origin}/tiles/wmts/${r.layer}/{z}/{x}/{y}.${r.ext}`],
+		tiles: [`${TILE_PROTOCOL}://${origin}/tiles/wmts/${r.layer}/{z}/{x}/{y}.${r.ext}`],
 		tileSize: 256,
 		maxzoom: r.maxzoom,
 		bounds: CH_BOUNDS

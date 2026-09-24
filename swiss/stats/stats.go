@@ -18,7 +18,7 @@ const (
 	// AscentThreshold in metres would suppress elevation noise: a climb or
 	// descent only counts once it exceeds this amount. The official Wanderland
 	// figures count every climb, and swissALTI3D at 10 m is smooth enough to
-	// do the same (docs/hiking-time.md: 3 m undercounted ascent by 9 %).
+	// do the same (docs/hiking-time.md: 3 m undercounted ascent by 4 %).
 	AscentThreshold = 0.0
 )
 
@@ -63,25 +63,44 @@ func ComputeWith(pts []geo.Point, ele []float64, step, threshold float64) Stats 
 	}
 }
 
-// ascent sums climbs and descents with hysteresis: the reference elevation
-// only moves once the profile has left it by more than threshold.
+// ascent sums climbs and descents with hysteresis: a climb counts up to its
+// peak (a descent down to its low point) once the profile has turned back by
+// more than threshold; smaller turns are noise within the climb.
 func ascent(ele []float64, threshold float64) (up, down float64) {
 	if len(ele) == 0 {
 		return 0, 0
 	}
-	ref := ele[0]
+	from, extreme := ele[0], ele[0] // start and peak (or low point) of the current climb (or descent)
+	dir := 0                        // +1 climbing, -1 descending, 0 not yet known
 	for _, e := range ele[1:] {
-		switch d := e - ref; {
-		case d > threshold:
-			up += d
-			ref = e
-		case d < -threshold:
-			down -= d
-			ref = e
+		switch {
+		case dir == 0 && e-from > threshold:
+			dir, extreme = 1, e
+		case dir == 0 && from-e > threshold:
+			dir, extreme = -1, e
+		case dir == 1 && e >= extreme:
+			extreme = e
+		case dir == 1 && extreme-e > threshold:
+			up += extreme - from
+			from, extreme, dir = extreme, e, -1
+		case dir == -1 && e <= extreme:
+			extreme = e
+		case dir == -1 && e-extreme > threshold:
+			down += from - extreme
+			from, extreme, dir = extreme, e, 1
 		}
 	}
-	// Count the remainder towards the end point so a steady finish isn't lost.
-	if d := ele[len(ele)-1] - ref; d > 0 {
+	// The last climb or descent, then what is left to the end point, so a
+	// steady finish isn't lost.
+	switch dir {
+	case 1:
+		up += extreme - from
+		from = extreme
+	case -1:
+		down += from - extreme
+		from = extreme
+	}
+	if d := ele[len(ele)-1] - from; d > 0 {
 		up += d
 	} else {
 		down -= d

@@ -2,6 +2,7 @@ package stats
 
 import (
 	"math"
+	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -73,6 +74,54 @@ func TestAscentThreshold(t *testing.T) {
 	}
 	if up, down := ascent(ele, AscentThreshold); up != 500 || down != 499 {
 		t.Errorf("every climb: up %.1f down %.1f", up, down)
+	}
+}
+
+func TestAscentHysteresisKeepsPeaks(t *testing.T) {
+	// Up to the peak, 3 m back down: with a 3 m threshold the dip does not
+	// count, but the climb goes all the way to 12 m.
+	for _, tc := range []struct {
+		ele            []float64
+		threshold      float64
+		wantUp, wantDn float64
+	}{
+		{[]float64{0, 10, 12, 9}, 3, 12, 3},
+		{[]float64{0, 10, 12, 9}, 0, 12, 3},
+		{[]float64{0, 10, 12, 11, 20}, 3, 20, 0},   // a small dip on the way up
+		{[]float64{100, 90, 88, 90, 80}, 3, 0, 20}, // a small rise on the way down
+		{[]float64{0, 2, 0, 2, 0, 2}, 3, 2, 0},     // noise within the threshold
+		{[]float64{0, 50, 10, 60, 55}, 3, 100, 45}, // two climbs, peaks counted
+		{[]float64{5}, 3, 0, 0},
+	} {
+		up, down := ascent(tc.ele, tc.threshold)
+		if math.Abs(up-tc.wantUp) > 1e-9 || math.Abs(down-tc.wantDn) > 1e-9 {
+			t.Errorf("%v, threshold %v: up %v down %v, want %v %v", tc.ele, tc.threshold, up, down, tc.wantUp, tc.wantDn)
+		}
+	}
+}
+
+func TestAscentAddsUp(t *testing.T) {
+	// Whatever the threshold, up minus down is the end minus the start; with
+	// no threshold, up is every rise.
+	rng := rand.New(rand.NewPCG(1, 2))
+	for range 200 {
+		ele := make([]float64, 2+rng.IntN(50))
+		for i := range ele {
+			ele[i] = rng.Float64() * 30
+		}
+		rises := 0.0
+		for i := 1; i < len(ele); i++ {
+			rises += max(ele[i]-ele[i-1], 0)
+		}
+		for _, th := range []float64{0, 1, 3, 10} {
+			up, down := ascent(ele, th)
+			if math.Abs(up-down-(ele[len(ele)-1]-ele[0])) > 1e-9 || up < 0 || down < 0 {
+				t.Fatalf("%v, threshold %v: up %v down %v", ele, th, up, down)
+			}
+			if th == 0 && math.Abs(up-rises) > 1e-9 {
+				t.Fatalf("%v: up %v, rises %v", ele, up, rises)
+			}
+		}
 	}
 }
 

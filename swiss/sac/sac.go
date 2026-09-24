@@ -90,7 +90,7 @@ func Of(s Segment) Grade {
 // Summary grades a whole route.
 type Summary struct {
 	Grade     int             // hardest segment, T1–T6
-	Max       int             // upper end if the hardest part is only known as a range
+	Max       int             // hardest grade any part may have: above Grade where parts are only known as a range
 	Breakdown map[int]float64 // metres per grade
 	// UnofficialM is the length graded by guess (off the official network
 	// without OSM sac_scale).
@@ -109,12 +109,8 @@ func Route(segs []Segment) Summary {
 		if !g.Official {
 			s.UnofficialM += seg.LengthM
 		}
-		switch {
-		case g.T > s.Grade:
-			s.Grade, s.Max = g.T, g.Max
-		case g.T == s.Grade:
-			s.Max = max(s.Max, g.Max)
-		}
+		s.Grade = max(s.Grade, g.T)
+		s.Max = max(s.Max, g.Max, g.T)
 	}
 	return s
 }

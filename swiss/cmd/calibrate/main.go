@@ -311,7 +311,8 @@ func within(xs []float64, tol float64) string {
 func pct(r float64) string { return fmt.Sprintf("%+.1f %%", (r-1)*100) }
 
 func hm(m float64) string {
-	return fmt.Sprintf("%d h %02d", int(m)/60, int(math.Round(m))%60)
+	r := int(math.Round(m))
+	return fmt.Sprintf("%d h %02d", r/60, r%60)
 }
 
 func fail(err error) {

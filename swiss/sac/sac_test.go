@@ -50,6 +50,12 @@ func TestRoute(t *testing.T) {
 	if s.Grade != 3 || s.Max != 3 {
 		t.Errorf("grade T%d–T%d, want T3", s.Grade, s.Max)
 	}
+
+	// But a guessed part may be harder than the hardest certain one.
+	s = Route([]Segment{{LengthM: 100, OSM: 5, Category: Alpinwanderweg}, {LengthM: 100, Category: Alpinwanderweg}})
+	if s.Grade != 5 || s.Max != 6 {
+		t.Errorf("grade T%d–T%d, want T5–T6", s.Grade, s.Max)
+	}
 }
 
 func TestParseCategory(t *testing.T) {

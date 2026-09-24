@@ -131,8 +131,10 @@ type text struct {
 }
 
 type callTime struct {
-	Timetabled time.Time  `xml:"TimetabledTime"`
-	Estimated  *time.Time `xml:"EstimatedTime"`
+	Timetabled time.Time `xml:"TimetabledTime"`
+	// Real-time, when known; text, so that an empty element does not fail
+	// the whole answer.
+	Estimated string `xml:"EstimatedTime"`
 }
 
 type xmlLeg struct {
@@ -217,7 +219,7 @@ func Parse(r io.Reader) ([]Trip, error) {
 					Departure: tl.Board.Departure.Timetabled, Arrival: tl.Alight.Arrival.Timetabled,
 					Platform: platform,
 				}
-				if e := tl.Board.Departure.Estimated; e != nil {
+				if e, err := time.Parse(time.RFC3339, strings.TrimSpace(tl.Board.Departure.Estimated)); err == nil {
 					leg.DelayMin = int(e.Sub(leg.Departure).Minutes())
 				}
 				trip.Legs = append(trip.Legs, leg)

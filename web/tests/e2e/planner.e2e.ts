@@ -253,6 +253,78 @@ test('drag the line onto another path without a new point', async ({ page, conte
 	await expect(page.getByTestId('through')).toHaveCount(0);
 });
 
+test('on a touch screen, hold the line to drag it; a quick swipe pans the map', async ({
+	page,
+	context
+}) => {
+	await context.addInitScript(() => {
+		localStorage.setItem(
+			'odysgeh.map',
+			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
+		);
+	});
+	const id = `touch${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Thumb',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+
+	await page.goto('/plan');
+	const canvas = page.locator('canvas.maplibregl-canvas');
+	const box = (await canvas.boundingBox())!;
+	const cx = box.x + box.width / 2;
+	const cy = box.y + box.height / 2;
+	await page.mouse.click(cx - 200, cy);
+	await page.mouse.click(cx + 200, cy);
+	const legs = page.getByTestId('leg');
+	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	// A straight line certainly runs through the middle.
+	await legs.nth(0).getByLabel('Gerade Linie').check();
+	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	await expect
+		.poll(
+			async () => {
+				await page.mouse.move(cx + 1, cy);
+				await page.mouse.move(cx, cy);
+				return canvas.evaluate((c) => (c as HTMLCanvasElement).style.cursor);
+			},
+			{ timeout: 10_000 }
+		)
+		.toBe('pointer');
+
+	// Touch events as a phone sends them (Playwright itself only taps).
+	const cdp = await context.newCDPSession(page);
+	const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', x?: number, y?: number) =>
+		cdp.send('Input.dispatchTouchEvent', {
+			type,
+			touchPoints: x === undefined ? [] : [{ x, y: y! }]
+		});
+	const swipe = async (hold: number) => {
+		await touch('touchStart', cx, cy);
+		await page.waitForTimeout(hold);
+		for (let i = 1; i <= 6; i++) await touch('touchMove', cx + i * 7, cy + i * 20);
+		await touch('touchEnd');
+	};
+	const start = async () => (await page.getByTestId('anchor').nth(0).boundingBox())!.x;
+
+	// Held still first, the finger takes the line: a new point, no panning.
+	const before = await start();
+	await swipe(700);
+	await expect(page.getByTestId('anchor')).toHaveCount(3);
+	expect(Math.abs((await start()) - before)).toBeLessThan(2);
+
+	// A quick swipe pans the map and leaves the points alone.
+	await page.waitForTimeout(500);
+	await swipe(0);
+	await expect.poll(start).not.toBeCloseTo(before, 0);
+	await expect(page.getByTestId('anchor')).toHaveCount(3);
+});
+
 test('planning needs an account', async ({ page }) => {
 	await page.goto('/plan');
 	await expect(page.getByTestId('planner-panel')).toContainText('Melde dich an');

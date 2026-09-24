@@ -59,7 +59,8 @@ From the project owner, numbered in the order given: 1–5 added on
    reorder; only the affected legs are computed again.
 3. **Drag the route line** (0.3.0). Press, hold and drag the line onto
    another trail: a new point there, the two legs snap to the path network
-   (e.g. Gitschenen → Brisenhaus SAC). Mouse only; touch is not built yet.
+   (e.g. Gitschenen → Brisenhaus SAC). On touch screens: hold the line a
+   moment, then drag.
 4. **Navigation in the app** (0.3.0; spoken turns 0.4.0). Position on the
    offline map, distance and time done and to go (Swiss hiking time at the
    hiker's pace), off-route warning, recording in the background, upload as
@@ -132,7 +133,6 @@ None: the next work comes from the backlog.
 
 ## Backlog
 
-- Planner: dragging the line on touch screens.
 - App: mark a stage as done after hiking it; recordings tied to the account
   (after logging in as someone else, pending hikes upload to the new
   account); starting a hike on another route ends the current one without

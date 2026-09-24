@@ -79,7 +79,9 @@ Checked so far only in the simulator, with made-up or simulated positions
       or right of a lake); where none is, the leg through the release point
       does not double back. Alt (⌥) on Windows and Linux, where the window
       manager may take Alt-drag.
-- [ ] Dragging the line on a **touch screen** is not built yet (mouse only).
+- [ ] **Dragging the line on a touch screen** (iPhone Safari, an Android
+      tablet): holding the line for 0.4 s takes it, a quick swipe still pans
+      the map, two fingers still zoom.
 - [ ] **Drop-downs with the keyboard** on Windows (Chrome, Edge, Firefox):
       arrowing through «Aus meinen Routen übernehmen», «Zu Sammlung
       hinzufügen», visibility and language acts only on Enter or when

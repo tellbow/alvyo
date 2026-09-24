@@ -4,7 +4,9 @@
 		GeoJSONSource,
 		Map as MapLibreMap,
 		MapLayerMouseEvent,
+		MapLayerTouchEvent,
 		MapMouseEvent,
+		MapTouchEvent,
 		Marker
 	} from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
@@ -42,6 +44,8 @@
 	/** Layers that count as "the route" for clicks. */
 	export const LINE_LAYERS = [`${ROUTE_PREFIX}line`, `${ROUTE_PREFIX}line-straight`];
 	const COLOR = '#a21caf';
+	/** How long a finger rests on the line before it takes the line. */
+	const HOLD_MS = 400;
 
 	const empty = { type: 'FeatureCollection' as const, features: [] };
 
@@ -142,6 +146,12 @@
 		// the ends of that leg, or the leg moved onto the path nearest to it
 		// (dragPath, or Alt held on release). A click without dragging is
 		// handled by the planner (a point where clicked).
+		const release = (leg: number, at: [number, number], alt: boolean) => {
+			// A straight line has no path to move onto.
+			if (dragPath !== alt && !planner.anchors[leg + 1]?.straight) {
+				planner.reroute(leg, at[0], at[1]);
+			} else planner.insert(leg + 1, at[0], at[1]);
+		};
 		const onDown = (e: MapLayerMouseEvent) => {
 			const leg = Number(e.features?.[0]?.properties?.leg);
 			// Presses on a point's marker reach the map too; the marker drags itself.
@@ -160,19 +170,60 @@
 				map.off('mousemove', onMove);
 				band();
 				map.getCanvas().style.cursor = '';
-				if (!at) return;
-				// A straight line has no path to move onto.
-				if (dragPath !== ev.altKey && !planner.anchors[leg + 1]?.straight) {
-					planner.reroute(leg, at[0], at[1]);
-				} else planner.insert(leg + 1, at[0], at[1]);
+				if (at) release(leg, at, ev.altKey);
 			};
 			map.on('mousemove', onMove);
 			window.addEventListener('mouseup', onUp, { once: true });
+		};
+		// On a touch screen a finger on the line pans the map, as elsewhere;
+		// held still for a moment, it takes the line instead.
+		const onTouch = (e: MapLayerTouchEvent) => {
+			const leg = Number(e.features?.[0]?.properties?.leg);
+			if (!editable || e.points.length !== 1 || Number.isNaN(leg)) return;
+			const start = e.point;
+			let dragging = false;
+			let at: [number, number] | undefined;
+			const hold = setTimeout(() => {
+				dragging = true;
+				map.dragPan.disable(); // also ends the pan gesture begun
+				at = [e.lngLat.lng, e.lngLat.lat];
+				band(at, leg, leg + 1);
+				navigator.vibrate?.(10);
+			}, HOLD_MS);
+			const onMove = (ev: MapTouchEvent) => {
+				if (!dragging) {
+					// Moved or pinched before the hold: the map's gesture.
+					if (ev.points.length !== 1 || ev.point.dist(start) > 10) end();
+					return;
+				}
+				ev.preventDefault();
+				at = [ev.lngLat.lng, ev.lngLat.lat];
+				band(at, leg, leg + 1);
+			};
+			const end = () => {
+				clearTimeout(hold);
+				map.off('touchmove', onMove);
+				map.off('touchend', onEnd);
+				map.off('touchcancel', end);
+				if (dragging) {
+					band();
+					map.dragPan.enable();
+				}
+			};
+			const onEnd = () => {
+				const done = dragging && at;
+				end();
+				if (done) release(leg, at!, false);
+			};
+			map.on('touchmove', onMove);
+			map.on('touchend', onEnd);
+			map.on('touchcancel', end);
 		};
 		for (const id of LINE_LAYERS) {
 			map.on('mouseenter', id, onEnter);
 			map.on('mouseleave', id, onLeave);
 			map.on('mousedown', id, onDown);
+			map.on('touchstart', id, onTouch);
 		}
 		return () => {
 			map.off('style.load', onStyle);
@@ -180,6 +231,7 @@
 				map.off('mouseenter', id, onEnter);
 				map.off('mouseleave', id, onLeave);
 				map.off('mousedown', id, onDown);
+				map.off('touchstart', id, onTouch);
 			}
 		};
 	});

@@ -16,6 +16,7 @@
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagInput from '$lib/tags/TagInput.svelte';
 	import CollectionLayers from './CollectionLayers.svelte';
+	import { choose } from '$lib/util/choose';
 
 	let { collection: initial, user }: { collection: Collection; user: Me | null } = $props();
 
@@ -253,8 +254,7 @@
 					<select
 						class="rounded-md border border-stone-300 px-2 py-1.5"
 						value={collection.visibility}
-						onchange={(e) =>
-							patch({ visibility: e.currentTarget.value as 'private' | 'unlisted' | 'public' })}
+						use:choose={(v) => patch({ visibility: v as 'private' | 'unlisted' | 'public' })}
 					>
 						<option value="private">{m.visibility_private()}</option>
 						<option value="unlisted" disabled={!user?.email_verified}

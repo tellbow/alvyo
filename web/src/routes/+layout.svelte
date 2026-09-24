@@ -5,6 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import { choose } from '$lib/util/choose';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { getLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime';
 
@@ -62,7 +63,7 @@
 				aria-label={m.nav_language()}
 				value={getLocale()}
 				disabled={!hydrated.value}
-				onchange={(e) => language(e.currentTarget.value as Locale)}
+				use:choose={(v) => language(v as Locale)}
 				data-testid="language"
 			>
 				{#each locales as l (l)}

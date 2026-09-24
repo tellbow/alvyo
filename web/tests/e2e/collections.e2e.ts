@@ -74,3 +74,48 @@ test('collect routes and a journey, reorder and annotate them', async ({ page })
 	await page.goto('/collections');
 	await expect(page.getByTestId('collection-list')).toContainText('2 Einträge');
 });
+
+test('browsing a drop-down with the arrow keys acts only on Enter', async ({ page }) => {
+	const id = `keys${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Keys',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	const route = await createRoute(page.request, 'Bachalpsee', 8.04);
+	for (const title of ['Erste', 'Zweite']) {
+		await page.request.post('/api/v1/collections', { data: { title } });
+	}
+
+	await page.goto(`/routes/${route}`);
+	const select = page.getByTestId('add-to-collection');
+	await expect(select.locator('option')).toHaveCount(3);
+	await select.focus();
+	// As on Windows and Linux: every arrow press changes the closed select
+	// at once (Chromium on macOS opens a popup instead, so it is played here).
+	const arrow = (label: string) =>
+		select.evaluate((el: HTMLSelectElement, label) => {
+			el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+			el.value = [...el.options].find((o) => o.label === label)!.value;
+			el.dispatchEvent(new Event('change', { bubbles: true }));
+		}, label);
+	await arrow('Erste');
+	await arrow('Zweite');
+	await page.waitForTimeout(300);
+	await expect(page.getByRole('status')).toHaveCount(0);
+	await select.press('Enter');
+	await expect(page.getByRole('status')).toHaveText('Hinzugefügt zu «Zweite»');
+	const list = await page.request.get('/api/v1/collections');
+	const items = (await list.json()).collections.map((c: { title: string; items: number }) => [
+		c.title,
+		c.items
+	]);
+	expect(items.sort()).toEqual([
+		['Erste', 0],
+		['Zweite', 1]
+	]);
+});

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { api, type CollectionSummary } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import { choose } from '$lib/util/choose';
 
 	let { kind, id }: { kind: 'route' | 'journey'; id: string } = $props();
 
@@ -32,9 +33,9 @@
 		aria-label={m.collection_add_to()}
 		data-testid="add-to-collection"
 		disabled={!mine}
-		onchange={(e) => {
-			const c = mine?.find((x) => x.id === e.currentTarget.value);
-			e.currentTarget.value = '';
+		use:choose={(value, select) => {
+			const c = mine?.find((x) => x.id === value);
+			select.value = '';
 			if (c) add(c);
 		}}
 	>

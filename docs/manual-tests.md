@@ -80,6 +80,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       does not double back. Alt (⌥) on Windows and Linux, where the window
       manager may take Alt-drag.
 - [ ] Dragging the line on a **touch screen** is not built yet (mouse only).
+- [ ] **Drop-downs with the keyboard** on Windows (Chrome, Edge, Firefox):
+      arrowing through «Aus meinen Routen übernehmen», «Zu Sammlung
+      hinzufügen», visibility and language acts only on Enter or when
+      leaving the field.
 - [ ] **Etappentour planen** over two weeks and more (e.g. the Via Alpina):
       how long the proposal takes, whether the nights are where one would
       stay, and the alternatives earlier and later; hut websites after

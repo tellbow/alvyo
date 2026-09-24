@@ -27,6 +27,7 @@
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagInput from '$lib/tags/TagInput.svelte';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { choose } from '$lib/util/choose';
 
 	let {
 		journey: initial,
@@ -411,9 +412,8 @@
 				<select
 					class="rounded-md border border-stone-300 px-2 py-1.5"
 					onfocus={loadMyRoutes}
-					onchange={(e) => {
-						const id = e.currentTarget.value;
-						e.currentTarget.value = '';
+					use:choose={(id, select) => {
+						select.value = '';
 						if (id) addStage(id);
 					}}
 					aria-label={m.journey_add_from_route()}
@@ -434,8 +434,7 @@
 					<select
 						class="rounded-md border border-stone-300 px-2 py-1.5"
 						value={journey.visibility}
-						onchange={(e) =>
-							setVisibility(e.currentTarget.value as 'private' | 'unlisted' | 'public')}
+						use:choose={(v) => setVisibility(v as 'private' | 'unlisted' | 'public')}
 					>
 						<option value="private">{m.visibility_private()}</option>
 						<option value="unlisted" disabled={!user?.email_verified}

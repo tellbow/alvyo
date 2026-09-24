@@ -146,8 +146,6 @@ None: the next work comes from the backlog.
 - Journeys: two editors changing a stage at the same time overwrite each
   other (no version check on stages); cancelled trains and buses are not
   shown in connections (OJP).
-- Web: choosing from some drop-downs with the keyboard acts on the first
-  option (the choice acts on change).
 - Operations: backups are kept on the cluster only; an off-site copy is
   missing.
 - Texts: the French and Italian texts to be reviewed by a native speaker.

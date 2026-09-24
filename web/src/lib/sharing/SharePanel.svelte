@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { api, type Grant } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import { choose } from '$lib/util/choose';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 
 	let {
@@ -113,7 +114,7 @@
 						class="rounded border border-stone-300 px-1 py-0.5 text-xs"
 						value={g.role}
 						aria-label={m.share_role()}
-						onchange={(e) => setRole(g, e.currentTarget.value as Role)}
+						use:choose={(v) => setRole(g, v as Role)}
 					>
 						<option value="viewer">{m.role_viewer()}</option>
 						<option value="editor">{m.role_editor()}</option>

@@ -39,7 +39,13 @@
 
 <div class="flex h-dvh flex-col bg-stone-50 text-stone-900">
 	<header class="flex items-center gap-6 border-b border-stone-200 bg-white px-4 py-2">
-		<a href={resolve('/')} class="text-lg font-semibold tracking-tight text-emerald-800">odysgeh</a>
+		<a
+			href={resolve('/')}
+			class="flex items-center gap-2 text-lg font-semibold tracking-tight text-emerald-800"
+		>
+			<img src="/logo.png" alt="" width="39" height="32" class="h-8 w-auto" />
+			odysgeh
+		</a>
 		<nav class="flex flex-1 items-center gap-4 text-sm">
 			<a href={resolve('/discover')} class="hover:text-emerald-700">{m.nav_discover()}</a>
 			<a href={resolve('/plan')} class="hover:text-emerald-700">{m.nav_plan()}</a>

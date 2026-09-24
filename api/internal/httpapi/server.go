@@ -111,6 +111,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerRouting(api, d)
 	registerRoutes(api, d)
 	registerJourneys(api, d)
+	registerJourneyPlan(api, d)
 	registerPlaces(api, d)
 	registerGrants(api, d)
 	registerCollections(api, d)

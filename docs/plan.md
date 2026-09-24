@@ -43,7 +43,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.2.0 | 2026-09-23 | Offline maps (PMTiles packs built by the API); the iOS app lists routes, shows them on the national map and saves them offline |
 | 0.3.0 | 2026-09-23 | Place search, the list of points, dragging the line; in the app: navigation, recording and upload of hikes, Apple Watch import |
 | 0.4.0 | 2026-09-23 | Spoken turn-by-turn navigation (turns from GraphHopper map matching); journeys in the app, all stages saved offline at once |
-| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11) |
+| next | — | On main since 0.4.0: fixes from a review of all parts (2026-09-24): ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving; a GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8); hut websites need `make places-import` once |
 
 ## Requirements
 
@@ -98,10 +98,28 @@ From the project owner, numbered in the order given: 1–5 added on
     «Karte» on «Meine Routen» (`/routes/map`): lines coloured by kind or
     SAC grade, the list of what is in view, the filters in the address. An
     overview map in the app is a possible follow-up.
+8. **Plan a multi-day hike from start, destination and days** (next).
+   «Etappentour planen» (`/journeys/plan`): start, destination and points
+   to pass, the number of days or the hours per day (at one's pace), an
+   optional maximum per day (else 1.25 × the time per day, at least 1 h
+   more), the profile, and the kinds of places preferred for the nights
+   (huts, hotels and guest houses, campsites, a stop to travel home).
+   `POST /journeys/plan` routes the whole way, takes the places within
+   1 km of the line (per 250 m and kind the nearest) and picks the day ends
+   by dynamic programming: each day's hiking time close to the target,
+   under the maximum where possible, other kinds only where the preferred
+   ones fit badly; a place off the line gets the way there in the evening
+   and back in the morning. Each day offers the nearest place before and
+   after as alternatives; huts show a hint to check opening and booking and
+   their website where OSM knows it (`places.website`, from `make
+   places-import`). `POST /journeys` with `stages` creates the journey with
+   the routes, places and accommodation in one go. Live: Gaflei → Elm in
+   three days ends in Sargans and Weisstannen, as the Via Alpina does
+   (planned in about 3.5 s).
 
 ### Open
 
-Proposed order: 8 (the day splitting), 7 (reuses 8's splitting).
+Next: 7, which reuses 8's day splitting (`api/internal/stageplan`).
 
 #### 7. One long GPX file into several stages
 
@@ -120,36 +138,6 @@ should be split as well.
   the preview first? (Proposal: always the preview.)
 - Check: unit tests for the split (time gaps; days with places); API test: a
   three-day recording becomes three stages; Playwright: import with preview.
-
-#### 8. Plan a multi-day hike from start, end and days
-
-Give start, destination (optionally points to pass), the number of days or
-the hours to walk per day, and the profile. odysgeh routes the whole way and
-proposes a journey whose stages end where one can sleep: SAC and other huts,
-hotels and guest houses, campsites, or a stop to travel home.
-
-- Data: the places table holds about 850 huts, 5,400 hotels, guest houses
-  and hostels, 530 campsites (OpenStreetMap) and 27,000 stops (BAV)
-  (`make places-import`; counts of the dev database, September 2026).
-- Sketch: route the whole way; take the overnight places within about 1 km
-  of the line and their position along it; pick the day ends by dynamic
-  programming so that each day's hiking time is close to the target and
-  under a maximum, preferring the kinds of places chosen (e.g. huts). A
-  place off the line gets a short leg to it in the evening and back in the
-  morning. Each stage gets its start and end place and the accommodation.
-- UI: a form «Etappentour planen»; a preview on the map with each day's
-  numbers and place, the next place before or after as alternatives per day;
-  «Erstellen» makes the journey.
-- API: `POST /journeys/plan` returns a proposal without saving it; accepting
-  creates the journey with its stages (new endpoint or the existing ones).
-- Open: whether huts are open (season, booking) is rarely in OSM: show a
-  hint to check, link the hut's website where known. Days or hours per day:
-  either may be given.
-- Check: unit tests for the split (synthetic line and places: target hours,
-  maximum, preferences); API test with recorded GraphHopper answers; live:
-  Gaflei → Elm in three days ends near Sargans and Weisstannen, as the Via
-  Alpina stages do; Playwright: plan, accept, a journey of three stages with
-  accommodation.
 
 ## Backlog
 

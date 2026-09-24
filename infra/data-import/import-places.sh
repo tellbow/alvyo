@@ -48,22 +48,29 @@ TRUNCATE import_osm;
 
 BEGIN;
 CREATE TEMP TABLE incoming ON COMMIT DROP AS
-SELECT 'pt_stop' AS kind, name, coalesce(detail, '') AS detail, 'didok' AS source, source_id, geom
+SELECT 'pt_stop' AS kind, name, coalesce(detail, '') AS detail, 'didok' AS source, source_id, geom,
+	'' AS website
 FROM import_stops
 UNION ALL
 SELECT CASE p->>'tourism'
 		WHEN 'alpine_hut' THEN 'hut' WHEN 'wilderness_hut' THEN 'hut'
 		WHEN 'camp_site' THEN 'campsite' ELSE 'hotel' END,
 	p->>'name', p->>'tourism', 'osm', left(p->>'@type', 1) || (p->>'@id'),
-	ST_PointOnSurface(ST_SetSRID(ST_GeomFromGeoJSON(j->'geometry'), 4326))
-FROM import_osm, jsonb_extract_path(j, 'properties') AS p
+	ST_PointOnSurface(ST_SetSRID(ST_GeomFromGeoJSON(j->'geometry'), 4326)),
+	-- Only web addresses: shown as links.
+	CASE WHEN w ~* '^https?://[^\s]+$' THEN w
+		WHEN w ~* '^[a-z0-9-]+(\.[a-z0-9-]+)+(/[^\s]*)?$' THEN 'https://' || w
+		ELSE '' END
+FROM import_osm, jsonb_extract_path(j, 'properties') AS p,
+	trim(coalesce(p->>'website', p->>'contact:website', '')) AS w
 WHERE p->>'name' IS NOT NULL
 	AND p->>'tourism' IN ('alpine_hut', 'wilderness_hut', 'hotel', 'guest_house', 'hostel', 'camp_site');
 
-INSERT INTO places (kind, name, detail, source, source_id, geom)
-SELECT DISTINCT ON (source, source_id) kind, name, detail, source, source_id, geom FROM incoming
+INSERT INTO places (kind, name, detail, source, source_id, geom, website)
+SELECT DISTINCT ON (source, source_id) kind, name, detail, source, source_id, geom, website FROM incoming
 ON CONFLICT (source, source_id) DO UPDATE
-	SET kind = excluded.kind, name = excluded.name, detail = excluded.detail, geom = excluded.geom;
+	SET kind = excluded.kind, name = excluded.name, detail = excluded.detail, geom = excluded.geom,
+		website = excluded.website;
 DELETE FROM places p
 WHERE NOT EXISTS (SELECT 1 FROM incoming i WHERE i.source = p.source AND i.source_id = p.source_id);
 COMMIT;

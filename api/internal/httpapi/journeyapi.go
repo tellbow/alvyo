@@ -40,12 +40,25 @@ type journeyIDInput struct {
 	Token string `query:"t" doc:"Share token of an unlisted journey"`
 }
 
+// plannedStageInput is a stage with its route, as POST /journeys/plan
+// proposes it.
+type plannedStageInput struct {
+	Title         string          `json:"title,omitempty" maxLength:"120"`
+	Profile       string          `json:"profile" enum:"hike,alpine"`
+	Anchors       []routes.Anchor `json:"anchors" minItems:"2" maxItems:"200"`
+	Legs          []routing.Leg   `json:"legs" minItems:"1" maxItems:"199"`
+	StartPlaceID  string          `json:"start_place_id,omitempty" format:"uuid"`
+	EndPlaceID    string          `json:"end_place_id,omitempty" format:"uuid"`
+	Accommodation string          `json:"accommodation,omitempty" maxLength:"200"`
+}
+
 type createJourneyInput struct {
 	Body struct {
-		Title       string   `json:"title" minLength:"1" maxLength:"120"`
-		Description string   `json:"description,omitempty" maxLength:"5000"`
-		Visibility  string   `json:"visibility,omitempty" enum:"private,unlisted,public" default:"private"`
-		Tags        []string `json:"tags,omitempty" maxItems:"20" doc:"At most 20, each up to 40 characters; repeats (ignoring case) are dropped"`
+		Title       string              `json:"title" minLength:"1" maxLength:"120"`
+		Description string              `json:"description,omitempty" maxLength:"5000"`
+		Visibility  string              `json:"visibility,omitempty" enum:"private,unlisted,public" default:"private"`
+		Tags        []string            `json:"tags,omitempty" maxItems:"20" doc:"At most 20, each up to 40 characters; repeats (ignoring case) are dropped"`
+		Stages      []plannedStageInput `json:"stages,omitempty" maxItems:"400" doc:"The stages with their routes, e.g. from POST /journeys/plan"`
 	}
 }
 
@@ -144,7 +157,8 @@ func registerJourneys(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "create-journey", Method: http.MethodPost, Path: "/journeys",
-		Summary: "Start a multi-day journey", Tags: tags, DefaultStatus: http.StatusCreated,
+		Summary: "Start a multi-day journey, empty or with its stages", Tags: tags, DefaultStatus: http.StatusCreated,
+		MaxBodyBytes: 4 * routeBodyLimit,
 	}, func(ctx context.Context, in *createJourneyInput) (*journeyOutput, error) {
 		u, err := requireUser(ctx)
 		if err != nil {
@@ -157,10 +171,19 @@ func registerJourneys(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
-		j, err := store.Create(ctx, u.ID, journeys.Meta{
+		stages := make([]journeys.PlannedStage, len(in.Body.Stages))
+		for i, st := range in.Body.Stages {
+			stages[i] = journeys.PlannedStage{
+				Title:        strings.TrimSpace(st.Title),
+				Content:      routes.Content{Profile: st.Profile, Anchors: st.Anchors, Legs: st.Legs},
+				StartPlaceID: optionalID(st.StartPlaceID), EndPlaceID: optionalID(st.EndPlaceID),
+				Accommodation: strings.TrimSpace(st.Accommodation),
+			}
+		}
+		j, err := store.CreatePlanned(ctx, u.ID, journeys.Meta{
 			Title: strings.TrimSpace(in.Body.Title), Description: in.Body.Description, Visibility: in.Body.Visibility,
 			Tags: labels,
-		})
+		}, stages)
 		if err != nil {
 			return nil, journeyError(err)
 		}
@@ -401,6 +424,15 @@ func registerJourneys(api huma.API, d Deps) {
 			Body:               buf.Bytes(),
 		}, nil
 	})
+}
+
+// optionalID parses an id checked by the input's format; "" is none.
+func optionalID(s string) *uuid.UUID {
+	id, err := uuid.Parse(s)
+	if err != nil {
+		return nil
+	}
+	return &id
 }
 
 // stageTitle is the stage's own title or "<journey> – <n>".

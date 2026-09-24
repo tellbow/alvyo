@@ -20,6 +20,13 @@ export type Journey = Omit<components['schemas']['JourneyBody'], 'stage_list'> &
 	stage_list: JourneyStage[];
 };
 export type StagePatch = components['schemas']['UpdateStageInputBody'];
+export type PlanStage = Nullable<
+	components['schemas']['Stage'],
+	'start_place' | 'end_place' | 'earlier' | 'later'
+>;
+export type Proposal = Omit<components['schemas']['Proposal'], 'stages'> & {
+	stages: PlanStage[];
+};
 export type Grant = components['schemas']['Grant'];
 export type SharedRoute = components['schemas']['RouteShared'];
 export type SharedJourney = components['schemas']['JourneyShared'];

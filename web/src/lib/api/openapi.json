@@ -580,6 +580,14 @@
             "maxLength": 5000,
             "type": "string"
           },
+          "stages": {
+            "description": "The stages with their routes, e.g. from POST /journeys/plan",
+            "items": {
+              "$ref": "#/components/schemas/PlannedStageInput"
+            },
+            "maxItems": 400,
+            "type": "array"
+          },
           "tags": {
             "description": "At most 20, each up to 40 characters; repeats (ignoring case) are dropped",
             "items": {
@@ -2646,6 +2654,9 @@
           },
           "suggested": {
             "type": "boolean"
+          },
+          "website": {
+            "type": "string"
           }
         },
         "required": [
@@ -2655,6 +2666,124 @@
           "detail",
           "at",
           "distance_m"
+        ],
+        "type": "object"
+      },
+      "PlanJourneyInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "Number of days; or hours_per_day",
+            "format": "int64",
+            "maximum": 60,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "ends": {
+            "description": "Place ids to end the days at instead (from a proposal's earlier and later)",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 59,
+            "type": "array"
+          },
+          "hours_per_day": {
+            "description": "Hiking time per day (Swiss hiking time); or days",
+            "format": "double",
+            "maximum": 16,
+            "minimum": 0,
+            "type": "number"
+          },
+          "kinds": {
+            "description": "Preferred places for the nights; all if none",
+            "items": {
+              "enum": [
+                "hut",
+                "hotel",
+                "campsite",
+                "pt_stop"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "max_hours": {
+            "description": "No day longer if possible; 0: 1.25 × the time per day",
+            "format": "double",
+            "maximum": 20,
+            "minimum": 0,
+            "type": "number"
+          },
+          "points": {
+            "description": "Start, points to pass, destination",
+            "items": {
+              "$ref": "#/components/schemas/Point"
+            },
+            "maxItems": 20,
+            "minItems": 2,
+            "type": "array"
+          },
+          "profile": {
+            "default": "hike",
+            "enum": [
+              "hike",
+              "alpine"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "points"
+        ],
+        "type": "object"
+      },
+      "PlannedStageInput": {
+        "additionalProperties": false,
+        "properties": {
+          "accommodation": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "anchors": {
+            "items": {
+              "$ref": "#/components/schemas/RouteAnchor"
+            },
+            "maxItems": 200,
+            "minItems": 2,
+            "type": "array"
+          },
+          "end_place_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/Leg"
+            },
+            "maxItems": 199,
+            "minItems": 1,
+            "type": "array"
+          },
+          "profile": {
+            "enum": [
+              "hike",
+              "alpine"
+            ],
+            "type": "string"
+          },
+          "start_place_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 120,
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile",
+          "anchors",
+          "legs"
         ],
         "type": "object"
       },
@@ -2771,6 +2900,31 @@
         },
         "required": [
           "profiles"
+        ],
+        "type": "object"
+      },
+      "Proposal": {
+        "additionalProperties": false,
+        "properties": {
+          "max_s": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "target_s": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stages",
+          "target_s",
+          "max_s"
         ],
         "type": "object"
       },
@@ -3820,6 +3974,64 @@
         },
         "required": [
           "comments_enabled"
+        ],
+        "type": "object"
+      },
+      "Stage": {
+        "additionalProperties": false,
+        "properties": {
+          "accommodation": {
+            "description": "The hut, hotel or campsite; empty at a stop",
+            "type": "string"
+          },
+          "anchors": {
+            "items": {
+              "$ref": "#/components/schemas/RouteAnchor"
+            },
+            "type": "array"
+          },
+          "earlier": {
+            "$ref": "#/components/schemas/Place"
+          },
+          "end_place": {
+            "$ref": "#/components/schemas/Place",
+            "description": "Where the day ends; none on the last"
+          },
+          "later": {
+            "$ref": "#/components/schemas/Place"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/Leg"
+            },
+            "type": "array"
+          },
+          "over_max": {
+            "description": "Longer than the maximum per day: there was no place to end it earlier",
+            "type": "boolean"
+          },
+          "profile": {
+            "type": "string"
+          },
+          "start_place": {
+            "$ref": "#/components/schemas/Place",
+            "description": "Where the previous day ended; none on the first"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/RouteTotals"
+          }
+        },
+        "required": [
+          "start_place",
+          "end_place",
+          "accommodation",
+          "totals",
+          "over_max",
+          "earlier",
+          "later",
+          "profile",
+          "anchors",
+          "legs"
         ],
         "type": "object"
       },
@@ -6261,7 +6473,49 @@
             "description": "Error"
           }
         },
-        "summary": "Start a multi-day journey",
+        "summary": "Start a multi-day journey, empty or with its stages",
+        "tags": [
+          "journeys"
+        ]
+      }
+    },
+    "/journeys/plan": {
+      "post": {
+        "description": "Routes the whole way and ends the days where one can sleep (huts, hotels, campsites) or travel home (stops), close to the time per day. Nothing is saved: POST /journeys with the stages does.",
+        "operationId": "plan-journey",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanJourneyInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Propose the stages of a multi-day hike",
         "tags": [
           "journeys"
         ]

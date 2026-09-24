@@ -28,9 +28,11 @@ type Place struct {
 	Name string `json:"name"`
 	// Detail: transport modes of a stop ("Bus", "Zug" …) or the OSM tourism
 	// value (alpine_hut, wilderness_hut, guest_house …).
-	Detail string     `json:"detail"`
-	Ref    string     `json:"ref,omitempty" doc:"Didok number of a stop, for timetable queries"`
-	At     [2]float64 `json:"at" doc:"lon, lat"`
+	Detail string `json:"detail"`
+	Ref    string `json:"ref,omitempty" doc:"Didok number of a stop, for timetable queries"`
+	// Website of a hut or accommodation, from OpenStreetMap where known.
+	Website string     `json:"website,omitempty"`
+	At      [2]float64 `json:"at" doc:"lon, lat"`
 	// DistanceM is the distance to the point asked about (the route end for
 	// stage places).
 	DistanceM float64 `json:"distance_m"`

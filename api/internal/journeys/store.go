@@ -39,11 +39,52 @@ type Store struct {
 
 // Create stores a new journey.
 func (s *Store) Create(ctx context.Context, ownerID uuid.UUID, m Meta) (Journey, error) {
+	return s.CreatePlanned(ctx, ownerID, m, nil)
+}
+
+// PlannedStage is a stage with its route, as a plan proposes it.
+type PlannedStage struct {
+	Title                    string
+	Content                  routes.Content
+	StartPlaceID, EndPlaceID *uuid.UUID
+	Accommodation            string
+}
+
+// CreatePlanned stores a new journey with its stages, all or nothing.
+func (s *Store) CreatePlanned(ctx context.Context, ownerID uuid.UUID, m Meta, stages []PlannedStage) (Journey, error) {
+	if len(stages) > MaxStages {
+		return Journey{}, fmt.Errorf("%w: at most %d stages", routes.ErrInvalid, MaxStages)
+	}
 	var id uuid.UUID
-	err := s.DB.QueryRow(ctx, `INSERT INTO journeys (owner_id, title, description, visibility, share_token, tags)
-		VALUES ($1, $2, $3, $4::visibility, CASE WHEN $4::visibility = 'unlisted' THEN $5 END, coalesce($6::text[], '{}'))
-		RETURNING id`,
-		ownerID, m.Title, m.Description, m.Visibility, routes.NewShareToken(), m.Tags).Scan(&id)
+	err := pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+		err := tx.QueryRow(ctx, `INSERT INTO journeys (owner_id, title, description, visibility, share_token, tags)
+			VALUES ($1, $2, $3, $4::visibility, CASE WHEN $4::visibility = 'unlisted' THEN $5 END, coalesce($6::text[], '{}'))
+			RETURNING id`,
+			ownerID, m.Title, m.Description, m.Visibility, routes.NewShareToken(), m.Tags).Scan(&id)
+		if err != nil {
+			return err
+		}
+		for i, st := range stages {
+			title := st.Title
+			if title == "" {
+				title = fmt.Sprintf("%s – %d", m.Title, i+1)
+			}
+			route, err := s.Routes.CreateInJourney(ctx, tx, ownerID, id, title, st.Content)
+			if err != nil {
+				return fmt.Errorf("stage %d: %w", i+1, err)
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO stages (journey_id, position, title, route_id,
+				start_place_id, end_place_id, accommodation) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+				id, i, st.Title, route, st.StartPlaceID, st.EndPlaceID, st.Accommodation); err != nil {
+				var pg *pgconn.PgError
+				if errors.As(err, &pg) && pg.Code == "23503" {
+					return fmt.Errorf("%w: stage %d: no such place", routes.ErrInvalid, i+1)
+				}
+				return err
+			}
+		}
+		return nil
+	})
 	if err != nil {
 		return Journey{}, fmt.Errorf("journeys: create: %w", err)
 	}

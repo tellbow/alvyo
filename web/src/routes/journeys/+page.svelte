@@ -42,6 +42,9 @@
 		<a href={resolve('/import')} class="underline hover:text-emerald-700"
 			>{m.import_journey_hint()}</a
 		>
+		·
+		<a href={resolve('/journeys/plan')} class="underline hover:text-emerald-700">{m.jplan_link()}</a
+		>
 	</p>
 
 	<form method="post" onsubmit={create} class="mt-6 flex gap-2">

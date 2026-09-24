@@ -94,6 +94,13 @@ type assembled struct {
 	totals Totals
 }
 
+// Check validates content as saving it would and returns its legs with
+// every number recomputed, and the route's totals.
+func Check(c Content) ([]routing.Leg, Totals, error) {
+	a, err := assemble(c)
+	return a.legs, a.totals, err
+}
+
 func assemble(c Content) (assembled, error) {
 	if c.Profile != "hike" && c.Profile != "alpine" {
 		return assembled{}, invalid("unknown profile %q", c.Profile)

@@ -546,8 +546,28 @@ export interface paths {
         /** The logged-in user's journeys */
         get: operations["list-my-journeys"];
         put?: never;
-        /** Start a multi-day journey */
+        /** Start a multi-day journey, empty or with its stages */
         post: operations["create-journey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journeys/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose the stages of a multi-day hike
+         * @description Routes the whole way and ends the days where one can sleep (huts, hotels, campsites) or travel home (stops), close to the time per day. Nothing is saved: POST /journeys with the stages does.
+         */
+        post: operations["plan-journey"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1855,6 +1875,8 @@ export interface components {
         };
         CreateJourneyInputBody: {
             description?: string;
+            /** @description The stages with their routes, e.g. from POST /journeys/plan */
+            stages?: components["schemas"]["PlannedStageInput"][];
             /** @description At most 20, each up to 40 characters; repeats (ignoring case) are dropped */
             tags?: string[];
             title: string;
@@ -2505,6 +2527,47 @@ export interface components {
             /** @description Didok number of a stop, for timetable queries */
             ref?: string;
             suggested?: boolean;
+            website?: string;
+        };
+        PlanJourneyInputBody: {
+            /**
+             * Format: int64
+             * @description Number of days; or hours_per_day
+             */
+            days?: number;
+            /** @description Place ids to end the days at instead (from a proposal's earlier and later) */
+            ends?: string[];
+            /**
+             * Format: double
+             * @description Hiking time per day (Swiss hiking time); or days
+             */
+            hours_per_day?: number;
+            /** @description Preferred places for the nights; all if none */
+            kinds?: ("hut" | "hotel" | "campsite" | "pt_stop")[];
+            /**
+             * Format: double
+             * @description No day longer if possible; 0: 1.25 × the time per day
+             */
+            max_hours?: number;
+            /** @description Start, points to pass, destination */
+            points: components["schemas"]["Point"][];
+            /**
+             * @default hike
+             * @enum {string}
+             */
+            profile: "hike" | "alpine";
+        };
+        PlannedStageInput: {
+            accommodation?: string;
+            anchors: components["schemas"]["RouteAnchor"][];
+            /** Format: uuid */
+            end_place_id?: string;
+            legs: components["schemas"]["Leg"][];
+            /** @enum {string} */
+            profile: "hike" | "alpine";
+            /** Format: uuid */
+            start_place_id?: string;
+            title?: string;
         };
         Point: {
             /** Format: double */
@@ -2543,6 +2606,13 @@ export interface components {
         };
         ProfilesOutputBody: {
             profiles: components["schemas"]["Profile"][];
+        };
+        Proposal: {
+            /** Format: int64 */
+            max_s: number;
+            stages: components["schemas"]["Stage"][];
+            /** Format: int64 */
+            target_s: number;
         };
         ProviderInfo: {
             id: string;
@@ -2866,6 +2936,22 @@ export interface components {
         };
         SocialSettingsInputBody: {
             comments_enabled: boolean;
+        };
+        Stage: {
+            /** @description The hut, hotel or campsite; empty at a stop */
+            accommodation: string;
+            anchors: components["schemas"]["RouteAnchor"][];
+            earlier: components["schemas"]["Place"];
+            /** @description Where the day ends; none on the last */
+            end_place: components["schemas"]["Place"];
+            later: components["schemas"]["Place"];
+            legs: components["schemas"]["Leg"][];
+            /** @description Longer than the maximum per day: there was no place to end it earlier */
+            over_max: boolean;
+            profile: string;
+            /** @description Where the previous day ended; none on the first */
+            start_place: components["schemas"]["Place"];
+            totals: components["schemas"]["RouteTotals"];
         };
         StageRouteInputBody: {
             anchors: components["schemas"]["RouteAnchor"][];
@@ -4270,6 +4356,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JourneyBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "plan-journey": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanJourneyInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
                 };
             };
             /** @description Error */

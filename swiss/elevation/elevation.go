@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // ErrNoCoverage means the elevation source has no data for (part of) the line.

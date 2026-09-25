@@ -151,7 +151,7 @@
 			</select>
 			<button
 				disabled={busy || !hydrated.value}
-				class="rounded bg-emerald-700 px-2 py-1 text-white hover:bg-emerald-800 disabled:opacity-50"
+				class="rounded bg-accent px-2 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 			>
 				{m.share_invite()}
 			</button>
@@ -160,5 +160,5 @@
 	{:else}
 		<p class="text-xs text-stone-500">{m.share_needs_verify()}</p>
 	{/if}
-	{#if error}<p role="alert" class="text-xs text-red-700">{error}</p>{/if}
+	{#if error}<p role="alert" class="text-xs text-red-700 dark:text-red-400">{error}</p>{/if}
 </section>

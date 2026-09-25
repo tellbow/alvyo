@@ -67,7 +67,7 @@
 	</div>
 </dl>
 {#if unofficialM > 50}
-	<p class="mt-2 text-xs text-amber-800">
+	<p class="mt-2 text-xs text-amber-800 dark:text-amber-200">
 		{m.stat_unofficial({ distance: formatDistance(unofficialM) })}
 	</p>
 {/if}

@@ -1,3 +1,3 @@
-module github.com/tellbow/odysgeh/swiss
+module github.com/tellbow/alvyo/swiss
 
 go 1.26.0

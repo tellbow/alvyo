@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/tags"
+	"github.com/tellbow/alvyo/api/internal/tags"
 )
 
 func TestTags(t *testing.T) {

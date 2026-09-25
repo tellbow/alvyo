@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:odysgeh/navigation/recording.dart';
-import 'package:odysgeh/navigation/tracker.dart';
+import 'package:alvyo/navigation/recording.dart';
+import 'package:alvyo/navigation/tracker.dart';
 
 void main() {
   late Directory root;

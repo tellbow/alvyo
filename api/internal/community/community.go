@@ -13,8 +13,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/mailer"
 )
 
 // Errors.

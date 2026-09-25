@@ -6,9 +6,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/l10n/app_localizations.dart';
-import 'package:odysgeh/screens/live_sheet.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/screens/live_sheet.dart';
 
 void main() {
   final route = RouteDetail.fromJson({
@@ -33,7 +33,7 @@ void main() {
   }) async {
     Map<String, dynamic>? sent;
     final api = Api(
-      'https://odysgeh.test',
+      'https://alvyo.test',
       token: 't',
       client: MockClient((req) async {
         final json = {'content-type': 'application/json; charset=utf-8'};

@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/main.dart';
-import 'package:odysgeh/offline/packs.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/main.dart';
+import 'package:alvyo/offline/packs.dart';
 
 import 'offline_test.dart' show OfflineSession;
 
@@ -38,7 +38,7 @@ void main() {
     final kept = File('${store.root.path}/journey-$id.json');
     if (kept.existsSync()) kept.deleteSync();
 
-    await tester.pumpWidget(const OdysgehApp());
+    await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
     if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
       await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
@@ -67,7 +67,7 @@ void main() {
     expect(find.byIcon(Icons.offline_pin), findsNWidgets(3)); // the header and both stages
 
     // Without a connection: the saved journey, and a stage on its offline map.
-    await tester.pumpWidget(OdysgehApp(key: UniqueKey(), session: OfflineSession()));
+    await tester.pumpWidget(AlvyoApp(key: UniqueKey(), session: OfflineSession()));
     await waitFor(tester, find.byKey(const Key('tab-journeys')));
     await tester.tap(find.byKey(const Key('tab-journeys')));
     await waitFor(tester, find.byKey(const Key('journeys-offline')));

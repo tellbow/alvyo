@@ -14,8 +14,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/mailer"
 )
 
 const (
@@ -133,7 +133,7 @@ func (s *Service) VerifyEmail(ctx context.Context, token string) error {
 
 // dummyHash is verified when the login is unknown so that response times do
 // not reveal which accounts exist.
-var dummyHash, _ = HashPassword("odysgeh-timing-equaliser")
+var dummyHash, _ = HashPassword("alvyo-timing-equaliser")
 
 // Login checks the credentials (e-mail or username) and starts a session.
 func (s *Service) Login(ctx context.Context, login, password, userAgent string) (dbq.User, Session, error) {

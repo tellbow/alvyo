@@ -89,11 +89,11 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 	const modContext = await browser.newContext();
 	const modPage = await modContext.newPage();
 	await member(modPage.request, moderator, 'Mia Moderatorin');
-	execFileSync('../api/bin/odysgeh', ['user', 'role', moderator, 'moderator'], {
+	execFileSync('../api/bin/alvyo', ['user', 'role', moderator, 'moderator'], {
 		env: {
 			...process.env,
-			ODYSGEH_DATABASE_URL:
-				process.env.ODYSGEH_DATABASE_URL ??
+			ALVYO_DATABASE_URL:
+				process.env.ALVYO_DATABASE_URL ??
 				'postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
 		}
 	});

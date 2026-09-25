@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/swiss/lv95"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/swiss/lv95"
 )
 
 // zurich: times in the e-mails are Swiss.

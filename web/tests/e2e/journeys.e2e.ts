@@ -6,7 +6,7 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 }) => {
 	await context.addInitScript(() => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({
 				base: 'landeskarte',
 				overlays: ['wanderwege'],

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/routing"
 )
 
 // straightGraphHopper answers every route request with the straight line

@@ -4,13 +4,13 @@
 <dict>
 	<!-- Plain HTTP to a server on the local network (development); the public server uses HTTPS. -->
 	<key>NSHealthShareUsageDescription</key>
-	<string>odysgeh imports the hikes you recorded with your Apple Watch.</string>
+	<string>Alvyo imports the hikes you recorded with your Apple Watch.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>odysgeh shows where you are on the route and records your hike.</string>
+	<string>Alvyo shows where you are on the route and records your hike.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>odysgeh records your hike while the phone is locked.</string>
+	<string>Alvyo records your hike while the phone is locked.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>odysgeh records your hike while the phone is locked.</string>
+	<string>Alvyo records your hike while the phone is locked.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
@@ -26,7 +26,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Odysgeh</string>
+	<string>Alvyo</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -34,7 +34,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>odysgeh</string>
+	<string>Alvyo</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

@@ -67,7 +67,7 @@
 					onclick={() => set('follow', !relation.followed)}
 					class={relation.followed
 						? 'rounded-md px-3 py-1.5 ring-1 ring-stone-300'
-						: 'rounded-md bg-emerald-700 px-3 py-1.5 text-white hover:bg-emerald-800'}
+						: 'rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover'}
 				>
 					{relation.followed ? m.profile_unfollow() : m.profile_follow()}
 				</button>
@@ -90,7 +90,7 @@
 	{#if profile.journeys.length > 0}
 		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.nav_journeys()}</h2>
 		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="profile-journeys"
 		>
 			{#each profile.journeys as j (j.id)}
@@ -116,7 +116,7 @@
 	{#if profile.routes.length > 0}
 		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.profile_routes()}</h2>
 		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="profile-routes"
 		>
 			{#each profile.routes as r (r.id)}

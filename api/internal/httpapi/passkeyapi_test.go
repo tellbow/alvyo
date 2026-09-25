@@ -14,7 +14,7 @@ import (
 func TestPasskeys(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	ctx := context.Background()
-	rp := virtualwebauthn.RelyingParty{ID: "odysgeh.test", Name: "odysgeh", Origin: origin}
+	rp := virtualwebauthn.RelyingParty{ID: "alvyo.test", Name: "alvyo", Origin: origin}
 	c := s.client(t)
 	c.do("POST", "/api/v1/auth/signup", signupBody("hiker@example.ch", "hiker"))
 	var id uuid.UUID

@@ -39,7 +39,7 @@ class ProtectedAreas extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: a.appliesOn(DateTime.now()) || days.any(a.appliesOn)
-                      ? const Color(0xFFFFFBEB)
+                      ? theme.colorScheme.tertiaryContainer
                       : theme.colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(6),
                 ),

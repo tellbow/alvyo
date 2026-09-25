@@ -1,6 +1,6 @@
 {
   "@@locale": "de",
-  "appTitle": "odysgeh",
+  "appTitle": "Alvyo",
   "loginTitle": "Anmelden",
   "server": "Server",
   "login": "E-Mail oder Benutzername",
@@ -76,7 +76,7 @@
   "watchImport": "Importieren",
   "watchImported": "Importiert – in «Meine Routen»",
   "watchNoTrack": "Dieses Training hat keine GPS-Strecke.",
-  "watchEmpty": "Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → odysgeh.",
+  "watchEmpty": "Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → Alvyo.",
   "watchUnavailable": "Apple Health ist auf diesem Gerät nicht verfügbar.",
   "watchOutside": "Nicht importiert: {reason}",
   "@watchOutside": {
@@ -228,6 +228,17 @@
   "@liveSharedUntil": {
     "placeholders": {
       "time": {
+        "type": "String"
+      }
+    }
+  },
+  "navRecord": "Aufzeichnen",
+  "navProfile": "Profil",
+  "recordHint": "Wähle eine Route und tippe auf «{start}», um die Wanderung aufzuzeichnen.",
+  "@recordHint": {
+    "description": "{start} is the text of the button that starts a hike (navStart).",
+    "placeholders": {
+      "start": {
         "type": "String"
       }
     }

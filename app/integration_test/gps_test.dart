@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:odysgeh/main.dart';
-import 'package:odysgeh/session.dart';
+import 'package:alvyo/main.dart';
+import 'package:alvyo/session.dart';
 
 /// The real GPS path, against the local dev server (see offline_test.dart).
 /// The simulator must be granted location access and be moving along
@@ -23,7 +23,7 @@ void main() {
   }
 
   testWidgets('start a hike with the GPS', (tester) async {
-    await tester.pumpWidget(const OdysgehApp());
+    await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
     if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
       await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');

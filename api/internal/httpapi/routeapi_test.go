@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/og"
+	"github.com/tellbow/alvyo/api/internal/og"
 )
 
 func routeLeg(lon0 float64) map[string]any {

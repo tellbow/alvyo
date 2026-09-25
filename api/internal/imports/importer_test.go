@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 func TestContentRejectsTracksWithoutLine(t *testing.T) {

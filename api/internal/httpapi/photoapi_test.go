@@ -13,8 +13,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/photos"
-	"github.com/tellbow/odysgeh/api/internal/photos/phototest"
+	"github.com/tellbow/alvyo/api/internal/photos"
+	"github.com/tellbow/alvyo/api/internal/photos/phototest"
 )
 
 type photosResp struct {

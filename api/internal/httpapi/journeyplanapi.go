@@ -10,9 +10,9 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/api/internal/stageplan"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/stageplan"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 type planJourneyInput struct {

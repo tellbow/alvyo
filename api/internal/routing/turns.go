@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // Turn is a junction where the route turns, for spoken navigation.
@@ -75,7 +75,7 @@ type matchedTurn struct {
 // cannot match the line.
 func (g *GraphHopper) match(ctx context.Context, pts []geo.Point) ([]geo.Point, []matchedTurn, error) {
 	var gpx bytes.Buffer
-	gpx.WriteString(`<?xml version="1.0"?><gpx version="1.1" creator="odysgeh" xmlns="http://www.topografix.com/GPX/1/1"><trk><trkseg>`)
+	gpx.WriteString(`<?xml version="1.0"?><gpx version="1.1" creator="alvyo" xmlns="http://www.topografix.com/GPX/1/1"><trk><trkseg>`)
 	for _, p := range pts {
 		fmt.Fprintf(&gpx, `<trkpt lat="%.6f" lon="%.6f"/>`, p.Lat, p.Lon)
 	}

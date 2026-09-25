@@ -54,16 +54,16 @@
 	</p>
 	<button
 		disabled={!hydrated.value || !canSave}
-		class="rounded-md bg-emerald-700 px-3 py-1.5 text-sm text-white hover:bg-emerald-800 disabled:opacity-50"
+		class="rounded-md bg-accent px-3 py-1.5 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
 	>
 		{status === 'saving' ? m.saving() : m.stage_save()}
 	</button>
 	{#if status === 'conflict'}
-		<p class="text-xs text-red-700" role="alert">{m.save_conflict()}</p>
+		<p class="text-xs text-red-700 dark:text-red-400" role="alert">{m.save_conflict()}</p>
 	{:else if status === 'failed'}
-		<p class="text-xs text-red-700" role="alert">{m.save_failed()}</p>
+		<p class="text-xs text-red-700 dark:text-red-400" role="alert">{m.save_failed()}</p>
 	{:else if !planner.complete && planner.anchors.length > 1}
 		<p class="text-xs text-stone-500">{m.save_incomplete()}</p>
 	{/if}
-	<a href={back} class="text-xs text-emerald-800 underline">{m.journey_back()}</a>
+	<a href={back} class="text-xs text-accent-ink underline">{m.journey_back()}</a>
 </form>

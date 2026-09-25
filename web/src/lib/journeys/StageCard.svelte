@@ -173,7 +173,7 @@
 					{#if canEdit}
 						<button
 							type="button"
-							class="text-emerald-800 underline"
+							class="text-accent-ink underline"
 							onclick={() => (picking = picking === e.which ? undefined : e.which)}
 						>
 							{e.place ? m.place_change() : m.place_choose()}
@@ -186,7 +186,7 @@
 							href={sbbUrl(e.which)}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="block text-emerald-800 underline"
+							class="block text-accent-ink underline"
 							data-testid="sbb-{e.which}"
 						>
 							{e.which === 'start' ? m.sbb_to_start() : m.sbb_from_end()} ↗
@@ -257,7 +257,7 @@
 		<div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
 			<a
 				href={resolve('/journeys/[id]/stages/[stage]', { id: journeyId, stage: s.id })}
-				class="rounded bg-emerald-700 px-2 py-1 text-white hover:bg-emerald-800"
+				class="rounded bg-accent px-2 py-1 text-on-accent hover:bg-accent-hover"
 			>
 				{s.route ? m.journey_edit_stage() : m.journey_plan_stage()}
 			</a>
@@ -321,7 +321,7 @@
 			<!-- eslint-disable svelte/no-navigation-without-resolve -->
 			<a
 				href="{resolve('/routes/[id]', { id: s.route.id })}{q}"
-				class="text-xs text-emerald-800 underline">→</a
+				class="text-xs text-accent-ink underline">→</a
 			>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		{/if}

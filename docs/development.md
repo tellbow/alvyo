@@ -9,8 +9,9 @@ repository root unless noted.
 make osm-fetch      # OSM extracts for Switzerland + Liechtenstein (~550 MB) → infra/data/osm
 make infra-up       # PostGIS, GraphHopper, tile cache, Mailpit (docker compose)
                     # GraphHopper builds its routing graph on first start (~2 min)
-export ODYSGEH_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
-go run ./api/cmd/odysgeh migrate
+# the database is still called odysgeh, from before the rename (operations.md)
+export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+go run ./api/cmd/alvyo migrate
 make tlm-import     # official hiking trails into PostGIS (~200 MB download), needed for SAC grades
 make places-import  # stops (BAV) and huts/accommodation (OSM) for stage start and end (~5 s)
 cd web && bun install
@@ -23,9 +24,9 @@ terminals:
 
 ```sh
 # terminal 1 — API on :8080
-export ODYSGEH_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
-go run ./api/cmd/odysgeh migrate     # after pulling new migrations
-go run ./api/cmd/odysgeh serve
+export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+go run ./api/cmd/alvyo migrate     # after pulling new migrations
+go run ./api/cmd/alvyo serve
 
 # terminal 2 — web app on :5173
 cd web && bun run dev
@@ -49,24 +50,24 @@ publicly) needs it — use the link from Mailpit.
 
 ### API configuration
 
-Environment variables of `odysgeh serve` (defaults match the dev stack):
+Environment variables of `alvyo serve` (defaults match the dev stack):
 
 | Variable | Default |
 |---|---|
-| `ODYSGEH_DATABASE_URL` | required |
-| `ODYSGEH_LISTEN` | `:8080` |
-| `ODYSGEH_PUBLIC_URL` | `http://localhost:5173` — origin of the web app; POSTs from other origins get 403 |
-| `ODYSGEH_GRAPHHOPPER_URL` | `http://localhost:8989` |
-| `ODYSGEH_TILES_URL` | `http://localhost:8081` |
-| `ODYSGEH_CACHE_DIR` | `$TMPDIR/odysgeh` (rendered preview images) |
-| `ODYSGEH_PHOTOS_DIR` | `data/photos`, relative to where the API runs (uploaded photos; git-ignored) |
-| `ODYSGEH_SMTP_HOST` / `_PORT` / `_USER` / `_PASSWORD` / `_TLS` | Mailpit: `localhost` / `1025` / – / – / `none` |
-| `ODYSGEH_MAIL_FROM` | `odysgeh <noreply@localhost>` |
-| `ODYSGEH_LOG_LEVEL` | `info` (`debug` logs every request) |
-| `ODYSGEH_OJP_TOKEN` | unset — opentransportdata.swiss API key for public transport connections; without it the search answers 503 and the UI shows only SBB links |
-| `ODYSGEH_OJP_URL` | `https://api.opentransportdata.swiss/ojp20` |
-| `ODYSGEH_OIDC_PROVIDERS` | unset — comma-separated ids of OpenID Connect sign-in providers, e.g. `google`; each needs `ODYSGEH_OIDC_<ID>_ISSUER`, `_CLIENT_ID`, `_CLIENT_SECRET` and optionally `_NAME` (button label). Register `<ODYSGEH_PUBLIC_URL>/api/v1/auth/oidc/<id>/callback` as redirect URI at the provider. Playwright runs a fake provider (`web/tests/e2e/fake-idp.mjs`) |
-| `ODYSGEH_RELAXED_LIMITS` | unset — `true` lifts the per-IP signup limit (5 per 10 min); Playwright sets it, never use it in production |
+| `ALVYO_DATABASE_URL` | required |
+| `ALVYO_LISTEN` | `:8080` |
+| `ALVYO_PUBLIC_URL` | `http://localhost:5173` — origin of the web app; POSTs from other origins get 403 |
+| `ALVYO_GRAPHHOPPER_URL` | `http://localhost:8989` |
+| `ALVYO_TILES_URL` | `http://localhost:8081` |
+| `ALVYO_CACHE_DIR` | `$TMPDIR/alvyo` (rendered preview images) |
+| `ALVYO_PHOTOS_DIR` | `data/photos`, relative to where the API runs (uploaded photos; git-ignored) |
+| `ALVYO_SMTP_HOST` / `_PORT` / `_USER` / `_PASSWORD` / `_TLS` | Mailpit: `localhost` / `1025` / – / – / `none` |
+| `ALVYO_MAIL_FROM` | `Alvyo <noreply@localhost>` |
+| `ALVYO_LOG_LEVEL` | `info` (`debug` logs every request) |
+| `ALVYO_OJP_TOKEN` | unset — opentransportdata.swiss API key for public transport connections; without it the search answers 503 and the UI shows only SBB links |
+| `ALVYO_OJP_URL` | `https://api.opentransportdata.swiss/ojp20` |
+| `ALVYO_OIDC_PROVIDERS` | unset — comma-separated ids of OpenID Connect sign-in providers, e.g. `google`; each needs `ALVYO_OIDC_<ID>_ISSUER`, `_CLIENT_ID`, `_CLIENT_SECRET` and optionally `_NAME` (button label). Register `<ALVYO_PUBLIC_URL>/api/v1/auth/oidc/<id>/callback` as redirect URI at the provider. Playwright runs a fake provider (`web/tests/e2e/fake-idp.mjs`) |
+| `ALVYO_RELAXED_LIMITS` | unset — `true` lifts the per-IP signup limit (5 per 10 min); Playwright sets it, never use it in production |
 
 The web app reads `API_INTERNAL_URL` (default `http://localhost:8080`) for
 server-side rendering and the Vite proxy.
@@ -93,7 +94,7 @@ uncaught browser error or console error (`tests/e2e/fixtures.ts`).
 
 Live tests against the real external services:
 `go test -tags live ./swiss/elevation/ ./api/internal/routing/`, and with
-`ODYSGEH_OJP_TOKEN` set `go test -tags live ./swiss/ojp/` (one planner
+`ALVYO_OJP_TOKEN` set `go test -tags live ./swiss/ojp/` (one planner
 request). The e2e tests stub the planner, so they never use the OJP quota.
 
 ## Production-like, locally
@@ -118,7 +119,7 @@ docker compose -f compose.yaml start graphhopper
 
 - **"Port 5173 is in use, trying another one"** — another dev server is running;
   Vite then picks 5174, but the API only accepts the origin in
-  `ODYSGEH_PUBLIC_URL`, so logins fail with 403. Stop the other one.
+  `ALVYO_PUBLIC_URL`, so logins fail with 403. Stop the other one.
 - **The page reloads right after starting** — Vite re-optimizes dependencies
   after config or dependency changes and reloads once. Wait a moment.
 - **No routes, "Kein Weg in der Nähe"** — GraphHopper is still importing

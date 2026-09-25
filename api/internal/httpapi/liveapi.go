@@ -10,8 +10,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/live"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/live"
 )
 
 type contactsOutput struct {

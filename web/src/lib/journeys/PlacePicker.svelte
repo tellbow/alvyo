@@ -77,7 +77,7 @@
 				<li>
 					<button
 						type="button"
-						class="flex w-full items-baseline gap-2 rounded px-1 py-0.5 text-left hover:bg-white"
+						class="flex w-full items-baseline gap-2 rounded px-1 py-0.5 text-left hover:bg-surface"
 						class:font-semibold={p.id === current?.id}
 						onclick={() => onpick(p.id)}
 					>
@@ -93,7 +93,7 @@
 	{/if}
 	<div class="flex justify-between text-xs">
 		{#if current && !current.suggested}
-			<button type="button" class="text-emerald-800 underline" onclick={() => onpick('')}>
+			<button type="button" class="text-accent-ink underline" onclick={() => onpick('')}>
 				{m.place_use_suggestion()}
 			</button>
 		{/if}

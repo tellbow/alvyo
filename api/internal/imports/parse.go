@@ -19,7 +19,7 @@ import (
 	"github.com/muktihari/fit/profile/filedef"
 	"golang.org/x/net/html/charset"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // Limits on uploaded files.

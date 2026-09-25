@@ -1,5 +1,5 @@
-odysgeh
-Copyright (C) 2026 Adrian Berger and odysgeh contributors
+Alvyo
+Copyright (C) 2026 Adrian Berger and Alvyo contributors
 Licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
 
 Data sources (attribution required when displaying or distributing):
@@ -24,4 +24,4 @@ Code derived from third-party projects is listed below with its license.
 - api/internal/imports/komoot.go: use of Komoot's unofficial API (login, tour
   list, tour coordinates) follows the Komoot plugin of wanderer
   (github.com/open-wanderer/wanderer, plugins/komoot), AGPL-3.0.
-  Re-implemented in Go for odysgeh on 2026-09-23.
+  Re-implemented in Go for Alvyo on 2026-09-23.

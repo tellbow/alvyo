@@ -103,13 +103,13 @@
 			{#if gallery}<PhotoPins {map} {lib} {gallery} />{/if}
 		{/if}
 		<div
-			class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-white/95 px-2 py-1 shadow ring-1 ring-stone-300"
+			class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-surface/95 px-2 py-1 shadow ring-1 ring-stone-300"
 		>
 			<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
 		</div>
 	</section>
 
-	<aside class="flex w-80 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-white p-4">
+	<aside class="flex w-80 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4">
 		<div>
 			<h1 class="text-xl font-semibold" data-testid="route-title">{route.title}</h1>
 			<p class="text-sm text-stone-500">
@@ -133,7 +133,7 @@
 						·
 						<a
 							href={resolve('/routes/[id]', { id: route.hike.planned_route_id })}
-							class="text-emerald-800 underline">{m.route_hiked_planned()}</a
+							class="text-accent-ink underline">{m.route_hiked_planned()}</a
 						>
 					{/if}
 				</p>
@@ -144,7 +144,7 @@
 			<div class="flex gap-2 text-sm">
 				<a
 					href={resolve('/plan/[id]', { id: route.id })}
-					class="rounded-md bg-emerald-700 px-3 py-1.5 text-white hover:bg-emerald-800"
+					class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
 				>
 					{m.route_edit()}
 				</a>
@@ -169,7 +169,7 @@
 		{/if}
 		<!-- API download, not a page: resolve() does not apply. -->
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href="/api/v1/routes/{route.id}/gpx" download class="text-sm text-emerald-800 underline"
+		<a href="/api/v1/routes/{route.id}/gpx" download class="text-sm text-accent-ink underline"
 			>{m.route_gpx()}</a
 		>
 		<StatsPanel totals={planner.totals} pace={user?.speed_factor ?? 1} />

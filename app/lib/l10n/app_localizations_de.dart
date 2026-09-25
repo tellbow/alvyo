@@ -9,7 +9,7 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appTitle => 'odysgeh';
+  String get appTitle => 'Alvyo';
 
   @override
   String get loginTitle => 'Anmelden';
@@ -144,7 +144,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get watchEmpty =>
-      'Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → odysgeh.';
+      'Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → Alvyo.';
 
   @override
   String get watchUnavailable => 'Apple Health ist auf diesem Gerät nicht verfügbar.';
@@ -341,4 +341,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get liveNoContacts => 'Kontakte zum Teilen legst du auf der Website unter «Konto» an.';
+
+  @override
+  String get navRecord => 'Aufzeichnen';
+
+  @override
+  String get navProfile => 'Profil';
+
+  @override
+  String recordHint(String start) {
+    return 'Wähle eine Route und tippe auf «$start», um die Wanderung aufzuzeichnen.';
+  }
 }

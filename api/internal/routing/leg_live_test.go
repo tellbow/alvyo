@@ -10,15 +10,15 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/swiss/elevation"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/elevation"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // TestLegLive runs against the dev stack: GraphHopper on :8989, the compose
 // database with swissTLM3D imported, and the real geo.admin service.
 // Run with: go test -tags live ./internal/routing/
 func TestLegLive(t *testing.T) {
-	url := os.Getenv("ODYSGEH_DATABASE_URL")
+	url := os.Getenv("ALVYO_DATABASE_URL")
 	if url == "" {
 		url = "postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable"
 	}
@@ -29,7 +29,7 @@ func TestLegLive(t *testing.T) {
 	defer pool.Close()
 	r := &Router{
 		GraphHopper: &GraphHopper{URL: "http://localhost:8989"},
-		Elevation:   &elevation.GeoAdmin{UserAgent: "odysgeh-test"},
+		Elevation:   &elevation.GeoAdmin{UserAgent: "alvyo-test"},
 		Trails:      &TrailMatcher{DB: pool},
 	}
 	gaflei := geo.Point{Lon: 9.54280, Lat: 47.14472}

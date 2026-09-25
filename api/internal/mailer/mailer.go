@@ -29,7 +29,7 @@ type SMTPConfig struct {
 	Username string // empty: no authentication
 	Password string
 	TLS      string // "none", "starttls" or "tls"
-	From     string // e.g. "odysgeh <noreply@odysgeh.ch>"
+	From     string // e.g. "Alvyo <noreply@alvyo.ch>"
 }
 
 // SMTP sends mail through an SMTP server.

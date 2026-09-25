@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
 func TestBan(t *testing.T) {

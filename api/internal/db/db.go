@@ -10,7 +10,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // database/sql driver for goose
 	"github.com/pressly/goose/v3"
 
-	"github.com/tellbow/odysgeh/api/migrations"
+	"github.com/tellbow/alvyo/api/migrations"
 )
 
 // Open connects to the database and checks the connection.

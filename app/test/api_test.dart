@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:odysgeh/api.dart';
+import 'package:alvyo/api.dart';
 
 void main() {
   const totals = {
@@ -25,7 +25,7 @@ void main() {
               'user': {'id': 'u-anna', 'username': 'anna', 'display_name': 'Anna', 'speed_factor': 1.0},
             }),
             200,
-            headers: {'set-cookie': 'odysgeh_session=tok123; Path=/; HttpOnly; SameSite=Lax'},
+            headers: {'set-cookie': 'alvyo_session=tok123; Path=/; HttpOnly; SameSite=Lax'},
           );
         case '/api/v1/routes':
           expect(req.headers['authorization'], 'Bearer tok123');
@@ -40,7 +40,7 @@ void main() {
       }
       return http.Response('', 404);
     });
-    final api = Api('https://odysgeh.test/', client: client);
+    final api = Api('https://alvyo.test/', client: client);
     final me = await api.login('anna', 'geheim');
     expect(me.username, 'anna');
     expect(api.token, 'tok123');
@@ -51,8 +51,8 @@ void main() {
   });
 
   test('the server address is tidied', () {
-    expect(Api('odysgeh.tellbow.ch').server, 'https://odysgeh.tellbow.ch');
-    expect(Api(' https://odysgeh.tellbow.ch// ').server, 'https://odysgeh.tellbow.ch');
+    expect(Api('alvyo.tellbow.ch').server, 'https://alvyo.tellbow.ch');
+    expect(Api(' https://alvyo.tellbow.ch// ').server, 'https://alvyo.tellbow.ch');
     expect(Api('http://localhost:5173').server, 'http://localhost:5173');
   });
 
@@ -86,7 +86,7 @@ void main() {
       }
       return http.Response(jsonEncode({'detail': 'route not found'}), 404);
     });
-    final api = Api('https://odysgeh.test', token: 't', client: client);
+    final api = Api('https://alvyo.test', token: 't', client: client);
     final r = await api.route('r1');
     expect(r.line.length, 4);
     expect(r.line.last, [8.002, 46.5, 1020]);
@@ -171,7 +171,7 @@ void main() {
       }
       return http.Response('', 404);
     });
-    final api = Api('https://odysgeh.test', token: 't', client: client);
+    final api = Api('https://alvyo.test', token: 't', client: client);
     final list = await api.journeys();
     expect((list.single.title, list.single.stages, list.single.stagesDone), ('Via Alpina', 3, 1));
     expect(list.single.tags, ['Tessin']);

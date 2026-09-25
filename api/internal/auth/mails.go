@@ -3,8 +3,8 @@ package auth
 import (
 	"fmt"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/mailer"
 )
 
 func verificationMail(u dbq.User, link string) mailer.Message {
@@ -12,30 +12,30 @@ func verificationMail(u dbq.User, link string) mailer.Message {
 	case "fr":
 		return mailer.Message{
 			To:      u.Email,
-			Subject: "odysgeh : confirmer ton adresse e-mail",
+			Subject: "Alvyo : confirmer ton adresse e-mail",
 			Text: fmt.Sprintf("Bonjour %s\n\nMerci de confirmer ton adresse e-mail avec ce lien (valable 48 heures) :\n\n%s\n\n"+
-				"Si tu n'as pas créé de compte odysgeh, tu peux ignorer cet e-mail.\n", u.DisplayName, link),
+				"Si tu n'as pas créé de compte Alvyo, tu peux ignorer cet e-mail.\n", u.DisplayName, link),
 		}
 	case "it":
 		return mailer.Message{
 			To:      u.Email,
-			Subject: "odysgeh: conferma il tuo indirizzo e-mail",
+			Subject: "Alvyo: conferma il tuo indirizzo e-mail",
 			Text: fmt.Sprintf("Ciao %s\n\nConferma il tuo indirizzo e-mail con questo link (valido 48 ore):\n\n%s\n\n"+
-				"Se non hai creato un account odysgeh, puoi ignorare questa e-mail.\n", u.DisplayName, link),
+				"Se non hai creato un account Alvyo, puoi ignorare questa e-mail.\n", u.DisplayName, link),
 		}
 	case "de":
 		return mailer.Message{
 			To:      u.Email,
-			Subject: "odysgeh: E-Mail-Adresse bestätigen",
+			Subject: "Alvyo: E-Mail-Adresse bestätigen",
 			Text: fmt.Sprintf("Hallo %s\n\nBitte bestätige deine E-Mail-Adresse mit diesem Link (gültig 48 Stunden):\n\n%s\n\n"+
-				"Falls du kein Konto bei odysgeh erstellt hast, kannst du diese E-Mail ignorieren.\n", u.DisplayName, link),
+				"Falls du kein Konto bei Alvyo erstellt hast, kannst du diese E-Mail ignorieren.\n", u.DisplayName, link),
 		}
 	}
 	return mailer.Message{
 		To:      u.Email,
-		Subject: "odysgeh: confirm your e-mail address",
+		Subject: "Alvyo: confirm your e-mail address",
 		Text: fmt.Sprintf("Hi %s\n\nPlease confirm your e-mail address with this link (valid for 48 hours):\n\n%s\n\n"+
-			"If you did not create an odysgeh account, you can ignore this e-mail.\n", u.DisplayName, link),
+			"If you did not create an Alvyo account, you can ignore this e-mail.\n", u.DisplayName, link),
 	}
 }
 
@@ -44,28 +44,28 @@ func resetMail(u dbq.User, link string) mailer.Message {
 	case "fr":
 		return mailer.Message{
 			To:      u.Email,
-			Subject: "odysgeh : réinitialiser ton mot de passe",
+			Subject: "Alvyo : réinitialiser ton mot de passe",
 			Text: fmt.Sprintf("Bonjour %s\n\nAvec ce lien, tu peux définir un nouveau mot de passe (valable 1 heure) :\n\n%s\n\n"+
 				"Si tu n'as rien demandé, tu peux ignorer cet e-mail ; ton mot de passe reste inchangé.\n", u.DisplayName, link),
 		}
 	case "it":
 		return mailer.Message{
 			To:      u.Email,
-			Subject: "odysgeh: reimposta la password",
+			Subject: "Alvyo: reimposta la password",
 			Text: fmt.Sprintf("Ciao %s\n\nCon questo link puoi impostare una nuova password (valido 1 ora):\n\n%s\n\n"+
 				"Se non l'hai richiesto, puoi ignorare questa e-mail; la tua password resta invariata.\n", u.DisplayName, link),
 		}
 	case "de":
 		return mailer.Message{
 			To:      u.Email,
-			Subject: "odysgeh: Passwort zurücksetzen",
+			Subject: "Alvyo: Passwort zurücksetzen",
 			Text: fmt.Sprintf("Hallo %s\n\nMit diesem Link kannst du ein neues Passwort setzen (gültig 1 Stunde):\n\n%s\n\n"+
 				"Falls du das nicht angefordert hast, kannst du diese E-Mail ignorieren; dein Passwort bleibt unverändert.\n", u.DisplayName, link),
 		}
 	}
 	return mailer.Message{
 		To:      u.Email,
-		Subject: "odysgeh: reset your password",
+		Subject: "Alvyo: reset your password",
 		Text: fmt.Sprintf("Hi %s\n\nUse this link to set a new password (valid for 1 hour):\n\n%s\n\n"+
 			"If you did not request this, you can ignore this e-mail; your password stays unchanged.\n", u.DisplayName, link),
 	}

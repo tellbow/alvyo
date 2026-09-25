@@ -9,13 +9,13 @@ import (
 	"time"
 )
 
-// Run with ODYSGEH_OJP_TOKEN set: go test -tags live ./ojp/
+// Run with ALVYO_OJP_TOKEN set: go test -tags live ./ojp/
 func TestLiveSargansWeisstannen(t *testing.T) {
-	token := os.Getenv("ODYSGEH_OJP_TOKEN")
+	token := os.Getenv("ALVYO_OJP_TOKEN")
 	if token == "" {
-		t.Skip("ODYSGEH_OJP_TOKEN not set")
+		t.Skip("ALVYO_OJP_TOKEN not set")
 	}
-	c := &Client{URL: DefaultURL, Token: token, RequestorRef: "odysgeh-live-test"}
+	c := &Client{URL: DefaultURL, Token: token, RequestorRef: "alvyo-live-test"}
 	zurich, _ := time.LoadLocation("Europe/Zurich")
 	next := time.Now().In(zurich).Add(24 * time.Hour)
 	at := time.Date(next.Year(), next.Month(), next.Day(), 8, 0, 0, 0, zurich)

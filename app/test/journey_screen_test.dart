@@ -7,10 +7,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/l10n/app_localizations.dart';
-import 'package:odysgeh/offline/packs.dart';
-import 'package:odysgeh/screens/journeys_list.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/offline/packs.dart';
+import 'package:alvyo/screens/journeys_list.dart';
 
 const _totals = {
   'distance_m': 18502.0,
@@ -214,7 +214,7 @@ void main() {
 
   testWidgets('a journey\'s stages, all saved offline, then opened without a connection', (tester) async {
     final server = FakeServer();
-    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
     await pumpList(tester, api, find.text('Via Alpina'));
     expect(find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'), findsOneWidget);
 
@@ -263,7 +263,7 @@ void main() {
     if (dir.existsSync()) dir.deleteSync(recursive: true);
     await pumpList(
       tester,
-      Api('https://odysgeh.test', token: 't', client: server.client),
+      Api('https://alvyo.test', token: 't', client: server.client),
       find.text('Der Server ist nicht erreichbar.'),
     );
     expect(find.text('Der Server ist nicht erreichbar.'), findsOneWidget);
@@ -271,7 +271,7 @@ void main() {
 
   testWidgets('a stage is ticked off as hiked; a change by someone else meanwhile is shown', (tester) async {
     final server = FakeServer()..canEdit = true;
-    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
     await pumpList(tester, api, find.text('Via Alpina'));
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.byKey(const Key('stage-done-0')));
@@ -297,7 +297,7 @@ void main() {
 
   testWidgets('viewers cannot tick stages off', (tester) async {
     final server = FakeServer();
-    await pumpList(tester, Api('https://odysgeh.test', token: 't', client: server.client), find.text('Via Alpina'));
+    await pumpList(tester, Api('https://alvyo.test', token: 't', client: server.client), find.text('Via Alpina'));
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Gaflei – Sargans'));
     expect(find.byKey(const Key('stage-done-0')), findsNothing);
@@ -305,7 +305,7 @@ void main() {
 
   testWidgets('pulling the journey down loads it again', (tester) async {
     final server = FakeServer();
-    await pumpList(tester, Api('https://odysgeh.test', token: 't', client: server.client), find.text('Via Alpina'));
+    await pumpList(tester, Api('https://alvyo.test', token: 't', client: server.client), find.text('Via Alpina'));
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Gaflei – Sargans'));
     server.s1Status = 'done'; // changed elsewhere

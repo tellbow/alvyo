@@ -42,12 +42,11 @@
 	<h1 class="text-2xl font-semibold">{m.journeys_title()}</h1>
 	<p class="mt-1 text-stone-600">
 		{m.journeys_intro()}
-		<a href={resolve('/import')} class="underline hover:text-emerald-700"
+		<a href={resolve('/import')} class="underline hover:text-accent-ink"
 			>{m.import_journey_hint()}</a
 		>
 		·
-		<a href={resolve('/journeys/plan')} class="underline hover:text-emerald-700">{m.jplan_link()}</a
-		>
+		<a href={resolve('/journeys/plan')} class="underline hover:text-accent-ink">{m.jplan_link()}</a>
 	</p>
 
 	<form method="post" onsubmit={create} class="mt-6 flex gap-2">
@@ -61,7 +60,7 @@
 		/>
 		<button
 			disabled={!hydrated.value}
-			class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800"
+			class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
 		>
 			{m.journey_create()}
 		</button>
@@ -72,7 +71,7 @@
 		<p class="mt-6 text-stone-600">{m.journeys_empty()}</p>
 	{:else}
 		<ul
-			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="journey-list"
 		>
 			{#each journeys as j (j.id)}
@@ -102,7 +101,7 @@
 	{#if shared.length > 0}
 		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.shared_title()}</h2>
 		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="shared-journeys"
 		>
 			{#each shared as j (j.id)}

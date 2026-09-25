@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
 // leg builds a valid leg of n segments going east from lon0 at 46.5° N,

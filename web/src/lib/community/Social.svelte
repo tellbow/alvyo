@@ -147,7 +147,7 @@
 				<div class="flex gap-2">
 					<button
 						disabled={busy || !draft.trim()}
-						class="rounded-md bg-emerald-700 px-3 py-1 text-white hover:bg-emerald-800 disabled:opacity-50"
+						class="rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 						>{m.save()}</button
 					>
 					<button type="button" class="underline" onclick={() => (editing = undefined)}
@@ -246,7 +246,7 @@
 								<div class="flex gap-2">
 									<button
 										disabled={busy || !draft.trim()}
-										class="rounded-md bg-emerald-700 px-3 py-1 text-white hover:bg-emerald-800 disabled:opacity-50"
+										class="rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 										>{m.community_reply()}</button
 									>
 									<button type="button" class="underline" onclick={() => (replyTo = undefined)}
@@ -272,7 +272,7 @@
 					class="rounded-md border border-stone-300 px-2 py-1"></textarea>
 				<button
 					disabled={!hydrated.value || busy || !text.trim()}
-					class="self-start rounded-md bg-emerald-700 px-3 py-1 text-white hover:bg-emerald-800 disabled:opacity-50"
+					class="self-start rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 					>{m.community_comment_send()}</button
 				>
 			</form>
@@ -290,7 +290,7 @@
 			<p class="text-xs text-stone-500">{m.community_verify_to_comment()}</p>
 		{/if}
 
-		{#if error}<p role="alert" class="text-xs text-red-700">{error}</p>{/if}
+		{#if error}<p role="alert" class="text-xs text-red-700 dark:text-red-400">{error}</p>{/if}
 
 		{#if user && !social.can_moderate}
 			<div>

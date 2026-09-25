@@ -14,12 +14,12 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/dbq"
 )
 
 // Identity errors.
 var (
-	// ErrIdentityTaken: the provider account belongs to another odysgeh account.
+	// ErrIdentityTaken: the provider account belongs to another Alvyo account.
 	ErrIdentityTaken = errors.New("auth: this provider account is connected to another account")
 	// ErrProviderLinked: the account already has an identity at this provider.
 	ErrProviderLinked = errors.New("auth: already connected to this provider")

@@ -10,8 +10,8 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/packs"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/packs"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 type packStatusOutput struct{ Body packs.Status }

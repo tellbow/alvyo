@@ -7,12 +7,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/l10n/app_localizations.dart';
-import 'package:odysgeh/navigation/alerts.dart';
-import 'package:odysgeh/navigation/speech.dart';
-import 'package:odysgeh/navigation/tracker.dart';
-import 'package:odysgeh/screens/navigate_screen.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/navigation/alerts.dart';
+import 'package:alvyo/navigation/speech.dart';
+import 'package:alvyo/navigation/tracker.dart';
+import 'package:alvyo/screens/navigate_screen.dart';
 
 class _QuietAlerts extends Alerts {
   @override

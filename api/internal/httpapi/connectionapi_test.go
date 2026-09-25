@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/ojp"
+	"github.com/tellbow/alvyo/swiss/ojp"
 )
 
 type fakePlanner struct {

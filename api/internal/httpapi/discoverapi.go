@@ -10,11 +10,11 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/tellbow/odysgeh/api/internal/community"
-	"github.com/tellbow/odysgeh/api/internal/discover"
-	"github.com/tellbow/odysgeh/api/internal/grants"
-	"github.com/tellbow/odysgeh/api/internal/journeys"
-	"github.com/tellbow/odysgeh/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/community"
+	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/grants"
+	"github.com/tellbow/alvyo/api/internal/journeys"
+	"github.com/tellbow/alvyo/api/internal/routes"
 )
 
 type discoverInput struct {

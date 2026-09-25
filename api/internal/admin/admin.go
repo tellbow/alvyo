@@ -1,4 +1,4 @@
-// Package admin implements the moderation commands of the odysgeh CLI.
+// Package admin implements the moderation commands of the alvyo CLI.
 package admin
 
 import (

@@ -1,5 +1,5 @@
-name: odysgeh
-description: "odysgeh: Swiss hiking routes on the national map, offline."
+name: alvyo
+description: "Alvyo: Swiss hiking routes on the national map, offline."
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -30,3 +30,19 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  fonts:
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree-Regular.ttf
+        - asset: assets/fonts/Figtree-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Figtree-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Figtree-Bold.ttf
+          weight: 700
+    - family: Bricolage Grotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BricolageGrotesque-Bold.ttf
+          weight: 700

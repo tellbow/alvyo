@@ -87,7 +87,7 @@
 	{:else if trips}
 		<ol class="flex flex-col gap-1.5">
 			{#each trips as trip, i (i)}
-				<li class="rounded bg-white/70 px-1.5 py-1" data-testid="trip">
+				<li class="rounded bg-surface/70 px-1.5 py-1" data-testid="trip">
 					<p class="font-medium tabular-nums">
 						{hhmm(trip.start)} → {hhmm(trip.end)}
 						<span class="font-normal text-stone-600">
@@ -104,7 +104,7 @@
 									<span class="font-medium text-stone-800">{leg.line}</span>
 									{leg.from} → {leg.to}{#if leg.platform}
 										· {m.connections_platform({ p: leg.platform })}{/if}{#if leg.delay_min}
-										<span class="text-red-700"> +{leg.delay_min}′</span>{/if}
+										<span class="text-red-700 dark:text-red-400"> +{leg.delay_min}′</span>{/if}
 								{:else}
 									{m.connections_walk({ min: leg.duration_min ?? 0 })}
 								{/if}

@@ -31,7 +31,7 @@
 				{@const planned = a.period ? days.some((d) => inPeriod(a.period!, d)) : days.length > 0}
 				<li
 					class="rounded-md border px-2 py-1.5 {now || planned
-						? 'border-amber-300 bg-amber-50'
+						? 'border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40'
 						: 'border-stone-200'}"
 					data-testid="protected-area"
 				>
@@ -59,9 +59,11 @@
 					</p>
 					{#if a.note}<p class="text-xs text-stone-600">{a.note}</p>{/if}
 					<p class="text-xs">
-						{#if a.period && now}<span class="font-medium text-amber-800">{m.areas_now()}</span>
-						{:else if a.period && planned}<span class="font-medium text-amber-800"
-								>{m.areas_on_date()}</span
+						{#if a.period && now}<span class="font-medium text-amber-800 dark:text-amber-200"
+								>{m.areas_now()}</span
+							>
+						{:else if a.period && planned}<span
+								class="font-medium text-amber-800 dark:text-amber-200">{m.areas_on_date()}</span
 							>{/if}
 						{#if a.link}
 							<!-- The canton's or BAFU's page: resolve() does not apply. -->
@@ -70,7 +72,7 @@
 								href={a.link}
 								target="_blank"
 								rel="noopener noreferrer nofollow"
-								class="text-emerald-800 underline">{m.areas_more()} ↗</a
+								class="text-accent-ink underline">{m.areas_more()} ↗</a
 							>
 							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 						{/if}

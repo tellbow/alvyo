@@ -6,12 +6,14 @@
 	let {
 		label,
 		near,
-		onpick
+		onpick,
+		inputClass = 'w-full rounded-md border border-stone-300 px-2 py-1.5 text-sm'
 	}: {
 		label: string;
 		/** The map centre: among equally good matches, the nearest come first. */
 		near: () => [number, number] | undefined;
 		onpick: (place: FoundPlace) => void;
+		inputClass?: string;
 	} = $props();
 
 	const uid = $props.id();
@@ -85,7 +87,7 @@
 <div class="relative">
 	<input
 		type="search"
-		class="w-full rounded-md border border-stone-300 px-2 py-1.5 text-sm"
+		class={inputClass}
 		placeholder={label}
 		aria-label={label}
 		role="combobox"
@@ -102,7 +104,7 @@
 		<ul
 			id="{uid}-list"
 			role="listbox"
-			class="absolute z-20 mt-1 max-h-80 w-full overflow-y-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-stone-300"
+			class="absolute z-20 mt-1 max-h-80 w-full overflow-y-auto rounded-md bg-surface py-1 text-sm shadow-lg ring-1 ring-stone-300"
 		>
 			{#each results as p, i (i)}
 				<!-- Combobox pattern: the keys are handled on the input, options never get focus. -->

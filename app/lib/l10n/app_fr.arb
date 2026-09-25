@@ -1,6 +1,6 @@
 {
   "@@locale": "fr",
-  "appTitle": "odysgeh",
+  "appTitle": "Alvyo",
   "loginTitle": "Se connecter",
   "server": "Serveur",
   "login": "E-mail ou nom d'utilisateur",
@@ -42,7 +42,7 @@
   "watchImport": "Importer",
   "watchImported": "Importé – dans Mes itinéraires",
   "watchNoTrack": "Cet entraînement n'a pas de tracé GPS.",
-  "watchEmpty": "Aucune randonnée des 60 derniers jours dans Apple Health. Enregistre-les avec l'app Exercice de l'Apple Watch («Randonnée» ou «Marche en extérieur»). Si tu n'as pas autorisé l'accès : Réglages → Apps → Santé → Accès aux données et appareils → odysgeh.",
+  "watchEmpty": "Aucune randonnée des 60 derniers jours dans Apple Health. Enregistre-les avec l'app Exercice de l'Apple Watch («Randonnée» ou «Marche en extérieur»). Si tu n'as pas autorisé l'accès : Réglages → Apps → Santé → Accès aux données et appareils → Alvyo.",
   "watchUnavailable": "Apple Santé n'est pas disponible sur cet appareil.",
   "watchOutside": "Non importé : {reason}",
   "turnSharpLeft": "Tourne fortement à gauche",
@@ -99,5 +99,8 @@
   "liveShareStart": "Partager et partir",
   "liveShareSkip": "Sans partager",
   "liveShareFailed": "Le partage n'a pas fonctionné ; la randonnée est tout de même enregistrée.",
-  "liveNoContacts": "Ajoute des contacts sur le site web sous « Compte »."
+  "liveNoContacts": "Ajoute des contacts sur le site web sous « Compte ».",
+  "navRecord": "Enregistrer",
+  "navProfile": "Profil",
+  "recordHint": "Choisis un itinéraire et touche « {start} » pour enregistrer la randonnée."
 }

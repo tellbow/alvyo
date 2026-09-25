@@ -11,7 +11,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/tellbow/odysgeh/swiss/ojp"
+	"github.com/tellbow/alvyo/swiss/ojp"
 )
 
 // Planner finds public transport connections (ojp.Client).

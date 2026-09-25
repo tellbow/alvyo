@@ -29,7 +29,7 @@
 		<p>
 			<a
 				href={resolve('/journeys/[id]', { id: result.journey_id })}
-				class="font-medium text-emerald-800 underline">{m.import_journey_created()}</a
+				class="font-medium text-accent-ink underline">{m.import_journey_created()}</a
 			>
 		</p>
 	{:else if result.routes.length > 0}
@@ -37,7 +37,7 @@
 		<ul class="list-inside list-disc">
 			{#each result.routes as r (r.id)}
 				<li>
-					<a href={resolve('/routes/[id]', { id: r.id })} class="text-emerald-800 underline"
+					<a href={resolve('/routes/[id]', { id: r.id })} class="text-accent-ink underline"
 						>{r.title}</a
 					>
 				</li>

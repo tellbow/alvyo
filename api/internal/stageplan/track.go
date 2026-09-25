@@ -5,10 +5,10 @@ package stageplan
 import (
 	"math"
 
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/hikingtime"
-	"github.com/tellbow/odysgeh/swiss/stats"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/hikingtime"
+	"github.com/tellbow/alvyo/swiss/stats"
 )
 
 // Track is a whole route as one line: vertices with elevation and what is

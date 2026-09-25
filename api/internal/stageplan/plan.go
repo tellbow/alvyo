@@ -10,10 +10,10 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/places"
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 const (

@@ -6,11 +6,11 @@ test('the language follows the browser and can be switched', async ({ browser })
 	// Each language has its own address; German has no prefix.
 	await page.goto('/about');
 	await expect(page).toHaveURL(/\/fr\/about$/);
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText("À propos d'odysgeh");
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText("À propos d'Alvyo");
 	await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
 
 	await page.getByTestId('language').selectOption('it');
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Informazioni su odysgeh');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Informazioni su Alvyo');
 	await expect(page).toHaveURL(/\/it\/about$/);
 	// The choice wins over an address in another language.
 	await page.goto('/fr/discover');

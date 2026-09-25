@@ -3,7 +3,7 @@
 // The PMTiles v3 encoding (Hilbert tile ids, directory serialisation,
 // header layout, root/leaf split) is adapted from protomaps/go-pmtiles
 // (pmtiles/tile_id.go and pmtiles/directory.go, BSD-3-Clause, © 2021
-// Protomaps LLC) for odysgeh on 2026-09-23, to avoid its cloud storage
+// Protomaps LLC) for Alvyo on 2026-09-23, to avoid its cloud storage
 // dependencies.
 
 package packs

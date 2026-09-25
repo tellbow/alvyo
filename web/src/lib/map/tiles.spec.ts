@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { tileLoader } from './tiles';
 
-const url = 'odysgeh-tile://https://odysgeh.ch/tiles/wmts/l/10/1/2.png';
+const url = 'alvyo-tile://https://alvyo.ch/tiles/wmts/l/10/1/2.png';
 
 function server(statuses: number[]) {
 	const asked: string[] = [];
@@ -16,7 +16,7 @@ describe('tileLoader', () => {
 	it('asks again for a tile refused while busy', async () => {
 		const { asked, fetchFn } = server([503, 429]);
 		const res = await tileLoader(fetchFn, 1)({ url }, new AbortController());
-		expect(asked).toEqual(Array(3).fill('https://odysgeh.ch/tiles/wmts/l/10/1/2.png'));
+		expect(asked).toEqual(Array(3).fill('https://alvyo.ch/tiles/wmts/l/10/1/2.png'));
 		expect((res.data as ArrayBuffer).byteLength).toBe(3);
 	});
 

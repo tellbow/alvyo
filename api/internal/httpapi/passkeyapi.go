@@ -10,7 +10,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/go-webauthn/webauthn/protocol"
 
-	"github.com/tellbow/odysgeh/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/auth"
 )
 
 type passkeyRegisterBeginInput struct {

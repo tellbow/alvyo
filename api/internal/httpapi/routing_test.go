@@ -11,11 +11,11 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/auth"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/api/internal/testdb"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/testdb"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 type flatSampler struct{}

@@ -15,8 +15,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/routes"
 )
 
 // Limits and times.

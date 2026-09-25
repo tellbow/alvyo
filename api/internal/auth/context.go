@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/dbq"
 )
 
 type userKey struct{}

@@ -16,9 +16,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/access"
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/access"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/mailer"
 )
 
 // MaxPerItem bounds the grants on one route, journey or collection.
@@ -244,7 +244,7 @@ func inviteMail(to, locale string, owner dbq.User, t Target, role, link string) 
 		return mailer.Message{
 			To:      to,
 			Subject: fmt.Sprintf("%s a partagé « %s » avec toi", owner.DisplayName, t.Title),
-			Text: fmt.Sprintf("Bonjour\n\n%s (@%s) t'invite à %s %s « %s » sur odysgeh :\n\n%s\n\n"+
+			Text: fmt.Sprintf("Bonjour\n\n%s (@%s) t'invite à %s %s « %s » sur Alvyo :\n\n%s\n\n"+
 				"Pas encore de compte ? Inscris-toi avec cette adresse e-mail (%s) ; une fois confirmée, tu trouveras "+
 				"l'invitation sous « Partagé avec moi ».\n", owner.DisplayName, owner.Username, verb, what, t.Title, link, to),
 		}
@@ -254,7 +254,7 @@ func inviteMail(to, locale string, owner dbq.User, t Target, role, link string) 
 		return mailer.Message{
 			To:      to,
 			Subject: fmt.Sprintf("%s ha condiviso «%s» con te", owner.DisplayName, t.Title),
-			Text: fmt.Sprintf("Ciao\n\n%s (@%s) ti invita a %s %s «%s» su odysgeh:\n\n%s\n\n"+
+			Text: fmt.Sprintf("Ciao\n\n%s (@%s) ti invita a %s %s «%s» su Alvyo:\n\n%s\n\n"+
 				"Non hai ancora un account? Registrati con questo indirizzo e-mail (%s); dopo la conferma troverai "+
 				"l'invito in «Condivisi con me».\n", owner.DisplayName, owner.Username, verb, what, t.Title, link, to),
 		}
@@ -264,7 +264,7 @@ func inviteMail(to, locale string, owner dbq.User, t Target, role, link string) 
 		return mailer.Message{
 			To:      to,
 			Subject: fmt.Sprintf("%s hat «%s» mit dir geteilt", owner.DisplayName, t.Title),
-			Text: fmt.Sprintf("Hallo\n\n%s (@%s) lädt dich ein, %s «%s» auf odysgeh %s:\n\n%s\n\n"+
+			Text: fmt.Sprintf("Hallo\n\n%s (@%s) lädt dich ein, %s «%s» auf Alvyo %s:\n\n%s\n\n"+
 				"Noch kein Konto? Registriere dich mit dieser E-Mail-Adresse (%s); nach der Bestätigung "+
 				"findest du die Einladung unter «Mit mir geteilt».\n", owner.DisplayName, owner.Username, what, t.Title, verb, link, to),
 		}
@@ -274,7 +274,7 @@ func inviteMail(to, locale string, owner dbq.User, t Target, role, link string) 
 	return mailer.Message{
 		To:      to,
 		Subject: fmt.Sprintf("%s shared “%s” with you", owner.DisplayName, t.Title),
-		Text: fmt.Sprintf("Hi\n\n%s (@%s) invites you to %s %s “%s” on odysgeh:\n\n%s\n\n"+
+		Text: fmt.Sprintf("Hi\n\n%s (@%s) invites you to %s %s “%s” on Alvyo:\n\n%s\n\n"+
 			"No account yet? Sign up with this e-mail address (%s); once it is confirmed, "+
 			"the invitation appears under “Shared with me”.\n", owner.DisplayName, owner.Username, verb, what, t.Title, link, to),
 	}

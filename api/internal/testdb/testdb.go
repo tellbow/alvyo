@@ -2,8 +2,8 @@
 // database. One container is started per test binary; every call to New
 // clones a fresh database from a migrated template, which takes milliseconds.
 //
-// The image defaults to odysgeh-postgis:18 (built by `make infra-up`);
-// override it with ODYSGEH_TEST_PG_IMAGE. Tests are skipped with -short.
+// The image defaults to alvyo-postgis:18 (built by `make infra-up`);
+// override it with ALVYO_TEST_PG_IMAGE. Tests are skipped with -short.
 package testdb
 
 import (
@@ -20,10 +20,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
-	"github.com/tellbow/odysgeh/api/internal/db"
+	"github.com/tellbow/alvyo/api/internal/db"
 )
 
-const templateDB = "odysgeh_template"
+const templateDB = "alvyo_template"
 
 var (
 	once     sync.Once
@@ -70,16 +70,16 @@ func New(t testing.TB) *pgxpool.Pool {
 
 func start() {
 	ctx := context.Background()
-	img := os.Getenv("ODYSGEH_TEST_PG_IMAGE")
+	img := os.Getenv("ALVYO_TEST_PG_IMAGE")
 	if img == "" {
-		img = "odysgeh-postgis:18"
+		img = "alvyo-postgis:18"
 	}
 	// The container is removed by testcontainers' reaper when the test
 	// binary exits.
 	c, err := postgres.Run(ctx, img,
 		postgres.WithDatabase(templateDB),
-		postgres.WithUsername("odysgeh"),
-		postgres.WithPassword("odysgeh"),
+		postgres.WithUsername("alvyo"),
+		postgres.WithPassword("alvyo"),
 		postgres.BasicWaitStrategies(),
 	)
 	if err != nil {

@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/imports"
-	"github.com/tellbow/odysgeh/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/imports"
+	"github.com/tellbow/alvyo/api/internal/routing"
 )
 
 // upload posts a multipart form with a file.

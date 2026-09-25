@@ -31,11 +31,11 @@
 	<div class="mb-6 flex items-center justify-between">
 		<h1 class="text-2xl font-semibold">{m.routes_title()}</h1>
 		<div class="flex items-center gap-4">
-			<a href={resolve('/routes/map')} class="text-sm hover:text-emerald-700">{m.mymap_link()}</a>
-			<a href={resolve('/import')} class="text-sm hover:text-emerald-700">{m.import_link()}</a>
+			<a href={resolve('/routes/map')} class="text-sm hover:text-accent-ink">{m.mymap_link()}</a>
+			<a href={resolve('/import')} class="text-sm hover:text-accent-ink">{m.import_link()}</a>
 			<a
 				href={resolve('/plan')}
-				class="rounded-md bg-emerald-700 px-3 py-1.5 text-sm text-white hover:bg-emerald-800"
+				class="rounded-md bg-accent px-3 py-1.5 text-sm text-on-accent hover:bg-accent-hover"
 			>
 				{m.route_new()}
 			</a>
@@ -46,7 +46,7 @@
 		<p class="text-stone-600">{m.routes_empty()}</p>
 	{:else}
 		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="route-list"
 		>
 			{#each routes as r (r.id)}
@@ -90,7 +90,7 @@
 	{#if shared.length > 0}
 		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.shared_title()}</h2>
 		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="shared-routes"
 		>
 			{#each shared as r (r.id)}

@@ -3,7 +3,7 @@ import { expect, test } from './fixtures';
 test('save a planned route, reopen and edit it, then delete it', async ({ page, context }) => {
 	await context.addInitScript(() => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({
 				base: 'landeskarte',
 				overlays: ['wanderwege'],

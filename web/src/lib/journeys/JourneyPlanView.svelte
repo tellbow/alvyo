@@ -187,7 +187,7 @@
 	</section>
 
 	<aside
-		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-white p-4"
+		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
 		data-testid="journey-plan-panel"
 	>
 		<div>
@@ -297,13 +297,13 @@
 
 			<button
 				disabled={!hydrated.value || busy || points.length < 2}
-				class="rounded-md bg-emerald-700 px-3 py-1.5 text-white hover:bg-emerald-800 disabled:opacity-50"
+				class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 			>
 				{busy ? m.jplan_running() : m.jplan_submit()}
 			</button>
 		</form>
 
-		{#if problem}<p role="alert" class="text-sm text-red-700">{problem}</p>{/if}
+		{#if problem}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{problem}</p>{/if}
 
 		{#if proposal}
 			<p class="text-sm font-medium" data-testid="plan-summary">
@@ -348,16 +348,16 @@
 									href={st.end_place.website}
 									target="_blank"
 									rel="noopener noreferrer nofollow"
-									class="text-emerald-800 underline">{m.jplan_website()} ↗</a
+									class="text-accent-ink underline">{m.jplan_website()} ↗</a
 								>
 								<!-- eslint-enable svelte/no-navigation-without-resolve -->
 							{/if}
 						</p>
 						{#if st.end_place?.kind === 'hut'}
-							<p class="mt-1 text-xs text-amber-800">{m.jplan_hut_hint()}</p>
+							<p class="mt-1 text-xs text-amber-800 dark:text-amber-200">{m.jplan_hut_hint()}</p>
 						{/if}
 						{#if st.over_max}
-							<p class="mt-1 text-xs text-amber-800">{m.jplan_over_max()}</p>
+							<p class="mt-1 text-xs text-amber-800 dark:text-amber-200">{m.jplan_over_max()}</p>
 						{/if}
 						{#if st.earlier || st.later}
 							<div class="mt-1 flex flex-wrap gap-2 text-xs">
@@ -397,7 +397,7 @@
 				</label>
 				<button
 					disabled={!hydrated.value || busy || !title.trim()}
-					class="rounded-md bg-emerald-700 px-3 py-1.5 text-white hover:bg-emerald-800 disabled:opacity-50"
+					class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 				>
 					{m.jplan_create()}
 				</button>

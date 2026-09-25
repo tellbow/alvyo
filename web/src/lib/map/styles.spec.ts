@@ -33,10 +33,10 @@ describe('keepOwnLayers', () => {
 
 describe('baseStyle', () => {
 	it('serves raster base maps through the tile cache, limited to Switzerland', () => {
-		const s = baseStyle('landeskarte', 'https://odysgeh.ch') as StyleSpecification;
+		const s = baseStyle('landeskarte', 'https://alvyo.ch') as StyleSpecification;
 		const src = s.sources.base as { tiles: string[]; bounds: number[] };
 		expect(src.tiles[0]).toBe(
-			'odysgeh-tile://https://odysgeh.ch/tiles/wmts/ch.swisstopo.pixelkarte-farbe/{z}/{x}/{y}.jpeg'
+			'alvyo-tile://https://alvyo.ch/tiles/wmts/ch.swisstopo.pixelkarte-farbe/{z}/{x}/{y}.jpeg'
 		);
 		expect(src.bounds).toEqual([5.7, 45.6, 10.8, 48.0]);
 	});

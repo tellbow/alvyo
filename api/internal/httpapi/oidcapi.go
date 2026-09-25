@@ -12,11 +12,11 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/auth"
 )
 
 // oidcCookie binds a sign-in to the browser that started it.
-const oidcCookie = "odysgeh_oidc"
+const oidcCookie = "alvyo_oidc"
 
 type providersOutput struct {
 	Body struct {
@@ -40,7 +40,7 @@ type oidcCallbackInput struct {
 	Code      string `query:"code"`
 	State     string `query:"state"`
 	Error     string `query:"error"`
-	Cookie    string `cookie:"odysgeh_oidc"`
+	Cookie    string `cookie:"alvyo_oidc"`
 	UserAgent string `header:"User-Agent"`
 	Locale    string `cookie:"PARAGLIDE_LOCALE"`
 }

@@ -344,7 +344,7 @@
 		{/if}
 		{#if profile.coordinates.length > 1}
 			<div
-				class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-white/95 px-2 py-1 shadow ring-1 ring-stone-300"
+				class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-surface/95 px-2 py-1 shadow ring-1 ring-stone-300"
 			>
 				<ElevationProfile
 					line={profile}
@@ -357,7 +357,7 @@
 	</section>
 
 	<aside
-		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-white p-4"
+		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
 		data-testid="journey-panel"
 	>
 		<div>
@@ -395,7 +395,7 @@
 			</div>
 			<div class="h-2 overflow-hidden rounded-full bg-stone-100">
 				<div
-					class="h-full bg-emerald-600"
+					class="h-full bg-accent"
 					style:width="{journey.progress.distance_total_m > 0
 						? (journey.progress.distance_done_m / journey.progress.distance_total_m) * 100
 						: 0}%"
@@ -408,7 +408,7 @@
 			<ProtectedAreas {areas} failed={areasFailed} days={plannedDays} />
 		{/if}
 
-		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
+		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 
 		{#key conflicts}
 			<ol class="flex flex-col gap-2" data-testid="stage-list">
@@ -416,8 +416,8 @@
 					{#if s.gap && s.gap.status !== 'ok'}
 						<li
 							class="rounded-md px-2 py-1 text-xs {s.gap.status === 'transfer'
-								? 'bg-sky-50 text-sky-900'
-								: 'bg-amber-50 text-amber-900'}"
+								? 'bg-sky-50 text-sky-900 dark:bg-sky-950/40 dark:text-sky-200'
+								: 'bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'}"
 							data-testid="gap"
 							data-status={s.gap.status}
 						>
@@ -491,7 +491,7 @@
 			<div class="flex flex-col gap-2 text-sm">
 				<button
 					type="button"
-					class="rounded-md bg-emerald-700 px-3 py-1.5 text-white hover:bg-emerald-800"
+					class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
 					onclick={() => addStage()}
 				>
 					{m.journey_add_stage()}
@@ -569,7 +569,7 @@
 			<a
 				href="/api/v1/journeys/{journey.id}/gpx{q}"
 				download
-				class="text-sm text-emerald-800 underline">{m.journey_gpx()}</a
+				class="text-sm text-accent-ink underline">{m.journey_gpx()}</a
 			>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		{/if}

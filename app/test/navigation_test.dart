@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:odysgeh/navigation/hiking_time.dart';
-import 'package:odysgeh/navigation/tracker.dart';
+import 'package:alvyo/navigation/hiking_time.dart';
+import 'package:alvyo/navigation/tracker.dart';
 
 const _mPerDegLat = 111320.0;
 final _mPerDegLon = _mPerDegLat * cos(46.5 * pi / 180);

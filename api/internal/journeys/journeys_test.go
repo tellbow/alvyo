@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
 // content builds a single-leg route going east from lon0 at 46.5° N

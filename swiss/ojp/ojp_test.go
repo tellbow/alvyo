@@ -83,12 +83,12 @@ func TestParseNoTrip(t *testing.T) {
 
 func TestRequestXML(t *testing.T) {
 	at := time.Date(2026, 7, 4, 8, 0, 0, 0, time.FixedZone("CEST", 2*3600))
-	dep := requestXML(Query{From: "8509411", To: "8509965", At: at}, "odysgeh <test>", at)
+	dep := requestXML(Query{From: "8509411", To: "8509965", At: at}, "alvyo <test>", at)
 	if !strings.Contains(dep, "<StopPlaceRef>8509411</StopPlaceRef></PlaceRef><DepArrTime>2026-07-04T06:00:00Z</DepArrTime></Origin>") ||
-		!strings.Contains(dep, "odysgeh &lt;test&gt;") || !strings.Contains(dep, "<NumberOfResults>4</NumberOfResults>") {
+		!strings.Contains(dep, "alvyo &lt;test&gt;") || !strings.Contains(dep, "<NumberOfResults>4</NumberOfResults>") {
 		t.Errorf("departure request:\n%s", dep)
 	}
-	arr := requestXML(Query{From: "8509411", To: "8509965", At: at, Arrive: true, Results: 2}, "odysgeh", at)
+	arr := requestXML(Query{From: "8509411", To: "8509965", At: at, Arrive: true, Results: 2}, "alvyo", at)
 	if !strings.Contains(arr, "<StopPlaceRef>8509965</StopPlaceRef></PlaceRef><DepArrTime>2026-07-04T06:00:00Z</DepArrTime></Destination>") {
 		t.Errorf("arrival request:\n%s", arr)
 	}
@@ -117,14 +117,14 @@ func TestTrips(t *testing.T) {
 		body, _ := io.ReadAll(r.Body)
 		if r.Method != http.MethodPost || r.Header.Get("Authorization") != "Bearer key" ||
 			!strings.HasPrefix(r.Header.Get("Content-Type"), "application/xml") ||
-			!strings.Contains(string(body), "8503000") || !strings.Contains(string(body), "<siri:RequestorRef>odysgeh</siri:RequestorRef>") {
+			!strings.Contains(string(body), "8503000") || !strings.Contains(string(body), "<siri:RequestorRef>alvyo</siri:RequestorRef>") {
 			t.Errorf("request %s %v: %s", r.Method, r.Header, body)
 		}
 		w.WriteHeader(status)
 		_, _ = w.Write(answer)
 	}))
 	defer srv.Close()
-	c := &Client{URL: srv.URL, Token: "key", RequestorRef: "odysgeh"}
+	c := &Client{URL: srv.URL, Token: "key", RequestorRef: "alvyo"}
 	q := Query{From: "8503000", To: "8509434", At: time.Date(2026, 9, 26, 7, 0, 0, 0, time.UTC)}
 
 	trips, err := c.Trips(context.Background(), q)

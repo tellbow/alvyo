@@ -10,16 +10,16 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/swiss/elevation"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/elevation"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // TestPlanLive runs against the dev stack: GraphHopper on :8989, the compose
 // database with swissTLM3D and the places imported, and geo.admin.
 // Run with: go test -tags live ./internal/stageplan/
 func TestPlanLive(t *testing.T) {
-	url := os.Getenv("ODYSGEH_DATABASE_URL")
+	url := os.Getenv("ALVYO_DATABASE_URL")
 	if url == "" {
 		url = "postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable"
 	}
@@ -31,7 +31,7 @@ func TestPlanLive(t *testing.T) {
 	p := &Planner{
 		Router: &routing.Router{
 			GraphHopper: &routing.GraphHopper{URL: "http://localhost:8989", Client: nil},
-			Elevation:   &elevation.GeoAdmin{UserAgent: "odysgeh-test"},
+			Elevation:   &elevation.GeoAdmin{UserAgent: "alvyo-test"},
 			Trails:      &routing.TrailMatcher{DB: pool},
 		},
 		DB: pool,

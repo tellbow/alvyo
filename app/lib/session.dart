@@ -6,7 +6,7 @@ import 'api.dart';
 class Session {
   Session({FlutterSecureStorage? storage}) : _storage = storage ?? const FlutterSecureStorage();
 
-  static const defaultServer = 'https://odysgeh.tellbow.ch';
+  static const defaultServer = 'https://alvyo.tellbow.ch';
   final FlutterSecureStorage _storage;
 
   /// The saved login, if any.

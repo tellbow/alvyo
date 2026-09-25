@@ -9,8 +9,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/imports"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/imports"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 type hikePoint struct {

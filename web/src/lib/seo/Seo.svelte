@@ -38,7 +38,7 @@
 </script>
 
 <svelte:head>
-	<title>{title.includes('odysgeh') ? title : `${title} · odysgeh`}</title>
+	<title>{title.includes('Alvyo') ? title : `${title} · Alvyo`}</title>
 	{#if text}<meta name="description" content={text} />{/if}
 	{#if shown}
 		<link rel="canonical" href={url} />
@@ -50,7 +50,7 @@
 		<meta name="robots" content="noindex" />
 	{/if}
 	<meta property="og:type" content="website" />
-	<meta property="og:site_name" content="odysgeh" />
+	<meta property="og:site_name" content="Alvyo" />
 	<meta property="og:locale" content={OG_LOCALE[getLocale()]} />
 	<meta property="og:title" content={title} />
 	{#if text}<meta property="og:description" content={text} />{/if}

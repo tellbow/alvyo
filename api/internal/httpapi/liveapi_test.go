@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/live"
+	"github.com/tellbow/alvyo/api/internal/live"
 )
 
 func TestLiveAPI(t *testing.T) {

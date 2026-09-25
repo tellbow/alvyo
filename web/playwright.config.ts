@@ -12,23 +12,23 @@ export default defineConfig({
 	webServer: [
 		{
 			command:
-				'cd .. && go build -o api/bin/odysgeh ./api/cmd/odysgeh && api/bin/odysgeh migrate && api/bin/odysgeh serve',
+				'cd .. && go build -o api/bin/alvyo ./api/cmd/alvyo && api/bin/alvyo migrate && api/bin/alvyo serve',
 			url: `http://localhost:${API_PORT}/healthz`,
 			reuseExistingServer: !process.env.CI,
 			env: {
-				ODYSGEH_DATABASE_URL:
-					process.env.ODYSGEH_DATABASE_URL ??
+				ALVYO_DATABASE_URL:
+					process.env.ALVYO_DATABASE_URL ??
 					'postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable',
-				ODYSGEH_LISTEN: `:${API_PORT}`,
-				ODYSGEH_PUBLIC_URL: `http://localhost:${WEB_PORT}`,
+				ALVYO_LISTEN: `:${API_PORT}`,
+				ALVYO_PUBLIC_URL: `http://localhost:${WEB_PORT}`,
 				// every test signs up its own account from 127.0.0.1
-				ODYSGEH_RELAXED_LIMITS: 'true',
+				ALVYO_RELAXED_LIMITS: 'true',
 				// the fake provider below
-				ODYSGEH_OIDC_PROVIDERS: 'e2e',
-				ODYSGEH_OIDC_E2E_NAME: 'Test-ID',
-				ODYSGEH_OIDC_E2E_ISSUER: 'http://localhost:18090',
-				ODYSGEH_OIDC_E2E_CLIENT_ID: 'odysgeh',
-				ODYSGEH_OIDC_E2E_CLIENT_SECRET: 'e2e-secret'
+				ALVYO_OIDC_PROVIDERS: 'e2e',
+				ALVYO_OIDC_E2E_NAME: 'Test-ID',
+				ALVYO_OIDC_E2E_ISSUER: 'http://localhost:18090',
+				ALVYO_OIDC_E2E_CLIENT_ID: 'alvyo',
+				ALVYO_OIDC_E2E_CLIENT_SECRET: 'e2e-secret'
 			}
 		},
 		{

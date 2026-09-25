@@ -1,4 +1,4 @@
-// Package httpapi wires the HTTP routes of the odysgeh API.
+// Package httpapi wires the HTTP routes of the Alvyo API.
 package httpapi
 
 import (
@@ -15,21 +15,21 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/areas"
-	"github.com/tellbow/odysgeh/api/internal/auth"
-	"github.com/tellbow/odysgeh/api/internal/collections"
-	"github.com/tellbow/odysgeh/api/internal/community"
-	"github.com/tellbow/odysgeh/api/internal/discover"
-	"github.com/tellbow/odysgeh/api/internal/grants"
-	"github.com/tellbow/odysgeh/api/internal/imports"
-	"github.com/tellbow/odysgeh/api/internal/journeys"
-	"github.com/tellbow/odysgeh/api/internal/live"
-	"github.com/tellbow/odysgeh/api/internal/og"
-	"github.com/tellbow/odysgeh/api/internal/packs"
-	"github.com/tellbow/odysgeh/api/internal/photos"
-	"github.com/tellbow/odysgeh/api/internal/places"
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/areas"
+	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/collections"
+	"github.com/tellbow/alvyo/api/internal/community"
+	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/grants"
+	"github.com/tellbow/alvyo/api/internal/imports"
+	"github.com/tellbow/alvyo/api/internal/journeys"
+	"github.com/tellbow/alvyo/api/internal/live"
+	"github.com/tellbow/alvyo/api/internal/og"
+	"github.com/tellbow/alvyo/api/internal/packs"
+	"github.com/tellbow/alvyo/api/internal/photos"
+	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/routing"
 )
 
 // Prefix is the path under which the versioned API is served.
@@ -100,7 +100,7 @@ func New(d Deps) (http.Handler, huma.API) {
 		_, _ = w.Write([]byte("ok\n"))
 	})
 
-	cfg := huma.DefaultConfig("odysgeh API", d.Version)
+	cfg := huma.DefaultConfig("Alvyo API", d.Version)
 	cfg.CreateHooks = nil // no $schema links in response bodies
 	cfg.Components.Schemas = huma.NewMapRegistry("#/components/schemas/", schemaNamer)
 	cfg.Servers = []*huma.Server{{URL: Prefix}}
@@ -175,7 +175,7 @@ func registerMeta(api huma.API, d Deps) {
 	}, func(context.Context, *struct{}) (*versionOutput, error) {
 		out := &versionOutput{}
 		out.Body.Version = d.Version
-		out.Body.Source = "https://github.com/tellbow/odysgeh"
+		out.Body.Source = "https://github.com/tellbow/alvyo"
 		return out, nil
 	})
 }

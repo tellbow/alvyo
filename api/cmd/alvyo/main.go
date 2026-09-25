@@ -1,11 +1,11 @@
-// Command odysgeh runs the odysgeh API server and its maintenance subcommands.
+// Command alvyo runs the alvyo API server and its maintenance subcommands.
 //
-//	odysgeh serve                        run the HTTP API
-//	odysgeh migrate                      apply pending database migrations
-//	odysgeh openapi                      print the OpenAPI spec (for client code generation)
-//	odysgeh user ban|unban <username>    block or unblock an account
-//	odysgeh user role <username> <role>  set user, moderator or admin
-//	odysgeh route unpublish <id>         make a route private
+//	alvyo serve                        run the HTTP API
+//	alvyo migrate                      apply pending database migrations
+//	alvyo openapi                      print the OpenAPI spec (for client code generation)
+//	alvyo user ban|unban <username>    block or unblock an account
+//	alvyo user role <username> <role>  set user, moderator or admin
+//	alvyo route unpublish <id>         make a route private
 package main
 
 import (
@@ -23,28 +23,28 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/tellbow/odysgeh/api/internal/admin"
-	"github.com/tellbow/odysgeh/api/internal/areas"
-	"github.com/tellbow/odysgeh/api/internal/auth"
-	"github.com/tellbow/odysgeh/api/internal/collections"
-	"github.com/tellbow/odysgeh/api/internal/community"
-	"github.com/tellbow/odysgeh/api/internal/config"
-	"github.com/tellbow/odysgeh/api/internal/db"
-	"github.com/tellbow/odysgeh/api/internal/discover"
-	"github.com/tellbow/odysgeh/api/internal/grants"
-	"github.com/tellbow/odysgeh/api/internal/httpapi"
-	"github.com/tellbow/odysgeh/api/internal/imports"
-	"github.com/tellbow/odysgeh/api/internal/journeys"
-	"github.com/tellbow/odysgeh/api/internal/live"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/api/internal/og"
-	"github.com/tellbow/odysgeh/api/internal/packs"
-	"github.com/tellbow/odysgeh/api/internal/photos"
-	"github.com/tellbow/odysgeh/api/internal/places"
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/swiss/elevation"
-	"github.com/tellbow/odysgeh/swiss/ojp"
+	"github.com/tellbow/alvyo/api/internal/admin"
+	"github.com/tellbow/alvyo/api/internal/areas"
+	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/collections"
+	"github.com/tellbow/alvyo/api/internal/community"
+	"github.com/tellbow/alvyo/api/internal/config"
+	"github.com/tellbow/alvyo/api/internal/db"
+	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/grants"
+	"github.com/tellbow/alvyo/api/internal/httpapi"
+	"github.com/tellbow/alvyo/api/internal/imports"
+	"github.com/tellbow/alvyo/api/internal/journeys"
+	"github.com/tellbow/alvyo/api/internal/live"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/og"
+	"github.com/tellbow/alvyo/api/internal/packs"
+	"github.com/tellbow/alvyo/api/internal/photos"
+	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/elevation"
+	"github.com/tellbow/alvyo/swiss/ojp"
 )
 
 // version is set at build time: -ldflags "-X main.version=<sha>".
@@ -52,11 +52,11 @@ var version = "dev"
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: odysgeh serve|migrate|openapi|user|route")
+		fmt.Fprintln(os.Stderr, "usage: alvyo serve|migrate|openapi|user|route")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1], os.Args[2:]); err != nil {
-		slog.Error("odysgeh failed", "err", err)
+		slog.Error("alvyo failed", "err", err)
 		os.Exit(1)
 	}
 }
@@ -100,7 +100,7 @@ func serve(ctx context.Context) error {
 	journeyStore := &journeys.Store{DB: pool, Routes: routeStore}
 	router := &routing.Router{
 		GraphHopper: &routing.GraphHopper{URL: cfg.GraphHopper},
-		Elevation:   &elevation.GeoAdmin{UserAgent: "odysgeh/" + version + " (+https://github.com/tellbow/odysgeh)"},
+		Elevation:   &elevation.GeoAdmin{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"},
 		Trails:      &routing.TrailMatcher{DB: pool},
 	}
 	webAuthn, err := auth.NewWebAuthn(cfg.PublicURL)
@@ -123,11 +123,11 @@ func serve(ctx context.Context) error {
 	go liveStore.CheckEvery(ctx, time.Minute) // overdue hikes, old positions
 	var planner httpapi.Planner
 	if cfg.OJPToken != "" {
-		planner = &ojp.Client{URL: cfg.OJPURL, Token: cfg.OJPToken, RequestorRef: "odysgeh/" + version}
+		planner = &ojp.Client{URL: cfg.OJPURL, Token: cfg.OJPToken, RequestorRef: "alvyo/" + version}
 	}
 	var limits httpapi.Limits // zero value: defaults
 	if cfg.RelaxedLimits {
-		slog.Warn("relaxed rate limits (ODYSGEH_RELAXED_LIMITS): for tests only")
+		slog.Warn("relaxed rate limits (ALVYO_RELAXED_LIMITS): for tests only")
 		limits = httpapi.RelaxedLimits()
 	}
 	handler, _ := httpapi.New(httpapi.Deps{
@@ -140,7 +140,7 @@ func serve(ctx context.Context) error {
 		Komoot:      &imports.Komoot{API: imports.KomootAPI},
 		Places:      &places.Store{DB: pool, Names: &places.GeoAdmin{}},
 		Live:        liveStore,
-		Areas:       &areas.Finder{DB: pool, UserAgent: "odysgeh/" + version + " (+https://github.com/tellbow/odysgeh)"},
+		Areas:       &areas.Finder{DB: pool, UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"},
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},
 		Discover:    &discover.Store{DB: pool},
@@ -208,7 +208,7 @@ func adminCommand(ctx context.Context, cmd string, args []string) error {
 	}
 	defer pool.Close()
 
-	usage := errors.New("usage: odysgeh user ban|unban <username> | user role <username> <role> | route unpublish <id>")
+	usage := errors.New("usage: alvyo user ban|unban <username> | user role <username> <role> | route unpublish <id>")
 	switch {
 	case cmd == "user" && len(args) == 2 && args[0] == "ban":
 		err = admin.Ban(ctx, pool, args[1])

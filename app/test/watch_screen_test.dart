@@ -6,11 +6,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/l10n/app_localizations.dart';
-import 'package:odysgeh/navigation/tracker.dart';
-import 'package:odysgeh/screens/watch_screen.dart';
-import 'package:odysgeh/watch/workouts.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/navigation/tracker.dart';
+import 'package:alvyo/screens/watch_screen.dart';
+import 'package:alvyo/watch/workouts.dart';
 
 class FakeWorkouts implements WorkoutSource {
   FakeWorkouts(this.workouts, {this.available = true});
@@ -86,7 +86,7 @@ void main() {
   testWidgets('imports a workout with its track as a hike, once', (tester) async {
     final bodies = <Map<String, dynamic>>[];
     final api = Api(
-      'https://odysgeh.test',
+      'https://alvyo.test',
       token: 't',
       client: MockClient((req) async {
         bodies.add(jsonDecode(req.body) as Map<String, dynamic>);
@@ -122,7 +122,7 @@ void main() {
   });
 
   testWidgets('explains when there is nothing or no Apple Health', (tester) async {
-    final api = Api('https://odysgeh.test', token: 't', client: MockClient((_) async => http.Response('', 500)));
+    final api = Api('https://alvyo.test', token: 't', client: MockClient((_) async => http.Response('', 500)));
     await pump(tester, FakeWorkouts([]), api);
     expect(find.textContaining('Keine Wanderungen der letzten 60 Tage'), findsOneWidget);
     await pump(tester, FakeWorkouts([], available: false), api);

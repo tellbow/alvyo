@@ -120,7 +120,7 @@
 	}
 </script>
 
-<section class="rounded-md border border-stone-200 bg-white p-4" data-testid="komoot-import">
+<section class="rounded-md border border-stone-200 bg-surface p-4" data-testid="komoot-import">
 	<h2 class="text-lg font-semibold">{m.komoot_title()}</h2>
 	<p class="mt-1 text-sm text-stone-600">{m.komoot_intro()}</p>
 
@@ -146,7 +146,7 @@
 			/>
 			<button
 				disabled={!hydrated.value || busy}
-				class="self-start rounded-md bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800 disabled:opacity-50"
+				class="self-start rounded-md bg-accent px-4 py-2 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
 			>
 				{m.komoot_login()}
 			</button>
@@ -162,7 +162,7 @@
 				type="button"
 				onclick={run}
 				disabled={busy || selected.size === 0}
-				class="ml-auto rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800 disabled:opacity-50"
+				class="ml-auto rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 			>
 				{importing ? m.komoot_importing(importing) : m.import_submit()}
 			</button>
@@ -176,7 +176,7 @@
 					{#if t.imported_route_id}
 						<a
 							href={resolve('/routes/[id]', { id: t.imported_route_id })}
-							class="w-24 shrink-0 text-xs text-emerald-800 underline">{m.komoot_imported()}</a
+							class="w-24 shrink-0 text-xs text-accent-ink underline">{m.komoot_imported()}</a
 						>
 					{:else}
 						<input
@@ -210,7 +210,7 @@
 	{/if}
 
 	{#if problem}
-		<p class="mt-3 text-sm text-red-700" role="alert">{problem}</p>
+		<p class="mt-3 text-sm text-red-700 dark:text-red-400" role="alert">{problem}</p>
 	{/if}
 	{#if result}
 		<ImportResult {result} {names} />

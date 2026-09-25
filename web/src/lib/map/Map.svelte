@@ -28,7 +28,7 @@
 		onready?: (map: MapLibreMap, lib: typeof MapLibre) => void;
 	} = $props();
 
-	const STORAGE_KEY = 'odysgeh.map';
+	const STORAGE_KEY = 'alvyo.map';
 	const OPACITY: Record<OverlayId, number> = {
 		wanderwege: 1,
 		wanderland: 1,

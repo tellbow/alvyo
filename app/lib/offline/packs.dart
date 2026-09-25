@@ -198,7 +198,7 @@ class PackStore {
   Future<void> _excludeFromBackup() async {
     if (!Platform.isIOS) return;
     try {
-      await const MethodChannel('odysgeh/backup').invokeMethod<bool>('exclude', root.path);
+      await const MethodChannel('alvyo/backup').invokeMethod<bool>('exclude', root.path);
     } on PlatformException {
       // backed up after all; not worth failing the save
     }

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
 func TestServerBasics(t *testing.T) {

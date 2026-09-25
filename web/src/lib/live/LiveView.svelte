@@ -96,18 +96,18 @@
 			{/if}
 		</section>
 		<aside
-			class="flex flex-col gap-3 border-l border-stone-200 bg-white p-4 text-sm md:w-96"
+			class="flex flex-col gap-3 border-l border-stone-200 bg-surface p-4 text-sm md:w-96"
 			data-testid="live-panel"
 		>
 			<h1 class="text-xl font-semibold">{m.live_title({ hiker: view.hiker })}</h1>
 			<p class="font-medium">{view.title}</p>
 			{#if view.ended_at}
-				<p class="rounded-md bg-emerald-50 px-2 py-1 text-emerald-900" data-testid="live-status">
+				<p class="rounded-md bg-accent-soft px-2 py-1 text-accent-ink" data-testid="live-status">
 					{m.live_ended()} · {time.format(new Date(view.ended_at))}
 				</p>
 			{:else if view.overdue}
 				<p
-					class="rounded-md bg-red-50 px-2 py-1 font-medium text-red-900"
+					class="rounded-md bg-red-50 px-2 py-1 font-medium text-red-900 dark:bg-red-950/40 dark:text-red-300"
 					data-testid="live-status"
 				>
 					{m.live_overdue({ time: time.format(new Date(view.expected_end)) })}

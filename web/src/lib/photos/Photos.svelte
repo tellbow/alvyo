@@ -80,7 +80,7 @@
 			</label>
 			<p class="text-xs text-stone-500">{m.photos_hint()}</p>
 			{#each problems as problem, i (i)}
-				<p class="text-xs text-red-700" role="alert">{problem}</p>
+				<p class="text-xs text-red-700 dark:text-red-400" role="alert">{problem}</p>
 			{/each}
 		{/if}
 	</section>

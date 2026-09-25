@@ -78,10 +78,10 @@
 			required
 			bind:value={password}
 		/>
-		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
+		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 		<button
 			disabled={!hydrated.value || busy}
-			class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800 disabled:opacity-60"
+			class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover disabled:opacity-60"
 		>
 			{m.login_submit()}
 		</button>
@@ -99,10 +99,10 @@
 		<ProviderButtons {redirect} label={(name) => m.provider_login({ provider: name })} />
 	</div>
 	<div class="mt-6 flex flex-col gap-2 text-sm">
-		<a href={resolve('/forgot-password')} class="text-emerald-800 underline">{m.login_forgot()}</a>
+		<a href={resolve('/forgot-password')} class="text-accent-ink underline">{m.login_forgot()}</a>
 		<p>
 			{m.login_no_account()}
-			<a href={resolve('/signup')} class="text-emerald-800 underline">{m.nav_signup()}</a>
+			<a href={resolve('/signup')} class="text-accent-ink underline">{m.nav_signup()}</a>
 		</p>
 	</div>
 </AuthCard>

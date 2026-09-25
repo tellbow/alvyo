@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 /// Spoken prompts (AppDelegate.swift): other audio is turned down meanwhile,
 /// also with the screen locked.
 class Speech {
-  static const _channel = MethodChannel('odysgeh/speech');
+  static const _channel = MethodChannel('alvyo/speech');
 
   /// Says [text] in [language] (de, en, fr or it).
   Future<void> say(String text, String language) async {

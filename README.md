@@ -1,4 +1,4 @@
-# odysgeh
+# Alvyo
 
 Plan, share and walk hikes in Switzerland — custom routes on the swisstopo national map,
 official Swiss hiking times, SAC difficulty, and multi-week stage journeys.
@@ -23,7 +23,7 @@ Plan, status and what comes next: [docs/plan.md](docs/plan.md). Deployment:
 | Path     | What                                                                 |
 |----------|----------------------------------------------------------------------|
 | `swiss/` | Go module: Swiss domain logic (hiking time, SAC, LV95, elevation, OJP) |
-| `api/`   | Go module: HTTP API (`odysgeh` binary)                                |
+| `api/`   | Go module: HTTP API (`alvyo` binary)                                |
 | `web/`   | SvelteKit web app                                                     |
 | `app/`   | Flutter app (iOS)                                                     |
 | `infra/` | Docker Compose, GraphHopper, tile cache, data import                  |
@@ -36,8 +36,8 @@ production-like local run: [docs/development.md](docs/development.md).
 
 ```sh
 make osm-fetch && make infra-up          # once: map data + containers
-export ODYSGEH_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
-go run ./api/cmd/odysgeh migrate && go run ./api/cmd/odysgeh serve
+export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+go run ./api/cmd/alvyo migrate && go run ./api/cmd/alvyo serve
 cd web && bun run dev                    # → http://localhost:5173
 ```
 

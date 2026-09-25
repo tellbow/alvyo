@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // TestGeoAdminLive checks the real service, including Liechtenstein coverage.
@@ -17,7 +17,7 @@ func TestGeoAdminLive(t *testing.T) {
 		{Lon: 9.4456, Lat: 47.0449}, // Sargans (CH), ~480 m
 	}
 	dense, _ := geo.Densify(pts, 20)
-	h, err := (&GeoAdmin{UserAgent: "odysgeh-test"}).Sample(context.Background(), dense)
+	h, err := (&GeoAdmin{UserAgent: "alvyo-test"}).Sample(context.Background(), dense)
 	if err != nil {
 		t.Fatal(err)
 	}

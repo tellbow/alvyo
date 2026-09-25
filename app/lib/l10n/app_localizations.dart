@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In de, this message translates to:
-  /// **'odysgeh'**
+  /// **'Alvyo'**
   String get appTitle;
 
   /// No description provided for @loginTitle.
@@ -349,7 +349,7 @@ abstract class AppLocalizations {
   /// No description provided for @watchEmpty.
   ///
   /// In de, this message translates to:
-  /// **'Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → odysgeh.'**
+  /// **'Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → Alvyo.'**
   String get watchEmpty;
 
   /// No description provided for @watchUnavailable.
@@ -693,6 +693,24 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Kontakte zum Teilen legst du auf der Website unter «Konto» an.'**
   String get liveNoContacts;
+
+  /// No description provided for @navRecord.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufzeichnen'**
+  String get navRecord;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In de, this message translates to:
+  /// **'Profil'**
+  String get navProfile;
+
+  /// {start} is the text of the button that starts a hike (navStart).
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle eine Route und tippe auf «{start}», um die Wanderung aufzuzeichnen.'**
+  String recordHint(String start);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

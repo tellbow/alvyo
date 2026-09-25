@@ -294,7 +294,7 @@ class PackStatus {
   final List<PackFile> files;
 }
 
-/// Client of the odysgeh API. Logging in yields the session token, which
+/// Client of the Alvyo API. Logging in yields the session token, which
 /// authenticates later calls as a Bearer token.
 class Api {
   Api(String server, {this.token, this.userId, http.Client? client})
@@ -319,7 +319,7 @@ class Api {
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',
-    'User-Agent': 'odysgeh-app',
+    'User-Agent': 'alvyo-app',
     if (token != null) 'Authorization': 'Bearer $token',
   };
 
@@ -346,7 +346,7 @@ class Api {
       body: jsonEncode({'login': login, 'password': password}),
     );
     final body = _decode(r) as Map<String, dynamic>;
-    final session = RegExp(r'odysgeh_session=([^;,\s]+)').firstMatch(r.headers['set-cookie'] ?? '');
+    final session = RegExp(r'alvyo_session=([^;,\s]+)').firstMatch(r.headers['set-cookie'] ?? '');
     if (session == null) throw ApiException(500, 'no session in the answer');
     token = session.group(1);
     final me = Me.fromJson(body['user'] as Map<String, dynamic>);

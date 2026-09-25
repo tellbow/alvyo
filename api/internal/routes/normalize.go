@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/stats"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/stats"
 )
 
 // Limits on what a route may contain.

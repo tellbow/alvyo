@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/testdb"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/testdb"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // identifyServer answers with the recorded answer for a line near

@@ -138,7 +138,7 @@
 					{/if}
 					<button
 						disabled={busy}
-						class="self-start rounded-md bg-emerald-700 px-3 py-1.5 text-white hover:bg-emerald-800 disabled:opacity-60"
+						class="self-start rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-60"
 						>{m.passkey_create()}</button
 					>
 				</form>
@@ -182,5 +182,5 @@
 		</div>
 	{/if}
 
-	{#if error}<p role="alert" class="text-red-700">{error}</p>{/if}
+	{#if error}<p role="alert" class="text-red-700 dark:text-red-400">{error}</p>{/if}
 </div>

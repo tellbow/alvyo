@@ -22,7 +22,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // What a pack holds.
@@ -35,7 +35,7 @@ const (
 	MaxTiles = 60000
 )
 
-// Layer is a map layer in a pack, fetched from the odysgeh tile cache.
+// Layer is a map layer in a pack, fetched from the Alvyo tile cache.
 type Layer struct {
 	ID   string // file name part, e.g. "landeskarte"
 	WMTS string // swisstopo layer

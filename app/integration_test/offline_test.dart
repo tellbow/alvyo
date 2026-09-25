@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/main.dart';
-import 'package:odysgeh/offline/packs.dart';
-import 'package:odysgeh/session.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/main.dart';
+import 'package:alvyo/offline/packs.dart';
+import 'package:alvyo/session.dart';
 
 /// A login whose server cannot be reached, as in the mountains.
 class OfflineSession extends Session {
@@ -30,7 +30,7 @@ void main() {
   }
 
   testWidgets('log in, save a route offline, then open it without a connection', (tester) async {
-    await tester.pumpWidget(const OdysgehApp());
+    await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
     if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
       await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
@@ -62,13 +62,13 @@ void main() {
     final pack = (await store.saved(route.id))!;
     expect(pack.files.keys, unorderedEquals(['landeskarte', 'wanderwege']));
     // Kept out of iCloud backups (the native side answers with the flag).
-    expect(await const MethodChannel('odysgeh/backup').invokeMethod<bool>('exclude', store.root.path), isTrue);
+    expect(await const MethodChannel('alvyo/backup').invokeMethod<bool>('exclude', store.root.path), isTrue);
     for (final f in pack.files.values) {
       debugPrint('${f.split('/').last}: ${File(f).lengthSync()} bytes');
     }
 
     // Without a connection: the saved routes, and the route on its offline map.
-    await tester.pumpWidget(OdysgehApp(key: UniqueKey(), session: OfflineSession()));
+    await tester.pumpWidget(AlvyoApp(key: UniqueKey(), session: OfflineSession()));
     await waitFor(tester, find.byKey(const Key('routes-offline')));
     await tester.tap(find.text('Sargans–Weisstannen'));
     await waitFor(tester, saved);

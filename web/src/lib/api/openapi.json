@@ -5100,7 +5100,7 @@
     }
   },
   "info": {
-    "title": "odysgeh API",
+    "title": "Alvyo API",
     "version": "dev"
   },
   "openapi": "3.1.0",
@@ -5232,7 +5232,7 @@
           },
           {
             "in": "cookie",
-            "name": "odysgeh_oidc",
+            "name": "alvyo_oidc",
             "schema": {
               "type": "string"
             }

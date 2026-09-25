@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/navigation/live.dart';
-import 'package:odysgeh/navigation/recording.dart';
-import 'package:odysgeh/navigation/tracker.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/navigation/live.dart';
+import 'package:alvyo/navigation/recording.dart';
+import 'package:alvyo/navigation/tracker.dart';
 
 /// The server, reachable unless [offline].
 class FakeLive {
@@ -17,7 +17,7 @@ class FakeLive {
   final ended = <String>[];
 
   late final api = Api(
-    'https://odysgeh.test',
+    'https://alvyo.test',
     token: 't',
     client: MockClient((req) async {
       if (offline) throw const SocketException('no connection');

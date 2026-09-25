@@ -2,7 +2,7 @@
 # Needs the OSM extract in ./data/osm (make osm-fetch) and, once, the trail
 # and place imports (docker compose -f compose.prod.yaml run --rm tlm-import,
 # then places-import).
-name: odysgeh-prod
+name: alvyo-prod
 
 # Logs (they contain IP addresses) are rotated by size and kept briefly.
 x-logging: &logging
@@ -26,7 +26,7 @@ services:
   web:
     logging: *logging
     build: ../web
-    image: odysgeh-web:${VERSION:-dev}
+    image: alvyo-web:${VERSION:-dev}
     restart: unless-stopped
     environment:
       ORIGIN: https://${DOMAIN}
@@ -39,37 +39,37 @@ services:
       context: ..
       dockerfile: api/Dockerfile
       args: { VERSION: "${VERSION:-dev}" }
-    image: odysgeh-api:${VERSION:-dev}
+    image: alvyo-api:${VERSION:-dev}
     restart: unless-stopped
     environment: &api-env
-      ODYSGEH_DATABASE_URL: postgres://odysgeh:${POSTGRES_PASSWORD}@db:5432/odysgeh?sslmode=disable
-      ODYSGEH_PUBLIC_URL: https://${DOMAIN}
-      ODYSGEH_TRUST_PROXY: "true"
-      ODYSGEH_GRAPHHOPPER_URL: http://graphhopper:8989
-      ODYSGEH_TILES_URL: http://tilecache:8080
-      ODYSGEH_CACHE_DIR: /cache
-      ODYSGEH_PHOTOS_DIR: /data/photos
-      ODYSGEH_SMTP_HOST: ${SMTP_HOST}
-      ODYSGEH_SMTP_PORT: ${SMTP_PORT:-587}
-      ODYSGEH_SMTP_USER: ${SMTP_USER:-}
-      ODYSGEH_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      ODYSGEH_SMTP_TLS: ${SMTP_TLS:-starttls}
-      ODYSGEH_MAIL_FROM: ${MAIL_FROM}
+      ALVYO_DATABASE_URL: postgres://odysgeh:${POSTGRES_PASSWORD}@db:5432/odysgeh?sslmode=disable
+      ALVYO_PUBLIC_URL: https://${DOMAIN}
+      ALVYO_TRUST_PROXY: "true"
+      ALVYO_GRAPHHOPPER_URL: http://graphhopper:8989
+      ALVYO_TILES_URL: http://tilecache:8080
+      ALVYO_CACHE_DIR: /cache
+      ALVYO_PHOTOS_DIR: /data/photos
+      ALVYO_SMTP_HOST: ${SMTP_HOST}
+      ALVYO_SMTP_PORT: ${SMTP_PORT:-587}
+      ALVYO_SMTP_USER: ${SMTP_USER:-}
+      ALVYO_SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      ALVYO_SMTP_TLS: ${SMTP_TLS:-starttls}
+      ALVYO_MAIL_FROM: ${MAIL_FROM}
       # opentransportdata.swiss API key; empty turns connection search off.
-      ODYSGEH_OJP_TOKEN: ${OJP_TOKEN:-}
+      ALVYO_OJP_TOKEN: ${OJP_TOKEN:-}
       # Sign-in providers (docs/operations.md), e.g. OIDC_PROVIDERS=google.
-      ODYSGEH_OIDC_PROVIDERS: ${OIDC_PROVIDERS:-}
-      ODYSGEH_OIDC_GOOGLE_NAME: Google
-      ODYSGEH_OIDC_GOOGLE_ISSUER: https://accounts.google.com
-      ODYSGEH_OIDC_GOOGLE_CLIENT_ID: ${OIDC_GOOGLE_CLIENT_ID:-}
-      ODYSGEH_OIDC_GOOGLE_CLIENT_SECRET: ${OIDC_GOOGLE_CLIENT_SECRET:-}
+      ALVYO_OIDC_PROVIDERS: ${OIDC_PROVIDERS:-}
+      ALVYO_OIDC_GOOGLE_NAME: Google
+      ALVYO_OIDC_GOOGLE_ISSUER: https://accounts.google.com
+      ALVYO_OIDC_GOOGLE_CLIENT_ID: ${OIDC_GOOGLE_CLIENT_ID:-}
+      ALVYO_OIDC_GOOGLE_CLIENT_SECRET: ${OIDC_GOOGLE_CLIENT_SECRET:-}
     volumes: [api_cache:/cache, photos:/data/photos]
     depends_on:
       migrate: { condition: service_completed_successfully }
       graphhopper: { condition: service_started }
 
   migrate:
-    image: odysgeh-api:${VERSION:-dev}
+    image: alvyo-api:${VERSION:-dev}
     pull_policy: never # built by the api service
     command: ["migrate"]
     environment: *api-env
@@ -79,7 +79,7 @@ services:
   db:
     logging: *logging
     build: ./postgis
-    image: odysgeh-postgis:18
+    image: alvyo-postgis:18
     restart: unless-stopped
     environment:
       POSTGRES_USER: odysgeh
@@ -95,7 +95,7 @@ services:
   graphhopper:
     logging: *logging
     build: ./graphhopper
-    image: odysgeh-graphhopper:11.0
+    image: alvyo-graphhopper:11.0
     restart: unless-stopped
     environment:
       JAVA_OPTS: "-Xms1g -Xmx3g"
@@ -113,7 +113,7 @@ services:
 
   # One-shot: swissTLM3D hiking trails (yearly update).
   tlm-import:
-    image: odysgeh-data-import
+    image: alvyo-data-import
     build: ./data-import
     profiles: [data]
     depends_on:
@@ -130,7 +130,7 @@ services:
 
   # One-shot: stops (BAV) and huts/accommodation (OSM), after each OSM fetch.
   places-import:
-    image: odysgeh-data-import
+    image: alvyo-data-import
     build: ./data-import
     profiles: [data]
     depends_on:

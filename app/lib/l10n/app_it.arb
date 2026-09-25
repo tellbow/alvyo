@@ -1,6 +1,6 @@
 {
   "@@locale": "it",
-  "appTitle": "odysgeh",
+  "appTitle": "Alvyo",
   "loginTitle": "Accedi",
   "server": "Server",
   "login": "E-mail o nome utente",
@@ -42,7 +42,7 @@
   "watchImport": "Importa",
   "watchImported": "Importata – in I miei percorsi",
   "watchNoTrack": "Questo allenamento non ha una traccia GPS.",
-  "watchEmpty": "Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l'app Allenamento su Apple Watch («Escursionismo» o «Camminata all'aperto»). Se non hai consentito l'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → odysgeh.",
+  "watchEmpty": "Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l'app Allenamento su Apple Watch («Escursionismo» o «Camminata all'aperto»). Se non hai consentito l'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → Alvyo.",
   "watchUnavailable": "Apple Salute non è disponibile su questo dispositivo.",
   "watchOutside": "Non importata: {reason}",
   "turnSharpLeft": "Svolta decisamente a sinistra",
@@ -99,5 +99,8 @@
   "liveShareStart": "Condividi e parti",
   "liveShareSkip": "Senza condividere",
   "liveShareFailed": "La condivisione non è riuscita; l'escursione viene registrata comunque.",
-  "liveNoContacts": "Aggiungi i contatti sul sito web in «Account»."
+  "liveNoContacts": "Aggiungi i contatti sul sito web in «Account».",
+  "navRecord": "Registra",
+  "navProfile": "Profilo",
+  "recordHint": "Scegli un percorso e tocca «{start}» per registrare l'escursione."
 }

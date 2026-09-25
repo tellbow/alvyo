@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // line returns n+1 points going north from (8, 46) with the given spacing.

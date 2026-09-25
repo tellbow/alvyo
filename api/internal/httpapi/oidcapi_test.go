@@ -18,7 +18,7 @@ import (
 
 	"github.com/go-jose/go-jose/v4"
 
-	"github.com/tellbow/odysgeh/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/auth"
 )
 
 // fakeIDP is a minimal OpenID Connect provider: discovery, keys and a token
@@ -90,7 +90,7 @@ func (idp *fakeIDP) authorize(t *testing.T, authURL string, claims map[string]an
 	if q.Get("code_challenge_method") != "S256" {
 		t.Fatalf("no PKCE in %s", authURL)
 	}
-	c := map[string]any{"iss": idp.URL, "aud": "odysgeh", "exp": time.Now().Add(time.Hour).Unix(),
+	c := map[string]any{"iss": idp.URL, "aud": "alvyo", "exp": time.Now().Add(time.Hour).Unix(),
 		"iat": time.Now().Unix(), "nonce": q.Get("nonce")}
 	for k, v := range claims {
 		c[k] = v
@@ -129,7 +129,7 @@ func TestOIDC(t *testing.T) {
 	idp := newFakeIDP(t)
 	s := newTestServerWith(t, func(d *Deps) {
 		d.OIDC = &auth.OIDC{
-			Providers:   []auth.OIDCProvider{{ID: "test", Name: "Test-ID", Issuer: idp.URL, ClientID: "odysgeh", ClientSecret: "geheim"}},
+			Providers:   []auth.OIDCProvider{{ID: "test", Name: "Test-ID", Issuer: idp.URL, ClientID: "alvyo", ClientSecret: "geheim"}},
 			CallbackURL: func(id string) string { return origin + "/api/v1/auth/oidc/" + id + "/callback" },
 		}
 	})

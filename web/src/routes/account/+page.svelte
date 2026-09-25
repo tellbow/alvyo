@@ -97,7 +97,9 @@
 		</ul>
 	{/if}
 
-	<h2 class="mt-8 text-lg font-semibold text-red-800">{m.account_delete_title()}</h2>
+	<h2 class="mt-8 text-lg font-semibold text-red-800 dark:text-red-300">
+		{m.account_delete_title()}
+	</h2>
 	<p class="mt-1 mb-4 text-sm text-stone-600">{m.account_delete_text()}</p>
 	<form method="post" onsubmit={remove} class="flex flex-col gap-3">
 		{#if data.user?.has_password}
@@ -112,7 +114,7 @@
 		{:else}
 			<p class="text-sm text-stone-600">{m.account_delete_recent()}</p>
 		{/if}
-		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
+		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 		<button
 			disabled={!hydrated.value}
 			class="rounded-md bg-red-700 px-4 py-2 text-white hover:bg-red-800"

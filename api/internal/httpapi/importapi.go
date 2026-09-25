@@ -16,14 +16,14 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/access"
-	"github.com/tellbow/odysgeh/api/internal/auth"
-	"github.com/tellbow/odysgeh/api/internal/imports"
-	"github.com/tellbow/odysgeh/api/internal/journeys"
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/api/internal/stageplan"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/access"
+	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/imports"
+	"github.com/tellbow/alvyo/api/internal/journeys"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/stageplan"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // komootSessionTTL bounds how long a Komoot API token is kept (in memory

@@ -6,7 +6,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/tellbow/odysgeh/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/places"
 )
 
 type nearbyPlacesInput struct {

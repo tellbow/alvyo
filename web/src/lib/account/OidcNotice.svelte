@@ -26,8 +26,8 @@
 	<p
 		role={notice.ok ? 'status' : 'alert'}
 		class="mb-4 rounded-md px-3 py-2 text-sm {notice.ok
-			? 'bg-emerald-50 text-emerald-900'
-			: 'bg-amber-50 text-amber-900'}"
+			? 'bg-accent-soft text-accent-ink'
+			: 'bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'}"
 		data-testid="oidc-notice"
 	>
 		{notice.text()}

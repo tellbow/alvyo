@@ -6,18 +6,19 @@ import 'l10n/app_localizations.dart';
 import 'screens/login_screen.dart';
 import 'screens/routes_screen.dart';
 import 'session.dart';
+import 'theme.dart';
 
-void main() => runApp(const OdysgehApp());
+void main() => runApp(const AlvyoApp());
 
-class OdysgehApp extends StatefulWidget {
-  const OdysgehApp({super.key, this.session});
+class AlvyoApp extends StatefulWidget {
+  const AlvyoApp({super.key, this.session});
   final Session? session;
 
   @override
-  State<OdysgehApp> createState() => _OdysgehAppState();
+  State<AlvyoApp> createState() => _AlvyoAppState();
 }
 
-class _OdysgehAppState extends State<OdysgehApp> {
+class _AlvyoAppState extends State<AlvyoApp> {
   late final Session _session = widget.session ?? Session();
   late final Future<Api?> _restored = _session.restore();
   Api? _api;
@@ -46,7 +47,8 @@ class _OdysgehAppState extends State<OdysgehApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      theme: ThemeData(colorSchemeSeed: const Color(0xFF047857), useMaterial3: true),
+      theme: alvyoTheme(Brightness.light),
+      darkTheme: alvyoTheme(Brightness.dark),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

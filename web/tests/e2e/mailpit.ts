@@ -17,7 +17,7 @@ export async function mailMatching(to: string, pattern: RegExp): Promise<RegExpM
 	throw new Error(`no mail matching ${pattern} for ${to}`);
 }
 
-/** Waits for the newest e-mail to `to` and returns its first odysgeh link with a token. */
+/** Waits for the newest e-mail to `to` and returns its first Alvyo link with a token. */
 export async function linkFromMail(to: string, path: string): Promise<string> {
 	return (await mailMatching(to, new RegExp(`https?://\\S+${path}\\?token=[\\w-]+`)))[0];
 }

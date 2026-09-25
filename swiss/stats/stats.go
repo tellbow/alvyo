@@ -6,8 +6,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/hikingtime"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/hikingtime"
 )
 
 const (

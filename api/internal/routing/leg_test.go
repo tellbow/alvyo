@@ -10,9 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/testdb"
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/sac"
+	"github.com/tellbow/alvyo/api/internal/testdb"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/sac"
 )
 
 func TestRuns(t *testing.T) {

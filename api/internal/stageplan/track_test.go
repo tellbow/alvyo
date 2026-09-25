@@ -4,8 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/routing"
 )
 
 // testLeg runs east from lon0 at 46.5° N and ele0 metres, n vertices

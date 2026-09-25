@@ -1,12 +1,12 @@
 import type { AddProtocolAction } from 'maplibre-gl';
 
 /**
- * Raster tiles are loaded through this protocol: `odysgeh-tile://` followed
+ * Raster tiles are loaded through this protocol: `alvyo-tile://` followed
  * by the real URL. A tile the tile cache refuses while busy (many at once
  * when zooming) is asked for again, a little later each time; MapLibre would
  * otherwise show another zoom level in its place until the map moves.
  */
-export const TILE_PROTOCOL = 'odysgeh-tile';
+export const TILE_PROTOCOL = 'alvyo-tile';
 
 const RETRIES = 3;
 

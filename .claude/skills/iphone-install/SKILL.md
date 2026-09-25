@@ -1,6 +1,6 @@
 ---
 name: iphone-install
-description: Build the odysgeh iOS app in release mode and install it on the user's iPhone over Wi-Fi, including the fallback when Flutter's install or launch step fails. Use when the user wants the new app on their phone.
+description: Build the Alvyo iOS app in release mode and install it on the user's iPhone over Wi-Fi, including the fallback when Flutter's install or launch step fails. Use when the user wants the new app on their phone.
 ---
 
 # Install the app on the iPhone
@@ -19,7 +19,7 @@ need new API endpoints work only after a release.
    there, install it directly:
    `xcrun devicectl device install app --device <id> build/ios/iphoneos/Runner.app`.
    Starting it needs the phone unlocked
-   (`xcrun devicectl device process launch --device <id> ch.tellbow.odysgeh`),
+   (`xcrun devicectl device process launch --device <id> ch.tellbow.alvyo`),
    otherwise the user opens it. «Device is busy (Connecting to Wodan)» or
    «disconnected immediately» mean the phone is locked or asleep.
 5. Signing: Flutter takes the «Apple Development» certificate of the Apple ID

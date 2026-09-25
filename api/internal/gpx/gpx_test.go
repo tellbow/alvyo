@@ -16,7 +16,7 @@ func TestWriteValidatesAgainstSchema(t *testing.T) {
 		Name:        "Gaflei – Sargans <Etappe 1>",
 		Description: "Via Alpina & more",
 		Author:      "anna",
-		Link:        "https://odysgeh.example/routes/1",
+		Link:        "https://alvyo.example/routes/1",
 		Points:      [][3]float64{{9.5428, 47.1447, 1483.2}, {9.5, 47.1, 900}, {9.4456, 47.0449, 482.1}},
 		Time:        time.Date(2026, 9, 22, 10, 0, 0, 0, time.UTC),
 	})

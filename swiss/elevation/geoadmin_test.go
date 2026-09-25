@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/lv95"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/lv95"
 )
 
 // fakeProfile mimics profile.json: it returns every input vertex with its

@@ -82,10 +82,17 @@
 			{#each areas as a, i (i)}
 				<path d={a.d} fill={a.color} fill-opacity="0.35" />
 			{/each}
-			<path d={outline} fill="none" stroke="#44403c" stroke-width="1.5" />
+			<path d={outline} fill="none" class="stroke-stone-700" stroke-width="1.5" />
 			{#each breaks.slice(1) as b (b)}
 				{@const bx = x(line.distance[b])}
-				<line x1={bx} x2={bx} y1={pad.t} y2={height - pad.b} stroke="#78716c" stroke-width="1" />
+				<line
+					x1={bx}
+					x2={bx}
+					y1={pad.t}
+					y2={height - pad.b}
+					class="stroke-stone-500"
+					stroke-width="1"
+				/>
 			{/each}
 
 			<g class="fill-stone-500 text-[10px]">
@@ -102,7 +109,7 @@
 					x2={hx}
 					y1={pad.t}
 					y2={height - pad.b}
-					stroke="#44403c"
+					class="stroke-stone-700"
 					stroke-dasharray="2 2"
 				/>
 				<text

@@ -13,14 +13,14 @@
 <div class="absolute top-2 left-2 z-10 text-sm">
 	<button
 		type="button"
-		class="rounded-md bg-white px-3 py-1.5 shadow ring-1 ring-stone-300 hover:bg-stone-50"
+		class="rounded-md bg-surface px-3 py-1.5 shadow ring-1 ring-stone-300 hover:bg-stone-50"
 		aria-expanded={open}
 		onclick={() => (open = !open)}
 	>
 		{m.map_layers()}
 	</button>
 	{#if open}
-		<div class="mt-2 w-64 rounded-md bg-white p-3 shadow ring-1 ring-stone-300">
+		<div class="mt-2 w-64 rounded-md bg-surface p-3 shadow ring-1 ring-stone-300">
 			<fieldset>
 				<legend class="mb-1 font-medium">{m.map_base()}</legend>
 				{#each BASE_MAPS as id (id)}

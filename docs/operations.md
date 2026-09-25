@@ -1,5 +1,8 @@
 # Operations
 
+Alvyo was called odysgeh before 0.8.0. The database and its user, the
+Kubernetes namespace and the volumes kept that name, so no data had to move.
+
 ## Server
 
 One VPS in Switzerland or the EU is enough to start:
@@ -19,7 +22,7 @@ The API calls these services; allow them if egress is restricted:
 | Host | For |
 |---|---|
 | `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
-| `api.opentransportdata.swiss` | Connections (OJP), only if `ODYSGEH_OJP_TOKEN` is set |
+| `api.opentransportdata.swiss` | Connections (OJP), only if `ALVYO_OJP_TOKEN` is set |
 | `api.komoot.de` | Komoot import. This is Komoot's unofficial API: when Komoot changes it, the import fails with 502, while GPX, KML, TCX and FIT upload keep working. |
 
 Reverse proxies in front of `/api` must accept request bodies of 22 MB
@@ -44,8 +47,8 @@ account: its owner connects the provider on the account page first.
 ## First deployment
 
 ```sh
-git clone https://github.com/tellbow/odysgeh.git /srv/odysgeh
-cd /srv/odysgeh
+git clone https://github.com/tellbow/alvyo.git /srv/alvyo
+cd /srv/alvyo
 make osm-fetch                          # OSM extracts for Switzerland + Liechtenstein
 cp infra/.env.example infra/.env        # fill in DOMAIN, POSTGRES_PASSWORD, SMTP, CONTACT_EMAIL
 cd infra
@@ -64,9 +67,9 @@ expected tile volume: the WMTS terms allow restricting "excessive use".
 ## Scheduled jobs (cron, as the deploy user)
 
 ```cron
-15 2 * * *  /srv/odysgeh/infra/ops/backup.sh           # nightly pg_dump (14 days kept) and photos tar (3 kept)
-0  4 * * 1  /srv/odysgeh/infra/ops/refresh-graph.sh    # weekly OSM refresh, graph swap, places
-0  5 1 * *  /srv/odysgeh/infra/ops/restore-check.sh    # monthly restore test
+15 2 * * *  /srv/alvyo/infra/ops/backup.sh           # nightly pg_dump (14 days kept) and photos tar (3 kept)
+0  4 * * 1  /srv/alvyo/infra/ops/refresh-graph.sh    # weekly OSM refresh, graph swap, places
+0  5 1 * *  /srv/alvyo/infra/ops/restore-check.sh    # monthly restore test
 ```
 
 Copy `infra/backups/` off the machine as well (e.g. `rclone sync` to object
@@ -81,7 +84,7 @@ by the API within a minute.
 ## Updates
 
 ```sh
-cd /srv/odysgeh && git pull
+cd /srv/alvyo && git pull
 cd infra && docker compose -f compose.prod.yaml up -d --build
 ```
 
@@ -95,7 +98,7 @@ to GHCR (`.github/workflows/release.yml`):
 
 ```sh
 git tag v0.1.0 && git push origin v0.1.0
-# → ghcr.io/tellbow/odysgeh-{api,web,postgis,graphhopper,data-import}:0.1.0
+# → ghcr.io/tellbow/alvyo-{api,web,postgis,graphhopper,data-import}:0.1.0
 ```
 
 New GHCR packages are private; make them public once in the package settings
@@ -105,11 +108,11 @@ scripts, so Kubernetes jobs can run `sh /scripts/import-places.sh` etc.
 ## Moderation
 
 ```sh
-cd /srv/odysgeh/infra
-docker compose -f compose.prod.yaml exec api /odysgeh user ban <username>     # ends sessions, makes routes, journeys and collections private
-docker compose -f compose.prod.yaml exec api /odysgeh user unban <username>
-docker compose -f compose.prod.yaml exec api /odysgeh user role <username> moderator   # sees "Moderation" in the app
-docker compose -f compose.prod.yaml exec api /odysgeh route unpublish <route-id>
+cd /srv/alvyo/infra
+docker compose -f compose.prod.yaml exec api /alvyo user ban <username>     # ends sessions, makes routes, journeys and collections private
+docker compose -f compose.prod.yaml exec api /alvyo user unban <username>
+docker compose -f compose.prod.yaml exec api /alvyo user role <username> moderator   # sees "Moderation" in the app
+docker compose -f compose.prod.yaml exec api /alvyo route unpublish <route-id>
 ```
 
 ## Verified locally (2026-09-22)

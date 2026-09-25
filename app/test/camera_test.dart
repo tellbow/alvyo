@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:odysgeh/camera.dart';
+import 'package:alvyo/camera.dart';
 
 void main() {
   test('fits a line into the view', () {

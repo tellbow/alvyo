@@ -9,6 +9,6 @@
 {#if tag}
 	<p class="mb-3 flex items-center gap-2 text-sm" data-testid="tag-filter">
 		<span>{m.tags_filtered({ tag })}</span>
-		<a href={page.url.pathname} class="text-emerald-800 underline">{m.tags_filter_clear()}</a>
+		<a href={page.url.pathname} class="text-accent-ink underline">{m.tags_filter_clear()}</a>
 	</p>
 {/if}

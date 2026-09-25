@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/areas"
+	"github.com/tellbow/alvyo/api/internal/areas"
 )
 
 func TestProtectedAreas(t *testing.T) {

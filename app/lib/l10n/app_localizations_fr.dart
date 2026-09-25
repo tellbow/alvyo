@@ -9,7 +9,7 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'odysgeh';
+  String get appTitle => 'Alvyo';
 
   @override
   String get loginTitle => 'Se connecter';
@@ -144,7 +144,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get watchEmpty =>
-      'Aucune randonnée des 60 derniers jours dans Apple Health. Enregistre-les avec l\'app Exercice de l\'Apple Watch («Randonnée» ou «Marche en extérieur»). Si tu n\'as pas autorisé l\'accès : Réglages → Apps → Santé → Accès aux données et appareils → odysgeh.';
+      'Aucune randonnée des 60 derniers jours dans Apple Health. Enregistre-les avec l\'app Exercice de l\'Apple Watch («Randonnée» ou «Marche en extérieur»). Si tu n\'as pas autorisé l\'accès : Réglages → Apps → Santé → Accès aux données et appareils → Alvyo.';
 
   @override
   String get watchUnavailable => 'Apple Santé n\'est pas disponible sur cet appareil.';
@@ -341,4 +341,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get liveNoContacts => 'Ajoute des contacts sur le site web sous « Compte ».';
+
+  @override
+  String get navRecord => 'Enregistrer';
+
+  @override
+  String get navProfile => 'Profil';
+
+  @override
+  String recordHint(String start) {
+    return 'Choisis un itinéraire et touche « $start » pour enregistrer la randonnée.';
+  }
 }

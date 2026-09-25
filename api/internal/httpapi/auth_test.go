@@ -14,21 +14,21 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/tellbow/odysgeh/api/internal/auth"
-	"github.com/tellbow/odysgeh/api/internal/collections"
-	"github.com/tellbow/odysgeh/api/internal/community"
-	"github.com/tellbow/odysgeh/api/internal/discover"
-	"github.com/tellbow/odysgeh/api/internal/grants"
-	"github.com/tellbow/odysgeh/api/internal/journeys"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/api/internal/photos"
-	"github.com/tellbow/odysgeh/api/internal/places"
-	"github.com/tellbow/odysgeh/api/internal/ratelimit"
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/collections"
+	"github.com/tellbow/alvyo/api/internal/community"
+	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/grants"
+	"github.com/tellbow/alvyo/api/internal/journeys"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/photos"
+	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/ratelimit"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
-const origin = "http://odysgeh.test"
+const origin = "http://alvyo.test"
 
 type testServer struct {
 	*httptest.Server

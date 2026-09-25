@@ -151,7 +151,7 @@
 	{/if}
 {/snippet}
 
-<section class="rounded-md border border-stone-200 bg-white p-4" data-testid="file-import">
+<section class="rounded-md border border-stone-200 bg-surface p-4" data-testid="file-import">
 	<h2 class="text-lg font-semibold">{m.import_file_title()}</h2>
 	<p class="mt-1 text-sm text-stone-600">{m.import_file_intro()}</p>
 
@@ -171,14 +171,14 @@
 					<span class="flex-1">{t.name}</span>
 					<span class="text-stone-600 tabular-nums">{formatDistance(t.distance_m)}</span>
 					{#if !t.inside}
-						<span class="text-amber-800">{m.import_outside()}</span>
+						<span class="text-amber-800 dark:text-amber-200">{m.import_outside()}</span>
 					{/if}
 				</li>
 			{/each}
 		</ul>
 
 		{#if importable === 0}
-			<p class="mt-3 text-sm text-amber-800">{m.import_none_inside()}</p>
+			<p class="mt-3 text-sm text-amber-800 dark:text-amber-200">{m.import_none_inside()}</p>
 		{:else}
 			<form method="post" onsubmit={run} class="mt-3 flex flex-col gap-3">
 				{#if preview.tracks.length > 1}
@@ -222,7 +222,7 @@
 				{#if !stages}
 					<button
 						disabled={!mode || busy}
-						class="self-start rounded-md bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800 disabled:opacity-50"
+						class="self-start rounded-md bg-accent px-4 py-2 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
 					>
 						{busy ? m.import_running() : mode === 'stages' ? m.jplan_submit() : m.import_submit()}
 					</button>
@@ -247,7 +247,7 @@
 			<form method="post" onsubmit={createJourney} class="mt-3">
 				<button
 					disabled={busy}
-					class="rounded-md bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-800 disabled:opacity-50"
+					class="rounded-md bg-accent px-4 py-2 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
 				>
 					{busy ? m.import_running() : m.jplan_create()}
 				</button>
@@ -258,7 +258,7 @@
 	{/if}
 
 	{#if problem}
-		<p class="mt-3 text-sm text-red-700" role="alert">{problem}</p>
+		<p class="mt-3 text-sm text-red-700 dark:text-red-400" role="alert">{problem}</p>
 	{/if}
 	{#if result}
 		<ImportResult {result} />

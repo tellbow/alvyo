@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // readEntries decodes a directory (the inverse of serializeEntries).

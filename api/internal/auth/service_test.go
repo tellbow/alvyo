@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
 var tokenRe = regexp.MustCompile(`token=([A-Za-z0-9_-]+)`)
@@ -17,7 +17,7 @@ func newService(t *testing.T) (*Service, *mailer.Recorder, *time.Time) {
 	now := time.Now()
 	rec := &mailer.Recorder{}
 	return &Service{
-		DB: testdb.New(t), Mail: rec, PublicURL: "https://odysgeh.test",
+		DB: testdb.New(t), Mail: rec, PublicURL: "https://alvyo.test",
 		Now: func() time.Time { return now },
 	}, rec, &now
 }

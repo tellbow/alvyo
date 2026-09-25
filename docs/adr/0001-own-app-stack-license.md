@@ -15,7 +15,7 @@ gap would require changes to its core.
 
 ## Decision
 
-Build odysgeh as its own product:
+Build Alvyo as its own product:
 
 - Web: SvelteKit (Svelte 5) + MapLibre GL JS, managed with bun.
 - API: Go (huma, pgx, goose) on PostgreSQL + PostGIS.

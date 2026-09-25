@@ -7,10 +7,10 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/tellbow/odysgeh/swiss/elevation"
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/sac"
-	"github.com/tellbow/odysgeh/swiss/stats"
+	"github.com/tellbow/alvyo/swiss/elevation"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/sac"
+	"github.com/tellbow/alvyo/swiss/stats"
 )
 
 const (

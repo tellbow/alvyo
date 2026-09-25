@@ -4,7 +4,7 @@ test('about page links to the source of this version', async ({ page }) => {
 	await page.goto('/about');
 	await expect(page.getByTestId('source-link')).toHaveAttribute(
 		'href',
-		'https://github.com/tellbow/odysgeh'
+		'https://github.com/tellbow/alvyo'
 	);
 	await expect(page.getByText('© swisstopo')).toBeVisible();
 });

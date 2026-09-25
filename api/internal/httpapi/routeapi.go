@@ -15,14 +15,14 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/access"
-	"github.com/tellbow/odysgeh/api/internal/auth"
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/gpx"
-	"github.com/tellbow/odysgeh/api/internal/og"
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/access"
+	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/gpx"
+	"github.com/tellbow/alvyo/api/internal/og"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // routeBodyLimit allows long multi-leg routes (each vertex carries elevation).
@@ -378,7 +378,7 @@ func lonLat(line [][3]float64) [][2]float64 {
 // change with their stages and items, not only with their own version.
 func imageKey(id string, card og.Card) string {
 	h := fnv.New64a()
-	_, _ = fmt.Fprintf(h, "%s\x00%s\x00%v", card.Title, card.Stats, card.Lines)
+	_, _ = fmt.Fprintf(h, "%d\x00%s\x00%s\x00%v", og.Style, card.Title, card.Stats, card.Lines)
 	return fmt.Sprintf("%s-%x", id, h.Sum64())
 }
 

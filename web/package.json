@@ -1,5 +1,5 @@
 {
-	"name": "odysgeh-web",
+	"name": "alvyo-web",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -15,10 +15,12 @@
 		"test:unit": "vitest",
 		"test": "bun run test:unit --run && bun run test:e2e",
 		"test:e2e": "playwright install chromium && playwright test",
-		"gen:api": "cd .. && go run ./api/cmd/odysgeh openapi > web/src/lib/api/openapi.json && cd web && openapi-typescript src/lib/api/openapi.json -o src/lib/api/schema.d.ts"
+		"gen:api": "cd .. && go run ./api/cmd/alvyo openapi > web/src/lib/api/openapi.json && cd web && openapi-typescript src/lib/api/openapi.json -o src/lib/api/schema.d.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@fontsource-variable/bricolage-grotesque": "^5.3.0",
+		"@fontsource-variable/figtree": "^5.3.0",
 		"@inlang/paraglide-js": "^2.18.2",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-node": "^5.5.4",

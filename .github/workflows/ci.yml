@@ -23,7 +23,7 @@ jobs:
         working-directory: ${{ matrix.module }}
       - name: Build PostGIS image for integration tests
         if: matrix.module == 'api'
-        run: docker build -t odysgeh-postgis:18 infra/postgis
+        run: docker build -t alvyo-postgis:18 infra/postgis
       - run: go test -race ./...
         working-directory: ${{ matrix.module }}
         env:

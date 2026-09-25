@@ -43,7 +43,7 @@ api-client:
 	cd web && bun run gen:api
 
 build:
-	go build -o api/bin/odysgeh ./api/cmd/odysgeh
+	go build -o api/bin/alvyo ./api/cmd/alvyo
 	cd web && bun run build
 
 infra-up:

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/routing"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // Anchor is a point the user placed in the planner.

@@ -6,7 +6,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/tellbow/odysgeh/api/internal/tags"
+	"github.com/tellbow/alvyo/api/internal/tags"
 )
 
 type tagCountsOutput struct {

@@ -6,9 +6,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/places"
-	"github.com/tellbow/odysgeh/api/internal/routes"
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // Continuity thresholds between the end of a stage and the start of the next.

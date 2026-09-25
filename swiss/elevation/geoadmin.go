@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/lv95"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/lv95"
 )
 
 // GeoAdminURL is the swisstopo elevation profile service (swissALTI3D / DHM25).

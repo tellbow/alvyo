@@ -1,6 +1,6 @@
 -- +goose Up
 -- Photos of routes (not stage routes) and journeys. Files live on disk
--- (ODYSGEH_PHOTOS_DIR); geom is set only when the photo was taken along the
+-- (ALVYO_PHOTOS_DIR); geom is set only when the photo was taken along the
 -- route (its EXIF position is never stored otherwise).
 CREATE TABLE photos (
     id          uuid PRIMARY KEY DEFAULT uuidv7(),

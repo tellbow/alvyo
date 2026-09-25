@@ -24,7 +24,7 @@
 	<p class="mt-2">
 		{m.about_source()}
 		{#if data.version}
-			<a href={data.version.source} class="text-emerald-800 underline" data-testid="source-link"
+			<a href={data.version.source} class="text-accent-ink underline" data-testid="source-link"
 				>{data.version.source}</a
 			>
 			<span class="text-sm text-stone-500"

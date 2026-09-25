@@ -21,7 +21,7 @@
 					<a
 						href={href(t)}
 						title={m.tags_filter_by({ tag: t })}
-						class="relative z-10 block rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-700 hover:bg-emerald-100"
+						class="relative z-10 block rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-700 hover:bg-accent-soft"
 						>{t}</a
 					>
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->

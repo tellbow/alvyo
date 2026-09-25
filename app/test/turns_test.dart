@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/navigation/tracker.dart';
-import 'package:odysgeh/navigation/turns.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/navigation/tracker.dart';
+import 'package:alvyo/navigation/turns.dart';
 
 /// Progress [doneM] metres along a 1 km route.
 Progress at(double doneM, {bool offRoute = false}) => Progress(

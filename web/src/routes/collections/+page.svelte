@@ -52,7 +52,7 @@
 		/>
 		<button
 			disabled={!hydrated.value}
-			class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800"
+			class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
 		>
 			{m.journey_create()}
 		</button>
@@ -63,7 +63,7 @@
 		<p class="mt-6 text-stone-600">{m.collections_empty()}</p>
 	{:else}
 		<ul
-			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="collection-list"
 		>
 			{#each collections as c (c.id)}
@@ -85,7 +85,7 @@
 	{#if shared.length > 0}
 		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.shared_title()}</h2>
 		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="shared-collections"
 		>
 			{#each shared as c (c.id)}

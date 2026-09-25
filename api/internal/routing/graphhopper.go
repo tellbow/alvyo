@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // Errors from the routing engine that callers map to user-facing messages.

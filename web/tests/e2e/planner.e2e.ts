@@ -4,7 +4,7 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 	// Start zoomed in near Grindelwald First, where trails are dense.
 	await context.addInitScript(() => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({
 				base: 'landeskarte',
 				overlays: ['wanderwege'],
@@ -81,7 +81,7 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 test('drag the line to a different path', async ({ page, context }) => {
 	await context.addInitScript(() => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
 		);
 	});
@@ -158,7 +158,7 @@ test('drag the line to a different path', async ({ page, context }) => {
 test('drag the line onto another path without a new point', async ({ page, context }) => {
 	await context.addInitScript(() => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
 		);
 	});
@@ -267,7 +267,7 @@ test('on a touch screen, hold the line to drag it; a quick swipe pans the map', 
 }) => {
 	await context.addInitScript(() => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
 		);
 	});

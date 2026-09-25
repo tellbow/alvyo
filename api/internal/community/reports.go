@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/tellbow/odysgeh/api/internal/admin"
+	"github.com/tellbow/alvyo/api/internal/admin"
 )
 
 // NewReport is what someone reports. For routes and journeys the caller

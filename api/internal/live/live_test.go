@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
 func TestLive(t *testing.T) {
@@ -19,7 +19,7 @@ func TestLive(t *testing.T) {
 	pool := testdb.New(t)
 	rec := &mailer.Recorder{}
 	now := time.Date(2026, 9, 26, 8, 0, 0, 0, time.UTC)
-	s := &Store{DB: pool, Mail: rec, PublicURL: "https://odysgeh.test", Now: func() time.Time { return now }}
+	s := &Store{DB: pool, Mail: rec, PublicURL: "https://alvyo.test", Now: func() time.Time { return now }}
 	var uid uuid.UUID
 	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name, locale)
 		VALUES ('anna@example.ch', 'anna', 'Anna Alpin', 'de') RETURNING id`).Scan(&uid); err != nil {
@@ -59,7 +59,7 @@ func TestLive(t *testing.T) {
 	}
 	mails := rec.Sent()
 	if len(mails) != 2 || mails[0].Subject != "Anna Alpin teilt den Standort: «Gratweg»" ||
-		!strings.Contains(mails[0].Text, "https://odysgeh.test/live/"+sh.Token) || !strings.Contains(mails[0].Text, "26.09.2026 16:00") {
+		!strings.Contains(mails[0].Text, "https://alvyo.test/live/"+sh.Token) || !strings.Contains(mails[0].Text, "26.09.2026 16:00") {
 		t.Fatalf("start mails: %+v", mails)
 	}
 	id := uuid.MustParse(sh.ID)
@@ -146,7 +146,7 @@ func TestLive(t *testing.T) {
 func TestOneShareAtATime(t *testing.T) {
 	ctx := context.Background()
 	pool := testdb.New(t)
-	s := &Store{DB: pool, Mail: &mailer.Recorder{}, PublicURL: "https://odysgeh.test"}
+	s := &Store{DB: pool, Mail: &mailer.Recorder{}, PublicURL: "https://alvyo.test"}
 	var uid uuid.UUID
 	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('a@example.ch', 'alone', 'A') RETURNING id`).Scan(&uid); err != nil {
 		t.Fatal(err)

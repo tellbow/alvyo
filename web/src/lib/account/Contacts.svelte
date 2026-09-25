@@ -76,9 +76,9 @@
 		/>
 		<button
 			disabled={!hydrated.value}
-			class="rounded-md bg-emerald-700 px-3 py-1 text-white hover:bg-emerald-800 disabled:opacity-50"
+			class="rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 			>{m.contacts_add()}</button
 		>
 	</form>
 {/if}
-{#if problem}<p role="alert" class="mt-1 text-sm text-red-700">{problem}</p>{/if}
+{#if problem}<p role="alert" class="mt-1 text-sm text-red-700 dark:text-red-400">{problem}</p>{/if}

@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/map_style.dart';
-import 'package:odysgeh/offline/downloads.dart';
-import 'package:odysgeh/offline/packs.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/map_style.dart';
+import 'package:alvyo/offline/downloads.dart';
+import 'package:alvyo/offline/packs.dart';
 
 /// A server with one route whose offline map takes one poll to build.
 class FakeServer {
@@ -110,7 +110,7 @@ void main() {
 
   test('saves the built pack with the route; a changed route replaces it', () async {
     final server = FakeServer();
-    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
     final store = PackStore(root, poll: Duration.zero);
     final steps = <(bool, double)>[];
 
@@ -167,7 +167,7 @@ void main() {
 
   test('a Wi-Fi login page instead of the map is not kept', () async {
     final server = FakeServer()..portal = true;
-    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
     final store = PackStore(root, poll: Duration.zero);
     await expectLater(store.save(api, 'r1', progress: (_, _) {}), throwsA(isA<ApiException>()));
     expect(root.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.part')), isEmpty);
@@ -180,7 +180,7 @@ void main() {
 
   test('saved without turns when they cannot be had', () async {
     final server = FakeServer()..turnsDown = true;
-    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
     final pack = await PackStore(root, poll: Duration.zero).save(api, 'r1', progress: (_, _) {});
     expect(pack.turns, isNull);
     expect(pack.files, hasLength(2));
@@ -188,7 +188,7 @@ void main() {
 
   test('a broken off download goes on where it stopped', () async {
     final server = FakeServer()..breakAfter = 4;
-    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
     final store = PackStore(root, poll: Duration.zero);
     await expectLater(store.save(api, 'r1', progress: (_, _) {}), throwsA(isA<ApiException>()));
     expect(await store.saved('r1'), isNull);
@@ -201,7 +201,7 @@ void main() {
 
   test('a save goes on without the screen and is joined when opened again', () async {
     final server = FakeServer();
-    final api = Api('https://odysgeh.test', token: 't', client: server.client);
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
     final downloads = PackDownloads(Future.value(PackStore(root, poll: Duration.zero)));
     final seen = <SaveProgress?>[];
     downloads.progress('r1').addListener(() => seen.add(downloads.progress('r1').value));

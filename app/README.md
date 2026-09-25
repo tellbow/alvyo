@@ -1,4 +1,4 @@
-# odysgeh app
+# Alvyo app
 
 Flutter app for iOS (Android later): log in, list your routes, show a route on
 the swisstopo national map and save it offline, and hike it: your position on
@@ -21,7 +21,7 @@ HealthKit works with a free Apple ID).
 ## Run
 
 ```sh
-flutter run -d <simulator or phone>   # server: https://odysgeh.tellbow.ch or http://localhost:5173
+flutter run -d <simulator or phone>   # server: https://alvyo.tellbow.ch or http://localhost:5173
 ```
 
 On an iPhone (by cable, Developer Mode on) with a free Apple ID: add the
@@ -64,7 +64,7 @@ The integration tests expect the API and the web dev server (:5173) from
   location and move along the route, started once the test app is installed:
 
   ```sh
-  xcrun simctl privacy <simulator> grant location ch.tellbow.odysgeh
+  xcrun simctl privacy <simulator> grant location ch.tellbow.alvyo
   xcrun simctl location <simulator> start --speed=30 <lat,lon> <lat,lon> …
   ```
 

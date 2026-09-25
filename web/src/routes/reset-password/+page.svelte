@@ -27,7 +27,7 @@
 	{#if status === 'done'}
 		<p role="status">
 			{m.reset_done()}
-			<a href={resolve('/login')} class="text-emerald-800 underline">{m.nav_login()}</a>
+			<a href={resolve('/login')} class="text-accent-ink underline">{m.nav_login()}</a>
 		</p>
 	{:else}
 		<form method="post" onsubmit={submit} class="flex flex-col gap-4">
@@ -42,12 +42,12 @@
 				hint={m.hint_password()}
 				bind:value={password}
 			/>
-			{#if status === 'failed'}<p role="alert" class="text-sm text-red-700">
+			{#if status === 'failed'}<p role="alert" class="text-sm text-red-700 dark:text-red-400">
 					{m.reset_failed()}
 				</p>{/if}
 			<button
 				disabled={!hydrated.value}
-				class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800"
+				class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
 				>{m.reset_submit()}</button
 			>
 		</form>

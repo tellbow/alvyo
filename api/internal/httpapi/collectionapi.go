@@ -10,11 +10,11 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/access"
-	"github.com/tellbow/odysgeh/api/internal/auth"
-	"github.com/tellbow/odysgeh/api/internal/collections"
-	"github.com/tellbow/odysgeh/api/internal/grants"
-	"github.com/tellbow/odysgeh/api/internal/og"
+	"github.com/tellbow/alvyo/api/internal/access"
+	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/collections"
+	"github.com/tellbow/alvyo/api/internal/grants"
+	"github.com/tellbow/alvyo/api/internal/og"
 )
 
 type collectionBody struct {

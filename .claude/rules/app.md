@@ -7,8 +7,8 @@ paths:
 
 - Plugins come through Swift Package Manager only; plugins that need
   CocoaPods are out (flutter_tts was dropped for that). Small native pieces
-  are method channels in `ios/Runner/AppDelegate.swift` (`odysgeh/backup`,
-  `odysgeh/speech`).
+  are method channels in `ios/Runner/AppDelegate.swift` (`alvyo/backup`,
+  `alvyo/speech`).
 - `dart format` with page width 120, flutter_lints.
 - Texts in `lib/l10n/app_*.arb` (`app_de.arb` is the template and holds the
   placeholders); run `flutter gen-l10n`; the generated files are committed.
@@ -22,6 +22,6 @@ paths:
   `plugins.flutter.io/path_provider` channel; real file work in widget tests
   needs `tester.runAsync`. Integration tests in `integration_test/` run on
   the simulator against the local dev stack (skill `app-simulator-tests`).
-- The app talks to production (https://odysgeh.tellbow.ch) unless the login
+- The app talks to production (https://alvyo.tellbow.ch) unless the login
   names another server; features that need new API endpoints work there only
   after a release.

@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/access"
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
-	"github.com/tellbow/odysgeh/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/access"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/testdb"
 )
 
 func TestInvitations(t *testing.T) {
@@ -36,7 +36,7 @@ func TestInvitations(t *testing.T) {
 		t.Fatal(err)
 	}
 	rec := &mailer.Recorder{}
-	s := &Store{DB: pool, Mail: rec, PublicURL: "https://odysgeh.test"}
+	s := &Store{DB: pool, Mail: rec, PublicURL: "https://alvyo.test"}
 	target := Target{Kind: Journey, ID: jid, Title: "Via Alpina"}
 	role := func(u dbq.User) access.Role {
 		t.Helper()
@@ -56,7 +56,7 @@ func TestInvitations(t *testing.T) {
 	}
 	sent := rec.Sent()
 	if len(sent) != 1 || sent[0].To != "bea@example.ch" || !strings.Contains(sent[0].Subject, "Via Alpina") ||
-		!strings.Contains(sent[0].Text, "https://odysgeh.test/journeys/"+jid.String()) {
+		!strings.Contains(sent[0].Text, "https://alvyo.test/journeys/"+jid.String()) {
 		t.Fatalf("invitation mail %+v", sent)
 	}
 	// Inviting again changes the role without another e-mail.

@@ -57,14 +57,14 @@
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
 	<h1 class="text-2xl font-semibold">{m.moderation_title()}</h1>
 	<p class="mt-1 text-stone-600">{m.moderation_intro()}</p>
-	{#if error}<p role="alert" class="mt-3 text-sm text-red-700">{error}</p>{/if}
+	{#if error}<p role="alert" class="mt-3 text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 
 	{#if reports.length === 0}
 		<p class="mt-6 text-stone-600">{m.moderation_empty()}</p>
 	{:else}
 		<ul class="mt-6 flex flex-col gap-3" data-testid="reports">
 			{#each reports as r (r.id)}
-				<li class="rounded-md border border-stone-200 bg-white p-3 text-sm" data-testid="report">
+				<li class="rounded-md border border-stone-200 bg-surface p-3 text-sm" data-testid="report">
 					<p class="text-xs text-stone-500">
 						{kinds[r.kind]()} · {reasons[r.reason]()} · {when.format(new Date(r.created_at))}
 						· {m.moderation_by({ user: r.reporter || '–' })}

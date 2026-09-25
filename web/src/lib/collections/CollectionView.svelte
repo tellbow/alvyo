@@ -128,7 +128,7 @@
 	</section>
 
 	<aside
-		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-white p-4"
+		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
 		data-testid="collection-panel"
 	>
 		<div>
@@ -169,7 +169,7 @@
 			</div>
 		</div>
 
-		{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
+		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 
 		{#if collection.item_list.length === 0}
 			<p class="text-sm text-stone-600">{m.collection_empty()}</p>

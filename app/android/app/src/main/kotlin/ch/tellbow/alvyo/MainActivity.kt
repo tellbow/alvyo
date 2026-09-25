@@ -1,4 +1,4 @@
-package ch.tellbow.odysgeh
+package ch.tellbow.alvyo
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
-	"github.com/tellbow/odysgeh/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/mailer"
 )
 
 // mailInterval is the least time between two notification e-mails on the
@@ -145,7 +145,7 @@ func (s *Store) notifyFollow(ctx context.Context, follower dbq.User, followed uu
 		s.send(ctx, mailer.Message{
 			To:      r.email,
 			Subject: fmt.Sprintf("%s te suit désormais", follower.DisplayName),
-			Text: fmt.Sprintf("Bonjour\n\n%s (@%s) te suit désormais sur odysgeh et voit tes randonnées publiques "+
+			Text: fmt.Sprintf("Bonjour\n\n%s (@%s) te suit désormais sur Alvyo et voit tes randonnées publiques "+
 				"sous « Actualités ».\n\nRégler les notifications : %s/account\n", follower.DisplayName, follower.Username, s.PublicURL),
 		})
 		return
@@ -153,7 +153,7 @@ func (s *Store) notifyFollow(ctx context.Context, follower dbq.User, followed uu
 		s.send(ctx, mailer.Message{
 			To:      r.email,
 			Subject: fmt.Sprintf("%s ora ti segue", follower.DisplayName),
-			Text: fmt.Sprintf("Ciao\n\n%s (@%s) ora ti segue su odysgeh e vede le tue escursioni pubbliche "+
+			Text: fmt.Sprintf("Ciao\n\n%s (@%s) ora ti segue su Alvyo e vede le tue escursioni pubbliche "+
 				"in «Novità».\n\nImpostazioni delle notifiche: %s/account\n", follower.DisplayName, follower.Username, s.PublicURL),
 		})
 		return
@@ -161,7 +161,7 @@ func (s *Store) notifyFollow(ctx context.Context, follower dbq.User, followed uu
 		s.send(ctx, mailer.Message{
 			To:      r.email,
 			Subject: fmt.Sprintf("%s folgt dir jetzt", follower.DisplayName),
-			Text: fmt.Sprintf("Hallo\n\n%s (@%s) folgt dir jetzt auf odysgeh und sieht deine öffentlichen Touren "+
+			Text: fmt.Sprintf("Hallo\n\n%s (@%s) folgt dir jetzt auf Alvyo und sieht deine öffentlichen Touren "+
 				"unter «Neuigkeiten».\n\nBenachrichtigungen einstellen: %s/account\n", follower.DisplayName, follower.Username, s.PublicURL),
 		})
 		return
@@ -169,7 +169,7 @@ func (s *Store) notifyFollow(ctx context.Context, follower dbq.User, followed uu
 	s.send(ctx, mailer.Message{
 		To:      r.email,
 		Subject: fmt.Sprintf("%s now follows you", follower.DisplayName),
-		Text: fmt.Sprintf("Hi\n\n%s (@%s) now follows you on odysgeh and sees your public hikes "+
+		Text: fmt.Sprintf("Hi\n\n%s (@%s) now follows you on Alvyo and sees your public hikes "+
 			"under “News”.\n\nNotification settings: %s/account\n", follower.DisplayName, follower.Username, s.PublicURL),
 	})
 }

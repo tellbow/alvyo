@@ -94,10 +94,12 @@
 			class="hidden"
 			aria-hidden="true"
 		/>
-		{#if errors.form}<p role="alert" class="text-sm text-red-700">{errors.form}</p>{/if}
+		{#if errors.form}<p role="alert" class="text-sm text-red-700 dark:text-red-400">
+				{errors.form}
+			</p>{/if}
 		<button
 			disabled={!hydrated.value || busy}
-			class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800 disabled:opacity-60"
+			class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover disabled:opacity-60"
 		>
 			{m.signup_submit()}
 		</button>
@@ -107,6 +109,6 @@
 	</div>
 	<p class="mt-6 text-sm">
 		{m.signup_have_account()}
-		<a href={resolve('/login')} class="text-emerald-800 underline">{m.nav_login()}</a>
+		<a href={resolve('/login')} class="text-accent-ink underline">{m.nav_login()}</a>
 	</p>
 </AuthCard>

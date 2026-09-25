@@ -1,9 +1,9 @@
-name: odysgeh
+name: alvyo
 
 services:
   db:
     build: ./postgis
-    image: odysgeh-postgis:18
+    image: alvyo-postgis:18
     environment:
       POSTGRES_USER: odysgeh
       POSTGRES_PASSWORD: odysgeh
@@ -30,7 +30,7 @@ services:
 
   graphhopper:
     build: ./graphhopper
-    image: odysgeh-graphhopper:11.0
+    image: alvyo-graphhopper:11.0
     environment:
       JAVA_OPTS: "-Xms1g -Xmx6g"
     ports: ["8989:8989"]
@@ -47,7 +47,7 @@ services:
   # One-shot: make osm-fetch (downloads + merges the OSM extracts).
   osm-fetch:
     build: ./data-import
-    image: odysgeh-data-import
+    image: alvyo-data-import
     profiles: [data]
     volumes:
       - ./data:/data
@@ -56,7 +56,7 @@ services:
 
   # One-shot: make tlm-import (swissTLM3D hiking trails into PostGIS).
   tlm-import:
-    image: odysgeh-data-import
+    image: alvyo-data-import
     build: ./data-import
     profiles: [data]
     depends_on:
@@ -73,7 +73,7 @@ services:
 
   # One-shot: make places-import (stops, huts, accommodation into PostGIS).
   places-import:
-    image: odysgeh-data-import
+    image: alvyo-data-import
     build: ./data-import
     profiles: [data]
     depends_on:
@@ -94,6 +94,8 @@ services:
       - "8025:8025" # web UI + API
       - "1025:1025" # SMTP
 
+# Named from before the rename to alvyo, so the data stays; the database
+# itself is still called odysgeh.
 volumes:
-  pgdata:
-  tilecache:
+  pgdata: { name: odysgeh_pgdata }
+  tilecache: { name: odysgeh_tilecache }

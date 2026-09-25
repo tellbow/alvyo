@@ -2,7 +2,7 @@
 //
 // Komoot API usage (login, tour list, tour coordinates) follows wanderer's
 // Komoot plugin (github.com/open-wanderer/wanderer, plugins/komoot, AGPL-3.0),
-// re-implemented for odysgeh with net/http on 2026-09-23.
+// re-implemented for Alvyo with net/http on 2026-09-23.
 
 package imports
 
@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // KomootAPI is Komoot's (unofficial) API.

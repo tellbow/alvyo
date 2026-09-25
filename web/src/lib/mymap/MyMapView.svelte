@@ -158,12 +158,12 @@
 	</section>
 
 	<aside
-		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-white p-4"
+		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
 		data-testid="mymap-panel"
 	>
 		<div class="flex items-baseline justify-between">
 			<h1 class="text-xl font-semibold">{m.mymap_title()}</h1>
-			<a href={resolve('/routes')} class="text-sm text-emerald-800 underline">{m.routes_title()}</a>
+			<a href={resolve('/routes')} class="text-sm text-accent-ink underline">{m.routes_title()}</a>
 		</div>
 
 		<div class="flex flex-col gap-3 text-sm">
@@ -195,7 +195,7 @@
 								type="button"
 								aria-pressed={on}
 								class="rounded-full px-2 py-0.5 text-xs {on
-									? 'bg-emerald-700 text-white'
+									? 'bg-accent text-on-accent'
 									: 'bg-stone-100 text-stone-700 hover:bg-stone-200'}"
 								onclick={() =>
 									(filters.tags = on
@@ -278,7 +278,7 @@
 		</div>
 
 		{#if failed}
-			<p role="alert" class="text-sm text-red-700">{m.discover_failed()}</p>
+			<p role="alert" class="text-sm text-red-700 dark:text-red-400">{m.discover_failed()}</p>
 		{:else if !loading && items.length === 0}
 			<p class="text-sm text-stone-600">{m.mymap_empty()}</p>
 		{/if}

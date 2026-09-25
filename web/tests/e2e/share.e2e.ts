@@ -8,7 +8,7 @@ test('share a route by link with someone without an account', async ({
 }) => {
 	await context.addInitScript(() => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({
 				base: 'landeskarte',
 				overlays: ['wanderwege'],

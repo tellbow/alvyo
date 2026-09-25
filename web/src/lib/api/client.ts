@@ -40,7 +40,7 @@ export type ProtectedArea = components['schemas']['Area'];
 export type Profile = components['schemas']['ProfileOutputBody'];
 
 /**
- * Typed client for the odysgeh API. Pass SvelteKit's `fetch` in load
+ * Typed client for the Alvyo API. Pass SvelteKit's `fetch` in load
  * functions. On the server the base URL must be absolute (`url.origin`);
  * hooks.server.ts rewrites it to the internal API address.
  */

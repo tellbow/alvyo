@@ -1,6 +1,6 @@
 ---
 name: app-simulator-tests
-description: Run the odysgeh app's integration tests on the iOS simulator against the local dev stack (dev containers, API, web dev server, demo account). Use after changing app screens, navigation, recording, offline maps or the native Swift code.
+description: Run the Alvyo app's integration tests on the iOS simulator against the local dev stack (dev containers, API, web dev server, demo account). Use after changing app screens, navigation, recording, offline maps or the native Swift code.
 ---
 
 # App integration tests on the simulator
@@ -13,7 +13,7 @@ which has the route «Sargans–Weisstannen» and the journey «Via Alpina»
 1. **Dev stack:** `make infra-up`, then wait until GraphHopper answers:
    `until curl -sf localhost:8989/health; do sleep 3; done`.
 2. **API and web** (in the background, as in daily work):
-   `ODYSGEH_DATABASE_URL=… go run ./api/cmd/odysgeh migrate`, then `… serve`,
+   `ALVYO_DATABASE_URL=… go run ./api/cmd/alvyo migrate`, then `… serve`,
    and `cd web && bun run dev`. Ready when
    `curl -sf localhost:5173/api/v1/auth/providers` answers.
 3. **Simulator:** `xcrun simctl list devices booted`; if none is booted,

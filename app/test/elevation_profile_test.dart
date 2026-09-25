@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:odysgeh/elevation_profile.dart';
+import 'package:alvyo/elevation_profile.dart';
 
 void main() {
   test('distances along a line, and the height between samples', () {

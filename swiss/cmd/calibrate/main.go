@@ -5,7 +5,7 @@
 // Elevations come from the geo.admin.ch profile service, as in the API, and
 // are cached (-cache) so that variants can be compared offline:
 //
-//	go run ./cmd/calibrate -cache /tmp/odysgeh-calibrate > report.md
+//	go run ./cmd/calibrate -cache /tmp/alvyo-calibrate > report.md
 //
 // With -graphhopper, each stage is also planned as a person would: routed
 // through GraphHopper between points of the official line every -anchor-km.
@@ -25,9 +25,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tellbow/odysgeh/swiss/elevation"
-	"github.com/tellbow/odysgeh/swiss/geo"
-	"github.com/tellbow/odysgeh/swiss/stats"
+	"github.com/tellbow/alvyo/swiss/elevation"
+	"github.com/tellbow/alvyo/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/stats"
 )
 
 type stage struct {
@@ -90,7 +90,7 @@ const maxVertexSpacing = 20
 
 func main() {
 	ref := flag.String("ref", "testdata/reference_stages.json", "reference stages")
-	cache := flag.String("cache", filepath.Join(os.TempDir(), "odysgeh-calibrate"), "elevation cache directory")
+	cache := flag.String("cache", filepath.Join(os.TempDir(), "alvyo-calibrate"), "elevation cache directory")
 	gh := flag.String("graphhopper", "", "GraphHopper URL, e.g. http://localhost:8989, to also plan each stage")
 	anchorKm := flag.Float64("anchor-km", 5, "distance between planning points along the official line")
 	flag.Parse()
@@ -109,7 +109,7 @@ func main() {
 	if err := os.MkdirAll(*cache, 0o755); err != nil {
 		fail(err)
 	}
-	sampler := &elevation.GeoAdmin{UserAgent: "odysgeh-calibrate (+https://github.com/tellbow/odysgeh)"}
+	sampler := &elevation.GeoAdmin{UserAgent: "alvyo-calibrate (+https://github.com/tellbow/alvyo)"}
 
 	type prepared struct {
 		s   stage

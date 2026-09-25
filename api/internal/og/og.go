@@ -35,6 +35,16 @@ const (
 
 var routeColor = color.RGBA{0xa2, 0x1c, 0xaf, 0xff}
 
+// Style is part of the cache key of the images: raise it when their look
+// changes, so no image drawn before is served again.
+const Style = 2
+
+// The text band in the colours of the website's dark mode.
+var (
+	ground = color.RGBA{0x0e, 0x15, 0x12, 0xff}
+	accent = color.RGBA{0xff, 0xa6, 0x6b, 0xff}
+)
+
 // Card is what the image shows.
 type Card struct {
 	Title string
@@ -95,7 +105,7 @@ func (r *Renderer) render(card Card) ([]byte, error) {
 	ctx := sm.NewContext()
 	ctx.SetSize(Width, Height-bandH)
 	ctx.SetCache(nil) // tiles come through our own caching proxy
-	ctx.SetUserAgent("odysgeh-og")
+	ctx.SetUserAgent("alvyo-og")
 	ctx.SetTileProvider(&sm.TileProvider{
 		Name:        "swisstopo",
 		Attribution: "© swisstopo, © OpenStreetMap contributors",
@@ -135,7 +145,7 @@ func (r *Renderer) render(card Card) ([]byte, error) {
 	}
 
 	img := image.NewRGBA(image.Rect(0, 0, Width, Height))
-	draw.Draw(img, img.Bounds(), image.White, image.Point{}, draw.Src)
+	draw.Draw(img, img.Bounds(), image.NewUniform(ground), image.Point{}, draw.Src)
 	draw.Draw(img, image.Rect(0, 0, Width, Height-bandH), mapImg, image.Point{}, draw.Src)
 	if err := drawText(img, card); err != nil {
 		return nil, err
@@ -157,16 +167,16 @@ func drawText(img *image.RGBA, card Card) error {
 	if err != nil {
 		return err
 	}
-	dark := image.NewUniform(color.RGBA{0x1c, 0x19, 0x17, 0xff})
-	grey := image.NewUniform(color.RGBA{0x57, 0x53, 0x4e, 0xff})
+	ink := image.NewUniform(color.RGBA{0xe9, 0xef, 0xe9, 0xff})
+	muted := image.NewUniform(color.RGBA{0xa4, 0xb2, 0xa9, 0xff})
 	top := Height - bandH
 
 	title := truncate(bold, card.Title, Width-64-200)
-	(&font.Drawer{Dst: img, Src: dark, Face: bold, Dot: fixed.P(32, top+52)}).DrawString(title)
-	(&font.Drawer{Dst: img, Src: grey, Face: regular, Dot: fixed.P(32, top+96)}).DrawString(card.Stats)
-	brand := "odysgeh"
+	(&font.Drawer{Dst: img, Src: ink, Face: bold, Dot: fixed.P(32, top+52)}).DrawString(title)
+	(&font.Drawer{Dst: img, Src: muted, Face: regular, Dot: fixed.P(32, top+96)}).DrawString(card.Stats)
+	brand := "Alvyo"
 	w := font.MeasureString(bold, brand).Ceil()
-	(&font.Drawer{Dst: img, Src: image.NewUniform(color.RGBA{0x06, 0x5f, 0x46, 0xff}), Face: bold, Dot: fixed.P(Width-32-w, top+52)}).DrawString(brand)
+	(&font.Drawer{Dst: img, Src: image.NewUniform(accent), Face: bold, Dot: fixed.P(Width-32-w, top+52)}).DrawString(brand)
 	return nil
 }
 

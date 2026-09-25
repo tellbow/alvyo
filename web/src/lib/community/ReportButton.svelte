@@ -54,9 +54,9 @@
 			placeholder={m.report_note()}
 			aria-label={m.report_note()}
 			class="rounded border border-stone-300 px-1 py-0.5"></textarea>
-		{#if error}<p role="alert" class="text-red-700">{error}</p>{/if}
+		{#if error}<p role="alert" class="text-red-700 dark:text-red-400">{error}</p>{/if}
 		<div class="flex gap-2">
-			<button class="rounded bg-stone-700 px-2 py-0.5 text-white">{m.report_send()}</button>
+			<button class="rounded bg-stone-800 px-2 py-0.5 text-stone-50">{m.report_send()}</button>
 			<button type="button" class="underline" onclick={() => (open = false)}
 				>{m.report_cancel()}</button
 			>

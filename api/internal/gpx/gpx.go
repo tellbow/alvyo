@@ -77,7 +77,7 @@ func Write(w io.Writer, t Track) error {
 		XSI:     "http://www.w3.org/2001/XMLSchema-instance",
 		Schema:  "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd",
 		Version: "1.1",
-		Creator: "odysgeh",
+		Creator: "Alvyo",
 		Metadata: metadata{
 			Name: t.Name,
 			Desc: t.Description,
@@ -92,7 +92,7 @@ func Write(w io.Writer, t Track) error {
 		f.Metadata.Author = &author{Name: t.Author}
 	}
 	if t.Link != "" {
-		f.Metadata.Link = &link{Href: t.Link, Text: "odysgeh"}
+		f.Metadata.Link = &link{Href: t.Link, Text: "Alvyo"}
 	}
 	f.Trk.Trkseg.Points = make([]trkpt, len(t.Points))
 	for i, p := range t.Points {

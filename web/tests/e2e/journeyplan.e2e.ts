@@ -5,7 +5,7 @@ test('plan a three-day hike, pick another night, create the journey', async ({ p
 	const center = { lon: 9.3567, lat: 47.0317 };
 	await context.addInitScript((c) => {
 		localStorage.setItem(
-			'odysgeh.map',
+			'alvyo.map',
 			JSON.stringify({ base: 'landeskarte', overlays: [], center: [c.lon, c.lat], zoom: 10 })
 		);
 	}, center);

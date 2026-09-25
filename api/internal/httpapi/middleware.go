@@ -11,10 +11,10 @@ import (
 
 	"github.com/klauspost/compress/gzhttp"
 
-	"github.com/tellbow/odysgeh/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/auth"
 )
 
-const sessionCookie = "odysgeh_session"
+const sessionCookie = "alvyo_session"
 
 type ctxKey int
 

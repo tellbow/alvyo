@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tellbow/odysgeh/api/internal/photos/phototest"
+	"github.com/tellbow/alvyo/api/internal/photos/phototest"
 )
 
 func TestProcessJPEGWithEXIF(t *testing.T) {

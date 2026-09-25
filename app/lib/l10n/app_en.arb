@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "odysgeh",
+  "appTitle": "Alvyo",
   "loginTitle": "Log in",
   "server": "Server",
   "login": "E-mail or username",
@@ -42,7 +42,7 @@
   "watchImport": "Import",
   "watchImported": "Imported – in My routes",
   "watchNoTrack": "This workout has no GPS track.",
-  "watchEmpty": "No hikes in Apple Health in the last 60 days. Record them with the Workout app on your Apple Watch («Hiking» or «Outdoor Walk»). If you did not allow access: Settings → Apps → Health → Data Access & Devices → odysgeh.",
+  "watchEmpty": "No hikes in Apple Health in the last 60 days. Record them with the Workout app on your Apple Watch («Hiking» or «Outdoor Walk»). If you did not allow access: Settings → Apps → Health → Data Access & Devices → Alvyo.",
   "watchUnavailable": "Apple Health is not available on this device.",
   "watchOutside": "Not imported: {reason}",
   "turnSharpLeft": "Turn sharp left",
@@ -99,5 +99,8 @@
   "liveShareStart": "Share and start",
   "liveShareSkip": "Without sharing",
   "liveShareFailed": "Sharing did not work; the hike is recorded anyway.",
-  "liveNoContacts": "Add contacts to share with on the website under “Account”."
+  "liveNoContacts": "Add contacts to share with on the website under “Account”.",
+  "navRecord": "Record",
+  "navProfile": "Profile",
+  "recordHint": "Choose a route and tap “{start}” to record the hike."
 }

@@ -24,7 +24,7 @@ var ErrUnavailable = errors.New("ojp: journey planner unavailable")
 type Client struct {
 	URL          string
 	Token        string
-	RequestorRef string // identifies us to the operator, e.g. "odysgeh"
+	RequestorRef string // identifies us to the operator, e.g. "alvyo"
 	HTTP         *http.Client
 }
 

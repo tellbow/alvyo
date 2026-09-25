@@ -9,7 +9,7 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
-  String get appTitle => 'odysgeh';
+  String get appTitle => 'Alvyo';
 
   @override
   String get loginTitle => 'Accedi';
@@ -144,7 +144,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get watchEmpty =>
-      'Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l\'app Allenamento su Apple Watch («Escursionismo» o «Camminata all\'aperto»). Se non hai consentito l\'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → odysgeh.';
+      'Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l\'app Allenamento su Apple Watch («Escursionismo» o «Camminata all\'aperto»). Se non hai consentito l\'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → Alvyo.';
 
   @override
   String get watchUnavailable => 'Apple Salute non è disponibile su questo dispositivo.';
@@ -341,4 +341,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get liveNoContacts => 'Aggiungi i contatti sul sito web in «Account».';
+
+  @override
+  String get navRecord => 'Registra';
+
+  @override
+  String get navProfile => 'Profilo';
+
+  @override
+  String recordHint(String start) {
+    return 'Scegli un percorso e tocca «$start» per registrare l\'escursione.';
+  }
 }

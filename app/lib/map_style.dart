@@ -9,7 +9,7 @@ const _layers = [
 ];
 
 /// The swisstopo national map with the hiking trail overlay, through the
-/// odysgeh tile cache of [server].
+/// Alvyo tile cache of [server].
 String swisstopoStyle(String server) {
   Map<String, Object> raster(String layer, String ext, int maxzoom) => {
     'type': 'raster',

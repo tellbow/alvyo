@@ -1,8 +1,8 @@
 # Plan
 
-What odysgeh is for, what is done and what comes next. Keep it current:
+What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-09-24.
+Status: 2026-09-25.
 
 ## Goal
 
@@ -35,7 +35,8 @@ official figures: [hiking-time.md](hiking-time.md).
 ## Releases
 
 A `v*` tag builds the images; Flux deploys them
-([operations.md](operations.md)). Production: https://odysgeh.tellbow.ch.
+([operations.md](operations.md)). Production: https://alvyo.tellbow.ch
+(https://odysgeh.tellbow.ch redirects there).
 
 | Version | Date | What |
 |---|---|---|
@@ -46,6 +47,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.5.0 | 2026-09-24 | A GPX file into a stage (requirement 6), dragging the line onto another path (9), tags (10), a map of all my hikes (11), planning a multi-day hike (8), a long track into stages (7); fixes from a review of all parts: ways into accounts registered with someone else's address, internal errors hidden, crafted photos, offline pack builds and cleanup, recording robustness and loop routes in the app, planner clicks, retries and saving |
 | 0.6.0 | 2026-09-24 | Live location for contacts with an overdue alert (12), protected areas along routes (13); keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging the line on touch screens; in the app: elevation profiles and ascent while hiking, recordings per account, asking before switching hikes, ticking stages off |
 | 0.7.0 | 2026-09-24 | Search engines: titles, descriptions, canonical addresses, noindex for private pages, a sitemap and an address per language (/en/, /fr/, /it/ with hreflang); link-preview images of journeys and collections; compressed answers; map tiles refused while busy are asked for again; the draft logo on the web and as app icon |
+| next | | Renamed from odysgeh to Alvyo: code, images (`alvyo-*`), `ALVYO_*` settings, the address alvyo.tellbow.ch (the old one redirects), the app as `ch.tellbow.alvyo`; the database, namespace and volumes keep the old name. The design of the Alvyo mock-up, light and dark after the system setting: colours, Figtree and Bricolage Grotesque, the Λ logo and icons, a new home page (public hikes, place search); in the app a floating bar (routes, journeys, record, Apple Watch, profile) |
 
 ## Requirements
 
@@ -183,8 +185,10 @@ Connect's course import.
 - Operations: backups are kept on the cluster only; an off-site copy is
   missing.
 - Texts: the French and Italian texts to be reviewed by a native speaker.
-- Logo: a draft (the emblem of `logo-draft.png`, without its lettering)
-  for the web and the app icon; a final one with a vector version.
+- Logo: the Λ of the Alvyo mock-up, drawn as a vector for the web and the
+  app icon; a final one from a designer.
+- Design: the mock-up's moods, logbook, huts and «send to app», and an app
+  home to discover hikes nearby; hiking without a planned route in the app.
 - M4: MeteoSwiss weather, highlights and points of interest, PDF stage sheets,
   3D terrain, closures, self-hosted Swiss Map Raster 25, full «how to get
   there» by public transport.

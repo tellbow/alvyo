@@ -3624,7 +3624,7 @@ export interface operations {
                 provider: string;
             };
             cookie?: {
-                odysgeh_oidc?: string;
+                alvyo_oidc?: string;
                 PARAGLIDE_LOCALE?: string;
             };
         };

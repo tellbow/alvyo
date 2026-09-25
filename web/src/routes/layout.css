@@ -1,1 +1,92 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/figtree';
+@import '@fontsource-variable/bricolage-grotesque';
+
+/*
+ * The Alvyo palette, light and dark after the system setting. The stone
+ * scale is the palette's greyish greens and turns over in dark mode
+ * (stone-50 is always the faintest, stone-900 the text), so pages need no
+ * dark: variants for it. Accent: buttons and highlights; accent-ink: links
+ * and accent text on the ground.
+ */
+:root {
+	color-scheme: light dark;
+	--alvyo-ground: #f2f4ef;
+	--alvyo-surface: #ffffff;
+	--alvyo-stone-50: #f2f4ef;
+	--alvyo-stone-100: #e8ede6;
+	--alvyo-stone-200: #dce3dc;
+	--alvyo-stone-300: #d3dcd5;
+	--alvyo-stone-400: #8a978f;
+	--alvyo-stone-500: #66736b;
+	--alvyo-stone-600: #56645c;
+	--alvyo-stone-700: #3d4a42;
+	--alvyo-stone-800: #26322b;
+	--alvyo-stone-900: #14201a;
+	--alvyo-stone-950: #0b120e;
+	--alvyo-accent: #f28a48;
+	--alvyo-accent-hover: #e57a36;
+	--alvyo-accent-ink: #b4531d;
+	--alvyo-accent-soft: #fdeee3;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--alvyo-ground: #0e1512;
+		--alvyo-surface: #121b17;
+		--alvyo-stone-50: #16201b;
+		--alvyo-stone-100: #1b2621;
+		--alvyo-stone-200: #24312a;
+		--alvyo-stone-300: #2e3d35;
+		--alvyo-stone-400: #6f7d75;
+		--alvyo-stone-500: #94a399;
+		--alvyo-stone-600: #a4b2a9;
+		--alvyo-stone-700: #c3cec6;
+		--alvyo-stone-800: #d8e0da;
+		--alvyo-stone-900: #e9efe9;
+		--alvyo-stone-950: #f4f7f4;
+		--alvyo-accent: #ffa66b;
+		--alvyo-accent-hover: #ffb885;
+		--alvyo-accent-ink: #ffa66b;
+		--alvyo-accent-soft: #2b1f16;
+	}
+}
+
+@theme inline {
+	--font-sans: 'Figtree Variable', system-ui, sans-serif;
+	--font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', system-ui, sans-serif;
+
+	--color-ground: var(--alvyo-ground);
+	--color-surface: var(--alvyo-surface);
+	--color-stone-50: var(--alvyo-stone-50);
+	--color-stone-100: var(--alvyo-stone-100);
+	--color-stone-200: var(--alvyo-stone-200);
+	--color-stone-300: var(--alvyo-stone-300);
+	--color-stone-400: var(--alvyo-stone-400);
+	--color-stone-500: var(--alvyo-stone-500);
+	--color-stone-600: var(--alvyo-stone-600);
+	--color-stone-700: var(--alvyo-stone-700);
+	--color-stone-800: var(--alvyo-stone-800);
+	--color-stone-900: var(--alvyo-stone-900);
+	--color-stone-950: var(--alvyo-stone-950);
+	--color-accent: var(--alvyo-accent);
+	--color-accent-hover: var(--alvyo-accent-hover);
+	--color-accent-ink: var(--alvyo-accent-ink);
+	--color-accent-soft: var(--alvyo-accent-soft);
+	--color-on-accent: #1a0f08;
+
+	--radius-md: 0.75rem;
+	--radius-lg: 1rem;
+}
+
+@layer base {
+	h1,
+	h2,
+	h3 {
+		font-family: var(--font-display);
+		letter-spacing: -0.01em;
+	}
+	h1 {
+		letter-spacing: -0.02em;
+	}
+}

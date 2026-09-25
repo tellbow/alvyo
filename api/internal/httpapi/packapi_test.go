@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tellbow/odysgeh/api/internal/packs"
+	"github.com/tellbow/alvyo/api/internal/packs"
 )
 
 type packResp struct {

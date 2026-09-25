@@ -44,7 +44,7 @@
 	let lib = $state<typeof MapLibre>();
 	let hoverIndex = $state<number>();
 	// What dragging the line does; remembered in this browser.
-	const DRAG_KEY = 'odysgeh.dragPath';
+	const DRAG_KEY = 'alvyo.dragPath';
 	let dragPath = $state(false);
 
 	function setDragPath(on: boolean) {
@@ -197,7 +197,7 @@
 		{/if}
 		{#if planner.line.coordinates.length > 1}
 			<div
-				class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-white/95 px-2 py-1 shadow ring-1 ring-stone-300"
+				class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-surface/95 px-2 py-1 shadow ring-1 ring-stone-300"
 			>
 				<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
 			</div>
@@ -205,13 +205,13 @@
 	</section>
 
 	<aside
-		class="flex w-80 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-white p-4"
+		class="flex w-80 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
 		data-testid="planner-panel"
 	>
 		{#if !user}
 			<p class="rounded-md bg-stone-100 p-3 text-sm">
 				{m.plan_hint_login()}
-				<a href={resolve('/login')} class="text-emerald-800 underline">{m.nav_login()}</a>
+				<a href={resolve('/login')} class="text-accent-ink underline">{m.nav_login()}</a>
 			</p>
 		{:else}
 			<label class="flex flex-col gap-1 text-sm">
@@ -374,7 +374,7 @@
 									</label>
 								</div>
 								{#if slot.state === 'error'}
-									<p class="mt-1 text-xs text-red-700" role="alert">
+									<p class="mt-1 text-xs text-red-700 dark:text-red-400" role="alert">
 										{legError(slot)}
 										{#if slot.status !== 422}
 											<button

@@ -7,27 +7,27 @@ import (
 )
 
 func TestFromEnv(t *testing.T) {
-	t.Setenv("ODYSGEH_DATABASE_URL", "")
-	if _, err := FromEnv(); err == nil || !strings.Contains(err.Error(), "ODYSGEH_DATABASE_URL") {
+	t.Setenv("ALVYO_DATABASE_URL", "")
+	if _, err := FromEnv(); err == nil || !strings.Contains(err.Error(), "ALVYO_DATABASE_URL") {
 		t.Errorf("without a database: %v", err)
 	}
 
-	t.Setenv("ODYSGEH_DATABASE_URL", "postgres://db/odysgeh")
-	t.Setenv("ODYSGEH_PUBLIC_URL", "https://odysgeh.example/")
+	t.Setenv("ALVYO_DATABASE_URL", "postgres://db/alvyo")
+	t.Setenv("ALVYO_PUBLIC_URL", "https://alvyo.example/")
 	c, err := FromEnv()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.Listen != ":8080" || c.PublicURL != "https://odysgeh.example" || c.LogLevel != slog.LevelInfo ||
+	if c.Listen != ":8080" || c.PublicURL != "https://alvyo.example" || c.LogLevel != slog.LevelInfo ||
 		c.SMTP.Port != 1025 || c.SMTP.TLS != "none" || c.TrustProxy || c.RelaxedLimits || len(c.OIDC) != 0 {
 		t.Errorf("defaults: %+v", c)
 	}
 
 	for _, bad := range []struct{ key, value, want string }{
-		{"ODYSGEH_SMTP_PORT", "25x", "ODYSGEH_SMTP_PORT"},
-		{"ODYSGEH_LOG_LEVEL", "loud", "loud"},
-		{"ODYSGEH_OIDC_PROVIDERS", "Google", "a-z and 0-9"},
-		{"ODYSGEH_OIDC_PROVIDERS", "google", "ODYSGEH_OIDC_GOOGLE_CLIENT_SECRET"},
+		{"ALVYO_SMTP_PORT", "25x", "ALVYO_SMTP_PORT"},
+		{"ALVYO_LOG_LEVEL", "loud", "loud"},
+		{"ALVYO_OIDC_PROVIDERS", "Google", "a-z and 0-9"},
+		{"ALVYO_OIDC_PROVIDERS", "google", "ALVYO_OIDC_GOOGLE_CLIENT_SECRET"},
 	} {
 		t.Run(bad.key+"="+bad.value, func(t *testing.T) {
 			t.Setenv(bad.key, bad.value)
@@ -39,14 +39,14 @@ func TestFromEnv(t *testing.T) {
 }
 
 func TestOIDCProviders(t *testing.T) {
-	t.Setenv("ODYSGEH_DATABASE_URL", "postgres://db/odysgeh")
-	t.Setenv("ODYSGEH_OIDC_PROVIDERS", " google , ,swisspass")
+	t.Setenv("ALVYO_DATABASE_URL", "postgres://db/alvyo")
+	t.Setenv("ALVYO_OIDC_PROVIDERS", " google , ,swisspass")
 	for _, id := range []string{"GOOGLE", "SWISSPASS"} {
-		t.Setenv("ODYSGEH_OIDC_"+id+"_ISSUER", "https://"+id+".example")
-		t.Setenv("ODYSGEH_OIDC_"+id+"_CLIENT_ID", "client-"+id)
-		t.Setenv("ODYSGEH_OIDC_"+id+"_CLIENT_SECRET", "not-a-secret")
+		t.Setenv("ALVYO_OIDC_"+id+"_ISSUER", "https://"+id+".example")
+		t.Setenv("ALVYO_OIDC_"+id+"_CLIENT_ID", "client-"+id)
+		t.Setenv("ALVYO_OIDC_"+id+"_CLIENT_SECRET", "not-a-secret")
 	}
-	t.Setenv("ODYSGEH_OIDC_SWISSPASS_NAME", "SwissPass")
+	t.Setenv("ALVYO_OIDC_SWISSPASS_NAME", "SwissPass")
 	c, err := FromEnv()
 	if err != nil {
 		t.Fatal(err)

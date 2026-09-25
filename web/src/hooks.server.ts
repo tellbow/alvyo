@@ -41,7 +41,7 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 
 const handleUser: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
-	if (event.cookies.get('odysgeh_session')) {
+	if (event.cookies.get('alvyo_session')) {
 		const { data } = await api(event.fetch, event.url.origin).GET('/me');
 		event.locals.user = data ?? null;
 	}

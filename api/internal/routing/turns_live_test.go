@@ -11,7 +11,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // TestTurnsLive matches lines onto the dev stack's GraphHopper (:8989) and

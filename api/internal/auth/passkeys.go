@@ -17,7 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/dbq"
 )
 
 // Passkey errors.
@@ -43,7 +43,7 @@ func NewWebAuthn(publicURL string) (*webauthn.WebAuthn, error) {
 	}
 	return webauthn.New(&webauthn.Config{
 		RPID:          u.Hostname(),
-		RPDisplayName: "odysgeh",
+		RPDisplayName: "Alvyo",
 		RPOrigins:     []string{u.Scheme + "://" + u.Host},
 	})
 }

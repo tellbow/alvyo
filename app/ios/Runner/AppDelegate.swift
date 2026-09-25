@@ -19,8 +19,8 @@ import UserNotifications
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     // Offline maps can be downloaded again: keep them out of iCloud backups.
-    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OdysgehBackup") {
-      let channel = FlutterMethodChannel(name: "odysgeh/backup", binaryMessenger: registrar.messenger())
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoBackup") {
+      let channel = FlutterMethodChannel(name: "alvyo/backup", binaryMessenger: registrar.messenger())
       channel.setMethodCallHandler { call, result in
         guard call.method == "exclude", let path = call.arguments as? String else {
           result(FlutterMethodNotImplemented)
@@ -38,8 +38,8 @@ import UserNotifications
       }
     }
     // Turn-by-turn prompts.
-    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OdysgehSpeech") {
-      let channel = FlutterMethodChannel(name: "odysgeh/speech", binaryMessenger: registrar.messenger())
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoSpeech") {
+      let channel = FlutterMethodChannel(name: "alvyo/speech", binaryMessenger: registrar.messenger())
       channel.setMethodCallHandler { [speech] call, result in
         guard call.method == "say", let args = call.arguments as? [String: String],
           let text = args["text"], let language = args["language"]

@@ -1,6 +1,6 @@
 # Hiking time and ascent: calibration
 
-odysgeh shows the Swiss hiking time of the yellow signposts: the SchweizMobil
+Alvyo shows the Swiss hiking time of the yellow signposts: the SchweizMobil
 variant of the Schweizer Wanderwege formula, as in map.geo.admin.ch
 (`swiss/hikingtime`, golden-tested against the original JavaScript). The
 formula gives minutes per horizontal kilometre from the slope; the result

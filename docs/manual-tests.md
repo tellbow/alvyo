@@ -52,7 +52,7 @@ Checked so far only in the simulator, with made-up or simulated positions
       a login page: the save fails and works once logged in to the Wi-Fi,
       without a broken map.
 - [ ] **iCloud backup**: offline maps are not in it (Settings → your name →
-      iCloud → Manage storage → Backups: odysgeh stays small).
+      iCloud → Manage storage → Backups: Alvyo stays small).
 - [ ] **App stopped mid-hike** (swipe it away, open it again): the route offers
       «Wanderung fortsetzen» and the hike goes on.
 - [ ] **Upload later**: finish a hike without reception; once online, it goes up
@@ -83,6 +83,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       once back online and nobody is alerted. An overdue alert (set the end
       a few minutes ahead) reaches contact and hiker, and the all-clear
       after «Später».
+- [ ] **Alvyo look in light and dark** (Settings → Display, and «Automatic» at
+      dusk): the bar at the bottom, the record button (opens the hike in
+      progress, else the hint), cards, fonts and the map screens readable in
+      both; the new icon on the home screen.
 
 ## Web
 
@@ -106,6 +110,13 @@ Checked so far only in the simulator, with made-up or simulated positions
       how long the proposal takes, whether the nights are where one would
       stay, and the alternatives earlier and later; hut websites after
       `make places-import`.
+- [ ] **Dark mode** in Safari, Chrome and Firefox (system setting): every page
+      readable, including dialogs, drop-downs, the photo lightbox and the
+      elevation profile.
+- [ ] **Old address**: links to `odysgeh.tellbow.ch` (shared routes, live
+      shares, e-mails sent before) end on the same page at
+      `alvyo.tellbow.ch`. Passkeys made on the old address do not work on the
+      new one: log in with the password and add a passkey again.
 
 ## Server
 

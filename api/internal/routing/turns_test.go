@@ -11,7 +11,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/tellbow/odysgeh/swiss/geo"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // matchServer answers map matching with the recorded answer for the line

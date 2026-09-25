@@ -4,6 +4,7 @@ import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/packs.dart';
+import 'item_card.dart';
 import 'journey_screen.dart';
 import 'tag_chips.dart';
 
@@ -46,9 +47,8 @@ class _JourneysListState extends State<JourneysList> {
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final (journeys, offline) = snap.data!;
           if (journeys.isEmpty) return ListView(children: [ListTile(title: Text(t.journeysEmpty))]);
-          return ListView.separated(
+          return ListView.builder(
             itemCount: journeys.length + (offline ? 1 : 0),
-            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, i) {
               if (offline && i == 0) {
                 return ListTile(
@@ -58,27 +58,29 @@ class _JourneysListState extends State<JourneysList> {
                 );
               }
               final j = journeys[offline ? i - 1 : i];
-              return ListTile(
-                title: Text(j.title),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    Text(
-                      '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
-                      '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)} · ↑ ${j.ascentM.round()} m',
-                    ),
-                    if (j.tags.isNotEmpty) TagChips(j.tags),
-                  ],
+              return ItemCard(
+                child: ListTile(
+                  title: Text(j.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 4,
+                    children: [
+                      Text(
+                        '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
+                        '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)} · ↑ ${j.ascentM.round()} m',
+                      ),
+                      if (j.tags.isNotEmpty) TagChips(j.tags),
+                    ],
+                  ),
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => JourneyScreen(api: widget.api, id: j.id, title: j.title),
+                      ),
+                    );
+                    if (mounted) _reload();
+                  },
                 ),
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => JourneyScreen(api: widget.api, id: j.id, title: j.title),
-                    ),
-                  );
-                  if (mounted) _reload();
-                },
               );
             },
           );

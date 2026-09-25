@@ -4,7 +4,7 @@ import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../session.dart';
 
-/// Log in to an odysgeh server.
+/// Log in to an Alvyo server.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.session, required this.onLoggedIn});
   final Session session;

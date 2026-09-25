@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:odysgeh/api.dart';
-import 'package:odysgeh/navigation/tracker.dart';
-import 'package:odysgeh/navigation/uploads.dart';
+import 'package:alvyo/api.dart';
+import 'package:alvyo/navigation/tracker.dart';
+import 'package:alvyo/navigation/uploads.dart';
 
 void main() {
   late Directory root;
@@ -42,7 +42,7 @@ void main() {
     var online = false;
     final bodies = <Map<String, dynamic>>[];
     final api = Api(
-      'https://odysgeh.test',
+      'https://alvyo.test',
       token: 't',
       client: MockClient((req) async {
         if (!online) throw http.ClientException('offline');
@@ -75,7 +75,7 @@ void main() {
     File('${root.path}/done/2026-09-19T08-00-00.000Z.json').writeAsStringSync('{"route_id":');
     final titles = <String>[];
     final api = Api(
-      'https://odysgeh.test',
+      'https://alvyo.test',
       token: 't',
       client: MockClient((req) async {
         final title = (jsonDecode(req.body) as Map<String, dynamic>)['title'] as String;
@@ -97,7 +97,7 @@ void main() {
   test('a refusal the server may lift later keeps the hike', () async {
     hike('2026-09-20T08:00:00.000Z', 'Gratweg');
     final api = Api(
-      'https://odysgeh.test',
+      'https://alvyo.test',
       token: 't',
       client: MockClient((_) async => http.Response(jsonEncode({'detail': 'validation failed'}), 422)),
     );
@@ -128,7 +128,7 @@ void main() {
     hike('2026-09-22T08:00:00.000Z', 'Alt'); // from before owners were kept
     final titles = <String>[];
     Api as(String? user) => Api(
-      'https://odysgeh.test',
+      'https://alvyo.test',
       token: 't',
       userId: user,
       client: MockClient((req) async {

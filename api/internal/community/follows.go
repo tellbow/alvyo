@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/tellbow/odysgeh/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/dbq"
 )
 
 // Relation is how the viewer relates to another user.

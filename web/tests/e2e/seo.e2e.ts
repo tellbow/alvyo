@@ -56,7 +56,7 @@ test('search engines: titles, one address per page, private pages left out, site
 	};
 
 	const home = await head('/');
-	expect(home.title).toBe('odysgeh – Wanderungen in der Schweiz planen und teilen');
+	expect(home.title).toBe('Alvyo – Wanderungen in der Schweiz planen und teilen');
 	expect(home.description).toContain('swisstopo');
 	expect(home.canonical).toMatch(/^http:\/\/[^/]+\/$/);
 
@@ -64,7 +64,7 @@ test('search engines: titles, one address per page, private pages left out, site
 	expect((await head('/discover?bbox=7.9,46.5,8.2,46.8')).canonical).toMatch(/\/discover$/);
 
 	const r = await head(`/routes/${route.id}`);
-	expect(r.title).toBe(`Gratweg ${id} · odysgeh`);
+	expect(r.title).toBe(`Gratweg ${id} · Alvyo`);
 	expect(r.description).toMatch(/^Wanderung: .* m · /);
 	expect(r.canonical).toMatch(new RegExp(`/routes/${route.id}$`));
 	expect(r.noindex).toBe(false);

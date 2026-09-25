@@ -36,10 +36,10 @@
 				required
 				bind:value={email}
 			/>
-			{#if error}<p role="alert" class="text-sm text-red-700">{error}</p>{/if}
+			{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 			<button
 				disabled={!hydrated.value}
-				class="rounded-md bg-emerald-700 px-4 py-2 text-white hover:bg-emerald-800"
+				class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
 				>{m.forgot_submit()}</button
 			>
 		</form>

@@ -44,7 +44,7 @@
 		</p>
 	{:else}
 		<ul
-			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-white"
+			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="feed"
 		>
 			{#each items as it (it.id)}

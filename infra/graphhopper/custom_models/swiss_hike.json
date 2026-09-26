@@ -2,6 +2,9 @@
 // signed hiking routes. Based on GraphHopper 11.0's built-in hike.json.
 {
   "priority": [
+    // Ferries, among them the car trains through the Lötschberg and the
+    // Furka: not hiking, and the elevation sampled above the tunnel.
+    { "if": "road_environment == FERRY", "multiply_by": "0" },
     { "if": "!foot_access || hike_rating > 3", "multiply_by": "0" },
     { "else": "", "multiply_by": "foot_priority" },
     { "if": "foot_road_access == PRIVATE", "multiply_by": "0.1" },

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -73,6 +74,38 @@ func TestPlacesAPI(t *testing.T) {
 	if code, body := c.do("PATCH", jp+"/stages/"+sid,
 		map[string]any{"end_place_id": "00000000-0000-0000-0000-000000000000"}, stageMatch(t, c, jp, sid)...); code != http.StatusUnprocessableEntity {
 		t.Errorf("unknown place: %d %s", code, body)
+	}
+}
+
+func TestPlacesInViewAPI(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	var hut string
+	if err := s.db.QueryRow(context.Background(), `INSERT INTO places (kind, name, detail, source, source_id, website, geom)
+		VALUES ('hut', 'Spitzmeilenhütte', 'alpine_hut', 'osm', 'n1', 'https://spitzmeilen.ch', ST_SetSRID(ST_MakePoint(9.27, 47.03), 4326))
+		RETURNING id`).Scan(&hut); err != nil {
+		t.Fatal(err)
+	}
+	c := s.client(t) // no login: the map is public
+
+	code, body := c.do("GET", "/api/v1/places/in-view?bbox=9.2,47,9.3,47.1&kind=hut&kind=hotel", nil)
+	var res struct {
+		Places []struct {
+			ID, Kind, Name, Detail, Website string
+			Lon, Lat                        float64
+		} `json:"places"`
+	}
+	if err := json.Unmarshal(body, &res); code != http.StatusOK || err != nil || len(res.Places) != 1 ||
+		res.Places[0].ID != hut || res.Places[0].Website != "https://spitzmeilen.ch" || res.Places[0].Lon != 9.27 {
+		t.Fatalf("in view: %d %s", code, body)
+	}
+	if code, body := c.do("GET", "/api/v1/places/in-view?bbox=9.2,47,9.3,47.1&kind=campsite", nil); code != http.StatusOK ||
+		!strings.Contains(string(body), `"places":[]`) {
+		t.Errorf("other kind: %d %s", code, body)
+	}
+	for _, q := range []string{"bbox=9.3,47,9.2,47.1&kind=hut", "bbox=9.2,47,9.3,47.1", "bbox=9.2,47,9.3,47.1&kind=pt_stop"} {
+		if code, body := c.do("GET", "/api/v1/places/in-view?"+q, nil); code != http.StatusUnprocessableEntity {
+			t.Errorf("%s: %d %s", q, code, body)
+		}
 	}
 }
 

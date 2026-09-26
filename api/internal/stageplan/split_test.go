@@ -120,3 +120,48 @@ func TestSplitUnusablePlaces(t *testing.T) {
 		t.Errorf("2 days, no usable place: %v %v", ends, err)
 	}
 }
+
+// A range of hours per day: as few days as fit, or as close as it gets.
+func TestSplitRange(t *testing.T) {
+	secs := make([]float64, 201)
+	for i := range secs {
+		secs[i] = float64(i) * 360 // 20 h, 6 min a vertex
+	}
+	hourly := func(at ...int) []Candidate {
+		var cs []Candidate
+		for _, h := range at {
+			cs = append(cs, Candidate{Index: h * 10, Preferred: true})
+		}
+		return cs
+	}
+	every := hourly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)
+	for _, tc := range []struct {
+		minH, maxH float64
+		days       int
+	}{
+		{4, 8, 3}, // 6.7 h a day
+		{4, 5, 4},
+		{2, 20, 1},
+	} {
+		got, err := Split(secs, every, Days{MinS: tc.minH * 3600, MaxS: tc.maxH * 3600})
+		if err != nil || len(got)+1 != tc.days {
+			t.Errorf("%v–%v h: ends %v, %v; want %d days", tc.minH, tc.maxH, got, err, tc.days)
+			continue
+		}
+		prev := 0
+		for _, i := range append(got, -1) {
+			end := 200
+			if i >= 0 {
+				end = every[i].Index
+			}
+			if h := secs[end] - secs[prev]; h < tc.minH*3600 || h > tc.maxH*3600 {
+				t.Errorf("%v–%v h: a day of %.1f h", tc.minH, tc.maxH, h/3600)
+			}
+			prev = end
+		}
+	}
+	// Places only near the start and the end: no split fits, the closest.
+	if got, err := Split(secs, hourly(1, 19), Days{MinS: 6 * 3600, MaxS: 8 * 3600}); err != nil || len(got) == 0 {
+		t.Errorf("no fit: ends %v, %v", got, err)
+	}
+}

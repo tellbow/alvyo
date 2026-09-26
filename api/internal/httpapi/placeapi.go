@@ -23,6 +23,17 @@ type searchPlacesInput struct {
 	Lat float64 `query:"lat" minimum:"45.8" maximum:"47.9" default:"46.8"`
 }
 
+type placesInViewInput struct {
+	BBox string   `query:"bbox" required:"true" doc:"The map view: west,south,east,north (WGS84)" example:"7.9,46.55,8.1,46.7"`
+	Kind []string `query:"kind,explode" required:"true" minItems:"1" enum:"hut,hotel,campsite"`
+}
+
+type placesInViewOutput struct {
+	Body struct {
+		Places []places.Pin `json:"places"`
+	}
+}
+
 type searchPlacesOutput struct {
 	Body struct {
 		Places []places.Found `json:"places"`
@@ -45,6 +56,25 @@ func registerPlaces(api huma.API, d Deps) {
 			return nil, err
 		}
 		out := &nearbyPlacesOutput{}
+		out.Body.Places = ps
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "places-in-view", Method: http.MethodGet, Path: "/places/in-view",
+		Summary:     "Huts and accommodation in a map view, for the map overlays",
+		Description: "At most 2000, in no particular order.",
+		Tags:        []string{"places"},
+	}, func(ctx context.Context, in *placesInViewInput) (*placesInViewOutput, error) {
+		w, s, e, n, ok := parseBBox(in.BBox)
+		if !ok {
+			return nil, huma.Error422UnprocessableEntity("bbox must be west,south,east,north with west < east and south < north")
+		}
+		ps, err := d.Places.InView(ctx, w, s, e, n, in.Kind)
+		if err != nil {
+			return nil, err
+		}
+		out := &placesInViewOutput{}
 		out.Body.Places = ps
 		return out, nil
 	})

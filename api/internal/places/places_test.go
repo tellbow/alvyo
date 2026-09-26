@@ -62,3 +62,29 @@ func TestNearby(t *testing.T) {
 		})
 	}
 }
+
+func TestInView(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	for _, p := range []struct {
+		kind, name string
+		lon        float64
+	}{
+		{"hut", "Inside", 9.0},
+		{"hotel", "Hotel", 9.1},
+		{"hut", "Outside", 9.5},
+	} {
+		if _, err := pool.Exec(ctx, `INSERT INTO places (kind, name, source, source_id, website, geom)
+			VALUES ($1, $2, 'osm', $2, 'https://example.ch', ST_SetSRID(ST_MakePoint($3, 46.5), 4326))`, p.kind, p.name, p.lon); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s := &Store{DB: pool}
+	ps, err := s.InView(ctx, 8.9, 46.4, 9.2, 46.6, []string{"hut"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ps) != 1 || ps[0].Name != "Inside" || ps[0].Website != "https://example.ch" || ps[0].Lon != 9.0 || ps[0].Lat != 46.5 {
+		t.Fatalf("got %+v", ps)
+	}
+}

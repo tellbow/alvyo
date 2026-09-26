@@ -194,7 +194,7 @@ func TestGraphHopperErrors(t *testing.T) {
 		_, _ = w.Write([]byte(`{"message":"Cannot find point 1","hints":[{"details":"com.graphhopper.util.exceptions.PointNotFoundException"}]}`))
 	}))
 	defer srv.Close()
-	_, err := (&GraphHopper{URL: srv.URL}).route(context.Background(), first, bachalpse, "hike")
+	_, err := (&GraphHopper{URL: srv.URL}).route(context.Background(), first, bachalpse, "hike", nil)
 	if !errors.Is(err, ErrPointNotFound) {
 		t.Errorf("err = %v", err)
 	}

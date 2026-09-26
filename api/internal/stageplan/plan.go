@@ -28,6 +28,11 @@ const (
 	legM = 2000
 	// detourFactor: paths to a place are longer than the straight line.
 	detourFactor = 1.3
+	// A place is too far if the way there takes more than twice the
+	// estimate and farSlackS: a hut above a cliff is close to the line but
+	// hours away. At most maxTries splits look for others.
+	farSlackS = 20 * 60
+	maxTries  = 10
 	// flatSecondsPerM is the Swiss hiking time on flat ground.
 	flatSecondsPerM = 14.271 * 60 / 1000
 )
@@ -50,6 +55,8 @@ type Request struct {
 	// Ends are place ids to end the days at, in order, instead of choosing
 	// (from an earlier proposal's alternatives).
 	Ends []string
+	// favour are the nights of suggestions made before.
+	favour map[string]bool
 }
 
 // Stage is a proposed day.
@@ -59,6 +66,7 @@ type Stage struct {
 	Accommodation string        `json:"accommodation" doc:"The hut, hotel or campsite; empty at a stop"`
 	Totals        routes.Totals `json:"totals"`
 	OverMax       bool          `json:"over_max" doc:"Longer than the maximum per day: there was no place to end it earlier"`
+	UnderMin      bool          `json:"under_min" doc:"Shorter than the least per day asked for: the places to stay allowed no better split"`
 	// Earlier and Later are the places nearest before and after the end
 	// place, to end the day there instead.
 	Earlier *places.Place `json:"earlier"`
@@ -75,6 +83,8 @@ type Proposal struct {
 	// Hiking time per day aimed at and the most per day, in seconds.
 	TargetS int `json:"target_s"`
 	MaxS    int `json:"max_s"`
+	// MinS is the least per day asked for, if a range was.
+	MinS int `json:"min_s"`
 }
 
 // place is a place near the line.
@@ -109,6 +119,7 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 	}
 	preferred := func(pl place) bool { return len(req.Kinds) == 0 || slices.Contains(req.Kinds, pl.Kind) }
 
+	ways := detours{}
 	var ends []place
 	if len(req.Ends) > 0 {
 		for _, id := range req.Ends {
@@ -121,16 +132,37 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 			ends = append(ends, near[i])
 		}
 	} else {
-		cands := make([]Candidate, len(near))
-		for i, pl := range near {
-			cands[i] = Candidate{Index: pl.index, DetourS: pl.detourS, Preferred: preferred(pl)}
-		}
-		picked, err := Split(secs, cands, req.Days)
-		if err != nil {
-			return Proposal{}, err
-		}
-		for _, i := range picked {
-			ends = append(ends, near[i])
+		// Split, then look at the ways to the places picked; again without
+		// those much further than estimated.
+		for try := 1; ; try++ {
+			cands := make([]Candidate, len(near))
+			for i, pl := range near {
+				cands[i] = Candidate{Index: pl.index, DetourS: pl.detourS, Preferred: preferred(pl), Shared: req.favour[pl.ID]}
+			}
+			picked, err := Split(secs, cands, req.Days)
+			if err != nil {
+				return Proposal{}, err
+			}
+			ends = ends[:0]
+			far := map[string]bool{}
+			for _, i := range picked {
+				pl := near[i]
+				ends = append(ends, pl)
+				if pl.offM <= onLineM {
+					continue
+				}
+				l, err := p.detour(ctx, ways, point(tr.Coords[pl.index]), at(pl.At), req.Profile)
+				if err != nil {
+					return Proposal{}, err
+				}
+				if float64(l.DurationS) > 2*pl.detourS+farSlackS {
+					far[pl.ID] = true
+				}
+			}
+			if len(far) == 0 || try == maxTries {
+				break
+			}
+			near = slices.DeleteFunc(near, func(pl place) bool { return far[pl.ID] })
 		}
 	}
 
@@ -138,6 +170,11 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 	target := req.Days.TargetS
 	if req.Days.N > 0 {
 		target = secs[len(secs)-1] / float64(req.Days.N)
+	}
+	if req.Days.IsRange() {
+		// As many days as it took.
+		target = secs[len(secs)-1] / float64(len(ends)+1)
+		out.MinS = int(req.Days.MinS)
 	}
 	maxS := req.Days.MaxS
 	if maxS <= 0 {
@@ -156,11 +193,12 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 			to = &ends[k]
 			b = to.index
 		}
-		st, err := p.stage(ctx, tr, a, b, from, to, req.Profile)
+		st, err := p.stage(ctx, ways, tr, a, b, from, to, req.Profile)
 		if err != nil {
 			return Proposal{}, err
 		}
 		st.OverMax = float64(st.Totals.DurationS) > maxS
+		st.UnderMin = float64(st.Totals.DurationS) < req.Days.MinS
 		if to != nil {
 			lo, hi := a, len(tr.Coords)-1
 			if k+1 < len(ends) {
@@ -217,7 +255,7 @@ func (p *Planner) ByDay(ctx context.Context, days [][]routing.Leg, profile strin
 				}
 			}
 		}
-		st, err := p.stage(ctx, tr, a, b, from, to, profile)
+		st, err := p.stage(ctx, detours{}, tr, a, b, from, to, profile)
 		if err != nil {
 			return Proposal{}, err
 		}
@@ -229,10 +267,10 @@ func (p *Planner) ByDay(ctx context.Context, days [][]routing.Leg, profile strin
 
 // stage builds the day from vertex a to b, with the way from the previous
 // night's place in the morning and to this night's in the evening.
-func (p *Planner) stage(ctx context.Context, tr Track, a, b int, from, to *place, profile string) (Stage, error) {
+func (p *Planner) stage(ctx context.Context, ways detours, tr Track, a, b int, from, to *place, profile string) (Stage, error) {
 	var legs []routing.Leg
 	if from != nil && from.offM > onLineM {
-		l, err := p.detour(ctx, at(from.At), point(tr.Coords[a]), profile)
+		l, err := p.detour(ctx, ways, at(from.At), point(tr.Coords[a]), profile)
 		if err != nil {
 			return Stage{}, err
 		}
@@ -240,7 +278,7 @@ func (p *Planner) stage(ctx context.Context, tr Track, a, b int, from, to *place
 	}
 	legs = append(legs, tr.Legs(a, b, legM)...)
 	if to != nil && to.offM > onLineM {
-		l, err := p.detour(ctx, point(tr.Coords[b]), at(to.At), profile)
+		l, err := p.detour(ctx, ways, point(tr.Coords[b]), at(to.At), profile)
 		if err != nil {
 			return Stage{}, err
 		}
@@ -276,16 +314,26 @@ func (p *Planner) stage(ctx context.Context, tr Track, a, b int, from, to *place
 }
 
 // detour is the leg between the line and a place off it: along paths, or
-// straight where there are none.
-func (p *Planner) detour(ctx context.Context, from, to geo.Point, profile string) (routing.Leg, error) {
-	req := routing.LegRequest{From: from, To: to, Profile: profile}
+// straight where there are none. Its end on the line is a vertex of it, to
+// be taken as it is (the line may be in a tunnel there).
+func (p *Planner) detour(ctx context.Context, ways detours, from, to geo.Point, profile string) (routing.Leg, error) {
+	if l, ok := ways[[2]geo.Point{from, to}]; ok {
+		return l, nil
+	}
+	req := routing.LegRequest{From: from, To: to, Profile: profile, OnPath: true}
 	l, err := p.Router.Leg(ctx, req)
 	if errors.Is(err, routing.ErrPointNotFound) || errors.Is(err, routing.ErrNoConnection) {
 		req.Straight = true
 		l, err = p.Router.Leg(ctx, req)
 	}
+	if err == nil {
+		ways[[2]geo.Point{from, to}] = l
+	}
 	return l, err
 }
+
+// detours are the ways between the line and places already computed.
+type detours map[[2]geo.Point]routing.Leg
 
 func at(lonLat [2]float64) geo.Point { return geo.Point{Lon: lonLat[0], Lat: lonLat[1]} }
 

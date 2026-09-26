@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"strconv"
 	"strings"
@@ -63,17 +64,43 @@ type ghResponse struct {
 	} `json:"paths"`
 }
 
-func (g *GraphHopper) route(ctx context.Context, from, to geo.Point, profile string) (ghRoute, error) {
-	rs, err := g.routes(ctx, []geo.Point{from, to}, profile, false)
+func (g *GraphHopper) route(ctx context.Context, from, to geo.Point, profile string, extra map[string]any) (ghRoute, error) {
+	rs, err := g.routes(ctx, []geo.Point{from, to}, profile, extra)
 	if err != nil {
 		return ghRoute{}, err
 	}
 	return rs[0], nil
 }
 
-// routes returns the path through pts, or with alternatives the path between
-// two points and up to four others.
-func (g *GraphHopper) routes(ctx context.Context, pts []geo.Point, profile string, alternatives bool) ([]ghRoute, error) {
+// Path is GraphHopper's path through pts, with the points as snapped to it;
+// no elevation, so cheap enough to compare ways before one is computed in
+// full.
+func (g *GraphHopper) Path(ctx context.Context, pts []geo.Point, profile string) (line, snapped []geo.Point, err error) {
+	rs, err := g.routes(ctx, pts, profile, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	return rs[0].Points, rs[0].Snapped, nil
+}
+
+// alternatives asks for other paths than the best. GraphHopper's defaults
+// rarely find one on trails; paths up to twice as long that share up to
+// 80 % with the best one are wanted here.
+var alternatives = map[string]any{
+	"algorithm":                           "alternative_route",
+	"alternative_route.max_paths":         5,
+	"alternative_route.max_weight_factor": 2,
+	"alternative_route.max_share_factor":  0.8,
+}
+
+// onPath snaps the points as they are, also in a tunnel or on a ferry,
+// which GraphHopper avoids by default (a click above a tunnel is meant for
+// the path over it).
+var onPath = map[string]any{"snap_preventions": []string{}}
+
+// routes returns the path through pts, and with alternatives the other
+// paths; extra are further GraphHopper parameters.
+func (g *GraphHopper) routes(ctx context.Context, pts []geo.Point, profile string, extra map[string]any) ([]ghRoute, error) {
 	points := make([][2]float64, len(pts))
 	for i, p := range pts {
 		points[i] = [2]float64{p.Lon, p.Lat}
@@ -85,14 +112,7 @@ func (g *GraphHopper) routes(ctx context.Context, pts []geo.Point, profile strin
 		"instructions":   false,
 		"details":        detailKeys,
 	}
-	if alternatives {
-		// GraphHopper's defaults rarely find one on trails; paths up to twice
-		// as long that share up to 80 % with the best one are wanted here.
-		params["algorithm"] = "alternative_route"
-		params["alternative_route.max_paths"] = 5
-		params["alternative_route.max_weight_factor"] = 2
-		params["alternative_route.max_share_factor"] = 0.8
-	}
+	maps.Copy(params, extra)
 	body, _ := json.Marshal(params)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimSuffix(g.URL, "/")+"/route", bytes.NewReader(body))
 	if err != nil {

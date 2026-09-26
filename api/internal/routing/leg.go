@@ -48,6 +48,9 @@ type LegRequest struct {
 	// Through is where the line was dragged onto another path: the leg
 	// takes the path that passes closest to it.
 	Through *geo.Point
+	// OnPath: From and To lie on the path network (on a routed line) and
+	// are taken as they are, also in a tunnel.
+	OnPath bool
 }
 
 // Leg is a computed leg with everything the planner displays.
@@ -118,7 +121,11 @@ func (r *Router) Leg(ctx context.Context, req LegRequest) (Leg, error) {
 		if req.Through != nil {
 			gh, err = r.routeThrough(ctx, req)
 		} else {
-			gh, err = r.GraphHopper.route(ctx, req.From, req.To, req.Profile)
+			var extra map[string]any
+			if req.OnPath {
+				extra = onPath
+			}
+			gh, err = r.GraphHopper.route(ctx, req.From, req.To, req.Profile, extra)
 		}
 		if err != nil {
 			return Leg{}, err
@@ -163,7 +170,7 @@ func (r *Router) Leg(ctx context.Context, req LegRequest) (Leg, error) {
 // closest to req.Through, if one comes within throughM; otherwise the path
 // through the point itself, which then shapes the leg.
 func (r *Router) routeThrough(ctx context.Context, req LegRequest) (ghRoute, error) {
-	alts, err := r.GraphHopper.routes(ctx, []geo.Point{req.From, req.To}, req.Profile, true)
+	alts, err := r.GraphHopper.routes(ctx, []geo.Point{req.From, req.To}, req.Profile, alternatives)
 	if err != nil {
 		return ghRoute{}, err
 	}
@@ -180,7 +187,7 @@ func (r *Router) routeThrough(ctx context.Context, req LegRequest) (ghRoute, err
 	if bestM <= throughM {
 		return alts[best], nil
 	}
-	via, err := r.GraphHopper.routes(ctx, []geo.Point{req.From, *req.Through, req.To}, req.Profile, false)
+	via, err := r.GraphHopper.routes(ctx, []geo.Point{req.From, *req.Through, req.To}, req.Profile, nil)
 	if err != nil {
 		return ghRoute{}, err
 	}

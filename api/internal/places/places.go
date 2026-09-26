@@ -92,3 +92,39 @@ func (s *Store) Nearby(ctx context.Context, q Query) ([]Place, error) {
 	}
 	return out, rows.Err()
 }
+
+// MaxInView bounds the places of one map view.
+const MaxInView = 2000
+
+// Pin is a place drawn on the map.
+type Pin struct {
+	ID      string  `json:"id" format:"uuid"`
+	Kind    string  `json:"kind" enum:"pt_stop,hut,hotel,campsite"`
+	Name    string  `json:"name"`
+	Detail  string  `json:"detail"`
+	Website string  `json:"website,omitempty"`
+	Lon     float64 `json:"lon"`
+	Lat     float64 `json:"lat"`
+}
+
+// InView returns up to MaxInView places of the given kinds inside a box.
+func (s *Store) InView(ctx context.Context, west, south, east, north float64, kinds []string) ([]Pin, error) {
+	rows, err := s.DB.Query(ctx, `
+		SELECT id, kind, name, detail, website, ST_X(geom), ST_Y(geom)
+		FROM places
+		WHERE geom && ST_MakeEnvelope($1, $2, $3, $4, 4326) AND kind = ANY($5)
+		LIMIT $6`, west, south, east, north, kinds, MaxInView)
+	if err != nil {
+		return nil, fmt.Errorf("places: in view: %w", err)
+	}
+	defer rows.Close()
+	out := []Pin{}
+	for rows.Next() {
+		var p Pin
+		if err := rows.Scan(&p.ID, &p.Kind, &p.Name, &p.Detail, &p.Website, &p.Lon, &p.Lat); err != nil {
+			return nil, err
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
+}

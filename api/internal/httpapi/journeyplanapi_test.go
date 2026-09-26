@@ -22,7 +22,7 @@ func straightGraphHopper(t *testing.T) string {
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"paths": []any{map[string]any{
 			"points":            map[string]any{"coordinates": coords},
-			"snapped_waypoints": map[string]any{"coordinates": [][]float64{coords[0], coords[len(coords)-1]}},
+			"snapped_waypoints": map[string]any{"coordinates": coords},
 		}}})
 	}))
 	t.Cleanup(srv.Close)
@@ -44,6 +44,7 @@ type proposal struct {
 		Legs    []map[string]any           `json:"legs"`
 	} `json:"stages"`
 	TargetS int `json:"target_s"`
+	MinS    int `json:"min_s"`
 }
 
 func TestPlanJourney(t *testing.T) {
@@ -129,6 +130,20 @@ func TestPlanJourney(t *testing.T) {
 	if p = plan(body); len(p.Stages) != 3 {
 		t.Errorf("4 h a day: %d stages", len(p.Stages))
 	}
+	// Between 4 and 7 h a day: as few days as fit, two at the hut.
+	delete(body, "hours_per_day")
+	body["min_hours"], body["max_hours"] = 4, 7
+	if p = plan(body); len(p.Stages) != 2 || p.Stages[0].EndPlace == nil || p.Stages[0].EndPlace.ID != hut || p.MinS != 4*3600 {
+		t.Errorf("4–7 h a day: %+v", p)
+	}
+	for _, bad := range []map[string]any{{"min_hours": 4, "max_hours": 0}, {"min_hours": 8, "max_hours": 6}} {
+		body["min_hours"], body["max_hours"] = bad["min_hours"], bad["max_hours"]
+		if code, _ := c.do("POST", "/api/v1/journeys/plan", body); code != http.StatusUnprocessableEntity {
+			t.Errorf("min %v, max %v: %d", bad["min_hours"], bad["max_hours"], code)
+		}
+	}
+	delete(body, "min_hours")
+	delete(body, "max_hours")
 
 	// Accepted: the journey with its stages, places and accommodation.
 	p = plan(map[string]any{
@@ -173,5 +188,74 @@ func TestPlanJourney(t *testing.T) {
 	stages[0]["end_place_id"] = "01a0d22d-6521-7e24-97e6-d80c376cae63"
 	if code, b := c.do("POST", "/api/v1/journeys", map[string]any{"title": "Falsch", "stages": stages}); code != http.StatusUnprocessableEntity {
 		t.Errorf("unknown place: %d %s", code, b)
+	}
+}
+
+func TestSuggestJourneys(t *testing.T) {
+	gh := straightGraphHopper(t)
+	s := newTestServerWith(t, func(d *Deps) {
+		d.Router = &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh}, Elevation: flatSampler{}, Trails: &routing.TrailMatcher{DB: d.DB}}
+	})
+	place := func(kind, name string, lon, lat float64) string {
+		var id string
+		if err := s.db.QueryRow(context.Background(), `INSERT INTO places (kind, name, source, source_id, geom)
+			VALUES ($1, $2, 'osm', $2, ST_SetSRID(ST_MakePoint($3, $4), 4326)) RETURNING id`,
+			kind, name, lon, lat).Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		return id
+	}
+	// A flat line of 46 km, a hut half way, and villages 11 km to the north
+	// and to the south of it, which ways over the hills pass.
+	hut := place("hut", "Mittelhütte", 8.30, 46.5)
+	north := place("pt_stop", "Nordberg", 8.30, 46.604)
+	south := place("pt_stop", "Südtal", 8.30, 46.396)
+
+	c := s.client(t)
+	body := map[string]any{
+		"points": []map[string]any{{"lon": 8.0, "lat": 46.5}, {"lon": 8.6, "lat": 46.5}},
+		"days":   2,
+	}
+	if code, _ := c.do("POST", "/api/v1/journeys/suggest", body); code != http.StatusUnauthorized {
+		t.Errorf("anonymous: %d", code)
+	}
+	c.do("POST", "/api/v1/auth/signup", signupBody("suggest@example.ch", "suggest"))
+	if code, _ := c.do("POST", "/api/v1/journeys/suggest", map[string]any{"points": body["points"]}); code != http.StatusUnprocessableEntity {
+		t.Errorf("neither days nor hours: %d", code)
+	}
+
+	code, b := c.do("POST", "/api/v1/journeys/suggest", body)
+	if code != http.StatusOK {
+		t.Fatalf("suggest: %d %s", code, b)
+	}
+	var out struct {
+		Suggestions []struct {
+			Points   []map[string]float64 `json:"points"`
+			Via      string               `json:"via"`
+			Proposal proposal             `json:"proposal"`
+		} `json:"suggestions"`
+	}
+	if err := json.Unmarshal(b, &out); err != nil {
+		t.Fatal(err)
+	}
+	// The direct way first, sleeping at the hut; over the hills in the
+	// villages.
+	nights := map[string]string{"": hut, "Nordberg": north, "Südtal": south}
+	if len(out.Suggestions) != 3 || out.Suggestions[0].Via != "" {
+		t.Fatalf("suggestions: %s", b)
+	}
+	for _, sg := range out.Suggestions {
+		want, ok := nights[sg.Via]
+		if !ok || len(sg.Proposal.Stages) != 2 {
+			t.Errorf("via %q: %d stages", sg.Via, len(sg.Proposal.Stages))
+			continue
+		}
+		if end := sg.Proposal.Stages[0].EndPlace; end == nil || end.ID != want {
+			t.Errorf("via %q: day 1 ends at %+v", sg.Via, end)
+		}
+		if n := len(sg.Points); sg.Via != "" && n != 3 || sg.Via == "" && n != 2 {
+			t.Errorf("via %q: points %v", sg.Via, sg.Points)
+		}
+		delete(nights, sg.Via)
 	}
 }

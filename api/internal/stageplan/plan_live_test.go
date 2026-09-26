@@ -67,3 +67,62 @@ func TestPlanLive(t *testing.T) {
 		}
 	}
 }
+
+// TestSuggestLive: Thun to Zermatt in five days goes over the Lötschenpass
+// directly; one of the others over the Gemmi, as hikers usually go.
+func TestSuggestLive(t *testing.T) {
+	url := os.Getenv("ALVYO_DATABASE_URL")
+	if url == "" {
+		url = "postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable"
+	}
+	pool, err := pgxpool.New(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+	p := &Planner{
+		Router: &routing.Router{
+			GraphHopper: &routing.GraphHopper{URL: "http://localhost:8989"},
+			Elevation:   &elevation.GeoAdmin{UserAgent: "alvyo-test"},
+			Trails:      &routing.TrailMatcher{DB: pool},
+		},
+		DB: pool,
+	}
+	thun := geo.Point{Lon: 7.62970, Lat: 46.75480}
+	zermatt := geo.Point{Lon: 7.74750, Lat: 46.02440}
+	gemmi := geo.Point{Lon: 7.61280, Lat: 46.39850}
+
+	start := time.Now()
+	sugs, err := p.Suggest(context.Background(), Request{
+		Points: []geo.Point{thun, zermatt}, Profile: "hike", Days: Days{N: 5}, Kinds: []string{"hut", "hotel"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	overGemmi := false
+	for i, s := range sugs {
+		line := "Thun"
+		km := 0.0
+		for _, st := range s.Proposal.Stages {
+			km += st.Totals.DistanceM / 1000
+			if st.EndPlace != nil {
+				line += " → " + st.EndPlace.Name
+			}
+			for _, l := range st.Legs {
+				for _, c := range l.Coordinates {
+					if geo.Distance(gemmi, geo.Point{Lon: c[0], Lat: c[1]}) < 1500 {
+						overGemmi = true
+					}
+				}
+			}
+		}
+		t.Logf("suggestion %d: %.0f km, %d days: %s → Zermatt", i+1, km, len(s.Proposal.Stages), line)
+	}
+	t.Logf("suggested in %v", time.Since(start))
+	if len(sugs) < 2 {
+		t.Fatalf("%d suggestions", len(sugs))
+	}
+	if !overGemmi {
+		t.Error("none over the Gemmi")
+	}
+}

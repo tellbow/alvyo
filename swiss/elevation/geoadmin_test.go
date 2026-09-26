@@ -48,6 +48,11 @@ func fakeProfile(t *testing.T, terrain func(e, n float64) *float64) http.Handler
 			}
 			out = append(out, point{Dist: math.Round(d*10) / 10, Alts: alts{COMB: terrain(c[0], c[1])}})
 		}
+		if d == 0 {
+			// As the service: a line without length is none.
+			http.Error(w, `{"error":{"code":400,"message":"Invalid LineString"},"success":false}`, http.StatusBadRequest)
+			return
+		}
 		_ = json.NewEncoder(w).Encode(out)
 	}
 }
@@ -196,5 +201,25 @@ func TestSampleSinglePoint(t *testing.T) {
 	h, err := (&GeoAdmin{BaseURL: srv.URL}).Sample(context.Background(), pts)
 	if err != nil || len(h) != 1 || math.Abs(h[0]-expected(pts[0])) > 0.05 {
 		t.Errorf("single point: %v %v", h, err)
+	}
+}
+
+// A leg without length (both ends snapped to the same spot, or a few
+// centimetres apart) still gets its height.
+func TestSampleWithoutLength(t *testing.T) {
+	srv := httptest.NewServer(fakeProfile(t, slope))
+	defer srv.Close()
+	g := &GeoAdmin{BaseURL: srv.URL}
+	p := geo.Point{Lon: 8.0, Lat: 46.5}
+	for _, pts := range [][]geo.Point{{p}, {p, p}, {p, {Lon: p.Lon + 0.0000005, Lat: p.Lat}}} {
+		h, err := g.Sample(context.Background(), pts)
+		if err != nil {
+			t.Fatalf("%d points: %v", len(pts), err)
+		}
+		for i := range pts {
+			if math.Abs(h[i]-expected(p)) > 0.05 {
+				t.Errorf("%d points: %.2f, want %.2f", len(pts), h[i], expected(p))
+			}
+		}
 	}
 }

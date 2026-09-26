@@ -80,9 +80,10 @@ func (g *GeoAdmin) sampleChunk(ctx context.Context, pts []geo.Point) ([]float64,
 			dist[i] = dist[i-1] + math.Hypot(coords[i][0]-coords[i-1][0], coords[i][1]-coords[i-1][1])
 		}
 	}
-	if len(pts) == 1 {
-		// A LineString needs two coordinates.
-		coords = append(coords, coords[0])
+	if dist[len(dist)-1] == 0 {
+		// One spot (a point, or points within 0.1 m): the service refuses a
+		// line without length, so it is asked for one of 1 m from there.
+		coords = [][2]float64{coords[0], {coords[0][0] + 1, coords[0][1]}}
 	}
 
 	profile, err := g.fetch(ctx, coords, max(len(coords), 2))

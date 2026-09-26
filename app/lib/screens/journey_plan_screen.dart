@@ -496,6 +496,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
           Expanded(
             child: ListView(
               key: const Key('jplan-panel'),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
               children: [
                 Text(t.jplanIntro, style: Theme.of(context).textTheme.bodySmall),
@@ -587,10 +588,14 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     );
   }
 
+  static void _closeKeyboard(PointerDownEvent _) => FocusManager.instance.primaryFocus?.unfocus();
+
   Widget _numberField(Key key, TextEditingController c, String label) => TextField(
     key: key,
     controller: c,
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    // The number pad has no key to close it and covers the buttons below.
+    onTapOutside: _closeKeyboard,
     decoration: InputDecoration(labelText: label, isDense: true),
     onChanged: (_) => setState(() {}),
   );
@@ -776,6 +781,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
         key: const Key('jplan-title'),
         controller: _title,
         maxLength: 120,
+        onTapOutside: _closeKeyboard,
         decoration: InputDecoration(labelText: t.jplanTitleField),
         onChanged: (_) => setState(() {}),
       ),

@@ -199,6 +199,8 @@ void main() {
   }
 
   Future<void> search(WidgetTester tester, String q) async {
+    await tester.tap(find.byKey(const Key('place-search-open')));
+    await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('place-search')), q);
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
@@ -285,6 +287,25 @@ void main() {
     await tester.pump();
     expect(enabled(tester, 'jplan-submit'), isFalse);
     expect(enabled(tester, 'jplan-suggest'), isFalse);
+  });
+
+  // The iPhone's number pad has no key to close it, and it covers the
+  // buttons below: a tap outside the field or scrolling the panel closes it.
+  testWidgets('the number pad closes on a tap outside and on scrolling', (tester) async {
+    await open(tester, _Server());
+    await tester.tap(find.byKey(const Key('jplan-days')));
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+    await tester.tapAt(tester.getTopLeft(find.byKey(const Key('jplan-panel'))) + const Offset(4, 4));
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isFalse, reason: 'tapped outside');
+
+    await tester.tap(find.byKey(const Key('jplan-days')));
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+    await tester.drag(find.byKey(const Key('jplan-panel')), const Offset(0, -100));
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isFalse, reason: 'scrolled');
   });
 
   testWidgets('an answer for points changed meanwhile is dropped', (tester) async {

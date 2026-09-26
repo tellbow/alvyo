@@ -6,8 +6,11 @@ import 'package:alvyo/main.dart';
 
 /// Against a local dev server (web dev server on :5173 with the demo account
 /// appdemo / sehr-geheim-123 and imported routes, GraphHopper running):
-/// makes a public route from the start of the first imported one unless
-/// there is one, finds it under «Entdecken», and opens it.
+/// makes a public route near the centre of Switzerland unless there is one,
+/// finds it under «Entdecken», and opens it. The screen starts with the
+/// whole country and lists the 50 nearest its centre: other public routes
+/// of the dev database (the web's end-to-end tests make many in the Bernese
+/// Oberland) are further away.
 ///   `flutter test integration_test/discover_test.dart -d SIMULATOR_ID`
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -24,12 +27,11 @@ void main() {
     const title = 'Entdecken-Test';
     final api = Api('http://localhost:5173');
     await api.login('appdemo', 'sehr-geheim-123');
-    const switzerland = (west: 5.9, south: 45.8, east: 10.5, north: 47.8);
-    final found = await api.discover(switzerland, kind: 'route');
+    // By the Sarnersee, near the centre of the map's first view.
+    const from = (lon: 8.2460, lat: 46.8440), to = (lon: 8.2600, lat: 46.8520);
+    const around = (west: 8.2, south: 46.8, east: 8.3, north: 46.9);
+    final found = await api.discover(around, kind: 'route');
     if (!found.items.any((it) => it.title == title)) {
-      final line = (await api.route((await api.routes()).first.id)).line;
-      final from = (lon: line.first[0], lat: line.first[1]);
-      final to = (lon: line[line.length ~/ 5][0], lat: line[line.length ~/ 5][1]);
       await api.createRoute(
         title: title,
         profile: 'hike',
@@ -56,11 +58,16 @@ void main() {
     await waitFor(tester, find.byKey(const Key('discover-kind-route')));
     await tester.pump(const Duration(milliseconds: 500)); // the menu opens
     await tester.tap(find.byKey(const Key('discover-kind-route')).last);
-    await waitFor(tester, find.text(title));
+    await waitFor(tester, find.byKey(const Key('discover-item-0')));
+    final list = find.ancestor(of: find.byKey(const Key('discover-item-0')), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.text(title), 200, scrollable: list, maxScrolls: 60);
     await tester.pump(const Duration(seconds: 3)); // for a screenshot: the lines on the map
 
     await tester.tap(find.text(title));
     await waitFor(tester, find.byKey(const Key('nav-start')));
     expect(find.byKey(const Key('offline-save')), findsOneWidget);
+    // The route's map sets up before the test ends: MapLibre cannot be
+    // disposed before its view exists.
+    await tester.pump(const Duration(seconds: 3));
   });
 }

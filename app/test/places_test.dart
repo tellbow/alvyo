@@ -133,6 +133,8 @@ void main() {
     );
     FoundPlace? picked;
     await tester.pumpWidget(_app(PlaceSearch(api: api, onPick: (p) => picked = p)));
+    await tester.tap(find.byKey(const Key('place-search-open')));
+    await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('place-search')), 'Gl');
     await tester.pump(const Duration(milliseconds: 100));
@@ -153,7 +155,55 @@ void main() {
     await tester.tap(find.byKey(const Key('place-result-0')));
     await tester.pump();
     expect(picked!.name, 'Glecksteinhütte');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('place-search')), findsNothing, reason: 'the search page closed');
     expect(find.byKey(const Key('place-result-0')), findsNothing);
-    expect(tester.widget<TextField>(find.byKey(const Key('place-search'))).controller!.text, isEmpty);
+  });
+
+  // In a planner's panel the results would come below the field, under the
+  // keyboard: the search opens a page of its own, the results at the top.
+  testWidgets('a search low in a small panel opens a page with the results at the top', (tester) async {
+    final api = Api(
+      'https://alvyo.test',
+      client: MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'places': [
+              {
+                'name': 'Weisstannen',
+                'kind': 'pt_stop',
+                'detail': 'Bus',
+                'at': [9.33, 46.99],
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      ),
+    );
+    FoundPlace? picked;
+    await tester.pumpWidget(
+      _app(
+        SizedBox(
+          height: 200,
+          child: ListView(
+            children: [
+              const SizedBox(height: 150), // the points and settings above
+              PlaceSearch(api: api, onPick: (p) => picked = p),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('place-search-open')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('place-search')), 'Weiss');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(find.byKey(const Key('place-result-0'))).top, lessThan(200));
+    await tester.tap(find.byKey(const Key('place-result-0')));
+    await tester.pumpAndSettle();
+    expect(picked?.name, 'Weisstannen');
   });
 }

@@ -92,6 +92,23 @@ Checked so far only in the simulator, with made-up or simulated positions
       dusk): the bar at the bottom, the record button (opens the hike in
       progress, else the hint), cards, fonts and the map screens readable in
       both; the new icon on the home screen.
+- [ ] **Huts on the map**: the layer button on the route, navigation and
+      planning maps switches «Hütten» and «Hotels und Campingplätze», the
+      choice holds on the next screen and after a restart; a tap on a dot
+      opens its sheet, not the thing under it; offline nothing breaks.
+- [ ] **Route planen** on the phone: tapping the map adds a point, a hut's
+      «Als Routenpunkt hinzufügen» too; the line and the dots follow as
+      legs arrive; the sheet drags well over the map and the search results
+      stay above the keyboard; the saved route opens, saves offline and
+      navigates; the time at one's pace matches the website.
+- [ ] **Etappentour planen** on the phone: the map at 40 % with the panel
+      usable while typing (a decimal comma on the Swiss keyboard); the days
+      in their colours, the other ways grey and a tap on one chooses it;
+      «Ab hier weiter auf Weg N»; the created journey opens.
+- [ ] **Entdecken**: starts at one's position when location is already
+      allowed and never asks for it; lines in colour, redrawn after moving
+      the map or a filter; the offline message in airplane mode; another
+      account's public route saves offline, is hiked and the hike uploads.
 
 ## Web
 

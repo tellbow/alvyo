@@ -446,7 +446,8 @@ class _TitleDialogState extends State<_TitleDialog> {
           valueListenable: _text,
           builder: (context, value, _) => FilledButton(
             key: const Key('planner-save-confirm'),
-            onPressed: value.text.trim().isEmpty ? null : () => Navigator.pop(context, value.text),
+            // The text as it is when pressed, not as last drawn.
+            onPressed: value.text.trim().isEmpty ? null : () => Navigator.pop(context, _text.text),
             child: Text(t.plannerSaveConfirm),
           ),
         ),

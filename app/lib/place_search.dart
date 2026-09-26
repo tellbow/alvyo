@@ -6,10 +6,11 @@ import 'api.dart';
 import 'l10n/app_localizations.dart';
 import 'place_layer.dart';
 
-/// A search field for places, names and addresses (`GET /places/search`)
-/// with the results below it; a tap on one hands it to [onPick] and clears
-/// the field.
-class PlaceSearch extends StatefulWidget {
+/// A field for finding places, names and addresses (`GET /places/search`).
+/// A tap opens the search on a page of its own, the results right below the
+/// field: in a planner's panel they would lie under the keyboard. The place
+/// picked there goes to [onPick].
+class PlaceSearch extends StatelessWidget {
   const PlaceSearch({super.key, required this.api, required this.onPick, this.label, this.near});
   final Api api;
   final ValueChanged<FoundPlace> onPick;
@@ -20,12 +21,39 @@ class PlaceSearch extends StatefulWidget {
   /// E.g. the map centre: among equally good matches, the nearest first.
   final LonLat? Function()? near;
 
+  Future<void> _open(BuildContext context) async {
+    final picked = await Navigator.of(context).push(
+      MaterialPageRoute<FoundPlace>(
+        fullscreenDialog: true,
+        builder: (_) => _SearchPage(api: api, label: label, near: near?.call()),
+      ),
+    );
+    if (picked != null) onPick(picked);
+  }
+
   @override
-  State<PlaceSearch> createState() => _PlaceSearchState();
+  Widget build(BuildContext context) => TextField(
+    key: const Key('place-search-open'),
+    readOnly: true,
+    onTap: () => _open(context),
+    decoration: InputDecoration(
+      prefixIcon: const Icon(Icons.search),
+      hintText: label ?? AppLocalizations.of(context).placeSearch,
+    ),
+  );
 }
 
-class _PlaceSearchState extends State<PlaceSearch> {
-  final _text = TextEditingController();
+class _SearchPage extends StatefulWidget {
+  const _SearchPage({required this.api, this.label, this.near});
+  final Api api;
+  final String? label;
+  final LonLat? near;
+
+  @override
+  State<_SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<_SearchPage> {
   Timer? _timer;
 
   /// Counts the searches: only the latest answer is shown.
@@ -48,7 +76,7 @@ class _PlaceSearchState extends State<PlaceSearch> {
     }
     _timer = Timer(const Duration(milliseconds: 250), () async {
       try {
-        final found = await widget.api.searchPlaces(q, near: widget.near?.call());
+        final found = await widget.api.searchPlaces(q, near: widget.near);
         if (!mounted || asked != _asked) return;
         setState(() {
           _results = found;
@@ -64,18 +92,9 @@ class _PlaceSearchState extends State<PlaceSearch> {
     });
   }
 
-  void _pick(FoundPlace p) {
-    _timer?.cancel();
-    _asked++;
-    _text.clear();
-    setState(() => _results = null);
-    widget.onPick(p);
-  }
-
   @override
   void dispose() {
     _timer?.cancel();
-    _text.dispose();
     super.dispose();
   }
 
@@ -83,31 +102,38 @@ class _PlaceSearchState extends State<PlaceSearch> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final results = _results;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
+    return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: TextField(
           key: const Key('place-search'),
-          controller: _text,
+          autofocus: true,
           onChanged: _changed,
           textInputAction: TextInputAction.search,
-          decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: widget.label ?? t.placeSearch),
+          decoration: InputDecoration(border: InputBorder.none, hintText: widget.label ?? t.placeSearch),
         ),
-        if (_failed)
-          Padding(padding: const EdgeInsets.all(8), child: Text(t.errorServer))
-        else if (results != null && results.isEmpty)
-          Padding(padding: const EdgeInsets.all(8), child: Text(t.placeNothingFound))
-        else if (results != null)
-          for (final (i, p) in results.indexed)
-            ListTile(
-              key: Key('place-result-$i'),
-              dense: true,
-              title: Text(p.name),
-              subtitle: Text(placeKindText(t, p.kind, p.detail)),
-              onTap: () => _pick(p),
-            ),
-      ],
+      ),
+      body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        children: [
+          if (_failed)
+            Padding(padding: const EdgeInsets.all(16), child: Text(t.errorServer))
+          else if (results != null && results.isEmpty)
+            Padding(padding: const EdgeInsets.all(16), child: Text(t.placeNothingFound))
+          else if (results != null)
+            for (final (i, p) in results.indexed)
+              ListTile(
+                key: Key('place-result-$i'),
+                title: Text(p.name),
+                subtitle: Text(placeKindText(t, p.kind, p.detail)),
+                onTap: () {
+                  _timer?.cancel();
+                  _asked++;
+                  Navigator.of(context).pop(p);
+                },
+              ),
+        ],
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/api.dart';
+import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/main.dart';
 
 /// Against a local dev server with GraphHopper and the places imported (see
@@ -46,11 +47,13 @@ void main() {
     Future<void> show(Finder f) => tester.scrollUntilVisible(f, 200, scrollable: panel);
 
     Future<void> pick(String q) async {
-      await show(find.byKey(const Key('place-search')));
+      await show(find.byKey(const Key('place-search-open')));
+      await tester.tap(find.byKey(const Key('place-search-open')));
+      await waitFor(tester, find.byKey(const Key('place-search')));
       await tester.enterText(find.byKey(const Key('place-search')), q);
       await waitFor(tester, find.byKey(const Key('place-result-0')));
       await tester.tap(find.byKey(const Key('place-result-0')));
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(seconds: 1)); // the search page closes
     }
 
     await pick('Thun');
@@ -59,10 +62,23 @@ void main() {
 
     await show(find.byKey(const Key('jplan-days')));
     await tester.enterText(find.byKey(const Key('jplan-days')), '5');
+    // As a user does: a tap outside closes the number pad over the buttons.
+    await tester.tapAt(tester.getTopLeft(find.byKey(const Key('jplan-panel'))) + const Offset(4, 4));
+    await tester.pump(const Duration(milliseconds: 500));
     await show(find.byKey(const Key('jplan-suggest')));
     await tester.tap(find.byKey(const Key('jplan-suggest')));
-    await waitFor(tester, find.byKey(const Key('jplan-way-1')), timeout: const Duration(seconds: 90));
-    expect(find.text('Weg 1: direkt'), findsOneWidget);
+    // Planning takes a while; the ways come below the buttons.
+    await tester.pump(const Duration(seconds: 1));
+    final end = DateTime.now().add(const Duration(seconds: 90));
+    while (find.byKey(const Key('jplan-busy')).evaluate().isNotEmpty) {
+      if (DateTime.now().isAfter(end)) throw TestFailure('still planning');
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(tester.widget<ButtonStyleButton>(find.byKey(const Key('jplan-suggest'))).onPressed, isNotNull);
+    await show(find.byKey(const Key('jplan-way-1')));
+    // In the simulator's language.
+    final t = AppLocalizations.of(tester.element(find.byKey(const Key('jplan-panel'))));
+    expect(find.text(t.jplanWayDirect(1)), findsOneWidget);
 
     // The second way.
     await show(find.byKey(const Key('jplan-way-1')));
@@ -76,9 +92,10 @@ void main() {
       (w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('jplan-switch-'),
     );
     if (switchButtons.evaluate().isNotEmpty) {
+      final to = int.parse((switchButtons.evaluate().first.widget.key! as ValueKey<String>).value.split('-').last);
       await tester.tap(switchButtons.first);
       await tester.pump(const Duration(seconds: 1));
-      expect(find.textContaining(' · Weg '), findsWidgets);
+      expect(find.textContaining(t.jplanWay(to + 1)), findsWidgets);
     } else {
       debugPrint('no shared night between the ways');
     }
@@ -86,6 +103,9 @@ void main() {
     await show(find.byKey(const Key('jplan-title')));
     expect(tester.widget<TextField>(find.byKey(const Key('jplan-title'))).controller!.text, isNotEmpty);
     await tester.enterText(find.byKey(const Key('jplan-title')), title);
+    // As a user does: a tap outside closes the number pad over the buttons.
+    await tester.tapAt(tester.getTopLeft(find.byKey(const Key('jplan-panel'))) + const Offset(4, 4));
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pump();
     await show(find.byKey(const Key('jplan-create')));
     await tester.tap(find.byKey(const Key('jplan-create')));

@@ -275,12 +275,13 @@ void main() {
       expect(find.text('Suche Start und Ziel oder tippe auf die Karte.'), findsOneWidget);
 
       Future<void> search(String q) async {
+        await tester.tap(find.byKey(const Key('place-search-open')));
+        await tester.pumpAndSettle();
         await tester.enterText(find.byKey(const Key('place-search')), q);
         await tester.pump(const Duration(milliseconds: 300));
         await tester.pump();
         await tester.tap(find.byKey(const Key('place-result-0')));
-        await tester.pump();
-        await tester.pump();
+        await tester.pumpAndSettle();
       }
 
       await search('Sargans');
@@ -304,12 +305,14 @@ void main() {
       await tester.tap(find.byKey(const Key('planner-save')));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(TextField, 'Sargans – Weisstannen'), findsOneWidget);
+      // Typed and saved at once: the title as typed.
+      await tester.enterText(find.byKey(const Key('planner-title')), 'Ins Weisstannental');
       await tester.tap(find.byKey(const Key('planner-save-confirm')));
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      expect(saved!['title'], 'Sargans – Weisstannen');
+      expect(saved!['title'], 'Ins Weisstannental');
       expect(saved!['profile'], 'hike');
       expect(saved!['anchors'], [
         {'lon': 9.44, 'lat': 47.0, 'name': 'Sargans'},

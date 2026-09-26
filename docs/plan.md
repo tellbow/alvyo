@@ -52,7 +52,7 @@ A `v*` tag builds the images; Flux deploys them
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
-2026-09-23, 6–11 on 2026-09-24, 15–17 on 2026-09-26.
+2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26.
 
 ### Done
 
@@ -198,6 +198,18 @@ From the project owner, numbered in the order given: 1–5 added on
     minutes over the most: the split estimates the way to a place, the
     stage has the real one.
 
+18. **Planning in the app** (next release). The app does what the website
+    does for planning: «Route planen» (points by tapping the map, by the
+    place search or from a hut's sheet, only the changed legs computed
+    again, totals at one's pace, the elevation profile, saved and opened
+    for offline use and navigation), «Etappentour planen» as in 8, 16 and
+    17 (days or hours from … to, several ways, «Ab hier weiter auf Weg N»,
+    created as a journey), «Entdecken» (public routes and journeys in view,
+    starting at one's position if the app may already know it, filters for
+    kind, hiking time and SAC grade, opened like one's own), and the huts
+    layer of 15 on the route, navigation and planning maps. They need this
+    release's API on the server.
+
 ### Open
 
 Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
@@ -224,8 +236,8 @@ Connect's course import.
 - Texts: the French and Italian texts to be reviewed by a native speaker.
 - Logo: the Λ of the Alvyo mock-up, drawn as a vector for the web and the
   app icon; a final one from a designer.
-- Design: the mock-up's moods, logbook, huts and «send to app», and an app
-  home to discover hikes nearby; hiking without a planned route in the app.
+- Design: the mock-up's moods, logbook and «send to app»; hiking without a
+  planned route in the app.
 - M4: MeteoSwiss weather, highlights and points of interest, PDF stage sheets,
   3D terrain, closures, self-hosted Swiss Map Raster 25, full «how to get
   there» by public transport.

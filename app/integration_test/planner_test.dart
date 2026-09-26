@@ -29,18 +29,21 @@ void main() {
     }
     await waitFor(tester, find.byKey(const Key('plan-route')));
     await tester.tap(find.byKey(const Key('plan-route')));
-    await waitFor(tester, find.byKey(const Key('place-search')));
+    await waitFor(tester, find.byKey(const Key('place-search-open')));
 
     for (final q in ['Sargans', 'Weisstannen']) {
+      await tester.tap(find.byKey(const Key('place-search-open')));
+      await waitFor(tester, find.byKey(const Key('place-search')));
       await tester.enterText(find.byKey(const Key('place-search')), q);
       await waitFor(tester, find.byKey(const Key('place-result-0')));
       await tester.tap(find.byKey(const Key('place-result-0')));
-      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1)); // the search page closes
     }
     await waitFor(tester, find.byKey(const Key('planner-point-1')));
     // Legs take a moment; the save button is there once both points are.
     final save = find.byKey(const Key('planner-save'));
-    await tester.ensureVisible(save);
+    final panel = find.descendant(of: find.byKey(const Key('planner-panel')), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(save, 200, scrollable: panel);
     final end = DateTime.now().add(const Duration(seconds: 60));
     while (tester.widget<FilledButton>(save).onPressed == null) {
       if (DateTime.now().isAfter(end)) throw TestFailure('the leg was not computed');

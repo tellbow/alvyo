@@ -9,8 +9,11 @@ export const SWISSTOPO_ATTRIBUTION =
 	'<a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener">© swisstopo</a>';
 
 export type BaseMapId = 'landeskarte' | 'landeskarte_grau' | 'luftbild' | 'basemap';
-export type OverlayId =
+export type RasterOverlayId =
 	'wanderwege' | 'wanderland' | 'hangneigung' | 'wildruhezonen' | 'jagdbanngebiete' | 'relief';
+/** Huts and accommodation from our places, drawn as points. */
+export type PlaceOverlayId = 'huts' | 'lodging';
+export type OverlayId = RasterOverlayId | PlaceOverlayId;
 
 export const BASE_MAPS: BaseMapId[] = ['landeskarte', 'landeskarte_grau', 'luftbild', 'basemap'];
 export const OVERLAYS: OverlayId[] = [
@@ -19,7 +22,9 @@ export const OVERLAYS: OverlayId[] = [
 	'hangneigung',
 	'wildruhezonen',
 	'jagdbanngebiete',
-	'relief'
+	'relief',
+	'huts',
+	'lodging'
 ];
 
 /** swisstopo WMTS layers (EPSG:3857) served through our tile cache. */
@@ -63,7 +68,7 @@ export function baseStyle(id: BaseMapId, origin: string): StyleSpecification | s
 export const OVERLAY_PREFIX = 'ovl-';
 export const ROUTE_PREFIX = 'route-';
 
-export function overlaySource(id: OverlayId, origin: string) {
+export function overlaySource(id: RasterOverlayId, origin: string) {
 	return rasterSource(id, origin);
 }
 

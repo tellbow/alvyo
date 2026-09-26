@@ -3,7 +3,7 @@
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { api, type FoundPlace, type Me, type Proposal } from '$lib/api/client';
+	import { api, type FoundPlace, type Me, type Proposal, type Suggestion } from '$lib/api/client';
 	import CollectionLayers from '$lib/collections/CollectionLayers.svelte';
 	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
 	import Map from '$lib/map/Map.svelte';
@@ -15,6 +15,7 @@
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { stageColor } from './colors';
+	import { single, stagesOf, switches, switchTo, whole, type Picked } from './suggestions';
 
 	let { user }: { user: Me } = $props();
 	const pace = $derived(user.speed_factor ?? 1);
@@ -33,11 +34,19 @@
 	let points = $state<Point[]>([]);
 	let by = $state<'days' | 'hours'>('days');
 	let days = $state(3);
-	let hours = $state(6);
+	// Hours per day, from … to: as few days as fit.
+	let minHours = $state(4);
+	let maxPerDay = $state(8);
 	let maxHours = $state('');
+	const asksOk = $derived(by === 'days' || (minHours > 0 && minHours <= maxPerDay));
 	let profile = $state<'hike' | 'alpine'>('hike');
 	let kinds = $state<Kind[]>(['hut', 'hotel']);
 	let proposal = $state<Proposal>();
+	// Suggested ways, and the days of the journey put together from them.
+	let ways = $state<Suggestion[]>([]);
+	let picked = $state<Picked[]>([]);
+	const chosen = $derived(single(ways, picked));
+	const mixed = $derived(ways.length > 0 && chosen === undefined);
 	let busy = $state(false);
 	let problem = $state('');
 	let title = $state('');
@@ -54,6 +63,22 @@
 			lines: [st.legs.flatMap((l) => l.coordinates.map((c) => [c[0], c[1]] as [number, number]))]
 		}))
 	);
+	// The ways not taken, grey below the days.
+	const others = $derived(
+		ways.flatMap((w, k) =>
+			k === chosen
+				? []
+				: [
+						{
+							id: `way-${k}`,
+							lines: w.proposal.stages.map((st) =>
+								st.legs.flatMap((l) => l.coordinates.map((c) => [c[0], c[1]] as [number, number]))
+							)
+						}
+					]
+		)
+	);
+	const lineColor = (i: number) => (i < others.length ? '#a8a29e' : stageColor(i - others.length));
 	const total = $derived(
 		(proposal?.stages ?? []).reduce((sum, st) => sum + st.totals.distance_m, 0)
 	);
@@ -62,7 +87,8 @@
 		map = mp;
 		lib = l;
 		mp.on('click', (e: MapMouseEvent) => {
-			if (e.originalEvent.target !== mp.getCanvas()) return;
+			// A click on a hut opens its popup instead.
+			if (e.defaultPrevented || e.originalEvent.target !== mp.getCanvas()) return;
 			addPoint({ lon: e.lngLat.lng, lat: e.lngLat.lat });
 		});
 	}
@@ -72,9 +98,15 @@
 		return c ? [c.lng, c.lat] : undefined;
 	}
 
+	function reset() {
+		proposal = undefined;
+		ways = [];
+		picked = [];
+	}
+
 	function addPoint(p: Point) {
 		points = [...points, p];
-		proposal = undefined;
+		reset();
 		if (!title && points.length >= 2 && points[0].name && p.name) {
 			title = `${points[0].name} – ${p.name}`;
 		}
@@ -87,7 +119,7 @@
 
 	function removePoint(i: number) {
 		points = points.filter((_, k) => k !== i);
-		proposal = undefined;
+		reset();
 	}
 
 	// Point markers, drawn anew when the points change.
@@ -106,20 +138,30 @@
 		return () => placed.forEach((mk) => mk.remove());
 	});
 
-	async function plan(ends?: string[]) {
-		busy = true;
-		problem = '';
+	function request() {
 		// Hours are shown at the hiker's pace; the API counts Swiss hiking time.
 		const swiss = (h: number) => h / pace;
 		const max = Number(maxHours);
+		return {
+			points: points.map((p) => ({ lon: p.lon, lat: p.lat })),
+			profile,
+			...(by === 'days'
+				? { days, ...(max > 0 ? { max_hours: swiss(max) } : {}) }
+				: { min_hours: swiss(minHours), max_hours: swiss(maxPerDay) }),
+			kinds
+		};
+	}
+
+	async function plan(ends?: string[]) {
+		busy = true;
+		problem = '';
+		// Moving a night of a suggested way plans along that way.
+		const way = ends ? chosen : undefined;
 		const asked = points;
 		const { data, response } = await api().POST('/journeys/plan', {
 			body: {
-				points: points.map((p) => ({ lon: p.lon, lat: p.lat })),
-				profile,
-				...(by === 'days' ? { days } : { hours_per_day: swiss(hours) }),
-				...(max > 0 ? { max_hours: swiss(max) } : {}),
-				kinds,
+				...request(),
+				...(way !== undefined ? { points: ways[way].points } : {}),
 				...(ends ? { ends } : {})
 			}
 		});
@@ -129,8 +171,52 @@
 			problem = response.status === 422 ? m.jplan_no_path() : m.jplan_failed();
 			return;
 		}
+		if (way !== undefined) {
+			ways[way] = { ...ways[way], proposal: data as Proposal };
+			picked = whole(ways, way);
+		} else {
+			ways = [];
+			picked = [];
+		}
 		proposal = data as Proposal;
 		fit();
+	}
+
+	async function suggest() {
+		busy = true;
+		problem = '';
+		const asked = points;
+		const { data, response } = await api().POST('/journeys/suggest', { body: request() });
+		busy = false;
+		if (points !== asked) return;
+		if (!data) {
+			problem = response.status === 422 ? m.jplan_no_path() : m.jplan_failed();
+			return;
+		}
+		ways = data.suggestions as Suggestion[];
+		choose(0);
+	}
+
+	function choose(k: number) {
+		picked = whole(ways, k);
+		proposal = { ...ways[k].proposal, stages: stagesOf(ways, picked) };
+		fit();
+	}
+
+	/** Goes on after day i along another way that sleeps at the same place. */
+	function goOn(i: number, to: Picked) {
+		if (!proposal) return;
+		picked = switchTo(ways, picked, i, to);
+		proposal = { ...proposal, stages: stagesOf(ways, picked) };
+	}
+
+	function wayName(k: number) {
+		const via = ways[k].via;
+		return via ? m.jplan_way_via({ n: k + 1, place: via }) : m.jplan_way_direct({ n: k + 1 });
+	}
+
+	function nights(w: Suggestion) {
+		return w.proposal.stages.flatMap((st) => (st.end_place ? [st.end_place.name] : [])).join(' · ');
 	}
 
 	function fit() {
@@ -184,7 +270,13 @@
 		<Map bind:base bind:overlays {onready} />
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map}
-			<CollectionLayers {map} items={stageLines} {highlight} onclick={(id) => (highlight = id)} />
+			<CollectionLayers
+				{map}
+				items={[...others, ...stageLines]}
+				color={lineColor}
+				{highlight}
+				onclick={(id) => (id.startsWith('way-') ? choose(Number(id.slice(4))) : (highlight = id))}
+			/>
 		{/if}
 	</section>
 
@@ -250,31 +342,46 @@
 						onfocus={() => (by = 'days')}
 					/>
 				</label>
-				<label class="flex items-center gap-2">
-					<input type="radio" bind:group={by} value="hours" />
-					{m.jplan_by_hours()}
+				<div class="flex items-center gap-2">
+					<label class="flex items-center gap-2">
+						<input type="radio" bind:group={by} value="hours" />
+						{m.jplan_by_hours()}
+					</label>
 					<input
 						type="number"
 						min="1"
 						max="16"
 						step="0.5"
 						class="w-16 rounded-md border border-stone-300 px-2 py-1"
-						aria-label={m.jplan_hours()}
-						bind:value={hours}
+						aria-label={m.jplan_hours_min()}
+						bind:value={minHours}
 						onfocus={() => (by = 'hours')}
 					/>
-				</label>
-				<label class="flex items-center gap-2">
-					<span class="text-stone-600">{m.jplan_max()}</span>
+					–
 					<input
 						type="number"
 						min="1"
-						max="20"
+						max="16"
 						step="0.5"
 						class="w-16 rounded-md border border-stone-300 px-2 py-1"
-						bind:value={maxHours}
+						aria-label={m.jplan_hours_max()}
+						bind:value={maxPerDay}
+						onfocus={() => (by = 'hours')}
 					/>
-				</label>
+				</div>
+				{#if by === 'days'}
+					<label class="flex items-center gap-2">
+						<span class="text-stone-600">{m.jplan_max()}</span>
+						<input
+							type="number"
+							min="1"
+							max="20"
+							step="0.5"
+							class="w-16 rounded-md border border-stone-300 px-2 py-1"
+							bind:value={maxHours}
+						/>
+					</label>
+				{/if}
 			</fieldset>
 
 			<fieldset>
@@ -298,14 +405,53 @@
 			</label>
 
 			<button
-				disabled={!hydrated.value || busy || points.length < 2}
+				disabled={!hydrated.value || busy || points.length < 2 || !asksOk}
 				class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-50"
 			>
 				{busy ? m.jplan_running() : m.jplan_submit()}
 			</button>
+			<button
+				type="button"
+				disabled={!hydrated.value || busy || points.length < 2 || !asksOk}
+				class="rounded-md border border-stone-300 px-3 py-1.5 hover:bg-stone-100 disabled:opacity-50"
+				onclick={suggest}
+			>
+				{m.jplan_suggest()}
+			</button>
 		</form>
 
 		{#if problem}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{problem}</p>{/if}
+
+		{#if ways.length > 0}
+			<section class="flex flex-col gap-2 text-sm" data-testid="plan-ways">
+				<h2 class="font-medium">{m.jplan_ways()}</h2>
+				{#each ways as w, k (k)}
+					<button
+						type="button"
+						class="rounded-md border p-2 text-left {chosen === k
+							? 'border-stone-500'
+							: 'border-stone-200 hover:bg-stone-100'}"
+						aria-pressed={chosen === k}
+						data-testid="plan-way"
+						onclick={() => choose(k)}
+					>
+						<span class="font-medium">{wayName(k)}</span>
+						<span class="text-xs text-stone-600 tabular-nums">
+							· {m.jplan_summary({
+								days: w.proposal.stages.length,
+								distance: formatDistance(
+									w.proposal.stages.reduce((sum, st) => sum + st.totals.distance_m, 0)
+								)
+							})}
+						</span>
+						<span class="mt-0.5 block text-xs text-stone-600">{nights(w)}</span>
+					</button>
+				{/each}
+				{#if ways.length > 1}
+					<p class="text-xs text-stone-600">{m.jplan_ways_hint()}</p>
+				{/if}
+			</section>
+		{/if}
 
 		{#if proposal}
 			<p class="text-sm font-medium" data-testid="plan-summary">
@@ -342,6 +488,10 @@
 						</div>
 						<p class="mt-1" data-testid="plan-stage-end">
 							→ {st.end_place ? st.end_place.name : m.jplan_to_end()}
+							{#if mixed}
+								<span class="text-xs text-stone-600">· {m.jplan_way({ n: picked[i].way + 1 })}</span
+								>
+							{/if}
 							{#if st.end_place?.website}
 								<!-- The hut's own website: resolve() does not apply. -->
 								<!-- eslint-disable svelte/no-navigation-without-resolve -->
@@ -360,8 +510,10 @@
 						{/if}
 						{#if st.over_max}
 							<p class="mt-1 text-xs text-amber-800 dark:text-amber-200">{m.jplan_over_max()}</p>
+						{:else if st.under_min}
+							<p class="mt-1 text-xs text-amber-800 dark:text-amber-200">{m.jplan_under_min()}</p>
 						{/if}
-						{#if st.earlier || st.later}
+						{#if !mixed && (st.earlier || st.later)}
 							<div class="mt-1 flex flex-wrap gap-2 text-xs">
 								{#if st.earlier}
 									<button
@@ -382,6 +534,16 @@
 									>
 								{/if}
 							</div>
+						{/if}
+						{#if ways.length > 1}
+							{#each switches(ways, picked, i) as to (to.way)}
+								<button
+									type="button"
+									class="mt-1 block text-xs text-accent-ink underline"
+									data-testid="plan-switch"
+									onclick={() => goOn(i, to)}>{m.jplan_switch({ n: to.way + 1 })}</button
+								>
+							{/each}
 						{/if}
 					</li>
 				{/each}

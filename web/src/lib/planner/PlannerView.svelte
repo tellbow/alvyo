@@ -127,8 +127,8 @@
 			// storage blocked: the default
 		}
 		m.on('click', (e: MapMouseEvent) => {
-			// Clicks on a point (a marker above the map) are the point's own.
-			if (!user || e.originalEvent.target !== m.getCanvas()) return;
+			// Clicks on a point (a marker above the map) or a hut are their own.
+			if (!user || e.defaultPrevented || e.originalEvent.target !== m.getCanvas()) return;
 			const hit = m.queryRenderedFeatures(e.point, {
 				layers: ROUTE_LINES.filter((id) => m.getLayer(id))
 			})[0];
@@ -144,7 +144,7 @@
 	}
 
 	/** A place found by search becomes the new last point; the map shows it. */
-	function addPlace(p: FoundPlace) {
+	function addPlace(p: Pick<FoundPlace, 'name' | 'at'>) {
 		planner.add(p.at[0], p.at[1], p.name);
 		if (!map || !lib) return;
 		const pts = planner.anchors;
@@ -190,7 +190,14 @@
 
 <main class="flex min-h-0 flex-1">
 	<section class="relative flex-1">
-		<Map bind:base bind:overlays {onready} />
+		<Map
+			bind:base
+			bind:overlays
+			{onready}
+			placeAction={user
+				? { label: m.map_place_add(), run: (p) => addPlace({ name: p.name, at: [p.lon, p.lat] }) }
+				: undefined}
+		/>
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} {ghosts} {dragPath} />

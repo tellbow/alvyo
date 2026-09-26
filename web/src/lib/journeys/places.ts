@@ -15,7 +15,7 @@ export function placeLabel(kind: Place['kind']): string {
 }
 
 /** What kind of place it is, as specific as the data allows ("Bus", "Hütte" …). */
-export function placeDetail(p: Place): string {
+export function placeDetail(p: Pick<Place, 'kind' | 'detail'>): string {
 	if (p.kind === 'pt_stop') return p.detail || placeLabel(p.kind); // BAV modes, German
 	if (p.detail === 'wilderness_hut') return m.place_wilderness_hut();
 	return placeLabel(p.kind);

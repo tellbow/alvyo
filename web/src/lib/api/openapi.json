@@ -2903,6 +2903,50 @@
         ],
         "type": "object"
       },
+      "Pin": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "pt_stop",
+              "hut",
+              "hotel",
+              "campsite"
+            ],
+            "type": "string"
+          },
+          "lat": {
+            "format": "double",
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "detail",
+          "lon",
+          "lat"
+        ],
+        "type": "object"
+      },
       "Place": {
         "additionalProperties": false,
         "properties": {
@@ -2960,6 +3004,21 @@
         ],
         "type": "object"
       },
+      "PlacesInViewOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/Pin"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "places"
+        ],
+        "type": "object"
+      },
       "PlanJourneyInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -3002,6 +3061,13 @@
             "description": "No day longer if possible; 0: 1.25 × the time per day",
             "format": "double",
             "maximum": 20,
+            "minimum": 0,
+            "type": "number"
+          },
+          "min_hours": {
+            "description": "With max_hours instead of days or hours_per_day: as few days as fit between the two",
+            "format": "double",
+            "maximum": 16,
             "minimum": 0,
             "type": "number"
           },
@@ -3224,6 +3290,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "min_s": {
+            "format": "int64",
+            "type": "integer"
+          },
           "stages": {
             "items": {
               "$ref": "#/components/schemas/Stage"
@@ -3238,7 +3308,8 @@
         "required": [
           "stages",
           "target_s",
-          "max_s"
+          "max_s",
+          "min_s"
         ],
         "type": "object"
       },
@@ -4379,6 +4450,10 @@
           },
           "totals": {
             "$ref": "#/components/schemas/RouteTotals"
+          },
+          "under_min": {
+            "description": "Shorter than the least per day asked for: the places to stay allowed no better split",
+            "type": "boolean"
           }
         },
         "required": [
@@ -4387,6 +4462,7 @@
           "accommodation",
           "totals",
           "over_max",
+          "under_min",
           "earlier",
           "later",
           "profile",
@@ -4436,6 +4512,10 @@
             "format": "int64",
             "type": "integer"
           },
+          "min_s": {
+            "format": "int64",
+            "type": "integer"
+          },
           "stages": {
             "items": {
               "$ref": "#/components/schemas/Stage"
@@ -4455,7 +4535,8 @@
           "title",
           "stages",
           "target_s",
-          "max_s"
+          "max_s",
+          "min_s"
         ],
         "type": "object"
       },
@@ -4530,6 +4611,113 @@
           "key",
           "done",
           "total"
+        ],
+        "type": "object"
+      },
+      "SuggestJourneysInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "Number of days; or hours_per_day",
+            "format": "int64",
+            "maximum": 60,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "hours_per_day": {
+            "description": "Hiking time per day (Swiss hiking time); or days",
+            "format": "double",
+            "maximum": 16,
+            "minimum": 0,
+            "type": "number"
+          },
+          "kinds": {
+            "description": "Preferred places for the nights; all if none",
+            "items": {
+              "enum": [
+                "hut",
+                "hotel",
+                "campsite",
+                "pt_stop"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "max_hours": {
+            "description": "No day longer if possible; 0: 1.25 × the time per day",
+            "format": "double",
+            "maximum": 20,
+            "minimum": 0,
+            "type": "number"
+          },
+          "min_hours": {
+            "description": "With max_hours instead of days or hours_per_day: as few days as fit between the two",
+            "format": "double",
+            "maximum": 16,
+            "minimum": 0,
+            "type": "number"
+          },
+          "points": {
+            "description": "Start, points to pass, destination",
+            "items": {
+              "$ref": "#/components/schemas/Point"
+            },
+            "maxItems": 20,
+            "minItems": 2,
+            "type": "array"
+          },
+          "profile": {
+            "default": "hike",
+            "enum": [
+              "hike",
+              "alpine"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "points"
+        ],
+        "type": "object"
+      },
+      "SuggestJourneysOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "suggestions"
+        ],
+        "type": "object"
+      },
+      "Suggestion": {
+        "additionalProperties": false,
+        "properties": {
+          "points": {
+            "description": "The points asked for with the place passed; for POST /journeys/plan with ends, to move this way's nights",
+            "items": {
+              "$ref": "#/components/schemas/Point"
+            },
+            "type": "array"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/Proposal"
+          },
+          "via": {
+            "description": "The village or hut the way passes, to tell the ways apart; empty for the direct way",
+            "type": "string"
+          }
+        },
+        "required": [
+          "points",
+          "via",
+          "proposal"
         ],
         "type": "object"
       },
@@ -7192,6 +7380,48 @@
           }
         },
         "summary": "Propose the stages of a multi-day hike",
+        "tags": [
+          "journeys"
+        ]
+      }
+    },
+    "/journeys/suggest": {
+      "post": {
+        "description": "Up to four ways between the points, through different valleys and over different passes, each split into days as by POST /journeys/plan, shortest first. Where two ways pass the same village they tend to share the night there (the same end_place id), where one can change from one to the other. Nothing is saved.",
+        "operationId": "suggest-journeys",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestJourneysInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestJourneysOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Suggest multi-day hikes on different ways",
         "tags": [
           "journeys"
         ]
@@ -10123,6 +10353,72 @@
         "summary": "A photo as JPEG, for those who may see its route or journey",
         "tags": [
           "photos"
+        ]
+      }
+    },
+    "/places/in-view": {
+      "get": {
+        "description": "At most 2000, in no particular order.",
+        "operationId": "places-in-view",
+        "parameters": [
+          {
+            "description": "The map view: west,south,east,north (WGS84)",
+            "explode": false,
+            "in": "query",
+            "name": "bbox",
+            "required": true,
+            "schema": {
+              "description": "The map view: west,south,east,north (WGS84)",
+              "examples": [
+                "7.9,46.55,8.1,46.7"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "explode": true,
+            "in": "query",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "items": {
+                "enum": [
+                  "hut",
+                  "hotel",
+                  "campsite"
+                ],
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlacesInViewOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Huts and accommodation in a map view, for the map overlays",
+        "tags": [
+          "places"
         ]
       }
     },

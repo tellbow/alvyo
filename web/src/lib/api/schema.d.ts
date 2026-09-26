@@ -614,6 +614,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journeys/suggest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggest multi-day hikes on different ways
+         * @description Up to four ways between the points, through different valleys and over different passes, each split into days as by POST /journeys/plan, shortest first. Where two ways pass the same village they tend to share the night there (the same end_place id), where one can change from one to the other. Nothing is saved.
+         */
+        post: operations["suggest-journeys"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys/{id}": {
         parameters: {
             query?: never;
@@ -1357,6 +1377,26 @@ export interface paths {
          * @description Stored without metadata. large: at most 2048 px, thumb: at most 480 px on the long edge.
          */
         get: operations["get-photo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/places/in-view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Huts and accommodation in a map view, for the map overlays
+         * @description At most 2000, in no particular order.
+         */
+        get: operations["places-in-view"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2865,6 +2905,19 @@ export interface components {
             can_edit: boolean;
             photos: components["schemas"]["Photo"][];
         };
+        Pin: {
+            detail: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "pt_stop" | "hut" | "hotel" | "campsite";
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+            name: string;
+            website?: string;
+        };
         Place: {
             /** @description lon, lat */
             at: number[];
@@ -2880,6 +2933,9 @@ export interface components {
             ref?: string;
             suggested?: boolean;
             website?: string;
+        };
+        PlacesInViewOutputBody: {
+            places: components["schemas"]["Pin"][];
         };
         PlanJourneyInputBody: {
             /**
@@ -2901,6 +2957,11 @@ export interface components {
              * @description No day longer if possible; 0: 1.25 × the time per day
              */
             max_hours?: number;
+            /**
+             * Format: double
+             * @description With max_hours instead of days or hours_per_day: as few days as fit between the two
+             */
+            min_hours?: number;
             /** @description Start, points to pass, destination */
             points: components["schemas"]["Point"][];
             /**
@@ -2970,6 +3031,8 @@ export interface components {
         Proposal: {
             /** Format: int64 */
             max_s: number;
+            /** Format: int64 */
+            min_s: number;
             stages: components["schemas"]["Stage"][];
             /** Format: int64 */
             target_s: number;
@@ -3325,6 +3388,8 @@ export interface components {
             /** @description Where the previous day ended; none on the first */
             start_place: components["schemas"]["Place"];
             totals: components["schemas"]["RouteTotals"];
+            /** @description Shorter than the least per day asked for: the places to stay allowed no better split */
+            under_min: boolean;
         };
         StageRouteInputBody: {
             anchors: components["schemas"]["RouteAnchor"][];
@@ -3335,6 +3400,8 @@ export interface components {
         StagesImportOutputBody: {
             /** Format: int64 */
             max_s: number;
+            /** Format: int64 */
+            min_s: number;
             stages: components["schemas"]["Stage"][];
             /** Format: int64 */
             target_s: number;
@@ -3368,6 +3435,47 @@ export interface components {
             state: "missing" | "building" | "ready" | "failed";
             /** Format: int64 */
             total: number;
+        };
+        SuggestJourneysInputBody: {
+            /**
+             * Format: int64
+             * @description Number of days; or hours_per_day
+             */
+            days?: number;
+            /**
+             * Format: double
+             * @description Hiking time per day (Swiss hiking time); or days
+             */
+            hours_per_day?: number;
+            /** @description Preferred places for the nights; all if none */
+            kinds?: ("hut" | "hotel" | "campsite" | "pt_stop")[];
+            /**
+             * Format: double
+             * @description No day longer if possible; 0: 1.25 × the time per day
+             */
+            max_hours?: number;
+            /**
+             * Format: double
+             * @description With max_hours instead of days or hours_per_day: as few days as fit between the two
+             */
+            min_hours?: number;
+            /** @description Start, points to pass, destination */
+            points: components["schemas"]["Point"][];
+            /**
+             * @default hike
+             * @enum {string}
+             */
+            profile: "hike" | "alpine";
+        };
+        SuggestJourneysOutputBody: {
+            suggestions: components["schemas"]["Suggestion"][];
+        };
+        Suggestion: {
+            /** @description The points asked for with the place passed; for POST /journeys/plan with ends, to move this way's nights */
+            points: components["schemas"]["Point"][];
+            proposal: components["schemas"]["Proposal"];
+            /** @description The village or hut the way passes, to tell the ways apart; empty for the direct way */
+            via: string;
         };
         TagCountsOutputBody: {
             tags: components["schemas"]["Count"][];
@@ -4898,6 +5006,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "suggest-journeys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestJourneysInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestJourneysOutputBody"];
                 };
             };
             /** @description Error */
@@ -6791,6 +6932,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "places-in-view": {
+        parameters: {
+            query: {
+                /** @description The map view: west,south,east,north (WGS84) */
+                bbox: string;
+                kind: ("hut" | "hotel" | "campsite")[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlacesInViewOutputBody"];
                 };
             };
             /** @description Error */

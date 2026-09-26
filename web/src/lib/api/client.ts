@@ -8,6 +8,7 @@ export type Route = components['schemas']['RouteBody'];
 export type RouteSummary = components['schemas']['RouteSummary'];
 export type JourneySummary = components['schemas']['JourneySummary'];
 export type Place = components['schemas']['Place'];
+export type Pin = components['schemas']['Pin'];
 export type FoundPlace = components['schemas']['Found'];
 
 /** Huma cannot mark nested objects as nullable; the API sends null for these. */
@@ -26,6 +27,9 @@ export type PlanStage = Nullable<
 >;
 export type Proposal = Omit<components['schemas']['Proposal'], 'stages'> & {
 	stages: PlanStage[];
+};
+export type Suggestion = Omit<components['schemas']['Suggestion'], 'proposal'> & {
+	proposal: Proposal;
 };
 export type Grant = components['schemas']['Grant'];
 export type SharedRoute = components['schemas']['RouteShared'];

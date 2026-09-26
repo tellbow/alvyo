@@ -130,8 +130,8 @@ class _RouteScreenState extends State<RouteScreen> {
           uploaded > 0 ? t.navUploaded(distance, duration) : t.navSaved(distance, duration),
         ),
         duration: const Duration(seconds: 8),
-        // A stage's route: offer to tick the stage off.
-        action: r.journeyId == null
+        // A stage's route: offer to tick the stage off, if the user may.
+        action: r.journeyId == null || !r.canEdit
             ? null
             : SnackBarAction(
                 key: const Key('nav-stage-done'),

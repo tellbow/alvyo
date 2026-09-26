@@ -909,6 +909,144 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Speichern fehlgeschlagen.'**
   String get plannerSaveFailed;
+
+  /// No description provided for @discoverAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Entdecken'**
+  String get discoverAction;
+
+  /// No description provided for @discoverTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Touren entdecken'**
+  String get discoverTitle;
+
+  /// No description provided for @discoverKindAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Routen und Etappentouren'**
+  String get discoverKindAll;
+
+  /// No description provided for @discoverKindRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur Routen'**
+  String get discoverKindRoute;
+
+  /// No description provided for @discoverKindJourney.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur Etappentouren'**
+  String get discoverKindJourney;
+
+  /// No description provided for @discoverSacAny.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede Schwierigkeit'**
+  String get discoverSacAny;
+
+  /// {grade}: a SAC hiking grade, e.g. T3.
+  ///
+  /// In de, this message translates to:
+  /// **'bis {grade}'**
+  String discoverSacMax(String grade);
+
+  /// No description provided for @discoverDurationAny.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede Wanderzeit'**
+  String get discoverDurationAny;
+
+  /// No description provided for @discoverDurationShort.
+  ///
+  /// In de, this message translates to:
+  /// **'bis 2 h'**
+  String get discoverDurationShort;
+
+  /// No description provided for @discoverDurationMedium.
+  ///
+  /// In de, this message translates to:
+  /// **'2–4 h'**
+  String get discoverDurationMedium;
+
+  /// No description provided for @discoverDurationLong.
+  ///
+  /// In de, this message translates to:
+  /// **'4–6 h'**
+  String get discoverDurationLong;
+
+  /// No description provided for @discoverDurationXlong.
+  ///
+  /// In de, this message translates to:
+  /// **'über 6 h'**
+  String get discoverDurationXlong;
+
+  /// No description provided for @discoverDurationHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bei Etappentouren zählt die längste Etappe.'**
+  String get discoverDurationHint;
+
+  /// No description provided for @discoverRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'Route'**
+  String get discoverRoute;
+
+  /// No description provided for @discoverJourney.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentour'**
+  String get discoverJourney;
+
+  /// The owner's username.
+  ///
+  /// In de, this message translates to:
+  /// **'von {user}'**
+  String discoverBy(String user);
+
+  /// No description provided for @discoverStages.
+  ///
+  /// In de, this message translates to:
+  /// **'{n, plural, =1{1 Etappe} other{{n} Etappen}}'**
+  String discoverStages(int n);
+
+  /// {time}: the hiking time of the longest stage.
+  ///
+  /// In de, this message translates to:
+  /// **'längste {time}'**
+  String discoverLongest(String time);
+
+  /// No description provided for @discoverEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Hier gibt es noch keine öffentlichen Touren. Verschiebe die Karte oder lockere die Filter.'**
+  String get discoverEmpty;
+
+  /// No description provided for @discoverMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Es gibt weitere Touren – zoome hinein oder filtere genauer.'**
+  String get discoverMore;
+
+  /// No description provided for @discoverFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Suche hat nicht geklappt. Versuche es gleich noch einmal.'**
+  String get discoverFailed;
+
+  /// No description provided for @discoverOffline.
+  ///
+  /// In de, this message translates to:
+  /// **'Du bist offline. Zum Entdecken braucht es eine Verbindung.'**
+  String get discoverOffline;
+
+  /// No description provided for @discoverRetry.
+  ///
+  /// In de, this message translates to:
+  /// **'Nochmals versuchen'**
+  String get discoverRetry;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

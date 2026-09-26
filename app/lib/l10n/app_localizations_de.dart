@@ -451,4 +451,83 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerSaveFailed => 'Speichern fehlgeschlagen.';
+
+  @override
+  String get discoverAction => 'Entdecken';
+
+  @override
+  String get discoverTitle => 'Touren entdecken';
+
+  @override
+  String get discoverKindAll => 'Routen und Etappentouren';
+
+  @override
+  String get discoverKindRoute => 'Nur Routen';
+
+  @override
+  String get discoverKindJourney => 'Nur Etappentouren';
+
+  @override
+  String get discoverSacAny => 'Jede Schwierigkeit';
+
+  @override
+  String discoverSacMax(String grade) {
+    return 'bis $grade';
+  }
+
+  @override
+  String get discoverDurationAny => 'Jede Wanderzeit';
+
+  @override
+  String get discoverDurationShort => 'bis 2 h';
+
+  @override
+  String get discoverDurationMedium => '2–4 h';
+
+  @override
+  String get discoverDurationLong => '4–6 h';
+
+  @override
+  String get discoverDurationXlong => 'über 6 h';
+
+  @override
+  String get discoverDurationHint => 'Bei Etappentouren zählt die längste Etappe.';
+
+  @override
+  String get discoverRoute => 'Route';
+
+  @override
+  String get discoverJourney => 'Etappentour';
+
+  @override
+  String discoverBy(String user) {
+    return 'von $user';
+  }
+
+  @override
+  String discoverStages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(n, locale: localeName, other: '$n Etappen', one: '1 Etappe');
+    return '$_temp0';
+  }
+
+  @override
+  String discoverLongest(String time) {
+    return 'längste $time';
+  }
+
+  @override
+  String get discoverEmpty =>
+      'Hier gibt es noch keine öffentlichen Touren. Verschiebe die Karte oder lockere die Filter.';
+
+  @override
+  String get discoverMore => 'Es gibt weitere Touren – zoome hinein oder filtere genauer.';
+
+  @override
+  String get discoverFailed => 'Die Suche hat nicht geklappt. Versuche es gleich noch einmal.';
+
+  @override
+  String get discoverOffline => 'Du bist offline. Zum Entdecken braucht es eine Verbindung.';
+
+  @override
+  String get discoverRetry => 'Nochmals versuchen';
 }

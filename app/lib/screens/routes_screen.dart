@@ -8,6 +8,7 @@ import '../navigation/live.dart';
 import '../navigation/uploads.dart';
 import '../offline/packs.dart';
 import 'bottom_bar.dart';
+import 'discover_screen.dart';
 import 'item_card.dart';
 import 'journeys_list.dart';
 import 'planner_screen.dart';
@@ -103,7 +104,14 @@ class _RoutesScreenState extends State<RoutesScreen> {
           : AppBar(
               title: Text(items[_tab].label),
               actions: [
-                if (_tab == 0)
+                if (_tab == 0) ...[
+                  IconButton(
+                    key: const Key('discover'),
+                    tooltip: t.discoverAction,
+                    icon: const Icon(Icons.explore_outlined),
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => DiscoverScreen(api: widget.api))),
+                  ),
                   IconButton(
                     key: const Key('plan-route'),
                     tooltip: t.plannerTitle,
@@ -114,6 +122,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                       if (mounted) _reload(); // a saved route is in the list
                     },
                   ),
+                ],
               ],
             ),
       body: switch (_tab) {

@@ -85,8 +85,11 @@
 		});
 	}
 
-	function render() {
+	function renderLines() {
 		(map.getSource(SRC) as GeoJSONSource | undefined)?.setData(features());
+	}
+
+	function renderHover() {
 		(map.getSource(HOVER) as GeoJSONSource | undefined)?.setData(
 			hover ? { type: 'Point', coordinates: hover } : empty
 		);
@@ -96,15 +99,23 @@
 		addLayers();
 		const onStyle = () => {
 			addLayers();
-			render();
+			renderLines();
+			renderHover();
 		};
 		map.on('style.load', onStyle);
 		return () => map.off('style.load', onStyle);
 	});
 
 	$effect(() => {
-		void [journey, hover];
-		render();
+		void journey;
+		renderLines();
+	});
+
+	// Apart from the lines, which need not be sent to the map again for every
+	// pointer move over the profile.
+	$effect(() => {
+		void hover;
+		renderHover();
 	});
 
 	// Numbered stage starts. Rebuilt when the journey changes (a few markers).

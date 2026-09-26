@@ -60,3 +60,45 @@ test('plan a three-day hike, pick another night, create the journey', async ({ p
 	await expect(page.getByTestId('stage').first().getByTestId('stage-end')).toContainText(place);
 	await expect(page.getByTestId('gap')).toHaveCount(0); // each day starts where the last ended
 });
+
+test('a point added while planning drops the plan for the old points', async ({ page }) => {
+	const id = `jstale${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Eilig',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+
+	// The plan's answer is held back until the third point is placed.
+	let release = () => {};
+	const held = new Promise<void>((r) => (release = r));
+	await page.route('**/api/v1/journeys/plan', async (route) => {
+		await held;
+		await route.continue();
+	});
+
+	await page.goto('/journeys/plan');
+	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /route-collection-line/);
+	const box = (await page.locator('canvas.maplibregl-canvas').boundingBox())!;
+	const click = (dx: number) =>
+		page.mouse.click(box.x + box.width / 2 + dx, box.y + box.height / 2);
+	await click(-100);
+	await click(100);
+	const panel = page.getByTestId('journey-plan-panel');
+	await panel.getByRole('button', { name: 'Etappen vorschlagen' }).click();
+	await click(200);
+	await expect(page.getByTestId('plan-point')).toHaveCount(3);
+
+	const answered = page.waitForResponse('**/api/v1/journeys/plan');
+	release();
+	await answered;
+	await page.evaluate(() => new Promise(requestAnimationFrame));
+	// Neither stages nor a problem of the plan for two points.
+	await expect(page.getByTestId('plan-stage')).toHaveCount(0);
+	await expect(panel.getByRole('alert')).toHaveCount(0);
+	await expect(panel.getByRole('button', { name: 'Etappen vorschlagen' })).toBeEnabled();
+});

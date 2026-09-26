@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -78,10 +79,12 @@
 	const routeKey = $derived(journey.stage_list.map((s) => s.route?.id ?? '').join());
 	$effect(() => {
 		void routeKey;
+		// Not journey itself: every change replaces it.
+		const id = untrack(() => journey.id);
 		let stale = false;
 		api()
 			.GET('/journeys/{id}/areas', {
-				params: { path: { id: journey.id }, query: token ? { t: token } : {} }
+				params: { path: { id }, query: token ? { t: token } : {} }
 			})
 			.then(({ data }) => {
 				if (stale) return;

@@ -112,6 +112,7 @@
 		// Hours are shown at the hiker's pace; the API counts Swiss hiking time.
 		const swiss = (h: number) => h / pace;
 		const max = Number(maxHours);
+		const asked = points;
 		const { data, response } = await api().POST('/journeys/plan', {
 			body: {
 				points: points.map((p) => ({ lon: p.lon, lat: p.lat })),
@@ -123,6 +124,7 @@
 			}
 		});
 		busy = false;
+		if (points !== asked) return; // points added or removed meanwhile: plan again
 		if (!data) {
 			problem = response.status === 422 ? m.jplan_no_path() : m.jplan_failed();
 			return;

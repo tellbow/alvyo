@@ -148,3 +148,37 @@ test('a stage changed by someone else meanwhile is not overwritten', async ({ pa
 	);
 	await expect(card.getByLabel('Titel')).toHaveValue('Tag 1 (von Bea)');
 });
+
+test('changing a journey does not ask for its protected areas again', async ({ page }) => {
+	const id = `jarea${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Areas',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	const created = await page.request.post('/api/v1/journeys', { data: { title: 'Ruhig' } });
+	const journeyId = (await created.json()).id as string;
+	await page.request.post(`/api/v1/journeys/${journeyId}/stages`, { data: { title: 'Tag 1' } });
+
+	let asked = 0;
+	page.on('request', (r) => {
+		if (r.url().includes(`/api/v1/journeys/${journeyId}/areas`)) asked++;
+	});
+	await page.goto(`/journeys/${journeyId}`);
+	await expect.poll(() => asked).toBe(1);
+
+	// A new stage title: the journey is replaced, its stage routes stay.
+	const card = page.getByTestId('stage').first();
+	const saved = page.waitForResponse(
+		(r) => r.request().method() === 'PATCH' && r.url().includes('/stages/')
+	);
+	await card.getByLabel('Titel').fill('Tag 1, neu');
+	await card.getByLabel('Titel').press('Tab');
+	expect((await saved).ok()).toBe(true);
+	await page.evaluate(() => new Promise(requestAnimationFrame));
+	expect(asked).toBe(1);
+});

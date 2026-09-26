@@ -123,10 +123,13 @@
 		);
 	}
 
-	function render() {
+	function renderLegs() {
 		(map.getSource(LEGS) as GeoJSONSource | undefined)?.setData(
 			legFeatures(planner.anchors, planner.legs)
 		);
+	}
+
+	function renderHover() {
 		(map.getSource(HOVER) as GeoJSONSource | undefined)?.setData(
 			hover ? { type: 'Point', coordinates: hover } : empty
 		);
@@ -137,7 +140,8 @@
 		// After a base map switch the sources exist again but data must be reapplied.
 		const onStyle = () => {
 			addLayers();
-			render();
+			renderLegs();
+			renderHover();
 		};
 		map.on('style.load', onStyle);
 		const onEnter = () => (map.getCanvas().style.cursor = editable ? 'pointer' : '');
@@ -238,8 +242,15 @@
 
 	$effect(() => {
 		// Track the reactive inputs, then draw.
-		void [planner.anchors.map((a) => [a.lon, a.lat, a.straight, a.through]), planner.legs, hover];
-		render();
+		void [planner.anchors.map((a) => [a.lon, a.lat, a.straight, a.through]), planner.legs];
+		renderLegs();
+	});
+
+	// Apart from the line: the hover moves with every pointer move over the
+	// profile, and the whole line need not be sent to the map for that.
+	$effect(() => {
+		void hover;
+		renderHover();
 	});
 
 	// Draggable numbered markers, reconciled by anchor id. Deliberately not

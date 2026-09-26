@@ -10,4 +10,10 @@ describe('safeRedirect', () => {
 		expect(safeRedirect('//evil.example')).toBe('/');
 		expect(safeRedirect(null)).toBe('/');
 	});
+	it('rejects paths browsers read as another site', () => {
+		// A backslash counts as a slash, tabs and newlines are dropped.
+		expect(safeRedirect('/\\evil.example')).toBe('/');
+		expect(safeRedirect('/\t/evil.example')).toBe('/');
+		expect(safeRedirect('/\n/evil.example')).toBe('/');
+	});
 });

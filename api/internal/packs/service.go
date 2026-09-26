@@ -70,16 +70,19 @@ func (s *Service) Status(key string) Status {
 // Ensure starts building the pack under key unless it exists or is being
 // built. tiles is called in the background.
 func (s *Service) Ensure(key, prefix string, tiles func(context.Context) ([]Tile, error)) Status {
-	if st := s.Status(key); st.State == "ready" || st.State == "building" {
-		return st
-	}
 	s.mu.Lock()
 	if s.jobs == nil {
 		s.jobs = map[string]*job{}
 		s.latest = map[string]string{}
 		s.sem = make(chan struct{}, maxBuilds)
 	}
+	// Also when it is ready: a route changed back keeps its pack.
 	s.latest[prefix] = key
+	s.mu.Unlock()
+	if st := s.Status(key); st.State == "ready" || st.State == "building" {
+		return st
+	}
+	s.mu.Lock()
 	if j := s.jobs[key]; j != nil && !j.failed {
 		s.mu.Unlock()
 		return s.Status(key)

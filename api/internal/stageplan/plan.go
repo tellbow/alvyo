@@ -113,7 +113,9 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 	if len(req.Ends) > 0 {
 		for _, id := range req.Ends {
 			i := slices.IndexFunc(near, func(pl place) bool { return pl.ID == id })
-			if i < 0 || (len(ends) > 0 && near[i].index <= ends[len(ends)-1].index) {
+			// A day can end neither where the hike starts nor where it ends.
+			if i < 0 || near[i].index == 0 || near[i].index == len(tr.Coords)-1 ||
+				(len(ends) > 0 && near[i].index <= ends[len(ends)-1].index) {
 				return Proposal{}, ErrUnknownEnd
 			}
 			ends = append(ends, near[i])

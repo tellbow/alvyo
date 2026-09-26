@@ -228,7 +228,8 @@ func (s *Store) AddPositions(ctx context.Context, owner, id uuid.UUID, pts []Fix
 			return ErrEnded
 		}
 		now := s.now()
-		for _, p := range pts {
+		var latest *Fix
+		for i, p := range pts {
 			if p.At.After(now.Add(time.Minute)) {
 				continue // a clock ahead: not trusted
 			}
@@ -240,12 +241,15 @@ func (s *Store) AddPositions(ctx context.Context, owner, id uuid.UUID, pts []Fix
 				at := p.At
 				lastKept = &at
 			}
-			if _, err := tx.Exec(ctx, `UPDATE live_shares SET last_lon = $2, last_lat = $3, last_at = $4
-				WHERE id = $1 AND (last_at IS NULL OR last_at < $4)`, id, p.Lon, p.Lat, p.At); err != nil {
-				return err
-			}
+			latest = &pts[i]
 		}
-		return nil
+		if latest == nil {
+			return nil
+		}
+		// Only the latest counts: one update, not one per point.
+		_, err = tx.Exec(ctx, `UPDATE live_shares SET last_lon = $2, last_lat = $3, last_at = $4
+			WHERE id = $1 AND (last_at IS NULL OR last_at < $4)`, id, latest.Lon, latest.Lat, latest.At)
+		return err
 	})
 }
 

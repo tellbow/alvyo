@@ -124,6 +124,18 @@ func TestTurnsUnmatched(t *testing.T) {
 	}
 }
 
+func TestTurnsEmptyMatch(t *testing.T) {
+	// A match without a line gives no turns rather than a crash.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"paths":[{"points":{"coordinates":[]},"instructions":[{"sign":2,"interval":[0,0]}]}]}`))
+	}))
+	defer srv.Close()
+	got, err := (&GraphHopper{URL: srv.URL}).Turns(context.Background(), fixtureLine(t))
+	if err != nil || len(got) != 0 {
+		t.Errorf("got %v, %v; want no turns", got, err)
+	}
+}
+
 func TestCalm(t *testing.T) {
 	got := calm([]Turn{
 		{100, "right"}, {108, "slight_left"}, // across a road

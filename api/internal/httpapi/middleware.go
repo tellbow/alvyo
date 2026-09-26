@@ -43,11 +43,10 @@ func withClientIP(next http.Handler, trustProxy bool) http.Handler {
 		if err != nil {
 			ip = r.RemoteAddr
 		}
-		if trustProxy {
-			if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-				parts := strings.Split(xff, ",")
-				ip = strings.TrimSpace(parts[len(parts)-1])
-			}
+		// Several header lines are one list; the client may send the first.
+		if xff := r.Header.Values("X-Forwarded-For"); trustProxy && len(xff) > 0 {
+			parts := strings.Split(xff[len(xff)-1], ",")
+			ip = strings.TrimSpace(parts[len(parts)-1])
 		}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ipKey, ip)))
 	})

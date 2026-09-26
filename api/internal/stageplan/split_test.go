@@ -105,3 +105,18 @@ func TestSplitNoDays(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 }
+
+func TestSplitUnusablePlaces(t *testing.T) {
+	// Places at the start and the end (the stations) cannot end a day: with
+	// three days asked for, the one place between makes two.
+	line := minutes(20)
+	cands := []Candidate{{Index: 0, Preferred: true}, {Index: 600, Preferred: true}, {Index: len(line) - 1, Preferred: true}}
+	ends, err := Split(line, cands, Days{N: 3})
+	if err != nil || !reflect.DeepEqual(ends, []int{1}) {
+		t.Errorf("3 days, one usable place: %v %v", ends, err)
+	}
+	// None usable: one day.
+	if ends, err := Split(line, cands[:1], Days{N: 2}); err != nil || len(ends) != 0 {
+		t.Errorf("2 days, no usable place: %v %v", ends, err)
+	}
+}

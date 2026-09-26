@@ -51,9 +51,15 @@ func (t *Track) add(p geo.Point, at time.Time) {
 	}
 }
 
-// parseTime reads an XML timestamp; zero if there is none.
+// parseTime reads an XML timestamp; zero if there is none. One without a
+// zone (written by some tools) is taken as UTC: only the gaps between
+// points matter.
 func parseTime(s string) time.Time {
-	at, _ := time.Parse(time.RFC3339, strings.TrimSpace(s))
+	s = strings.TrimSpace(s)
+	at, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		at, _ = time.Parse("2006-01-02T15:04:05", s)
+	}
 	return at
 }
 

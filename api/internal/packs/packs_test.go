@@ -84,6 +84,19 @@ func TestCorridor(t *testing.T) {
 	}
 }
 
+func TestCorridorStopsBeyondMaxTiles(t *testing.T) {
+	// 400 stages of 25 km: far too much for one pack, and not worked out
+	// in full (millions of tiles) before being refused.
+	var lines [][]geo.Point
+	for s := range 400 {
+		lon, lat := 6+float64(s/50)*0.5, 45.8+float64(s%50)*0.04
+		lines = append(lines, []geo.Point{{Lon: lon, Lat: lat}, {Lon: lon + 0.33, Lat: lat}})
+	}
+	if n := len(Corridor(lines, BufferM)); n != MaxTiles+1 {
+		t.Errorf("%d tiles, want MaxTiles+1", n)
+	}
+}
+
 func TestBuild(t *testing.T) {
 	var requests atomic.Int32
 	tiles := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -305,5 +318,42 @@ func TestOlderBuildKeepsNewer(t *testing.T) {
 	wait("route-r1-old")
 	if st := s.Status("route-r1-new"); st.State != "ready" {
 		t.Errorf("new version after the old build: %+v", st)
+	}
+}
+
+func TestRevertedRouteKeepsItsPack(t *testing.T) {
+	// The route is changed and changed back while the pack of the changed
+	// version builds: that build must not remove the pack of the route as
+	// it is again.
+	tiles := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("tile"))
+	}))
+	defer tiles.Close()
+	s := &Service{Builder: &Builder{TilesURL: tiles.URL, Dir: t.TempDir()}}
+	few := []Tile{{Z: 16, X: 34200, Y: 23184}}
+	wait := func(key string) {
+		t.Helper()
+		for range 500 {
+			if s.Status(key).State == "ready" {
+				return
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+		t.Fatalf("%s: %+v", key, s.Status(key))
+	}
+	s.Ensure("route-r1-a", "route-r1-", func(context.Context) ([]Tile, error) { return few, nil })
+	wait("route-r1-a")
+	release := make(chan struct{})
+	s.Ensure("route-r1-b", "route-r1-", func(context.Context) ([]Tile, error) {
+		<-release
+		return few, nil
+	})
+	if st := s.Ensure("route-r1-a", "route-r1-", nil); st.State != "ready" {
+		t.Fatalf("changed back: %+v", st)
+	}
+	close(release)
+	wait("route-r1-b")
+	if st := s.Status("route-r1-a"); st.State != "ready" {
+		t.Errorf("pack of the route as it is again: %+v", st)
 	}
 }

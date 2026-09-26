@@ -59,7 +59,7 @@ func (g *GraphHopper) Turns(ctx context.Context, line []geo.Point) ([]Turn, erro
 		return []Turn{}, nil
 	}
 	path, turns, err := g.match(ctx, thin(line, matchAccuracyM))
-	if err != nil || path == nil {
+	if err != nil || len(path) < 2 {
 		return []Turn{}, err
 	}
 	return placeTurns(line, path, turns), nil

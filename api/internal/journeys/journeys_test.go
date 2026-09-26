@@ -120,6 +120,9 @@ func TestJourneyLifecycle(t *testing.T) {
 	if err := s.Reorder(ctx, jid, []uuid.UUID{st(0), st(1)}); !errors.Is(err, ErrBadOrder) {
 		t.Errorf("partial order: %v", err)
 	}
+	if err := s.Reorder(ctx, jid, []uuid.UUID{st(0), st(1), uuid.Must(uuid.NewV7())}); !errors.Is(err, ErrBadOrder) {
+		t.Errorf("order with an unknown stage: %v", err)
+	}
 	j, _ = s.Get(ctx, jid)
 	if j.StageList[0].Title != "Day 3" {
 		t.Errorf("order after reorder: %s", j.StageList[0].Title)

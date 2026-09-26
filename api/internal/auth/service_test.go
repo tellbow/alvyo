@@ -73,6 +73,47 @@ func TestResetPasswordEndsSessions(t *testing.T) {
 	}
 }
 
+// Someone signs up through a provider with another person's address, which
+// the provider does not vouch for. When the address's owner resets the
+// password, the provider must no longer log in.
+func TestResetPasswordDropsUnprovenIdentities(t *testing.T) {
+	ctx := context.Background()
+	svc, rec, _ := newService(t)
+	stranger := Identity{Provider: "test", Subject: "s-1", Email: "c@example.ch"}
+	allow := func() bool { return true }
+	if _, _, err := svc.IdentityLogin(ctx, stranger, "de", "", allow); err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.ForgotPassword(ctx, "c@example.ch"); err != nil {
+		t.Fatal(err)
+	}
+	msgs := rec.Sent()
+	reset := tokenRe.FindStringSubmatch(msgs[len(msgs)-1].Text)[1]
+	if err := svc.ResetPassword(ctx, reset, "owner-password-1"); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := svc.IdentityLogin(ctx, stranger, "de", "", allow); !errors.Is(err, ErrEmailTaken) {
+		t.Errorf("the stranger's provider login after the reset: %v, want ErrEmailTaken", err)
+	}
+
+	// A provider connected to a verified address stays.
+	owner := Identity{Provider: "test", Subject: "o-1", Email: "d@example.ch", EmailVerified: true}
+	if _, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow); err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.ForgotPassword(ctx, "d@example.ch"); err != nil {
+		t.Fatal(err)
+	}
+	msgs = rec.Sent()
+	reset = tokenRe.FindStringSubmatch(msgs[len(msgs)-1].Text)[1]
+	if err := svc.ResetPassword(ctx, reset, "owner-password-2"); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow); err != nil {
+		t.Errorf("verified provider login after the reset: %v", err)
+	}
+}
+
 func TestForgotPasswordUnknownEmail(t *testing.T) {
 	svc, rec, _ := newService(t)
 	if err := svc.ForgotPassword(context.Background(), "nobody@example.ch"); err != nil {

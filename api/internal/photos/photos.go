@@ -82,33 +82,51 @@ func (s *Store) List(ctx context.Context, t Target) ([]Photo, error) {
 // kept only if it lies within 500 m of the route (of any stage for a
 // journey).
 func (s *Store) Add(ctx context.Context, t Target, uploader uuid.UUID, p Processed, caption string) error {
-	var onItem, byUser int
-	if err := s.DB.QueryRow(ctx, `SELECT (SELECT count(*) FROM photos WHERE `+t.column()+` = $1),
-		(SELECT count(*) FROM photos WHERE uploader_id = $2)`, t.ID, uploader).Scan(&onItem, &byUser); err != nil {
-		return err
-	}
-	if onItem >= MaxPerItem || byUser >= MaxPerUser {
-		return ErrLimit
-	}
 	id, err := uuid.NewV7()
 	if err != nil {
 		return err
 	}
-	if err := s.Files.Write(id, p); err != nil {
-		return fmt.Errorf("photos: write: %w", err)
-	}
-	_, err = s.DB.Exec(ctx, `INSERT INTO photos (id, uploader_id, `+t.column()+`, caption, width, height, bytes, taken_at, geom, position)
-		SELECT $1, $2, $3, $4, $5, $6, $7, $8,
-			CASE WHEN EXISTS (
-				SELECT 1 FROM routes r
-				WHERE (r.id = $3 OR r.id IN (SELECT st.route_id FROM stages st WHERE st.journey_id = $3))
-					AND ST_DWithin(r.geom::geography, ST_Point($9, $10, 4326)::geography, $11)
-			) THEN ST_Point($9, $10, 4326) END,
-			coalesce((SELECT max(position) FROM photos WHERE `+t.column()+` = $3), 0) + 1`,
-		id, uploader, t.ID, caption, p.Width, p.Height, len(p.Large)+len(p.Thumb), p.TakenAt, p.Lon, p.Lat, pinM)
+	written := false
+	err = pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+		// Locking the uploader and the item first: uploads at the same time
+		// are counted one after the other.
+		if _, err := tx.Exec(ctx, `SELECT FROM users WHERE id = $1 FOR NO KEY UPDATE`, uploader); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `SELECT FROM `+t.Kind+`s WHERE id = $1 FOR NO KEY UPDATE`, t.ID); err != nil {
+			return err
+		}
+		var onItem, byUser int
+		if err := tx.QueryRow(ctx, `SELECT (SELECT count(*) FROM photos WHERE `+t.column()+` = $1),
+			(SELECT count(*) FROM photos WHERE uploader_id = $2)`, t.ID, uploader).Scan(&onItem, &byUser); err != nil {
+			return err
+		}
+		if onItem >= MaxPerItem || byUser >= MaxPerUser {
+			return ErrLimit
+		}
+		if err := s.Files.Write(id, p); err != nil {
+			return fmt.Errorf("photos: write: %w", err)
+		}
+		written = true
+		_, err := tx.Exec(ctx, `INSERT INTO photos (id, uploader_id, `+t.column()+`, caption, width, height, bytes, taken_at, geom, position)
+			SELECT $1, $2, $3, $4, $5, $6, $7, $8,
+				CASE WHEN EXISTS (
+					SELECT 1 FROM routes r
+					WHERE (r.id = $3 OR r.id IN (SELECT st.route_id FROM stages st WHERE st.journey_id = $3))
+						AND ST_DWithin(r.geom::geography, ST_Point($9, $10, 4326)::geography, $11)
+				) THEN ST_Point($9, $10, 4326) END,
+				coalesce((SELECT max(position) FROM photos WHERE `+t.column()+` = $3), 0) + 1`,
+			id, uploader, t.ID, caption, p.Width, p.Height, len(p.Large)+len(p.Thumb), p.TakenAt, p.Lon, p.Lat, pinM)
+		return err
+	})
 	if err != nil {
-		if rmErr := s.Files.Remove(id); rmErr != nil {
-			slog.ErrorContext(ctx, "photo files", "err", rmErr)
+		if written {
+			if rmErr := s.Files.Remove(id); rmErr != nil {
+				slog.ErrorContext(ctx, "photo files", "err", rmErr)
+			}
+		}
+		if errors.Is(err, ErrLimit) {
+			return err
 		}
 		return fmt.Errorf("photos: add: %w", err)
 	}

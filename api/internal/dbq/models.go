@@ -141,6 +141,12 @@ func (ns NullVisibility) Value() (driver.Value, error) {
 	return string(ns.Visibility), nil
 }
 
+type AreaCache struct {
+	LineKey   string
+	Areas     []byte
+	FetchedAt time.Time
+}
+
 type Block struct {
 	BlockerID uuid.UUID
 	BlockedID uuid.UUID
@@ -177,6 +183,16 @@ type Comment struct {
 	RouteID   *uuid.UUID
 	JourneyID *uuid.UUID
 	Body      string
+	CreatedAt time.Time
+	ParentID  *uuid.UUID
+	EditedAt  *time.Time
+}
+
+type Contact struct {
+	ID        uuid.UUID
+	OwnerID   uuid.UUID
+	Name      string
+	Email     string
 	CreatedAt time.Time
 }
 
@@ -237,6 +253,34 @@ type Like struct {
 	CreatedAt time.Time
 }
 
+type LivePosition struct {
+	ShareID uuid.UUID
+	At      time.Time
+	Lon     float64
+	Lat     float64
+}
+
+type LiveRecipient struct {
+	ShareID uuid.UUID
+	Name    string
+	Email   string
+}
+
+type LiveShare struct {
+	ID          uuid.UUID
+	OwnerID     uuid.UUID
+	RouteID     *uuid.UUID
+	Title       string
+	Token       string
+	StartedAt   time.Time
+	ExpectedEnd time.Time
+	EndedAt     *time.Time
+	AlertedAt   *time.Time
+	LastLon     *float64
+	LastLat     *float64
+	LastAt      *time.Time
+}
+
 type MailThrottle struct {
 	UserID uuid.UUID
 	Topic  string
@@ -280,6 +324,7 @@ type Place struct {
 	Source   string
 	SourceID string
 	Geom     interface{}
+	Website  string
 }
 
 type Report struct {
@@ -362,6 +407,7 @@ type Stage struct {
 	EndPlaceID          *uuid.UUID
 	Accommodation       string
 	AccommodationBooked bool
+	Version             int32
 }
 
 type TlmHikingPath struct {

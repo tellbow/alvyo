@@ -95,6 +95,33 @@ func TestWriteDeadlineThroughMiddleware(t *testing.T) {
 	}
 }
 
+func TestClientIPBehindProxy(t *testing.T) {
+	var got string
+	h := withClientIP(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		got = clientIP(r.Context())
+	}), true)
+	for _, c := range []struct {
+		xff  []string
+		want string
+	}{
+		{nil, "192.0.2.1"},
+		{[]string{"203.0.113.9"}, "203.0.113.9"},
+		{[]string{"198.51.100.7, 203.0.113.9"}, "203.0.113.9"},
+		// The client's own line first, the proxy's appended as another line.
+		{[]string{"198.51.100.7", "203.0.113.9"}, "203.0.113.9"},
+	} {
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		r.RemoteAddr = "192.0.2.1:1234"
+		for _, v := range c.xff {
+			r.Header.Add("X-Forwarded-For", v)
+		}
+		h.ServeHTTP(httptest.NewRecorder(), r)
+		if got != c.want {
+			t.Errorf("X-Forwarded-For %q: %s, want %s", c.xff, got, c.want)
+		}
+	}
+}
+
 func TestCompression(t *testing.T) {
 	h := withCompression(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

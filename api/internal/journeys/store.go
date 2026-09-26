@@ -522,14 +522,14 @@ func (s *Store) Reorder(ctx context.Context, journeyID uuid.UUID, ids []uuid.UUI
 		if len(ids) != n || len(seen) != n {
 			return ErrBadOrder
 		}
-		for pos, id := range ids {
-			res, err := tx.Exec(ctx, `UPDATE stages SET position = $3 WHERE id = $2 AND journey_id = $1`, journeyID, id, pos)
-			if err != nil {
-				return err
-			}
-			if res.RowsAffected() == 0 {
-				return ErrBadOrder
-			}
+		res, err := tx.Exec(ctx, `UPDATE stages st SET position = o.n - 1
+			FROM unnest($2::uuid[]) WITH ORDINALITY AS o(id, n)
+			WHERE st.id = o.id AND st.journey_id = $1`, journeyID, ids)
+		if err != nil {
+			return err
+		}
+		if int(res.RowsAffected()) != n {
+			return ErrBadOrder // a stage of another journey among them: rolled back
 		}
 		return nil
 	})

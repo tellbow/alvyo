@@ -278,6 +278,13 @@ func (s *Service) ResetPassword(ctx context.Context, token, password string) err
 		if err != nil {
 			return err
 		}
+		// Provider accounts connected before the address was proven may be
+		// a stranger's who signed up with it; its owner takes over alone.
+		// (Passkeys need a verified address.)
+		if _, err := tx.Exec(ctx, `DELETE FROM identities WHERE user_id = $1
+			AND (SELECT email_verified_at IS NULL FROM users WHERE id = $1)`, userID); err != nil {
+			return err
+		}
 		// Hashed only for a valid token: hashing is costly by design.
 		hash, err := HashPassword(password)
 		if err != nil {

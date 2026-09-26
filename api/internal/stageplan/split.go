@@ -109,6 +109,11 @@ func splitN(n, days int, cost func(i, j int) float64) ([]int, error) {
 			}
 		}
 	}
+	if math.IsInf(best[days][n-1], 1) && days > 1 {
+		// Not enough places in order along the line (e.g. only at the
+		// start or the end): one day fewer.
+		return splitN(n, days-1, cost)
+	}
 	var ends []int
 	for k, j := days, n-1; k > 1; k-- {
 		j = from[k][j]

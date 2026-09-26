@@ -55,7 +55,8 @@ type Tile struct {
 	X, Y uint32
 }
 
-// Corridor returns the tiles at MinZoom..MaxZoom within bufferM of lines.
+// Corridor returns the tiles at MinZoom..MaxZoom within bufferM of lines. It
+// stops once there are more than MaxTiles: such a pack is refused anyway.
 func Corridor(lines [][]geo.Point, bufferM float64) []Tile {
 	seen := map[Tile]bool{}
 	var out []Tile
@@ -85,6 +86,9 @@ func Corridor(lines [][]geo.Point, bufferM float64) []Tile {
 							if !seen[t] {
 								seen[t] = true
 								out = append(out, t)
+								if len(out) > MaxTiles {
+									return out
+								}
 							}
 						}
 					}

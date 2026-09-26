@@ -173,3 +173,19 @@ func TestParseEncodingsAndComments(t *testing.T) {
 		}
 	}
 }
+
+func TestParseTimeWithoutZone(t *testing.T) {
+	// Some tools write local times without a zone; the nights still show.
+	gpx := `<gpx><trk><trkseg>
+		<trkpt lat="46.5" lon="8.0"><time>2026-07-04T16:00:00</time></trkpt>
+		<trkpt lat="46.5" lon="8.001"><time>2026-07-05T08:00:00.5</time></trkpt>
+		<trkpt lat="46.5" lon="8.002"><time>2026-07-05T09:00:00</time></trkpt>
+		</trkseg></trk></gpx>`
+	_, tracks, err := Parse("x.gpx", strings.NewReader(gpx))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := len(Nights(tracks[0])); n != 2 {
+		t.Errorf("%d days, times %v", n, tracks[0].Times)
+	}
+}

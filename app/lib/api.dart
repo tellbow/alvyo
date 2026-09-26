@@ -78,6 +78,10 @@ class RouteDetail extends RouteSummary {
 
   /// The journey this route is a stage of, if it is one.
   String? get journeyId => json['journey_id'] as String?;
+
+  /// The user may change it: not so for others' public routes (e.g. from
+  /// discovering). Copies saved before the server sent it are the user's.
+  bool get canEdit => json['can_edit'] as bool? ?? true;
 }
 
 /// A junction where the route turns, [alongM] metres from its start; the

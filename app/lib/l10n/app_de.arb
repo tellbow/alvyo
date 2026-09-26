@@ -256,5 +256,59 @@
   "placeAddress": "Adresse",
   "placeWebsite": "Website",
   "placeSearch": "Ort suchen …",
-  "placeNothingFound": "Nichts gefunden."
+  "placeNothingFound": "Nichts gefunden.",
+  "discoverAction": "Entdecken",
+  "discoverTitle": "Touren entdecken",
+  "discoverKindAll": "Routen und Etappentouren",
+  "discoverKindRoute": "Nur Routen",
+  "discoverKindJourney": "Nur Etappentouren",
+  "discoverSacAny": "Jede Schwierigkeit",
+  "discoverSacMax": "bis {grade}",
+  "@discoverSacMax": {
+    "description": "{grade}: a SAC hiking grade, e.g. T3.",
+    "placeholders": {
+      "grade": {
+        "type": "String"
+      }
+    }
+  },
+  "discoverDurationAny": "Jede Wanderzeit",
+  "discoverDurationShort": "bis 2 h",
+  "discoverDurationMedium": "2–4 h",
+  "discoverDurationLong": "4–6 h",
+  "discoverDurationXlong": "über 6 h",
+  "discoverDurationHint": "Bei Etappentouren zählt die längste Etappe.",
+  "discoverRoute": "Route",
+  "discoverJourney": "Etappentour",
+  "discoverBy": "von {user}",
+  "@discoverBy": {
+    "description": "The owner's username.",
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "discoverStages": "{n, plural, =1{1 Etappe} other{{n} Etappen}}",
+  "@discoverStages": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverLongest": "längste {time}",
+  "@discoverLongest": {
+    "description": "{time}: the hiking time of the longest stage.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "discoverEmpty": "Hier gibt es noch keine öffentlichen Touren. Verschiebe die Karte oder lockere die Filter.",
+  "discoverMore": "Es gibt weitere Touren – zoome hinein oder filtere genauer.",
+  "discoverFailed": "Die Suche hat nicht geklappt. Versuche es gleich noch einmal.",
+  "discoverOffline": "Du bist offline. Zum Entdecken braucht es eine Verbindung.",
+  "discoverRetry": "Nochmals versuchen"
 }

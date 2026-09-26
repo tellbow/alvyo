@@ -394,4 +394,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Nothing found.';
+
+  @override
+  String get discoverAction => 'Discover';
+
+  @override
+  String get discoverTitle => 'Discover hikes';
+
+  @override
+  String get discoverKindAll => 'Routes and journeys';
+
+  @override
+  String get discoverKindRoute => 'Routes only';
+
+  @override
+  String get discoverKindJourney => 'Journeys only';
+
+  @override
+  String get discoverSacAny => 'Any difficulty';
+
+  @override
+  String discoverSacMax(String grade) {
+    return 'up to $grade';
+  }
+
+  @override
+  String get discoverDurationAny => 'Any hiking time';
+
+  @override
+  String get discoverDurationShort => 'up to 2 h';
+
+  @override
+  String get discoverDurationMedium => '2–4 h';
+
+  @override
+  String get discoverDurationLong => '4–6 h';
+
+  @override
+  String get discoverDurationXlong => 'over 6 h';
+
+  @override
+  String get discoverDurationHint => 'For journeys, the longest stage counts.';
+
+  @override
+  String get discoverRoute => 'Route';
+
+  @override
+  String get discoverJourney => 'Journey';
+
+  @override
+  String discoverBy(String user) {
+    return 'by $user';
+  }
+
+  @override
+  String discoverStages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(n, locale: localeName, other: '$n stages', one: '1 stage');
+    return '$_temp0';
+  }
+
+  @override
+  String discoverLongest(String time) {
+    return 'longest $time';
+  }
+
+  @override
+  String get discoverEmpty => 'There are no public hikes here yet. Move the map or loosen the filters.';
+
+  @override
+  String get discoverMore => 'There are more hikes – zoom in or narrow the filters.';
+
+  @override
+  String get discoverFailed => 'The search did not work. Please try again in a moment.';
+
+  @override
+  String get discoverOffline => 'You are offline. Discovering hikes needs a connection.';
+
+  @override
+  String get discoverRetry => 'Try again';
 }

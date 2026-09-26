@@ -8,6 +8,7 @@ import '../navigation/live.dart';
 import '../navigation/uploads.dart';
 import '../offline/packs.dart';
 import 'bottom_bar.dart';
+import 'discover_screen.dart';
 import 'item_card.dart';
 import 'journeys_list.dart';
 import 'profile_tab.dart';
@@ -97,7 +98,21 @@ class _RoutesScreenState extends State<RoutesScreen> {
     return Scaffold(
       extendBody: true,
       // The watch screen has its own bar.
-      appBar: _tab == 2 ? null : AppBar(title: Text(items[_tab].label)),
+      appBar: _tab == 2
+          ? null
+          : AppBar(
+              title: Text(items[_tab].label),
+              actions: [
+                if (_tab == 0)
+                  IconButton(
+                    key: const Key('discover'),
+                    tooltip: t.discoverAction,
+                    icon: const Icon(Icons.explore_outlined),
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => DiscoverScreen(api: widget.api))),
+                  ),
+              ],
+            ),
       body: switch (_tab) {
         0 => _routesList(t),
         1 => JourneysList(api: widget.api),

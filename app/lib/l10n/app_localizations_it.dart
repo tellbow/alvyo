@@ -394,4 +394,82 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Nessun risultato.';
+
+  @override
+  String get discoverAction => 'Scopri';
+
+  @override
+  String get discoverTitle => 'Scopri escursioni';
+
+  @override
+  String get discoverKindAll => 'Percorsi e trekking a tappe';
+
+  @override
+  String get discoverKindRoute => 'Solo percorsi';
+
+  @override
+  String get discoverKindJourney => 'Solo trekking a tappe';
+
+  @override
+  String get discoverSacAny => 'Qualsiasi difficoltà';
+
+  @override
+  String discoverSacMax(String grade) {
+    return 'fino a $grade';
+  }
+
+  @override
+  String get discoverDurationAny => 'Qualsiasi durata';
+
+  @override
+  String get discoverDurationShort => 'fino a 2 h';
+
+  @override
+  String get discoverDurationMedium => '2–4 h';
+
+  @override
+  String get discoverDurationLong => '4–6 h';
+
+  @override
+  String get discoverDurationXlong => 'oltre 6 h';
+
+  @override
+  String get discoverDurationHint => 'Per i trekking a tappe conta la tappa più lunga.';
+
+  @override
+  String get discoverRoute => 'Percorso';
+
+  @override
+  String get discoverJourney => 'Trekking a tappe';
+
+  @override
+  String discoverBy(String user) {
+    return 'di $user';
+  }
+
+  @override
+  String discoverStages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(n, locale: localeName, other: '$n tappe', one: '1 tappa');
+    return '$_temp0';
+  }
+
+  @override
+  String discoverLongest(String time) {
+    return 'la più lunga $time';
+  }
+
+  @override
+  String get discoverEmpty => 'Qui non ci sono ancora escursioni pubbliche. Sposta la carta o allenta i filtri.';
+
+  @override
+  String get discoverMore => 'Ci sono altre escursioni – ingrandisci o affina i filtri.';
+
+  @override
+  String get discoverFailed => 'La ricerca non è riuscita. Riprova tra un attimo.';
+
+  @override
+  String get discoverOffline => 'Sei offline. Per scoprire escursioni serve una connessione.';
+
+  @override
+  String get discoverRetry => 'Riprova';
 }

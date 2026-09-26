@@ -394,4 +394,82 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Rien trouvé.';
+
+  @override
+  String get discoverAction => 'Découvrir';
+
+  @override
+  String get discoverTitle => 'Découvrir des randonnées';
+
+  @override
+  String get discoverKindAll => 'Itinéraires et randonnées par étapes';
+
+  @override
+  String get discoverKindRoute => 'Itinéraires seulement';
+
+  @override
+  String get discoverKindJourney => 'Randonnées par étapes seulement';
+
+  @override
+  String get discoverSacAny => 'Toute difficulté';
+
+  @override
+  String discoverSacMax(String grade) {
+    return 'jusqu\'à $grade';
+  }
+
+  @override
+  String get discoverDurationAny => 'Tout temps de marche';
+
+  @override
+  String get discoverDurationShort => 'jusqu\'à 2 h';
+
+  @override
+  String get discoverDurationMedium => '2–4 h';
+
+  @override
+  String get discoverDurationLong => '4–6 h';
+
+  @override
+  String get discoverDurationXlong => 'plus de 6 h';
+
+  @override
+  String get discoverDurationHint => 'Pour les randonnées par étapes, c\'est l\'étape la plus longue qui compte.';
+
+  @override
+  String get discoverRoute => 'Itinéraire';
+
+  @override
+  String get discoverJourney => 'Randonnée par étapes';
+
+  @override
+  String discoverBy(String user) {
+    return 'de $user';
+  }
+
+  @override
+  String discoverStages(int n) {
+    String _temp0 = intl.Intl.pluralLogic(n, locale: localeName, other: '$n étapes', one: '1 étape');
+    return '$_temp0';
+  }
+
+  @override
+  String discoverLongest(String time) {
+    return 'la plus longue $time';
+  }
+
+  @override
+  String get discoverEmpty => 'Pas encore de randonnées publiques ici. Déplace la carte ou assouplis les filtres.';
+
+  @override
+  String get discoverMore => 'Il y a d\'autres randonnées – zoome ou affine les filtres.';
+
+  @override
+  String get discoverFailed => 'La recherche n\'a pas fonctionné. Réessaie dans un instant.';
+
+  @override
+  String get discoverOffline => 'Tu es hors ligne. Pour découvrir des randonnées, il faut une connexion.';
+
+  @override
+  String get discoverRetry => 'Réessayer';
 }

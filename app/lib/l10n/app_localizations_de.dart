@@ -394,4 +394,61 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Nichts gefunden.';
+
+  @override
+  String get plannerTitle => 'Route planen';
+
+  @override
+  String get plannerHint => 'Suche Start und Ziel oder tippe auf die Karte.';
+
+  @override
+  String get plannerProfileHike => 'Wandern (bis T3)';
+
+  @override
+  String get plannerProfileAlpine => 'Alpinwandern (bis T6)';
+
+  @override
+  String get plannerPointMap => 'Punkt auf der Karte';
+
+  @override
+  String get plannerUp => 'Nach oben';
+
+  @override
+  String get plannerDown => 'Nach unten';
+
+  @override
+  String get plannerRemove => 'Entfernen';
+
+  @override
+  String get plannerSearchStart => 'Start suchen …';
+
+  @override
+  String get plannerSearchEnd => 'Ziel suchen …';
+
+  @override
+  String get plannerSearchMore => 'Weiteres Ziel suchen …';
+
+  @override
+  String get plannerLegNoPath => 'Kein Weg in der Nähe. Entferne den Punkt oder setze einen anderen.';
+
+  @override
+  String get plannerLegFailed => 'Dieser Abschnitt konnte nicht berechnet werden.';
+
+  @override
+  String get plannerRetry => 'Nochmals versuchen';
+
+  @override
+  String get plannerAddPlace => 'Als Routenpunkt hinzufügen';
+
+  @override
+  String get plannerSave => 'Route speichern';
+
+  @override
+  String get plannerRouteTitle => 'Titel';
+
+  @override
+  String get plannerSaveConfirm => 'Speichern';
+
+  @override
+  String get plannerSaveFailed => 'Speichern fehlgeschlagen.';
 }

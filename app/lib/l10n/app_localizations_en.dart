@@ -394,4 +394,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Nothing found.';
+
+  @override
+  String get plannerTitle => 'Plan a route';
+
+  @override
+  String get plannerHint => 'Search for the start and destination or tap the map.';
+
+  @override
+  String get plannerProfileHike => 'Hiking (up to T3)';
+
+  @override
+  String get plannerProfileAlpine => 'Alpine hiking (up to T6)';
+
+  @override
+  String get plannerPointMap => 'Point on the map';
+
+  @override
+  String get plannerUp => 'Move up';
+
+  @override
+  String get plannerDown => 'Move down';
+
+  @override
+  String get plannerRemove => 'Remove';
+
+  @override
+  String get plannerSearchStart => 'Search for the start …';
+
+  @override
+  String get plannerSearchEnd => 'Search for the destination …';
+
+  @override
+  String get plannerSearchMore => 'Search for a further destination …';
+
+  @override
+  String get plannerLegNoPath => 'No path nearby. Remove the point or set another one.';
+
+  @override
+  String get plannerLegFailed => 'This leg could not be computed.';
+
+  @override
+  String get plannerRetry => 'Try again';
+
+  @override
+  String get plannerAddPlace => 'Add as route point';
+
+  @override
+  String get plannerSave => 'Save route';
+
+  @override
+  String get plannerRouteTitle => 'Title';
+
+  @override
+  String get plannerSaveConfirm => 'Save';
+
+  @override
+  String get plannerSaveFailed => 'Saving failed.';
 }

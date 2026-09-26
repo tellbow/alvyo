@@ -394,4 +394,61 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Rien trouvé.';
+
+  @override
+  String get plannerTitle => 'Planifier un itinéraire';
+
+  @override
+  String get plannerHint => 'Cherche le départ et l\'arrivée ou touche la carte.';
+
+  @override
+  String get plannerProfileHike => 'Randonnée (jusqu\'à T3)';
+
+  @override
+  String get plannerProfileAlpine => 'Randonnée alpine (jusqu\'à T6)';
+
+  @override
+  String get plannerPointMap => 'Point sur la carte';
+
+  @override
+  String get plannerUp => 'Vers le haut';
+
+  @override
+  String get plannerDown => 'Vers le bas';
+
+  @override
+  String get plannerRemove => 'Supprimer';
+
+  @override
+  String get plannerSearchStart => 'Chercher le départ …';
+
+  @override
+  String get plannerSearchEnd => 'Chercher l\'arrivée …';
+
+  @override
+  String get plannerSearchMore => 'Chercher une autre destination …';
+
+  @override
+  String get plannerLegNoPath => 'Pas de chemin à proximité. Supprime le point ou places-en un autre.';
+
+  @override
+  String get plannerLegFailed => 'Ce tronçon n\'a pas pu être calculé.';
+
+  @override
+  String get plannerRetry => 'Réessayer';
+
+  @override
+  String get plannerAddPlace => 'Ajouter comme point de l\'itinéraire';
+
+  @override
+  String get plannerSave => 'Enregistrer l\'itinéraire';
+
+  @override
+  String get plannerRouteTitle => 'Titre';
+
+  @override
+  String get plannerSaveConfirm => 'Enregistrer';
+
+  @override
+  String get plannerSaveFailed => 'L\'enregistrement a échoué.';
 }

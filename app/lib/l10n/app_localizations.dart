@@ -795,6 +795,120 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Nichts gefunden.'**
   String get placeNothingFound;
+
+  /// No description provided for @plannerTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Route planen'**
+  String get plannerTitle;
+
+  /// No description provided for @plannerHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche Start und Ziel oder tippe auf die Karte.'**
+  String get plannerHint;
+
+  /// No description provided for @plannerProfileHike.
+  ///
+  /// In de, this message translates to:
+  /// **'Wandern (bis T3)'**
+  String get plannerProfileHike;
+
+  /// No description provided for @plannerProfileAlpine.
+  ///
+  /// In de, this message translates to:
+  /// **'Alpinwandern (bis T6)'**
+  String get plannerProfileAlpine;
+
+  /// No description provided for @plannerPointMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkt auf der Karte'**
+  String get plannerPointMap;
+
+  /// No description provided for @plannerUp.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach oben'**
+  String get plannerUp;
+
+  /// No description provided for @plannerDown.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach unten'**
+  String get plannerDown;
+
+  /// No description provided for @plannerRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Entfernen'**
+  String get plannerRemove;
+
+  /// No description provided for @plannerSearchStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start suchen …'**
+  String get plannerSearchStart;
+
+  /// No description provided for @plannerSearchEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel suchen …'**
+  String get plannerSearchEnd;
+
+  /// No description provided for @plannerSearchMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiteres Ziel suchen …'**
+  String get plannerSearchMore;
+
+  /// No description provided for @plannerLegNoPath.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Weg in der Nähe. Entferne den Punkt oder setze einen anderen.'**
+  String get plannerLegNoPath;
+
+  /// No description provided for @plannerLegFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieser Abschnitt konnte nicht berechnet werden.'**
+  String get plannerLegFailed;
+
+  /// No description provided for @plannerRetry.
+  ///
+  /// In de, this message translates to:
+  /// **'Nochmals versuchen'**
+  String get plannerRetry;
+
+  /// No description provided for @plannerAddPlace.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Routenpunkt hinzufügen'**
+  String get plannerAddPlace;
+
+  /// No description provided for @plannerSave.
+  ///
+  /// In de, this message translates to:
+  /// **'Route speichern'**
+  String get plannerSave;
+
+  /// No description provided for @plannerRouteTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get plannerRouteTitle;
+
+  /// No description provided for @plannerSaveConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern'**
+  String get plannerSaveConfirm;
+
+  /// No description provided for @plannerSaveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern fehlgeschlagen.'**
+  String get plannerSaveFailed;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

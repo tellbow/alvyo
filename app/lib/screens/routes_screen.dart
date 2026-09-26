@@ -10,6 +10,7 @@ import '../offline/packs.dart';
 import 'bottom_bar.dart';
 import 'item_card.dart';
 import 'journeys_list.dart';
+import 'planner_screen.dart';
 import 'profile_tab.dart';
 import 'route_screen.dart';
 import 'tag_chips.dart';
@@ -97,7 +98,24 @@ class _RoutesScreenState extends State<RoutesScreen> {
     return Scaffold(
       extendBody: true,
       // The watch screen has its own bar.
-      appBar: _tab == 2 ? null : AppBar(title: Text(items[_tab].label)),
+      appBar: _tab == 2
+          ? null
+          : AppBar(
+              title: Text(items[_tab].label),
+              actions: [
+                if (_tab == 0)
+                  IconButton(
+                    key: const Key('plan-route'),
+                    tooltip: t.plannerTitle,
+                    icon: const Icon(Icons.add_road),
+                    onPressed: () async {
+                      final planner = MaterialPageRoute<void>(builder: (_) => PlannerScreen(api: widget.api));
+                      await Navigator.of(context).push(planner);
+                      if (mounted) _reload(); // a saved route is in the list
+                    },
+                  ),
+              ],
+            ),
       body: switch (_tab) {
         0 => _routesList(t),
         1 => JourneysList(api: widget.api),

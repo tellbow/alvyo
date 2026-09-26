@@ -394,4 +394,61 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Nessun risultato.';
+
+  @override
+  String get plannerTitle => 'Pianifica un percorso';
+
+  @override
+  String get plannerHint => 'Cerca partenza e arrivo o tocca la carta.';
+
+  @override
+  String get plannerProfileHike => 'Escursionismo (fino a T3)';
+
+  @override
+  String get plannerProfileAlpine => 'Escursionismo alpino (fino a T6)';
+
+  @override
+  String get plannerPointMap => 'Punto sulla carta';
+
+  @override
+  String get plannerUp => 'Sposta su';
+
+  @override
+  String get plannerDown => 'Sposta giù';
+
+  @override
+  String get plannerRemove => 'Rimuovi';
+
+  @override
+  String get plannerSearchStart => 'Cerca la partenza …';
+
+  @override
+  String get plannerSearchEnd => 'Cerca l\'arrivo …';
+
+  @override
+  String get plannerSearchMore => 'Cerca un\'altra destinazione …';
+
+  @override
+  String get plannerLegNoPath => 'Nessun sentiero nelle vicinanze. Rimuovi il punto o scegline un altro.';
+
+  @override
+  String get plannerLegFailed => 'Questo tratto non ha potuto essere calcolato.';
+
+  @override
+  String get plannerRetry => 'Riprova';
+
+  @override
+  String get plannerAddPlace => 'Aggiungi come punto del percorso';
+
+  @override
+  String get plannerSave => 'Salva il percorso';
+
+  @override
+  String get plannerRouteTitle => 'Titolo';
+
+  @override
+  String get plannerSaveConfirm => 'Salva';
+
+  @override
+  String get plannerSaveFailed => 'Salvataggio non riuscito.';
 }

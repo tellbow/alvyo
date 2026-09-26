@@ -86,6 +86,8 @@
       }
     }
   },
+  "watchReasonOutside": "sie verlässt die Schweiz und Liechtenstein.",
+  "watchReasonShort": "sie ist zu kurz.",
   "turnSharpLeft": "Scharf links abbiegen",
   "turnLeft": "Links abbiegen",
   "turnSlightLeft": "Leicht links abbiegen",

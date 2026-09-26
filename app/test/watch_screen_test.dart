@@ -121,6 +121,25 @@ void main() {
     expect(bodies, hasLength(1));
   });
 
+  testWidgets('a list of imports cut off when the app stopped does not hide the workouts', (tester) async {
+    File('${dir.path}/imported.json').writeAsStringSync('["w');
+    final api = Api('https://alvyo.test', token: 't', client: MockClient((_) async => http.Response('', 500)));
+    await pump(tester, FakeWorkouts([hike]), api);
+    expect(find.text('Wanderung, 20.09.2026'), findsOneWidget);
+  });
+
+  testWidgets('says in German why the server did not take a workout', (tester) async {
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((_) async => http.Response(jsonEncode({'detail': 'the hike is too short'}), 422)),
+    );
+    await pump(tester, FakeWorkouts([hike]), api);
+    await tester.tap(find.text('Importieren'));
+    await settle(tester);
+    expect(find.text('Nicht importiert: sie ist zu kurz.'), findsOneWidget);
+  });
+
   testWidgets('explains when there is nothing or no Apple Health', (tester) async {
     final api = Api('https://alvyo.test', token: 't', client: MockClient((_) async => http.Response('', 500)));
     await pump(tester, FakeWorkouts([]), api);

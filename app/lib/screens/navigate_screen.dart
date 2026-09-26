@@ -96,6 +96,31 @@ class _NavigateScreenState extends State<NavigateScreen> {
   static const _followZoom = 15.0;
   Timer? _clock;
 
+  /// Built once: every position rebuilds the screen, and neither the map
+  /// nor the route's profile change with it.
+  late final Widget _mapView = LayoutBuilder(
+    builder: (context, size) {
+      final view = fitLine(widget.route.line, size.maxWidth, size.maxHeight);
+      final pack = widget.pack;
+      return MapLibreMap(
+        options: MapOptions(
+          initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
+          initCenter: Geographic(lon: view.lon, lat: view.lat),
+          initZoom: view.zoom,
+        ),
+        onMapCreated: (c) => _map = c,
+        onStyleLoaded: _onStyle,
+        onEvent: (e) {
+          if (e is MapEventStartMoveCamera && e.reason == CameraChangeReason.apiGesture && _follow) {
+            setState(() => _follow = false);
+          }
+        },
+      );
+    },
+  );
+  late final _profileM = cumulativeM(widget.route.line);
+  late final _profileEle = [for (final p in widget.route.line) p.length > 2 ? p[2] : 0.0];
+
   @override
   void initState() {
     super.initState();
@@ -296,7 +321,6 @@ class _NavigateScreenState extends State<NavigateScreen> {
     final t = AppLocalizations.of(context);
     final r = widget.route;
     final p = _progress;
-    final pack = widget.pack;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -320,25 +344,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  LayoutBuilder(
-                    builder: (context, size) {
-                      final view = fitLine(r.line, size.maxWidth, size.maxHeight);
-                      return MapLibreMap(
-                        options: MapOptions(
-                          initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
-                          initCenter: Geographic(lon: view.lon, lat: view.lat),
-                          initZoom: view.zoom,
-                        ),
-                        onMapCreated: (c) => _map = c,
-                        onStyleLoaded: _onStyle,
-                        onEvent: (e) {
-                          if (e is MapEventStartMoveCamera && e.reason == CameraChangeReason.apiGesture && _follow) {
-                            setState(() => _follow = false);
-                          }
-                        },
-                      );
-                    },
-                  ),
+                  _mapView,
                   if (!_follow && _fix != null)
                     Positioned(
                       right: 12,
@@ -412,7 +418,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ElevationProfile.ofLine(widget.route.line, markerM: p.doneM, height: 80),
+                          ElevationProfile(distances: _profileM, elevations: _profileEle, markerM: p.doneM, height: 80),
                           const SizedBox(height: 4),
                           Row(
                             key: const Key('nav-progress'),

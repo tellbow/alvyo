@@ -67,6 +67,13 @@ void main() {
     expect(await Recording.active(root), isNull);
   });
 
+  test('an app stopped while starting a hike does not block the next one', () async {
+    File('${root.path}/active.json').writeAsStringSync(''); // created, not written yet
+    expect(await Recording.active(root), isNull);
+    final rec = await Recording.start(root, routeId: 'r1', title: 'Gratweg', now: t0);
+    expect((await Recording.active(root))!.routeId, rec.routeId);
+  });
+
   test('two starts at once: one recording', () async {
     final results = await Future.wait([
       for (final id in ['r1', 'r2'])

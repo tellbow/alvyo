@@ -37,7 +37,11 @@ class _WatchScreenState extends State<WatchScreen> {
   Future<List<Workout>?> _load() async {
     final file = await _importedFile();
     if (await file.exists()) {
-      _imported = {...(jsonDecode(await file.readAsString()) as List).cast<String>()};
+      try {
+        _imported = {...(jsonDecode(await file.readAsString()) as List).cast<String>()};
+      } on FormatException {
+        // cut off: importing one again is fine (the same id)
+      }
     }
     if (!await _source.authorize()) return null;
     return _source.recent();
@@ -57,10 +61,20 @@ class _WatchScreenState extends State<WatchScreen> {
       }
       await widget.api.uploadHike(id: 'watch-${w.uuid}', title: _title(t, w), points: points);
       _imported.add(w.uuid);
-      await (await _importedFile()).writeAsString(jsonEncode(_imported.toList()));
+      final file = await _importedFile();
+      final tmp = File('${file.path}.tmp');
+      await tmp.writeAsString(jsonEncode(_imported.toList()));
+      await tmp.rename(file.path);
       messenger.showSnackBar(SnackBar(content: Text(t.watchImported)));
     } on ApiException catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.status == 422 ? t.watchOutside(e.message) : t.errorServer)));
+      // The server's reasons are in English (hikeapi.go).
+      final reason = switch (e.message) {
+        _ when e.status != 422 => null,
+        'the hike is too short' => t.watchReasonShort,
+        final m when m.startsWith('the hike leaves') => t.watchReasonOutside,
+        _ => null,
+      };
+      messenger.showSnackBar(SnackBar(content: Text(reason != null ? t.watchOutside(reason) : t.errorServer)));
     } on Exception {
       messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
     } finally {

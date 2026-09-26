@@ -45,6 +45,8 @@
   "watchEmpty": "Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l'app Allenamento su Apple Watch («Escursionismo» o «Camminata all'aperto»). Se non hai consentito l'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → Alvyo.",
   "watchUnavailable": "Apple Salute non è disponibile su questo dispositivo.",
   "watchOutside": "Non importata: {reason}",
+  "watchReasonOutside": "esce dalla Svizzera e dal Liechtenstein.",
+  "watchReasonShort": "è troppo corta.",
   "turnSharpLeft": "Svolta decisamente a sinistra",
   "turnLeft": "Svolta a sinistra",
   "turnSlightLeft": "Svolta leggermente a sinistra",

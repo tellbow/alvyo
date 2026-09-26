@@ -12,11 +12,16 @@ class LiveSender {
     this.shareId, {
     this.every = const Duration(minutes: 5),
     this.retry = const Duration(minutes: 1),
+    this.timeout = const Duration(seconds: 30),
   });
 
   final Api api;
   final String shareId;
   final Duration every, retry;
+
+  /// A request that hangs (weak reception) counts as failed, so that the
+  /// next try is not held up for the rest of the hike.
+  final Duration timeout;
 
   final _pending = <Fix>[];
   DateTime? _sent, _tried;
@@ -51,12 +56,22 @@ class LiveSender {
   Future<void> _send(DateTime now) async {
     _tried = now;
     final batch = List.of(_pending);
+    // Those sent, not those that took their place meanwhile (the latest of
+    // the minute, or the oldest dropped).
+    void sent() {
+      final gone = Set<Fix>.identity()..addAll(batch);
+      _pending.removeWhere(gone.contains);
+    }
+
     try {
-      await api.livePositions(shareId, [for (final f in batch) (lon: f.lon, lat: f.lat, time: f.time)]);
-      _pending.removeRange(0, batch.length);
+      await api
+          .livePositions(shareId, [for (final f in batch) (lon: f.lon, lat: f.lat, time: f.time)])
+          .timeout(timeout);
+      sent();
       _sent = now;
     } on ApiException catch (e) {
       if (e.status == 404 || e.status == 409) _pending.clear(); // ended elsewhere: nothing to send
+      if (e.status == 422) sent(); // never taken (e.g. a position far off): not in the way of the next
     } on Exception {
       // offline: next time
     }
@@ -66,8 +81,12 @@ class LiveSender {
 /// Ends of shares that could not be sent yet, kept in a file so that the
 /// contacts are not alerted about a hike that did end.
 class LiveOutbox {
-  LiveOutbox(this.root);
+  LiveOutbox(this.root, {this.timeout = const Duration(seconds: 10)});
   final Directory root;
+
+  /// A request that hangs counts as no connection: finishing the hike must
+  /// not wait for it.
+  final Duration timeout;
 
   File get _file => File('${root.path}/live_end.json');
 
@@ -89,7 +108,7 @@ class LiveOutbox {
   /// Ends the share now, or later if there is no connection.
   Future<void> end(Api api, String id) async {
     try {
-      await api.endLive(id);
+      await api.endLive(id).timeout(timeout);
     } on ApiException {
       // gone or ended already: nothing to do
     } on Exception {
@@ -102,7 +121,7 @@ class LiveOutbox {
     final left = <String>[];
     for (final id in await _ids()) {
       try {
-        await api.endLive(id);
+        await api.endLive(id).timeout(timeout);
       } on ApiException {
         // done or gone
       } on Exception {

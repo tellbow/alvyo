@@ -43,7 +43,7 @@ class Recording {
   Future<void> setLive(String id, DateTime end) async {
     liveId = id;
     expectedEnd = end;
-    await _meta(root).writeAsString(jsonEncode(_metaJson()));
+    await _writeMeta();
   }
 
   static Future<Directory> defaultRoot() async =>
@@ -56,7 +56,15 @@ class Recording {
   static Future<Recording?> active(Directory root) async {
     final meta = _meta(root);
     if (!await meta.exists()) return null;
-    final m = jsonDecode(await meta.readAsString()) as Map<String, dynamic>;
+    final Map<String, dynamic> m;
+    try {
+      m = jsonDecode(await meta.readAsString()) as Map<String, dynamic>;
+    } on FormatException {
+      // Stopped while starting (it is written whole after that): nothing
+      // recorded yet, and it must not keep every later hike from starting.
+      await meta.delete().catchError((_) => meta); // gone already: as well
+      return null;
+    }
     final r =
         Recording._(
             root,
@@ -105,8 +113,15 @@ class Recording {
       throw StateError('a hike is already being recorded');
     }
     await r._fixes.writeAsString('');
-    await _meta(root).writeAsString(jsonEncode(r._metaJson()));
+    await r._writeMeta();
     return r;
+  }
+
+  /// Whole or not at all: the app can be stopped while writing.
+  Future<void> _writeMeta() async {
+    final tmp = File('${_meta(root).path}.tmp');
+    await tmp.writeAsString(jsonEncode(_metaJson()));
+    await tmp.rename(_meta(root).path);
   }
 
   Map<String, dynamic> _metaJson() => {

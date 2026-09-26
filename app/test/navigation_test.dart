@@ -185,6 +185,21 @@ void main() {
       expect(p.doneM, closeTo(2000, 30));
     });
 
+    test('a short loop, its end within the look-ahead, starts at its start', () {
+      // 300 m squares: 1.2 km, its last metres as near the trailhead as its first.
+      final loop = [
+        for (var e = 0.0; e < 300; e += 20) at(e),
+        for (var n = 0.0; n < 300; n += 20) at(300, n),
+        for (var e = 300.0; e > 0; e -= 20) at(e, 300),
+        for (var n = 300.0; n >= 0; n -= 20) at(0, n),
+      ];
+      final tr = RouteTracker(loop, durationS: 1200);
+      final first = tr.update(fix(-3, 2))!; // nearer the loop's last metres
+      expect(first.doneM, lessThan(10));
+      expect(first.arrived, isFalse);
+      expect(tr.update(fix(100, 3))!.doneM, closeTo(100, 1));
+    });
+
     test('a shortcut to a later part is followed', () {
       final tr = RouteTracker(straight, durationS: 1800);
       tr.update(fix(100));

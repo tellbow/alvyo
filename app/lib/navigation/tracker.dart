@@ -168,6 +168,11 @@ class RouteTracker {
   /// the way back of an out-and-back route, the way there is just as near.
   static const _backCost = 0.5;
 
+  /// Going ahead costs a little: where two parts are as near (the start and
+  /// end of a short loop, a path walked there and back), the nearer along
+  /// wins, not whichever the GPS jitter favours.
+  static const _aheadCost = 0.02;
+
   _Match _nearest(Fix fix, (double, double)? window) {
     final cosLat = cos(fix.lat * pi / 180);
     // Local metres around the fix.
@@ -184,7 +189,9 @@ class RouteTracker {
       final px = ax + t * dx, py = ay + t * dy;
       final d = sqrt(px * px + py * py);
       final along = _cumM[i - 1] + t * (_cumM[i] - _cumM[i - 1]);
-      final score = window == null ? d : d + _backCost * max(0.0, _alongM - along);
+      final score = window == null
+          ? d
+          : d + _backCost * max(0.0, _alongM - along) + _aheadCost * max(0.0, along - _alongM);
       if (score < bestScore) {
         bestScore = score;
         best = _Match(

@@ -155,6 +155,12 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get watchReasonOutside => 'esce dalla Svizzera e dal Liechtenstein.';
+
+  @override
+  String get watchReasonShort => 'è troppo corta.';
+
+  @override
   String get turnSharpLeft => 'Svolta decisamente a sinistra';
 
   @override

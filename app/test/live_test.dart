@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -76,6 +77,68 @@ void main() {
     final live = LiveSender(server.api, 'l1');
     await live.add(at(0));
     expect(live.pending, 0);
+  });
+
+  test('a request that hangs does not stop the sending for the rest of the hike', () async {
+    final batches = <List<dynamic>>[];
+    var hang = true;
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        if (hang) return Completer<http.Response>().future; // weak reception: no answer, ever
+        batches.add((jsonDecode(req.body) as Map<String, dynamic>)['points'] as List);
+        return http.Response('', 204);
+      }),
+    );
+    final live = LiveSender(api, 'l1', timeout: const Duration(milliseconds: 50));
+    unawaited(live.add(at(0)));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    hang = false;
+    await live.add(at(60)); // a minute later: tried again
+    expect(batches, hasLength(1));
+    expect(batches.single, hasLength(2));
+    expect(live.pending, 0);
+  });
+
+  test('a batch the server refuses is not sent again and again', () async {
+    final server = FakeLive()..status = 422;
+    final live = LiveSender(server.api, 'l1');
+    await live.add(at(0));
+    expect(live.pending, 0);
+    server.status = 204;
+    await live.add(at(300));
+    expect(server.batches.single, hasLength(1), reason: 'only the new position');
+  });
+
+  test('a position that came while sending waits for the next time', () async {
+    final gate = Completer<void>();
+    final batches = <List<dynamic>>[];
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        await gate.future;
+        batches.add((jsonDecode(req.body) as Map<String, dynamic>)['points'] as List);
+        return http.Response('', 204);
+      }),
+    );
+    final live = LiveSender(api, 'l1');
+    final sending = live.add(at(0));
+    await live.add(at(20)); // the same minute: takes the place of the one being sent
+    gate.complete();
+    await sending;
+    expect(batches.single.single['lon'], closeTo(8, 1e-9));
+    expect(live.pending, 1, reason: 'the newer position of the minute is still to be sent');
+  });
+
+  test('ending with a request that hangs is sent later, and does not hold up finishing', () async {
+    final root = Directory.systemTemp.createTempSync('live');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final api = Api('https://alvyo.test', token: 't', client: MockClient((_) => Completer<http.Response>().future));
+    final outbox = LiveOutbox(root, timeout: const Duration(milliseconds: 50));
+    await outbox.end(api, 'l1');
+    expect(await outbox.flush(api), 1);
   });
 
   test('ending while offline is sent later, so nobody is alerted', () async {

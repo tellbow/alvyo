@@ -45,6 +45,8 @@
   "watchEmpty": "No hikes in Apple Health in the last 60 days. Record them with the Workout app on your Apple Watch («Hiking» or «Outdoor Walk»). If you did not allow access: Settings → Apps → Health → Data Access & Devices → Alvyo.",
   "watchUnavailable": "Apple Health is not available on this device.",
   "watchOutside": "Not imported: {reason}",
+  "watchReasonOutside": "it leaves Switzerland and Liechtenstein.",
+  "watchReasonShort": "it is too short.",
   "turnSharpLeft": "Turn sharp left",
   "turnLeft": "Turn left",
   "turnSlightLeft": "Turn slightly left",

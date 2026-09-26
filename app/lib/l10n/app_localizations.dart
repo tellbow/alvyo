@@ -364,6 +364,18 @@ abstract class AppLocalizations {
   /// **'Nicht importiert: {reason}'**
   String watchOutside(String reason);
 
+  /// No description provided for @watchReasonOutside.
+  ///
+  /// In de, this message translates to:
+  /// **'sie verlässt die Schweiz und Liechtenstein.'**
+  String get watchReasonOutside;
+
+  /// No description provided for @watchReasonShort.
+  ///
+  /// In de, this message translates to:
+  /// **'sie ist zu kurz.'**
+  String get watchReasonShort;
+
   /// No description provided for @turnSharpLeft.
   ///
   /// In de, this message translates to:

@@ -45,6 +45,8 @@
   "watchEmpty": "Aucune randonnée des 60 derniers jours dans Apple Health. Enregistre-les avec l'app Exercice de l'Apple Watch («Randonnée» ou «Marche en extérieur»). Si tu n'as pas autorisé l'accès : Réglages → Apps → Santé → Accès aux données et appareils → Alvyo.",
   "watchUnavailable": "Apple Santé n'est pas disponible sur cet appareil.",
   "watchOutside": "Non importé : {reason}",
+  "watchReasonOutside": "il sort de la Suisse et du Liechtenstein.",
+  "watchReasonShort": "il est trop court.",
   "turnSharpLeft": "Tourne fortement à gauche",
   "turnLeft": "Tourne à gauche",
   "turnSlightLeft": "Tourne légèrement à gauche",

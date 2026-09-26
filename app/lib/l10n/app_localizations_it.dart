@@ -394,4 +394,159 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get placeNothingFound => 'Nessun risultato.';
+
+  @override
+  String get jplanTitle => 'Pianifica un\'escursione a tappe';
+
+  @override
+  String get jplanIntro =>
+      'Scegli partenza e arrivo – Alvyo divide il percorso in giorni che terminano in una capanna, un albergo, un campeggio o una fermata per tornare a casa.';
+
+  @override
+  String get jplanMapHint => 'Tocca la carta per mettere un punto, o cerca un luogo.';
+
+  @override
+  String get jplanPointMap => 'Punto sulla carta';
+
+  @override
+  String get jplanPointRemove => 'Rimuovi';
+
+  @override
+  String get jplanSearchStart => 'Cerca la partenza …';
+
+  @override
+  String get jplanSearchEnd => 'Cerca l\'arrivo …';
+
+  @override
+  String get jplanSearchMore => 'Cerca un\'altra destinazione …';
+
+  @override
+  String get jplanBy => 'Dividi per';
+
+  @override
+  String get jplanByDays => 'Numero di giorni';
+
+  @override
+  String get jplanByHours => 'Ore al giorno';
+
+  @override
+  String get jplanDays => 'Giorni';
+
+  @override
+  String get jplanHoursMin => 'Almeno ore al giorno';
+
+  @override
+  String get jplanHoursMax => 'Al massimo ore al giorno';
+
+  @override
+  String get jplanMax => 'Al massimo (h al giorno, vuoto: un po\' di più)';
+
+  @override
+  String get jplanKinds => 'Pernottare preferibilmente';
+
+  @override
+  String get jplanKindHut => 'in capanna';
+
+  @override
+  String get jplanKindHotel => 'in albergo o locanda';
+
+  @override
+  String get jplanKindCampsite => 'in campeggio';
+
+  @override
+  String get jplanKindPtStop => 'a una fermata (ritorno a casa)';
+
+  @override
+  String get jplanProfile => 'Profilo';
+
+  @override
+  String get jplanProfileHike => 'Escursionismo (fino a T3)';
+
+  @override
+  String get jplanProfileAlpine => 'Escursionismo alpino (fino a T6)';
+
+  @override
+  String get jplanSubmit => 'Proponi tappe';
+
+  @override
+  String get jplanSuggest => 'Proponi più percorsi';
+
+  @override
+  String get jplanRunning => 'Pianificazione …';
+
+  @override
+  String jplanDay(int n) {
+    return 'Giorno $n';
+  }
+
+  @override
+  String get jplanToEnd => 'fino all\'arrivo';
+
+  @override
+  String jplanEarlier(String place) {
+    return 'Prima: $place';
+  }
+
+  @override
+  String jplanLater(String place) {
+    return 'Dopo: $place';
+  }
+
+  @override
+  String get jplanOverMax => 'Più lungo del desiderato: prima non c\'è un posto dove dormire.';
+
+  @override
+  String get jplanUnderMin =>
+      'Più corta del previsto: i luoghi per pernottare non permettono di suddividere meglio i giorni.';
+
+  @override
+  String get jplanHutHint =>
+      'OpenStreetMap sa raramente se la capanna è aperta e se bisogna prenotare – verificalo prima.';
+
+  @override
+  String get jplanWebsite => 'Sito web';
+
+  @override
+  String get jplanFailed => 'La pianificazione non è riuscita. Riprova tra un momento.';
+
+  @override
+  String get jplanNoPath => 'Non c\'è un sentiero tra questi punti con questo profilo.';
+
+  @override
+  String jplanSummary(int days, String distance) {
+    String _temp0 = intl.Intl.pluralLogic(days, locale: localeName, other: '$days giorni', one: '1 giorno');
+    return '$_temp0 · $distance';
+  }
+
+  @override
+  String get jplanWays => 'Percorsi';
+
+  @override
+  String jplanWay(int n) {
+    return 'Percorso $n';
+  }
+
+  @override
+  String jplanWayDirect(int n) {
+    return 'Percorso $n: diretto';
+  }
+
+  @override
+  String jplanWayVia(int n, String place) {
+    return 'Percorso $n: via $place';
+  }
+
+  @override
+  String get jplanWaysHint => 'Dove due percorsi pernottano nello stesso luogo, lì puoi passare dall’uno all’altro.';
+
+  @override
+  String jplanSwitch(int n) {
+    return 'Da qui, continua sul percorso $n';
+  }
+
+  @override
+  String get jplanTitleField => 'Titolo';
+
+  @override
+  String get jplanCreate => 'Crea escursione a tappe';
 }

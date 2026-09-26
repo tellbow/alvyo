@@ -358,4 +358,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String recordHint(String start) {
     return 'Wähle eine Route und tippe auf «$start», um die Wanderung aufzuzeichnen.';
   }
+
+  @override
+  String get mapLayers => 'Karten';
+
+  @override
+  String get mapHuts => 'Hütten';
+
+  @override
+  String get mapLodging => 'Hotels und Campingplätze';
+
+  @override
+  String get placeHut => 'Hütte';
+
+  @override
+  String get placeHotel => 'Unterkunft';
+
+  @override
+  String get placeCampsite => 'Camping';
+
+  @override
+  String get placeWildernessHut => 'Unbewartete Hütte';
+
+  @override
+  String get placePtStop => 'ÖV-Haltestelle';
+
+  @override
+  String get placeAddress => 'Adresse';
+
+  @override
+  String get placeWebsite => 'Website';
+
+  @override
+  String get placeSearch => 'Ort suchen …';
+
+  @override
+  String get placeNothingFound => 'Nichts gefunden.';
 }

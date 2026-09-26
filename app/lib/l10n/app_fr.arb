@@ -104,5 +104,17 @@
   "liveNoContacts": "Ajoute des contacts sur le site web sous « Compte ».",
   "navRecord": "Enregistrer",
   "navProfile": "Profil",
-  "recordHint": "Choisis un itinéraire et touche « {start} » pour enregistrer la randonnée."
+  "recordHint": "Choisis un itinéraire et touche « {start} » pour enregistrer la randonnée.",
+  "mapLayers": "Cartes",
+  "mapHuts": "Cabanes",
+  "mapLodging": "Hôtels et campings",
+  "placeHut": "Cabane",
+  "placeHotel": "Hébergement",
+  "placeCampsite": "Camping",
+  "placeWildernessHut": "Cabane non gardée",
+  "placePtStop": "Arrêt TP",
+  "placeAddress": "Adresse",
+  "placeWebsite": "Site web",
+  "placeSearch": "Chercher un lieu …",
+  "placeNothingFound": "Rien trouvé."
 }

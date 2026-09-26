@@ -358,4 +358,40 @@ class AppLocalizationsIt extends AppLocalizations {
   String recordHint(String start) {
     return 'Scegli un percorso e tocca «$start» per registrare l\'escursione.';
   }
+
+  @override
+  String get mapLayers => 'Carte';
+
+  @override
+  String get mapHuts => 'Capanne';
+
+  @override
+  String get mapLodging => 'Alberghi e campeggi';
+
+  @override
+  String get placeHut => 'Capanna';
+
+  @override
+  String get placeHotel => 'Alloggio';
+
+  @override
+  String get placeCampsite => 'Campeggio';
+
+  @override
+  String get placeWildernessHut => 'Capanna non custodita';
+
+  @override
+  String get placePtStop => 'Fermata TP';
+
+  @override
+  String get placeAddress => 'Indirizzo';
+
+  @override
+  String get placeWebsite => 'Sito web';
+
+  @override
+  String get placeSearch => 'Cerca un luogo …';
+
+  @override
+  String get placeNothingFound => 'Nessun risultato.';
 }

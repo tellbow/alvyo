@@ -244,5 +244,17 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mapLayers": "Karten",
+  "mapHuts": "Hütten",
+  "mapLodging": "Hotels und Campingplätze",
+  "placeHut": "Hütte",
+  "placeHotel": "Unterkunft",
+  "placeCampsite": "Camping",
+  "placeWildernessHut": "Unbewartete Hütte",
+  "placePtStop": "ÖV-Haltestelle",
+  "placeAddress": "Adresse",
+  "placeWebsite": "Website",
+  "placeSearch": "Ort suchen …",
+  "placeNothingFound": "Nichts gefunden."
 }

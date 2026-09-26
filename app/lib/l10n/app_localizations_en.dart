@@ -358,4 +358,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String recordHint(String start) {
     return 'Choose a route and tap “$start” to record the hike.';
   }
+
+  @override
+  String get mapLayers => 'Maps';
+
+  @override
+  String get mapHuts => 'Huts';
+
+  @override
+  String get mapLodging => 'Hotels and campsites';
+
+  @override
+  String get placeHut => 'Hut';
+
+  @override
+  String get placeHotel => 'Accommodation';
+
+  @override
+  String get placeCampsite => 'Campsite';
+
+  @override
+  String get placeWildernessHut => 'Unstaffed hut';
+
+  @override
+  String get placePtStop => 'Public transport stop';
+
+  @override
+  String get placeAddress => 'Address';
+
+  @override
+  String get placeWebsite => 'Website';
+
+  @override
+  String get placeSearch => 'Search for a place …';
+
+  @override
+  String get placeNothingFound => 'Nothing found.';
 }

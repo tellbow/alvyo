@@ -12,6 +12,7 @@ import '../navigation/recording.dart';
 import '../navigation/uploads.dart';
 import '../offline/downloads.dart';
 import '../offline/packs.dart';
+import '../place_layer.dart';
 import '../route_layers.dart';
 import 'live_sheet.dart';
 import 'navigate_screen.dart';
@@ -38,6 +39,7 @@ class _RouteScreenState extends State<RouteScreen> {
   bool _resumable = false; // a hike on this route is still being recorded
   bool _hiking = false;
   final _downloads = PackDownloads.instance;
+  late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
 
   @override
   void initState() {
@@ -48,6 +50,12 @@ class _RouteScreenState extends State<RouteScreen> {
     });
     // Saving since the screen was open before.
     _downloads.running(widget.id)?.then(_saved).catchError((_) {});
+  }
+
+  @override
+  void dispose() {
+    _places.dispose();
+    super.dispose();
   }
 
   void _saved(SavedPack pack) {
@@ -198,19 +206,28 @@ class _RouteScreenState extends State<RouteScreen> {
           return Column(
             children: [
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, size) {
-                    final view = fitLine(r.line, size.maxWidth, size.maxHeight);
-                    return MapLibreMap(
-                      key: ValueKey(pack?.key), // a new style needs a new map
-                      options: MapOptions(
-                        initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
-                        initCenter: Geographic(lon: view.lon, lat: view.lat),
-                        initZoom: view.zoom,
-                      ),
-                      onStyleLoaded: (style) => addRouteLine(style, r.line),
-                    );
-                  },
+                child: Stack(
+                  children: [
+                    LayoutBuilder(
+                      builder: (context, size) {
+                        final view = fitLine(r.line, size.maxWidth, size.maxHeight);
+                        return MapLibreMap(
+                          key: ValueKey(pack?.key), // a new style needs a new map
+                          options: MapOptions(
+                            initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
+                            initCenter: Geographic(lon: view.lon, lat: view.lat),
+                            initZoom: view.zoom,
+                          ),
+                          onEvent: _places.onEvent,
+                          onStyleLoaded: (style) async {
+                            await _places.addTo(style);
+                            await addRouteLine(style, r.line);
+                          },
+                        );
+                      },
+                    ),
+                    const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+                  ],
                 ),
               ),
               SafeArea(

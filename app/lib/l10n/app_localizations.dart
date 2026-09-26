@@ -723,6 +723,78 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Wähle eine Route und tippe auf «{start}», um die Wanderung aufzuzeichnen.'**
   String recordHint(String start);
+
+  /// No description provided for @mapLayers.
+  ///
+  /// In de, this message translates to:
+  /// **'Karten'**
+  String get mapLayers;
+
+  /// No description provided for @mapHuts.
+  ///
+  /// In de, this message translates to:
+  /// **'Hütten'**
+  String get mapHuts;
+
+  /// No description provided for @mapLodging.
+  ///
+  /// In de, this message translates to:
+  /// **'Hotels und Campingplätze'**
+  String get mapLodging;
+
+  /// No description provided for @placeHut.
+  ///
+  /// In de, this message translates to:
+  /// **'Hütte'**
+  String get placeHut;
+
+  /// No description provided for @placeHotel.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkunft'**
+  String get placeHotel;
+
+  /// No description provided for @placeCampsite.
+  ///
+  /// In de, this message translates to:
+  /// **'Camping'**
+  String get placeCampsite;
+
+  /// No description provided for @placeWildernessHut.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbewartete Hütte'**
+  String get placeWildernessHut;
+
+  /// No description provided for @placePtStop.
+  ///
+  /// In de, this message translates to:
+  /// **'ÖV-Haltestelle'**
+  String get placePtStop;
+
+  /// No description provided for @placeAddress.
+  ///
+  /// In de, this message translates to:
+  /// **'Adresse'**
+  String get placeAddress;
+
+  /// No description provided for @placeWebsite.
+  ///
+  /// In de, this message translates to:
+  /// **'Website'**
+  String get placeWebsite;
+
+  /// No description provided for @placeSearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Ort suchen …'**
+  String get placeSearch;
+
+  /// No description provided for @placeNothingFound.
+  ///
+  /// In de, this message translates to:
+  /// **'Nichts gefunden.'**
+  String get placeNothingFound;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

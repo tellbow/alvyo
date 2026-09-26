@@ -20,6 +20,7 @@ import '../navigation/speech.dart';
 import '../navigation/tracker.dart';
 import '../navigation/turns.dart';
 import '../offline/packs.dart';
+import '../place_layer.dart';
 import '../route_layers.dart';
 
 /// What was recorded, for the route screen to show.
@@ -95,6 +96,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
   /// While following the position; panning or zooming stops following.
   static const _followZoom = 15.0;
   Timer? _clock;
+  late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
 
   /// Built once: every position rebuilds the screen, and neither the map
   /// nor the route's profile change with it.
@@ -111,6 +113,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
         onMapCreated: (c) => _map = c,
         onStyleLoaded: _onStyle,
         onEvent: (e) {
+          _places.onEvent(e);
           if (e is MapEventStartMoveCamera && e.reason == CameraChangeReason.apiGesture && _follow) {
             setState(() => _follow = false);
           }
@@ -216,6 +219,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
 
   Future<void> _onStyle(StyleController style) async {
     _style = style;
+    await _places.addTo(style);
     await addRouteLine(style, widget.route.line);
     final f = _fix;
     await style.addSource(
@@ -313,6 +317,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
   void dispose() {
     _sub?.cancel();
     _clock?.cancel();
+    _places.dispose();
     super.dispose();
   }
 
@@ -345,6 +350,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
               child: Stack(
                 children: [
                   _mapView,
+                  const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                   if (!_follow && _fix != null)
                     Positioned(
                       right: 12,

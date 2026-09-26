@@ -104,5 +104,17 @@
   "liveNoContacts": "Aggiungi i contatti sul sito web in «Account».",
   "navRecord": "Registra",
   "navProfile": "Profilo",
-  "recordHint": "Scegli un percorso e tocca «{start}» per registrare l'escursione."
+  "recordHint": "Scegli un percorso e tocca «{start}» per registrare l'escursione.",
+  "mapLayers": "Carte",
+  "mapHuts": "Capanne",
+  "mapLodging": "Alberghi e campeggi",
+  "placeHut": "Capanna",
+  "placeHotel": "Alloggio",
+  "placeCampsite": "Campeggio",
+  "placeWildernessHut": "Capanna non custodita",
+  "placePtStop": "Fermata TP",
+  "placeAddress": "Indirizzo",
+  "placeWebsite": "Sito web",
+  "placeSearch": "Cerca un luogo …",
+  "placeNothingFound": "Nessun risultato."
 }

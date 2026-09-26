@@ -115,6 +115,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       how long the proposal takes, whether the nights are where one would
       stay, and the alternatives earlier and later; hut websites after
       `make places-import`.
+- [ ] **Mehrere Wege vorschlagen** for journeys one knows (Thun → Zermatt,
+      Engelberg → Meiringen, the Via Alpina in parts): are the ways ones
+      hikers take, is one missing that should be there, and do the nights
+      where one can change ways make sense?
 - [ ] **Dark mode** in Safari, Chrome and Firefox (system setting): every page
       readable, including dialogs, drop-downs, the photo lightbox and the
       elevation profile.

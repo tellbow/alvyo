@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-09-25.
+Status: 2026-09-26.
 
 ## Goal
 
@@ -52,7 +52,7 @@ A `v*` tag builds the images; Flux deploys them
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
-2026-09-23, 6–11 on 2026-09-24.
+2026-09-23, 6–11 on 2026-09-24, 15–17 on 2026-09-26.
 
 ### Done
 
@@ -160,6 +160,43 @@ From the project owner, numbered in the order given: 1–5 added on
    night, and a recording with nights proposes as many stages as days,
    split there, each ending at the nearest place within 400 m. Another
    number of stages, or a file without times, is split as in 8.
+
+15. **Huts and accommodation on the map** (next release). In the layer
+    menu of every map, «Hütten» and «Hotels und Campingplätze» (off until
+    switched on, remembered like the other layers) show the places of
+    `make places-import` in view (`GET /places/in-view`; huts from zoom 8,
+    the others from 10); a click shows the name, the kind and the website,
+    and in the planner offers «Als Routenpunkt hinzufügen».
+16. **Several ways to choose from, and a journey put together from them**
+    (next release). «Mehrere Wege vorschlagen» in «Etappentour planen»:
+    `POST /journeys/suggest` proposes up to four ways between the points,
+    each split into days as in 8. GraphHopper's alternatives stay in one
+    valley (Thun → Zermatt: four of five over the Lötschenpass), so the
+    other ways pass a village or hut to the side of the straight line,
+    tried at 30 spots in about a second; kept are ways at most 1.5 times as
+    long, not up a dead end and back, with at least a quarter of their
+    own, the most different for their length first. Days end where an
+    earlier way sleeps if that fits as well, so ways through the same
+    village share the night there: «Ab hier weiter auf Weg N» goes on along
+    the other way, and a journey put together so is created as in 8 (its
+    nights are no longer moved one by one). Live: Thun → Zermatt in five
+    days gives the Lötschenpass, the Gemmi (sharing the nights in Gampel
+    and Kalpetran), the Gemmi and the Turtmanntal, and the Engstligenalp,
+    in about 4 s. With it, planning in 8 improved: days no longer end at a
+    place that is near the line but far by path (the Gfellalphütte: 170 m,
+    20 km by path), the way to a place starts on the line also in a
+    gallery, and routes no longer use ferries and car trains (the
+    Lötschberg).
+17. **Hours per day from … to, the days follow** (next release). In
+    «Etappentour planen», instead of the number of days, «Stunden pro Tag»
+    from … to (at one's pace; `min_hours` and `max_hours` for
+    `POST /journeys/plan` and `/journeys/suggest`): as few days as keep
+    every day in the range, each close to the whole divided by their
+    number; if no number of days fits, the closest, with the days too short
+    or too long marked. Each suggested way gets its own number of days
+    (Thun → Zermatt at 4–8 h: six or seven). A day can come out a few
+    minutes over the most: the split estimates the way to a place, the
+    stage has the real one.
 
 ### Open
 

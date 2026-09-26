@@ -101,6 +101,11 @@ git tag v0.1.0 && git push origin v0.1.0
 # → ghcr.io/tellbow/alvyo-{api,web,postgis,graphhopper,data-import}:0.1.0
 ```
 
+A change of `infra/graphhopper/config.yml` or its custom models needs a new
+graph: GraphHopper does not start on a graph built with other profiles. Run
+the graph refresh (or empty the graph cache) right after the new
+`alvyo-graphhopper` image is deployed.
+
 New GHCR packages are private; make them public once in the package settings
 (or give the cluster a pull secret). The data-import image carries its
 scripts, so Kubernetes jobs can run `sh /scripts/import-places.sh` etc.

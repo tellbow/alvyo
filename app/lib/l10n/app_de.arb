@@ -329,5 +329,112 @@
   "discoverMore": "Es gibt weitere Touren – zoome hinein oder filtere genauer.",
   "discoverFailed": "Die Suche hat nicht geklappt. Versuche es gleich noch einmal.",
   "discoverOffline": "Du bist offline. Zum Entdecken braucht es eine Verbindung.",
-  "discoverRetry": "Nochmals versuchen"
+  "discoverRetry": "Nochmals versuchen",
+  "jplanTitle": "Etappentour planen",
+  "jplanIntro": "Wähle Start und Ziel – Alvyo teilt den Weg in Tage, die bei einer Hütte, einem Hotel, einem Campingplatz oder einer Haltestelle für die Heimreise enden.",
+  "jplanMapHint": "Tippe auf die Karte, um einen Punkt zu setzen, oder suche einen Ort.",
+  "jplanPointMap": "Punkt auf der Karte",
+  "jplanPointRemove": "Entfernen",
+  "jplanSearchStart": "Start suchen …",
+  "jplanSearchEnd": "Ziel suchen …",
+  "jplanSearchMore": "Weiteres Ziel suchen …",
+  "jplanBy": "Aufteilen nach",
+  "jplanByDays": "Anzahl Tage",
+  "jplanByHours": "Stunden pro Tag",
+  "jplanDays": "Tage",
+  "jplanHoursMin": "Mindestens Stunden pro Tag",
+  "jplanHoursMax": "Höchstens Stunden pro Tag",
+  "jplanMax": "Höchstens (h pro Tag, leer: etwas mehr)",
+  "jplanKinds": "Übernachten am liebsten in",
+  "jplanKindHut": "Hütten",
+  "jplanKindHotel": "Hotels und Gasthäusern",
+  "jplanKindCampsite": "Campingplätzen",
+  "jplanKindPtStop": "Haltestelle (Heimreise)",
+  "jplanProfile": "Profil",
+  "jplanProfileHike": "Wandern (bis T3)",
+  "jplanProfileAlpine": "Alpinwandern (bis T6)",
+  "jplanSubmit": "Etappen vorschlagen",
+  "jplanSuggest": "Mehrere Wege vorschlagen",
+  "jplanRunning": "Wird geplant …",
+  "jplanDay": "Tag {n}",
+  "@jplanDay": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "jplanToEnd": "bis zum Ziel",
+  "jplanEarlier": "Früher: {place}",
+  "@jplanEarlier": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "jplanLater": "Später: {place}",
+  "@jplanLater": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "jplanOverMax": "Länger als gewünscht: vorher gibt es keinen Ort zum Übernachten.",
+  "jplanUnderMin": "Kürzer als gewünscht: anders lassen sich die Tage mit den Orten zum Übernachten nicht einteilen.",
+  "jplanHutHint": "Ob die Hütte offen ist und ob du reservieren musst, weiss OpenStreetMap selten – prüfe es vorher.",
+  "jplanWebsite": "Website",
+  "jplanFailed": "Die Planung hat nicht geklappt. Versuche es gleich noch einmal.",
+  "jplanNoPath": "Zwischen diesen Punkten gibt es mit diesem Profil keinen Weg.",
+  "jplanSummary": "{days, plural, =1{1 Tag} other{{days} Tage}} · {distance}",
+  "@jplanSummary": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "jplanWays": "Wege",
+  "jplanWay": "Weg {n}",
+  "@jplanWay": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "jplanWayDirect": "Weg {n}: direkt",
+  "@jplanWayDirect": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "jplanWayVia": "Weg {n}: über {place}",
+  "@jplanWayVia": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "jplanWaysHint": "Wo zwei Wege am gleichen Ort übernachten, kannst du dort von einem auf den anderen wechseln.",
+  "jplanSwitch": "Ab hier weiter auf Weg {n}",
+  "@jplanSwitch": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "jplanTitleField": "Titel",
+  "jplanCreate": "Etappentour erstellen"
 }

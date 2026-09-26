@@ -5,6 +5,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/packs.dart';
 import 'item_card.dart';
+import 'journey_plan_screen.dart';
 import 'journey_screen.dart';
 import 'tag_chips.dart';
 
@@ -36,7 +37,25 @@ class _JourneysListState extends State<JourneysList> {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: FilledButton.tonalIcon(
+          key: const Key('journey-plan'),
+          icon: const Icon(Icons.edit_calendar_outlined),
+          label: Text(AppLocalizations.of(context).jplanTitle),
+          onPressed: () async {
+            await Navigator.of(context).push(MaterialPageRoute(builder: (_) => JourneyPlanScreen(api: widget.api)));
+            if (mounted) _reload();
+          },
+        ),
+      ),
+      Expanded(child: _list(context)),
+    ],
+  );
+
+  Widget _list(BuildContext context) {
     final t = AppLocalizations.of(context);
     return RefreshIndicator(
       onRefresh: () async => _reload(),

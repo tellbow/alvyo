@@ -1047,6 +1047,276 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Nochmals versuchen'**
   String get discoverRetry;
+
+  /// No description provided for @jplanTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentour planen'**
+  String get jplanTitle;
+
+  /// No description provided for @jplanIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle Start und Ziel – Alvyo teilt den Weg in Tage, die bei einer Hütte, einem Hotel, einem Campingplatz oder einer Haltestelle für die Heimreise enden.'**
+  String get jplanIntro;
+
+  /// No description provided for @jplanMapHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Tippe auf die Karte, um einen Punkt zu setzen, oder suche einen Ort.'**
+  String get jplanMapHint;
+
+  /// No description provided for @jplanPointMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkt auf der Karte'**
+  String get jplanPointMap;
+
+  /// No description provided for @jplanPointRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Entfernen'**
+  String get jplanPointRemove;
+
+  /// No description provided for @jplanSearchStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start suchen …'**
+  String get jplanSearchStart;
+
+  /// No description provided for @jplanSearchEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel suchen …'**
+  String get jplanSearchEnd;
+
+  /// No description provided for @jplanSearchMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiteres Ziel suchen …'**
+  String get jplanSearchMore;
+
+  /// No description provided for @jplanBy.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufteilen nach'**
+  String get jplanBy;
+
+  /// No description provided for @jplanByDays.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl Tage'**
+  String get jplanByDays;
+
+  /// No description provided for @jplanByHours.
+  ///
+  /// In de, this message translates to:
+  /// **'Stunden pro Tag'**
+  String get jplanByHours;
+
+  /// No description provided for @jplanDays.
+  ///
+  /// In de, this message translates to:
+  /// **'Tage'**
+  String get jplanDays;
+
+  /// No description provided for @jplanHoursMin.
+  ///
+  /// In de, this message translates to:
+  /// **'Mindestens Stunden pro Tag'**
+  String get jplanHoursMin;
+
+  /// No description provided for @jplanHoursMax.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchstens Stunden pro Tag'**
+  String get jplanHoursMax;
+
+  /// No description provided for @jplanMax.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchstens (h pro Tag, leer: etwas mehr)'**
+  String get jplanMax;
+
+  /// No description provided for @jplanKinds.
+  ///
+  /// In de, this message translates to:
+  /// **'Übernachten am liebsten in'**
+  String get jplanKinds;
+
+  /// No description provided for @jplanKindHut.
+  ///
+  /// In de, this message translates to:
+  /// **'Hütten'**
+  String get jplanKindHut;
+
+  /// No description provided for @jplanKindHotel.
+  ///
+  /// In de, this message translates to:
+  /// **'Hotels und Gasthäusern'**
+  String get jplanKindHotel;
+
+  /// No description provided for @jplanKindCampsite.
+  ///
+  /// In de, this message translates to:
+  /// **'Campingplätzen'**
+  String get jplanKindCampsite;
+
+  /// No description provided for @jplanKindPtStop.
+  ///
+  /// In de, this message translates to:
+  /// **'Haltestelle (Heimreise)'**
+  String get jplanKindPtStop;
+
+  /// No description provided for @jplanProfile.
+  ///
+  /// In de, this message translates to:
+  /// **'Profil'**
+  String get jplanProfile;
+
+  /// No description provided for @jplanProfileHike.
+  ///
+  /// In de, this message translates to:
+  /// **'Wandern (bis T3)'**
+  String get jplanProfileHike;
+
+  /// No description provided for @jplanProfileAlpine.
+  ///
+  /// In de, this message translates to:
+  /// **'Alpinwandern (bis T6)'**
+  String get jplanProfileAlpine;
+
+  /// No description provided for @jplanSubmit.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappen vorschlagen'**
+  String get jplanSubmit;
+
+  /// No description provided for @jplanSuggest.
+  ///
+  /// In de, this message translates to:
+  /// **'Mehrere Wege vorschlagen'**
+  String get jplanSuggest;
+
+  /// No description provided for @jplanRunning.
+  ///
+  /// In de, this message translates to:
+  /// **'Wird geplant …'**
+  String get jplanRunning;
+
+  /// No description provided for @jplanDay.
+  ///
+  /// In de, this message translates to:
+  /// **'Tag {n}'**
+  String jplanDay(int n);
+
+  /// No description provided for @jplanToEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'bis zum Ziel'**
+  String get jplanToEnd;
+
+  /// No description provided for @jplanEarlier.
+  ///
+  /// In de, this message translates to:
+  /// **'Früher: {place}'**
+  String jplanEarlier(String place);
+
+  /// No description provided for @jplanLater.
+  ///
+  /// In de, this message translates to:
+  /// **'Später: {place}'**
+  String jplanLater(String place);
+
+  /// No description provided for @jplanOverMax.
+  ///
+  /// In de, this message translates to:
+  /// **'Länger als gewünscht: vorher gibt es keinen Ort zum Übernachten.'**
+  String get jplanOverMax;
+
+  /// No description provided for @jplanUnderMin.
+  ///
+  /// In de, this message translates to:
+  /// **'Kürzer als gewünscht: anders lassen sich die Tage mit den Orten zum Übernachten nicht einteilen.'**
+  String get jplanUnderMin;
+
+  /// No description provided for @jplanHutHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Ob die Hütte offen ist und ob du reservieren musst, weiss OpenStreetMap selten – prüfe es vorher.'**
+  String get jplanHutHint;
+
+  /// No description provided for @jplanWebsite.
+  ///
+  /// In de, this message translates to:
+  /// **'Website'**
+  String get jplanWebsite;
+
+  /// No description provided for @jplanFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Planung hat nicht geklappt. Versuche es gleich noch einmal.'**
+  String get jplanFailed;
+
+  /// No description provided for @jplanNoPath.
+  ///
+  /// In de, this message translates to:
+  /// **'Zwischen diesen Punkten gibt es mit diesem Profil keinen Weg.'**
+  String get jplanNoPath;
+
+  /// No description provided for @jplanSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'{days, plural, =1{1 Tag} other{{days} Tage}} · {distance}'**
+  String jplanSummary(int days, String distance);
+
+  /// No description provided for @jplanWays.
+  ///
+  /// In de, this message translates to:
+  /// **'Wege'**
+  String get jplanWays;
+
+  /// No description provided for @jplanWay.
+  ///
+  /// In de, this message translates to:
+  /// **'Weg {n}'**
+  String jplanWay(int n);
+
+  /// No description provided for @jplanWayDirect.
+  ///
+  /// In de, this message translates to:
+  /// **'Weg {n}: direkt'**
+  String jplanWayDirect(int n);
+
+  /// No description provided for @jplanWayVia.
+  ///
+  /// In de, this message translates to:
+  /// **'Weg {n}: über {place}'**
+  String jplanWayVia(int n, String place);
+
+  /// No description provided for @jplanWaysHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wo zwei Wege am gleichen Ort übernachten, kannst du dort von einem auf den anderen wechseln.'**
+  String get jplanWaysHint;
+
+  /// No description provided for @jplanSwitch.
+  ///
+  /// In de, this message translates to:
+  /// **'Ab hier weiter auf Weg {n}'**
+  String jplanSwitch(int n);
+
+  /// No description provided for @jplanTitleField.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get jplanTitleField;
+
+  /// No description provided for @jplanCreate.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentour erstellen'**
+  String get jplanCreate;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

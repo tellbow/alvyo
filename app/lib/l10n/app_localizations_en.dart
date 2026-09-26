@@ -529,4 +529,159 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discoverRetry => 'Try again';
+
+  @override
+  String get jplanTitle => 'Plan a journey';
+
+  @override
+  String get jplanIntro =>
+      'Choose start and destination – Alvyo splits the way into days that end at a hut, a hotel, a campsite or a stop to travel home.';
+
+  @override
+  String get jplanMapHint => 'Tap the map to set a point, or search for a place.';
+
+  @override
+  String get jplanPointMap => 'Point on the map';
+
+  @override
+  String get jplanPointRemove => 'Remove';
+
+  @override
+  String get jplanSearchStart => 'Search for the start …';
+
+  @override
+  String get jplanSearchEnd => 'Search for the destination …';
+
+  @override
+  String get jplanSearchMore => 'Search for a further destination …';
+
+  @override
+  String get jplanBy => 'Split by';
+
+  @override
+  String get jplanByDays => 'Number of days';
+
+  @override
+  String get jplanByHours => 'Hours per day';
+
+  @override
+  String get jplanDays => 'Days';
+
+  @override
+  String get jplanHoursMin => 'At least hours per day';
+
+  @override
+  String get jplanHoursMax => 'At most hours per day';
+
+  @override
+  String get jplanMax => 'At most (h per day, empty: a little more)';
+
+  @override
+  String get jplanKinds => 'Preferably spend the nights at';
+
+  @override
+  String get jplanKindHut => 'Huts';
+
+  @override
+  String get jplanKindHotel => 'Hotels and guest houses';
+
+  @override
+  String get jplanKindCampsite => 'Campsites';
+
+  @override
+  String get jplanKindPtStop => 'A stop (travel home)';
+
+  @override
+  String get jplanProfile => 'Profile';
+
+  @override
+  String get jplanProfileHike => 'Hiking (up to T3)';
+
+  @override
+  String get jplanProfileAlpine => 'Alpine hiking (up to T6)';
+
+  @override
+  String get jplanSubmit => 'Propose stages';
+
+  @override
+  String get jplanSuggest => 'Suggest several ways';
+
+  @override
+  String get jplanRunning => 'Planning …';
+
+  @override
+  String jplanDay(int n) {
+    return 'Day $n';
+  }
+
+  @override
+  String get jplanToEnd => 'to the destination';
+
+  @override
+  String jplanEarlier(String place) {
+    return 'Earlier: $place';
+  }
+
+  @override
+  String jplanLater(String place) {
+    return 'Later: $place';
+  }
+
+  @override
+  String get jplanOverMax => 'Longer than wished: there is no place to stay before.';
+
+  @override
+  String get jplanUnderMin => 'Shorter than wanted: the places to stay allow no better split of the days.';
+
+  @override
+  String get jplanHutHint =>
+      'OpenStreetMap rarely knows whether the hut is open and whether you need to book – check before.';
+
+  @override
+  String get jplanWebsite => 'Website';
+
+  @override
+  String get jplanFailed => 'Planning did not work. Please try again in a moment.';
+
+  @override
+  String get jplanNoPath => 'There is no way between these points with this profile.';
+
+  @override
+  String jplanSummary(int days, String distance) {
+    String _temp0 = intl.Intl.pluralLogic(days, locale: localeName, other: '$days days', one: '1 day');
+    return '$_temp0 · $distance';
+  }
+
+  @override
+  String get jplanWays => 'Ways';
+
+  @override
+  String jplanWay(int n) {
+    return 'Way $n';
+  }
+
+  @override
+  String jplanWayDirect(int n) {
+    return 'Way $n: direct';
+  }
+
+  @override
+  String jplanWayVia(int n, String place) {
+    return 'Way $n: via $place';
+  }
+
+  @override
+  String get jplanWaysHint =>
+      'Where two ways stay at the same place overnight, you can switch from one to the other there.';
+
+  @override
+  String jplanSwitch(int n) {
+    return 'From here, continue on way $n';
+  }
+
+  @override
+  String get jplanTitleField => 'Title';
+
+  @override
+  String get jplanCreate => 'Create journey';
 }

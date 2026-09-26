@@ -16,7 +16,8 @@ Checked so far only in the simulator, with made-up or simulated positions
       no warning while on the path (thresholds: 2 positions over 50 m, back
       under 30 m).
 - [ ] **Loops**: starting at the trailhead says nothing about arriving; the
-      progress keeps going forward, «Ziel erreicht» at the end.
+      progress keeps going forward, «Ziel erreicht» at the end. Also a loop
+      shorter than 1.5 km: nothing at the start, «Ziel erreicht» at the end.
 - [ ] **Location switched off mid-hike** (Control Centre or Settings): the
       banner says «Warte auf GPS …» until positions come again.
 - [ ] **Logged out elsewhere** (or the session expired): opening the app shows
@@ -41,7 +42,8 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **Voice button**: off stops the prompts for this hike (it is on again
       at the next start).
 - [ ] **Following on the map** at walking speed: the map glides to the position
-      at zoom 15; panning stops following, the button brings it back.
+      at zoom 15; panning stops following, the button brings it back. The
+      map and the banner stay smooth with every new position.
 - [ ] **Offline map without reception** (airplane mode): the saved route and its
       map open, the position shows on it, the turns are announced (saved with
       the map; a map saved before this version has none offline).
@@ -83,6 +85,9 @@ Checked so far only in the simulator, with made-up or simulated positions
       once back online and nobody is alerted. An overdue alert (set the end
       a few minutes ahead) reaches contact and hiker, and the all-clear
       after «Später».
+- [ ] **A shared hike with reception that stalls** (a weak signal, not none):
+      positions go out again once it is back, and «Beenden» returns within
+      about 10 s.
 - [ ] **Alvyo look in light and dark** (Settings → Display, and «Automatic» at
       dusk): the bar at the bottom, the record button (opens the hike in
       progress, else the hint), cards, fonts and the map screens readable in

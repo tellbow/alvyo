@@ -1,7 +1,8 @@
 # Operations
 
-Alvyo was called odysgeh before 0.8.0. The database and its user, the
-Kubernetes namespace and the volumes kept that name, so no data had to move.
+Alvyo was called odysgeh before 0.8.0. The database, its user and the
+cluster's secret kept that name; the Kubernetes namespace is alvyo since
+2026-09-27 (the volumes moved along).
 
 ## Server
 

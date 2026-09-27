@@ -43,7 +43,7 @@ database container stays behind.
 ## Never
 
 - Read or print secrets: `infra/.env.local-test` (holds the OJP key; source
-  it only in a subshell), `cluster/odysgeh/secret.yaml` in the gitops repo.
+  it only in a subshell), `cluster/alvyo/secret.yaml` in the gitops repo.
   Komoot credentials are never stored or logged.
 - Use another kubeconfig than `KUBECONFIG=~/.kube/k3s.yaml` with
   `--context rk1`; the default one holds unrelated clusters.

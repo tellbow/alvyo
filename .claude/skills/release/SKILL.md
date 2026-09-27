@@ -18,20 +18,20 @@ features the minor one.
 3. **Images:** the `release` workflow builds `ghcr.io/tellbow/alvyo-{api,web,data-import,postgis,graphhopper}`.
    `gh run list -L 2` for its id, then `gh run watch <id> --exit-status`.
 4. **Deploy:** Flux image automation sets the api, web and data-import tags
-   in the gitops repo (`cluster/odysgeh`). Never edit them by hand: a manual
+   in the gitops repo (`cluster/alvyo`). Never edit them by hand: a manual
    bump was once reverted by the automation. With
    `KUBECONFIG=~/.kube/k3s.yaml` and `--context rk1`:
-   - `flux reconcile image repository alvyo-api` (and `alvyo-web`, `alvyo-data-import`)
+   - `flux reconcile image repository odysgeh-api` (and `odysgeh-web`, `odysgeh-data-import`: the Flux objects kept the old name)
    - `flux reconcile image update flux-system`
    - `flux reconcile kustomization flux-system --with-source`
 
    postgis and graphhopper are pinned by hand in the gitops repo; change them
    only when their images changed (`infra/postgis`, `infra/graphhopper`).
 5. **Check** (same `KUBECONFIG`):
-   - `kubectl --context rk1 -n odysgeh rollout status deploy/api` and `deploy/web`
+   - `kubectl --context rk1 -n alvyo rollout status deploy/api` and `deploy/web`
      (migrations run in the api's init container)
    - `curl -s https://alvyo.tellbow.ch/api/v1/openapi.json | jq -r .info.version` shows X.Y.Z
-   - the logs have no errors: `kubectl --context rk1 -n odysgeh logs deploy/api --since=10m`
+   - the logs have no errors: `kubectl --context rk1 -n alvyo logs deploy/api --since=10m`
 6. **Record:** in `docs/plan.md`, the «next» row becomes the X.Y.Z row with
    today's date; commit and push. If the app changed, offer the
    `iphone-install` skill.

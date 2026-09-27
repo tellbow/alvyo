@@ -307,6 +307,10 @@ void main() {
       expect(find.widgetWithText(TextField, 'Sargans – Weisstannen'), findsOneWidget);
       // Typed and saved at once: the title as typed.
       await tester.enterText(find.byKey(const Key('planner-title')), 'Ins Weisstannental');
+      // An iPhone with the keyboard still up as the route opens: the route
+      // screen has no field and must not make room for it.
+      tester.view.physicalSize = const Size(402, 874);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 336);
       await tester.tap(find.byKey(const Key('planner-save-confirm')));
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
       await tester.pump();

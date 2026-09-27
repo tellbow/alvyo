@@ -19,10 +19,14 @@ import 'navigate_screen.dart';
 
 /// A route on the national map, with offline saving.
 class RouteScreen extends StatefulWidget {
-  const RouteScreen({super.key, required this.api, required this.id, required this.title});
+  const RouteScreen({super.key, required this.api, required this.id, required this.title, this.map});
   final Api api;
   final String id;
   final String title;
+
+  /// Stands in for the map in widget tests.
+  @visibleForTesting
+  final Widget? map;
 
   @override
   State<RouteScreen> createState() => _RouteScreenState();
@@ -195,6 +199,9 @@ class _RouteScreenState extends State<RouteScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
+      // No field here: a keyboard still closing (the title dialog before)
+      // takes no room from the map and the panel.
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text(widget.title)),
       body: FutureBuilder(
         future: _route,
@@ -203,95 +210,107 @@ class _RouteScreenState extends State<RouteScreen> {
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final r = snap.data!;
           final pack = _pack;
-          return Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    LayoutBuilder(
-                      builder: (context, size) {
-                        final view = fitLine(r.line, size.maxWidth, size.maxHeight);
-                        return MapLibreMap(
-                          key: ValueKey(pack?.key), // a new style needs a new map
-                          options: MapOptions(
-                            initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
-                            initCenter: Geographic(lon: view.lon, lat: view.lat),
-                            initZoom: view.zoom,
-                          ),
-                          onEvent: _places.onEvent,
-                          onStyleLoaded: (style) async {
-                            await _places.addTo(style);
-                            await addRouteLine(style, r.line);
-                          },
-                        );
-                      },
-                    ),
-                    const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
-                  ],
-                ),
-              ),
-              SafeArea(
-                top: false,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+          return LayoutBuilder(
+            builder: (context, body) => Column(
+              children: [
+                Expanded(
+                  child: Stack(
                     children: [
-                      Text(
-                        '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
-                        '↑ ${r.totals.ascentM.round()} m ↓ ${r.totals.descentM.round()} m · '
-                        '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      ElevationProfile.ofLine(r.line),
-                      ProtectedAreas(_areas),
-                      const SizedBox(height: 8),
-                      ValueListenableBuilder(
-                        valueListenable: _downloads.progress(widget.id),
-                        builder: (context, progress, _) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            FilledButton.icon(
-                              key: const Key('nav-start'),
-                              onPressed: progress == null ? () => _hike(r) : null,
-                              icon: const Icon(Icons.hiking),
-                              label: Text(_resumable ? t.navResume : t.navStart),
-                            ),
-                            const SizedBox(height: 8),
-                            if (progress case final p?) ...[
-                              Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
-                              const SizedBox(height: 4),
-                              LinearProgressIndicator(value: p.share),
-                            ] else if (pack != null) ...[
-                              if (_outdated)
-                                FilledButton.icon(
-                                  key: const Key('offline-update'),
-                                  onPressed: _save,
-                                  icon: const Icon(Icons.sync),
-                                  label: Text(t.offlineOutdated),
+                      widget.map ??
+                          LayoutBuilder(
+                            builder: (context, size) {
+                              final view = fitLine(r.line, size.maxWidth, size.maxHeight);
+                              return MapLibreMap(
+                                key: ValueKey(pack?.key), // a new style needs a new map
+                                options: MapOptions(
+                                  initStyle: pack != null
+                                      ? offlineStyle(pack.files)
+                                      : swisstopoStyle(widget.api.server),
+                                  initCenter: Geographic(lon: view.lon, lat: view.lat),
+                                  initZoom: view.zoom,
                                 ),
-                              OutlinedButton.icon(
-                                key: const Key('offline-remove'),
-                                onPressed: _remove,
-                                icon: const Icon(Icons.offline_pin),
-                                label: Text(t.offlineSaved),
-                              ),
-                            ] else
-                              FilledButton.tonalIcon(
-                                key: const Key('offline-save'),
-                                onPressed: _save,
-                                icon: const Icon(Icons.download),
-                                label: Text(t.offlineSave),
-                              ),
-                          ],
-                        ),
-                      ),
+                                onEvent: _places.onEvent,
+                                onStyleLoaded: (style) async {
+                                  await _places.addTo(style);
+                                  await addRouteLine(style, r.line);
+                                },
+                              );
+                            },
+                          ),
+                      const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                     ],
                   ),
                 ),
-              ),
-            ],
+                // Many protected areas along a route: the panel scrolls, the map
+                // keeps at least half.
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: body.maxHeight / 2),
+                  child: SingleChildScrollView(
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
+                              '↑ ${r.totals.ascentM.round()} m ↓ ${r.totals.descentM.round()} m · '
+                              '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            ElevationProfile.ofLine(r.line),
+                            ProtectedAreas(_areas),
+                            const SizedBox(height: 8),
+                            ValueListenableBuilder(
+                              valueListenable: _downloads.progress(widget.id),
+                              builder: (context, progress, _) => Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  FilledButton.icon(
+                                    key: const Key('nav-start'),
+                                    onPressed: progress == null ? () => _hike(r) : null,
+                                    icon: const Icon(Icons.hiking),
+                                    label: Text(_resumable ? t.navResume : t.navStart),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (progress case final p?) ...[
+                                    Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
+                                    const SizedBox(height: 4),
+                                    LinearProgressIndicator(value: p.share),
+                                  ] else if (pack != null) ...[
+                                    if (_outdated)
+                                      FilledButton.icon(
+                                        key: const Key('offline-update'),
+                                        onPressed: _save,
+                                        icon: const Icon(Icons.sync),
+                                        label: Text(t.offlineOutdated),
+                                      ),
+                                    OutlinedButton.icon(
+                                      key: const Key('offline-remove'),
+                                      onPressed: _remove,
+                                      icon: const Icon(Icons.offline_pin),
+                                      label: Text(t.offlineSaved),
+                                    ),
+                                  ] else
+                                    FilledButton.tonalIcon(
+                                      key: const Key('offline-save'),
+                                      onPressed: _save,
+                                      icon: const Icon(Icons.download),
+                                      label: Text(t.offlineSave),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),

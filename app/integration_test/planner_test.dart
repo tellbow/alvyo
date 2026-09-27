@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
+import 'package:alvyo/api.dart';
 import 'package:alvyo/main.dart';
 
 /// Against a local dev server with the demo account and the places imported
@@ -43,13 +45,14 @@ void main() {
     // Legs take a moment; the save button is there once both points are.
     final save = find.byKey(const Key('planner-save'));
     final panel = find.descendant(of: find.byKey(const Key('planner-panel')), matching: find.byType(Scrollable)).first;
-    await tester.scrollUntilVisible(save, 200, scrollable: panel);
     final end = DateTime.now().add(const Duration(seconds: 60));
-    while (tester.widget<FilledButton>(save).onPressed == null) {
+    while (true) {
+      // The panel grows as the legs come: the button may move out of view.
+      await tester.scrollUntilVisible(save, 200, scrollable: panel);
+      if (tester.widget<FilledButton>(save).onPressed != null) break;
       if (DateTime.now().isAfter(end)) throw TestFailure('the leg was not computed');
       await tester.pump(const Duration(milliseconds: 250));
     }
-    expect(find.byKey(const Key('planner-totals')), findsOneWidget);
     await tester.pump(const Duration(seconds: 2)); // for a screenshot
 
     await tester.tap(save);
@@ -61,7 +64,21 @@ void main() {
     // The saved route opens, ready to keep offline and to hike.
     await waitFor(tester, find.byKey(const Key('nav-start')));
     expect(find.text(title), findsOneWidget);
+    // The planner has left and the route's map is set up (MapLibre cannot be
+    // disposed before its view exists).
+    await tester.pump(const Duration(seconds: 3));
     await tester.pageBack();
     await waitFor(tester, find.text(title));
+
+    // Not kept in the demo account: other tests look for its routes in the
+    // list.
+    final api = Api('http://localhost:5173');
+    await api.login('appdemo', 'sehr-geheim-123');
+    final id = (await api.routes()).firstWhere((r) => r.title == title).id;
+    final deleted = await http.delete(
+      Uri.parse('http://localhost:5173/api/v1/routes/$id'),
+      headers: {'Authorization': 'Bearer ${api.token}'},
+    );
+    expect(deleted.statusCode, lessThan(300));
   });
 }

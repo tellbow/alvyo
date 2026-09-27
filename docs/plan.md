@@ -29,7 +29,7 @@ official figures: [hiking-time.md](hiking-time.md).
 |---|---|---|
 | M1 | Web planner, journeys and stages, sharing, GPX export, public pages, deployment | done (0.1.0) |
 | M2 | Follows and feed, likes, comments, reports and moderation, photos, import (GPX, KML, TCX, FIT, Komoot), discovery, passkeys and OpenID Connect, French and Italian | done (0.1.0); open items in the backlog |
-| M3 | iOS app: offline maps, navigation, recording, Apple Watch import, spoken turns, journeys | done up to 0.4.0; open items in the backlog |
+| M3 | iOS app: offline maps, navigation, recording, Apple Watch import, spoken turns, journeys, planning | done up to 0.9.0; open items in the backlog |
 | M4 | Extras: weather, points of interest, PDF stage sheets, 3D, closures | open |
 
 ## Releases
@@ -48,7 +48,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.6.0 | 2026-09-24 | Live location for contacts with an overdue alert (12), protected areas along routes (13); keyboard drop-downs, stage versions, comment replies and edits, HEIC photos, dragging the line on touch screens; in the app: elevation profiles and ascent while hiking, recordings per account, asking before switching hikes, ticking stages off |
 | 0.7.0 | 2026-09-24 | Search engines: titles, descriptions, canonical addresses, noindex for private pages, a sitemap and an address per language (/en/, /fr/, /it/ with hreflang); link-preview images of journeys and collections; compressed answers; map tiles refused while busy are asked for again; the draft logo on the web and as app icon |
 | 0.8.0 | 2026-09-25 | Renamed from odysgeh to Alvyo: code, images (`alvyo-*`), `ALVYO_*` settings, the address alvyo.tellbow.ch (the old one redirects), the app as `ch.tellbow.alvyo`; the database, namespace and volumes keep the old name. The design of the Alvyo mock-up, light and dark after the system setting: colours, Figtree and Bricolage Grotesque, the Λ logo and icons, a new home page (public hikes, place search); in the app a floating bar (routes, journeys, record, Apple Watch, profile) |
-| next | | Several ways to choose from (16): «Mehrere Wege vorschlagen» in «Etappentour planen», and a journey put together from them where they share a night; hours per day from … to, the days follow (17); huts, hotels and campsites on every map (15); in the app planning like on the website (18): «Route planen», «Etappentour planen» and «Entdecken», the huts layer, and the search on a page of its own; planning fixes: ways to night places start on the line (Thun → Zermatt failed), no nights at places near the line but far by path, no ferries and car trains (a new graph, operations.md), heights of legs without length; fixes from a review of all parts: a sign-in provider connected before the address was proven is dropped on a password reset, the client address behind the proxy, photo limits under concurrent uploads, offline packs of a route changed back, crashes in the multi-day planner and in turns, times without a zone in imports, the login redirect, stale plans in the web planner, recordings and live location in the app (hangs, a start cut off by iOS, loops), and faster deletes, reorders and pack builds |
+| 0.9.0 | 2026-09-27 | Several ways to choose from (16): «Mehrere Wege vorschlagen» in «Etappentour planen», and a journey put together from them where they share a night; hours per day from … to, the days follow (17); huts, hotels and campsites on every map (15); in the app planning like on the website (18): «Route planen», «Etappentour planen» and «Entdecken», the huts layer, and the search on a page of its own; planning fixes: ways to night places start on the line (Thun → Zermatt failed), no nights at places near the line but far by path, no ferries and car trains (a new graph, operations.md), heights of legs without length; fixes from a review of all parts: a sign-in provider connected before the address was proven is dropped on a password reset, the client address behind the proxy, photo limits under concurrent uploads, offline packs of a route changed back, crashes in the multi-day planner and in turns, times without a zone in imports, the login redirect, stale plans in the web planner, recordings and live location in the app (hangs, a start cut off by iOS, loops), and faster deletes, reorders and pack builds |
 
 ## Requirements
 
@@ -162,14 +162,14 @@ From the project owner, numbered in the order given: 1–5 added on
    split there, each ending at the nearest place within 400 m. Another
    number of stages, or a file without times, is split as in 8.
 
-15. **Huts and accommodation on the map** (next release). In the layer
+15. **Huts and accommodation on the map** (0.9.0). In the layer
     menu of every map, «Hütten» and «Hotels und Campingplätze» (off until
     switched on, remembered like the other layers) show the places of
     `make places-import` in view (`GET /places/in-view`; huts from zoom 8,
     the others from 10); a click shows the name, the kind and the website,
     and in the planner offers «Als Routenpunkt hinzufügen».
 16. **Several ways to choose from, and a journey put together from them**
-    (next release). «Mehrere Wege vorschlagen» in «Etappentour planen»:
+    (0.9.0). «Mehrere Wege vorschlagen» in «Etappentour planen»:
     `POST /journeys/suggest` proposes up to four ways between the points,
     each split into days as in 8. GraphHopper's alternatives stay in one
     valley (Thun → Zermatt: four of five over the Lötschenpass), so the
@@ -188,7 +188,7 @@ From the project owner, numbered in the order given: 1–5 added on
     20 km by path), the way to a place starts on the line also in a
     gallery, and routes no longer use ferries and car trains (the
     Lötschberg).
-17. **Hours per day from … to, the days follow** (next release). In
+17. **Hours per day from … to, the days follow** (0.9.0). In
     «Etappentour planen», instead of the number of days, «Stunden pro Tag»
     from … to (at one's pace; `min_hours` and `max_hours` for
     `POST /journeys/plan` and `/journeys/suggest`): as few days as keep
@@ -199,7 +199,7 @@ From the project owner, numbered in the order given: 1–5 added on
     minutes over the most: the split estimates the way to a place, the
     stage has the real one.
 
-18. **Planning in the app** (next release). The app does what the website
+18. **Planning in the app** (0.9.0). The app does what the website
     does for planning: «Route planen» (points by tapping the map, by the
     place search or from a hut's sheet, only the changed legs computed
     again, totals at one's pace, the elevation profile, saved and opened

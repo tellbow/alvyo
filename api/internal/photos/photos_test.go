@@ -34,9 +34,10 @@ func TestAddConcurrentlyKeepsLimit(t *testing.T) {
 	}
 	s := &Store{DB: pool, Files: &Files{Dir: t.TempDir()}}
 	target := Target{Kind: "route", ID: route}
-	// Connections ready and all starting together, so that they overlap.
+	// Connections ready and all starting together, so that they overlap;
+	// no more than the pool has (4 on a CI runner), or Acquire waits forever.
 	var conns []*pgxpool.Conn
-	for range 10 {
+	for range min(10, int(pool.Config().MaxConns)) {
 		c, err := pool.Acquire(ctx)
 		if err != nil {
 			t.Fatal(err)

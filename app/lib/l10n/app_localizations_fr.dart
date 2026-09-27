@@ -685,4 +685,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get jplanCreate => 'Créer la randonnée par étapes';
+
+  @override
+  String get delete => 'Supprimer';
+
+  @override
+  String get routeDeleteConfirm => 'Supprimer l\'itinéraire ? C\'est irréversible.';
+
+  @override
+  String get journeyDeleteConfirm =>
+      'Supprimer la randonnée par étapes avec toutes ses étapes et itinéraires ? C\'est irréversible.';
+
+  @override
+  String jplanTooLong(String hours, int days) {
+    return 'Impossible avec au plus $hours h par jour : il faut au moins $days jours.';
+  }
+
+  @override
+  String jplanTooLongNone(String hours) {
+    return 'Impossible avec au plus $hours h par jour : il y a trop peu d\'hébergements en chemin.';
+  }
+
+  @override
+  String jplanPlanIn(int days) {
+    return 'Planifier en $days jours';
+  }
 }

@@ -686,4 +686,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get jplanCreate => 'Etappentour erstellen';
+
+  @override
+  String get delete => 'Löschen';
+
+  @override
+  String get routeDeleteConfirm => 'Route löschen? Das lässt sich nicht rückgängig machen.';
+
+  @override
+  String get journeyDeleteConfirm =>
+      'Etappentour mit allen Etappen und Routen löschen? Das lässt sich nicht rückgängig machen.';
+
+  @override
+  String jplanTooLong(String hours, int days) {
+    return 'Mit höchstens $hours h pro Tag geht das nicht: dafür braucht es mindestens $days Tage.';
+  }
+
+  @override
+  String jplanTooLongNone(String hours) {
+    return 'Mit höchstens $hours h pro Tag geht das nicht: unterwegs gibt es zu wenige Orte zum Übernachten.';
+  }
+
+  @override
+  String jplanPlanIn(int days) {
+    return 'In $days Tagen planen';
+  }
 }

@@ -45,6 +45,10 @@ class FakeServer {
   /// The user may change the journey.
   var canEdit = false;
 
+  /// owner, editor or viewer; the owner may delete it.
+  var role = 'viewer';
+  var deleted = false;
+
   /// Stage 1 as the server has it; patches need its version.
   var s1Status = 'planned';
   var s1Version = 1;
@@ -56,18 +60,23 @@ class FakeServer {
   late final client = MockClient((req) async {
     if (offline) throw const SocketException('no connection');
     final p = req.url.path.replaceFirst('/api/v1', '');
+    if (p == '/journeys/j1' && req.method == 'DELETE') {
+      deleted = true;
+      return http.Response('', 204);
+    }
     if (p == '/journeys') {
       return _json({
         'journeys': [
-          {
-            'id': 'j1',
-            'title': 'Via Alpina',
-            'stages': 3,
-            'stages_done': 0,
-            'distance_m': 32634.0,
-            'ascent_m': 1118.0,
-            'duration_s': 34463,
-          },
+          if (!deleted)
+            {
+              'id': 'j1',
+              'title': 'Via Alpina',
+              'stages': 3,
+              'stages_done': 0,
+              'distance_m': 32634.0,
+              'ascent_m': 1118.0,
+              'duration_s': 34463,
+            },
         ],
       });
     }
@@ -99,6 +108,7 @@ class FakeServer {
       return _json({
         'id': 'j1',
         'title': 'Via Alpina',
+        'role': role,
         'can_edit': canEdit,
         'totals': {..._totals, 'distance_m': 32634.0, 'ascent_m': 1118.0, 'duration_s': 34463},
         'progress': {'stages_done': s1Status == 'done' ? 1 : 0, 'stages_total': 3},
@@ -255,6 +265,57 @@ void main() {
     await until(tester, find.text('Sargans – Weisstannen'));
     expect(find.text('Sargans – Weisstannen'), findsOneWidget);
     expect(find.byKey(const Key('journey-saved')), findsOneWidget);
+  });
+
+  testWidgets('the owner deletes a journey, with what is saved of it', (tester) async {
+    final server = FakeServer()..role = 'owner';
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
+    await pumpList(tester, api, find.text('Via Alpina'));
+    await tester.tap(find.text('Via Alpina'));
+    await until(tester, find.text('Gaflei – Sargans'));
+    // Saved already by the test before, else now.
+    if (find.byKey(const Key('journey-save')).evaluate().isNotEmpty) {
+      await tester.tap(find.byKey(const Key('journey-save')));
+    }
+    await until(tester, find.byKey(const Key('journey-saved')));
+    final store = PackStore(Directory('${support.path}/packs'));
+    expect(await tester.runAsync(() => store.saved('r1')), isNotNull);
+
+    await tester.tap(find.byKey(const Key('item-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('item-delete')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Etappentour mit allen Etappen und Routen löschen? Das lässt sich nicht rückgängig machen.'),
+      findsOneWidget,
+    );
+    // Cancelled: nothing happens.
+    await tester.tap(find.byKey(const Key('delete-cancel')));
+    await tester.pumpAndSettle();
+    expect(server.deleted, isFalse);
+
+    await tester.tap(find.byKey(const Key('item-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('item-delete')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('delete-confirm')));
+    await until(tester, find.text('Noch keine Etappentouren. Plane sie auf der Website.'));
+    await tester.pumpAndSettle(); // the journey's page slides away
+    expect(server.deleted, isTrue);
+    expect(find.text('Via Alpina'), findsNothing, reason: 'back in the list, without it');
+    expect(await tester.runAsync(() => store.savedJourney('j1')), isNull);
+    expect(await tester.runAsync(() => store.saved('r1')), isNull);
+  });
+
+  testWidgets('only the owner can delete a journey', (tester) async {
+    final server = FakeServer()
+      ..canEdit = true
+      ..role = 'editor';
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
+    await pumpList(tester, api, find.text('Via Alpina'));
+    await tester.tap(find.text('Via Alpina'));
+    await until(tester, find.text('Gaflei – Sargans'));
+    expect(find.byKey(const Key('item-menu')), findsNothing);
   });
 
   testWidgets('without a connection and nothing saved: says so', (tester) async {

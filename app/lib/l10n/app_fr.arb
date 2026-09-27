@@ -203,5 +203,11 @@
   "jplanWaysHint": "Là où deux itinéraires passent la nuit au même endroit, tu peux passer de l’un à l’autre.",
   "jplanSwitch": "À partir d’ici, continuer sur l’itinéraire {n}",
   "jplanTitleField": "Titre",
-  "jplanCreate": "Créer la randonnée par étapes"
+  "jplanCreate": "Créer la randonnée par étapes",
+  "delete": "Supprimer",
+  "routeDeleteConfirm": "Supprimer l'itinéraire ? C'est irréversible.",
+  "journeyDeleteConfirm": "Supprimer la randonnée par étapes avec toutes ses étapes et itinéraires ? C'est irréversible.",
+  "jplanTooLong": "Impossible avec au plus {hours} h par jour : il faut au moins {days} jours.",
+  "jplanTooLongNone": "Impossible avec au plus {hours} h par jour : il y a trop peu d'hébergements en chemin.",
+  "jplanPlanIn": "Planifier en {days} jours"
 }

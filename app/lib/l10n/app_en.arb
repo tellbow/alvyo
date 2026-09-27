@@ -203,5 +203,11 @@
   "jplanWaysHint": "Where two ways stay at the same place overnight, you can switch from one to the other there.",
   "jplanSwitch": "From here, continue on way {n}",
   "jplanTitleField": "Title",
-  "jplanCreate": "Create journey"
+  "jplanCreate": "Create journey",
+  "delete": "Delete",
+  "routeDeleteConfirm": "Delete the route? This cannot be undone.",
+  "journeyDeleteConfirm": "Delete the multi-day hike with all its stages and routes? This cannot be undone.",
+  "jplanTooLong": "Not possible with at most {hours} h a day: it takes at least {days} days.",
+  "jplanTooLongNone": "Not possible with at most {hours} h a day: there are too few places to stay along the way.",
+  "jplanPlanIn": "Plan in {days} days"
 }

@@ -33,12 +33,27 @@ const (
 	// hours away. At most maxTries splits look for others.
 	farSlackS = 20 * 60
 	maxTries  = 10
+	// overSlackS: the split estimates the way to a place, the stage has the
+	// real one; a day this much over the most still counts as within it.
+	overSlackS = 15 * 60
 	// flatSecondsPerM is the Swiss hiking time on flat ground.
 	flatSecondsPerM = 14.271 * 60 / 1000
 )
 
 // ErrUnknownEnd means a place asked to end a day at is not near the line.
 var ErrUnknownEnd = errors.New("stageplan: a chosen place is not along the route")
+
+// TooLongError means a day would be longer than the most asked for: the
+// way cannot be split so in the days asked for.
+type TooLongError struct {
+	// Days is the fewest days that would fit; 0 if none would (too few
+	// places to sleep).
+	Days int
+}
+
+func (e *TooLongError) Error() string {
+	return fmt.Sprintf("stageplan: a day would be longer than the most per day (fewest days that fit: %d)", e.Days)
+}
 
 // Planner proposes the stages of a multi-day hike.
 type Planner struct {
@@ -55,6 +70,9 @@ type Request struct {
 	// Ends are place ids to end the days at, in order, instead of choosing
 	// (from an earlier proposal's alternatives).
 	Ends []string
+	// Strict refuses a split with a day over Days.MaxS (a TooLongError)
+	// instead of marking it; not with Ends, where the hiker chose.
+	Strict bool
 	// favour are the nights of suggestions made before.
 	favour map[string]bool
 }
@@ -119,6 +137,14 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 	}
 	preferred := func(pl place) bool { return len(req.Kinds) == 0 || slices.Contains(req.Kinds, pl.Kind) }
 
+	candidates := func() []Candidate {
+		cands := make([]Candidate, len(near))
+		for i, pl := range near {
+			cands[i] = Candidate{Index: pl.index, DetourS: pl.detourS, Preferred: preferred(pl), Shared: req.favour[pl.ID]}
+		}
+		return cands
+	}
+
 	ways := detours{}
 	var ends []place
 	if len(req.Ends) > 0 {
@@ -135,11 +161,7 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 		// Split, then look at the ways to the places picked; again without
 		// those much further than estimated.
 		for try := 1; ; try++ {
-			cands := make([]Candidate, len(near))
-			for i, pl := range near {
-				cands[i] = Candidate{Index: pl.index, DetourS: pl.detourS, Preferred: preferred(pl), Shared: req.favour[pl.ID]}
-			}
-			picked, err := Split(secs, cands, req.Days)
+			picked, err := Split(secs, candidates(), req.Days)
 			if err != nil {
 				return Proposal{}, err
 			}
@@ -205,6 +227,14 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 				hi = ends[k+1].index
 			}
 			st.Earlier, st.Later = neighbours(near, to, lo, hi, preferred)
+		}
+		if req.Strict && len(req.Ends) == 0 && req.Days.MaxS > 0 && float64(st.Totals.DurationS) > req.Days.MaxS+overSlackS {
+			// More days than now, even where the estimates say fewer fit.
+			n := Fewest(secs, candidates(), req.Days.MaxS)
+			if n > 0 {
+				n = max(n, len(ends)+2)
+			}
+			return Proposal{}, &TooLongError{Days: n}
 		}
 		out.Stages = append(out.Stages, st)
 	}

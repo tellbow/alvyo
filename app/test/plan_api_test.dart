@@ -387,4 +387,26 @@ void main() {
     expect(r.items.single.lines.length, 2);
     expect(r.items.single.lines.last.last, [9.3, 47.0]);
   });
+
+  test('a plan with a day over the most per day: the fewest days that fit', () async {
+    Future<ApiException> refused(Map<String, dynamic> body) async {
+      final api = Api('https://alvyo.test', client: MockClient((req) async => http.Response(jsonEncode(body), 422)));
+      try {
+        await api.planJourney(points: [(lon: 7.6, lat: 46.8), (lon: 7.7, lat: 46.0)], days: 3, maxHours: 8);
+      } on ApiException catch (e) {
+        return e;
+      }
+      fail('not refused');
+    }
+
+    Map<String, dynamic> tooLong(int days) => {
+      'detail': 'a day would be longer than max_hours',
+      'errors': [
+        {'location': 'body.max_hours', 'message': 'fewest days that fit', 'value': days},
+      ],
+    };
+    expect((await refused(tooLong(6))).fewestDays, 6);
+    expect((await refused(tooLong(0))).fewestDays, 0);
+    expect((await refused({'detail': 'no path near one of the points'})).fewestDays, isNull);
+  });
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PlanStage } from '$lib/api/client';
-import { single, stagesOf, switches, switchTo, whole, type Way } from './suggestions';
+import { fewestDays, single, stagesOf, switches, switchTo, whole, type Way } from './suggestions';
 
 /** A way whose days end at the given places; null for the destination. */
 function way(...ends: (string | null)[]): Way {
@@ -55,5 +55,26 @@ describe('suggestions', () => {
 			'D',
 			null
 		]);
+	});
+});
+
+describe('fewestDays', () => {
+	it('reads the fewest days from a plan refused as too long', () => {
+		const refused = (value: number) => ({
+			detail: 'a day would be longer than max_hours',
+			errors: [{ location: 'body.max_hours', message: 'fewest days that fit', value }]
+		});
+		expect(fewestDays(refused(6))).toBe(6);
+		expect(fewestDays(refused(0))).toBe(0);
+	});
+
+	it('is undefined for other failures', () => {
+		expect(fewestDays(undefined)).toBeUndefined();
+		expect(fewestDays({ detail: 'no path near one of the points' })).toBeUndefined();
+		expect(
+			fewestDays({
+				errors: [{ location: 'body.max_hours', message: 'expected number <= 20', value: 30 }]
+			})
+		).toBeUndefined();
 	});
 });

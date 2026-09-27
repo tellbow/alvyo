@@ -105,6 +105,9 @@ Checked so far only in the simulator, with made-up or simulated positions
       usable while typing (a decimal comma on the Swiss keyboard); the days
       in their colours, the other ways grey and a tap on one chooses it;
       «Ab hier weiter auf Weg N»; the created journey opens.
+- [ ] **Löschen** from the menu of a saved route and of a journey saved
+      offline: asked first, back in the list without it, and the offline
+      maps gone (storage in the iPhone settings).
 - [ ] **Entdecken**: starts at one's position when location is already
       allowed and never asks for it; lines in colour, redrawn after moving
       the map or a filter; the offline message in airplane mode; another

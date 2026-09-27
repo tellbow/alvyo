@@ -22,7 +22,7 @@ type planJourneyInput struct {
 		Days        int      `json:"days,omitempty" minimum:"0" maximum:"60" doc:"Number of days; or hours_per_day"`
 		HoursPerDay float64  `json:"hours_per_day,omitempty" minimum:"0" maximum:"16" doc:"Hiking time per day (Swiss hiking time); or days"`
 		MinHours    float64  `json:"min_hours,omitempty" minimum:"0" maximum:"16" doc:"With max_hours instead of days or hours_per_day: as few days as fit between the two"`
-		MaxHours    float64  `json:"max_hours,omitempty" minimum:"0" maximum:"20" doc:"No day longer if possible; 0: 1.25 × the time per day"`
+		MaxHours    float64  `json:"max_hours,omitempty" minimum:"0" maximum:"20" doc:"No day longer: else 422 with the fewest days that fit; 0: 1.25 × the time per day, where possible"`
 		Kinds       []string `json:"kinds,omitempty" enum:"hut,hotel,campsite,pt_stop" doc:"Preferred places for the nights; all if none"`
 		Ends        []string `json:"ends,omitempty" maxItems:"59" doc:"Place ids to end the days at instead (from a proposal's earlier and later)"`
 	}
@@ -51,7 +51,7 @@ type suggestJourneysInput struct {
 		Days        int      `json:"days,omitempty" minimum:"0" maximum:"60" doc:"Number of days; or hours_per_day"`
 		HoursPerDay float64  `json:"hours_per_day,omitempty" minimum:"0" maximum:"16" doc:"Hiking time per day (Swiss hiking time); or days"`
 		MinHours    float64  `json:"min_hours,omitempty" minimum:"0" maximum:"16" doc:"With max_hours instead of days or hours_per_day: as few days as fit between the two"`
-		MaxHours    float64  `json:"max_hours,omitempty" minimum:"0" maximum:"20" doc:"No day longer if possible; 0: 1.25 × the time per day"`
+		MaxHours    float64  `json:"max_hours,omitempty" minimum:"0" maximum:"20" doc:"No day longer: else 422 with the fewest days that fit; 0: 1.25 × the time per day, where possible"`
 		Kinds       []string `json:"kinds,omitempty" enum:"hut,hotel,campsite,pt_stop" doc:"Preferred places for the nights; all if none"`
 	}
 }
@@ -90,8 +90,16 @@ type suggestJourneysOutput struct {
 	}
 }
 
+// tooLongMessage tells the clients a day would be longer than max_hours;
+// the error's value is the fewest days that fit (0: none).
+const tooLongMessage = "fewest days that fit"
+
 // planError gives the planner's errors to the client.
 func planError(ctx context.Context, err error) error {
+	if tl := (*stageplan.TooLongError)(nil); errors.As(err, &tl) {
+		return huma.Error422UnprocessableEntity("a day would be longer than max_hours",
+			&huma.ErrorDetail{Location: "body.max_hours", Message: tooLongMessage, Value: tl.Days})
+	}
 	switch {
 	case errors.Is(err, routing.ErrPointNotFound), errors.Is(err, routing.ErrOutOfBounds):
 		return huma.Error422UnprocessableEntity("no path near one of the points")
@@ -126,7 +134,7 @@ func registerJourneyPlan(api huma.API, d Deps) {
 		}
 		b := in.Body
 		req := stageplan.Request{
-			Profile: b.Profile, Kinds: b.Kinds, Ends: b.Ends,
+			Profile: b.Profile, Kinds: b.Kinds, Ends: b.Ends, Strict: true,
 			Days: askedDays(b.Days, b.HoursPerDay, b.MinHours, b.MaxHours),
 		}
 		for _, p := range b.Points {
@@ -158,7 +166,7 @@ func registerJourneyPlan(api huma.API, d Deps) {
 		}
 		b := in.Body
 		req := stageplan.Request{
-			Profile: b.Profile, Kinds: b.Kinds,
+			Profile: b.Profile, Kinds: b.Kinds, Strict: true,
 			Days: askedDays(b.Days, b.HoursPerDay, b.MinHours, b.MaxHours),
 		}
 		for _, p := range b.Points {

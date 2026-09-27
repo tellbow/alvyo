@@ -14,6 +14,7 @@ import '../offline/downloads.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
+import 'delete_menu.dart';
 import 'live_sheet.dart';
 import 'navigate_screen.dart';
 
@@ -195,6 +196,21 @@ class _RouteScreenState extends State<RouteScreen> {
     }
   }
 
+  /// Deletes the route on the server and its offline map, then leaves.
+  Future<void> _delete() async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    try {
+      await widget.api.deleteRoute(widget.id);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+      return;
+    }
+    await (await _store).delete(widget.id);
+    if (mounted) nav.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -202,7 +218,22 @@ class _RouteScreenState extends State<RouteScreen> {
       // No field here: a keyboard still closing (the title dialog before)
       // takes no room from the map and the panel.
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          // A stage's route is deleted with its stage, in the journey.
+          FutureBuilder(
+            future: _route,
+            builder: (context, snap) => switch (snap.data) {
+              final r? when r.isOwner && r.journeyId == null => DeleteMenu(
+                question: t.routeDeleteConfirm,
+                onDelete: _delete,
+              ),
+              _ => const SizedBox.shrink(),
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder(
         future: _route,
         builder: (context, snap) {

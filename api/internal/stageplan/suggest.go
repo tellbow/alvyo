@@ -60,7 +60,9 @@ type Suggestion struct {
 
 // Suggest proposes up to four ways that differ, each split into days. Ways
 // through the same village share the night there, where the hiker can
-// change from one way to another.
+// change from one way to another. With req.Strict, ways with a day over
+// the most are left out; if all are, a TooLongError with the fewest days
+// of any.
 func (p *Planner) Suggest(ctx context.Context, req Request) ([]Suggestion, error) {
 	ways, err := p.ways(ctx, req)
 	if err != nil {
@@ -89,10 +91,17 @@ func (p *Planner) Suggest(ctx context.Context, req Request) ([]Suggestion, error
 	// Split one after the other, each favouring the nights of those before.
 	favour := map[string]bool{}
 	out := make([]Suggestion, 0, len(ways))
+	var tooLong *TooLongError
 	for i, w := range ways {
 		r := req
 		r.Ends, r.favour = nil, favour
 		prop, err := p.Split(ctx, legs[i], r)
+		if tl := (*TooLongError)(nil); errors.As(err, &tl) {
+			if tooLong == nil || tl.Days > 0 && (tooLong.Days == 0 || tl.Days < tooLong.Days) {
+				tooLong = tl
+			}
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -102,6 +111,9 @@ func (p *Planner) Suggest(ctx context.Context, req Request) ([]Suggestion, error
 			}
 		}
 		out = append(out, Suggestion{Points: w.points, Via: w.viaName, Proposal: prop})
+	}
+	if len(out) == 0 && tooLong != nil {
+		return nil, tooLong
 	}
 	return out, nil
 }

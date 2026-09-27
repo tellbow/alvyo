@@ -684,4 +684,29 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get jplanCreate => 'Crea escursione a tappe';
+
+  @override
+  String get delete => 'Elimina';
+
+  @override
+  String get routeDeleteConfirm => 'Eliminare l\'itinerario? Non si può annullare.';
+
+  @override
+  String get journeyDeleteConfirm =>
+      'Eliminare l\'escursione a tappe con tutte le tappe e gli itinerari? Non si può annullare.';
+
+  @override
+  String jplanTooLong(String hours, int days) {
+    return 'Non è possibile con al massimo $hours h al giorno: servono almeno $days giorni.';
+  }
+
+  @override
+  String jplanTooLongNone(String hours) {
+    return 'Non è possibile con al massimo $hours h al giorno: lungo il percorso ci sono troppo pochi posti dove dormire.';
+  }
+
+  @override
+  String jplanPlanIn(int days) {
+    return 'Pianifica in $days giorni';
+  }
 }

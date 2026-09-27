@@ -106,6 +106,22 @@ func splitRange(secs []float64, cands []Candidate, d Days) []int {
 	return best
 }
 
+// Fewest is the fewest days that keep every day at most maxS long, ending
+// at cands; 0 if no split does (too few places to sleep).
+func Fewest(secs []float64, cands []Candidate, maxS float64) int {
+	n, day, _ := costs(secs, cands, 1, 0, maxS)
+	// least[j]: the fewest days to reach node j.
+	least := make([]int, n)
+	for j := 1; j < n; j++ {
+		for i := 0; i < j; i++ {
+			if (i == 0 || least[i] > 0) && day(i, j) <= maxS && (least[j] == 0 || least[i]+1 < least[j]) {
+				least[j] = least[i] + 1
+			}
+		}
+	}
+	return least[n-1]
+}
+
 // nodes turns indexes into cands into nodes of the split.
 func nodes(ends []int) []int {
 	out := make([]int, len(ends))

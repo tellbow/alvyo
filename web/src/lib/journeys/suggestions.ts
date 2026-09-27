@@ -47,3 +47,15 @@ export function switches(ways: Way[], picked: Picked[], i: number): Picked[] {
 export function switchTo(ways: Way[], picked: Picked[], i: number, to: Picked): Picked[] {
 	return [...picked.slice(0, i + 1), ...whole(ways, to.way).slice(to.stage + 1)];
 }
+
+/**
+ * From a refused plan: the fewest days that keep every day under the most
+ * per day asked for (0: none do, too few places to sleep); undefined when
+ * the plan failed for another reason.
+ */
+export function fewestDays(error: unknown): number | undefined {
+	const errors = (error as { errors?: { message?: string; value?: unknown }[] } | undefined)
+		?.errors;
+	const tooLong = errors?.find((e) => e.message === 'fewest days that fit');
+	return tooLong ? Number(tooLong.value) || 0 : undefined;
+}

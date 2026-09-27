@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/tellbow/alvyo/api/internal/routing"
@@ -143,7 +144,46 @@ func TestPlanJourney(t *testing.T) {
 		}
 	}
 	delete(body, "min_hours")
+
+	// At most so many hours a day: a day over it is refused, with the
+	// fewest days that fit (Thun → Zermatt in three days at most 8 h gave a
+	// day of 21 h).
+	tooLong := func(body map[string]any) (int, float64) {
+		t.Helper()
+		code, b := c.do("POST", "/api/v1/journeys/plan", body)
+		var e struct {
+			Errors []struct {
+				Message string  `json:"message"`
+				Value   float64 `json:"value"`
+			} `json:"errors"`
+		}
+		_ = json.Unmarshal(b, &e)
+		if len(e.Errors) != 1 || e.Errors[0].Message != tooLongMessage {
+			return code, -1
+		}
+		return code, e.Errors[0].Value
+	}
+	body["days"], body["max_hours"] = 1, 7
+	if code, days := tooLong(body); code != http.StatusUnprocessableEntity || days != 2 {
+		t.Errorf("1 day of 11 h, at most 7 h: %d, fewest %v", code, days)
+	}
+	body["max_hours"] = 3 // 4.5 h to the first place
+	if code, days := tooLong(body); code != http.StatusUnprocessableEntity || days != 0 {
+		t.Errorf("at most 3 h: %d, fewest %v", code, days)
+	}
+	body["days"], body["max_hours"] = 2, 7
+	if p = plan(body); len(p.Stages) != 2 {
+		t.Errorf("2 days at most 7 h: %d stages", len(p.Stages))
+	}
+	// Days the hiker chose are not refused.
+	body["days"], body["ends"] = 3, []string{inn, stop}
+	body["max_hours"] = 3
+	if p = plan(body); len(p.Stages) != 3 {
+		t.Errorf("chosen ends: %d stages", len(p.Stages))
+	}
+	delete(body, "ends")
 	delete(body, "max_hours")
+	body["days"] = 2
 
 	// Accepted: the journey with its stages, places and accommodation.
 	p = plan(map[string]any{
@@ -257,5 +297,25 @@ func TestSuggestJourneys(t *testing.T) {
 			t.Errorf("via %q: points %v", sg.Via, sg.Points)
 		}
 		delete(nights, sg.Via)
+	}
+
+	// Only ways within the most per day; none: 422 with the fewest days.
+	body["days"], body["max_hours"] = 1, 7
+	code, b = c.do("POST", "/api/v1/journeys/suggest", body)
+	if code != http.StatusUnprocessableEntity || !strings.Contains(string(b), tooLongMessage) {
+		t.Errorf("1 day at most 7 h: %d %s", code, b)
+	}
+	body["days"], body["max_hours"] = 2, 7
+	code, b = c.do("POST", "/api/v1/journeys/suggest", body)
+	out.Suggestions = nil
+	if err := json.Unmarshal(b, &out); code != http.StatusOK || err != nil || len(out.Suggestions) == 0 {
+		t.Fatalf("2 days at most 7 h: %d %s", code, b)
+	}
+	for _, sg := range out.Suggestions {
+		for i, st := range sg.Proposal.Stages {
+			if st.Totals.DurationS > 7*3600+15*60 {
+				t.Errorf("via %q, day %d: %d s", sg.Via, i+1, st.Totals.DurationS)
+			}
+		}
 	}
 }

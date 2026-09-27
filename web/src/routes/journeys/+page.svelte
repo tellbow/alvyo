@@ -16,7 +16,12 @@
 	// svelte-ignore state_referenced_locally
 	let shared = $state(data.shared);
 	const tag = $derived(page.url.searchParams.get('tag'));
-	const journeys = $derived(data.journeys.filter((j) => hasTag(j.tags, tag)));
+	// Deleted here, and the one asking «really?».
+	let deleted = $state<string[]>([]);
+	let confirming = $state<string>();
+	const journeys = $derived(
+		data.journeys.filter((j) => hasTag(j.tags, tag) && !deleted.includes(j.id))
+	);
 	const byTag = (t: string) => `?tag=${encodeURIComponent(t)}`;
 
 	async function leave(id: string) {
@@ -24,6 +29,12 @@
 			params: { path: { id } }
 		});
 		if (response.ok) shared = shared.filter((j) => j.id !== id);
+	}
+
+	async function remove(id: string) {
+		const { response } = await api().DELETE('/journeys/{id}', { params: { path: { id } } });
+		if (response.ok) deleted = [...deleted, id];
+		confirming = undefined;
 	}
 	let title = $state('');
 
@@ -96,6 +107,23 @@
 					<span class="w-24 text-sm text-stone-600 tabular-nums"
 						>{formatDuration(j.duration_s)}</span
 					>
+					<!-- Above the title's link. -->
+					{#if confirming === j.id}
+						<button
+							type="button"
+							class="relative rounded bg-red-700 px-2 py-1 text-xs text-white"
+							data-testid="journey-list-delete-confirm"
+							onclick={() => remove(j.id)}>{m.journey_delete_confirm()}</button
+						>
+					{:else}
+						<button
+							type="button"
+							disabled={!hydrated.value}
+							class="relative text-xs text-stone-500 underline hover:text-red-700"
+							data-testid="journey-list-delete"
+							onclick={() => (confirming = j.id)}>{m.route_delete()}</button
+						>
+					{/if}
 				</li>
 			{/each}
 		</ul>

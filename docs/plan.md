@@ -54,7 +54,7 @@ A `v*` tag builds the images; Flux deploys them
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
-2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26.
+2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27.
 
 ### Done
 
@@ -211,6 +211,20 @@ From the project owner, numbered in the order given: 1–5 added on
     kind, hiking time and SAC grade, opened like one's own), and the huts
     layer of 15 on the route, navigation and planning maps. They need this
     release's API on the server.
+19. **Deleting routes and journeys** (unreleased). In the app, the menu
+    of a route and of a journey of one's own offers «Löschen», after
+    asking; what is saved of it offline goes too (a stage's route is
+    deleted with its stage, on the website). On the website, the lists
+    «Routen» and «Etappentouren» delete as well, besides the pages.
+20. **The most per day is kept** (unreleased). Asked for at most so many
+    hours a day (with the number of days, or hours from … to), a plan with a
+    longer day is no longer shown (Thun → Zermatt in three days at most 8 h
+    gave a day of 21 h 50 min): `POST /journeys/plan` answers 422 with the
+    fewest days that would fit (or none, with too few places to sleep);
+    `/journeys/suggest` leaves out the ways that do not fit, and answers so
+    if none does. Website and app say it, with «In N Tagen planen». Days
+    moved by hand (`ends`) are only marked; up to 15 minutes over count as
+    within, as the split estimates the way to a place.
 
 ### Open
 

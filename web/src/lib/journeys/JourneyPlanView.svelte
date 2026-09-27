@@ -12,6 +12,7 @@
 	import Seo from '$lib/seo/Seo.svelte';
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
+	import PlanTabs from '$lib/planner/PlanTabs.svelte';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { stageColor } from './colors';
@@ -284,6 +285,7 @@
 		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
 		data-testid="journey-plan-panel"
 	>
+		<PlanTabs current="journey" />
 		<div>
 			<h1 class="text-xl font-semibold">{m.jplan_title()}</h1>
 			<p class="mt-1 text-sm text-stone-600">{m.jplan_intro()}</p>

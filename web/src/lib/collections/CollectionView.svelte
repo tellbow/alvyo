@@ -16,6 +16,7 @@
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagInput from '$lib/tags/TagInput.svelte';
+	import AddItems from './AddItems.svelte';
 	import CollectionLayers from './CollectionLayers.svelte';
 	import { choose } from '$lib/util/choose';
 
@@ -85,6 +86,15 @@
 			api().PATCH('/collections/{id}/items/{item}', {
 				params: { path: { ...id(), item: it.id } },
 				body
+			})
+		);
+	}
+
+	function addItem(c: { kind: 'route' | 'journey'; id: string }) {
+		return mutate(() =>
+			api().POST('/collections/{id}/items', {
+				params: { path: id() },
+				body: c.kind === 'route' ? { route_id: c.id } : { journey_id: c.id }
 			})
 		);
 	}
@@ -170,6 +180,13 @@
 		</div>
 
 		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
+
+		{#if canEdit}
+			<AddItems
+				taken={new Set(collection.item_list.map((it) => `${it.kind}:${it.target_id}`))}
+				onadd={addItem}
+			/>
+		{/if}
 
 		{#if collection.item_list.length === 0}
 			<p class="text-sm text-stone-600">{m.collection_empty()}</p>

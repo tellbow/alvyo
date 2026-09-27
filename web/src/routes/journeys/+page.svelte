@@ -45,9 +45,12 @@
 		<a href={resolve('/import')} class="underline hover:text-accent-ink"
 			>{m.import_journey_hint()}</a
 		>
-		·
-		<a href={resolve('/journeys/plan')} class="underline hover:text-accent-ink">{m.jplan_link()}</a>
 	</p>
+	<a
+		href={resolve('/journeys/plan')}
+		class="mt-4 inline-block rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
+		data-testid="journey-plan-link">{m.jplan_link()}</a
+	>
 
 	<form method="post" onsubmit={create} class="mt-6 flex gap-2">
 		<input

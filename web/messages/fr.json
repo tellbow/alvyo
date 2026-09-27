@@ -237,7 +237,7 @@
 	"collections_empty": "Pas encore de collections.",
 	"collection_new": "Nouvelle collection",
 	"collection_items_count": "{n} éléments",
-	"collection_empty": "Encore vide. Ajoute des itinéraires et des randonnées par étapes avec « Ajouter à une collection ».",
+	"collection_empty": "Encore vide. Ajoute tes itinéraires et randonnées par étapes ci-dessus – ou sur leur page avec « Ajouter à une collection … ».",
 	"collection_add_to": "Ajouter à une collection …",
 	"collection_added": "Ajouté à « {title} »",
 	"collection_already": "Déjà dans « {title} »",
@@ -565,5 +565,11 @@
 	"home_headline": "Marcher jusqu'au bout de la carte.",
 	"home_search": "Région, sommet ou cabane",
 	"home_public": "Randonnées publiques",
-	"home_open": "Ouvrir"
+	"home_open": "Ouvrir",
+	"plan_tabs": "Que planifier ?",
+	"plan_tab_route": "Itinéraire",
+	"plan_tab_journey": "Randonnée par étapes",
+	"collection_add_search": "Ajouter un itinéraire ou une randonnée par étapes …",
+	"collection_add_none": "Rien trouvé.",
+	"collection_add_shared": "de {owner}"
 }

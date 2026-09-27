@@ -237,7 +237,7 @@
 	"collections_empty": "Noch keine Sammlungen.",
 	"collection_new": "Neue Sammlung",
 	"collection_items_count": "{n} Einträge",
-	"collection_empty": "Noch leer. Füge Routen und Etappentouren über «Zur Sammlung hinzufügen» hinzu.",
+	"collection_empty": "Noch leer. Füge oben deine Routen und Etappentouren hinzu – oder auf ihrer Seite über «Zur Sammlung hinzufügen …».",
 	"collection_add_to": "Zur Sammlung hinzufügen …",
 	"collection_added": "Hinzugefügt zu «{title}»",
 	"collection_already": "Schon in «{title}»",
@@ -565,5 +565,11 @@
 	"home_headline": "Wandern, bis die Karte aufhört.",
 	"home_search": "Region, Gipfel oder Hütte",
 	"home_public": "Öffentliche Touren",
-	"home_open": "Öffnen"
+	"home_open": "Öffnen",
+	"plan_tabs": "Was planen?",
+	"plan_tab_route": "Route",
+	"plan_tab_journey": "Etappentour",
+	"collection_add_search": "Route oder Etappentour hinzufügen …",
+	"collection_add_none": "Nichts gefunden.",
+	"collection_add_shared": "von {owner}"
 }

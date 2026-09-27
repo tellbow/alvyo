@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PlanTabs from './PlanTabs.svelte';
 	import type { Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { resolve } from '$app/paths';
@@ -215,6 +216,7 @@
 		class="flex w-80 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
 		data-testid="planner-panel"
 	>
+		<PlanTabs current="route" />
 		{#if !user}
 			<p class="rounded-md bg-stone-100 p-3 text-sm">
 				{m.plan_hint_login()}

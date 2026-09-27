@@ -102,3 +102,24 @@ test('a point added while planning drops the plan for the old points', async ({ 
 	await expect(panel.getByRole('alert')).toHaveCount(0);
 	await expect(panel.getByRole('button', { name: 'Etappen vorschlagen' })).toBeEnabled();
 });
+
+test('the planners are one switch apart', async ({ page }) => {
+	const id = `tabs${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Planerin',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	await page.goto('/plan');
+	const tabs = page.getByTestId('plan-tabs');
+	await expect(tabs.getByRole('link', { name: 'Route' })).toHaveAttribute('aria-current', 'page');
+	await tabs.getByRole('link', { name: 'Etappentour' }).click();
+	await expect(page).toHaveURL(/\/journeys\/plan$/);
+	await expect(page.getByTestId('journey-plan-panel')).toBeVisible();
+	await page.getByTestId('plan-tabs').getByRole('link', { name: 'Route' }).click();
+	await expect(page).toHaveURL(/\/plan$/);
+});

@@ -237,7 +237,7 @@
 	"collections_empty": "No collections yet.",
 	"collection_new": "New collection",
 	"collection_items_count": "{n} items",
-	"collection_empty": "Empty so far. Add routes and journeys with “Add to collection”.",
+	"collection_empty": "Still empty. Add your routes and journeys above – or on their page with «Add to collection …».",
 	"collection_add_to": "Add to collection …",
 	"collection_added": "Added to “{title}”",
 	"collection_already": "Already in “{title}”",
@@ -565,5 +565,11 @@
 	"home_headline": "Walk until the map runs out.",
 	"home_search": "Region, peak or hut",
 	"home_public": "Public hikes",
-	"home_open": "Open"
+	"home_open": "Open",
+	"plan_tabs": "What to plan?",
+	"plan_tab_route": "Route",
+	"plan_tab_journey": "Journey",
+	"collection_add_search": "Add a route or journey …",
+	"collection_add_none": "Nothing found.",
+	"collection_add_shared": "by {owner}"
 }

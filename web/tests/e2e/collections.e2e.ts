@@ -119,3 +119,37 @@ test('browsing a drop-down with the arrow keys acts only on Enter', async ({ pag
 		['Zweite', 1]
 	]);
 });
+
+test('add to a collection from the collection itself', async ({ page }) => {
+	const id = `cadd${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Sammlerin',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	await createRoute(page.request, 'Bachalpsee', 8.04);
+	await createRoute(page.request, 'Faulhorn', 8.05);
+
+	await page.goto('/collections');
+	await page.getByLabel('Titel').fill('Herbst');
+	await page.getByRole('button', { name: 'Erstellen' }).click();
+	await expect(page.getByTestId('collection-title')).toHaveValue('Herbst');
+
+	const search = page.getByLabel('Route oder Etappentour hinzufügen …');
+	await search.click();
+	const found = page.getByTestId('collection-add-item');
+	await expect(found).toHaveCount(2);
+	await search.fill('faul');
+	await expect(found).toHaveCount(1);
+	await found.click();
+	await expect(page.getByTestId('collection-items').locator('li')).toHaveCount(1);
+	await expect(page.getByTestId('collection-items')).toContainText('Faulhorn');
+	// What is in it is offered no more.
+	await search.fill('');
+	await expect(found).toHaveCount(1);
+	await expect(found).toContainText('Bachalpsee');
+});

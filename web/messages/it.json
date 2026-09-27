@@ -237,7 +237,7 @@
 	"collections_empty": "Ancora nessuna raccolta.",
 	"collection_new": "Nuova raccolta",
 	"collection_items_count": "{n} elementi",
-	"collection_empty": "Ancora vuota. Aggiungi percorsi e trekking a tappe con «Aggiungi a una raccolta».",
+	"collection_empty": "Ancora vuota. Aggiungi sopra i tuoi percorsi e trekking a tappe – oppure sulla loro pagina con «Aggiungi a una raccolta …».",
 	"collection_add_to": "Aggiungi a una raccolta …",
 	"collection_added": "Aggiunto a «{title}»",
 	"collection_already": "Già in «{title}»",
@@ -565,5 +565,11 @@
 	"home_headline": "Camminare fino alla fine della mappa.",
 	"home_search": "Regione, vetta o capanna",
 	"home_public": "Escursioni pubbliche",
-	"home_open": "Apri"
+	"home_open": "Apri",
+	"plan_tabs": "Cosa pianificare?",
+	"plan_tab_route": "Percorso",
+	"plan_tab_journey": "Trekking a tappe",
+	"collection_add_search": "Aggiungi un percorso o un trekking a tappe …",
+	"collection_add_none": "Nessun risultato.",
+	"collection_add_shared": "di {owner}"
 }

@@ -7,6 +7,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/downloads.dart';
 import '../offline/packs.dart';
+import 'delete_menu.dart';
 import 'route_screen.dart';
 
 /// A journey's stages. Each opens as a route: its map, saving it offline,
@@ -104,11 +105,38 @@ class _JourneyScreenState extends State<JourneyScreen> {
     }
   }
 
+  /// Deletes the journey on the server and what is saved of it, then
+  /// leaves.
+  Future<void> _delete(JourneyDetail j) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    try {
+      await widget.api.deleteJourney(j.id);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+      return;
+    }
+    await (await _store).deleteJourney(j);
+    if (mounted) nav.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          FutureBuilder(
+            future: _journey,
+            builder: (context, snap) => switch (snap.data) {
+              final j? when j.isOwner => DeleteMenu(question: t.journeyDeleteConfirm, onDelete: () => _delete(j)),
+              _ => const SizedBox.shrink(),
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder(
         future: _journey,
         builder: (context, snap) {

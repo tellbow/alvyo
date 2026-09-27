@@ -20,7 +20,7 @@ Color _color(String hex) => Color(int.parse('ff${hex.substring(1)}', radix: 16))
 
 const _kinds = ['hut', 'hotel', 'campsite', 'pt_stop'];
 
-enum _Problem { noPath, failed, create }
+enum _Problem { noPath, failed, create, tooLong }
 
 /// «Etappentour planen», as on the website: start, points to pass and
 /// destination, split into days that end at a place to stay; or several ways
@@ -72,6 +72,9 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 
   var _busy = false;
   _Problem? _problem;
+
+  /// With [_Problem.tooLong]: the fewest days that fit (0: none do).
+  var _fewest = 0;
   final _title = TextEditingController();
 
   @override
@@ -108,6 +111,9 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     final min = _number(_minPerDay), max = _number(_maxPerDay);
     return min != null && max != null && min > 0 && min <= max;
   }
+
+  /// The most per day as typed.
+  String get _maxAsked => (_byDays ? _maxHours : _maxPerDay).text.trim();
 
   bool get _canPlan => !_busy && _points.length >= 2 && _asksOk;
 
@@ -186,6 +192,10 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       answer = await call(_split(await _paceLoaded));
     } on ApiException catch (e) {
       problem = e.status == 422 ? _Problem.noPath : _Problem.failed;
+      if (e.fewestDays case final n?) {
+        problem = _Problem.tooLong;
+        _fewest = n;
+      }
     } on Object {
       problem = _Problem.failed;
     }
@@ -194,6 +204,8 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       _busy = false;
       if (asked != _asked) return;
       if (problem != null) {
+        // No days shown that cannot be hiked as asked.
+        if (problem == _Problem.tooLong) _reset();
         _problem = problem;
       } else {
         done(answer as T);
@@ -539,7 +551,23 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                       _Problem.noPath => t.jplanNoPath,
                       _Problem.failed => t.jplanFailed,
                       _Problem.create => t.errorServer,
+                      _Problem.tooLong when _fewest > 0 => t.jplanTooLong(_maxAsked, _fewest),
+                      _Problem.tooLong => t.jplanTooLongNone(_maxAsked),
                     }, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  ),
+                if (_problem == _Problem.tooLong && _byDays && _fewest > 0)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      key: const Key('jplan-fewest'),
+                      onPressed: _busy
+                          ? null
+                          : () {
+                              _days.text = '$_fewest';
+                              _plan();
+                            },
+                      child: Text(t.jplanPlanIn(_fewest)),
+                    ),
                   ),
                 if (_ways.isNotEmpty) ..._wayList(t),
                 if (_stages case final stages?) ..._dayList(t, stages),

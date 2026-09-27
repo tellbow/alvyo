@@ -103,4 +103,93 @@ void main() {
     await tester.scrollUntilVisible(find.byKey(const Key('nav-start')), 100);
     expect(find.byKey(const Key('nav-start')), findsOneWidget);
   });
+
+  // A route of one's own is deleted from its menu, after asking; a stage's
+  // route is deleted with its stage.
+  for (final (role, journey, menu) in [('owner', null, true), ('editor', null, false), ('owner', 'j1', false)]) {
+    testWidgets('delete as $role${journey == null ? '' : ' of a stage'}', (tester) async {
+      var deleted = false;
+      final client = MockClient((req) async {
+        switch ((req.method, req.url.path)) {
+          case ('DELETE', '/api/v1/routes/r1'):
+            deleted = true;
+            return http.Response('', 204);
+          case ('GET', '/api/v1/routes/r1'):
+            return _json({
+              'id': 'r1',
+              'title': 'Rundweg',
+              'owner_username': 'wodan',
+              'role': role,
+              'journey_id': journey,
+              'profile': 'hike',
+              'totals': {
+                'distance_m': 1000.0,
+                'ascent_m': 10.0,
+                'descent_m': 10.0,
+                'duration_s': 900,
+                'sac_grade': 1,
+                'sac_max': 1,
+              },
+              'legs': [
+                {
+                  'coordinates': [
+                    [9.44, 47.04, 500.0],
+                    [9.45, 47.04, 510.0],
+                  ],
+                },
+              ],
+            });
+        }
+        return _json({'areas': <Object>[]});
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('de'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => RouteScreen(
+                    api: Api('http://test', token: 't', client: client),
+                    id: 'r1',
+                    title: 'Rundweg',
+                    map: const SizedBox.expand(),
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      // The screen's spinner never settles: pumped a while instead.
+      Future<void> settle() async {
+        for (var i = 0; i < 10; i++) {
+          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      }
+
+      await tester.tap(find.text('open'));
+      await settle();
+      expect(find.byKey(const Key('item-menu')), menu ? findsOneWidget : findsNothing);
+      if (!menu) return;
+      await tester.tap(find.byKey(const Key('item-menu')));
+      await settle();
+      await tester.tap(find.byKey(const Key('item-delete')));
+      await settle();
+      expect(find.text('Route löschen? Das lässt sich nicht rückgängig machen.'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('delete-confirm')));
+      await settle();
+      expect(deleted, isTrue);
+      expect(find.byType(RouteScreen), findsNothing, reason: 'left after deleting');
+    });
+  }
 }

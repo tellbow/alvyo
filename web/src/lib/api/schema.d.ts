@@ -2954,7 +2954,7 @@ export interface components {
             kinds?: ("hut" | "hotel" | "campsite" | "pt_stop")[];
             /**
              * Format: double
-             * @description No day longer if possible; 0: 1.25 × the time per day
+             * @description No day longer: else 422 with the fewest days that fit; 0: 1.25 × the time per day, where possible
              */
             max_hours?: number;
             /**
@@ -3451,7 +3451,7 @@ export interface components {
             kinds?: ("hut" | "hotel" | "campsite" | "pt_stop")[];
             /**
              * Format: double
-             * @description No day longer if possible; 0: 1.25 × the time per day
+             * @description No day longer: else 422 with the fewest days that fit; 0: 1.25 × the time per day, where possible
              */
             max_hours?: number;
             /**

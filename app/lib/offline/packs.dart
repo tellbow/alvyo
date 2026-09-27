@@ -80,6 +80,15 @@ class PackStore {
     await tmp.rename(file.path);
   }
 
+  /// Forgets a journey's stage list and the maps of its stages.
+  Future<void> deleteJourney(JourneyDetail j) async {
+    for (final s in j.stages) {
+      if (s.routeId case final id?) await delete(id);
+    }
+    final file = _journeyFile(j.id);
+    if (await file.exists()) await file.delete();
+  }
+
   Future<JourneyDetail?> savedJourney(String id) async {
     final file = _journeyFile(id);
     if (!await file.exists()) return null;

@@ -4,9 +4,22 @@ import 'package:http/http.dart' as http;
 
 /// A failed API call with its HTTP status.
 class ApiException implements Exception {
-  ApiException(this.status, this.message);
+  ApiException(this.status, this.message, [this.errors = const []]);
   final int status;
   final String message;
+
+  /// The details the server gave, e.g. which field is wrong.
+  final List<Map<String, dynamic>> errors;
+
+  /// From a multi-day plan refused for a day over the most per day: the
+  /// fewest days that fit (0: none do, too few places to sleep); null when
+  /// refused for another reason.
+  int? get fewestDays {
+    for (final e in errors) {
+      if (e['message'] == 'fewest days that fit') return (e['value'] as num?)?.toInt() ?? 0;
+    }
+    return null;
+  }
 
   @override
   String toString() => 'ApiException($status): $message';
@@ -82,6 +95,9 @@ class RouteDetail extends RouteSummary {
   /// The user may change it: not so for others' public routes (e.g. from
   /// discovering). Copies saved before the server sent it are the user's.
   bool get canEdit => json['can_edit'] as bool? ?? true;
+
+  /// The user owns it and may delete it.
+  bool get isOwner => json['role'] == 'owner';
 }
 
 /// A junction where the route turns, [alongM] metres from its start; the
@@ -208,6 +224,9 @@ class JourneyDetail {
 
   /// The user may change it (owner or editor).
   final bool canEdit;
+
+  /// The user owns it and may delete it.
+  bool get isOwner => json['role'] == 'owner';
 }
 
 /// A protected area a route crosses: a wildlife rest area or a federal
@@ -561,12 +580,15 @@ class Api {
   dynamic _decode(http.Response r) {
     if (r.statusCode >= 400) {
       var message = r.reasonPhrase ?? '';
+      var errors = const <Map<String, dynamic>>[];
       try {
-        message = (jsonDecode(r.body) as Map<String, dynamic>)['detail'] as String? ?? message;
+        final body = jsonDecode(r.body) as Map<String, dynamic>;
+        message = body['detail'] as String? ?? message;
+        errors = [for (final e in body['errors'] as List? ?? const []) e as Map<String, dynamic>];
       } on FormatException {
         // not JSON
       }
-      throw ApiException(r.statusCode, message);
+      throw ApiException(r.statusCode, message, errors);
     }
     return r.body.isEmpty ? null : jsonDecode(r.body);
   }
@@ -609,6 +631,12 @@ class Api {
     final j = await _get('/journeys') as Map<String, dynamic>;
     return [for (final r in j['journeys'] as List) JourneySummary.fromJson(r as Map<String, dynamic>)];
   }
+
+  /// Deletes a route of the user's own.
+  Future<void> deleteRoute(String id) => _send('DELETE', '/routes/$id');
+
+  /// Deletes a journey of the user's own with all its stages and routes.
+  Future<void> deleteJourney(String id) => _send('DELETE', '/journeys/$id');
 
   Future<JourneyDetail> journey(String id) async =>
       JourneyDetail.fromJson(await _get('/journeys/$id') as Map<String, dynamic>);
@@ -817,7 +845,8 @@ class Api {
   /// with the others: the most per day). The nights at [kinds] (hut, hotel,
   /// campsite, pt_stop; all if none); [ends] are place ids to end the days
   /// at instead (a stage's earlier or later). Fails with 422 when there is
-  /// no way.
+  /// no way, or with [ApiException.fewestDays] when a day would be longer
+  /// than [maxHours].
   Future<Proposal> planJourney({
     required List<LonLat> points,
     String profile = 'hike',

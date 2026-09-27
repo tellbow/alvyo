@@ -684,4 +684,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jplanCreate => 'Create journey';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get routeDeleteConfirm => 'Delete the route? This cannot be undone.';
+
+  @override
+  String get journeyDeleteConfirm => 'Delete the multi-day hike with all its stages and routes? This cannot be undone.';
+
+  @override
+  String jplanTooLong(String hours, int days) {
+    return 'Not possible with at most $hours h a day: it takes at least $days days.';
+  }
+
+  @override
+  String jplanTooLongNone(String hours) {
+    return 'Not possible with at most $hours h a day: there are too few places to stay along the way.';
+  }
+
+  @override
+  String jplanPlanIn(int days) {
+    return 'Plan in $days days';
+  }
 }

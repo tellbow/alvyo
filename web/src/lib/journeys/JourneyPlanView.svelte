@@ -16,7 +16,15 @@
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { stageColor } from './colors';
-	import { single, stagesOf, switches, switchTo, whole, type Picked } from './suggestions';
+	import {
+		fewestDays,
+		single,
+		stagesOf,
+		switches,
+		switchTo,
+		whole,
+		type Picked
+	} from './suggestions';
 
 	let { user }: { user: Me } = $props();
 	const pace = $derived(user.speed_factor ?? 1);
@@ -50,6 +58,8 @@
 	const mixed = $derived(ways.length > 0 && chosen === undefined);
 	let busy = $state(false);
 	let problem = $state('');
+	// After a plan refused for a day over the most: the days that would fit.
+	let fewest = $state<number>();
 	let title = $state('');
 
 	let base = $state<BaseMapId>('landeskarte');
@@ -103,6 +113,7 @@
 		proposal = undefined;
 		ways = [];
 		picked = [];
+		fewest = undefined;
 	}
 
 	function addPoint(p: Point) {
@@ -153,13 +164,30 @@
 		};
 	}
 
+	/** Why planning failed; a day over the most leaves no plan shown. */
+	function failure(status: number, error: unknown) {
+		const n = fewestDays(error);
+		if (n === undefined) return status === 422 ? m.jplan_no_path() : m.jplan_failed();
+		reset();
+		const hours = by === 'days' ? Number(maxHours) : maxPerDay;
+		fewest = by === 'days' && n > 0 ? n : undefined;
+		return n > 0 ? m.jplan_too_long({ hours, days: n }) : m.jplan_too_long_none({ hours });
+	}
+
+	/** Plans again in as many days as fit. */
+	function planIn(n: number) {
+		days = n;
+		void plan();
+	}
+
 	async function plan(ends?: string[]) {
 		busy = true;
 		problem = '';
+		fewest = undefined;
 		// Moving a night of a suggested way plans along that way.
 		const way = ends ? chosen : undefined;
 		const asked = points;
-		const { data, response } = await api().POST('/journeys/plan', {
+		const { data, error, response } = await api().POST('/journeys/plan', {
 			body: {
 				...request(),
 				...(way !== undefined ? { points: ways[way].points } : {}),
@@ -169,7 +197,7 @@
 		busy = false;
 		if (points !== asked) return; // points added or removed meanwhile: plan again
 		if (!data) {
-			problem = response.status === 422 ? m.jplan_no_path() : m.jplan_failed();
+			problem = failure(response.status, error);
 			return;
 		}
 		if (way !== undefined) {
@@ -186,12 +214,13 @@
 	async function suggest() {
 		busy = true;
 		problem = '';
+		fewest = undefined;
 		const asked = points;
-		const { data, response } = await api().POST('/journeys/suggest', { body: request() });
+		const { data, error, response } = await api().POST('/journeys/suggest', { body: request() });
 		busy = false;
 		if (points !== asked) return;
 		if (!data) {
-			problem = response.status === 422 ? m.jplan_no_path() : m.jplan_failed();
+			problem = failure(response.status, error);
 			return;
 		}
 		ways = data.suggestions as Suggestion[];
@@ -423,6 +452,17 @@
 		</form>
 
 		{#if problem}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{problem}</p>{/if}
+		{#if fewest}
+			<button
+				type="button"
+				disabled={busy}
+				class="self-start rounded-md border border-stone-300 px-3 py-1.5 text-sm hover:bg-stone-100 disabled:opacity-50"
+				data-testid="plan-fewest"
+				onclick={() => planIn(fewest!)}
+			>
+				{m.jplan_plan_in({ days: fewest })}
+			</button>
+		{/if}
 
 		{#if ways.length > 0}
 			<section class="flex flex-col gap-2 text-sm" data-testid="plan-ways">

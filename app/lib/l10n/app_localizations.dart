@@ -1317,6 +1317,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Etappentour erstellen'**
   String get jplanCreate;
+
+  /// No description provided for @delete.
+  ///
+  /// In de, this message translates to:
+  /// **'Löschen'**
+  String get delete;
+
+  /// No description provided for @routeDeleteConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Route löschen? Das lässt sich nicht rückgängig machen.'**
+  String get routeDeleteConfirm;
+
+  /// No description provided for @journeyDeleteConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentour mit allen Etappen und Routen löschen? Das lässt sich nicht rückgängig machen.'**
+  String get journeyDeleteConfirm;
+
+  /// No description provided for @jplanTooLong.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit höchstens {hours} h pro Tag geht das nicht: dafür braucht es mindestens {days} Tage.'**
+  String jplanTooLong(String hours, int days);
+
+  /// No description provided for @jplanTooLongNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit höchstens {hours} h pro Tag geht das nicht: unterwegs gibt es zu wenige Orte zum Übernachten.'**
+  String jplanTooLongNone(String hours);
+
+  /// No description provided for @jplanPlanIn.
+  ///
+  /// In de, this message translates to:
+  /// **'In {days} Tagen planen'**
+  String jplanPlanIn(int days);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

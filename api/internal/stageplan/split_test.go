@@ -165,3 +165,15 @@ func TestSplitRange(t *testing.T) {
 		t.Errorf("no fit: ends %v, %v", got, err)
 	}
 }
+
+func TestFewest(t *testing.T) {
+	// 30 h with a place every hour: four days of at most 8 h.
+	if n := Fewest(minutes(30), every(30, 60), 8*3600); n != 4 {
+		t.Errorf("30 h at most 8 h a day: %d days", n)
+	}
+	// A stretch of 10 h without a place: no split keeps to 8 h.
+	cands := []Candidate{{Index: 300, Preferred: true}, {Index: 900, Preferred: true}}
+	if n := Fewest(minutes(20), cands, 8*3600); n != 0 {
+		t.Errorf("10 h without a place: %d days", n)
+	}
+}

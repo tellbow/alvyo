@@ -436,5 +436,35 @@
     }
   },
   "jplanTitleField": "Titel",
-  "jplanCreate": "Etappentour erstellen"
+  "jplanCreate": "Etappentour erstellen",
+  "delete": "Löschen",
+  "routeDeleteConfirm": "Route löschen? Das lässt sich nicht rückgängig machen.",
+  "journeyDeleteConfirm": "Etappentour mit allen Etappen und Routen löschen? Das lässt sich nicht rückgängig machen.",
+  "jplanTooLong": "Mit höchstens {hours} h pro Tag geht das nicht: dafür braucht es mindestens {days} Tage.",
+  "@jplanTooLong": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "jplanTooLongNone": "Mit höchstens {hours} h pro Tag geht das nicht: unterwegs gibt es zu wenige Orte zum Übernachten.",
+  "@jplanTooLongNone": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "jplanPlanIn": "In {days} Tagen planen",
+  "@jplanPlanIn": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

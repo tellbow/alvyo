@@ -203,5 +203,11 @@
   "jplanWaysHint": "Dove due percorsi pernottano nello stesso luogo, lì puoi passare dall’uno all’altro.",
   "jplanSwitch": "Da qui, continua sul percorso {n}",
   "jplanTitleField": "Titolo",
-  "jplanCreate": "Crea escursione a tappe"
+  "jplanCreate": "Crea escursione a tappe",
+  "delete": "Elimina",
+  "routeDeleteConfirm": "Eliminare l'itinerario? Non si può annullare.",
+  "journeyDeleteConfirm": "Eliminare l'escursione a tappe con tutte le tappe e gli itinerari? Non si può annullare.",
+  "jplanTooLong": "Non è possibile con al massimo {hours} h al giorno: servono almeno {days} giorni.",
+  "jplanTooLongNone": "Non è possibile con al massimo {hours} h al giorno: lungo il percorso ci sono troppo pochi posti dove dormire.",
+  "jplanPlanIn": "Pianifica in {days} giorni"
 }

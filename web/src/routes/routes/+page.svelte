@@ -16,12 +16,23 @@
 	// svelte-ignore state_referenced_locally
 	let shared = $state(data.shared);
 	const tag = $derived(page.url.searchParams.get('tag'));
-	const routes = $derived(data.routes.filter((r) => hasTag(r.tags, tag)));
+	// Deleted here, and the one asking «really?».
+	let deleted = $state<string[]>([]);
+	let confirming = $state<string>();
+	const routes = $derived(
+		data.routes.filter((r) => hasTag(r.tags, tag) && !deleted.includes(r.id))
+	);
 	const byTag = (t: string) => `?tag=${encodeURIComponent(t)}`;
 
 	async function leave(id: string) {
 		const { response } = await api().DELETE('/routes/{id}/access', { params: { path: { id } } });
 		if (response.ok) shared = shared.filter((r) => r.id !== id);
+	}
+
+	async function remove(id: string) {
+		const { response } = await api().DELETE('/routes/{id}', { params: { path: { id } } });
+		if (response.ok) deleted = [...deleted, id];
+		confirming = undefined;
 	}
 </script>
 
@@ -82,6 +93,22 @@
 					<span class="w-20 text-right text-xs text-stone-500">
 						{r.visibility === 'public' ? m.visibility_public() : m.visibility_private()}
 					</span>
+					<!-- Above the title's link. -->
+					{#if confirming === r.id}
+						<button
+							type="button"
+							class="relative rounded bg-red-700 px-2 py-1 text-xs text-white"
+							data-testid="route-list-delete-confirm"
+							onclick={() => remove(r.id)}>{m.route_delete_confirm()}</button
+						>
+					{:else}
+						<button
+							type="button"
+							class="relative text-xs text-stone-500 underline hover:text-red-700"
+							data-testid="route-list-delete"
+							onclick={() => (confirming = r.id)}>{m.route_delete()}</button
+						>
+					{/if}
 				</li>
 			{/each}
 		</ul>

@@ -35,6 +35,16 @@ void main() {
     await tester.tap(find.text('Sargans–Weisstannen'));
     await waitFor(tester, find.byKey(const Key('nav-start')));
     await tester.tap(find.byKey(const Key('nav-start')));
+    // With contacts (live_test.dart adds one), the hike can be shared first.
+    final skip = find.byKey(const Key('live-skip'));
+    await waitFor(
+      tester,
+      find.byWidgetPredicate((w) => w.key == const Key('live-skip') || w.key == const Key('nav-finish')),
+    );
+    if (skip.evaluate().isNotEmpty) {
+      await tester.pump(const Duration(seconds: 1)); // the sheet slides in
+      await tester.tap(skip);
+    }
 
     await waitFor(tester, find.byKey(const Key('nav-progress')));
     await tester.pump(const Duration(seconds: 10)); // moving on; for screenshots

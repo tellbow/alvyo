@@ -206,6 +206,7 @@ class Stage {
       accommodation = j['accommodation'] as String? ?? '',
       booked = j['accommodation_booked'] as bool? ?? false,
       routeId = (j['route'] as Map<String, dynamic>?)?['id'] as String?,
+      line = _line((j['route'] as Map<String, dynamic>?)?['line']),
       totals = switch (j['route']) {
         {'totals': final Map<String, dynamic> t} => Totals.fromJson(t),
         _ => null,
@@ -233,6 +234,10 @@ class Stage {
 
   /// The stage's route, a route like the others; none planned yet if null.
   final String? routeId;
+
+  /// The route's line, [lon, lat(, elevation)] per point; empty without one
+  /// (and in copies saved before it was kept).
+  final List<List<double>> line;
   final Totals? totals;
 
   /// To the end of the previous stage: ok, warning, gap or transfer.
@@ -830,13 +835,61 @@ class TripLeg {
         _ => null,
       },
       delayMin = (j['delay_min'] as num?)?.toInt() ?? 0,
-      walkMin = (j['duration_min'] as num?)?.toInt() ?? 0;
+      walkMin = (j['duration_min'] as num?)?.toInt() ?? 0,
+      track = _line(j['track']);
 
   /// A ride, else a walk of [walkMin] minutes.
   final bool ride;
   final String from, to, line, platform;
   final DateTime? departure, arrival;
   final int delayMin, walkMin;
+
+  /// The way, when asked for: [lon, lat] per point.
+  final List<List<double>> track;
+}
+
+/// Where the user sets off from and returns to by public transport.
+class Home {
+  Home.fromJson(Map<String, dynamic> j)
+    : id = j['id'] as String,
+      name = j['name'] as String,
+      address = j['address'] as String? ?? '',
+      lon = (j['lon'] as num).toDouble(),
+      lat = (j['lat'] as num).toDouble();
+  final String id, name, address;
+  final double lon, lat;
+}
+
+/// One direction of [JourneyTravel]: from or to a home, leaving after or
+/// arriving before [time] (HH:MM) on the stage's day.
+class TravelWay {
+  const TravelWay({required this.homeId, required this.time, this.arrive = false});
+  TravelWay.fromJson(Map<String, dynamic> j)
+    : homeId = j['home_id'] as String,
+      time = j['time'] as String,
+      arrive = j['arrive'] as bool? ?? false;
+  final String homeId, time;
+  final bool arrive;
+
+  Map<String, dynamic> toJson() => {'home_id': homeId, 'time': time, 'arrive': arrive};
+}
+
+/// The user's own way from home to a journey's first stage ([to]) and back
+/// home from its last ([back]); null where none is chosen.
+class JourneyTravel {
+  const JourneyTravel({this.to, this.back});
+  JourneyTravel.fromJson(Map<String, dynamic> j)
+    : to = switch (j['to']) {
+        final Map<String, dynamic> w => TravelWay.fromJson(w),
+        _ => null,
+      },
+      back = switch (j['back']) {
+        final Map<String, dynamic> w => TravelWay.fromJson(w),
+        _ => null,
+      };
+  final TravelWay? to, back;
+
+  Map<String, dynamic> toJson() => {'to': ?to?.toJson(), 'back': ?back?.toJson()};
 }
 
 /// Client of the Alvyo API. Logging in yields the session token, which
@@ -1451,22 +1504,56 @@ class Api {
   Future<Collection> removeFromCollection(String collectionId, String itemId) async =>
       Collection.fromJson(await _send('DELETE', '/collections/$collectionId/items/$itemId') as Map<String, dynamic>);
 
-  /// Public transport between two stops ([Place.ref]) on [day], leaving
-  /// after [time] (HH:MM) or arriving before it.
+  /// Public transport between two places on [day], leaving after [time]
+  /// (HH:MM) or arriving before it. A place is a stop ([Place.ref]) or a
+  /// position as lon,lat, named by [fromName] or [toName] in the walk to or
+  /// from it; [lines] asks for the ways ([TripLeg.track]).
   Future<List<Trip>> connections(
     String from,
     String to,
     DateTime day, {
     String time = '08:00',
     bool arrive = false,
+    String? fromName,
+    String? toName,
+    bool lines = false,
   }) async {
     final date =
         '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
     final j =
-        await _get('/connections', {'from': from, 'to': to, 'date': date, 'time': time, 'arrive': '$arrive'})
+        await _get('/connections', {
+              'from': from,
+              'to': to,
+              'from_name': ?fromName,
+              'to_name': ?toName,
+              'date': date,
+              'time': time,
+              'arrive': '$arrive',
+              if (lines) 'lines': 'true',
+            })
             as Map<String, dynamic>;
     return [for (final t in j['trips'] as List) Trip.fromJson(t as Map<String, dynamic>)];
   }
+
+  Future<List<Home>> homes() async {
+    final j = await _get('/me/homes') as Map<String, dynamic>;
+    return [for (final h in j['homes'] as List) Home.fromJson(h as Map<String, dynamic>)];
+  }
+
+  /// Adds a home (at most 5: 422).
+  Future<Home> addHome(String name, String address, LonLat at) async => Home.fromJson(
+    await _send('POST', '/me/homes', {'name': name, 'address': address, 'lon': at.lon, 'lat': at.lat})
+        as Map<String, dynamic>,
+  );
+
+  Future<void> deleteHome(String id) => _send('DELETE', '/me/homes/$id');
+
+  /// The user's own travel for a journey.
+  Future<JourneyTravel> travel(String journeyId) async =>
+      JourneyTravel.fromJson(await _get('/journeys/$journeyId/travel') as Map<String, dynamic>);
+
+  Future<JourneyTravel> setTravel(String journeyId, JourneyTravel t) async =>
+      JourneyTravel.fromJson(await _send('PUT', '/journeys/$journeyId/travel', t.toJson()) as Map<String, dynamic>);
 
   /// The user's routes, journeys and recorded hikes (kind hike) in [view],
   /// with the filters of [discover].

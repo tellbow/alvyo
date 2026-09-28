@@ -16,6 +16,7 @@ import 'route_screen.dart';
 import 'social.dart';
 import 'stage_sheet.dart';
 import 'tag_chips.dart';
+import 'travel_screen.dart';
 
 /// A journey's stages. Each opens as a route: its map, saving it offline,
 /// hiking it; all can be saved offline at once. A stage's sheet has its
@@ -37,6 +38,19 @@ class _JourneyScreenState extends State<JourneyScreen> {
   late final Future<List<ProtectedArea>> _areas = widget.api
       .areas(journeyId: widget.id)
       .catchError((_) => <ProtectedArea>[]);
+
+  /// The user's own way from home and back, and their homes by id; nothing
+  /// offline.
+  late Future<(JourneyTravel, Map<String, Home>)?> _travel = _loadTravel();
+
+  Future<(JourneyTravel, Map<String, Home>)?> _loadTravel() async {
+    try {
+      final (travel, homes) = (await widget.api.travel(widget.id), await widget.api.homes());
+      return (travel, {for (final h in homes) h.id: h});
+    } on Object {
+      return null;
+    }
+  }
 
   /// Stage routes saved offline.
   var _saved = <String>{};
@@ -144,6 +158,46 @@ class _JourneyScreenState extends State<JourneyScreen> {
       }
     }
   }
+
+  Future<void> _openTravel(JourneyDetail j, JourneyTravel travel, {required bool to}) async {
+    await Navigator.of(context).push<JourneyTravel>(
+      MaterialPageRoute(
+        builder: (_) => TravelScreen(api: widget.api, journey: j, travel: travel, to: to),
+      ),
+    );
+    if (mounted) {
+      setState(() {
+        _travel = _loadTravel(); // the homes may have changed too
+      });
+    }
+  }
+
+  Widget _travelTiles(AppLocalizations t, JourneyDetail j) => FutureBuilder(
+    future: _travel,
+    builder: (context, snap) {
+      final (travel, homes) = snap.data ?? (null, const <String, Home>{});
+      if (travel == null) return const SizedBox.shrink();
+      Widget tile(bool to) {
+        final way = to ? travel.to : travel.back;
+        final home = homes[way?.homeId];
+        return ListTile(
+          key: Key(to ? 'travel-to' : 'travel-back'),
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(to ? Icons.directions_transit_outlined : Icons.home_outlined),
+          title: Text(to ? t.travelTo : t.travelBack),
+          subtitle: Text(
+            way == null || home == null
+                ? t.travelChoose
+                : '${home.name} · ${way.arrive ? t.connectionsArrive : t.connectionsDepart} ${way.time}',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _openTravel(j, travel, to: to),
+        );
+      }
+
+      return Column(children: [tile(true), tile(false)]);
+    },
+  );
 
   Future<void> _stage(JourneyDetail j, int i) async {
     final changed = await showStage(context, widget.api, j, i);
@@ -265,6 +319,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         const SizedBox(height: 8),
                       ],
                       ProtectedAreas(_areas, days: [for (final s in j.stages) ?s.plannedDate]),
+                      _travelTiles(t, j),
                       if (_saving case final i?) ...[
                         Text(key: const Key('journey-saving'), t.journeySaving(i + 1, routed.length)),
                         const SizedBox(height: 4),

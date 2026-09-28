@@ -183,6 +183,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       once and keeps it after a restart; «Automatisch» follows the iPhone
       again (also its dark mode at dusk); e-mails come in the chosen
       language.
+- [ ] **From home and back** on a real journey: the homes in the profile,
+      «Anreise» and «Heimreise» on the journey; leaving at 6:00 and
+      arriving by 8:00 give the trains one would take (compared with the
+      SBB app), the dashed line runs from the door to the start, and the
+      GPX has only the stages.
 
 ## Web
 

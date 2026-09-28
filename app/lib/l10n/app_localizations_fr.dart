@@ -1222,4 +1222,74 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get stageMore => 'Détails et accès';
+
+  @override
+  String get travelTitle => 'Aller et retour';
+
+  @override
+  String get travelTo => 'Aller';
+
+  @override
+  String get travelBack => 'Retour';
+
+  @override
+  String get travelFrom => 'De';
+
+  @override
+  String get travelToHome => 'À';
+
+  @override
+  String get travelNone => '– aucun –';
+
+  @override
+  String travelOn(String date) {
+    return 'le $date';
+  }
+
+  @override
+  String get travelNoDate => 'L’étape n’a pas de date : correspondances d’aujourd’hui.';
+
+  @override
+  String get travelNoHomes =>
+      'Ajoute un domicile dans ton compte pour planifier l’aller et le retour en transports publics.';
+
+  @override
+  String get travelPrivate => 'Toi seul vois ton aller et ton retour.';
+
+  @override
+  String get travelNoRoute => 'Dès qu’une étape a un itinéraire.';
+
+  @override
+  String get travelChoose => 'Choisis un domicile';
+
+  @override
+  String get homesTitle => 'Domiciles';
+
+  @override
+  String get homesIntro =>
+      'D’ici tu planifies l’aller vers tes randonnées par étapes et le retour en transports publics. 5 au plus ; toi seul les vois.';
+
+  @override
+  String get homesName => 'Nom';
+
+  @override
+  String get homesNamePlaceholder => 'p. ex. Maison, Bureau';
+
+  @override
+  String get homesAddress => 'Chercher une adresse …';
+
+  @override
+  String get homesAdd => 'Ajouter';
+
+  @override
+  String get homesRemove => 'Retirer';
+
+  @override
+  String get homesFull => '5 domiciles au plus.';
+
+  @override
+  String get travelStart => 'Départ de la randonnée';
+
+  @override
+  String get travelEnd => 'Arrivée de la randonnée';
 }

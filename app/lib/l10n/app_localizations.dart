@@ -2295,6 +2295,138 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Details und Anreise'**
   String get stageMore;
+
+  /// No description provided for @travelTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'An- und Heimreise'**
+  String get travelTitle;
+
+  /// No description provided for @travelTo.
+  ///
+  /// In de, this message translates to:
+  /// **'Anreise'**
+  String get travelTo;
+
+  /// No description provided for @travelBack.
+  ///
+  /// In de, this message translates to:
+  /// **'Heimreise'**
+  String get travelBack;
+
+  /// No description provided for @travelFrom.
+  ///
+  /// In de, this message translates to:
+  /// **'Von'**
+  String get travelFrom;
+
+  /// No description provided for @travelToHome.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach'**
+  String get travelToHome;
+
+  /// No description provided for @travelNone.
+  ///
+  /// In de, this message translates to:
+  /// **'– keine –'**
+  String get travelNone;
+
+  /// No description provided for @travelOn.
+  ///
+  /// In de, this message translates to:
+  /// **'am {date}'**
+  String travelOn(String date);
+
+  /// No description provided for @travelNoDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Etappe hat kein Datum: Verbindungen von heute.'**
+  String get travelNoDate;
+
+  /// No description provided for @travelNoHomes.
+  ///
+  /// In de, this message translates to:
+  /// **'Füge in deinem Konto ein Zuhause hinzu, um die An- und Heimreise mit dem öffentlichen Verkehr zu planen.'**
+  String get travelNoHomes;
+
+  /// No description provided for @travelPrivate.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur du siehst deine An- und Heimreise.'**
+  String get travelPrivate;
+
+  /// No description provided for @travelNoRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'Sobald eine Etappe eine Route hat.'**
+  String get travelNoRoute;
+
+  /// No description provided for @travelChoose.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle ein Zuhause'**
+  String get travelChoose;
+
+  /// No description provided for @homesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuhause'**
+  String get homesTitle;
+
+  /// No description provided for @homesIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Von hier planst du die Anreise zu deinen Etappentouren und die Heimreise mit dem öffentlichen Verkehr. Höchstens 5; nur du siehst sie.'**
+  String get homesIntro;
+
+  /// No description provided for @homesName.
+  ///
+  /// In de, this message translates to:
+  /// **'Name'**
+  String get homesName;
+
+  /// No description provided for @homesNamePlaceholder.
+  ///
+  /// In de, this message translates to:
+  /// **'z. B. Zuhause, Büro'**
+  String get homesNamePlaceholder;
+
+  /// No description provided for @homesAddress.
+  ///
+  /// In de, this message translates to:
+  /// **'Adresse suchen …'**
+  String get homesAddress;
+
+  /// No description provided for @homesAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzufügen'**
+  String get homesAdd;
+
+  /// No description provided for @homesRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Entfernen'**
+  String get homesRemove;
+
+  /// No description provided for @homesFull.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchstens 5 Zuhause.'**
+  String get homesFull;
+
+  /// No description provided for @travelStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start der Tour'**
+  String get travelStart;
+
+  /// No description provided for @travelEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'Ende der Tour'**
+  String get travelEnd;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

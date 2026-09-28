@@ -11,6 +11,7 @@
 	import OidcNotice from '$lib/account/OidcNotice.svelte';
 	import SignInMethods from '$lib/account/SignInMethods.svelte';
 	import Contacts from '$lib/account/Contacts.svelte';
+	import Homes from '$lib/account/Homes.svelte';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();
@@ -80,6 +81,8 @@
 	</div>
 
 	<Contacts />
+
+	<Homes />
 
 	{#if blocked.length > 0}
 		<h2 class="mt-8 text-lg font-semibold">{m.account_blocked()}</h2>

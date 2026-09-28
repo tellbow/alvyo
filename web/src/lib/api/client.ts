@@ -42,6 +42,10 @@ export type DiscoverItem = components['schemas']['DiscoverItem'];
 export type MyMapItem = components['schemas']['DiscoverMineItem'];
 export type ProtectedArea = components['schemas']['Area'];
 export type Profile = components['schemas']['ProfileOutputBody'];
+export type Home = components['schemas']['Home'];
+export type Travel = components['schemas']['JourneyTravel'];
+export type TravelWay = components['schemas']['Way'];
+export type Trip = components['schemas']['TransitTrip'];
 
 /**
  * Typed client for the Alvyo API. Pass SvelteKit's `fetch` in load

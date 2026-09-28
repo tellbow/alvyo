@@ -19,7 +19,7 @@ func TestLiveSargansWeisstannen(t *testing.T) {
 	zurich, _ := time.LoadLocation("Europe/Zurich")
 	next := time.Now().In(zurich).Add(24 * time.Hour)
 	at := time.Date(next.Year(), next.Month(), next.Day(), 8, 0, 0, 0, zurich)
-	trips, err := c.Trips(context.Background(), Query{From: "8509411", To: "8509965", At: at})
+	trips, err := c.Trips(context.Background(), Query{From: Stop("8509411"), To: Stop("8509965"), At: at})
 	if err != nil {
 		t.Fatal(err)
 	}

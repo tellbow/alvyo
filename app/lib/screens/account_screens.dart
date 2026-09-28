@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../l10n/app_localizations.dart';
+import '../place_search.dart';
 
 /// The contacts a hike can be shared with (see LiveSheet).
 class ContactsScreen extends StatefulWidget {
@@ -278,6 +279,137 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
           child: Text(t.accountDeleteSubmit),
         ),
       ],
+    );
+  }
+}
+
+/// Where one sets off from and returns to by public transport: at most 5.
+class HomesScreen extends StatefulWidget {
+  const HomesScreen({super.key, required this.api});
+  final Api api;
+
+  @override
+  State<HomesScreen> createState() => _HomesScreenState();
+}
+
+class _HomesScreenState extends State<HomesScreen> {
+  late Future<List<Home>> _homes = widget.api.homes();
+  final _name = TextEditingController();
+  FoundPlace? _found;
+  String? _error;
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  Future<void> _add() async {
+    final t = AppLocalizations.of(context);
+    final found = _found;
+    if (found == null || _name.text.trim().isEmpty) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await widget.api.addHome(_name.text.trim(), found.name, (lon: found.lon, lat: found.lat));
+      _name.clear();
+      if (mounted) {
+        setState(() {
+          _found = null;
+          _homes = widget.api.homes();
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.status == 422 ? t.homesFull : t.errorGeneric);
+    } on Object {
+      if (mounted) setState(() => _error = t.errorServer);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _remove(Home h) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await widget.api.deleteHome(h.id);
+      if (mounted) {
+        setState(() {
+          _homes = widget.api.homes();
+        });
+      }
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(t.homesTitle)),
+      body: FutureBuilder(
+        future: _homes,
+        builder: (context, snap) {
+          final homes = snap.data;
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(t.homesIntro),
+              const SizedBox(height: 8),
+              if (snap.hasError) Text(t.errorServer),
+              if (homes == null && !snap.hasError) const Center(child: CircularProgressIndicator()),
+              for (final h in homes ?? const <Home>[])
+                ListTile(
+                  key: Key('home-${h.id}'),
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.home_outlined),
+                  title: Text(h.name),
+                  subtitle: Text(h.address),
+                  trailing: IconButton(
+                    tooltip: t.homesRemove,
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => _remove(h),
+                  ),
+                ),
+              if (homes != null && homes.length < 5) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  key: const Key('home-name'),
+                  controller: _name,
+                  decoration: InputDecoration(labelText: t.homesName, hintText: t.homesNamePlaceholder),
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: 8),
+                if (_found case final f?)
+                  ListTile(
+                    key: const Key('home-address'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.place_outlined),
+                    title: Text(f.name),
+                    trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _found = null)),
+                  )
+                else
+                  PlaceSearch(api: widget.api, label: t.homesAddress, onPick: (p) => setState(() => _found = p)),
+                if (_error case final e?)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  key: const Key('home-add'),
+                  onPressed: _busy || _found == null ? null : _add,
+                  child: Text(t.homesAdd),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
     );
   }
 }

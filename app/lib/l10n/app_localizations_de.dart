@@ -1222,4 +1222,74 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get stageMore => 'Details und Anreise';
+
+  @override
+  String get travelTitle => 'An- und Heimreise';
+
+  @override
+  String get travelTo => 'Anreise';
+
+  @override
+  String get travelBack => 'Heimreise';
+
+  @override
+  String get travelFrom => 'Von';
+
+  @override
+  String get travelToHome => 'Nach';
+
+  @override
+  String get travelNone => '– keine –';
+
+  @override
+  String travelOn(String date) {
+    return 'am $date';
+  }
+
+  @override
+  String get travelNoDate => 'Die Etappe hat kein Datum: Verbindungen von heute.';
+
+  @override
+  String get travelNoHomes =>
+      'Füge in deinem Konto ein Zuhause hinzu, um die An- und Heimreise mit dem öffentlichen Verkehr zu planen.';
+
+  @override
+  String get travelPrivate => 'Nur du siehst deine An- und Heimreise.';
+
+  @override
+  String get travelNoRoute => 'Sobald eine Etappe eine Route hat.';
+
+  @override
+  String get travelChoose => 'Wähle ein Zuhause';
+
+  @override
+  String get homesTitle => 'Zuhause';
+
+  @override
+  String get homesIntro =>
+      'Von hier planst du die Anreise zu deinen Etappentouren und die Heimreise mit dem öffentlichen Verkehr. Höchstens 5; nur du siehst sie.';
+
+  @override
+  String get homesName => 'Name';
+
+  @override
+  String get homesNamePlaceholder => 'z. B. Zuhause, Büro';
+
+  @override
+  String get homesAddress => 'Adresse suchen …';
+
+  @override
+  String get homesAdd => 'Hinzufügen';
+
+  @override
+  String get homesRemove => 'Entfernen';
+
+  @override
+  String get homesFull => 'Höchstens 5 Zuhause.';
+
+  @override
+  String get travelStart => 'Start der Tour';
+
+  @override
+  String get travelEnd => 'Ende der Tour';
 }

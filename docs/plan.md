@@ -57,7 +57,7 @@ A `v*` tag builds the images; Flux deploys them
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–23 on 2026-09-28.
+21–24 on 2026-09-28.
 
 ### Done
 
@@ -252,6 +252,17 @@ From the project owner, numbered in the order given: 1–5 added on
     deleting the account; signing up and a forgotten password open the
     website. Left to the website: moderation, imports (files, Komoot),
     passkeys and sign-in providers, planning a route again on its map.
+24. **From home and back by public transport** (unreleased). Up to five
+    homes in the account (a name and an address from the place search).
+    For a journey, each person who can open it chooses for themselves a
+    home to set off from before the first stage and one to return to after
+    the last, leaving after or arriving before a time on the stage's day
+    (on the website beside the stages and when planning, in the app from
+    the journey and when planning). The connections come from the Swiss Open
+    Journey Planner from and to the address (the walk to the stop included);
+    arriving by a time, the latest that fits comes first. The chosen one is
+    drawn on the map, rides dashed and walks dotted; it is never part of the
+    GPX, and no one else sees the homes or times.
 
 ### Open
 

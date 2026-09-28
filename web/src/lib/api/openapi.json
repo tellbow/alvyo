@@ -21,6 +21,39 @@
         ],
         "type": "object"
       },
+      "AddHomeInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "lat": {
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number"
+          },
+          "name": {
+            "maxLength": 60,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "address",
+          "lon",
+          "lat"
+        ],
+        "type": "object"
+      },
       "AddItemInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -1535,6 +1568,54 @@
         ],
         "type": "object"
       },
+      "Home": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "description": "As found by the place search",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lat": {
+            "format": "double",
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "type": "number"
+          },
+          "name": {
+            "description": "e.g. Zuhause, Büro",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "address",
+          "lon",
+          "lat"
+        ],
+        "type": "object"
+      },
+      "HomesOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "homes": {
+            "items": {
+              "$ref": "#/components/schemas/Home"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "homes"
+        ],
+        "type": "object"
+      },
       "IdentitiesOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -2206,6 +2287,20 @@
           "visibility",
           "tags"
         ],
+        "type": "object"
+      },
+      "JourneyTravel": {
+        "additionalProperties": false,
+        "properties": {
+          "back": {
+            "$ref": "#/components/schemas/Way",
+            "description": "From the last stage to a home; none if left out"
+          },
+          "to": {
+            "$ref": "#/components/schemas/Way",
+            "description": "From a home to the first stage; none if left out"
+          }
+        },
         "type": "object"
       },
       "KomootImportInputBody": {
@@ -4850,6 +4945,18 @@
           },
           "to": {
             "type": "string"
+          },
+          "track": {
+            "items": {
+              "items": {
+                "format": "double",
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
           }
         },
         "required": [
@@ -5282,6 +5389,30 @@
           "last",
           "way",
           "route"
+        ],
+        "type": "object"
+      },
+      "Way": {
+        "additionalProperties": false,
+        "properties": {
+          "arrive": {
+            "description": "Arriving before the time instead of leaving after it",
+            "type": "boolean"
+          },
+          "home_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "time": {
+            "description": "HH:MM, Swiss time, on the stage's day",
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "home_id",
+          "time",
+          "arrive"
         ],
         "type": "object"
       }
@@ -6634,26 +6765,48 @@
         "operationId": "find-connections",
         "parameters": [
           {
-            "description": "Didok number of the departure stop",
+            "description": "Didok number of the departure stop, or a position as lon,lat",
             "explode": false,
             "in": "query",
             "name": "from",
             "required": true,
             "schema": {
-              "description": "Didok number of the departure stop",
-              "pattern": "^[0-9]{7}$",
+              "description": "Didok number of the departure stop, or a position as lon,lat",
+              "pattern": "^([0-9]{7}|-?[0-9]{1,3}(\\.[0-9]{1,7})?,-?[0-9]{1,2}(\\.[0-9]{1,7})?)$",
               "type": "string"
             }
           },
           {
-            "description": "Didok number of the arrival stop",
+            "description": "Didok number of the arrival stop, or a position as lon,lat",
             "explode": false,
             "in": "query",
             "name": "to",
             "required": true,
             "schema": {
-              "description": "Didok number of the arrival stop",
-              "pattern": "^[0-9]{7}$",
+              "description": "Didok number of the arrival stop, or a position as lon,lat",
+              "pattern": "^([0-9]{7}|-?[0-9]{1,3}(\\.[0-9]{1,7})?,-?[0-9]{1,2}(\\.[0-9]{1,7})?)$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Name of a departure position, for the walk from it",
+            "explode": false,
+            "in": "query",
+            "name": "from_name",
+            "schema": {
+              "description": "Name of a departure position, for the walk from it",
+              "maxLength": 60,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Name of an arrival position",
+            "explode": false,
+            "in": "query",
+            "name": "to_name",
+            "schema": {
+              "description": "Name of an arrival position",
+              "maxLength": 60,
               "type": "string"
             }
           },
@@ -6690,6 +6843,16 @@
               "description": "The time is the latest arrival instead of the earliest departure",
               "type": "boolean"
             }
+          },
+          {
+            "description": "With the way of each leg (track), to draw them",
+            "explode": false,
+            "in": "query",
+            "name": "lines",
+            "schema": {
+              "description": "With the way of each leg (track), to draw them",
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -6714,7 +6877,7 @@
             "description": "Error"
           }
         },
-        "summary": "Public transport connections between two stops",
+        "summary": "Public transport connections between two stops or positions",
         "tags": [
           "places"
         ]
@@ -9316,6 +9479,121 @@
         ]
       }
     },
+    "/journeys/{id}/travel": {
+      "get": {
+        "operationId": "get-journey-travel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey",
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneyTravel"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "One's own way from home to the first stage and back from the last",
+        "tags": [
+          "travel"
+        ]
+      },
+      "put": {
+        "description": "Replaces both directions; one left out is none. The homes must be one's own.",
+        "operationId": "set-journey-travel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey",
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JourneyTravel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneyTravel"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Set one's own way from home and back",
+        "tags": [
+          "travel"
+        ]
+      }
+    },
     "/live": {
       "post": {
         "description": "They get the link by e-mail, and an e-mail with the last position if the hike has not ended 30 minutes after the expected end. A share still running ends.",
@@ -9768,6 +10046,111 @@
         "summary": "Remove a contact",
         "tags": [
           "live"
+        ]
+      }
+    },
+    "/me/homes": {
+      "get": {
+        "operationId": "list-homes",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomesOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Where one sets off from and returns to by public transport",
+        "tags": [
+          "travel"
+        ]
+      },
+      "post": {
+        "operationId": "add-home",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddHomeInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Home"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Add a home (at most 5)",
+        "tags": [
+          "travel"
+        ]
+      }
+    },
+    "/me/homes/{id}": {
+      "delete": {
+        "operationId": "delete-home",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Remove a home and the travel from and to it",
+        "tags": [
+          "travel"
         ]
       }
     },

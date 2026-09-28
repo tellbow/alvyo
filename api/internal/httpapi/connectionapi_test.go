@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -86,5 +87,33 @@ func TestConnections(t *testing.T) {
 	fake.fail = true
 	if code, _ := c2.do("GET", "/api/v1/connections?from=8509411&to=8509965&date=2026-07-04&time=09:00", nil); code != http.StatusBadGateway {
 		t.Errorf("planner down: %d", code)
+	}
+}
+
+// From an address (a home) to a stop, with the ways to draw.
+func TestConnectionsFromAPosition(t *testing.T) {
+	fake := &fakePlanner{}
+	s := newTestServerWith(t, func(d *Deps) { d.Planner = fake })
+	c := s.client(t)
+	c.do("POST", "/api/v1/auth/signup", signupBody("pt@example.ch", "pendler"))
+	q := "/api/v1/connections?from=7.6197,46.764&from_name=Zuhause&to=8507483&date=2026-07-04&time=06:00&lines=true"
+	if code, body := c.do("GET", q, nil); code != http.StatusOK {
+		t.Fatalf("%d %s", code, body)
+	}
+	if f := fake.last.From; f.Ref != "" || f.Lon != 7.6197 || f.Lat != 46.764 || f.Name != "Zuhause" || fake.last.To.Ref != "8507483" || !fake.last.Lines {
+		t.Errorf("query %+v", fake.last)
+	}
+	// Without the ways it is another answer, not the cached one.
+	c.do("GET", strings.Replace(q, "&lines=true", "", 1), nil)
+	if fake.calls.Load() != 2 || fake.last.Lines {
+		t.Errorf("%d calls, %+v", fake.calls.Load(), fake.last)
+	}
+	for _, bad := range []string{
+		"/api/v1/connections?from=200.5,46.7&to=8507483&date=2026-07-04",
+		"/api/v1/connections?from=7.6,46.7,1&to=8507483&date=2026-07-04",
+	} {
+		if code, _ := c.do("GET", bad, nil); code != http.StatusUnprocessableEntity {
+			t.Errorf("%s: %d", bad, code)
+		}
 	}
 }

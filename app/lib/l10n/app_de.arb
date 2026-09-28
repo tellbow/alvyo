@@ -731,5 +731,34 @@
   "myMapKindHike": "Gewanderte",
   "connectionsFromHere": "Verbindungen von hier zum Start",
   "connectionsNoPosition": "Dein Standort ist nicht bekannt. Erlaube Alvyo den Standort in den iPhone-Einstellungen.",
-  "stageMore": "Details und Anreise"
+  "stageMore": "Details und Anreise",
+  "travelTitle": "An- und Heimreise",
+  "travelTo": "Anreise",
+  "travelBack": "Heimreise",
+  "travelFrom": "Von",
+  "travelToHome": "Nach",
+  "travelNone": "– keine –",
+  "travelOn": "am {date}",
+  "@travelOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "travelNoDate": "Die Etappe hat kein Datum: Verbindungen von heute.",
+  "travelNoHomes": "Füge in deinem Konto ein Zuhause hinzu, um die An- und Heimreise mit dem öffentlichen Verkehr zu planen.",
+  "travelPrivate": "Nur du siehst deine An- und Heimreise.",
+  "travelNoRoute": "Sobald eine Etappe eine Route hat.",
+  "travelChoose": "Wähle ein Zuhause",
+  "homesTitle": "Zuhause",
+  "homesIntro": "Von hier planst du die Anreise zu deinen Etappentouren und die Heimreise mit dem öffentlichen Verkehr. Höchstens 5; nur du siehst sie.",
+  "homesName": "Name",
+  "homesNamePlaceholder": "z. B. Zuhause, Büro",
+  "homesAddress": "Adresse suchen …",
+  "homesAdd": "Hinzufügen",
+  "homesRemove": "Entfernen",
+  "homesFull": "Höchstens 5 Zuhause.",
+  "travelStart": "Start der Tour",
+  "travelEnd": "Ende der Tour"
 }

@@ -98,7 +98,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final (i, trip) in trips.indexed) _TripCard(key: Key('trip-$i'), trip: trip),
+                  for (final (i, trip) in trips.indexed) TripCard(key: Key('trip-$i'), trip: trip),
                   const SizedBox(height: 8),
                   Text(t.connectionsSource, style: theme.textTheme.bodySmall?.merge(muted)),
                 ],
@@ -111,9 +111,13 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   }
 }
 
-class _TripCard extends StatelessWidget {
-  const _TripCard({super.key, required this.trip});
+/// A connection: its times, rides and walks; [onTap] chooses it (drawn on
+/// the map when [selected]).
+class TripCard extends StatelessWidget {
+  const TripCard({super.key, required this.trip, this.selected = false, this.onTap});
   final Trip trip;
+  final bool selected;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -122,52 +126,62 @@ class _TripCard extends StatelessWidget {
     final muted = TextStyle(color: theme.colorScheme.onSurfaceVariant);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 2,
-          children: [
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${formatTime(trip.start)} → ${formatTime(trip.end)}',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  TextSpan(
-                    text:
-                        ' · ${trip.end.difference(trip.start).inMinutes} min · '
-                        '${t.connectionsTransfers(trip.transfers)}',
-                    style: muted,
-                  ),
-                ],
+      clipBehavior: Clip.antiAlias,
+      shape: selected
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(22),
+              side: BorderSide(color: theme.colorScheme.primary, width: 2),
+            )
+          : null,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 2,
+            children: [
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${formatTime(trip.start)} → ${formatTime(trip.end)}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    TextSpan(
+                      text:
+                          ' · ${trip.end.difference(trip.start).inMinutes} min · '
+                          '${t.connectionsTransfers(trip.transfers)}',
+                      style: muted,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            for (final leg in trip.legs)
-              if (leg.ride && leg.departure != null)
-                Text.rich(
-                  TextSpan(
-                    style: muted,
-                    children: [
-                      TextSpan(text: '${formatTime(leg.departure!)} '),
-                      TextSpan(
-                        text: leg.line,
-                        style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
-                      ),
-                      TextSpan(text: ' ${leg.from} → ${leg.to}'),
-                      if (leg.platform.isNotEmpty) TextSpan(text: ' · ${t.connectionsPlatform(leg.platform)}'),
-                      if (leg.delayMin > 0)
+              for (final leg in trip.legs)
+                if (leg.ride && leg.departure != null)
+                  Text.rich(
+                    TextSpan(
+                      style: muted,
+                      children: [
+                        TextSpan(text: '${formatTime(leg.departure!)} '),
                         TextSpan(
-                          text: ' +${leg.delayMin}′',
-                          style: TextStyle(color: theme.colorScheme.error),
+                          text: leg.line,
+                          style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
                         ),
-                    ],
-                  ),
-                )
-              else if (!leg.ride)
-                Text(t.connectionsWalk(leg.walkMin), style: muted),
-          ],
+                        TextSpan(text: ' ${leg.from} → ${leg.to}'),
+                        if (leg.platform.isNotEmpty) TextSpan(text: ' · ${t.connectionsPlatform(leg.platform)}'),
+                        if (leg.delayMin > 0)
+                          TextSpan(
+                            text: ' +${leg.delayMin}′',
+                            style: TextStyle(color: theme.colorScheme.error),
+                          ),
+                      ],
+                    ),
+                  )
+                else if (!leg.ride)
+                  Text(t.connectionsWalk(leg.walkMin), style: muted),
+            ],
+          ),
         ),
       ),
     );

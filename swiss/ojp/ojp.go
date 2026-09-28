@@ -1,5 +1,6 @@
 // Package ojp asks the Swiss Open Journey Planner (OJP 2.0,
-// opentransportdata.swiss) for public transport connections between stops.
+// opentransportdata.swiss) for public transport connections between stops
+// or positions (an address: the planner adds the walk to the stop).
 package ojp
 
 import (
@@ -28,13 +29,26 @@ type Client struct {
 	HTTP         *http.Client
 }
 
-// Query asks for trips between two stops (Didok numbers, e.g. 8509411).
+// Query asks for trips between two places.
 type Query struct {
-	From, To string
+	From, To Place
 	At       time.Time // departure, or arrival when Arrive
 	Arrive   bool
 	Results  int // default 4
+	// Lines asks for the way of each leg (Leg.Track).
+	Lines bool
 }
+
+// Place is a stop (Ref, a Didok number such as 8509411) or, without Ref, a
+// position with a name for the answer's legs.
+type Place struct {
+	Ref      string
+	Lon, Lat float64
+	Name     string
+}
+
+// Stop is the place of a stop.
+func Stop(ref string) Place { return Place{Ref: ref} }
 
 // Trip is one connection.
 type Trip struct {
@@ -62,6 +76,8 @@ type Leg struct {
 	DelayMin    int    `json:"delay_min,omitempty"`
 	Platform    string `json:"platform,omitempty"`
 	DurationMin int    `json:"duration_min,omitempty" doc:"Walks only"`
+	// The way, when asked for (Query.Lines): lon, lat per point.
+	Track [][2]float64 `json:"track,omitempty"`
 }
 
 // Trips asks the planner for connections.
@@ -89,8 +105,19 @@ func (c *Client) Trips(ctx context.Context, q Query) ([]Trip, error) {
 	return Parse(io.LimitReader(resp.Body, 8<<20))
 }
 
-// requestXML builds an OJPTripRequest. Stop refs are digits (checked by the
-// caller), so nothing needs escaping beyond that.
+// placeXML is a PlaceRef. Stop refs are digits (checked by the caller);
+// names are escaped.
+func placeXML(p Place) string {
+	if p.Ref != "" {
+		return `<PlaceRef><StopPlaceRef>` + p.Ref + `</StopPlaceRef></PlaceRef>`
+	}
+	var name bytes.Buffer
+	_ = xml.EscapeText(&name, []byte(p.Name))
+	return fmt.Sprintf(`<PlaceRef><GeoPosition><siri:Longitude>%.6f</siri:Longitude><siri:Latitude>%.6f</siri:Latitude></GeoPosition><Name><Text>%s</Text></Name></PlaceRef>`,
+		p.Lon, p.Lat, name.String())
+}
+
+// requestXML builds an OJPTripRequest.
 func requestXML(q Query, requestor string, now time.Time) string {
 	results := q.Results
 	if results <= 0 {
@@ -100,6 +127,10 @@ func requestXML(q Query, requestor string, now time.Time) string {
 	originTime, destTime := "<DepArrTime>"+at+"</DepArrTime>", ""
 	if q.Arrive {
 		originTime, destTime = "", "<DepArrTime>"+at+"</DepArrTime>"
+	}
+	lines := ""
+	if q.Lines {
+		lines = "\n\t\t\t\t\t<IncludeLegProjection>true</IncludeLegProjection>"
 	}
 	var b bytes.Buffer
 	_ = xml.EscapeText(&b, []byte(requestor))
@@ -112,10 +143,10 @@ func requestXML(q Query, requestor string, now time.Time) string {
 			<siri:RequestorRef>` + b.String() + `</siri:RequestorRef>
 			<OJPTripRequest>
 				<siri:RequestTimestamp>` + ts + `</siri:RequestTimestamp>
-				<Origin><PlaceRef><StopPlaceRef>` + q.From + `</StopPlaceRef></PlaceRef>` + originTime + `</Origin>
-				<Destination><PlaceRef><StopPlaceRef>` + q.To + `</StopPlaceRef></PlaceRef>` + destTime + `</Destination>
+				<Origin>` + placeXML(q.From) + originTime + `</Origin>
+				<Destination>` + placeXML(q.To) + destTime + `</Destination>
 				<Params>
-					<NumberOfResults>` + fmt.Sprint(results) + `</NumberOfResults>
+					<NumberOfResults>` + fmt.Sprint(results) + `</NumberOfResults>` + lines + `
 					<UseRealtimeData>explanatory</UseRealtimeData>
 				</Params>
 			</OJPTripRequest>
@@ -157,6 +188,7 @@ type xmlLeg struct {
 			Published   text `xml:"PublishedServiceName"`
 			Destination text `xml:"DestinationText"`
 		} `xml:"Service"`
+		Track []position `xml:"LegTrack>TrackSection>LinkProjection>Position"`
 	} `xml:"TimedLeg"`
 	Transfer *walkXML `xml:"TransferLeg"`
 	// ContinuousLeg: walking to or from a stop outside the network.
@@ -167,6 +199,26 @@ type walkXML struct {
 	Start    text   `xml:"LegStart>Name"`
 	End      text   `xml:"LegEnd>Name"`
 	Duration string `xml:"Duration"`
+	// Walks from and to a position have a track; walks between stops, if
+	// any, a path guidance.
+	Track    []position `xml:"LegTrack>TrackSection>LinkProjection>Position"`
+	Guidance []position `xml:"PathGuidance>PathGuidanceSection>TrackSection>LinkProjection>Position"`
+}
+
+type position struct {
+	Lon float64 `xml:"Longitude"`
+	Lat float64 `xml:"Latitude"`
+}
+
+func track(ps []position) [][2]float64 {
+	if len(ps) == 0 {
+		return nil
+	}
+	out := make([][2]float64, len(ps))
+	for i, p := range ps {
+		out[i] = [2]float64{p.Lon, p.Lat}
+	}
+	return out
 }
 
 type delivery struct {
@@ -217,7 +269,7 @@ func Parse(r io.Reader) ([]Trip, error) {
 					Kind: "ride", Mode: tl.Service.Mode.PtMode, Line: line, Direction: tl.Service.Destination.Text,
 					From: tl.Board.Name.Text, To: tl.Alight.Name.Text,
 					Departure: tl.Board.Departure.Timetabled, Arrival: tl.Alight.Arrival.Timetabled,
-					Platform: platform,
+					Platform: platform, Track: track(tl.Track),
 				}
 				if e, err := time.Parse(time.RFC3339, strings.TrimSpace(tl.Board.Departure.Estimated)); err == nil {
 					leg.DelayMin = int(e.Sub(leg.Departure).Minutes())
@@ -229,8 +281,12 @@ func Parse(r io.Reader) ([]Trip, error) {
 					w = l.Continuous
 				}
 				d, _ := parseDuration(w.Duration)
-				trip.Legs = append(trip.Legs, Leg{Kind: "walk", From: w.Start.Text, To: w.End.Text,
-					DurationMin: int(d.Round(time.Minute).Minutes())})
+				walk := Leg{Kind: "walk", From: w.Start.Text, To: w.End.Text,
+					DurationMin: int(d.Round(time.Minute).Minutes()), Track: track(w.Track)}
+				if walk.Track == nil {
+					walk.Track = track(w.Guidance)
+				}
+				trip.Legs = append(trip.Legs, walk)
 			}
 		}
 		trips = append(trips, trip)

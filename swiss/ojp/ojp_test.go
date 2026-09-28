@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -83,12 +84,12 @@ func TestParseNoTrip(t *testing.T) {
 
 func TestRequestXML(t *testing.T) {
 	at := time.Date(2026, 7, 4, 8, 0, 0, 0, time.FixedZone("CEST", 2*3600))
-	dep := requestXML(Query{From: "8509411", To: "8509965", At: at}, "alvyo <test>", at)
+	dep := requestXML(Query{From: Stop("8509411"), To: Stop("8509965"), At: at}, "alvyo <test>", at)
 	if !strings.Contains(dep, "<StopPlaceRef>8509411</StopPlaceRef></PlaceRef><DepArrTime>2026-07-04T06:00:00Z</DepArrTime></Origin>") ||
 		!strings.Contains(dep, "alvyo &lt;test&gt;") || !strings.Contains(dep, "<NumberOfResults>4</NumberOfResults>") {
 		t.Errorf("departure request:\n%s", dep)
 	}
-	arr := requestXML(Query{From: "8509411", To: "8509965", At: at, Arrive: true, Results: 2}, "alvyo", at)
+	arr := requestXML(Query{From: Stop("8509411"), To: Stop("8509965"), At: at, Arrive: true, Results: 2}, "alvyo", at)
 	if !strings.Contains(arr, "<StopPlaceRef>8509965</StopPlaceRef></PlaceRef><DepArrTime>2026-07-04T06:00:00Z</DepArrTime></Destination>") {
 		t.Errorf("arrival request:\n%s", arr)
 	}
@@ -125,7 +126,7 @@ func TestTrips(t *testing.T) {
 	}))
 	defer srv.Close()
 	c := &Client{URL: srv.URL, Token: "key", RequestorRef: "alvyo"}
-	q := Query{From: "8503000", To: "8509434", At: time.Date(2026, 9, 26, 7, 0, 0, 0, time.UTC)}
+	q := Query{From: Stop("8503000"), To: Stop("8509434"), At: time.Date(2026, 9, 26, 7, 0, 0, 0, time.UTC)}
 
 	trips, err := c.Trips(context.Background(), q)
 	if err != nil || len(trips) != 2 {
@@ -134,5 +135,55 @@ func TestTrips(t *testing.T) {
 	status = http.StatusTooManyRequests // over the quota
 	if _, err := c.Trips(context.Background(), q); !errors.Is(err, ErrUnavailable) {
 		t.Errorf("err = %v, want ErrUnavailable", err)
+	}
+}
+
+// From a home in Thun to Spiez: the walk from the door and the rides with
+// their ways.
+func TestParseFromAPosition(t *testing.T) {
+	f, err := os.Open("testdata/home-spiez.xml") // recorded response, a position in Thun → Spiez
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = f.Close() }()
+	trips, err := Parse(f)
+	if err != nil || len(trips) != 1 {
+		t.Fatalf("%d trips, %v", len(trips), err)
+	}
+	legs := trips[0].Legs
+	first := legs[0]
+	// The track starts on the nearest path, a few metres from the position.
+	near := func(p [2]float64) bool { return math.Abs(p[0]-7.6197) < 0.0006 && math.Abs(p[1]-46.764) < 0.0004 }
+	if first.Kind != "walk" || first.From != "Home" || len(first.Track) < 2 || !near(first.Track[0]) {
+		t.Fatalf("first leg %+v", first)
+	}
+	rides := 0
+	for _, l := range legs {
+		if l.Kind == "ride" {
+			rides++
+			if len(l.Track) < 2 {
+				t.Errorf("ride without its way: %+v", l)
+			}
+		}
+	}
+	if rides == 0 || legs[len(legs)-1].To != "Spiez" && legs[len(legs)-1].Kind == "ride" {
+		t.Errorf("legs %+v", legs)
+	}
+}
+
+func TestRequestFromAPositionWithLines(t *testing.T) {
+	at := time.Date(2026, 7, 4, 6, 0, 0, 0, time.UTC)
+	q := Query{From: Place{Lon: 7.6197, Lat: 46.764, Name: "Zuhause <Thun>"}, To: Stop("8507483"), At: at, Lines: true}
+	x := requestXML(q, "alvyo", at)
+	for _, want := range []string{
+		"<Origin><PlaceRef><GeoPosition><siri:Longitude>7.619700</siri:Longitude><siri:Latitude>46.764000</siri:Latitude></GeoPosition><Name><Text>Zuhause &lt;Thun&gt;</Text></Name></PlaceRef><DepArrTime>",
+		"<IncludeLegProjection>true</IncludeLegProjection>",
+	} {
+		if !strings.Contains(x, want) {
+			t.Errorf("missing %s in\n%s", want, x)
+		}
+	}
+	if strings.Contains(requestXML(Query{From: Stop("8509411"), To: Stop("8509965"), At: at}, "alvyo", at), "IncludeLegProjection") {
+		t.Error("ways asked for without Lines")
 	}
 }

@@ -3,7 +3,14 @@
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { api, type FoundPlace, type Me, type Proposal, type Suggestion } from '$lib/api/client';
+	import {
+		api,
+		type FoundPlace,
+		type Me,
+		type Proposal,
+		type Suggestion,
+		type Travel
+	} from '$lib/api/client';
 	import CollectionLayers from '$lib/collections/CollectionLayers.svelte';
 	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
 	import Map from '$lib/map/Map.svelte';
@@ -13,6 +20,7 @@
 	import { SAC_COLOR } from '$lib/planner/colors';
 	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
 	import PlanTabs from '$lib/planner/PlanTabs.svelte';
+	import TravelChoice from '$lib/travel/TravelChoice.svelte';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { stageColor } from './colors';
@@ -61,6 +69,8 @@
 	// After a plan refused for a day over the most: the days that would fit.
 	let fewest = $state<number>();
 	let title = $state('');
+	// From and to which home by public transport, saved with the journey.
+	let travel: Travel = {};
 
 	let base = $state<BaseMapId>('landeskarte');
 	let overlays = $state<OverlayId[]>(['wanderwege']);
@@ -282,6 +292,9 @@
 				}))
 			}
 		});
+		if (data && (travel.to || travel.back)) {
+			await api().PUT('/journeys/{id}/travel', { params: { path: { id: data.id } }, body: travel });
+		}
 		busy = false;
 		if (data) await goto(resolve('/journeys/[id]', { id: data.id }));
 		else problem = m.error_generic();
@@ -601,6 +614,7 @@
 						class="rounded-md border border-stone-300 px-2 py-1.5"
 					/>
 				</label>
+				<TravelChoice onchange={(t) => (travel = t)} />
 				<button
 					disabled={!hydrated.value || busy || !title.trim()}
 					class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-50"

@@ -26,6 +26,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/ratelimit"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/testdb"
+	"github.com/tellbow/alvyo/api/internal/travel"
 )
 
 const origin = "http://alvyo.test"
@@ -61,6 +62,7 @@ func newTestServerWith(t *testing.T, adjust func(*Deps)) *testServer {
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: rec, PublicURL: origin},
 		Photos:      &photos.Store{DB: pool, Files: &photos.Files{Dir: t.TempDir()}},
+		Travel:      &travel.Store{DB: pool},
 		Version:     "test",
 		PublicURL:   origin,
 	}

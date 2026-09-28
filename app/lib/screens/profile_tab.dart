@@ -159,6 +159,14 @@ class _ProfileTabState extends State<ProfileTab> {
               onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(notifyFollows: v)),
             ),
             ListTile(
+              key: const Key('homes'),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.home_outlined),
+              title: Text(t.homesTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _push(HomesScreen(api: widget.api)),
+            ),
+            ListTile(
               key: const Key('contacts'),
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.contact_mail_outlined),

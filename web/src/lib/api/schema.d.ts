@@ -396,7 +396,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Public transport connections between two stops
+         * Public transport connections between two stops or positions
          * @description From the Swiss Open Journey Planner; answers are cached for 10 minutes. 503 when not configured.
          */
         get: operations["find-connections"];
@@ -1043,6 +1043,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journeys/{id}/travel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One's own way from home to the first stage and back from the last */
+        get: operations["get-journey-travel"];
+        /**
+         * Set one's own way from home and back
+         * @description Replaces both directions; one left out is none. The homes must be one's own.
+         */
+        put: operations["set-journey-travel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/live": {
         parameters: {
             query?: never;
@@ -1200,6 +1221,41 @@ export interface paths {
         post?: never;
         /** Remove a contact */
         delete: operations["delete-contact"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/homes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Where one sets off from and returns to by public transport */
+        get: operations["list-homes"];
+        put?: never;
+        /** Add a home (at most 5) */
+        post: operations["add-home"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/homes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a home and the travel from and to it */
+        delete: operations["delete-home"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1990,6 +2046,14 @@ export interface components {
             email: string;
             name: string;
         };
+        AddHomeInputBody: {
+            address: string;
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+            name: string;
+        };
         AddItemInputBody: {
             /** Format: uuid */
             journey_id?: string;
@@ -2499,6 +2563,21 @@ export interface components {
             /** Format: date-time */
             t: string;
         };
+        Home: {
+            /** @description As found by the place search */
+            address: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+            /** @description e.g. Zuhause, Büro */
+            name: string;
+        };
+        HomesOutputBody: {
+            homes: components["schemas"]["Home"][];
+        };
         IdentitiesOutputBody: {
             identities: components["schemas"]["IdentityInfo"][];
         };
@@ -2688,6 +2767,12 @@ export interface components {
             version: number;
             /** @enum {string} */
             visibility: "private" | "unlisted" | "public";
+        };
+        JourneyTravel: {
+            /** @description From the last stage to a home; none if left out */
+            back?: components["schemas"]["Way"];
+            /** @description From a home to the first stage; none if left out */
+            to?: components["schemas"]["Way"];
         };
         KomootImportInputBody: {
             session: string;
@@ -3523,6 +3608,7 @@ export interface components {
             mode?: string;
             platform?: string;
             to: string;
+            track?: number[][];
         };
         TransitTrip: {
             /** Format: date-time */
@@ -3644,6 +3730,14 @@ export interface components {
             started_at: string;
             title: string;
             way: components["schemas"]["Position"][];
+        };
+        Way: {
+            /** @description Arriving before the time instead of leaving after it */
+            arrive: boolean;
+            /** Format: uuid */
+            home_id: string;
+            /** @description HH:MM, Swiss time, on the stage's day */
+            time: string;
         };
     };
     responses: never;
@@ -4554,16 +4648,22 @@ export interface operations {
     "find-connections": {
         parameters: {
             query: {
-                /** @description Didok number of the departure stop */
+                /** @description Didok number of the departure stop, or a position as lon,lat */
                 from: string;
-                /** @description Didok number of the arrival stop */
+                /** @description Didok number of the arrival stop, or a position as lon,lat */
                 to: string;
+                /** @description Name of a departure position, for the walk from it */
+                from_name?: string;
+                /** @description Name of an arrival position */
+                to_name?: string;
                 /** @description YYYY-MM-DD */
                 date: string;
                 /** @description HH:MM, Swiss time */
                 time?: string;
                 /** @description The time is the latest arrival instead of the earliest departure */
                 arrive?: boolean;
+                /** @description With the way of each leg (track), to draw them */
+                lines?: boolean;
             };
             header?: never;
             path?: never;
@@ -6206,6 +6306,78 @@ export interface operations {
             };
         };
     };
+    "get-journey-travel": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyTravel"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "set-journey-travel": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JourneyTravel"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyTravel"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "start-live": {
         parameters: {
             query?: never;
@@ -6551,6 +6723,97 @@ export interface operations {
         };
     };
     "delete-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-homes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomesOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "add-home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddHomeInputBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Home"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "delete-home": {
         parameters: {
             query?: never;
             header?: never;

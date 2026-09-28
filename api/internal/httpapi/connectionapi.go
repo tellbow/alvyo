@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,11 +25,27 @@ type Planner interface {
 const tripCacheTTL = 10 * time.Minute
 
 type connectionsInput struct {
-	From   string `query:"from" required:"true" pattern:"^[0-9]{7}$" doc:"Didok number of the departure stop"`
-	To     string `query:"to" required:"true" pattern:"^[0-9]{7}$" doc:"Didok number of the arrival stop"`
-	Date   string `query:"date" required:"true" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$" doc:"YYYY-MM-DD"`
-	Time   string `query:"time" pattern:"^[0-9]{2}:[0-9]{2}$" default:"08:00" doc:"HH:MM, Swiss time"`
-	Arrive bool   `query:"arrive" doc:"The time is the latest arrival instead of the earliest departure"`
+	From     string `query:"from" required:"true" pattern:"^([0-9]{7}|-?[0-9]{1,3}(\\.[0-9]{1,7})?,-?[0-9]{1,2}(\\.[0-9]{1,7})?)$" doc:"Didok number of the departure stop, or a position as lon,lat"`
+	To       string `query:"to" required:"true" pattern:"^([0-9]{7}|-?[0-9]{1,3}(\\.[0-9]{1,7})?,-?[0-9]{1,2}(\\.[0-9]{1,7})?)$" doc:"Didok number of the arrival stop, or a position as lon,lat"`
+	FromName string `query:"from_name" maxLength:"60" doc:"Name of a departure position, for the walk from it"`
+	ToName   string `query:"to_name" maxLength:"60" doc:"Name of an arrival position"`
+	Date     string `query:"date" required:"true" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$" doc:"YYYY-MM-DD"`
+	Time     string `query:"time" pattern:"^[0-9]{2}:[0-9]{2}$" default:"08:00" doc:"HH:MM, Swiss time"`
+	Arrive   bool   `query:"arrive" doc:"The time is the latest arrival instead of the earliest departure"`
+	Lines    bool   `query:"lines" doc:"With the way of each leg (track), to draw them"`
+}
+
+// place reads a from or to parameter: a stop's Didok number, or a position
+// as lon,lat (an address: the planner adds the walk to the stop).
+func place(v, name string) ojp.Place {
+	lon, lat, ok := strings.Cut(v, ",")
+	if !ok {
+		return ojp.Stop(v)
+	}
+	p := ojp.Place{Name: name}
+	p.Lon, _ = strconv.ParseFloat(lon, 64)
+	p.Lat, _ = strconv.ParseFloat(lat, 64)
+	return p
 }
 
 type connectionsOutput struct {
@@ -46,7 +63,7 @@ func registerConnections(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "find-connections", Method: http.MethodGet, Path: "/connections",
-		Summary:     "Public transport connections between two stops",
+		Summary:     "Public transport connections between two stops or positions",
 		Description: "From the Swiss Open Journey Planner; answers are cached for 10 minutes. 503 when not configured.",
 		Tags:        []string{"places"},
 	}, func(ctx context.Context, in *connectionsInput) (*connectionsOutput, error) {
@@ -61,7 +78,12 @@ func registerConnections(api huma.API, d Deps) {
 		if err != nil {
 			return nil, huma.Error422UnprocessableEntity("invalid date or time")
 		}
-		key := strings.Join([]string{in.From, in.To, in.Date, in.Time, map[bool]string{true: "a", false: "d"}[in.Arrive]}, "|")
+		from, to := place(in.From, in.FromName), place(in.To, in.ToName)
+		if !inRange(from) || !inRange(to) {
+			return nil, huma.Error422UnprocessableEntity("a position is out of range")
+		}
+		key := strings.Join([]string{in.From, in.FromName, in.To, in.ToName, in.Date, in.Time,
+			map[bool]string{true: "a", false: "d"}[in.Arrive], map[bool]string{true: "l", false: ""}[in.Lines]}, "|")
 		out := &connectionsOutput{}
 		now := time.Now()
 		if trips, ok := cache.get(key, now); ok {
@@ -73,7 +95,7 @@ func registerConnections(api huma.API, d Deps) {
 		}
 		ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
 		defer cancel()
-		trips, err := d.Planner.Trips(ctx, ojp.Query{From: in.From, To: in.To, At: at, Arrive: in.Arrive})
+		trips, err := d.Planner.Trips(ctx, ojp.Query{From: from, To: to, At: at, Arrive: in.Arrive, Lines: in.Lines})
 		if err != nil {
 			slog.WarnContext(ctx, "connections", "err", err)
 			return nil, huma.Error502BadGateway("the journey planner did not answer; use the SBB link")
@@ -82,6 +104,10 @@ func registerConnections(api huma.API, d Deps) {
 		out.Body.Trips = trips
 		return out, nil
 	})
+}
+
+func inRange(p ojp.Place) bool {
+	return p.Ref != "" || (p.Lon >= -180 && p.Lon <= 180 && p.Lat >= -90 && p.Lat <= 90)
 }
 
 // tripCache keeps planner answers for tripCacheTTL.

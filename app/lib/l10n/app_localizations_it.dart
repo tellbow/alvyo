@@ -1220,4 +1220,74 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get stageMore => 'Dettagli e come arrivare';
+
+  @override
+  String get travelTitle => 'Andata e ritorno';
+
+  @override
+  String get travelTo => 'Andata';
+
+  @override
+  String get travelBack => 'Ritorno';
+
+  @override
+  String get travelFrom => 'Da';
+
+  @override
+  String get travelToHome => 'A';
+
+  @override
+  String get travelNone => '– nessuno –';
+
+  @override
+  String travelOn(String date) {
+    return 'il $date';
+  }
+
+  @override
+  String get travelNoDate => 'La tappa non ha una data: collegamenti di oggi.';
+
+  @override
+  String get travelNoHomes =>
+      'Aggiungi una casa nel tuo account per pianificare andata e ritorno con i mezzi pubblici.';
+
+  @override
+  String get travelPrivate => 'Solo tu vedi la tua andata e il tuo ritorno.';
+
+  @override
+  String get travelNoRoute => 'Appena una tappa ha un percorso.';
+
+  @override
+  String get travelChoose => 'Scegli una casa';
+
+  @override
+  String get homesTitle => 'Case';
+
+  @override
+  String get homesIntro =>
+      'Da qui pianifichi l’andata verso i tuoi trekking a tappe e il ritorno con i mezzi pubblici. Al massimo 5; solo tu le vedi.';
+
+  @override
+  String get homesName => 'Nome';
+
+  @override
+  String get homesNamePlaceholder => 'p. es. Casa, Ufficio';
+
+  @override
+  String get homesAddress => 'Cerca un indirizzo …';
+
+  @override
+  String get homesAdd => 'Aggiungi';
+
+  @override
+  String get homesRemove => 'Rimuovi';
+
+  @override
+  String get homesFull => 'Al massimo 5 case.';
+
+  @override
+  String get travelStart => 'Partenza del trekking';
+
+  @override
+  String get travelEnd => 'Arrivo del trekking';
 }

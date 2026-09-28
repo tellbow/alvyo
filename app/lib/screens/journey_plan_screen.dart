@@ -12,6 +12,7 @@ import '../map_style.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import 'journey_screen.dart';
+import 'travel_screen.dart';
 
 /// Stage colours as on the website, cycled.
 const _stageColors = ['#a21caf', '#2563eb', '#0f766e', '#c2410c', '#4d7c0f', '#be123c'];
@@ -291,6 +292,9 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     _plan(ends);
   }
 
+  /// From and to which home by public transport, saved with the journey.
+  var _travel = const JourneyTravel();
+
   Future<void> _create() async {
     final stages = _stages;
     if (stages == null) return;
@@ -300,6 +304,11 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     });
     try {
       final j = await widget.api.createJourney(title: _title.text.trim(), stages: stages);
+      final travel = _travel;
+      if (travel.to != null || travel.back != null) {
+        // The journey is there anyway: a failure here is not worth an error.
+        await widget.api.setTravel(j.id, travel).catchError((_) => travel);
+      }
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -813,6 +822,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
         decoration: InputDecoration(labelText: t.jplanTitleField),
         onChanged: (_) => setState(() {}),
       ),
+      TravelChoice(api: widget.api, onChanged: (t) => _travel = t),
       FilledButton(
         key: const Key('jplan-create'),
         onPressed: _busy || _title.text.trim().isEmpty ? null : _create,

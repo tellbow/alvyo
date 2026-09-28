@@ -1215,4 +1215,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stageMore => 'Details and getting there';
+
+  @override
+  String get travelTitle => 'Getting there and back';
+
+  @override
+  String get travelTo => 'Getting there';
+
+  @override
+  String get travelBack => 'Getting home';
+
+  @override
+  String get travelFrom => 'From';
+
+  @override
+  String get travelToHome => 'To';
+
+  @override
+  String get travelNone => '– none –';
+
+  @override
+  String travelOn(String date) {
+    return 'on $date';
+  }
+
+  @override
+  String get travelNoDate => 'The stage has no date: today’s connections.';
+
+  @override
+  String get travelNoHomes => 'Add a home in your account to plan getting there and back by public transport.';
+
+  @override
+  String get travelPrivate => 'Only you see how you get there and back.';
+
+  @override
+  String get travelNoRoute => 'Once a stage has a route.';
+
+  @override
+  String get travelChoose => 'Choose a home';
+
+  @override
+  String get homesTitle => 'Homes';
+
+  @override
+  String get homesIntro =>
+      'From here you plan getting to your journeys and home again by public transport. At most 5; only you see them.';
+
+  @override
+  String get homesName => 'Name';
+
+  @override
+  String get homesNamePlaceholder => 'e.g. Home, Office';
+
+  @override
+  String get homesAddress => 'Search an address …';
+
+  @override
+  String get homesAdd => 'Add';
+
+  @override
+  String get homesRemove => 'Remove';
+
+  @override
+  String get homesFull => 'At most 5 homes.';
+
+  @override
+  String get travelStart => 'Start of the journey';
+
+  @override
+  String get travelEnd => 'End of the journey';
 }

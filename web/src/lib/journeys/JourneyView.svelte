@@ -11,7 +11,8 @@
 		type Me,
 		type ProtectedArea,
 		type RouteSummary,
-		type StagePatch
+		type StagePatch,
+		type Trip
 	} from '$lib/api/client';
 	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
 	import Map from '$lib/map/Map.svelte';
@@ -40,6 +41,8 @@
 	import Photos from '$lib/photos/Photos.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import StageCard from './StageCard.svelte';
+	import Travel from '$lib/travel/Travel.svelte';
+	import TravelLayers from '$lib/travel/TravelLayers.svelte';
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagInput from '$lib/tags/TagInput.svelte';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
@@ -60,6 +63,8 @@
 	const isOwner = $derived(journey.role === 'owner');
 
 	let base = $state<BaseMapId>('landeskarte');
+	// The connections from and to home shown on the map.
+	let travelTrips = $state<Trip[]>([]);
 	let overlays = $state<OverlayId[]>(['wanderwege']);
 	let map = $state<MapLibreMap>();
 	let lib = $state<typeof MapLibre>();
@@ -343,6 +348,7 @@
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
 			<JourneyLayers {map} {lib} {journey} {hover} />
+			<TravelLayers {map} {lib} trips={travelTrips} />
 			<PhotoPins {map} {lib} {gallery} />
 		{/if}
 		{#if profile.coordinates.length > 1}
@@ -409,6 +415,10 @@
 		{#if journey.totals.distance_m > 0}
 			<StatsPanel {totals} pace={user?.speed_factor ?? 1} />
 			<ProtectedAreas {areas} failed={areasFailed} days={plannedDays} />
+		{/if}
+
+		{#if user}
+			<Travel {journey} {token} onshow={(t) => (travelTrips = t)} />
 		{/if}
 
 		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}

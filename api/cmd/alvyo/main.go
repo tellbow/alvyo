@@ -43,6 +43,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/places"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/travel"
 	"github.com/tellbow/alvyo/swiss/elevation"
 	"github.com/tellbow/alvyo/swiss/ojp"
 )
@@ -140,6 +141,7 @@ func serve(ctx context.Context) error {
 		Komoot:      &imports.Komoot{API: imports.KomootAPI},
 		Places:      &places.Store{DB: pool, Names: &places.GeoAdmin{}},
 		Live:        liveStore,
+		Travel:      &travel.Store{DB: pool},
 		Areas:       &areas.Finder{DB: pool, UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"},
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},

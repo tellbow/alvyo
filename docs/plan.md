@@ -50,6 +50,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.8.0 | 2026-09-25 | Renamed from odysgeh to Alvyo: code, images (`alvyo-*`), `ALVYO_*` settings, the address alvyo.tellbow.ch (the old one redirects), the app as `ch.tellbow.alvyo`; the database, namespace and volumes keep the old name. The design of the Alvyo mock-up, light and dark after the system setting: colours, Figtree and Bricolage Grotesque, the Λ logo and icons, a new home page (public hikes, place search); in the app a floating bar (routes, journeys, record, Apple Watch, profile) |
 | 0.9.0 | 2026-09-27 | Several ways to choose from (16): «Mehrere Wege vorschlagen» in «Etappentour planen», and a journey put together from them where they share a night; hours per day from … to, the days follow (17); huts, hotels and campsites on every map (15); in the app planning like on the website (18): «Route planen», «Etappentour planen» and «Entdecken», the huts layer, and the search on a page of its own; planning fixes: ways to night places start on the line (Thun → Zermatt failed), no nights at places near the line but far by path, no ferries and car trains (a new graph, operations.md), heights of legs without length; fixes from a review of all parts: a sign-in provider connected before the address was proven is dropped on a password reset, the client address behind the proxy, photo limits under concurrent uploads, offline packs of a route changed back, crashes in the multi-day planner and in turns, times without a zone in imports, the login redirect, stale plans in the web planner, recordings and live location in the app (hangs, a start cut off by iOS, loops), and faster deletes, reorders and pack builds |
 | 0.10.0 | 2026-09-27 | Planning easier to find: «Route / Etappentour» at the top of both planners, a button on «Etappentouren»; collections filled from the collection itself («Route oder Etappentour hinzufügen …» searches one's own and shared routes and journeys) |
+| 0.11.0 | 2026-09-28 | Deleting routes and journeys (19): «Löschen» in the app's menu of one's own, offline copies removed too, and in the website's lists; the most per day kept (20): no plan with a longer day, instead the fewest days that fit and «In N Tagen planen» |
 
 ## Requirements
 
@@ -211,12 +212,12 @@ From the project owner, numbered in the order given: 1–5 added on
     kind, hiking time and SAC grade, opened like one's own), and the huts
     layer of 15 on the route, navigation and planning maps. They need this
     release's API on the server.
-19. **Deleting routes and journeys** (unreleased). In the app, the menu
+19. **Deleting routes and journeys** (0.11.0). In the app, the menu
     of a route and of a journey of one's own offers «Löschen», after
     asking; what is saved of it offline goes too (a stage's route is
     deleted with its stage, on the website). On the website, the lists
     «Routen» and «Etappentouren» delete as well, besides the pages.
-20. **The most per day is kept** (unreleased). Asked for at most so many
+20. **The most per day is kept** (0.11.0). Asked for at most so many
     hours a day (with the number of days, or hours from … to), a plan with a
     longer day is no longer shown (Thun → Zermatt in three days at most 8 h
     gave a day of 21 h 50 min): `POST /journeys/plan` answers 422 with the

@@ -105,6 +105,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       usable while typing (a decimal comma on the Swiss keyboard); the days
       in their colours, the other ways grey and a tap on one chooses it;
       «Ab hier weiter auf Weg N»; the created journey opens.
+- [ ] **The most per day** in «Etappentour planen» (e.g. Thun → Zermatt in
+      three days at most 8 h): no plan with a longer day, the message names
+      the fewest days that fit and «In N Tagen planen» plans with them; with
+      several ways, those that do not fit are left out.
 - [ ] **Löschen** from the menu of a saved route and of a journey saved
       offline: asked first, back in the list without it, and the offline
       maps gone (storage in the iPhone settings).

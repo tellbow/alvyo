@@ -466,5 +466,270 @@
         "type": "int"
       }
     }
-  }
+  },
+  "navFeed": "Neuigkeiten",
+  "settingsTitle": "Einstellungen",
+  "themeTitle": "Darstellung",
+  "themeSystem": "Automatisch",
+  "themeLight": "Hell",
+  "themeDark": "Dunkel",
+  "languageTitle": "Sprache",
+  "profileMine": "Mein Profil",
+  "accountNotifications": "Benachrichtigungen per E-Mail",
+  "accountNotifyComments": "Wenn jemand meine Routen und Etappentouren kommentiert",
+  "accountNotifyFollows": "Wenn mir jemand folgt",
+  "contactsTitle": "Kontakte für geteilte Wanderungen",
+  "contactsIntro": "Starte in der App eine Wanderung, kannst du ausgewählten Kontakten deinen Standort zeigen. Ist die Wanderung 30 Minuten nach dem geplanten Ende nicht beendet, bekommen sie eine E-Mail mit dem letzten Standort.",
+  "contactsName": "Name",
+  "contactsEmail": "E-Mail",
+  "contactsAdd": "Hinzufügen",
+  "contactsRemove": "Entfernen",
+  "contactsDuplicate": "Diese Adresse ist schon ein Kontakt.",
+  "contactsFull": "Höchstens 10 Kontakte.",
+  "blockedTitle": "Blockierte Personen",
+  "blockedEmpty": "Du hast niemanden blockiert.",
+  "accountDeleteTitle": "Konto löschen",
+  "accountDeleteText": "Löscht dein Konto und alle deine Routen endgültig. Geteilte Links funktionieren danach nicht mehr.",
+  "accountDeleteSubmit": "Konto endgültig löschen",
+  "accountDeleteWrong": "Das Passwort ist falsch.",
+  "accountDeleteRecent": "Dein Konto hat kein Passwort: Zum Bestätigen musst du dich in den letzten 15 Minuten angemeldet haben.",
+  "accountDeleteLoginAgain": "Bitte melde dich neu an und versuche es dann gleich noch einmal.",
+  "loginForgot": "Passwort vergessen?",
+  "loginSignup": "Konto erstellen",
+  "myMapTitle": "Karte meiner Touren",
+  "myMapEmpty": "In diesem Ausschnitt passt nichts zu den Filtern.",
+  "feedIntro": "Neue öffentliche Touren der Leute, denen du folgst.",
+  "feedEmpty": "Noch nichts – folge Leuten, deren Touren dich interessieren. Du findest sie beim Entdecken.",
+  "feedMore": "Ältere laden",
+  "profileSince": "dabei seit {date}",
+  "@profileSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "profileFollowers": "{n} Follower",
+  "@profileFollowers": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "profileFollowing": "folgt {n}",
+  "@profileFollowing": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "profileFollow": "Folgen",
+  "profileUnfollow": "Nicht mehr folgen",
+  "profileBlock": "Blockieren",
+  "profileUnblock": "Nicht mehr blockieren",
+  "profileBlockedNote": "Blockiert: Diese Person kann deine Touren nicht kommentieren und dir nicht folgen, und du siehst ihre Kommentare nicht.",
+  "profileRoutes": "Routen",
+  "profileJourneys": "Etappentouren",
+  "reportAction": "Melden",
+  "reportReason": "Grund",
+  "reportReasonSpam": "Spam oder Werbung",
+  "reportReasonOffensive": "Beleidigend oder unangemessen",
+  "reportReasonDangerous": "Gefährlich oder falsch",
+  "reportReasonOther": "Anderes",
+  "reportNote": "Was ist los? (freiwillig)",
+  "reportThanks": "Danke, wir schauen es uns an.",
+  "editAction": "Bearbeiten",
+  "save": "Speichern",
+  "saveConflict": "Jemand hat das inzwischen geändert. Hier ist der neue Stand – deine Änderung ist nicht gespeichert.",
+  "fieldTitle": "Titel",
+  "fieldDescription": "Beschreibung",
+  "fieldVisibility": "Sichtbarkeit",
+  "visibilityPrivate": "Privat",
+  "visibilityUnlisted": "Mit Link teilen",
+  "visibilityPublic": "Öffentlich",
+  "visibilityNeedsVerify": "Bestätige deine E-Mail-Adresse, um Routen zu veröffentlichen.",
+  "tagsLabel": "Tags",
+  "tagsHint": "Durch Kommas getrennt",
+  "ownerBy": "von {user}",
+  "@ownerBy": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "shareAction": "Teilen",
+  "shareLink": "Link zum Teilen",
+  "shareSend": "Link senden …",
+  "shareCopied": "Kopiert",
+  "shareLinkHint": "Wähle «Mit Link teilen» oder «Öffentlich», um einen Link zu senden.",
+  "shareRotate": "Neuen Link erzeugen",
+  "shareRotateHint": "Der bisherige Link funktioniert danach nicht mehr.",
+  "sharePeople": "Mit Personen teilen",
+  "sharePending": "eingeladen",
+  "shareRemove": "Zugriff entfernen",
+  "shareWho": "Benutzername oder E-Mail-Adresse",
+  "shareInvite": "Einladen",
+  "shareHint": "Eingeladene erhalten eine E-Mail. Wer noch kein Konto hat, registriert sich mit dieser Adresse.",
+  "shareNeedsVerify": "Bestätige deine E-Mail-Adresse, um mit anderen zu teilen.",
+  "shareRate": "Zu viele Einladungen – versuche es später wieder.",
+  "shareNoUser": "Diesen Benutzernamen gibt es nicht.",
+  "shareSelf": "Du kannst dich nicht selbst einladen.",
+  "shareTooMany": "Es haben bereits zu viele Personen Zugriff.",
+  "shareBadEmail": "Ungültige E-Mail-Adresse.",
+  "roleViewer": "Kann ansehen",
+  "roleEditor": "Kann mitplanen",
+  "sharedTitle": "Mit mir geteilt",
+  "gpxRoute": "GPX teilen …",
+  "gpxJourney": "Alle Etappen als GPX (ZIP) teilen …",
+  "photosTitle": "Fotos",
+  "photosAdd": "Fotos hinzufügen",
+  "photosCamera": "Foto aufnehmen",
+  "photosLibrary": "Aus der Mediathek",
+  "photosUploading": "{done} von {total} hochgeladen …",
+  "@photosUploading": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "photosHint": "JPEG, PNG, WebP oder HEIC bis 20 MB. Wir entfernen alle Metadaten; Fotos, die entlang der Route aufgenommen wurden, erscheinen auf der Karte.",
+  "photosProblemFormat": "kein JPEG-, PNG-, WebP- oder HEIC-Bild",
+  "photosProblemSize": "zu gross (höchstens 20 MB)",
+  "photosProblemLimit": "zu viele Fotos (höchstens 100 pro Tour und 1000 pro Person)",
+  "photosProblemRate": "zu viele Uploads – versuche es gleich noch einmal",
+  "photosProblemOther": "Hochladen fehlgeschlagen",
+  "photosCaption": "Beschreibung",
+  "photosBy": "von {user}",
+  "@photosBy": {
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "photosDelete": "Löschen",
+  "photosDeleteConfirm": "Wirklich löschen?",
+  "communityLike": "Merken",
+  "communityLikes": "{n} Mal gemerkt",
+  "@communityLikes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "communityComments": "{n} Kommentare",
+  "@communityComments": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "communityCommentsAllowed": "Kommentare erlauben",
+  "communityCommentsOff": "Kommentare sind ausgeschaltet.",
+  "communityCommentPlaceholder": "Kommentar schreiben …",
+  "communityCommentSend": "Kommentieren",
+  "communityReply": "Antworten",
+  "communityReplyPlaceholder": "Deine Antwort …",
+  "communityEdited": "bearbeitet",
+  "communityRate": "Das ging zu schnell – versuche es gleich noch einmal.",
+  "communityVerifyToComment": "Bestätige deine E-Mail-Adresse, um zu kommentieren.",
+  "stageEdit": "Etappe bearbeiten",
+  "stageDate": "Datum",
+  "stageDateNone": "Kein Datum",
+  "stageStatus": "Status",
+  "statusPlanned": "Geplant",
+  "stageAccommodationLabel": "Unterkunft",
+  "stageAccommodationPlaceholder": "z. B. Gasthaus Alpenhof",
+  "stageBookedLabel": "Gebucht",
+  "stageNotes": "Notizen",
+  "stageTransfer": "Überbrückt mit",
+  "transferNone": "–",
+  "sbbToStart": "SBB-Fahrplan: Anreise",
+  "sbbFromEnd": "SBB-Fahrplan: Rückreise",
+  "sbbTransfer": "SBB-Fahrplan",
+  "connectionsShow": "Verbindungen anzeigen",
+  "connectionsDepart": "Ab",
+  "connectionsArrive": "An",
+  "connectionsSearch": "Suchen",
+  "connectionsNone": "Keine Verbindung gefunden.",
+  "connectionsUnavailable": "Fahrplanabfrage gerade nicht möglich – nutze den SBB-Fahrplan.",
+  "connectionsTransfers": "{n} Umst.",
+  "@connectionsTransfers": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "connectionsWalk": "{min} min zu Fuss",
+  "@connectionsWalk": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "connectionsPlatform": "Gl./Kante {p}",
+  "@connectionsPlatform": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionsSource": "Fahrplandaten: opentransportdata.swiss",
+  "collectionsTitle": "Sammlungen",
+  "collectionsIntro": "Routen und Etappentouren zusammenstellen – als Wunschliste, Ideensammlung oder zum Teilen. Eine Sammlung gibt keinen Zugriff: Jede Person sieht nur, was sie ohnehin öffnen darf.",
+  "collectionsEmpty": "Noch keine Sammlungen.",
+  "collectionNew": "Neue Sammlung",
+  "collectionItemsCount": "{n} Einträge",
+  "@collectionItemsCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "collectionEmpty": "Noch leer. Füge Routen und Etappentouren über ihr Menü hinzu: «Zur Sammlung hinzufügen …».",
+  "collectionAddTo": "Zur Sammlung hinzufügen …",
+  "collectionAdded": "Hinzugefügt zu «{title}»",
+  "@collectionAdded": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "collectionAlready": "Schon in «{title}»",
+  "@collectionAlready": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "collectionRemoveItem": "Entfernen",
+  "collectionDelete": "Sammlung löschen",
+  "collectionDeleteConfirm": "Sammlung löschen? Routen und Etappentouren bleiben.",
+  "collectionStages": "{n} Etappen",
+  "@collectionStages": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myMapKindHike": "Gewanderte",
+  "connectionsFromHere": "Verbindungen von hier zum Start",
+  "connectionsNoPosition": "Dein Standort ist nicht bekannt. Erlaube Alvyo den Standort in den iPhone-Einstellungen.",
+  "stageMore": "Details und Anreise"
 }

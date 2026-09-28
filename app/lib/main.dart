@@ -6,13 +6,15 @@ import 'l10n/app_localizations.dart';
 import 'screens/login_screen.dart';
 import 'screens/routes_screen.dart';
 import 'session.dart';
+import 'settings.dart';
 import 'theme.dart';
 
 void main() => runApp(const AlvyoApp());
 
 class AlvyoApp extends StatefulWidget {
-  const AlvyoApp({super.key, this.session});
+  const AlvyoApp({super.key, this.session, this.settings});
   final Session? session;
+  final AppSettings? settings;
 
   @override
   State<AlvyoApp> createState() => _AlvyoAppState();
@@ -20,7 +22,9 @@ class AlvyoApp extends StatefulWidget {
 
 class _AlvyoAppState extends State<AlvyoApp> {
   late final Session _session = widget.session ?? Session();
-  late final Future<Api?> _restored = _session.restore();
+  late final AppSettings _settings = widget.settings ?? AppSettings.instance;
+  // The settings first, so the first screen is in the chosen look.
+  late final Future<Api?> _restored = _settings.loaded.then((_) => _session.restore());
   Api? _api;
   bool _restoredOnce = false;
 
@@ -44,11 +48,18 @@ class _AlvyoAppState extends State<AlvyoApp> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([_settings.theme, _settings.locale]),
+    builder: (context, _) => _app(context),
+  );
+
+  Widget _app(BuildContext context) {
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: alvyoTheme(Brightness.light),
       darkTheme: alvyoTheme(Brightness.dark),
+      themeMode: _settings.theme.value,
+      locale: _settings.locale.value,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -71,7 +82,7 @@ class _AlvyoAppState extends State<AlvyoApp> {
           if (api == null) {
             return LoginScreen(session: _session, onLoggedIn: (a) => setState(() => _api = a));
           }
-          return RoutesScreen(api: api, onLogout: _logout);
+          return RoutesScreen(api: api, onLogout: _logout, settings: _settings);
         },
       ),
     );

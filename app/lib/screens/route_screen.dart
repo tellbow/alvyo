@@ -14,11 +14,18 @@ import '../offline/downloads.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
-import 'delete_menu.dart';
+import 'collections_screen.dart';
+import 'details.dart';
+import 'item_menu.dart';
 import 'live_sheet.dart';
 import 'navigate_screen.dart';
+import 'photos.dart';
+import 'report_dialog.dart';
+import 'social.dart';
+import 'tag_chips.dart';
 
-/// A route on the national map, with offline saving.
+/// A route on the national map, with offline saving; its description,
+/// photos and comments, and a menu to change, share or export it.
 class RouteScreen extends StatefulWidget {
   const RouteScreen({super.key, required this.api, required this.id, required this.title, this.map});
   final Api api;
@@ -196,6 +203,34 @@ class _RouteScreenState extends State<RouteScreen> {
     }
   }
 
+  /// Title, description, tags and visibility; a stage route's tags are its
+  /// journey's, and only the owner changes who sees it.
+  Future<void> _edit(RouteDetail r) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final stage = r.journeyId != null;
+    final now = Details(title: r.title, description: r.description, tags: r.tags, visibility: r.visibility);
+    final next = await editDetails(context, now, tags: !stage, visibility: r.isOwner && !stage);
+    if (next == null) return;
+    final changes = detailChanges(now, next, tags: !stage);
+    if (changes.isEmpty) return;
+    try {
+      final updated = await widget.api.updateRoute(r.id, r.version, changes);
+      if (mounted) {
+        setState(() {
+          _route = Future.value(updated);
+        });
+      }
+    } on Object catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(changeError(t, e))));
+      if (e is ApiException && e.status == 412 && mounted) {
+        setState(() {
+          _route = widget.api.route(widget.id);
+        });
+      }
+    }
+  }
+
   /// Deletes the route on the server and its offline map, then leaves.
   Future<void> _delete() async {
     final t = AppLocalizations.of(context);
@@ -211,6 +246,47 @@ class _RouteScreenState extends State<RouteScreen> {
     if (mounted) nav.pop();
   }
 
+  /// A stage's route is shared, collected and deleted with its journey.
+  Widget _menu(AppLocalizations t, RouteDetail r) {
+    final stage = r.journeyId != null;
+    return ItemMenu(
+      actions: [
+        if (r.canEdit) MenuAction('edit', Icons.edit_outlined, t.editAction, () => _edit(r)),
+        if (r.isOwner && !stage)
+          MenuAction(
+            'share',
+            Icons.share_outlined,
+            t.shareAction,
+            () => shareSheet(
+              context,
+              widget.api,
+              id: r.id,
+              journey: false,
+              visibility: r.visibility,
+              token: r.shareToken,
+            ),
+          ),
+        MenuAction('gpx', Icons.file_download_outlined, t.gpxRoute, () => shareGpx(context, widget.api, r.id, r.title)),
+        if (!stage)
+          MenuAction(
+            'collection',
+            Icons.collections_bookmark_outlined,
+            t.collectionAddTo,
+            () => addToCollection(context, widget.api, r.id, journey: false),
+          ),
+        if (!r.isOwner)
+          MenuAction(
+            'report',
+            Icons.flag_outlined,
+            t.reportAction,
+            () => report(context, widget.api, kind: 'route', id: r.id),
+          ),
+      ],
+      question: t.routeDeleteConfirm,
+      onDelete: r.isOwner && !stage ? _delete : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -219,16 +295,12 @@ class _RouteScreenState extends State<RouteScreen> {
       // takes no room from the map and the panel.
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text(widget.title),
+        title: FutureBuilder(future: _route, builder: (context, snap) => Text(snap.data?.title ?? widget.title)),
         actions: [
-          // A stage's route is deleted with its stage, in the journey.
           FutureBuilder(
             future: _route,
             builder: (context, snap) => switch (snap.data) {
-              final r? when r.isOwner && r.journeyId == null => DeleteMenu(
-                question: t.routeDeleteConfirm,
-                onDelete: _delete,
-              ),
+              final r? => _menu(t, r),
               _ => const SizedBox.shrink(),
             },
           ),
@@ -290,6 +362,12 @@ class _RouteScreenState extends State<RouteScreen> {
                               '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
+                            if (!r.isOwner) OwnerLine(api: widget.api, owner: r.owner, open: true),
+                            if (r.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(r.tags)],
+                            if (r.description.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(key: const Key('route-description'), r.description),
+                            ],
                             const SizedBox(height: 8),
                             ElevationProfile.ofLine(r.line),
                             ProtectedAreas(_areas),
@@ -334,6 +412,11 @@ class _RouteScreenState extends State<RouteScreen> {
                                 ],
                               ),
                             ),
+                            // A stage's photos and comments are on its journey.
+                            if (r.journeyId == null) ...[
+                              PhotoStrip(api: widget.api, id: r.id),
+                              SocialPanel(api: widget.api, id: r.id),
+                            ],
                           ],
                         ),
                       ),

@@ -243,10 +243,15 @@ void main() {
     final area = find.text('Weisstannen Siez (Wildruhezone, verbindlich)\nZutrittsverbot · 1.12. bis 20.4. · Etappe 2');
     await until(tester, area); // asked for after the journey
     expect(area, findsOneWidget);
-    // Without a title and route: numbered, and not to be opened.
+    // Without a title and route: numbered, and opens its sheet (details,
+    // public transport) instead of a map.
     expect(find.text('Etappe 3'), findsOneWidget);
     expect(find.text('Noch keine Route\n800 m Abstand zum Ende der vorherigen Etappe'), findsOneWidget);
-    expect(tester.widget<ListTile>(find.widgetWithText(ListTile, 'Etappe 3')).enabled, isFalse);
+    await tester.tap(find.text('Etappe 3'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10)); // closes it
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('journey-save')));
     await until(tester, find.byKey(const Key('journey-saved')));
@@ -315,7 +320,10 @@ void main() {
     await pumpList(tester, api, find.text('Via Alpina'));
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Gaflei – Sargans'));
-    expect(find.byKey(const Key('item-menu')), findsNothing);
+    await tester.tap(find.byKey(const Key('item-menu')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('item-edit')), findsOneWidget);
+    expect(find.byKey(const Key('item-delete')), findsNothing);
   });
 
   testWidgets('without a connection and nothing saved: says so', (tester) async {

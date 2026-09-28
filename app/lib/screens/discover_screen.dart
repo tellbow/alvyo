@@ -47,10 +47,12 @@ enum DiscoverHours {
 enum _Status { loading, done, failed, offline }
 
 /// Public routes and journeys in the map's view, as the website's «Entdecken»:
-/// lines on the map and a list, with filters.
+/// lines on the map and a list, with filters. [mine]: the user's own routes,
+/// journeys and hikes instead, as the website's map of one's tours.
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key, required this.api, @visibleForTesting this.map});
+  const DiscoverScreen({super.key, required this.api, this.mine = false, @visibleForTesting this.map});
   final Api api;
+  final bool mine;
   final DiscoverMapBuilder? map;
 
   @override
@@ -101,7 +103,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _Status status;
     ({List<DiscoverItem> items, bool more})? found;
     try {
-      found = await widget.api.discover(
+      found = await (widget.mine ? widget.api.myMap : widget.api.discover)(
         view,
         kind: _kind.isEmpty ? null : _kind,
         sacMax: _sac,
@@ -131,6 +133,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   Future<void> _open(DiscoverItem it) => Navigator.of(context).push(
     MaterialPageRoute(
+      // A recorded hike (in the user's map) is a route.
       builder: (_) => it.kind == 'journey'
           ? JourneyScreen(api: widget.api, id: it.id, title: it.title)
           : RouteScreen(api: widget.api, id: it.id, title: it.title),
@@ -144,7 +147,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         widget.map ??
         (items, onView, onOpen) => _DiscoverMap(api: widget.api, items: items, onView: onView, onOpen: onOpen);
     return Scaffold(
-      appBar: AppBar(title: Text(t.discoverTitle)),
+      appBar: AppBar(title: Text(widget.mine ? t.myMapTitle : t.discoverTitle)),
       body: Column(
         children: [
           Expanded(flex: 5, child: map(_items, _viewed, _open)),
@@ -194,10 +197,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               menu(
                 'kind',
                 _kind,
-                ['', 'route', 'journey'],
+                ['', 'route', 'journey', if (widget.mine) 'hike'],
                 (k) => switch (k) {
                   'route' => t.discoverKindRoute,
                   'journey' => t.discoverKindJourney,
+                  'hike' => t.myMapKindHike,
                   _ => t.discoverKindAll,
                 },
                 (k) => _kind = k,
@@ -262,7 +266,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       case _Status.failed:
         return message(const Key('discover-failed'), Icons.error_outline, t.discoverFailed, retry: true);
       case _Status.done when _items.isEmpty:
-        return message(const Key('discover-empty'), null, t.discoverEmpty);
+        return message(const Key('discover-empty'), null, widget.mine ? t.myMapEmpty : t.discoverEmpty);
       default:
     }
     final small = Theme.of(context).textTheme.bodySmall;
@@ -290,7 +294,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           title: Text(it.title, style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: Text(
             [
-              '${journey ? t.discoverJourney : t.discoverRoute} · ${t.discoverBy(it.owner)}',
+              [journey ? t.discoverJourney : t.discoverRoute, if (!widget.mine) t.discoverBy(it.owner)].join(' · '),
               '${formatDistance(it.distanceM)} · ${formatDuration(it.durationS, _pace)} · ↑ ${it.ascentM.round()} m'
                   '${it.sacGrade > 0 ? ' · ${formatSac(it.sacGrade, it.sacMax)}' : ''}',
               if (journey) '${t.discoverStages(it.stages)} · ${t.discoverLongest(formatDuration(it.longestS, _pace))}',

@@ -10,6 +10,7 @@ import {
 	locales
 } from '$lib/paraglide/runtime';
 import { paraglideMiddleware } from '$lib/paraglide/server';
+import { parseTheme, themeAttribute, themeCookie } from '$lib/util/theme';
 
 // Paraglide asks custom strategies before all others on the server; the
 // cookie must still win, as in the browser, or the two disagree.
@@ -38,6 +39,14 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 					.replace('%paraglide.dir%', getTextDirection(locale))
 		});
 	});
+
+const handleTheme: Handle = ({ event, resolve }) => {
+	event.locals.theme = parseTheme(event.cookies.get(themeCookie));
+	return resolve(event, {
+		transformPageChunk: ({ html }) =>
+			html.replace('%alvyo.theme%', themeAttribute(event.locals.theme))
+	});
+};
 
 const handleUser: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
@@ -88,6 +97,7 @@ export const handle: Handle = sequence(
 	handleHeaders,
 	handleCompression,
 	handleParaglide,
+	handleTheme,
 	handleUser
 );
 

@@ -708,4 +708,511 @@ class AppLocalizationsEn extends AppLocalizations {
   String jplanPlanIn(int days) {
     return 'Plan in $days days';
   }
+
+  @override
+  String get navFeed => 'News';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get themeTitle => 'Appearance';
+
+  @override
+  String get themeSystem => 'Automatic';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get languageTitle => 'Language';
+
+  @override
+  String get profileMine => 'My profile';
+
+  @override
+  String get accountNotifications => 'E-mail notifications';
+
+  @override
+  String get accountNotifyComments => 'When someone comments on my routes and journeys';
+
+  @override
+  String get accountNotifyFollows => 'When someone follows me';
+
+  @override
+  String get contactsTitle => 'Contacts for shared hikes';
+
+  @override
+  String get contactsIntro =>
+      'When you start a hike in the app, you can show chosen contacts where you are. If the hike has not ended 30 minutes after the expected end, they get an e-mail with the last position.';
+
+  @override
+  String get contactsName => 'Name';
+
+  @override
+  String get contactsEmail => 'E-mail';
+
+  @override
+  String get contactsAdd => 'Add';
+
+  @override
+  String get contactsRemove => 'Remove';
+
+  @override
+  String get contactsDuplicate => 'This address is a contact already.';
+
+  @override
+  String get contactsFull => 'At most 10 contacts.';
+
+  @override
+  String get blockedTitle => 'Blocked people';
+
+  @override
+  String get blockedEmpty => 'You have not blocked anyone.';
+
+  @override
+  String get accountDeleteTitle => 'Delete account';
+
+  @override
+  String get accountDeleteText => 'Permanently deletes your account and all your routes. Shared links stop working.';
+
+  @override
+  String get accountDeleteSubmit => 'Delete account permanently';
+
+  @override
+  String get accountDeleteWrong => 'Wrong password.';
+
+  @override
+  String get accountDeleteRecent =>
+      'Your account has no password: to confirm, you must have logged in within the last 15 minutes.';
+
+  @override
+  String get accountDeleteLoginAgain => 'Please log in again, then try again right away.';
+
+  @override
+  String get loginForgot => 'Forgot your password?';
+
+  @override
+  String get loginSignup => 'Create an account';
+
+  @override
+  String get myMapTitle => 'Map of my hikes';
+
+  @override
+  String get myMapEmpty => 'Nothing in this view matches the filters.';
+
+  @override
+  String get feedIntro => 'New public hikes of the people you follow.';
+
+  @override
+  String get feedEmpty => 'Nothing yet – follow people whose tours interest you. You find them under Discover.';
+
+  @override
+  String get feedMore => 'Load older';
+
+  @override
+  String profileSince(String date) {
+    return 'member since $date';
+  }
+
+  @override
+  String profileFollowers(int n) {
+    return '$n followers';
+  }
+
+  @override
+  String profileFollowing(int n) {
+    return 'follows $n';
+  }
+
+  @override
+  String get profileFollow => 'Follow';
+
+  @override
+  String get profileUnfollow => 'Unfollow';
+
+  @override
+  String get profileBlock => 'Block';
+
+  @override
+  String get profileUnblock => 'Unblock';
+
+  @override
+  String get profileBlockedNote =>
+      'Blocked: this person cannot comment on your hikes or follow you, and you do not see their comments.';
+
+  @override
+  String get profileRoutes => 'Routes';
+
+  @override
+  String get profileJourneys => 'Journeys';
+
+  @override
+  String get reportAction => 'Report';
+
+  @override
+  String get reportReason => 'Reason';
+
+  @override
+  String get reportReasonSpam => 'Spam or advertising';
+
+  @override
+  String get reportReasonOffensive => 'Offensive or inappropriate';
+
+  @override
+  String get reportReasonDangerous => 'Dangerous or wrong';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportNote => 'What is wrong? (optional)';
+
+  @override
+  String get reportThanks => 'Thank you, we will look into it.';
+
+  @override
+  String get editAction => 'Edit';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get saveConflict =>
+      'Someone changed this in the meantime. Here is the new version – your change was not saved.';
+
+  @override
+  String get fieldTitle => 'Title';
+
+  @override
+  String get fieldDescription => 'Description';
+
+  @override
+  String get fieldVisibility => 'Visibility';
+
+  @override
+  String get visibilityPrivate => 'Private';
+
+  @override
+  String get visibilityUnlisted => 'Anyone with the link';
+
+  @override
+  String get visibilityPublic => 'Public';
+
+  @override
+  String get visibilityNeedsVerify => 'Confirm your e-mail address to publish routes.';
+
+  @override
+  String get tagsLabel => 'Tags';
+
+  @override
+  String get tagsHint => 'Separated by commas';
+
+  @override
+  String ownerBy(String user) {
+    return 'by $user';
+  }
+
+  @override
+  String get shareAction => 'Share';
+
+  @override
+  String get shareLink => 'Share link';
+
+  @override
+  String get shareSend => 'Send link …';
+
+  @override
+  String get shareCopied => 'Copied';
+
+  @override
+  String get shareLinkHint => 'Choose «Anyone with the link» or «Public» to send a link.';
+
+  @override
+  String get shareRotate => 'Create a new link';
+
+  @override
+  String get shareRotateHint => 'The previous link stops working.';
+
+  @override
+  String get sharePeople => 'Share with people';
+
+  @override
+  String get sharePending => 'invited';
+
+  @override
+  String get shareRemove => 'Remove access';
+
+  @override
+  String get shareWho => 'Username or e-mail address';
+
+  @override
+  String get shareInvite => 'Invite';
+
+  @override
+  String get shareHint => 'Invitees get an e-mail. Anyone without an account signs up with that address.';
+
+  @override
+  String get shareNeedsVerify => 'Confirm your e-mail address to share with others.';
+
+  @override
+  String get shareRate => 'Too many invitations – try again later.';
+
+  @override
+  String get shareNoUser => 'There is no user with this name.';
+
+  @override
+  String get shareSelf => 'You cannot invite yourself.';
+
+  @override
+  String get shareTooMany => 'Too many people have access already.';
+
+  @override
+  String get shareBadEmail => 'Invalid e-mail address.';
+
+  @override
+  String get roleViewer => 'Can view';
+
+  @override
+  String get roleEditor => 'Can plan';
+
+  @override
+  String get sharedTitle => 'Shared with me';
+
+  @override
+  String get gpxRoute => 'Share GPX …';
+
+  @override
+  String get gpxJourney => 'Share all stages as GPX (ZIP) …';
+
+  @override
+  String get photosTitle => 'Photos';
+
+  @override
+  String get photosAdd => 'Add photos';
+
+  @override
+  String get photosCamera => 'Take a photo';
+
+  @override
+  String get photosLibrary => 'From the library';
+
+  @override
+  String photosUploading(int done, int total) {
+    return '$done of $total uploaded …';
+  }
+
+  @override
+  String get photosHint =>
+      'JPEG, PNG, WebP or HEIC up to 20 MB. We remove all metadata; photos taken along the route appear on the map.';
+
+  @override
+  String get photosProblemFormat => 'not a JPEG, PNG, WebP or HEIC image';
+
+  @override
+  String get photosProblemSize => 'too large (at most 20 MB)';
+
+  @override
+  String get photosProblemLimit => 'too many photos (at most 100 per hike and 1000 per person)';
+
+  @override
+  String get photosProblemRate => 'too many uploads – please try again in a moment';
+
+  @override
+  String get photosProblemOther => 'upload failed';
+
+  @override
+  String get photosCaption => 'Caption';
+
+  @override
+  String photosBy(String user) {
+    return 'by $user';
+  }
+
+  @override
+  String get photosDelete => 'Delete';
+
+  @override
+  String get photosDeleteConfirm => 'Really delete?';
+
+  @override
+  String get communityLike => 'Like';
+
+  @override
+  String communityLikes(int n) {
+    return 'liked $n times';
+  }
+
+  @override
+  String communityComments(int n) {
+    return '$n comments';
+  }
+
+  @override
+  String get communityCommentsAllowed => 'Allow comments';
+
+  @override
+  String get communityCommentsOff => 'Comments are switched off.';
+
+  @override
+  String get communityCommentPlaceholder => 'Write a comment …';
+
+  @override
+  String get communityCommentSend => 'Comment';
+
+  @override
+  String get communityReply => 'Reply';
+
+  @override
+  String get communityReplyPlaceholder => 'Your reply …';
+
+  @override
+  String get communityEdited => 'edited';
+
+  @override
+  String get communityRate => 'That was too fast – please try again in a moment.';
+
+  @override
+  String get communityVerifyToComment => 'Confirm your e-mail address to comment.';
+
+  @override
+  String get stageEdit => 'Edit stage';
+
+  @override
+  String get stageDate => 'Date';
+
+  @override
+  String get stageDateNone => 'No date';
+
+  @override
+  String get stageStatus => 'Status';
+
+  @override
+  String get statusPlanned => 'Planned';
+
+  @override
+  String get stageAccommodationLabel => 'Accommodation';
+
+  @override
+  String get stageAccommodationPlaceholder => 'e.g. Gasthaus Alpenhof';
+
+  @override
+  String get stageBookedLabel => 'Booked';
+
+  @override
+  String get stageNotes => 'Notes';
+
+  @override
+  String get stageTransfer => 'Covered by';
+
+  @override
+  String get transferNone => '–';
+
+  @override
+  String get sbbToStart => 'SBB timetable: getting there';
+
+  @override
+  String get sbbFromEnd => 'SBB timetable: getting home';
+
+  @override
+  String get sbbTransfer => 'SBB timetable';
+
+  @override
+  String get connectionsShow => 'Show connections';
+
+  @override
+  String get connectionsDepart => 'Dep';
+
+  @override
+  String get connectionsArrive => 'Arr';
+
+  @override
+  String get connectionsSearch => 'Search';
+
+  @override
+  String get connectionsNone => 'No connection found.';
+
+  @override
+  String get connectionsUnavailable => 'The timetable is not available right now – use the SBB timetable.';
+
+  @override
+  String connectionsTransfers(int n) {
+    return '$n changes';
+  }
+
+  @override
+  String connectionsWalk(int min) {
+    return '$min min walk';
+  }
+
+  @override
+  String connectionsPlatform(String p) {
+    return 'platform $p';
+  }
+
+  @override
+  String get connectionsSource => 'Timetable data: opentransportdata.swiss';
+
+  @override
+  String get collectionsTitle => 'Collections';
+
+  @override
+  String get collectionsIntro =>
+      'Gather routes and journeys – as a wish list, for ideas, or to share. A collection grants no access: everyone sees only what they may open anyway.';
+
+  @override
+  String get collectionsEmpty => 'No collections yet.';
+
+  @override
+  String get collectionNew => 'New collection';
+
+  @override
+  String collectionItemsCount(int n) {
+    return '$n items';
+  }
+
+  @override
+  String get collectionEmpty => 'Still empty. Add routes and journeys from their menu: «Add to collection …».';
+
+  @override
+  String get collectionAddTo => 'Add to collection …';
+
+  @override
+  String collectionAdded(String title) {
+    return 'Added to “$title”';
+  }
+
+  @override
+  String collectionAlready(String title) {
+    return 'Already in “$title”';
+  }
+
+  @override
+  String get collectionRemoveItem => 'Remove';
+
+  @override
+  String get collectionDelete => 'Delete collection';
+
+  @override
+  String get collectionDeleteConfirm => 'Delete the collection? Routes and journeys stay.';
+
+  @override
+  String collectionStages(int n) {
+    return '$n stages';
+  }
+
+  @override
+  String get myMapKindHike => 'Hiked';
+
+  @override
+  String get connectionsFromHere => 'Connections from here to the start';
+
+  @override
+  String get connectionsNoPosition => 'Your location is not known. Allow Alvyo to use it in the iPhone settings.';
+
+  @override
+  String get stageMore => 'Details and getting there';
 }

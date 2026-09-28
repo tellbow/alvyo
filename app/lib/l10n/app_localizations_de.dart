@@ -711,4 +711,515 @@ class AppLocalizationsDe extends AppLocalizations {
   String jplanPlanIn(int days) {
     return 'In $days Tagen planen';
   }
+
+  @override
+  String get navFeed => 'Neuigkeiten';
+
+  @override
+  String get settingsTitle => 'Einstellungen';
+
+  @override
+  String get themeTitle => 'Darstellung';
+
+  @override
+  String get themeSystem => 'Automatisch';
+
+  @override
+  String get themeLight => 'Hell';
+
+  @override
+  String get themeDark => 'Dunkel';
+
+  @override
+  String get languageTitle => 'Sprache';
+
+  @override
+  String get profileMine => 'Mein Profil';
+
+  @override
+  String get accountNotifications => 'Benachrichtigungen per E-Mail';
+
+  @override
+  String get accountNotifyComments => 'Wenn jemand meine Routen und Etappentouren kommentiert';
+
+  @override
+  String get accountNotifyFollows => 'Wenn mir jemand folgt';
+
+  @override
+  String get contactsTitle => 'Kontakte für geteilte Wanderungen';
+
+  @override
+  String get contactsIntro =>
+      'Starte in der App eine Wanderung, kannst du ausgewählten Kontakten deinen Standort zeigen. Ist die Wanderung 30 Minuten nach dem geplanten Ende nicht beendet, bekommen sie eine E-Mail mit dem letzten Standort.';
+
+  @override
+  String get contactsName => 'Name';
+
+  @override
+  String get contactsEmail => 'E-Mail';
+
+  @override
+  String get contactsAdd => 'Hinzufügen';
+
+  @override
+  String get contactsRemove => 'Entfernen';
+
+  @override
+  String get contactsDuplicate => 'Diese Adresse ist schon ein Kontakt.';
+
+  @override
+  String get contactsFull => 'Höchstens 10 Kontakte.';
+
+  @override
+  String get blockedTitle => 'Blockierte Personen';
+
+  @override
+  String get blockedEmpty => 'Du hast niemanden blockiert.';
+
+  @override
+  String get accountDeleteTitle => 'Konto löschen';
+
+  @override
+  String get accountDeleteText =>
+      'Löscht dein Konto und alle deine Routen endgültig. Geteilte Links funktionieren danach nicht mehr.';
+
+  @override
+  String get accountDeleteSubmit => 'Konto endgültig löschen';
+
+  @override
+  String get accountDeleteWrong => 'Das Passwort ist falsch.';
+
+  @override
+  String get accountDeleteRecent =>
+      'Dein Konto hat kein Passwort: Zum Bestätigen musst du dich in den letzten 15 Minuten angemeldet haben.';
+
+  @override
+  String get accountDeleteLoginAgain => 'Bitte melde dich neu an und versuche es dann gleich noch einmal.';
+
+  @override
+  String get loginForgot => 'Passwort vergessen?';
+
+  @override
+  String get loginSignup => 'Konto erstellen';
+
+  @override
+  String get myMapTitle => 'Karte meiner Touren';
+
+  @override
+  String get myMapEmpty => 'In diesem Ausschnitt passt nichts zu den Filtern.';
+
+  @override
+  String get feedIntro => 'Neue öffentliche Touren der Leute, denen du folgst.';
+
+  @override
+  String get feedEmpty => 'Noch nichts – folge Leuten, deren Touren dich interessieren. Du findest sie beim Entdecken.';
+
+  @override
+  String get feedMore => 'Ältere laden';
+
+  @override
+  String profileSince(String date) {
+    return 'dabei seit $date';
+  }
+
+  @override
+  String profileFollowers(int n) {
+    return '$n Follower';
+  }
+
+  @override
+  String profileFollowing(int n) {
+    return 'folgt $n';
+  }
+
+  @override
+  String get profileFollow => 'Folgen';
+
+  @override
+  String get profileUnfollow => 'Nicht mehr folgen';
+
+  @override
+  String get profileBlock => 'Blockieren';
+
+  @override
+  String get profileUnblock => 'Nicht mehr blockieren';
+
+  @override
+  String get profileBlockedNote =>
+      'Blockiert: Diese Person kann deine Touren nicht kommentieren und dir nicht folgen, und du siehst ihre Kommentare nicht.';
+
+  @override
+  String get profileRoutes => 'Routen';
+
+  @override
+  String get profileJourneys => 'Etappentouren';
+
+  @override
+  String get reportAction => 'Melden';
+
+  @override
+  String get reportReason => 'Grund';
+
+  @override
+  String get reportReasonSpam => 'Spam oder Werbung';
+
+  @override
+  String get reportReasonOffensive => 'Beleidigend oder unangemessen';
+
+  @override
+  String get reportReasonDangerous => 'Gefährlich oder falsch';
+
+  @override
+  String get reportReasonOther => 'Anderes';
+
+  @override
+  String get reportNote => 'Was ist los? (freiwillig)';
+
+  @override
+  String get reportThanks => 'Danke, wir schauen es uns an.';
+
+  @override
+  String get editAction => 'Bearbeiten';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get saveConflict =>
+      'Jemand hat das inzwischen geändert. Hier ist der neue Stand – deine Änderung ist nicht gespeichert.';
+
+  @override
+  String get fieldTitle => 'Titel';
+
+  @override
+  String get fieldDescription => 'Beschreibung';
+
+  @override
+  String get fieldVisibility => 'Sichtbarkeit';
+
+  @override
+  String get visibilityPrivate => 'Privat';
+
+  @override
+  String get visibilityUnlisted => 'Mit Link teilen';
+
+  @override
+  String get visibilityPublic => 'Öffentlich';
+
+  @override
+  String get visibilityNeedsVerify => 'Bestätige deine E-Mail-Adresse, um Routen zu veröffentlichen.';
+
+  @override
+  String get tagsLabel => 'Tags';
+
+  @override
+  String get tagsHint => 'Durch Kommas getrennt';
+
+  @override
+  String ownerBy(String user) {
+    return 'von $user';
+  }
+
+  @override
+  String get shareAction => 'Teilen';
+
+  @override
+  String get shareLink => 'Link zum Teilen';
+
+  @override
+  String get shareSend => 'Link senden …';
+
+  @override
+  String get shareCopied => 'Kopiert';
+
+  @override
+  String get shareLinkHint => 'Wähle «Mit Link teilen» oder «Öffentlich», um einen Link zu senden.';
+
+  @override
+  String get shareRotate => 'Neuen Link erzeugen';
+
+  @override
+  String get shareRotateHint => 'Der bisherige Link funktioniert danach nicht mehr.';
+
+  @override
+  String get sharePeople => 'Mit Personen teilen';
+
+  @override
+  String get sharePending => 'eingeladen';
+
+  @override
+  String get shareRemove => 'Zugriff entfernen';
+
+  @override
+  String get shareWho => 'Benutzername oder E-Mail-Adresse';
+
+  @override
+  String get shareInvite => 'Einladen';
+
+  @override
+  String get shareHint =>
+      'Eingeladene erhalten eine E-Mail. Wer noch kein Konto hat, registriert sich mit dieser Adresse.';
+
+  @override
+  String get shareNeedsVerify => 'Bestätige deine E-Mail-Adresse, um mit anderen zu teilen.';
+
+  @override
+  String get shareRate => 'Zu viele Einladungen – versuche es später wieder.';
+
+  @override
+  String get shareNoUser => 'Diesen Benutzernamen gibt es nicht.';
+
+  @override
+  String get shareSelf => 'Du kannst dich nicht selbst einladen.';
+
+  @override
+  String get shareTooMany => 'Es haben bereits zu viele Personen Zugriff.';
+
+  @override
+  String get shareBadEmail => 'Ungültige E-Mail-Adresse.';
+
+  @override
+  String get roleViewer => 'Kann ansehen';
+
+  @override
+  String get roleEditor => 'Kann mitplanen';
+
+  @override
+  String get sharedTitle => 'Mit mir geteilt';
+
+  @override
+  String get gpxRoute => 'GPX teilen …';
+
+  @override
+  String get gpxJourney => 'Alle Etappen als GPX (ZIP) teilen …';
+
+  @override
+  String get photosTitle => 'Fotos';
+
+  @override
+  String get photosAdd => 'Fotos hinzufügen';
+
+  @override
+  String get photosCamera => 'Foto aufnehmen';
+
+  @override
+  String get photosLibrary => 'Aus der Mediathek';
+
+  @override
+  String photosUploading(int done, int total) {
+    return '$done von $total hochgeladen …';
+  }
+
+  @override
+  String get photosHint =>
+      'JPEG, PNG, WebP oder HEIC bis 20 MB. Wir entfernen alle Metadaten; Fotos, die entlang der Route aufgenommen wurden, erscheinen auf der Karte.';
+
+  @override
+  String get photosProblemFormat => 'kein JPEG-, PNG-, WebP- oder HEIC-Bild';
+
+  @override
+  String get photosProblemSize => 'zu gross (höchstens 20 MB)';
+
+  @override
+  String get photosProblemLimit => 'zu viele Fotos (höchstens 100 pro Tour und 1000 pro Person)';
+
+  @override
+  String get photosProblemRate => 'zu viele Uploads – versuche es gleich noch einmal';
+
+  @override
+  String get photosProblemOther => 'Hochladen fehlgeschlagen';
+
+  @override
+  String get photosCaption => 'Beschreibung';
+
+  @override
+  String photosBy(String user) {
+    return 'von $user';
+  }
+
+  @override
+  String get photosDelete => 'Löschen';
+
+  @override
+  String get photosDeleteConfirm => 'Wirklich löschen?';
+
+  @override
+  String get communityLike => 'Merken';
+
+  @override
+  String communityLikes(int n) {
+    return '$n Mal gemerkt';
+  }
+
+  @override
+  String communityComments(int n) {
+    return '$n Kommentare';
+  }
+
+  @override
+  String get communityCommentsAllowed => 'Kommentare erlauben';
+
+  @override
+  String get communityCommentsOff => 'Kommentare sind ausgeschaltet.';
+
+  @override
+  String get communityCommentPlaceholder => 'Kommentar schreiben …';
+
+  @override
+  String get communityCommentSend => 'Kommentieren';
+
+  @override
+  String get communityReply => 'Antworten';
+
+  @override
+  String get communityReplyPlaceholder => 'Deine Antwort …';
+
+  @override
+  String get communityEdited => 'bearbeitet';
+
+  @override
+  String get communityRate => 'Das ging zu schnell – versuche es gleich noch einmal.';
+
+  @override
+  String get communityVerifyToComment => 'Bestätige deine E-Mail-Adresse, um zu kommentieren.';
+
+  @override
+  String get stageEdit => 'Etappe bearbeiten';
+
+  @override
+  String get stageDate => 'Datum';
+
+  @override
+  String get stageDateNone => 'Kein Datum';
+
+  @override
+  String get stageStatus => 'Status';
+
+  @override
+  String get statusPlanned => 'Geplant';
+
+  @override
+  String get stageAccommodationLabel => 'Unterkunft';
+
+  @override
+  String get stageAccommodationPlaceholder => 'z. B. Gasthaus Alpenhof';
+
+  @override
+  String get stageBookedLabel => 'Gebucht';
+
+  @override
+  String get stageNotes => 'Notizen';
+
+  @override
+  String get stageTransfer => 'Überbrückt mit';
+
+  @override
+  String get transferNone => '–';
+
+  @override
+  String get sbbToStart => 'SBB-Fahrplan: Anreise';
+
+  @override
+  String get sbbFromEnd => 'SBB-Fahrplan: Rückreise';
+
+  @override
+  String get sbbTransfer => 'SBB-Fahrplan';
+
+  @override
+  String get connectionsShow => 'Verbindungen anzeigen';
+
+  @override
+  String get connectionsDepart => 'Ab';
+
+  @override
+  String get connectionsArrive => 'An';
+
+  @override
+  String get connectionsSearch => 'Suchen';
+
+  @override
+  String get connectionsNone => 'Keine Verbindung gefunden.';
+
+  @override
+  String get connectionsUnavailable => 'Fahrplanabfrage gerade nicht möglich – nutze den SBB-Fahrplan.';
+
+  @override
+  String connectionsTransfers(int n) {
+    return '$n Umst.';
+  }
+
+  @override
+  String connectionsWalk(int min) {
+    return '$min min zu Fuss';
+  }
+
+  @override
+  String connectionsPlatform(String p) {
+    return 'Gl./Kante $p';
+  }
+
+  @override
+  String get connectionsSource => 'Fahrplandaten: opentransportdata.swiss';
+
+  @override
+  String get collectionsTitle => 'Sammlungen';
+
+  @override
+  String get collectionsIntro =>
+      'Routen und Etappentouren zusammenstellen – als Wunschliste, Ideensammlung oder zum Teilen. Eine Sammlung gibt keinen Zugriff: Jede Person sieht nur, was sie ohnehin öffnen darf.';
+
+  @override
+  String get collectionsEmpty => 'Noch keine Sammlungen.';
+
+  @override
+  String get collectionNew => 'Neue Sammlung';
+
+  @override
+  String collectionItemsCount(int n) {
+    return '$n Einträge';
+  }
+
+  @override
+  String get collectionEmpty =>
+      'Noch leer. Füge Routen und Etappentouren über ihr Menü hinzu: «Zur Sammlung hinzufügen …».';
+
+  @override
+  String get collectionAddTo => 'Zur Sammlung hinzufügen …';
+
+  @override
+  String collectionAdded(String title) {
+    return 'Hinzugefügt zu «$title»';
+  }
+
+  @override
+  String collectionAlready(String title) {
+    return 'Schon in «$title»';
+  }
+
+  @override
+  String get collectionRemoveItem => 'Entfernen';
+
+  @override
+  String get collectionDelete => 'Sammlung löschen';
+
+  @override
+  String get collectionDeleteConfirm => 'Sammlung löschen? Routen und Etappentouren bleiben.';
+
+  @override
+  String collectionStages(int n) {
+    return '$n Etappen';
+  }
+
+  @override
+  String get myMapKindHike => 'Gewanderte';
+
+  @override
+  String get connectionsFromHere => 'Verbindungen von hier zum Start';
+
+  @override
+  String get connectionsNoPosition =>
+      'Dein Standort ist nicht bekannt. Erlaube Alvyo den Standort in den iPhone-Einstellungen.';
+
+  @override
+  String get stageMore => 'Details und Anreise';
 }

@@ -3,7 +3,8 @@
 @import '@fontsource-variable/bricolage-grotesque';
 
 /*
- * The Alvyo palette, light and dark after the system setting. The stone
+ * The Alvyo palette, light and dark after the system setting unless one
+ * was chosen (<html data-theme>, see $lib/util/theme). The stone
  * scale is the palette's greyish greens and turns over in dark mode
  * (stone-50 is always the faintest, stone-900 the text), so pages need no
  * dark: variants for it. Accent: buttons and highlights; accent-ink: links
@@ -31,7 +32,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-	:root {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
 		--alvyo-ground: #0e1512;
 		--alvyo-surface: #121b17;
 		--alvyo-stone-50: #16201b;
@@ -49,6 +51,44 @@
 		--alvyo-accent-hover: #ffb885;
 		--alvyo-accent-ink: #ffa66b;
 		--alvyo-accent-soft: #2b1f16;
+	}
+}
+
+/* Chosen: the same colours, as a media query and a selector cannot be joined. */
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--alvyo-ground: #0e1512;
+	--alvyo-surface: #121b17;
+	--alvyo-stone-50: #16201b;
+	--alvyo-stone-100: #1b2621;
+	--alvyo-stone-200: #24312a;
+	--alvyo-stone-300: #2e3d35;
+	--alvyo-stone-400: #6f7d75;
+	--alvyo-stone-500: #94a399;
+	--alvyo-stone-600: #a4b2a9;
+	--alvyo-stone-700: #c3cec6;
+	--alvyo-stone-800: #d8e0da;
+	--alvyo-stone-900: #e9efe9;
+	--alvyo-stone-950: #f4f7f4;
+	--alvyo-accent: #ffa66b;
+	--alvyo-accent-hover: #ffb885;
+	--alvyo-accent-ink: #ffa66b;
+	--alvyo-accent-soft: #2b1f16;
+}
+
+:root[data-theme='light'] {
+	color-scheme: light;
+}
+
+/* dark: utilities in both cases where the dark palette applies. */
+@custom-variant dark {
+	&:where([data-theme='dark'], [data-theme='dark'] *) {
+		@slot;
+	}
+	@media (prefers-color-scheme: dark) {
+		&:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *) {
+			@slot;
+		}
 	}
 }
 

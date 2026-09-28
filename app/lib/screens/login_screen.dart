@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../session.dart';
 
-/// Log in to an Alvyo server.
+/// Log in to an Alvyo server; signing up and a forgotten password on its website.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.session, required this.onLoggedIn});
   final Session session;
@@ -48,6 +49,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// A page of the server's website, in the browser.
+  Future<void> _web(String page) =>
+      launchUrl(Uri.parse('${Api(_server.text).server}$page'), mode: LaunchMode.externalApplication);
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -86,6 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               ),
             FilledButton(key: const Key('submit'), onPressed: _busy ? null : _submit, child: Text(t.loginSubmit)),
+            const SizedBox(height: 8),
+            TextButton(key: const Key('signup'), onPressed: () => _web('/signup'), child: Text(t.loginSignup)),
+            TextButton(key: const Key('forgot'), onPressed: () => _web('/forgot-password'), child: Text(t.loginForgot)),
           ],
         ),
       ),

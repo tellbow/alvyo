@@ -7,6 +7,7 @@
 	import { m } from '$lib/paraglide/messages';
 	import { choose } from '$lib/util/choose';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { parseTheme, setTheme, themes, type Theme } from '$lib/util/theme';
 	import {
 		deLocalizeUrl,
 		getLocale,
@@ -37,6 +38,12 @@
 		if (data.user) await api().PATCH('/me', { body: { locale: l } });
 		await setLocale(l);
 	}
+
+	const themeNames: Record<Theme, () => string> = {
+		system: m.theme_system,
+		light: m.theme_light,
+		dark: m.theme_dark
+	};
 
 	// The page's section in the navigation, whatever the language prefix.
 	const here = $derived(deLocalizeUrl(page.url).pathname);
@@ -95,6 +102,18 @@
 			>
 				{#each locales as l (l)}
 					<option value={l}>{languages[l]}</option>
+				{/each}
+			</select>
+			<select
+				class="rounded-full border-0 bg-transparent py-0.5 text-stone-600"
+				aria-label={m.nav_theme()}
+				value={data.theme}
+				disabled={!hydrated.value}
+				use:choose={(v) => setTheme(parseTheme(v))}
+				data-testid="theme"
+			>
+				{#each themes as t (t)}
+					<option value={t}>{themeNames[t]()}</option>
 				{/each}
 			</select>
 			{#if data.user}

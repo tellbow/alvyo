@@ -7,11 +7,20 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/downloads.dart';
 import '../offline/packs.dart';
-import 'delete_menu.dart';
+import 'collections_screen.dart';
+import 'details.dart';
+import 'item_menu.dart';
+import 'photos.dart';
+import 'report_dialog.dart';
 import 'route_screen.dart';
+import 'social.dart';
+import 'stage_sheet.dart';
+import 'tag_chips.dart';
 
 /// A journey's stages. Each opens as a route: its map, saving it offline,
-/// hiking it; all can be saved offline at once.
+/// hiking it; all can be saved offline at once. A stage's sheet has its
+/// details, public transport and changes; the journey's photos and
+/// comments are below the stages.
 class JourneyScreen extends StatefulWidget {
   const JourneyScreen({super.key, required this.api, required this.id, required this.title});
   final Api api;
@@ -105,6 +114,42 @@ class _JourneyScreenState extends State<JourneyScreen> {
     }
   }
 
+  /// Shows [j] as changed; keeps a saved copy up to date.
+  Future<void> _show(JourneyDetail j) async {
+    final store = await _store;
+    if (await store.savedJourney(j.id) != null) await store.saveJourney(j);
+    if (mounted) {
+      setState(() {
+        _journey = Future.value(j);
+      });
+    }
+  }
+
+  Future<void> _edit(JourneyDetail j) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final now = Details(title: j.title, description: j.description, tags: j.tags, visibility: j.visibility);
+    final next = await editDetails(context, now, visibility: j.isOwner);
+    if (next == null) return;
+    final changes = detailChanges(now, next);
+    if (changes.isEmpty) return;
+    try {
+      await _show(await widget.api.updateJourney(j.id, j.version, changes));
+    } on Object catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(changeError(t, e))));
+      if (e is ApiException && e.status == 412 && mounted) {
+        setState(() {
+          _journey = _load();
+        });
+      }
+    }
+  }
+
+  Future<void> _stage(JourneyDetail j, int i) async {
+    final changed = await showStage(context, widget.api, j, i);
+    if (changed != null) await _show(changed);
+  }
+
   /// Deletes the journey on the server and what is saved of it, then
   /// leaves.
   Future<void> _delete(JourneyDetail j) async {
@@ -126,12 +171,51 @@ class _JourneyScreenState extends State<JourneyScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: FutureBuilder(future: _journey, builder: (context, snap) => Text(snap.data?.title ?? widget.title)),
         actions: [
           FutureBuilder(
             future: _journey,
             builder: (context, snap) => switch (snap.data) {
-              final j? when j.isOwner => DeleteMenu(question: t.journeyDeleteConfirm, onDelete: () => _delete(j)),
+              final j? => ItemMenu(
+                actions: [
+                  if (j.canEdit) MenuAction('edit', Icons.edit_outlined, t.editAction, () => _edit(j)),
+                  if (j.isOwner)
+                    MenuAction(
+                      'share',
+                      Icons.share_outlined,
+                      t.shareAction,
+                      () => shareSheet(
+                        context,
+                        widget.api,
+                        id: j.id,
+                        journey: true,
+                        visibility: j.visibility,
+                        token: j.shareToken,
+                      ),
+                    ),
+                  MenuAction(
+                    'gpx',
+                    Icons.file_download_outlined,
+                    t.gpxJourney,
+                    () => shareGpx(context, widget.api, j.id, j.title, journey: true),
+                  ),
+                  MenuAction(
+                    'collection',
+                    Icons.collections_bookmark_outlined,
+                    t.collectionAddTo,
+                    () => addToCollection(context, widget.api, j.id, journey: true),
+                  ),
+                  if (!j.isOwner)
+                    MenuAction(
+                      'report',
+                      Icons.flag_outlined,
+                      t.reportAction,
+                      () => report(context, widget.api, kind: 'journey', id: j.id),
+                    ),
+                ],
+                question: t.journeyDeleteConfirm,
+                onDelete: j.isOwner ? () => _delete(j) : null,
+              ),
               _ => const SizedBox.shrink(),
             },
           ),
@@ -165,6 +249,12 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         '↑ ${j.totals.ascentM.round()} m',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      if (!j.isOwner && j.owner.isNotEmpty) OwnerLine(api: widget.api, owner: j.owner, open: true),
+                      if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
+                      if (j.description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(key: const Key('journey-description'), j.description),
+                      ],
                       const SizedBox(height: 8),
                       if (j.profile case (
                         :final distances,
@@ -207,6 +297,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                     stage: s,
                     saved: _saved.contains(s.routeId),
                     onDone: j.canEdit && s.routeId != null ? (done) => _setDone(j, s, done) : null,
+                    onMore: () => _stage(j, i),
                     onTap: switch (s.routeId) {
                       final id? => () async {
                         await Navigator.of(context).push(
@@ -220,9 +311,19 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         );
                         await _checkSaved(j); // saved or removed there
                       },
-                      _ => null,
+                      _ => () => _stage(j, i), // no route yet: its details
                     },
                   ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      PhotoStrip(api: widget.api, id: j.id, journey: true),
+                      SocialPanel(api: widget.api, id: j.id, journey: true),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
@@ -239,11 +340,15 @@ class _StageTile extends StatelessWidget {
     required this.stage,
     required this.saved,
     required this.onDone,
+    required this.onMore,
     required this.onTap,
   });
   final int n;
   final Stage stage;
   final bool saved;
+
+  /// Opens the stage's sheet: details, public transport, changes.
+  final VoidCallback onMore;
 
   /// Marks the stage hiked (true) or planned again; null if the user may not.
   final void Function(bool done)? onDone;
@@ -301,9 +406,14 @@ class _StageTile extends StatelessWidget {
               tooltip: s.status == 'done' ? t.stageMarkPlanned : t.stageMarkDone,
               onPressed: () => set(s.status != 'done'),
             ),
+          IconButton(
+            key: Key('stage-more-${n - 1}'),
+            icon: const Icon(Icons.more_horiz),
+            tooltip: t.stageMore,
+            onPressed: onMore,
+          ),
         ],
       ),
-      enabled: onTap != null,
       onTap: onTap,
     );
   }

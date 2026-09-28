@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-09-27.
+Status: 2026-09-28.
 
 ## Goal
 
@@ -55,7 +55,8 @@ A `v*` tag builds the images; Flux deploys them
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
-2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27.
+2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
+21–23 on 2026-09-28.
 
 ### Done
 
@@ -226,6 +227,30 @@ From the project owner, numbered in the order given: 1–5 added on
     if none does. Website and app say it, with «In N Tagen planen». Days
     moved by hand (`ends`) are only marked; up to 15 minutes over count as
     within, as the split estimates the way to a place.
+21. **Light or dark, chosen** (unreleased). Website and app follow the
+    system's setting unless «Hell» or «Dunkel» is chosen: on the website in
+    the header («Darstellung», kept in a cookie, so the page comes rendered
+    in it), in the app in the profile (kept on the phone).
+22. **The app's language** (unreleased). In the profile: «Automatisch» (the
+    iPhone's), Deutsch, English, Français or Italiano; for the account also
+    the language of e-mails, as on the website.
+23. **The app does what the website does**, where it makes sense on a phone
+    (unreleased). A route's and a journey's description, tags, owner,
+    photos (from the camera or the library) and likes and comments with
+    replies; a menu to change title, description, tags and visibility, to
+    share (link, people invited as viewers or editors), to send the GPX,
+    to add to a collection, to report and to delete. A stage's sheet: its
+    day, status, accommodation, notes and transfer to change, the SBB
+    timetable to the start and from the end, connections for a transfer by
+    public transport and from the nearest stop to the start. The bar has
+    «Neuigkeiten» (the feed) instead of the Apple Watch, which moved to a
+    button above «Meine Routen». What others shared shows below one's own
+    routes and journeys; profiles with following, blocking and reporting;
+    collections; in the profile the map of one's tours, the e-mail
+    notifications, the contacts for shared hikes, blocked people and
+    deleting the account; signing up and a forgotten password open the
+    website. Left to the website: moderation, imports (files, Komoot),
+    passkeys and sign-in providers, planning a route again on its map.
 
 ### Open
 

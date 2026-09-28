@@ -1353,6 +1353,948 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'In {days} Tagen planen'**
   String jplanPlanIn(int days);
+
+  /// No description provided for @navFeed.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuigkeiten'**
+  String get navFeed;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen'**
+  String get settingsTitle;
+
+  /// No description provided for @themeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Darstellung'**
+  String get themeTitle;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In de, this message translates to:
+  /// **'Automatisch'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In de, this message translates to:
+  /// **'Hell'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In de, this message translates to:
+  /// **'Dunkel'**
+  String get themeDark;
+
+  /// No description provided for @languageTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Sprache'**
+  String get languageTitle;
+
+  /// No description provided for @profileMine.
+  ///
+  /// In de, this message translates to:
+  /// **'Mein Profil'**
+  String get profileMine;
+
+  /// No description provided for @accountNotifications.
+  ///
+  /// In de, this message translates to:
+  /// **'Benachrichtigungen per E-Mail'**
+  String get accountNotifications;
+
+  /// No description provided for @accountNotifyComments.
+  ///
+  /// In de, this message translates to:
+  /// **'Wenn jemand meine Routen und Etappentouren kommentiert'**
+  String get accountNotifyComments;
+
+  /// No description provided for @accountNotifyFollows.
+  ///
+  /// In de, this message translates to:
+  /// **'Wenn mir jemand folgt'**
+  String get accountNotifyFollows;
+
+  /// No description provided for @contactsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Kontakte für geteilte Wanderungen'**
+  String get contactsTitle;
+
+  /// No description provided for @contactsIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Starte in der App eine Wanderung, kannst du ausgewählten Kontakten deinen Standort zeigen. Ist die Wanderung 30 Minuten nach dem geplanten Ende nicht beendet, bekommen sie eine E-Mail mit dem letzten Standort.'**
+  String get contactsIntro;
+
+  /// No description provided for @contactsName.
+  ///
+  /// In de, this message translates to:
+  /// **'Name'**
+  String get contactsName;
+
+  /// No description provided for @contactsEmail.
+  ///
+  /// In de, this message translates to:
+  /// **'E-Mail'**
+  String get contactsEmail;
+
+  /// No description provided for @contactsAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzufügen'**
+  String get contactsAdd;
+
+  /// No description provided for @contactsRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Entfernen'**
+  String get contactsRemove;
+
+  /// No description provided for @contactsDuplicate.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Adresse ist schon ein Kontakt.'**
+  String get contactsDuplicate;
+
+  /// No description provided for @contactsFull.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchstens 10 Kontakte.'**
+  String get contactsFull;
+
+  /// No description provided for @blockedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Blockierte Personen'**
+  String get blockedTitle;
+
+  /// No description provided for @blockedEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Du hast niemanden blockiert.'**
+  String get blockedEmpty;
+
+  /// No description provided for @accountDeleteTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto löschen'**
+  String get accountDeleteTitle;
+
+  /// No description provided for @accountDeleteText.
+  ///
+  /// In de, this message translates to:
+  /// **'Löscht dein Konto und alle deine Routen endgültig. Geteilte Links funktionieren danach nicht mehr.'**
+  String get accountDeleteText;
+
+  /// No description provided for @accountDeleteSubmit.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto endgültig löschen'**
+  String get accountDeleteSubmit;
+
+  /// No description provided for @accountDeleteWrong.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Passwort ist falsch.'**
+  String get accountDeleteWrong;
+
+  /// No description provided for @accountDeleteRecent.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Konto hat kein Passwort: Zum Bestätigen musst du dich in den letzten 15 Minuten angemeldet haben.'**
+  String get accountDeleteRecent;
+
+  /// No description provided for @accountDeleteLoginAgain.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte melde dich neu an und versuche es dann gleich noch einmal.'**
+  String get accountDeleteLoginAgain;
+
+  /// No description provided for @loginForgot.
+  ///
+  /// In de, this message translates to:
+  /// **'Passwort vergessen?'**
+  String get loginForgot;
+
+  /// No description provided for @loginSignup.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto erstellen'**
+  String get loginSignup;
+
+  /// No description provided for @myMapTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Karte meiner Touren'**
+  String get myMapTitle;
+
+  /// No description provided for @myMapEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'In diesem Ausschnitt passt nichts zu den Filtern.'**
+  String get myMapEmpty;
+
+  /// No description provided for @feedIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Neue öffentliche Touren der Leute, denen du folgst.'**
+  String get feedIntro;
+
+  /// No description provided for @feedEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nichts – folge Leuten, deren Touren dich interessieren. Du findest sie beim Entdecken.'**
+  String get feedEmpty;
+
+  /// No description provided for @feedMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Ältere laden'**
+  String get feedMore;
+
+  /// No description provided for @profileSince.
+  ///
+  /// In de, this message translates to:
+  /// **'dabei seit {date}'**
+  String profileSince(String date);
+
+  /// No description provided for @profileFollowers.
+  ///
+  /// In de, this message translates to:
+  /// **'{n} Follower'**
+  String profileFollowers(int n);
+
+  /// No description provided for @profileFollowing.
+  ///
+  /// In de, this message translates to:
+  /// **'folgt {n}'**
+  String profileFollowing(int n);
+
+  /// No description provided for @profileFollow.
+  ///
+  /// In de, this message translates to:
+  /// **'Folgen'**
+  String get profileFollow;
+
+  /// No description provided for @profileUnfollow.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht mehr folgen'**
+  String get profileUnfollow;
+
+  /// No description provided for @profileBlock.
+  ///
+  /// In de, this message translates to:
+  /// **'Blockieren'**
+  String get profileBlock;
+
+  /// No description provided for @profileUnblock.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht mehr blockieren'**
+  String get profileUnblock;
+
+  /// No description provided for @profileBlockedNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Blockiert: Diese Person kann deine Touren nicht kommentieren und dir nicht folgen, und du siehst ihre Kommentare nicht.'**
+  String get profileBlockedNote;
+
+  /// No description provided for @profileRoutes.
+  ///
+  /// In de, this message translates to:
+  /// **'Routen'**
+  String get profileRoutes;
+
+  /// No description provided for @profileJourneys.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentouren'**
+  String get profileJourneys;
+
+  /// No description provided for @reportAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Melden'**
+  String get reportAction;
+
+  /// No description provided for @reportReason.
+  ///
+  /// In de, this message translates to:
+  /// **'Grund'**
+  String get reportReason;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In de, this message translates to:
+  /// **'Spam oder Werbung'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonOffensive.
+  ///
+  /// In de, this message translates to:
+  /// **'Beleidigend oder unangemessen'**
+  String get reportReasonOffensive;
+
+  /// No description provided for @reportReasonDangerous.
+  ///
+  /// In de, this message translates to:
+  /// **'Gefährlich oder falsch'**
+  String get reportReasonDangerous;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In de, this message translates to:
+  /// **'Anderes'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Was ist los? (freiwillig)'**
+  String get reportNote;
+
+  /// No description provided for @reportThanks.
+  ///
+  /// In de, this message translates to:
+  /// **'Danke, wir schauen es uns an.'**
+  String get reportThanks;
+
+  /// No description provided for @editAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Bearbeiten'**
+  String get editAction;
+
+  /// No description provided for @save.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern'**
+  String get save;
+
+  /// No description provided for @saveConflict.
+  ///
+  /// In de, this message translates to:
+  /// **'Jemand hat das inzwischen geändert. Hier ist der neue Stand – deine Änderung ist nicht gespeichert.'**
+  String get saveConflict;
+
+  /// No description provided for @fieldTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel'**
+  String get fieldTitle;
+
+  /// No description provided for @fieldDescription.
+  ///
+  /// In de, this message translates to:
+  /// **'Beschreibung'**
+  String get fieldDescription;
+
+  /// No description provided for @fieldVisibility.
+  ///
+  /// In de, this message translates to:
+  /// **'Sichtbarkeit'**
+  String get fieldVisibility;
+
+  /// No description provided for @visibilityPrivate.
+  ///
+  /// In de, this message translates to:
+  /// **'Privat'**
+  String get visibilityPrivate;
+
+  /// No description provided for @visibilityUnlisted.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Link teilen'**
+  String get visibilityUnlisted;
+
+  /// No description provided for @visibilityPublic.
+  ///
+  /// In de, this message translates to:
+  /// **'Öffentlich'**
+  String get visibilityPublic;
+
+  /// No description provided for @visibilityNeedsVerify.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätige deine E-Mail-Adresse, um Routen zu veröffentlichen.'**
+  String get visibilityNeedsVerify;
+
+  /// No description provided for @tagsLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Tags'**
+  String get tagsLabel;
+
+  /// No description provided for @tagsHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Durch Kommas getrennt'**
+  String get tagsHint;
+
+  /// No description provided for @ownerBy.
+  ///
+  /// In de, this message translates to:
+  /// **'von {user}'**
+  String ownerBy(String user);
+
+  /// No description provided for @shareAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilen'**
+  String get shareAction;
+
+  /// No description provided for @shareLink.
+  ///
+  /// In de, this message translates to:
+  /// **'Link zum Teilen'**
+  String get shareLink;
+
+  /// No description provided for @shareSend.
+  ///
+  /// In de, this message translates to:
+  /// **'Link senden …'**
+  String get shareSend;
+
+  /// No description provided for @shareCopied.
+  ///
+  /// In de, this message translates to:
+  /// **'Kopiert'**
+  String get shareCopied;
+
+  /// No description provided for @shareLinkHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wähle «Mit Link teilen» oder «Öffentlich», um einen Link zu senden.'**
+  String get shareLinkHint;
+
+  /// No description provided for @shareRotate.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuen Link erzeugen'**
+  String get shareRotate;
+
+  /// No description provided for @shareRotateHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Der bisherige Link funktioniert danach nicht mehr.'**
+  String get shareRotateHint;
+
+  /// No description provided for @sharePeople.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Personen teilen'**
+  String get sharePeople;
+
+  /// No description provided for @sharePending.
+  ///
+  /// In de, this message translates to:
+  /// **'eingeladen'**
+  String get sharePending;
+
+  /// No description provided for @shareRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Zugriff entfernen'**
+  String get shareRemove;
+
+  /// No description provided for @shareWho.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzername oder E-Mail-Adresse'**
+  String get shareWho;
+
+  /// No description provided for @shareInvite.
+  ///
+  /// In de, this message translates to:
+  /// **'Einladen'**
+  String get shareInvite;
+
+  /// No description provided for @shareHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Eingeladene erhalten eine E-Mail. Wer noch kein Konto hat, registriert sich mit dieser Adresse.'**
+  String get shareHint;
+
+  /// No description provided for @shareNeedsVerify.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätige deine E-Mail-Adresse, um mit anderen zu teilen.'**
+  String get shareNeedsVerify;
+
+  /// No description provided for @shareRate.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu viele Einladungen – versuche es später wieder.'**
+  String get shareRate;
+
+  /// No description provided for @shareNoUser.
+  ///
+  /// In de, this message translates to:
+  /// **'Diesen Benutzernamen gibt es nicht.'**
+  String get shareNoUser;
+
+  /// No description provided for @shareSelf.
+  ///
+  /// In de, this message translates to:
+  /// **'Du kannst dich nicht selbst einladen.'**
+  String get shareSelf;
+
+  /// No description provided for @shareTooMany.
+  ///
+  /// In de, this message translates to:
+  /// **'Es haben bereits zu viele Personen Zugriff.'**
+  String get shareTooMany;
+
+  /// No description provided for @shareBadEmail.
+  ///
+  /// In de, this message translates to:
+  /// **'Ungültige E-Mail-Adresse.'**
+  String get shareBadEmail;
+
+  /// No description provided for @roleViewer.
+  ///
+  /// In de, this message translates to:
+  /// **'Kann ansehen'**
+  String get roleViewer;
+
+  /// No description provided for @roleEditor.
+  ///
+  /// In de, this message translates to:
+  /// **'Kann mitplanen'**
+  String get roleEditor;
+
+  /// No description provided for @sharedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit mir geteilt'**
+  String get sharedTitle;
+
+  /// No description provided for @gpxRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'GPX teilen …'**
+  String get gpxRoute;
+
+  /// No description provided for @gpxJourney.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Etappen als GPX (ZIP) teilen …'**
+  String get gpxJourney;
+
+  /// No description provided for @photosTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fotos'**
+  String get photosTitle;
+
+  /// No description provided for @photosAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Fotos hinzufügen'**
+  String get photosAdd;
+
+  /// No description provided for @photosCamera.
+  ///
+  /// In de, this message translates to:
+  /// **'Foto aufnehmen'**
+  String get photosCamera;
+
+  /// No description provided for @photosLibrary.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus der Mediathek'**
+  String get photosLibrary;
+
+  /// No description provided for @photosUploading.
+  ///
+  /// In de, this message translates to:
+  /// **'{done} von {total} hochgeladen …'**
+  String photosUploading(int done, int total);
+
+  /// No description provided for @photosHint.
+  ///
+  /// In de, this message translates to:
+  /// **'JPEG, PNG, WebP oder HEIC bis 20 MB. Wir entfernen alle Metadaten; Fotos, die entlang der Route aufgenommen wurden, erscheinen auf der Karte.'**
+  String get photosHint;
+
+  /// No description provided for @photosProblemFormat.
+  ///
+  /// In de, this message translates to:
+  /// **'kein JPEG-, PNG-, WebP- oder HEIC-Bild'**
+  String get photosProblemFormat;
+
+  /// No description provided for @photosProblemSize.
+  ///
+  /// In de, this message translates to:
+  /// **'zu gross (höchstens 20 MB)'**
+  String get photosProblemSize;
+
+  /// No description provided for @photosProblemLimit.
+  ///
+  /// In de, this message translates to:
+  /// **'zu viele Fotos (höchstens 100 pro Tour und 1000 pro Person)'**
+  String get photosProblemLimit;
+
+  /// No description provided for @photosProblemRate.
+  ///
+  /// In de, this message translates to:
+  /// **'zu viele Uploads – versuche es gleich noch einmal'**
+  String get photosProblemRate;
+
+  /// No description provided for @photosProblemOther.
+  ///
+  /// In de, this message translates to:
+  /// **'Hochladen fehlgeschlagen'**
+  String get photosProblemOther;
+
+  /// No description provided for @photosCaption.
+  ///
+  /// In de, this message translates to:
+  /// **'Beschreibung'**
+  String get photosCaption;
+
+  /// No description provided for @photosBy.
+  ///
+  /// In de, this message translates to:
+  /// **'von {user}'**
+  String photosBy(String user);
+
+  /// No description provided for @photosDelete.
+  ///
+  /// In de, this message translates to:
+  /// **'Löschen'**
+  String get photosDelete;
+
+  /// No description provided for @photosDeleteConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Wirklich löschen?'**
+  String get photosDeleteConfirm;
+
+  /// No description provided for @communityLike.
+  ///
+  /// In de, this message translates to:
+  /// **'Merken'**
+  String get communityLike;
+
+  /// No description provided for @communityLikes.
+  ///
+  /// In de, this message translates to:
+  /// **'{n} Mal gemerkt'**
+  String communityLikes(int n);
+
+  /// No description provided for @communityComments.
+  ///
+  /// In de, this message translates to:
+  /// **'{n} Kommentare'**
+  String communityComments(int n);
+
+  /// No description provided for @communityCommentsAllowed.
+  ///
+  /// In de, this message translates to:
+  /// **'Kommentare erlauben'**
+  String get communityCommentsAllowed;
+
+  /// No description provided for @communityCommentsOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Kommentare sind ausgeschaltet.'**
+  String get communityCommentsOff;
+
+  /// No description provided for @communityCommentPlaceholder.
+  ///
+  /// In de, this message translates to:
+  /// **'Kommentar schreiben …'**
+  String get communityCommentPlaceholder;
+
+  /// No description provided for @communityCommentSend.
+  ///
+  /// In de, this message translates to:
+  /// **'Kommentieren'**
+  String get communityCommentSend;
+
+  /// No description provided for @communityReply.
+  ///
+  /// In de, this message translates to:
+  /// **'Antworten'**
+  String get communityReply;
+
+  /// No description provided for @communityReplyPlaceholder.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Antwort …'**
+  String get communityReplyPlaceholder;
+
+  /// No description provided for @communityEdited.
+  ///
+  /// In de, this message translates to:
+  /// **'bearbeitet'**
+  String get communityEdited;
+
+  /// No description provided for @communityRate.
+  ///
+  /// In de, this message translates to:
+  /// **'Das ging zu schnell – versuche es gleich noch einmal.'**
+  String get communityRate;
+
+  /// No description provided for @communityVerifyToComment.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätige deine E-Mail-Adresse, um zu kommentieren.'**
+  String get communityVerifyToComment;
+
+  /// No description provided for @stageEdit.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe bearbeiten'**
+  String get stageEdit;
+
+  /// No description provided for @stageDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Datum'**
+  String get stageDate;
+
+  /// No description provided for @stageDateNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Datum'**
+  String get stageDateNone;
+
+  /// No description provided for @stageStatus.
+  ///
+  /// In de, this message translates to:
+  /// **'Status'**
+  String get stageStatus;
+
+  /// No description provided for @statusPlanned.
+  ///
+  /// In de, this message translates to:
+  /// **'Geplant'**
+  String get statusPlanned;
+
+  /// No description provided for @stageAccommodationLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkunft'**
+  String get stageAccommodationLabel;
+
+  /// No description provided for @stageAccommodationPlaceholder.
+  ///
+  /// In de, this message translates to:
+  /// **'z. B. Gasthaus Alpenhof'**
+  String get stageAccommodationPlaceholder;
+
+  /// No description provided for @stageBookedLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Gebucht'**
+  String get stageBookedLabel;
+
+  /// No description provided for @stageNotes.
+  ///
+  /// In de, this message translates to:
+  /// **'Notizen'**
+  String get stageNotes;
+
+  /// No description provided for @stageTransfer.
+  ///
+  /// In de, this message translates to:
+  /// **'Überbrückt mit'**
+  String get stageTransfer;
+
+  /// No description provided for @transferNone.
+  ///
+  /// In de, this message translates to:
+  /// **'–'**
+  String get transferNone;
+
+  /// No description provided for @sbbToStart.
+  ///
+  /// In de, this message translates to:
+  /// **'SBB-Fahrplan: Anreise'**
+  String get sbbToStart;
+
+  /// No description provided for @sbbFromEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'SBB-Fahrplan: Rückreise'**
+  String get sbbFromEnd;
+
+  /// No description provided for @sbbTransfer.
+  ///
+  /// In de, this message translates to:
+  /// **'SBB-Fahrplan'**
+  String get sbbTransfer;
+
+  /// No description provided for @connectionsShow.
+  ///
+  /// In de, this message translates to:
+  /// **'Verbindungen anzeigen'**
+  String get connectionsShow;
+
+  /// No description provided for @connectionsDepart.
+  ///
+  /// In de, this message translates to:
+  /// **'Ab'**
+  String get connectionsDepart;
+
+  /// No description provided for @connectionsArrive.
+  ///
+  /// In de, this message translates to:
+  /// **'An'**
+  String get connectionsArrive;
+
+  /// No description provided for @connectionsSearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Suchen'**
+  String get connectionsSearch;
+
+  /// No description provided for @connectionsNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Verbindung gefunden.'**
+  String get connectionsNone;
+
+  /// No description provided for @connectionsUnavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrplanabfrage gerade nicht möglich – nutze den SBB-Fahrplan.'**
+  String get connectionsUnavailable;
+
+  /// No description provided for @connectionsTransfers.
+  ///
+  /// In de, this message translates to:
+  /// **'{n} Umst.'**
+  String connectionsTransfers(int n);
+
+  /// No description provided for @connectionsWalk.
+  ///
+  /// In de, this message translates to:
+  /// **'{min} min zu Fuss'**
+  String connectionsWalk(int min);
+
+  /// No description provided for @connectionsPlatform.
+  ///
+  /// In de, this message translates to:
+  /// **'Gl./Kante {p}'**
+  String connectionsPlatform(String p);
+
+  /// No description provided for @connectionsSource.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrplandaten: opentransportdata.swiss'**
+  String get connectionsSource;
+
+  /// No description provided for @collectionsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Sammlungen'**
+  String get collectionsTitle;
+
+  /// No description provided for @collectionsIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Routen und Etappentouren zusammenstellen – als Wunschliste, Ideensammlung oder zum Teilen. Eine Sammlung gibt keinen Zugriff: Jede Person sieht nur, was sie ohnehin öffnen darf.'**
+  String get collectionsIntro;
+
+  /// No description provided for @collectionsEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Sammlungen.'**
+  String get collectionsEmpty;
+
+  /// No description provided for @collectionNew.
+  ///
+  /// In de, this message translates to:
+  /// **'Neue Sammlung'**
+  String get collectionNew;
+
+  /// No description provided for @collectionItemsCount.
+  ///
+  /// In de, this message translates to:
+  /// **'{n} Einträge'**
+  String collectionItemsCount(int n);
+
+  /// No description provided for @collectionEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch leer. Füge Routen und Etappentouren über ihr Menü hinzu: «Zur Sammlung hinzufügen …».'**
+  String get collectionEmpty;
+
+  /// No description provided for @collectionAddTo.
+  ///
+  /// In de, this message translates to:
+  /// **'Zur Sammlung hinzufügen …'**
+  String get collectionAddTo;
+
+  /// No description provided for @collectionAdded.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzugefügt zu «{title}»'**
+  String collectionAdded(String title);
+
+  /// No description provided for @collectionAlready.
+  ///
+  /// In de, this message translates to:
+  /// **'Schon in «{title}»'**
+  String collectionAlready(String title);
+
+  /// No description provided for @collectionRemoveItem.
+  ///
+  /// In de, this message translates to:
+  /// **'Entfernen'**
+  String get collectionRemoveItem;
+
+  /// No description provided for @collectionDelete.
+  ///
+  /// In de, this message translates to:
+  /// **'Sammlung löschen'**
+  String get collectionDelete;
+
+  /// No description provided for @collectionDeleteConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Sammlung löschen? Routen und Etappentouren bleiben.'**
+  String get collectionDeleteConfirm;
+
+  /// No description provided for @collectionStages.
+  ///
+  /// In de, this message translates to:
+  /// **'{n} Etappen'**
+  String collectionStages(int n);
+
+  /// No description provided for @myMapKindHike.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewanderte'**
+  String get myMapKindHike;
+
+  /// No description provided for @connectionsFromHere.
+  ///
+  /// In de, this message translates to:
+  /// **'Verbindungen von hier zum Start'**
+  String get connectionsFromHere;
+
+  /// No description provided for @connectionsNoPosition.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Standort ist nicht bekannt. Erlaube Alvyo den Standort in den iPhone-Einstellungen.'**
+  String get connectionsNoPosition;
+
+  /// No description provided for @stageMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Details und Anreise'**
+  String get stageMore;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

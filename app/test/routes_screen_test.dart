@@ -27,6 +27,8 @@ void main() {
     final body = switch (req.url.path) {
       '/api/v1/routes' => {'routes': <Object>[]},
       '/api/v1/journeys' => {'journeys': <Object>[]},
+      '/api/v1/feed' => {'items': <Object>[]},
+      '/api/v1/shared' => {'routes': <Object>[], 'journeys': <Object>[], 'collections': <Object>[]},
       '/api/v1/me' => {'id': 'u1', 'username': 'wodan', 'display_name': 'Wodan', 'speed_factor': 1},
       _ => null,
     };
@@ -63,7 +65,7 @@ void main() {
   }
 
   for (final brightness in Brightness.values) {
-    testWidgets('the bar: journeys, the record button and the profile ($brightness)', (tester) async {
+    testWidgets('the bar: journeys, the record button, the feed and the profile ($brightness)', (tester) async {
       var loggedOut = false;
       await pump(tester, brightness, () => loggedOut = true);
       expect(find.text('Meine Routen'), findsOneWidget);
@@ -81,10 +83,19 @@ void main() {
       );
       expect(find.text('Meine Routen'), findsOneWidget);
 
+      await tester.tap(find.byKey(const Key('tab-feed')));
+      await until(tester, find.byKey(const Key('feed-empty')));
+      expect(find.byKey(const Key('feed-empty')), findsOneWidget);
+
       await tester.tap(find.byKey(const Key('tab-profile')));
       await until(tester, find.text('@wodan'));
       expect(find.text('Wodan'), findsOneWidget);
       expect(find.text('Server: alvyo.test'), findsOneWidget);
+      // Clear of the floating bar.
+      final list = find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first;
+      await tester.scrollUntilVisible(find.byKey(const Key('logout')), 200, scrollable: list);
+      await tester.drag(list, const Offset(0, -300));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('logout')));
       expect(loggedOut, isTrue);
     });

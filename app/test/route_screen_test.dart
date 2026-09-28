@@ -179,10 +179,11 @@ void main() {
 
       await tester.tap(find.text('open'));
       await settle();
-      expect(find.byKey(const Key('item-menu')), menu ? findsOneWidget : findsNothing);
-      if (!menu) return;
+      // The menu has more (GPX, editing …); «Löschen» only for the owner.
       await tester.tap(find.byKey(const Key('item-menu')));
       await settle();
+      expect(find.byKey(const Key('item-delete')), menu ? findsOneWidget : findsNothing);
+      if (!menu) return;
       await tester.tap(find.byKey(const Key('item-delete')));
       await settle();
       expect(find.text('Route löschen? Das lässt sich nicht rückgängig machen.'), findsOneWidget);

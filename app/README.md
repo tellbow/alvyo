@@ -60,6 +60,10 @@ The integration tests expect the API and the web dev server (:5173) from
   voice channel;
 - `journey_test.dart` opens the journey, saves all stages offline and opens it
   and a stage with an unreachable server;
+- `community_test.dart` switches the look and the language in the profile,
+  changes the route's description, likes and comments on it, adds it to a
+  new collection, changes a stage's accommodation and opens the feed and
+  the map of one's tours, putting everything back;
 - `gps_test.dart` uses the real GPS path and needs the simulator to grant the
   location and move along the route, started once the test app is installed:
 

@@ -3,6 +3,10 @@
 <plist version="1.0">
 <dict>
 	<!-- Plain HTTP to a server on the local network (development); the public server uses HTTPS. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Alvyo adds the photos you take to your routes and journeys.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Alvyo adds photos from your library to your routes and journeys.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Alvyo imports the hikes you recorded with your Apple Watch.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

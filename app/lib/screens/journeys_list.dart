@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
-import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/packs.dart';
-import 'item_card.dart';
 import 'journey_plan_screen.dart';
 import 'journey_screen.dart';
-import 'tag_chips.dart';
+import 'tiles.dart';
 
-/// The user's journeys; the saved ones when the server cannot be reached.
+/// The user's journeys (the saved ones when the server cannot be reached)
+/// and those shared with them.
 class JourneysList extends StatefulWidget {
   const JourneysList({super.key, required this.api});
   final Api api;
@@ -20,6 +19,10 @@ class JourneysList extends StatefulWidget {
 
 class _JourneysListState extends State<JourneysList> {
   late Future<(List<JourneySummary>, bool offline)> _journeys = _load();
+  late Future<List<JourneySummary>> _shared = _loadShared();
+
+  Future<List<JourneySummary>> _loadShared() =>
+      widget.api.shared().then((s) => s.journeys, onError: (Object _) => <JourneySummary>[]);
 
   Future<(List<JourneySummary>, bool)> _load() async {
     try {
@@ -34,6 +37,7 @@ class _JourneysListState extends State<JourneysList> {
 
   void _reload() => setState(() {
     _journeys = _load();
+    _shared = _loadShared();
   });
 
   @override
@@ -65,46 +69,38 @@ class _JourneysListState extends State<JourneysList> {
           if (snap.hasError) return ListView(children: [ListTile(title: Text(t.errorServer))]);
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final (journeys, offline) = snap.data!;
-          if (journeys.isEmpty) return ListView(children: [ListTile(title: Text(t.journeysEmpty))]);
-          return ListView.builder(
-            itemCount: journeys.length + (offline ? 1 : 0),
-            itemBuilder: (context, i) {
-              if (offline && i == 0) {
-                return ListTile(
-                  key: const Key('journeys-offline'),
-                  leading: const Icon(Icons.cloud_off),
-                  title: Text(t.journeysOffline),
-                );
-              }
-              final j = journeys[offline ? i - 1 : i];
-              return ItemCard(
-                child: ListTile(
-                  title: Text(j.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 4,
-                    children: [
-                      Text(
-                        '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
-                        '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)} · ↑ ${j.ascentM.round()} m',
-                      ),
-                      if (j.tags.isNotEmpty) TagChips(j.tags),
-                    ],
-                  ),
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => JourneyScreen(api: widget.api, id: j.id, title: j.title),
-                      ),
-                    );
-                    if (mounted) _reload();
-                  },
-                ),
+          return FutureBuilder(
+            future: offline ? Future.value(<JourneySummary>[]) : _shared,
+            builder: (context, sharedSnap) {
+              final shared = sharedSnap.data ?? const <JourneySummary>[];
+              return ListView(
+                padding: const EdgeInsets.only(bottom: 120),
+                children: [
+                  if (offline)
+                    ListTile(
+                      key: const Key('journeys-offline'),
+                      leading: const Icon(Icons.cloud_off),
+                      title: Text(t.journeysOffline),
+                    ),
+                  if (journeys.isEmpty) ListTile(title: Text(t.journeysEmpty)),
+                  for (final j in journeys) JourneyTile(journey: j, onTap: () => _open(j)),
+                  if (shared.isNotEmpty) ListHeading(t.sharedTitle),
+                  for (final j in shared) JourneyTile(journey: j, owner: j.owner, onTap: () => _open(j)),
+                ],
               );
             },
           );
         },
       ),
     );
+  }
+
+  Future<void> _open(JourneySummary j) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => JourneyScreen(api: widget.api, id: j.id, title: j.title),
+      ),
+    );
+    if (mounted) _reload();
   }
 }

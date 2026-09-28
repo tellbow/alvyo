@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// The Alvyo look, as on the website: greyish greens, an orange accent,
 /// Figtree for text and Bricolage Grotesque for headings. Light and dark
-/// follow the phone's setting.
+/// follow the phone's setting unless chosen (see AppSettings).
 class AlvyoColors {
   const AlvyoColors._(this.accent);
 

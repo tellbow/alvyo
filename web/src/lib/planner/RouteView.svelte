@@ -4,13 +4,13 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Me, type Route } from '$lib/api/client';
+	import { api, type Me, type Revision, type Route } from '$lib/api/client';
 	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
 	import Map from '$lib/map/Map.svelte';
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
-	import { hikeDate } from '$lib/util/locale';
+	import { hikeDate, savedAt } from '$lib/util/locale';
 	import AddToCollection from '$lib/collections/AddToCollection.svelte';
 	import Social from '$lib/community/Social.svelte';
 	import { Gallery } from '$lib/photos/gallery.svelte';
@@ -19,6 +19,7 @@
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
 	import ProfileDock from './ProfileDock.svelte';
+	import Revisions from './Revisions.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
@@ -27,7 +28,13 @@
 	import { Planner } from './planner.svelte';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Profile } from './route';
 
-	let { route, token, user }: { route: Route; token?: string; user: Me | null } = $props();
+	// With `revision`, `route` has the line it had then.
+	let {
+		route,
+		token,
+		user,
+		revision
+	}: { route: Route; token?: string; user: Me | null; revision?: Revision } = $props();
 
 	let areas = $state<ProtectedArea[]>();
 	let areasFailed = $state(false);
@@ -57,9 +64,11 @@
 	let lib = $state<typeof MapLibre>();
 	let hoverIndex = $state<number>();
 	let confirmDelete = $state(false);
-	// Stage routes have their photos on the journey.
+	// Stage routes have their photos on the journey; an earlier version shows
+	// the line only.
 	// svelte-ignore state_referenced_locally
-	const gallery = route.journey_id ? undefined : new Gallery('routes', route.id, token);
+	const gallery = route.journey_id || revision ? undefined : new Gallery('routes', route.id, token);
+	let changed = $state(false);
 
 	// Read-only planner: renders the stored legs, never routes. Loaded once;
 	// the page re-creates this component for another route ({#key}).
@@ -75,11 +84,20 @@
 		map = m;
 		lib = l;
 		const coords = planner.line.coordinates;
+		if (coords.length === 0) return; // a short hike of someone else: nothing shown
 		const bounds = coords.reduce(
 			(b, c) => b.extend([c[0], c[1]]),
 			new l.LngLatBounds([coords[0][0], coords[0][1]], [coords[0][0], coords[0][1]])
 		);
 		m.fitBounds(bounds, { padding: { top: 60, bottom: 200, left: 60, right: 60 }, duration: 0 });
+	}
+
+	async function restore(version: number) {
+		const { response } = await api().POST('/routes/{id}/revisions/{version}/restore', {
+			params: { path: { id: route.id, version }, header: { 'If-Match': `"${route.version}"` } }
+		});
+		if (response.ok) await goto(resolve('/routes/[id]', { id: route.id }), { invalidateAll: true });
+		else changed = response.status === 412;
 	}
 
 	async function remove() {
@@ -92,7 +110,7 @@
 	title={route.title}
 	description={`${m.seo_route_description({ stats: summary })} ${route.description ?? ''}`}
 	image={imageUrl}
-	index={route.visibility === 'public' && !route.journey_id}
+	index={route.visibility === 'public' && !route.journey_id && !revision}
 />
 
 <main class="flex min-h-0 flex-1 flex-col md:flex-row">
@@ -111,6 +129,30 @@
 	<aside
 		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-80 md:flex-none md:border-t-0 md:border-l"
 	>
+		{#if revision}
+			<div
+				class="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-800 dark:bg-amber-950/40"
+				data-testid="revision"
+			>
+				<p>
+					{m.revision_shown({
+						date: savedAt(revision.saved_at),
+						user: revision.saved_by || m.revision_someone()
+					})}
+				</p>
+				<div class="mt-2 flex flex-wrap items-center gap-3">
+					<button
+						type="button"
+						class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
+						onclick={() => restore(revision.version)}>{m.revision_restore()}</button
+					>
+					<a href={resolve('/routes/[id]', { id: route.id })} class="text-accent-ink underline"
+						>{m.revision_current()}</a
+					>
+				</div>
+				{#if changed}<p class="mt-2 text-red-700" role="alert">{m.revision_changed()}</p>{/if}
+			</div>
+		{/if}
 		<div>
 			<h1 class="text-xl font-semibold" data-testid="route-title">{route.title}</h1>
 			<p class="text-sm text-stone-500">
@@ -138,10 +180,19 @@
 						>
 					{/if}
 				</p>
+				<p class="text-sm text-stone-600" data-testid="hike-privacy">
+					{#if route.can_edit}
+						{m.route_privacy_owner()}
+					{:else if route.legs.length === 0}
+						{m.route_privacy_all()}
+					{:else}
+						{m.route_privacy_others()}
+					{/if}
+				</p>
 			{/if}
 		</div>
 		{#if route.description}<p class="text-sm whitespace-pre-line">{route.description}</p>{/if}
-		{#if route.can_edit}
+		{#if route.can_edit && !revision}
 			<div class="flex gap-2 text-sm">
 				<a
 					href={resolve('/plan/[id]', { id: route.id })}
@@ -168,14 +219,21 @@
 				{/if}
 			</div>
 		{/if}
-		<!-- API download, not a page: resolve() does not apply. -->
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href="/api/v1/routes/{route.id}/gpx" download class="text-sm text-accent-ink underline"
-			>{m.route_gpx()}</a
-		>
-		<StatsPanel totals={planner.totals} pace={user?.speed_factor ?? 1} />
+		{#if !revision}
+			<!-- API download, not a page: resolve() does not apply. -->
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+			<a href="/api/v1/routes/{route.id}/gpx" download class="text-sm text-accent-ink underline"
+				>{m.route_gpx()}</a
+			>
+		{/if}
+		{#if route.legs.length > 0}
+			<StatsPanel totals={planner.totals} pace={user?.speed_factor ?? 1} />
+		{/if}
 		<ProtectedAreas {areas} failed={areasFailed} />
-		{#if user && !route.journey_id}
+		{#if route.can_edit && !revision}
+			<Revisions id={route.id} />
+		{/if}
+		{#if user && !route.journey_id && !revision}
 			<AddToCollection kind="route" id={route.id} />
 		{/if}
 		{#if gallery}

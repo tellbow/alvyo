@@ -13,6 +13,8 @@ import (
 	"github.com/tellbow/alvyo/api/internal/auth"
 	"github.com/tellbow/alvyo/api/internal/community"
 	"github.com/tellbow/alvyo/api/internal/photos"
+	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 type photosBody struct {
@@ -130,15 +132,22 @@ func registerPhotoItem(api huma.API, d Deps, it socialItem) {
 		}
 		return target(t), nil
 	}
-	list := func(ctx context.Context, t photos.Target, role access.Role) (*photosOutput, error) {
+	list := func(ctx context.Context, t photos.Target, role access.Role, hidden []geo.Point) (*photosOutput, error) {
 		ps, err := d.Photos.List(ctx, t)
 		if err != nil {
 			return nil, err
 		}
+		for i, p := range ps {
+			for _, h := range hidden {
+				if len(p.Pin) == 2 && geo.Distance(h, geo.Point{Lon: p.Pin[0], Lat: p.Pin[1]}) <= routes.PrivacyM {
+					ps[i].Pin = nil // in the gallery, not on the map
+				}
+			}
+		}
 		return &photosOutput{Body: photosBody{Photos: ps, CanEdit: role >= access.Editor}}, nil
 	}
 	editorList := func(ctx context.Context, t photos.Target) (*photosOutput, error) {
-		return list(ctx, t, access.Editor)
+		return list(ctx, t, access.Editor, nil)
 	}
 
 	huma.Register(api, huma.Operation{
@@ -149,7 +158,7 @@ func registerPhotoItem(api huma.API, d Deps, it socialItem) {
 		if err != nil {
 			return nil, err
 		}
-		return list(ctx, target(t), role)
+		return list(ctx, target(t), role, t.Hidden)
 	})
 
 	huma.Register(api, huma.Operation{

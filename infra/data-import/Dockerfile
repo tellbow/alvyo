@@ -7,4 +7,4 @@ RUN apt-get update \
 WORKDIR /work
 # Compose mounts ./data-import over /scripts in development; in production
 # (e.g. Kubernetes jobs) the image carries them.
-COPY *.sh /scripts/
+COPY *.sh border.geojson /scripts/

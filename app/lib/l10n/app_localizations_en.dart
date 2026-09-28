@@ -155,7 +155,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get watchReasonOutside => 'it leaves Switzerland and Liechtenstein.';
+  String get watchReasonOutside => 'it goes more than 15 km beyond Switzerland and Liechtenstein.';
 
   @override
   String get watchReasonShort => 'it is too short.';
@@ -1287,7 +1287,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordStart => 'Start recording';
 
   @override
-  String get recordRefused => 'Not saved: the hike is too short or leaves Switzerland and Liechtenstein.';
+  String get recordRefused =>
+      'Not saved: the hike is too short or goes more than 15 km beyond Switzerland and Liechtenstein.';
 
   @override
   String get barRoutes => 'Routes';
@@ -1297,4 +1298,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planAction => 'Plan';
+
+  @override
+  String get routePrivacyOwner => 'Others see this hike without its first and last 500 m.';
+
+  @override
+  String get routePrivacyOthers => 'The start and end of the hike are hidden.';
+
+  @override
+  String get routePrivacyAll => 'This hike is too short to show to others: its start and end are hidden.';
+
+  @override
+  String plannerAlpineShorter(String alpine, String hike) {
+    return 'With “Alpine hiking” only $alpine instead of $hike.';
+  }
+
+  @override
+  String plannerAlpineGrade(String grade) {
+    return 'The shorter way leads over $grade.';
+  }
+
+  @override
+  String get plannerAlpineUse => 'Plan this part as alpine';
+
+  @override
+  String get plannerAlpineUsed => 'Planned with “Alpine hiking”.';
+
+  @override
+  String get plannerAlpineUndo => 'Back to hiking';
 }

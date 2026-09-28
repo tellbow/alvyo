@@ -84,6 +84,42 @@ void main() {
       expect(planner.legs.single.leg, isNotNull);
     });
 
+    test('a leg much longer by hiking is planned alpine on request, and back', () async {
+      final asked = <String>[];
+      final planner = RoutePlanner(
+        Api(
+          'https://alvyo.test',
+          client: MockClient((req) async {
+            final body = jsonDecode(req.body) as Map<String, dynamic>;
+            asked.add('${_asked(req)} ${body['profile']}');
+            final leg = _leg(body);
+            if (body['profile'] == 'hike') leg['alpine'] = {'distance_m': 1100.0, 'sac_grade': 4};
+            return _json(leg);
+          }),
+        ),
+      );
+      planner.add(8.0, 46.0);
+      planner.add(8.1, 46.0);
+      await planner.idle();
+      expect(planner.legs.single.leg!.alpine, (distanceM: 1100.0, sacGrade: 4));
+
+      planner.setAlpine(0, true);
+      await planner.idle();
+      expect(asked, ['8.0>8.1 hike', '8.0>8.1 alpine']);
+      expect(planner.anchors.last.toJson()['alpine'], isTrue);
+      expect(planner.legs.single.leg!.alpine, isNull);
+
+      planner.setAlpine(0, false); // known
+      await planner.idle();
+      expect(asked, hasLength(2));
+      expect(planner.anchors.last.toJson().containsKey('alpine'), isFalse);
+
+      planner.setAlpine(0, true);
+      planner.reorder(1, 0); // the alpine point comes first: no leg arrives there
+      await planner.idle();
+      expect(planner.anchors.first.alpine, isFalse);
+    });
+
     test('an answer that comes after the points changed is dropped', () async {
       final answers = <String, Completer<http.Response>>{};
       final planner = RoutePlanner(

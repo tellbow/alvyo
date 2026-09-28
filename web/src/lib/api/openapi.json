@@ -94,6 +94,25 @@
         },
         "type": "object"
       },
+      "AlpineWay": {
+        "additionalProperties": false,
+        "properties": {
+          "distance_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "sac_grade": {
+            "description": "Hardest segment, 1–6, 0 unknown",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "distance_m",
+          "sac_grade"
+        ],
+        "type": "object"
+      },
       "Area": {
         "additionalProperties": false,
         "properties": {
@@ -2427,6 +2446,10 @@
       "Leg": {
         "additionalProperties": false,
         "properties": {
+          "alpine": {
+            "$ref": "#/components/schemas/AlpineWay",
+            "description": "Planned with hike: the alpine profile's much shorter way"
+          },
           "ascent_m": {
             "format": "double",
             "type": "number"
@@ -3244,14 +3267,14 @@
         "properties": {
           "lat": {
             "format": "double",
-            "maximum": 47.9,
-            "minimum": 45.8,
+            "maximum": 47.95,
+            "minimum": 45.65,
             "type": "number"
           },
           "lon": {
             "format": "double",
-            "maximum": 10.6,
-            "minimum": 5.9,
+            "maximum": 10.7,
+            "minimum": 5.7,
             "type": "number"
           }
         },
@@ -3778,19 +3801,56 @@
         ],
         "type": "object"
       },
+      "RevisionOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "$ref": "#/components/schemas/RouteRevision"
+          },
+          "route": {
+            "$ref": "#/components/schemas/RouteBody",
+            "description": "The route with the line it had then"
+          }
+        },
+        "required": [
+          "route",
+          "revision"
+        ],
+        "type": "object"
+      },
+      "RevisionsOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "revisions": {
+            "description": "Newest first, at most 20",
+            "items": {
+              "$ref": "#/components/schemas/RouteRevision"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "revisions"
+        ],
+        "type": "object"
+      },
       "RouteAnchor": {
         "additionalProperties": false,
         "properties": {
+          "alpine": {
+            "description": "The leg arriving at this anchor uses the alpine profile on a hike route",
+            "type": "boolean"
+          },
           "lat": {
             "format": "double",
-            "maximum": 47.9,
-            "minimum": 45.8,
+            "maximum": 47.95,
+            "minimum": 45.65,
             "type": "number"
           },
           "lon": {
             "format": "double",
-            "maximum": 10.6,
-            "minimum": 5.9,
+            "maximum": 10.7,
+            "minimum": 5.7,
             "type": "number"
           },
           "name": {
@@ -3957,20 +4017,59 @@
         "properties": {
           "lat": {
             "format": "double",
-            "maximum": 47.9,
-            "minimum": 45.8,
+            "maximum": 47.95,
+            "minimum": 45.65,
             "type": "number"
           },
           "lon": {
             "format": "double",
-            "maximum": 10.6,
-            "minimum": 5.9,
+            "maximum": 10.7,
+            "minimum": 5.7,
             "type": "number"
           }
         },
         "required": [
           "lon",
           "lat"
+        ],
+        "type": "object"
+      },
+      "RouteRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "ascent_m": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "distance_m": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "duration_s": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "saved_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "saved_by": {
+            "description": "Username of who saved it; empty when that account is gone",
+            "type": "string"
+          },
+          "version": {
+            "description": "The route's version it was",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "saved_at",
+          "saved_by",
+          "distance_m",
+          "ascent_m",
+          "duration_s"
         ],
         "type": "object"
       },
@@ -4876,7 +4975,7 @@
             "type": "number"
           },
           "inside": {
-            "description": "Entirely within Switzerland and Liechtenstein (else it cannot be imported)",
+            "description": "Entirely within Switzerland, Liechtenstein and 15 km around (else it cannot be imported)",
             "type": "boolean"
           },
           "name": {
@@ -7070,7 +7169,7 @@
     },
     "/imports": {
       "post": {
-        "description": "Tracks outside Switzerland and Liechtenstein are skipped and reported.",
+        "description": "Tracks beyond 15 km around Switzerland and Liechtenstein are skipped and reported.",
         "operationId": "import-file",
         "requestBody": {
           "content": {
@@ -10816,8 +10915,8 @@
             "required": true,
             "schema": {
               "format": "double",
-              "maximum": 10.6,
-              "minimum": 5.9,
+              "maximum": 10.7,
+              "minimum": 5.7,
               "type": "number"
             }
           },
@@ -10828,8 +10927,8 @@
             "required": true,
             "schema": {
               "format": "double",
-              "maximum": 47.9,
-              "minimum": 45.8,
+              "maximum": 47.95,
+              "minimum": 45.65,
               "type": "number"
             }
           },
@@ -10929,8 +11028,8 @@
               "default": 8.23,
               "description": "Map centre: among equally good matches, the nearest come first",
               "format": "double",
-              "maximum": 10.6,
-              "minimum": 5.9,
+              "maximum": 10.7,
+              "minimum": 5.7,
               "type": "number"
             }
           },
@@ -10941,8 +11040,8 @@
             "schema": {
               "default": 46.8,
               "format": "double",
-              "maximum": 47.9,
-              "minimum": 45.8,
+              "maximum": 47.95,
+              "minimum": 45.65,
               "type": "number"
             }
           }
@@ -12460,6 +12559,180 @@
         "summary": "Change a photo's caption or take it off the map (owner and editors)",
         "tags": [
           "photos"
+        ]
+      }
+    },
+    "/routes/{id}/revisions": {
+      "get": {
+        "operationId": "list-route-revisions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionsOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Earlier versions of a route's line",
+        "tags": [
+          "routes"
+        ]
+      }
+    },
+    "/routes/{id}/revisions/{version}": {
+      "get": {
+        "operationId": "get-route-revision",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "A route with the line it had at an earlier version",
+        "tags": [
+          "routes"
+        ]
+      }
+    },
+    "/routes/{id}/revisions/{version}/restore": {
+      "post": {
+        "description": "The line replaced becomes a revision itself. Fails with 412 if the route changed since the version in If-Match.",
+        "operationId": "restore-route-revision",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "The route's current version (ETag)",
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "description": "The route's current version (ETag)",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteBody"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Make an earlier line the route's line again",
+        "tags": [
+          "routes"
         ]
       }
     },

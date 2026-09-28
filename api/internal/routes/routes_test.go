@@ -118,15 +118,15 @@ func TestStore(t *testing.T) {
 	}
 
 	id := uuid.MustParse(r.ID)
-	r2, err := s.Update(ctx, id, 1, Meta{Title: "Gratweg", Visibility: "public"}, nil)
+	r2, err := s.Update(ctx, id, 1, Meta{Title: "Gratweg", Visibility: "public"}, nil, owner)
 	if err != nil || r2.Version != 2 || r2.Title != "Gratweg" || len(r2.Legs) != 2 {
 		t.Fatalf("meta update: %+v %v", r2.Summary, err)
 	}
-	if _, err := s.Update(ctx, id, 1, Meta{Title: "stale", Visibility: "private"}, nil); !errors.Is(err, ErrVersion) {
+	if _, err := s.Update(ctx, id, 1, Meta{Title: "stale", Visibility: "private"}, nil, owner); !errors.Is(err, ErrVersion) {
 		t.Errorf("stale update: %v", err)
 	}
 	longer := content(leg(8.0, 4), leg(8.002, 4), leg(8.004, 4))
-	r3, err := s.Update(ctx, id, 2, r2.Meta, &longer)
+	r3, err := s.Update(ctx, id, 2, r2.Meta, &longer, owner)
 	if err != nil || len(r3.Legs) != 3 || r3.Totals.AscentM != 60 {
 		t.Fatalf("content update: %v %v", r3.Totals, err)
 	}
@@ -137,7 +137,7 @@ func TestStore(t *testing.T) {
 	if _, err := s.Get(ctx, id); !errors.Is(err, ErrNotFound) {
 		t.Errorf("after delete: %v", err)
 	}
-	if _, err := s.Update(ctx, id, 3, r2.Meta, nil); !errors.Is(err, ErrNotFound) {
+	if _, err := s.Update(ctx, id, 3, r2.Meta, nil, owner); !errors.Is(err, ErrNotFound) {
 		t.Errorf("update deleted: %v", err)
 	}
 }
@@ -159,8 +159,8 @@ func TestShareToken(t *testing.T) {
 	first := r.ShareToken
 
 	// Going private and back keeps the same link.
-	r, _ = s.Update(ctx, id, 1, Meta{Title: "Link", Visibility: "private"}, nil)
-	r, _ = s.Update(ctx, id, 2, Meta{Title: "Link", Visibility: "unlisted"}, nil)
+	r, _ = s.Update(ctx, id, 1, Meta{Title: "Link", Visibility: "private"}, nil, owner)
+	r, _ = s.Update(ctx, id, 2, Meta{Title: "Link", Visibility: "unlisted"}, nil, owner)
 	if r.ShareToken != first {
 		t.Errorf("token changed on visibility toggle: %q → %q", first, r.ShareToken)
 	}

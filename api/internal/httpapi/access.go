@@ -57,6 +57,9 @@ func loadRoute(ctx context.Context, d Deps, rawID, token string) (routes.Route, 
 	if role == access.None {
 		return routes.Route{}, access.None, huma.Error404NotFound("route not found")
 	}
+	if role == access.Viewer {
+		r = r.ForOthers() // a recorded hike without its start and end
+	}
 	return r, role, nil
 }
 

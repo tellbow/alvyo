@@ -204,7 +204,9 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID, v Viewer) (Collection, er
 			coalesce(r.distance_m, js.distance_m, 0), coalesce(r.ascent_m, js.ascent_m, 0),
 			coalesce(r.duration_s, js.duration_s, 0), coalesce(r.sac_grade, js.sac_grade, 0),
 			coalesce(r.sac_max, js.sac_max, 0), coalesce(js.stages, 0),
-			coalesce(ST_AsGeoJSON(ST_Simplify(ST_Force2D(r.geom), 0.0002), 5), js.lines)
+			-- others' recorded hikes without their start and end
+			coalesce(ST_AsGeoJSON(ST_Simplify(ST_Force2D(
+				CASE WHEN r.hiked_at IS NULL OR r.owner_id = $2 THEN r.geom ELSE shown_line(r.geom) END), 0.0002), 5), js.lines)
 		FROM collection_items ci
 		LEFT JOIN routes r ON r.id = ci.route_id
 		LEFT JOIN journeys j ON j.id = ci.journey_id

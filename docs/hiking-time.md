@@ -144,10 +144,14 @@ that a few planning points do not force. Two outliers:
 - Via Alpina 1 (Gaflei – Sargans) comes out 11 % shorter (24.7 instead of
   27.9 km, with both profiles): between the planning points the router finds
   shorter ways than the official route. More planning points follow it.
-- Corviglia – Chamanna Jenatsch (+52 % distance): one leg, towards the hut,
-  is routed 11.8 instead of 6.1 km with both the hike and the alpine profile.
-  The official trail there is apparently missing from, or blocked in, our
-  routing graph; not investigated yet.
+- Corviglia – Chamanna Jenatsch (+52 % distance): the trail is in the
+  graph, but OSM grades about 250 m of it T4 (`sac_scale=alpine_hiking`, near
+  9.757° E 46.510° N), so the hike profile (up to T3) goes round: 16.7
+  instead of 1.1 km between points on either side. The alpine profile takes
+  it between such points (11.0 km with a point every 5 km), yet also goes
+  round with the start and the hut alone (16.6 km). Since 2026-09-28 the
+  planner offers the alpine way for a leg when it is at most two thirds as
+  long (requirement 30).
 
 ## Rerun
 

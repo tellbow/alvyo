@@ -15,6 +15,7 @@ import (
 
 	"github.com/tellbow/alvyo/api/internal/dbq"
 	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // Errors.
@@ -46,6 +47,9 @@ type Target struct {
 	ID      uuid.UUID
 	OwnerID uuid.UUID
 	Title   string
+	// Hidden: nothing near these places is shown to the caller (the start
+	// and end of someone else's recorded hike).
+	Hidden []geo.Point
 }
 
 // Store reads and writes community data and sends notifications.

@@ -10,8 +10,8 @@ import (
 )
 
 type nearbyPlacesInput struct {
-	Lon   float64  `query:"lon" required:"true" minimum:"5.9" maximum:"10.6"`
-	Lat   float64  `query:"lat" required:"true" minimum:"45.8" maximum:"47.9"`
+	Lon   float64  `query:"lon" required:"true" minimum:"5.7" maximum:"10.7"`
+	Lat   float64  `query:"lat" required:"true" minimum:"45.65" maximum:"47.95"`
 	Q     string   `query:"q" maxLength:"60" doc:"Part of the name; widens the search to 30 km"`
 	Kind  []string `query:"kind" enum:"pt_stop,hut,hotel,campsite" doc:"Comma-separated; all kinds if omitted"`
 	Limit int      `query:"limit" minimum:"1" maximum:"30" default:"15"`
@@ -19,8 +19,8 @@ type nearbyPlacesInput struct {
 
 type searchPlacesInput struct {
 	Q   string  `query:"q" required:"true" minLength:"2" maxLength:"80"`
-	Lon float64 `query:"lon" minimum:"5.9" maximum:"10.6" default:"8.23" doc:"Map centre: among equally good matches, the nearest come first"`
-	Lat float64 `query:"lat" minimum:"45.8" maximum:"47.9" default:"46.8"`
+	Lon float64 `query:"lon" minimum:"5.7" maximum:"10.7" default:"8.23" doc:"Map centre: among equally good matches, the nearest come first"`
+	Lat float64 `query:"lat" minimum:"45.65" maximum:"47.95" default:"46.8"`
 }
 
 type placesInViewInput struct {

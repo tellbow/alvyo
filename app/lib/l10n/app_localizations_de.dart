@@ -155,7 +155,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get watchReasonOutside => 'sie verlässt die Schweiz und Liechtenstein.';
+  String get watchReasonOutside => 'sie führt mehr als 15 km über die Grenze der Schweiz und Liechtensteins.';
 
   @override
   String get watchReasonShort => 'sie ist zu kurz.';
@@ -1296,7 +1296,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get recordRefused =>
-      'Nicht gespeichert: Die Wanderung ist zu kurz oder verlässt die Schweiz und Liechtenstein.';
+      'Nicht gespeichert: Die Wanderung ist zu kurz oder führt mehr als 15 km über die Grenze der Schweiz und Liechtensteins.';
 
   @override
   String get barRoutes => 'Routen';
@@ -1306,4 +1306,32 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planAction => 'Planen';
+
+  @override
+  String get routePrivacyOwner => 'Andere sehen diese Wanderung ohne die ersten und letzten 500 m.';
+
+  @override
+  String get routePrivacyOthers => 'Start und Ende der Wanderung sind verborgen.';
+
+  @override
+  String get routePrivacyAll => 'Diese Wanderung ist zu kurz, um sie anderen zu zeigen: Start und Ende sind verborgen.';
+
+  @override
+  String plannerAlpineShorter(String alpine, String hike) {
+    return 'Mit «Alpinwandern» nur $alpine statt $hike.';
+  }
+
+  @override
+  String plannerAlpineGrade(String grade) {
+    return 'Der kürzere Weg führt über $grade.';
+  }
+
+  @override
+  String get plannerAlpineUse => 'Diesen Abschnitt alpin planen';
+
+  @override
+  String get plannerAlpineUsed => 'Mit «Alpinwandern» geplant.';
+
+  @override
+  String get plannerAlpineUndo => 'Wieder als Wanderung';
 }

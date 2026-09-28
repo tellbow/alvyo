@@ -45,7 +45,7 @@
   "watchEmpty": "Nessuna escursione degli ultimi 60 giorni in Apple Salute. Registrale con l'app Allenamento su Apple Watch («Escursionismo» o «Camminata all'aperto»). Se non hai consentito l'accesso: Impostazioni → App → Salute → Accesso ai dati e dispositivi → Alvyo.",
   "watchUnavailable": "Apple Salute non è disponibile su questo dispositivo.",
   "watchOutside": "Non importata: {reason}",
-  "watchReasonOutside": "esce dalla Svizzera e dal Liechtenstein.",
+  "watchReasonOutside": "va oltre 15 km dalla Svizzera e dal Liechtenstein.",
   "watchReasonShort": "è troppo corta.",
   "turnSharpLeft": "Svolta decisamente a sinistra",
   "turnLeft": "Svolta a sinistra",
@@ -390,8 +390,16 @@
   "travelEnd": "Arrivo del trekking",
   "recordTitle": "Escursione",
   "recordStart": "Avvia la registrazione",
-  "recordRefused": "Non salvata: l'escursione è troppo corta o esce dalla Svizzera e dal Liechtenstein.",
+  "recordRefused": "Non salvata: l'escursione è troppo corta o va oltre 15 km dalla Svizzera e dal Liechtenstein.",
   "barRoutes": "Percorsi",
   "barJourneys": "Tappe",
-  "planAction": "Pianifica"
+  "planAction": "Pianifica",
+  "routePrivacyOwner": "Gli altri vedono questa escursione senza i primi e gli ultimi 500 m.",
+  "routePrivacyOthers": "La partenza e l'arrivo dell'escursione sono nascosti.",
+  "routePrivacyAll": "Questa escursione è troppo corta per mostrarla agli altri: partenza e arrivo sono nascosti.",
+  "plannerAlpineShorter": "Con «Escursionismo alpino» solo {alpine} invece di {hike}.",
+  "plannerAlpineGrade": "La via più corta passa su {grade}.",
+  "plannerAlpineUse": "Pianifica questo tratto come alpino",
+  "plannerAlpineUsed": "Pianificato con «Escursionismo alpino».",
+  "plannerAlpineUndo": "Torna all'escursione"
 }

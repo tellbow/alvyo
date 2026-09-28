@@ -387,6 +387,32 @@
 										{m.plan_straight()}
 									</label>
 								</div>
+								{#if slot.state === 'ok' && slot.leg.alpine && !planner.anchors[i + 1]?.alpine}
+									<!-- «Wandern» goes round a harder part (as at Chamanna Jenatsch). -->
+									<p class="mt-1 text-xs text-stone-600" data-testid="leg-alpine">
+										{m.leg_alpine_shorter({
+											alpine: formatDistance(slot.leg.alpine.distance_m),
+											hike: formatDistance(slot.leg.distance_m)
+										})}
+										{#if slot.leg.alpine.sac_grade > 3}
+											{m.leg_alpine_grade({ grade: `T${slot.leg.alpine.sac_grade}` })}
+										{/if}
+										<button
+											type="button"
+											class="ml-1 underline"
+											onclick={() => planner.setAlpine(i, true)}>{m.leg_alpine_use()}</button
+										>
+									</p>
+								{:else if planner.anchors[i + 1]?.alpine && planner.profile === 'hike'}
+									<p class="mt-1 text-xs text-stone-600" data-testid="leg-alpine-used">
+										{m.leg_alpine_used()}
+										<button
+											type="button"
+											class="ml-1 underline"
+											onclick={() => planner.setAlpine(i, false)}>{m.leg_alpine_undo()}</button
+										>
+									</p>
+								{/if}
 								{#if slot.state === 'error'}
 									<p class="mt-1 text-xs text-red-700 dark:text-red-400" role="alert">
 										{legError(slot)}

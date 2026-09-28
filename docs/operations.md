@@ -50,7 +50,7 @@ account: its owner connects the provider on the account page first.
 ```sh
 git clone https://github.com/tellbow/alvyo.git /srv/alvyo
 cd /srv/alvyo
-make osm-fetch                          # OSM extracts for Switzerland + Liechtenstein
+make osm-fetch                          # OSM extracts: Switzerland, Liechtenstein, 15 km beyond
 cp infra/.env.example infra/.env        # fill in DOMAIN, POSTGRES_PASSWORD, SMTP, CONTACT_EMAIL
 cd infra
 docker compose -f compose.prod.yaml up -d --build   # first start: GraphHopper imports ~2 min
@@ -106,6 +106,14 @@ A change of `infra/graphhopper/config.yml` or its custom models needs a new
 graph: GraphHopper does not start on a graph built with other profiles. Run
 the graph refresh (or empty the graph cache) right after the new
 `alvyo-graphhopper` image is deployed.
+
+The OSM data reaches 15 km beyond the border (requirement 31): `fetch-and-merge.sh`
+downloads about 3.4 GB of neighbouring extracts (kept, so later runs download
+only what changed) and cuts them with `osmium extract`, which needs up to
+3.7 GiB of memory; with them the data volume holds about 4.5 GB of OSM files
+and 0.6 GB per graph (three during a refresh). The graph import stays within
+a 3 GB heap (2.3 GB used, 3 min); GraphHopper serves it in about 1.4 GB
+(the old graph: 0.7 GB), well within its 4.5 GiB limit.
 
 New GHCR packages are private; make them public once in the package settings
 (or give the cluster a pull secret). The data-import image carries its

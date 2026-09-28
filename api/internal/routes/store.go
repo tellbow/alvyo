@@ -241,8 +241,9 @@ func (s *Store) ListSharedWith(ctx context.Context, userID uuid.UUID, verifiedEm
 }
 
 // Update changes a route if it is still at the given version. A nil content
-// only updates the descriptive fields.
-func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c *Content) (Route, error) {
+// only updates the descriptive fields; new content, saved by [by], keeps the
+// line it replaces as a revision.
+func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c *Content, by uuid.UUID) (Route, error) {
 	var res pgconn.CommandTag
 	var err error
 	if c == nil {
@@ -260,16 +261,30 @@ func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c
 			return Route{}, eerr
 		}
 		t := a.totals
-		res, err = s.DB.Exec(ctx, `UPDATE routes SET title = $3, description = $4, visibility = $5::visibility, profile = $6,
+		// The line replaced is kept (a second save of the same version
+		// finds it there and then fails on the version), the oldest beyond
+		// MaxRevisions go.
+		res, err = s.DB.Exec(ctx, `WITH kept AS (
+				INSERT INTO route_revisions (route_id, version, profile, anchors, legs, distance_m, ascent_m, duration_s,
+					saved_at, saved_by)
+				SELECT id, version, profile, anchors, legs, distance_m, ascent_m, duration_s, content_at, coalesce(content_by, owner_id)
+				FROM routes WHERE id = $1 AND version = $2
+				ON CONFLICT DO NOTHING
+			), pruned AS (
+				DELETE FROM route_revisions WHERE route_id = $1 AND version NOT IN (
+					SELECT version FROM route_revisions WHERE route_id = $1 ORDER BY version DESC LIMIT $22)
+					AND EXISTS (SELECT 1 FROM routes WHERE id = $1 AND version = $2)
+			)
+			UPDATE routes SET title = $3, description = $4, visibility = $5::visibility, profile = $6,
 			anchors = $7, legs = $8, geom = ST_GeomFromText($9, 4326),
 			distance_m = $10, ascent_m = $11, descent_m = $12, duration_s = $13, duration_reverse_s = $14,
 			ele_min_m = $15, ele_max_m = $16, sac_grade = $17, sac_max = $18,
 			share_token = `+keepOrNewToken19+`, tags = `+ownTags20+`,
-			version = version + 1, updated_at = now()
+			version = version + 1, updated_at = now(), content_at = now(), content_by = $21
 			WHERE id = $1 AND version = $2`,
 			id, version, m.Title, m.Description, m.Visibility, c.Profile, anchors, legs, a.wkt,
 			round(t.DistanceM), round(t.AscentM), round(t.DescentM), t.DurationS, t.DurationReverseS,
-			round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken(), m.Tags)
+			round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken(), m.Tags, by, MaxRevisions-1)
 	}
 	if err != nil {
 		return Route{}, fmt.Errorf("routes: update: %w", err)

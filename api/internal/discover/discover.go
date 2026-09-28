@@ -91,7 +91,8 @@ SELECT top.kind, top.id, coalesce(r.title, j.title), u.username,
 	coalesce(r.distance_m, js.distance_m, 0)::float8, coalesce(r.ascent_m, js.ascent_m, 0)::float8,
 	coalesce(r.duration_s, js.duration_s, 0)::int, coalesce(r.duration_s, js.longest_s, 0)::int,
 	coalesce(r.sac_grade, js.sac_grade, 0)::int, coalesce(r.sac_max, js.sac_max, 0)::int, coalesce(js.stages, 0)::int,
-	ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(coalesce(r.geom, js.geom)), $10::float8)), 5)
+	ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(coalesce(
+		CASE WHEN r.hiked_at IS NULL THEN r.geom ELSE shown_line(r.geom) END, js.geom)), $10::float8)), 5)
 FROM top
 LEFT JOIN routes r ON top.kind = 'route' AND r.id = top.id
 LEFT JOIN journeys j ON top.kind = 'journey' AND j.id = top.id

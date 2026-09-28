@@ -318,7 +318,10 @@ class _RouteScreenState extends State<RouteScreen> {
                       widget.map ??
                           LayoutBuilder(
                             builder: (context, size) {
-                              final view = fitLine(r.line, size.maxWidth, size.maxHeight);
+                              // Someone else's short hike: no line, Switzerland.
+                              final view = r.line.isEmpty
+                                  ? (lon: 8.23, lat: 46.8, zoom: 7.0)
+                                  : fitLine(r.line, size.maxWidth, size.maxHeight);
                               return MapLibreMap(
                                 key: ValueKey(pack?.key), // a new style needs a new map
                                 options: MapOptions(
@@ -364,51 +367,64 @@ class _RouteScreenState extends State<RouteScreen> {
                               const SizedBox(height: 4),
                               Text(key: const Key('route-description'), r.description),
                             ],
+                            if (r.hikedAt != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                key: const Key('hike-privacy'),
+                                r.canEdit
+                                    ? t.routePrivacyOwner
+                                    : r.line.length < 2
+                                    ? t.routePrivacyAll
+                                    : t.routePrivacyOthers,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                             const SizedBox(height: 8),
                             ElevationProfile.ofLine(r.line),
                             ProtectedAreas(_areas),
                             const SizedBox(height: 8),
-                            ValueListenableBuilder(
-                              valueListenable: _downloads.progress(widget.id),
-                              builder: (context, progress, _) => Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  FilledButton.icon(
-                                    key: const Key('nav-start'),
-                                    onPressed: progress == null ? () => _hike(r) : null,
-                                    icon: const Icon(Icons.hiking),
-                                    label: Text(_resumable ? t.navResume : t.navStart),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (progress case final p?) ...[
-                                    Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
-                                    const SizedBox(height: 4),
-                                    LinearProgressIndicator(value: p.share),
-                                  ] else if (pack != null) ...[
-                                    if (_outdated)
-                                      FilledButton.icon(
-                                        key: const Key('offline-update'),
-                                        onPressed: _save,
-                                        icon: const Icon(Icons.sync),
-                                        label: Text(t.offlineOutdated),
+                            if (r.line.length >= 2)
+                              ValueListenableBuilder(
+                                valueListenable: _downloads.progress(widget.id),
+                                builder: (context, progress, _) => Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    FilledButton.icon(
+                                      key: const Key('nav-start'),
+                                      onPressed: progress == null ? () => _hike(r) : null,
+                                      icon: const Icon(Icons.hiking),
+                                      label: Text(_resumable ? t.navResume : t.navStart),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (progress case final p?) ...[
+                                      Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
+                                      const SizedBox(height: 4),
+                                      LinearProgressIndicator(value: p.share),
+                                    ] else if (pack != null) ...[
+                                      if (_outdated)
+                                        FilledButton.icon(
+                                          key: const Key('offline-update'),
+                                          onPressed: _save,
+                                          icon: const Icon(Icons.sync),
+                                          label: Text(t.offlineOutdated),
+                                        ),
+                                      OutlinedButton.icon(
+                                        key: const Key('offline-remove'),
+                                        onPressed: _remove,
+                                        icon: const Icon(Icons.offline_pin),
+                                        label: Text(t.offlineSaved),
                                       ),
-                                    OutlinedButton.icon(
-                                      key: const Key('offline-remove'),
-                                      onPressed: _remove,
-                                      icon: const Icon(Icons.offline_pin),
-                                      label: Text(t.offlineSaved),
-                                    ),
-                                  ] else
-                                    // Below «Wanderung starten», not as bright.
-                                    OutlinedButton.icon(
-                                      key: const Key('offline-save'),
-                                      onPressed: _save,
-                                      icon: const Icon(Icons.download),
-                                      label: Text(t.offlineSave),
-                                    ),
-                                ],
+                                    ] else
+                                      // Below «Wanderung starten», not as bright.
+                                      OutlinedButton.icon(
+                                        key: const Key('offline-save'),
+                                        onPressed: _save,
+                                        icon: const Icon(Icons.download),
+                                        label: Text(t.offlineSave),
+                                      ),
+                                  ],
+                                ),
                               ),
-                            ),
                             // A stage's photos and comments are on its journey.
                             if (r.journeyId == null) ...[
                               PhotoStrip(api: widget.api, id: r.id),

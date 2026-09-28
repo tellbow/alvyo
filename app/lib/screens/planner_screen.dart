@@ -385,9 +385,36 @@ class _PlannerScreenState extends State<PlannerScreen> {
     final theme = Theme.of(context);
     final Widget child;
     if (slot.leg case final leg?) {
-      child = Text(
-        '${formatDistance(leg.distanceM)} · ${formatDuration(leg.durationS, _pace)}',
-        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+      final small = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
+      final to = _planner.points[i + 1];
+      // «Wandern» goes round a harder part (as at Chamanna Jenatsch).
+      final (note, action) = switch (leg.alpine) {
+        final a? when !to.alpine => (
+          '${t.plannerAlpineShorter(formatDistance(a.distanceM), formatDistance(leg.distanceM))}'
+              '${a.sacGrade > 3 ? ' ${t.plannerAlpineGrade('T${a.sacGrade}')}' : ''}',
+          TextButton(
+            key: Key('planner-alpine-use-$i'),
+            onPressed: () => _planner.setAlpine(i, true),
+            child: Text(t.plannerAlpineUse),
+          ),
+        ),
+        _ when to.alpine && _planner.profile == 'hike' => (
+          t.plannerAlpineUsed,
+          TextButton(
+            key: Key('planner-alpine-undo-$i'),
+            onPressed: () => _planner.setAlpine(i, false),
+            child: Text(t.plannerAlpineUndo),
+          ),
+        ),
+        _ => (null, null),
+      };
+      child = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${formatDistance(leg.distanceM)} · ${formatDuration(leg.durationS, _pace)}', style: small),
+          if (note != null) Text(key: Key('planner-alpine-$i'), note, style: small),
+          ?action,
+        ],
       );
     } else if (slot.error case final status?) {
       child = Row(

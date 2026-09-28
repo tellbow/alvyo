@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 
 import 'api.dart';
 
-/// A point of a planned route; [name] is the place it was found as.
+/// A point of a planned route; [name] is the place it was found as, and
+/// [alpine]: the leg arriving here uses the alpine profile on a hike route.
 class PlanPoint {
-  const PlanPoint(this.id, this.lon, this.lat, [this.name]);
+  const PlanPoint(this.id, this.lon, this.lat, [this.name, this.alpine = false]);
   final int id;
   final double lon, lat;
   final String? name;
+  final bool alpine;
 }
 
 /// A leg between two consecutive points: computing, computed, or failed with
@@ -77,7 +79,7 @@ class RoutePlanner extends ChangeNotifier {
   /// «Start – Ziel» from the names of the first and last point, as far as known.
   String get suggestedTitle => [?_points.firstOrNull?.name, if (_points.length > 1) ?_points.last.name].join(' – ');
 
-  List<Anchor> get anchors => [for (final p in _points) Anchor(p.lon, p.lat, name: p.name)];
+  List<Anchor> get anchors => [for (final p in _points) Anchor(p.lon, p.lat, name: p.name, alpine: p.alpine)];
 
   /// A new point becomes the destination.
   void add(double lon, double lat, {String? name}) => _change([..._points, PlanPoint(_nextId++, lon, lat, name)]);
@@ -93,6 +95,13 @@ class RoutePlanner extends ChangeNotifier {
     final points = [..._points];
     points.insert(to, points.removeAt(from));
     _change(points);
+  }
+
+  /// Plans leg [index] with the alpine profile on a hike route (or not).
+  void setAlpine(int index, bool alpine) {
+    if (index + 1 >= _points.length) return;
+    final p = _points[index + 1];
+    _change([..._points]..[index + 1] = PlanPoint(p.id, p.lon, p.lat, p.name, alpine));
   }
 
   void setProfile(String profile) {
@@ -118,13 +127,20 @@ class RoutePlanner extends ChangeNotifier {
   }
 
   void _change(List<PlanPoint> points) {
+    // The first point has no leg arriving.
+    if (points.firstOrNull case final p? when p.alpine) {
+      points = [PlanPoint(p.id, p.lon, p.lat, p.name), ...points.skip(1)];
+    }
     _points = points;
     _sync();
   }
 
+  /// The profile of the leg arriving at [to].
+  String _profileOf(PlanPoint to) => to.alpine ? 'alpine' : _profile;
+
   String _key(PlanPoint from, PlanPoint to) {
     String p(double v) => v.toStringAsFixed(6);
-    return '${p(from.lon)},${p(from.lat)}>${p(to.lon)},${p(to.lat)}|$_profile';
+    return '${p(from.lon)},${p(from.lat)}>${p(to.lon)},${p(to.lat)}|${_profileOf(to)}';
   }
 
   /// Requests the legs not computed yet; forgets requests no longer needed.
@@ -139,7 +155,7 @@ class RoutePlanner extends ChangeNotifier {
       if (cached != null && (cached.error == null || cached.error == 422)) continue;
       final slot = LegSlot._();
       _cache[key] = slot;
-      final profile = _profile;
+      final profile = _profileOf(to);
       late final Future<void> request;
       request = () async {
         LegSlot done;

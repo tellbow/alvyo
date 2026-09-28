@@ -12,11 +12,11 @@ import (
 	"github.com/tellbow/alvyo/swiss/geo"
 )
 
-// Point is a WGS84 position inside the covered area (Switzerland and
-// Liechtenstein plus a small margin).
+// Point is a WGS84 position inside the covered area (the box around
+// Switzerland, Liechtenstein and the 15 km around them).
 type Point struct {
-	Lon float64 `json:"lon" minimum:"5.9" maximum:"10.6"`
-	Lat float64 `json:"lat" minimum:"45.8" maximum:"47.9"`
+	Lon float64 `json:"lon" minimum:"5.7" maximum:"10.7"`
+	Lat float64 `json:"lat" minimum:"45.65" maximum:"47.95"`
 }
 
 func (p Point) geo() geo.Point { return geo.Point{Lon: p.Lon, Lat: p.Lat} }

@@ -32,7 +32,7 @@
 		let stale = false;
 		const timer = setTimeout(async () => {
 			const c = near();
-			const inCH = c && c[0] >= 5.9 && c[0] <= 10.6 && c[1] >= 45.8 && c[1] <= 47.9;
+			const inCH = c && c[0] >= 5.7 && c[0] <= 10.7 && c[1] >= 45.65 && c[1] <= 47.95;
 			const { data } = await api().GET('/places/search', {
 				params: { query: { q: text, ...(inCH ? { lon: c[0], lat: c[1] } : {}) } }
 			});

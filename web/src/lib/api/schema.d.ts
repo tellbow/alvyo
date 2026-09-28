@@ -476,7 +476,7 @@ export interface paths {
         put?: never;
         /**
          * Import the tracks of a file as private routes or a journey
-         * @description Tracks outside Switzerland and Liechtenstein are skipped and reported.
+         * @description Tracks beyond 15 km around Switzerland and Liechtenstein are skipped and reported.
          */
         post: operations["import-file"];
         delete?: never;
@@ -1832,6 +1832,60 @@ export interface paths {
         patch: operations["update-route-photo"];
         trace?: never;
     };
+    "/routes/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Earlier versions of a route's line */
+        get: operations["list-route-revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/routes/{id}/revisions/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A route with the line it had at an earlier version */
+        get: operations["get-route-revision"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/routes/{id}/revisions/{version}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make an earlier line the route's line again
+         * @description The line replaced becomes a revision itself. Fails with 412 if the route changed since the version in If-Match.
+         */
+        post: operations["restore-route-revision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/social": {
         parameters: {
             query?: never;
@@ -2076,6 +2130,15 @@ export interface components {
              */
             position?: number;
             title?: string;
+        };
+        AlpineWay: {
+            /** Format: double */
+            distance_m: number;
+            /**
+             * Format: int64
+             * @description Hardest segment, 1–6, 0 unknown
+             */
+            sac_grade: number;
         };
         Area: {
             /** @description Legally binding; otherwise a recommendation */
@@ -2809,6 +2872,8 @@ export interface components {
             write?: string;
         };
         Leg: {
+            /** @description Planned with hike: the alpine profile's much shorter way */
+            alpine?: components["schemas"]["AlpineWay"];
             /** Format: double */
             ascent_m: number;
             /** @description [lon, lat, elevation] per vertex, at most 20 m apart */
@@ -3229,7 +3294,18 @@ export interface components {
              */
             resolution: "dismissed" | "removed";
         };
+        RevisionOutputBody: {
+            revision: components["schemas"]["RouteRevision"];
+            /** @description The route with the line it had then */
+            route: components["schemas"]["RouteBody"];
+        };
+        RevisionsOutputBody: {
+            /** @description Newest first, at most 20 */
+            revisions: components["schemas"]["RouteRevision"][];
+        };
         RouteAnchor: {
+            /** @description The leg arriving at this anchor uses the alpine profile on a hike route */
+            alpine?: boolean;
             /** Format: double */
             lat: number;
             /** Format: double */
@@ -3289,6 +3365,23 @@ export interface components {
             lat: number;
             /** Format: double */
             lon: number;
+        };
+        RouteRevision: {
+            /** Format: int64 */
+            ascent_m: number;
+            /** Format: int64 */
+            distance_m: number;
+            /** Format: int64 */
+            duration_s: number;
+            /** Format: date-time */
+            saved_at: string;
+            /** @description Username of who saved it; empty when that account is gone */
+            saved_by: string;
+            /**
+             * Format: int64
+             * @description The route's version it was
+             */
+            version: number;
         };
         RouteShared: {
             /** Format: date-time */
@@ -3577,7 +3670,7 @@ export interface components {
         TrackSummary: {
             /** Format: double */
             distance_m: number;
-            /** @description Entirely within Switzerland and Liechtenstein (else it cannot be imported) */
+            /** @description Entirely within Switzerland, Liechtenstein and 15 km around (else it cannot be imported) */
             inside: boolean;
             name: string;
             /**
@@ -8255,6 +8348,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PhotosBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-route-revisions": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-route-revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "restore-route-revision": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The route's current version (ETag) */
+                "If-Match": string;
+            };
+            path: {
+                id: string;
+                version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteBody"];
                 };
             };
             /** @description Error */

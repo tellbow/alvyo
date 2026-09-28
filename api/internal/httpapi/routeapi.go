@@ -223,10 +223,15 @@ func registerRoutes(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
+		// Cached for all who may see it, so always as others see it.
+		line := r.ForOthers().Line()
+		if len(line) == 0 {
+			return nil, huma.Error404NotFound("no line to show")
+		}
 		b, err := d.Images.PNG(fmt.Sprintf("%s-%d", r.ID, r.Version), og.Card{
 			Title: r.Title,
 			Stats: cardStats(r.Totals),
-			Lines: [][][2]float64{lonLat(r.Line())},
+			Lines: [][][2]float64{lonLat(line)},
 			Ends:  true,
 		})
 		if err != nil {
@@ -296,7 +301,8 @@ func registerRoutes(api huma.API, d Deps) {
 		case b.Anchors != nil || b.Legs != nil || b.Profile != nil:
 			return nil, huma.Error422UnprocessableEntity("anchors, legs and profile change together")
 		}
-		updated, err := store.Update(ctx, uuid.MustParse(r.ID), version, meta, content)
+		u, _ := auth.UserFrom(ctx)
+		updated, err := store.Update(ctx, uuid.MustParse(r.ID), version, meta, content, u.ID)
 		if err != nil {
 			return nil, routeError(err)
 		}

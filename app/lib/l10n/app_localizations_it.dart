@@ -155,7 +155,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get watchReasonOutside => 'esce dalla Svizzera e dal Liechtenstein.';
+  String get watchReasonOutside => 'va oltre 15 km dalla Svizzera e dal Liechtenstein.';
 
   @override
   String get watchReasonShort => 'è troppo corta.';
@@ -1293,7 +1293,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get recordStart => 'Avvia la registrazione';
 
   @override
-  String get recordRefused => 'Non salvata: l\'escursione è troppo corta o esce dalla Svizzera e dal Liechtenstein.';
+  String get recordRefused =>
+      'Non salvata: l\'escursione è troppo corta o va oltre 15 km dalla Svizzera e dal Liechtenstein.';
 
   @override
   String get barRoutes => 'Percorsi';
@@ -1303,4 +1304,33 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get planAction => 'Pianifica';
+
+  @override
+  String get routePrivacyOwner => 'Gli altri vedono questa escursione senza i primi e gli ultimi 500 m.';
+
+  @override
+  String get routePrivacyOthers => 'La partenza e l\'arrivo dell\'escursione sono nascosti.';
+
+  @override
+  String get routePrivacyAll =>
+      'Questa escursione è troppo corta per mostrarla agli altri: partenza e arrivo sono nascosti.';
+
+  @override
+  String plannerAlpineShorter(String alpine, String hike) {
+    return 'Con «Escursionismo alpino» solo $alpine invece di $hike.';
+  }
+
+  @override
+  String plannerAlpineGrade(String grade) {
+    return 'La via più corta passa su $grade.';
+  }
+
+  @override
+  String get plannerAlpineUse => 'Pianifica questo tratto come alpino';
+
+  @override
+  String get plannerAlpineUsed => 'Pianificato con «Escursionismo alpino».';
+
+  @override
+  String get plannerAlpineUndo => 'Torna all\'escursione';
 }

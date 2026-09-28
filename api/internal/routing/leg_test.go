@@ -343,3 +343,57 @@ func TestLegThrough(t *testing.T) {
 		t.Errorf("snap %+v: from the first and last waypoint", leg.Snap)
 	}
 }
+
+// Planned with hike, a leg that goes round a T4 part learns of the alpine
+// profile's shorter way (as at Chamanna Jenatsch).
+func TestLegAlpineWay(t *testing.T) {
+	pool := testdb.New(t)
+	from, to := geo.Point{Lon: 8.00, Lat: 46.66}, geo.Point{Lon: 8.02, Lat: 46.66}
+	detourLat := 46.70
+	var profiles []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Profile string `json:"profile"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		profiles = append(profiles, req.Profile)
+		coords := [][]float64{{8.00, 46.66}, {8.02, 46.66}}
+		rating := "4"
+		if req.Profile == "hike" {
+			coords = [][]float64{{8.00, 46.66}, {8.01, detourLat}, {8.02, 46.66}}
+			rating = "2"
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"paths": []map[string]any{{
+			"points":            map[string]any{"coordinates": coords},
+			"snapped_waypoints": map[string]any{"coordinates": [][]float64{coords[0], coords[len(coords)-1]}},
+			"details":           map[string]any{"hike_rating": [][]any{{0, len(coords) - 1, rating}}},
+		}}})
+	}))
+	t.Cleanup(srv.Close)
+	r := &Router{GraphHopper: &GraphHopper{URL: srv.URL}, Elevation: slopeSampler{}, Trails: &TrailMatcher{DB: pool}}
+	ctx := context.Background()
+
+	// 9 km round, 1.5 km over T4.
+	leg, err := r.Leg(ctx, LegRequest{From: from, To: to, Profile: "hike"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a := leg.Alpine; a == nil || a.DistanceM < 1500 || a.DistanceM > 1560 || a.SACGrade != 4 {
+		t.Fatalf("alpine way: %+v (hike %.0f m)", leg.Alpine, leg.DistanceM)
+	}
+	if len(profiles) != 2 || profiles[0] != "hike" || profiles[1] != "alpine" {
+		t.Errorf("asked for %v", profiles)
+	}
+
+	// Planned alpine, or straight: no second question.
+	profiles = nil
+	if leg, _ = r.Leg(ctx, LegRequest{From: from, To: to, Profile: "alpine"}); leg.Alpine != nil || len(profiles) != 1 {
+		t.Errorf("alpine: %+v, asked %v", leg.Alpine, profiles)
+	}
+
+	// Hardly longer by hike: nothing to say.
+	detourLat = 46.662
+	if leg, _ = r.Leg(ctx, LegRequest{From: from, To: to, Profile: "hike"}); leg.Alpine != nil {
+		t.Errorf("a short detour: %+v", leg.Alpine)
+	}
+}

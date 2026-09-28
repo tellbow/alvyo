@@ -60,14 +60,17 @@ WITH granted AS (
 ), items AS (
 	SELECT CASE WHEN r.hiked_at IS NULL THEN 'route' ELSE 'hike' END AS kind, r.id, r.title, r.owner_id, r.tags,
 		r.distance_m::float8 AS distance_m, r.ascent_m::float8 AS ascent_m, r.duration_s,
-		r.distance_m::float8 AS longest_m, r.duration_s AS longest_s, r.sac_grade, r.sac_max, 0 AS stages, r.geom
+		r.distance_m::float8 AS longest_m, r.duration_s AS longest_s, r.sac_grade, r.sac_max, 0 AS stages, r.geom,
+		-- others' recorded hikes without their start and end
+		CASE WHEN r.hiked_at IS NULL OR r.owner_id = $1 THEN r.geom ELSE shown_line(r.geom) END AS shown
 	FROM routes r
 	WHERE r.journey_id IS NULL
 		AND (r.owner_id = $1 OR r.id IN (SELECT route_id FROM granted))
 		AND ST_Intersects(r.geom, ST_MakeEnvelope($4, $5, $6, $7, 4326))
 	UNION ALL
 	SELECT 'journey', j.id, j.title, j.owner_id, j.tags,
-		js.distance_m, js.ascent_m, js.duration_s, js.longest_m, js.longest_s, js.sac_grade, js.sac_max, js.stages, js.geom
+		js.distance_m, js.ascent_m, js.duration_s, js.longest_m, js.longest_s, js.sac_grade, js.sac_max, js.stages, js.geom,
+		js.geom
 	FROM journeys j
 	CROSS JOIN LATERAL (
 		SELECT count(st.id)::int AS stages, sum(sr.distance_m)::float8 AS distance_m, sum(sr.ascent_m)::float8 AS ascent_m,
@@ -81,7 +84,7 @@ WITH granted AS (
 )
 SELECT i.kind, i.id, i.title, u.username, i.tags, i.distance_m, i.ascent_m, i.duration_s, i.longest_m, i.longest_s,
 	i.sac_grade, i.sac_max, i.stages,
-	ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(i.geom), $11::float8)), 5)
+	ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(i.shown), $11::float8)), 5)
 FROM items i JOIN users u ON u.id = i.owner_id
 WHERE (cardinality($8::text[]) = 0 OR i.kind = ANY($8))
 	AND (cardinality($9::text[]) = 0 OR lower_tags(i.tags) && $9)

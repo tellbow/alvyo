@@ -45,7 +45,7 @@
   "watchEmpty": "No hikes in Apple Health in the last 60 days. Record them with the Workout app on your Apple Watch («Hiking» or «Outdoor Walk»). If you did not allow access: Settings → Apps → Health → Data Access & Devices → Alvyo.",
   "watchUnavailable": "Apple Health is not available on this device.",
   "watchOutside": "Not imported: {reason}",
-  "watchReasonOutside": "it leaves Switzerland and Liechtenstein.",
+  "watchReasonOutside": "it goes more than 15 km beyond Switzerland and Liechtenstein.",
   "watchReasonShort": "it is too short.",
   "turnSharpLeft": "Turn sharp left",
   "turnLeft": "Turn left",
@@ -390,8 +390,16 @@
   "travelEnd": "End of the journey",
   "recordTitle": "Hike",
   "recordStart": "Start recording",
-  "recordRefused": "Not saved: the hike is too short or leaves Switzerland and Liechtenstein.",
+  "recordRefused": "Not saved: the hike is too short or goes more than 15 km beyond Switzerland and Liechtenstein.",
   "barRoutes": "Routes",
   "barJourneys": "Journeys",
-  "planAction": "Plan"
+  "planAction": "Plan",
+  "routePrivacyOwner": "Others see this hike without its first and last 500 m.",
+  "routePrivacyOthers": "The start and end of the hike are hidden.",
+  "routePrivacyAll": "This hike is too short to show to others: its start and end are hidden.",
+  "plannerAlpineShorter": "With “Alpine hiking” only {alpine} instead of {hike}.",
+  "plannerAlpineGrade": "The shorter way leads over {grade}.",
+  "plannerAlpineUse": "Plan this part as alpine",
+  "plannerAlpineUsed": "Planned with “Alpine hiking”.",
+  "plannerAlpineUndo": "Back to hiking"
 }

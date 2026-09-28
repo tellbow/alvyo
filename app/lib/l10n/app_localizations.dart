@@ -367,7 +367,7 @@ abstract class AppLocalizations {
   /// No description provided for @watchReasonOutside.
   ///
   /// In de, this message translates to:
-  /// **'sie verlässt die Schweiz und Liechtenstein.'**
+  /// **'sie führt mehr als 15 km über die Grenze der Schweiz und Liechtensteins.'**
   String get watchReasonOutside;
 
   /// No description provided for @watchReasonShort.
@@ -2437,7 +2437,7 @@ abstract class AppLocalizations {
   /// No description provided for @recordRefused.
   ///
   /// In de, this message translates to:
-  /// **'Nicht gespeichert: Die Wanderung ist zu kurz oder verlässt die Schweiz und Liechtenstein.'**
+  /// **'Nicht gespeichert: Die Wanderung ist zu kurz oder führt mehr als 15 km über die Grenze der Schweiz und Liechtensteins.'**
   String get recordRefused;
 
   /// Short name under the icon in the app's bar (routesTitle).
@@ -2457,6 +2457,54 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Planen'**
   String get planAction;
+
+  /// No description provided for @routePrivacyOwner.
+  ///
+  /// In de, this message translates to:
+  /// **'Andere sehen diese Wanderung ohne die ersten und letzten 500 m.'**
+  String get routePrivacyOwner;
+
+  /// No description provided for @routePrivacyOthers.
+  ///
+  /// In de, this message translates to:
+  /// **'Start und Ende der Wanderung sind verborgen.'**
+  String get routePrivacyOthers;
+
+  /// No description provided for @routePrivacyAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Wanderung ist zu kurz, um sie anderen zu zeigen: Start und Ende sind verborgen.'**
+  String get routePrivacyAll;
+
+  /// A leg planned with the hiking profile is much longer than with the alpine one.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit «Alpinwandern» nur {alpine} statt {hike}.'**
+  String plannerAlpineShorter(String alpine, String hike);
+
+  /// {grade} is an SAC grade such as T4.
+  ///
+  /// In de, this message translates to:
+  /// **'Der kürzere Weg führt über {grade}.'**
+  String plannerAlpineGrade(String grade);
+
+  /// No description provided for @plannerAlpineUse.
+  ///
+  /// In de, this message translates to:
+  /// **'Diesen Abschnitt alpin planen'**
+  String get plannerAlpineUse;
+
+  /// No description provided for @plannerAlpineUsed.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit «Alpinwandern» geplant.'**
+  String get plannerAlpineUsed;
+
+  /// No description provided for @plannerAlpineUndo.
+  ///
+  /// In de, this message translates to:
+  /// **'Wieder als Wanderung'**
+  String get plannerAlpineUndo;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

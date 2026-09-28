@@ -15,5 +15,17 @@ export async function loadRoute(fetchFn: typeof fetch, url: URL, id: string, log
 		redirect(303, `/login?redirect=${encodeURIComponent(url.pathname)}`);
 	}
 	if (!data) error(response.status === 404 ? 404 : 500);
-	return { route: data, token: t };
+	return { route: data, token: t, revision: undefined };
+}
+
+/** Loads a route with the line it had at an earlier version (owner, editors). */
+export async function loadRevision(fetchFn: typeof fetch, url: URL, id: string, version: number) {
+	const { data, response } = await api(fetchFn, url.origin).GET(
+		'/routes/{id}/revisions/{version}',
+		{
+			params: { path: { id, version } }
+		}
+	);
+	if (!data) error(response.status === 404 || response.status === 403 ? 404 : 500);
+	return { route: data.route, token: undefined, revision: data.revision };
 }

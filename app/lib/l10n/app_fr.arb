@@ -45,7 +45,7 @@
   "watchEmpty": "Aucune randonnée des 60 derniers jours dans Apple Health. Enregistre-les avec l'app Exercice de l'Apple Watch («Randonnée» ou «Marche en extérieur»). Si tu n'as pas autorisé l'accès : Réglages → Apps → Santé → Accès aux données et appareils → Alvyo.",
   "watchUnavailable": "Apple Santé n'est pas disponible sur cet appareil.",
   "watchOutside": "Non importé : {reason}",
-  "watchReasonOutside": "il sort de la Suisse et du Liechtenstein.",
+  "watchReasonOutside": "il va à plus de 15 km au-delà de la Suisse et du Liechtenstein.",
   "watchReasonShort": "il est trop court.",
   "turnSharpLeft": "Tourne fortement à gauche",
   "turnLeft": "Tourne à gauche",
@@ -390,8 +390,16 @@
   "travelEnd": "Arrivée de la randonnée",
   "recordTitle": "Randonnée",
   "recordStart": "Commencer l'enregistrement",
-  "recordRefused": "Non enregistrée : la randonnée est trop courte ou sort de la Suisse et du Liechtenstein.",
+  "recordRefused": "Non enregistrée : la randonnée est trop courte ou va à plus de 15 km au-delà de la Suisse et du Liechtenstein.",
   "barRoutes": "Itinéraires",
   "barJourneys": "Étapes",
-  "planAction": "Planifier"
+  "planAction": "Planifier",
+  "routePrivacyOwner": "Les autres voient cette randonnée sans ses 500 premiers et derniers mètres.",
+  "routePrivacyOthers": "Le départ et l'arrivée de la randonnée sont masqués.",
+  "routePrivacyAll": "Cette randonnée est trop courte pour être montrée aux autres : le départ et l'arrivée sont masqués.",
+  "plannerAlpineShorter": "Avec « Randonnée alpine » seulement {alpine} au lieu de {hike}.",
+  "plannerAlpineGrade": "Le chemin plus court passe par du {grade}.",
+  "plannerAlpineUse": "Planifier ce tronçon en alpin",
+  "plannerAlpineUsed": "Planifié avec « Randonnée alpine ».",
+  "plannerAlpineUndo": "Revenir à la randonnée"
 }

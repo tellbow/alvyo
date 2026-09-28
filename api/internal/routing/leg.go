@@ -70,6 +70,14 @@ type Leg struct {
 	Details          Details            `json:"details"`
 	Snap             Snap               `json:"snap"`
 	Warnings         []string           `json:"warnings" doc:"e.g. snap_far_from, snap_far_to"`
+	Alpine           *AlpineWay         `json:"alpine,omitempty" doc:"Planned with hike: the alpine profile's much shorter way"`
+}
+
+// AlpineWay is the way the alpine profile takes where the hike profile goes
+// round a harder part (at Chamanna Jenatsch 11 instead of 17 km).
+type AlpineWay struct {
+	DistanceM float64 `json:"distance_m"`
+	SACGrade  int     `json:"sac_grade" doc:"Hardest segment, 1–6, 0 unknown"`
 }
 
 // SACSummary is the SAC grade of a leg.
@@ -157,6 +165,9 @@ func (r *Router) Leg(ctx context.Context, req LegRequest) (Leg, error) {
 	smoothTrails(segs)
 	finish(&leg, dense, ele, segs)
 
+	if req.Profile == "hike" && !req.Straight && req.Through == nil {
+		leg.Alpine = r.alpineWay(ctx, req, leg.DistanceM)
+	}
 	if leg.Snap.FromM > snapWarning {
 		leg.Warnings = append(leg.Warnings, "snap_far_from")
 	}
@@ -165,6 +176,36 @@ func (r *Router) Leg(ctx context.Context, req LegRequest) (Leg, error) {
 	}
 	return leg, nil
 }
+
+// alpineWay returns the alpine profile's way for req when it is at most
+// alpineShare of hikeM and at least alpineSavedM shorter; nil otherwise, also
+// when it cannot be asked for.
+func (r *Router) alpineWay(ctx context.Context, req LegRequest, hikeM float64) *AlpineWay {
+	var extra map[string]any
+	if req.OnPath {
+		extra = onPath
+	}
+	gh, err := r.GraphHopper.route(ctx, req.From, req.To, "alpine", extra)
+	if err != nil || len(gh.Points) < 2 {
+		return nil
+	}
+	m := geo.CumulativeDistance(gh.Points)[len(gh.Points)-1]
+	if m > hikeM*alpineShare || hikeM-m < alpineSavedM {
+		return nil
+	}
+	way := &AlpineWay{DistanceM: math.Round(m)}
+	for _, iv := range gh.Details["hike_rating"] {
+		if g, err := strconv.Atoi(iv.Value); err == nil {
+			way.SACGrade = max(way.SACGrade, g)
+		}
+	}
+	return way
+}
+
+const (
+	alpineShare  = 2.0 / 3
+	alpineSavedM = 1000
+)
 
 // routeThrough takes the one of GraphHopper's alternatives that passes
 // closest to req.Through, if one comes within throughM; otherwise the path

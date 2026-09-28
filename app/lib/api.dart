@@ -467,7 +467,7 @@ Place? _stagePlace(Object? v) =>
 
 /// A point the planned route passes, as `POST /routes` takes it.
 class Anchor {
-  const Anchor(this.lon, this.lat, {this.name, this.straight = false, this.through});
+  const Anchor(this.lon, this.lat, {this.name, this.straight = false, this.alpine = false, this.through});
   final double lon, lat;
 
   /// The place it was found as by search.
@@ -475,6 +475,9 @@ class Anchor {
 
   /// The leg arriving here is a straight line.
   final bool straight;
+
+  /// The leg arriving here uses the alpine profile on a hike route.
+  final bool alpine;
 
   /// The leg arriving here was dragged onto the path closest to this point.
   final LonLat? through;
@@ -484,6 +487,7 @@ class Anchor {
     'lat': lat,
     'name': ?name,
     if (straight) 'straight': true,
+    if (alpine) 'alpine': true,
     if (through case final t?) 'through': {'lon': t.lon, 'lat': t.lat},
   };
 }
@@ -498,7 +502,11 @@ class Leg {
       durationS = (json['duration_s'] as num).toInt(),
       sacGrade = ((json['sac'] as Map<String, dynamic>)['grade'] as num).toInt(),
       sacMax = ((json['sac'] as Map<String, dynamic>)['max'] as num).toInt(),
-      warnings = [for (final w in json['warnings'] as List? ?? const []) w as String];
+      warnings = [for (final w in json['warnings'] as List? ?? const []) w as String],
+      alpine = switch (json['alpine']) {
+        {'distance_m': final num m, 'sac_grade': final num g} => (distanceM: m.toDouble(), sacGrade: g.toInt()),
+        _ => null,
+      };
 
   /// As the server sent it: goes back unchanged into `POST /routes`.
   final Map<String, dynamic> json;
@@ -510,6 +518,9 @@ class Leg {
 
   /// e.g. snap_far_from, snap_far_to: a point is far from any path.
   final List<String> warnings;
+
+  /// Planned with hike: the alpine profile's much shorter way.
+  final ({double distanceM, int sacGrade})? alpine;
 }
 
 /// A day of a planned journey (`POST /journeys/plan`).
@@ -1093,7 +1104,7 @@ class Api {
   /// among equally good ones the nearest to [near] first. Needs a login.
   Future<List<FoundPlace>> searchPlaces(String q, {LonLat? near}) async {
     // The server takes a centre in Switzerland only.
-    final inCh = near != null && near.lon >= 5.9 && near.lon <= 10.6 && near.lat >= 45.8 && near.lat <= 47.9;
+    final inCh = near != null && near.lon >= 5.7 && near.lon <= 10.7 && near.lat >= 45.65 && near.lat <= 47.95;
     final j =
         await _get('/places/search', {'q': q, if (inCh) 'lon': '${near.lon}', if (inCh) 'lat': '${near.lat}'})
             as Map<String, dynamic>;

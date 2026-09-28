@@ -104,6 +104,64 @@ void main() {
     expect(find.byKey(const Key('nav-start')), findsOneWidget);
   });
 
+  // Someone else's recorded hike of 600 m: the server leaves out its start
+  // and end, which is all of it.
+  testWidgets("someone else's short hike: no line, a note, nothing to start", (tester) async {
+    final client = MockClient((req) async {
+      if (req.url.path == '/api/v1/routes/r1') {
+        return _json({
+          'id': 'r1',
+          'title': 'Wanderung, 28.09.2026',
+          'owner_username': 'anna',
+          'profile': 'hike',
+          'can_edit': false,
+          'role': 'viewer',
+          'hike': {'at': '2026-09-28T08:00:00Z', 'duration_s': 600},
+          'totals': {
+            'distance_m': 600.0,
+            'ascent_m': 0.0,
+            'descent_m': 0.0,
+            'duration_s': 480,
+            'sac_grade': 1,
+            'sac_max': 1,
+          },
+          'anchors': [],
+          'legs': [],
+        });
+      }
+      return http.Response('', 404);
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RouteScreen(
+          api: Api('http://test', token: 't', client: client),
+          id: 'r1',
+          title: 'Wanderung',
+          map: const SizedBox.expand(),
+        ),
+      ),
+    );
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(
+      find.text('Diese Wanderung ist zu kurz, um sie anderen zu zeigen: Start und Ende sind verborgen.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('nav-start')), findsNothing);
+    expect(find.byKey(const Key('offline-save')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   // A route of one's own is deleted from its menu, after asking; a stage's
   // route is deleted with its stage.
   for (final (role, journey, menu) in [('owner', null, true), ('editor', null, false), ('owner', 'j1', false)]) {

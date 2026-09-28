@@ -6,7 +6,7 @@ repository root unless noted.
 ## First setup (once per machine)
 
 ```sh
-make osm-fetch      # OSM extracts for Switzerland + Liechtenstein (~550 MB) → infra/data/osm
+make osm-fetch      # OSM extracts: CH, LI and 15 km beyond (~4 GB download) → infra/data/osm
 make infra-up       # PostGIS, GraphHopper, tile cache, Mailpit (docker compose)
                     # GraphHopper builds its routing graph on first start (~2 min)
 # the database is still called odysgeh, from before the rename (operations.md)

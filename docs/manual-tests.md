@@ -196,6 +196,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       Simulator 2026-09-28 (iPhone 17 Pro, iOS 26.5): made-up positions
       along «Sargans–Weisstannen»: the track grows on the map, 8.2 km
       uploaded and opened as a route.
+- [ ] **Across the border** (after the first graph refresh in production
+      with the neighbouring countries): a route from Martigny to Chamonix
+      planned on the website, saved offline in the app and hiked or walked
+      past the border: the national map shows the French side, turns are
+      spoken there, and the recorded hike is accepted.
 
 ## Web
 

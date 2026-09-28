@@ -86,7 +86,7 @@
       }
     }
   },
-  "watchReasonOutside": "sie verlässt die Schweiz und Liechtenstein.",
+  "watchReasonOutside": "sie führt mehr als 15 km über die Grenze der Schweiz und Liechtensteins.",
   "watchReasonShort": "sie ist zu kurz.",
   "turnSharpLeft": "Scharf links abbiegen",
   "turnLeft": "Links abbiegen",
@@ -757,7 +757,7 @@
     "description": "The title of a hike recorded without a route; the date is added."
   },
   "recordStart": "Aufzeichnung starten",
-  "recordRefused": "Nicht gespeichert: Die Wanderung ist zu kurz oder verlässt die Schweiz und Liechtenstein.",
+  "recordRefused": "Nicht gespeichert: Die Wanderung ist zu kurz oder führt mehr als 15 km über die Grenze der Schweiz und Liechtensteins.",
   "barRoutes": "Routen",
   "@barRoutes": {
     "description": "Short name under the icon in the app's bar (routesTitle)."
@@ -769,5 +769,32 @@
   "planAction": "Planen",
   "@planAction": {
     "description": "Button above My routes that opens «Route planen»."
-  }
+  },
+  "routePrivacyOwner": "Andere sehen diese Wanderung ohne die ersten und letzten 500 m.",
+  "routePrivacyOthers": "Start und Ende der Wanderung sind verborgen.",
+  "routePrivacyAll": "Diese Wanderung ist zu kurz, um sie anderen zu zeigen: Start und Ende sind verborgen.",
+  "plannerAlpineShorter": "Mit «Alpinwandern» nur {alpine} statt {hike}.",
+  "@plannerAlpineShorter": {
+    "description": "A leg planned with the hiking profile is much longer than with the alpine one.",
+    "placeholders": {
+      "alpine": {
+        "type": "String"
+      },
+      "hike": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerAlpineGrade": "Der kürzere Weg führt über {grade}.",
+  "@plannerAlpineGrade": {
+    "description": "{grade} is an SAC grade such as T4.",
+    "placeholders": {
+      "grade": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerAlpineUse": "Diesen Abschnitt alpin planen",
+  "plannerAlpineUsed": "Mit «Alpinwandern» geplant.",
+  "plannerAlpineUndo": "Wieder als Wanderung"
 }

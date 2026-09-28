@@ -55,7 +55,7 @@ type trackSummary struct {
 	Name      string  `json:"name"`
 	Points    int     `json:"points"`
 	DistanceM float64 `json:"distance_m"`
-	Inside    bool    `json:"inside" doc:"Entirely within Switzerland and Liechtenstein (else it cannot be imported)"`
+	Inside    bool    `json:"inside" doc:"Entirely within Switzerland, Liechtenstein and 15 km around (else it cannot be imported)"`
 	Nights    int     `json:"nights" doc:"Pauses of 5 hours or more in a recording: it can become a stage per day"`
 }
 
@@ -216,7 +216,7 @@ func registerImports(api huma.API, d Deps) {
 	huma.Register(api, huma.Operation{
 		OperationID: "import-file", Method: http.MethodPost, Path: "/imports",
 		Summary:     "Import the tracks of a file as private routes or a journey",
-		Description: "Tracks outside Switzerland and Liechtenstein are skipped and reported.",
+		Description: "Tracks beyond 15 km around Switzerland and Liechtenstein are skipped and reported.",
 		Tags:        tags, MaxBodyBytes: imports.MaxFileBytes + 1<<20,
 	}, func(ctx context.Context, in *importInput) (*importOutput, error) {
 		u, err := requireUser(ctx)
@@ -395,7 +395,7 @@ func registerImports(api huma.API, d Deps) {
 		if err != nil {
 			return nil, routeError(err)
 		}
-		if _, err := d.Routes.Update(ctx, uuid.MustParse(r.ID), r.Version, r.Meta, &c); err != nil {
+		if _, err := d.Routes.Update(ctx, uuid.MustParse(r.ID), r.Version, r.Meta, &c, u.ID); err != nil {
 			return nil, routeError(err)
 		}
 		return mutateJourney(ctx, d.Journeys, j, role, nil)
@@ -516,7 +516,7 @@ func komootError(err error) error {
 
 func inside(pts []geo.Point) bool {
 	for _, p := range pts {
-		if p.Lon < 5.9 || p.Lon > 10.6 || p.Lat < 45.8 || p.Lat > 47.9 {
+		if p.Lon < 5.7 || p.Lon > 10.7 || p.Lat < 45.65 || p.Lat > 47.95 {
 			return false
 		}
 	}

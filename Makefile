@@ -52,7 +52,7 @@ infra-up:
 infra-down:
 	$(COMPOSE) down
 
-# Download + merge the OSM extracts (CH + LI) for GraphHopper. Delete
+# Download + merge the OSM extracts (CH, LI, 15 km beyond) for GraphHopper. Delete
 # infra/data/graph-cache afterwards to force a re-import.
 osm-fetch:
 	$(COMPOSE) run --rm osm-fetch

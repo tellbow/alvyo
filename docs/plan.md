@@ -59,7 +59,7 @@ A `v*` tag builds the images; Flux deploys them
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–27 on 2026-09-28.
+21–31 on 2026-09-28.
 
 ### Done
 
@@ -314,6 +314,43 @@ From the project owner, numbered in the order given: 1–5 added on
     that read as a filter; «Offline speichern» outlined, below «Wanderung
     starten».
 
+28. **Privacy zones.** Others see a recorded hike (in the app, from the
+    Apple Watch) from the first point more than 500 m from its start to
+    the last point more than 500 m from its end: on the route page, in the
+    GPX, the turns and the offline map, on the discover map, in «my map»
+    and collections, and in link previews (always trimmed, as they are
+    cached). The owner and editors see the whole line on the route page;
+    on the maps only the owner. A hike too short for anything to be left
+    shows no line to others. The route page says so, to the owner too.
+    Photos taken in the hidden parts are in the gallery, not on the map.
+
+29. **Versions.** Every save of a route's line keeps the line before, the
+    last 20 per route, with when and by whom it was saved (title and
+    visibility changes are no new version). On the website's route page
+    the owner and editors open «Versionen»: an earlier version shows on
+    the map with its profile and numbers, and «Wiederherstellen» makes it
+    the route's line again (the line replaced becomes a version itself).
+    Not in the app.
+
+30. **Longer by the hiking profile.** From the gap at Chamanna Jenatsch:
+    the trail is in the graph, but OSM grades 250 m of it T4, so «Wandern»
+    (up to T3) goes round it, 16.7 instead of 1.1 km between points on
+    either side (hiking-time.md). When a leg planned with «Wandern» is at
+    most two thirds as long with «Alpinwandern» (and at least 1 km
+    shorter), the planner says so under the leg, with the hardest grade
+    from T4 on: «Mit «Alpinwandern» nur 1.1 km statt 16.7 km. Der kürzere
+    Weg führt über T4.» «Diesen Abschnitt alpin planen» plans that leg
+    alone with «Alpinwandern» (kept with the route; «Wieder als
+    Wanderung» undoes it), on the website and in the app.
+
+31. **Across the border.** Routing reaches 15 km beyond Switzerland and
+    Liechtenstein (Chamonix, the Aosta valley, Como, the Black Forest,
+    Vorarlberg, the Vinschgau): the OSM extracts of the neighbouring
+    regions, cut to that strip (`infra/data-import/border.geojson`), join
+    the graph, with their huts. swisstopo's heights reach that far. The
+    covered box (5.7–10.7° E, 45.65–47.95° N) takes points, imports and
+    recorded hikes there; the texts say «bis 15 km über die Grenze».
+
 ### Open
 
 Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
@@ -331,9 +368,6 @@ Connect's course import.
 
 - Community and moderation: moderators opening unlisted reported items;
   shadow-ban.
-- Routes: revisions; privacy zones (start and end of recorded hikes hidden);
-  a border buffer for routes near and across the border; the routing gap at
-  Chamanna Jenatsch.
 - Journeys: cancelled trains and buses are not shown in connections (OJP).
 - Operations: backups are kept on the cluster only; an off-site copy is
   missing.

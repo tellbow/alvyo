@@ -155,7 +155,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get watchReasonOutside => 'il sort de la Suisse et du Liechtenstein.';
+  String get watchReasonOutside => 'il va à plus de 15 km au-delà de la Suisse et du Liechtenstein.';
 
   @override
   String get watchReasonShort => 'il est trop court.';
@@ -1296,7 +1296,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recordRefused =>
-      'Non enregistrée : la randonnée est trop courte ou sort de la Suisse et du Liechtenstein.';
+      'Non enregistrée : la randonnée est trop courte ou va à plus de 15 km au-delà de la Suisse et du Liechtenstein.';
 
   @override
   String get barRoutes => 'Itinéraires';
@@ -1306,4 +1306,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get planAction => 'Planifier';
+
+  @override
+  String get routePrivacyOwner => 'Les autres voient cette randonnée sans ses 500 premiers et derniers mètres.';
+
+  @override
+  String get routePrivacyOthers => 'Le départ et l\'arrivée de la randonnée sont masqués.';
+
+  @override
+  String get routePrivacyAll =>
+      'Cette randonnée est trop courte pour être montrée aux autres : le départ et l\'arrivée sont masqués.';
+
+  @override
+  String plannerAlpineShorter(String alpine, String hike) {
+    return 'Avec « Randonnée alpine » seulement $alpine au lieu de $hike.';
+  }
+
+  @override
+  String plannerAlpineGrade(String grade) {
+    return 'Le chemin plus court passe par du $grade.';
+  }
+
+  @override
+  String get plannerAlpineUse => 'Planifier ce tronçon en alpin';
+
+  @override
+  String get plannerAlpineUsed => 'Planifié avec « Randonnée alpine ».';
+
+  @override
+  String get plannerAlpineUndo => 'Revenir à la randonnée';
 }

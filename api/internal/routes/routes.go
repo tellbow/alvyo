@@ -12,17 +12,18 @@ import (
 
 // Anchor is a point the user placed in the planner.
 type Anchor struct {
-	Lon      float64 `json:"lon" minimum:"5.9" maximum:"10.6"`
-	Lat      float64 `json:"lat" minimum:"45.8" maximum:"47.9"`
+	Lon      float64 `json:"lon" minimum:"5.7" maximum:"10.7"`
+	Lat      float64 `json:"lat" minimum:"45.65" maximum:"47.95"`
 	Straight bool    `json:"straight" required:"false" doc:"The leg arriving at this anchor is a straight line"`
+	Alpine   bool    `json:"alpine,omitempty" required:"false" doc:"The leg arriving at this anchor uses the alpine profile on a hike route"`
 	Name     string  `json:"name,omitempty" required:"false" maxLength:"120" doc:"The place it was found as by search"`
 	Through  *LonLat `json:"through,omitempty" required:"false" doc:"The leg arriving at this anchor was dragged onto the path closest to this point"`
 }
 
 // LonLat is a position in the covered area.
 type LonLat struct {
-	Lon float64 `json:"lon" minimum:"5.9" maximum:"10.6"`
-	Lat float64 `json:"lat" minimum:"45.8" maximum:"47.9"`
+	Lon float64 `json:"lon" minimum:"5.7" maximum:"10.7"`
+	Lat float64 `json:"lat" minimum:"45.65" maximum:"47.95"`
 }
 
 // Content is what a client submits for a route's geometry.
@@ -85,6 +86,9 @@ type Route struct {
 	JourneyID string        `json:"journey_id,omitempty"`
 	Anchors   []Anchor      `json:"anchors"`
 	Legs      []routing.Leg `json:"legs"`
+	// Hidden are the start and end of a recorded hike as others see it
+	// (ForOthers): nothing within PrivacyM of them is shown.
+	Hidden []geo.Point `json:"-"`
 }
 
 // assembled is validated content ready to store.

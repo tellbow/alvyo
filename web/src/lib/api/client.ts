@@ -6,6 +6,7 @@ export type Leg = components['schemas']['Leg'];
 export type ApiError = components['schemas']['ErrorModel'];
 export type Route = components['schemas']['RouteBody'];
 export type RouteSummary = components['schemas']['RouteSummary'];
+export type Revision = components['schemas']['RouteRevision'];
 export type JourneySummary = components['schemas']['JourneySummary'];
 export type Place = components['schemas']['Place'];
 export type Pin = components['schemas']['Pin'];

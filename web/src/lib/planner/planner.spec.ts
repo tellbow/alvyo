@@ -80,6 +80,28 @@ describe('Planner', () => {
 		expect(p.anchors.map((a) => a.straight)).toEqual([false, true, false]);
 	});
 
+	it('plans one leg alpine on a hiking route, saved and kept when reversing', async () => {
+		const { planner: p, calls } = setup();
+		p.add(8.0, 46.0);
+		p.add(8.1, 46.1);
+		p.add(8.2, 46.2);
+		await p.idle();
+		p.setAlpine(1, true);
+		await p.idle();
+		expect(calls.map((c) => c.profile)).toEqual(['hike', 'hike', 'alpine']);
+		expect(p.content().anchors.map((a) => a.alpine ?? false)).toEqual([false, false, true]);
+
+		p.reverse(); // the alpine leg is the first now, and known
+		await p.idle();
+		expect(p.anchors.map((a) => a.alpine ?? false)).toEqual([false, true, false]);
+		expect(calls).toHaveLength(3);
+
+		p.setAlpine(0, false); // back to the hiking leg, known the other way round
+		await p.idle();
+		expect(calls).toHaveLength(3);
+		expect(p.content().anchors.some((a) => a.alpine)).toBe(false);
+	});
+
 	it('reports failed legs and recovers when the anchor moves', async () => {
 		const { planner: p } = setup((req) => req.to.lon > 9);
 		p.add(8.0, 46.0);

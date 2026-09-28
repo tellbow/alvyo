@@ -164,7 +164,8 @@ func socialItems(d Deps) []socialItem {
 				if r.JourneyID != "" {
 					return community.Target{}, role, huma.Error422UnprocessableEntity("comments on a stage belong to its journey")
 				}
-				return community.Target{Kind: community.Route, ID: uuid.MustParse(r.ID), OwnerID: uuid.MustParse(r.OwnerID), Title: r.Title}, role, nil
+				return community.Target{Kind: community.Route, ID: uuid.MustParse(r.ID), OwnerID: uuid.MustParse(r.OwnerID),
+					Title: r.Title, Hidden: r.Hidden}, role, nil
 			}},
 		{path: "/journeys", opName: "journey",
 			load: func(ctx context.Context, rawID, token string) (community.Target, access.Role, error) {

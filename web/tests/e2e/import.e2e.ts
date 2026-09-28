@@ -50,7 +50,7 @@ test('a GPX file with several tracks becomes a journey', async ({ page }) => {
 	await submit.click();
 
 	await expect(page.getByTestId('import-skipped')).toContainText(
-		'Mailand: liegt nicht ganz in der Schweiz oder in Liechtenstein'
+		/Mailand: liegt nicht ganz in der Schweiz, in Liechtenstein und bis 15\skm über die Grenze/
 	);
 	await page.getByRole('link', { name: 'Etappentour öffnen' }).click();
 	await expect(page.getByRole('heading', { name: 'Test-Durchquerung' })).toBeVisible();

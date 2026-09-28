@@ -25,8 +25,9 @@ const (
 	minTrackM = 50
 )
 
-// Covered area (Switzerland and Liechtenstein with a margin), as in the API.
-const minLon, maxLon, minLat, maxLat = 5.9, 10.6, 45.8, 47.9
+// Covered area: Switzerland and Liechtenstein and 15 km around them (the
+// routing graph, infra/data-import/border.geojson), as in the API.
+const minLon, maxLon, minLat, maxLat = 5.7, 10.7, 45.65, 47.95
 
 // Reasons a track is not imported.
 var (

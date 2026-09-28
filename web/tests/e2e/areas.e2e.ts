@@ -31,6 +31,9 @@ test('a route through a wildlife rest area says so, with its rules', async ({ pa
 		/^https:\/\//
 	);
 
+	// Along the way: the Reeti (2757 m) right at the start, from OpenStreetMap.
+	await expect(page.getByTestId('poi').first()).toHaveText(/^\d+\sm\s*Reeti · Gipfel · 2757\sm$/);
+
 	// The same line in the planner is checked as it is drawn.
 	await page.goto(`/plan/${route}`);
 	await expect(

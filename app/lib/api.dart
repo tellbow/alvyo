@@ -297,6 +297,139 @@ class JourneyDetail {
   String? get shareToken => json['share_token'] as String?;
 }
 
+/// A summit, viewpoint, waterfall, drinking water or shelter along a route.
+class Poi {
+  Poi.fromJson(Map<String, dynamic> j)
+    : kind = j['kind'] as String,
+      name = j['name'] as String? ?? '',
+      ele = (j['ele'] as num?)?.toInt(),
+      alongM = (j['along_m'] as num).toDouble();
+
+  /// peak, viewpoint, waterfall, water or shelter.
+  final String kind;
+
+  /// Empty for many drinking water points and shelters.
+  final String name;
+
+  /// Summits: height in metres.
+  final int? ele;
+  final double alongM;
+}
+
+/// MeteoSwiss's forecast of one day at a point.
+class ForecastDay {
+  ForecastDay.fromJson(Map<String, dynamic> j)
+    : date = j['date'] as String,
+      minC = (j['min_c'] as num).toDouble(),
+      maxC = (j['max_c'] as num).toDouble(),
+      rainMm = (j['rain_mm'] as num).toDouble(),
+      rainLoMm = (j['rain_lo_mm'] as num).toDouble(),
+      rainHiMm = (j['rain_hi_mm'] as num).toDouble();
+
+  /// YYYY-MM-DD.
+  final String date;
+  final double minC, maxC;
+
+  /// Precipitation, and the range it likely stays in.
+  final double rainMm, rainLoMm, rainHiMm;
+}
+
+/// A place MeteoSwiss forecasts for.
+typedef ForecastPoint = ({String name, double height});
+
+ForecastPoint _forecastPoint(Map<String, dynamic> j) =>
+    (name: j['name'] as String, height: (j['height'] as num).toDouble());
+
+/// The forecast at a route's start, highest point and end (one place may be
+/// several of them), from today on.
+class RouteWeather {
+  RouteWeather.fromJson(Map<String, dynamic> j)
+    : run = DateTime.parse(j['run'] as String),
+      places = [
+        for (final p in j['places'] as List)
+          (
+            roles: [for (final r in (p as Map<String, dynamic>)['roles'] as List) r as String],
+            point: _forecastPoint(p['point'] as Map<String, dynamic>),
+            days: [for (final d in p['days'] as List) ForecastDay.fromJson(d as Map<String, dynamic>)],
+          ),
+      ];
+
+  final DateTime run;
+
+  /// roles: start, top, end.
+  final List<({List<String> roles, ForecastPoint point, List<ForecastDay> days})> places;
+}
+
+/// The forecast at each stage's highest point; [day] for a planned day
+/// within the forecast.
+class JourneyWeather {
+  JourneyWeather.fromJson(Map<String, dynamic> j)
+    : run = DateTime.parse(j['run'] as String),
+      stages = [
+        for (final s in j['stages'] as List)
+          (
+            stage: ((s as Map<String, dynamic>)['stage'] as num).toInt(),
+            point: _forecastPoint(s['point'] as Map<String, dynamic>),
+            day: s['day'] == null ? null : ForecastDay.fromJson(s['day'] as Map<String, dynamic>),
+          ),
+      ];
+
+  final DateTime run;
+  final List<({int stage, ForecastPoint point, ForecastDay? day})> stages;
+}
+
+/// What lies along a route: protected areas, closures and shooting.
+typedef Along = ({List<ProtectedArea> areas, List<Notice> notices});
+
+/// A closed trail or army shooting on the way.
+class Notice {
+  Notice.fromJson(Map<String, dynamic> j)
+    : kind = j['kind'] as String,
+      title = _texts(j['title']),
+      reason = _texts(j['reason']),
+      from = j['from'] as String?,
+      to = j['to'] as String?,
+      days = [
+        for (final d in j['days'] as List? ?? const [])
+          (
+            date: (d as Map<String, dynamic>)['date'] as String,
+            from: d['from'] as String? ?? '',
+            to: d['to'] as String? ?? '',
+          ),
+      ],
+      phone = j['phone'] as String? ?? '',
+      stages = [for (final s in j['stages'] as List? ?? const []) (s as num).toInt()];
+
+  static Map<String, String> _texts(Object? m) => {
+    for (final e in (m as Map<String, dynamic>? ?? const {}).entries)
+      if (e.value case final String v when v.isNotEmpty) e.key: v,
+  };
+
+  /// closure or shooting.
+  final String kind;
+
+  /// By language (de, fr, it, en); German where one is missing.
+  final Map<String, String> title, reason;
+
+  /// Closures: closed from … to (YYYY-MM-DD).
+  final String? from, to;
+
+  /// Shooting: the days (YYYY-MM-DD), the hours as «0800», empty for all day.
+  final List<({String date, String from, String to})> days;
+  final String phone;
+  final List<int> stages;
+
+  String titleIn(String lang) => title[lang] ?? title['de'] ?? '';
+  String reasonIn(String lang) => reason[lang] ?? reason['de'] ?? '';
+
+  /// Whether it concerns [day].
+  bool on(DateTime day) {
+    final d = day.toIso8601String().substring(0, 10);
+    if (kind == 'shooting') return days.any((x) => x.date == d);
+    return (from == null || d.compareTo(from!) >= 0) && (to == null || d.compareTo(to!) <= 0);
+  }
+}
+
 /// A protected area a route crosses: a wildlife rest area or a federal
 /// hunting reserve.
 class ProtectedArea {
@@ -871,25 +1004,44 @@ class Home {
   final double lon, lat;
 }
 
-/// One direction of [JourneyTravel]: from or to a home, leaving after or
-/// arriving before [time] (HH:MM) on the stage's day.
+/// Where a way starts or ends that is not a home: a place found by the search.
+typedef TravelPlace = ({String name, double lon, double lat});
+
+/// One direction of [Travel]: from or to a home ([homeId]) or another
+/// [place], leaving after or arriving before [time] (HH:MM) on the day of the
+/// hike.
 class TravelWay {
-  const TravelWay({required this.homeId, required this.time, this.arrive = false});
+  const TravelWay({this.homeId, this.place, required this.time, this.arrive = false});
   TravelWay.fromJson(Map<String, dynamic> j)
-    : homeId = j['home_id'] as String,
+    : homeId = j['home_id'] as String?,
+      place = switch (j['place']) {
+        {'name': final String name, 'lon': final num lon, 'lat': final num lat} => (
+          name: name,
+          lon: lon.toDouble(),
+          lat: lat.toDouble(),
+        ),
+        _ => null,
+      },
       time = j['time'] as String,
       arrive = j['arrive'] as bool? ?? false;
-  final String homeId, time;
+  final String? homeId;
+  final TravelPlace? place;
+  final String time;
   final bool arrive;
 
-  Map<String, dynamic> toJson() => {'home_id': homeId, 'time': time, 'arrive': arrive};
+  Map<String, dynamic> toJson() => {
+    'home_id': ?homeId,
+    if (place case final p?) 'place': {'name': p.name, 'lon': p.lon, 'lat': p.lat},
+    'time': time,
+    'arrive': arrive,
+  };
 }
 
-/// The user's own way from home to a journey's first stage ([to]) and back
-/// home from its last ([back]); null where none is chosen.
-class JourneyTravel {
-  const JourneyTravel({this.to, this.back});
-  JourneyTravel.fromJson(Map<String, dynamic> j)
+/// The user's own way to the start of a journey or route ([to]) and back
+/// from its end ([back]); null where none is chosen.
+class Travel {
+  const Travel({this.to, this.back});
+  Travel.fromJson(Map<String, dynamic> j)
     : to = switch (j['to']) {
         final Map<String, dynamic> w => TravelWay.fromJson(w),
         _ => null,
@@ -1040,11 +1192,15 @@ class Api {
 
   Future<void> endLive(String id) => _send('POST', '/live/$id/end');
 
-  /// The protected areas a route, or a journey's stages, cross.
-  Future<List<ProtectedArea>> areas({String? routeId, String? journeyId}) async {
+  /// The protected areas a route, or a journey's stages, cross, and the
+  /// closed trails and shooting on the way.
+  Future<Along> areas({String? routeId, String? journeyId}) async {
     final j =
         await _get(routeId != null ? '/routes/$routeId/areas' : '/journeys/$journeyId/areas') as Map<String, dynamic>;
-    return [for (final a in j['areas'] as List) ProtectedArea.fromJson(a as Map<String, dynamic>)];
+    return (
+      areas: [for (final a in j['areas'] as List) ProtectedArea.fromJson(a as Map<String, dynamic>)],
+      notices: [for (final n in j['notices'] as List? ?? const []) Notice.fromJson(n as Map<String, dynamic>)],
+    );
   }
 
   Future<List<Turn>> turns(String routeId) async {
@@ -1088,6 +1244,21 @@ class Api {
     );
     return JourneyDetail.fromJson(_decode(r) as Map<String, dynamic>);
   }
+
+  /// Summits, viewpoints, waterfalls, drinking water and shelters within
+  /// 200 m of a route, in the order they come.
+  Future<List<Poi>> pois(String routeId) async {
+    final j = await _get('/routes/$routeId/pois') as Map<String, dynamic>;
+    return [for (final p in j['pois'] as List) Poi.fromJson(p as Map<String, dynamic>)];
+  }
+
+  /// MeteoSwiss's forecast at a route's start, highest point and end.
+  Future<RouteWeather> routeWeather(String routeId) async =>
+      RouteWeather.fromJson(await _get('/routes/$routeId/weather') as Map<String, dynamic>);
+
+  /// MeteoSwiss's forecast at each stage's highest point, for its planned day.
+  Future<JourneyWeather> journeyWeather(String journeyId) async =>
+      JourneyWeather.fromJson(await _get('/journeys/$journeyId/weather') as Map<String, dynamic>);
 
   /// Huts, hotels and campsites in [view]; [kinds] of hut, hotel, campsite.
   Future<List<Pin>> placesInView(Bbox view, List<String> kinds) async {
@@ -1560,11 +1731,18 @@ class Api {
   Future<void> deleteHome(String id) => _send('DELETE', '/me/homes/$id');
 
   /// The user's own travel for a journey.
-  Future<JourneyTravel> travel(String journeyId) async =>
-      JourneyTravel.fromJson(await _get('/journeys/$journeyId/travel') as Map<String, dynamic>);
+  Future<Travel> travel(String journeyId) async =>
+      Travel.fromJson(await _get('/journeys/$journeyId/travel') as Map<String, dynamic>);
 
-  Future<JourneyTravel> setTravel(String journeyId, JourneyTravel t) async =>
-      JourneyTravel.fromJson(await _send('PUT', '/journeys/$journeyId/travel', t.toJson()) as Map<String, dynamic>);
+  Future<Travel> setTravel(String journeyId, Travel t) async =>
+      Travel.fromJson(await _send('PUT', '/journeys/$journeyId/travel', t.toJson()) as Map<String, dynamic>);
+
+  /// The user's own travel for a route.
+  Future<Travel> routeTravel(String routeId) async =>
+      Travel.fromJson(await _get('/routes/$routeId/travel') as Map<String, dynamic>);
+
+  Future<Travel> setRouteTravel(String routeId, Travel t) async =>
+      Travel.fromJson(await _send('PUT', '/routes/$routeId/travel', t.toJson()) as Map<String, dynamic>);
 
   /// The user's routes, journeys and recorded hikes (kind hike) in [view],
   /// with the filters of [discover].

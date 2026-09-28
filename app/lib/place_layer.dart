@@ -6,18 +6,20 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:maplibre/maplibre.dart';
 
 import 'api.dart';
+import 'format.dart';
 import 'l10n/app_localizations.dart';
 
 /// The places a map can show, each switched on in the layer menu.
-enum PlaceGroup { huts, lodging }
+enum PlaceGroup { huts, lodging, pois }
 
 const _groupKinds = {
   PlaceGroup.huts: ['hut'],
   PlaceGroup.lodging: ['hotel', 'campsite'],
+  PlaceGroup.pois: ['peak', 'viewpoint', 'waterfall', 'water', 'shelter'],
 };
 
 /// Below these zooms, too many points.
-const _groupMinZoom = {PlaceGroup.huts: 8.0, PlaceGroup.lodging: 10.0};
+const _groupMinZoom = {PlaceGroup.huts: 8.0, PlaceGroup.lodging: 10.0, PlaceGroup.pois: 12.0};
 
 /// The kinds to fetch for the [shown] groups at [zoom].
 List<String> placeKinds(Set<PlaceGroup> shown, double zoom) => [
@@ -109,6 +111,16 @@ class PlaceLayer {
             '#b91c1c',
             'campsite',
             '#15803d',
+            'peak',
+            '#57534e',
+            'viewpoint',
+            '#7c3aed',
+            'waterfall',
+            '#0e7490',
+            'water',
+            '#0284c7',
+            'shelter',
+            '#a16207',
             '#1d4ed8',
           ],
           'circle-stroke-color': '#ffffff',
@@ -228,7 +240,11 @@ class PlaceLayerButton extends StatelessWidget {
               builder: (context, shown, _) => Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (final (g, label) in [(PlaceGroup.huts, t.mapHuts), (PlaceGroup.lodging, t.mapLodging)])
+                  for (final (g, label) in [
+                    (PlaceGroup.huts, t.mapHuts),
+                    (PlaceGroup.lodging, t.mapLodging),
+                    (PlaceGroup.pois, t.mapPois),
+                  ])
                     SwitchListTile(
                       key: Key('map-layer-${g.name}'),
                       title: Text(label),
@@ -253,6 +269,11 @@ String placeKindText(AppLocalizations t, String kind, String detail) => switch (
   'hotel' => t.placeHotel,
   'campsite' => t.placeCampsite,
   'pt_stop' => detail.isNotEmpty ? detail : t.placePtStop,
+  'peak' => detail.isNotEmpty ? '${t.poiPeak} · ${formatHeight(double.parse(detail))}' : t.poiPeak,
+  'viewpoint' => t.poiViewpoint,
+  'waterfall' => t.poiWaterfall,
+  'water' => t.poiWater,
+  'shelter' => t.poiShelter,
   'address' => t.placeAddress,
   _ => detail, // a name from the national map: its kind and municipality
 };
@@ -280,7 +301,7 @@ Future<void> showPlace(BuildContext context, Pin pin, {List<Widget> actions = co
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 4,
           children: [
-            Text(pin.name, style: theme.textTheme.titleMedium),
+            Text(pin.name.isNotEmpty ? pin.name : placeKindText(t, pin.kind, ''), style: theme.textTheme.titleMedium),
             Text(placeKindText(t, pin.kind, pin.detail), style: theme.textTheme.bodyMedium),
             // No launcher plugin in the app: the address to copy.
             if (link != null) SelectableText('${t.placeWebsite}: $link', style: theme.textTheme.bodySmall),

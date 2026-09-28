@@ -37,31 +37,39 @@ type homeIDInput struct {
 
 type travelInput struct {
 	ID    string `path:"id" format:"uuid"`
-	Token string `query:"t" maxLength:"64" doc:"Share token of an unlisted journey"`
+	Token string `query:"t" maxLength:"64" doc:"Share token of an unlisted journey or route"`
 }
 
 type setTravelInput struct {
 	ID    string `path:"id" format:"uuid"`
-	Token string `query:"t" maxLength:"64" doc:"Share token of an unlisted journey"`
-	Body  travel.JourneyTravel
+	Token string `query:"t" maxLength:"64" doc:"Share token of an unlisted journey or route"`
+	Body  travel.Travel
 }
 
-// Resolve refuses home ids that are not ids: the database would.
+// Resolve wants a home or a place for each way, and home ids that are ids:
+// the database would refuse others.
 func (in *setTravelInput) Resolve(huma.Context) []error {
 	var errs []error
 	for name, w := range map[string]*travel.Way{"body.to": in.Body.To, "body.back": in.Body.Back} {
 		if w == nil {
 			continue
 		}
-		if _, err := uuid.Parse(w.HomeID); err != nil {
-			errs = append(errs, &huma.ErrorDetail{Location: name + ".home_id", Message: "not an id", Value: w.HomeID})
+		switch {
+		case (w.HomeID == "") == (w.Place == nil):
+			errs = append(errs, &huma.ErrorDetail{Location: name, Message: "either home_id or place"})
+		case w.Place != nil && strings.TrimSpace(w.Place.Name) == "":
+			errs = append(errs, &huma.ErrorDetail{Location: name + ".place.name", Message: "a place needs a name"})
+		case w.HomeID != "":
+			if _, err := uuid.Parse(w.HomeID); err != nil {
+				errs = append(errs, &huma.ErrorDetail{Location: name + ".home_id", Message: "not an id", Value: w.HomeID})
+			}
 		}
 	}
 	return errs
 }
 
 type travelOutput struct {
-	Body travel.JourneyTravel
+	Body travel.Travel
 }
 
 func travelError(err error) error {
@@ -74,8 +82,8 @@ func travelError(err error) error {
 	return err
 }
 
-// Homes and the travel to and from journeys are each user's own: nobody
-// else sees them, whoever can see the journey.
+// Homes and the travel to and from journeys and routes are each user's own:
+// nobody else sees them, whoever can see the journey or route.
 func registerTravel(api huma.API, d Deps) {
 	tags := []string{"travel"}
 
@@ -123,41 +131,59 @@ func registerTravel(api huma.API, d Deps) {
 		return nil, travelError(d.Travel.DeleteHome(ctx, u.ID, uuid.MustParse(in.ID)))
 	})
 
-	huma.Register(api, huma.Operation{
-		OperationID: "get-journey-travel", Method: http.MethodGet, Path: "/journeys/{id}/travel",
-		Summary: "One's own way from home to the first stage and back from the last", Tags: tags,
-	}, func(ctx context.Context, in *travelInput) (*travelOutput, error) {
-		u, err := requireUser(ctx)
-		if err != nil {
-			return nil, err
-		}
-		j, _, err := loadJourney(ctx, d, in.ID, in.Token)
-		if err != nil {
-			return nil, err
-		}
-		t, err := d.Travel.Of(ctx, u.ID, uuid.MustParse(j.ID))
-		return &travelOutput{Body: t}, err
-	})
+	// The way to and from what one can see: a journey or a route.
+	for _, kind := range []struct {
+		name, path, summary string
+		of                  travel.For
+		load                func(ctx context.Context, id, token string) (string, error)
+	}{
+		{"journey", "/journeys/{id}/travel", "to the first stage and back from the last", travel.Journey,
+			func(ctx context.Context, id, token string) (string, error) {
+				j, _, err := loadJourney(ctx, d, id, token)
+				return j.ID, err
+			}},
+		{"route", "/routes/{id}/travel", "to the start and back from the end", travel.Route,
+			func(ctx context.Context, id, token string) (string, error) {
+				r, _, err := loadRoute(ctx, d, id, token)
+				return r.ID, err
+			}},
+	} {
+		huma.Register(api, huma.Operation{
+			OperationID: "get-" + kind.name + "-travel", Method: http.MethodGet, Path: kind.path,
+			Summary: "One's own way from home or elsewhere " + kind.summary, Tags: tags,
+		}, func(ctx context.Context, in *travelInput) (*travelOutput, error) {
+			u, err := requireUser(ctx)
+			if err != nil {
+				return nil, err
+			}
+			id, err := kind.load(ctx, in.ID, in.Token)
+			if err != nil {
+				return nil, err
+			}
+			t, err := d.Travel.Of(ctx, kind.of, u.ID, uuid.MustParse(id))
+			return &travelOutput{Body: t}, err
+		})
 
-	huma.Register(api, huma.Operation{
-		OperationID: "set-journey-travel", Method: http.MethodPut, Path: "/journeys/{id}/travel",
-		Summary:     "Set one's own way from home and back",
-		Description: "Replaces both directions; one left out is none. The homes must be one's own.",
-		Tags:        tags,
-	}, func(ctx context.Context, in *setTravelInput) (*travelOutput, error) {
-		u, err := requireUser(ctx)
-		if err != nil {
-			return nil, err
-		}
-		j, _, err := loadJourney(ctx, d, in.ID, in.Token)
-		if err != nil {
-			return nil, err
-		}
-		id := uuid.MustParse(j.ID)
-		if err := d.Travel.Set(ctx, u.ID, id, in.Body); err != nil {
-			return nil, travelError(err)
-		}
-		t, err := d.Travel.Of(ctx, u.ID, id)
-		return &travelOutput{Body: t}, err
-	})
+		huma.Register(api, huma.Operation{
+			OperationID: "set-" + kind.name + "-travel", Method: http.MethodPut, Path: kind.path,
+			Summary:     "Set one's own way there and back",
+			Description: "Replaces both directions; one left out is none. Each from or to one of one's homes or a place.",
+			Tags:        tags,
+		}, func(ctx context.Context, in *setTravelInput) (*travelOutput, error) {
+			u, err := requireUser(ctx)
+			if err != nil {
+				return nil, err
+			}
+			sid, err := kind.load(ctx, in.ID, in.Token)
+			if err != nil {
+				return nil, err
+			}
+			id := uuid.MustParse(sid)
+			if err := d.Travel.Set(ctx, kind.of, u.ID, id, in.Body); err != nil {
+				return nil, travelError(err)
+			}
+			t, err := d.Travel.Of(ctx, kind.of, u.ID, id)
+			return &travelOutput{Body: t}, err
+		})
+	}
 }

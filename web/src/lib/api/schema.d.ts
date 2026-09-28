@@ -1050,13 +1050,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One's own way from home to the first stage and back from the last */
+        /** One's own way from home or elsewhere to the first stage and back from the last */
         get: operations["get-journey-travel"];
         /**
-         * Set one's own way from home and back
-         * @description Replaces both directions; one left out is none. The homes must be one's own.
+         * Set one's own way there and back
+         * @description Replaces both directions; one left out is none. Each from or to one of one's homes or a place.
          */
         put: operations["set-journey-travel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journeys/{id}/weather": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** MeteoSwiss's forecast at each stage's highest point, for its planned day */
+        get: operations["journey-weather"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1449,7 +1466,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Huts and accommodation in a map view, for the map overlays
+         * Huts, accommodation and points of interest in a map view, for the map overlays
          * @description At most 2000, in no particular order.
          */
         get: operations["places-in-view"];
@@ -1832,6 +1849,26 @@ export interface paths {
         patch: operations["update-route-photo"];
         trace?: never;
     };
+    "/routes/{id}/pois": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Summits, viewpoints, waterfalls, drinking water and shelters along a route
+         * @description Within 200 m of the line, in the order they come; from OpenStreetMap.
+         */
+        get: operations["route-pois"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/revisions": {
         parameters: {
             query?: never;
@@ -1904,6 +1941,27 @@ export interface paths {
         patch: operations["update-route-social"];
         trace?: never;
     };
+    "/routes/{id}/travel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One's own way from home or elsewhere to the start and back from the end */
+        get: operations["get-route-travel"];
+        /**
+         * Set one's own way there and back
+         * @description Replaces both directions; one left out is none. Each from or to one of one's homes or a place.
+         */
+        put: operations["set-route-travel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/turns": {
         parameters: {
             query?: never;
@@ -1916,6 +1974,26 @@ export interface paths {
          * @description The route's line matched onto the path network. Where it does not follow the network, as GPS tracks and straight legs do not, there are no turns.
          */
         get: operations["get-route-turns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/routes/{id}/weather": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * MeteoSwiss's forecast at a route's start, highest point and end
+         * @description For each, the forecast point nearby of the most similar height; the next days. 503 before the first forecast is loaded.
+         */
+        get: operations["route-weather"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2159,6 +2237,8 @@ export interface components {
         };
         AreasOutputBody: {
             areas: components["schemas"]["Area"][];
+            /** @description Closed trails and shooting on the way, from today on */
+            notices: components["schemas"]["Notice"][];
         };
         AuthenticationExtensions: {
             appid?: string;
@@ -2583,6 +2663,38 @@ export interface components {
             /** Format: date-time */
             t: string;
         };
+        ForecastDay: {
+            /** Format: date */
+            date: string;
+            /**
+             * Format: double
+             * @description Highest temperature, °C
+             */
+            max_c: number;
+            /**
+             * Format: double
+             * @description Lowest temperature, °C
+             */
+            min_c: number;
+            /** Format: double */
+            rain_hi_mm: number;
+            /** Format: double */
+            rain_lo_mm: number;
+            /** Format: double */
+            rain_mm: number;
+        };
+        ForecastPoint: {
+            /**
+             * Format: double
+             * @description metres
+             */
+            height: number;
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+            name: string;
+        };
         ForgotInputBody: {
             /** Format: email */
             email: string;
@@ -2831,11 +2943,10 @@ export interface components {
             /** @enum {string} */
             visibility: "private" | "unlisted" | "public";
         };
-        JourneyTravel: {
-            /** @description From the last stage to a home; none if left out */
-            back?: components["schemas"]["Way"];
-            /** @description From a home to the first stage; none if left out */
-            to?: components["schemas"]["Way"];
+        JourneyWeatherOutputBody: {
+            /** Format: date-time */
+            run: string;
+            stages: components["schemas"]["StageWeather"][];
         };
         KomootImportInputBody: {
             session: string;
@@ -2973,6 +3084,25 @@ export interface components {
         NearbyPlacesOutputBody: {
             places: components["schemas"]["Place"][];
         };
+        Notice: {
+            days?: components["schemas"]["ShootingDay"][];
+            /** Format: date */
+            from?: string;
+            /** @description The layer's feature id */
+            id: string;
+            /** @enum {string} */
+            kind: "closure" | "shooting";
+            /** @description The army's page on the shooting */
+            link?: components["schemas"]["Texts"];
+            /** @description Shooting: where to ask */
+            phone?: string;
+            /** @description Closures: why */
+            reason?: components["schemas"]["Texts"];
+            stages?: number[];
+            title: components["schemas"]["Texts"];
+            /** Format: date */
+            to?: string;
+        };
         PRFInputs: {
             eval?: components["schemas"]["PRFValues"];
             evalByCredential?: {
@@ -3056,15 +3186,17 @@ export interface components {
             photos: components["schemas"]["Photo"][];
         };
         Pin: {
+            /** @description Places: see Place; summits: the height in metres */
             detail: string;
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            kind: "pt_stop" | "hut" | "hotel" | "campsite";
+            kind: "pt_stop" | "hut" | "hotel" | "campsite" | "peak" | "viewpoint" | "waterfall" | "water" | "shelter";
             /** Format: double */
             lat: number;
             /** Format: double */
             lon: number;
+            /** @description Empty for some points of interest (drinking water, shelters) */
             name: string;
             website?: string;
         };
@@ -3132,11 +3264,37 @@ export interface components {
             start_place_id?: string;
             title?: string;
         };
+        Poi: {
+            /**
+             * Format: double
+             * @description How far along the line
+             */
+            along_m: number;
+            /** @description lon, lat */
+            at: number[];
+            /**
+             * Format: int64
+             * @description Summits: height in metres
+             */
+            ele?: number;
+            /** @enum {string} */
+            kind: "peak" | "viewpoint" | "waterfall" | "water" | "shelter";
+            /** @description Empty for many drinking water points and shelters */
+            name: string;
+            /**
+             * Format: double
+             * @description How far from the line
+             */
+            off_m: number;
+        };
         Point: {
             /** Format: double */
             lat: number;
             /** Format: double */
             lon: number;
+        };
+        PoisOutputBody: {
+            pois: components["schemas"]["Poi"][];
         };
         Position: {
             /** Format: date-time */
@@ -3443,6 +3601,14 @@ export interface components {
             /** Format: int64 */
             sac_max: number;
         };
+        RouteWeatherOutputBody: {
+            places: components["schemas"]["WeatherPlace"][];
+            /**
+             * Format: date-time
+             * @description When MeteoSwiss made the forecast
+             */
+            run: string;
+        };
         Run: {
             /** Format: int64 */
             from: number;
@@ -3506,6 +3672,12 @@ export interface components {
             journeys: components["schemas"]["JourneyShared"][];
             routes: components["schemas"]["RouteShared"][];
         };
+        ShootingDay: {
+            /** Format: date */
+            date: string;
+            from?: string;
+            to?: string;
+        };
         SignupInputBody: {
             display_name: string;
             /** Format: email */
@@ -3551,6 +3723,13 @@ export interface components {
         SocialSettingsInputBody: {
             comments_enabled: boolean;
         };
+        Spot: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lon: number;
+            name: string;
+        };
         Stage: {
             /** @description The hut, hotel or campsite; empty at a stop */
             accommodation: string;
@@ -3574,6 +3753,16 @@ export interface components {
             legs: components["schemas"]["Leg"][];
             /** @enum {string} */
             profile: "hike" | "alpine";
+        };
+        StageWeather: {
+            day?: components["schemas"]["ForecastDay"];
+            /** @description At the stage's highest point */
+            point: components["schemas"]["ForecastPoint"];
+            /**
+             * Format: int64
+             * @description From 1
+             */
+            stage: number;
         };
         StagesImportOutputBody: {
             /** Format: int64 */
@@ -3712,6 +3901,12 @@ export interface components {
             /** Format: int64 */
             transfers: number;
         };
+        Travel: {
+            /** @description Back from the end; none if left out */
+            back?: components["schemas"]["Way"];
+            /** @description To the start; none if left out */
+            to?: components["schemas"]["Way"];
+        };
         Turn: {
             /**
              * Format: double
@@ -3827,10 +4022,23 @@ export interface components {
         Way: {
             /** @description Arriving before the time instead of leaving after it */
             arrive: boolean;
-            /** Format: uuid */
-            home_id: string;
-            /** @description HH:MM, Swiss time, on the stage's day */
+            /**
+             * Format: uuid
+             * @description One of one's homes; or place
+             */
+            home_id?: string;
+            /** @description Anywhere else; or home_id */
+            place?: components["schemas"]["Spot"];
+            /** @description HH:MM, Swiss time, on the day of the hike */
             time: string;
+        };
+        WeatherPlace: {
+            /** @description From today on */
+            days: components["schemas"]["ForecastDay"][];
+            /** @description MeteoSwiss's forecast point */
+            point: components["schemas"]["ForecastPoint"];
+            /** @description start, top (the highest point), end */
+            roles: string[];
         };
     };
     responses: never;
@@ -6402,6 +6610,78 @@ export interface operations {
     "get-journey-travel": {
         parameters: {
             query?: {
+                /** @description Share token of an unlisted journey or route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Travel"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "set-journey-travel": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey or route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Travel"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Travel"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "journey-weather": {
+        parameters: {
+            query?: {
                 /** @description Share token of an unlisted journey */
                 t?: string;
             };
@@ -6419,45 +6699,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["JourneyTravel"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "set-journey-travel": {
-        parameters: {
-            query?: {
-                /** @description Share token of an unlisted journey */
-                t?: string;
-            };
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["JourneyTravel"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JourneyTravel"];
+                    "application/json": components["schemas"]["JourneyWeatherOutputBody"];
                 };
             };
             /** @description Error */
@@ -7306,7 +7548,7 @@ export interface operations {
             query: {
                 /** @description The map view: west,south,east,north (WGS84) */
                 bbox: string;
-                kind: ("hut" | "hotel" | "campsite")[];
+                kind: ("hut" | "hotel" | "campsite" | "peak" | "viewpoint" | "waterfall" | "water" | "shelter")[];
             };
             header?: never;
             path?: never;
@@ -8361,6 +8603,40 @@ export interface operations {
             };
         };
     };
+    "route-pois": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PoisOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "list-route-revisions": {
         parameters: {
             query?: {
@@ -8532,6 +8808,78 @@ export interface operations {
             };
         };
     };
+    "get-route-travel": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey or route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Travel"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "set-route-travel": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey or route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Travel"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Travel"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "get-route-turns": {
         parameters: {
             query?: {
@@ -8553,6 +8901,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TurnsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "route-weather": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteWeatherOutputBody"];
                 };
             };
             /** @description Error */

@@ -42,9 +42,13 @@ export type SharedCollection = components['schemas']['CollectionShared'];
 export type DiscoverItem = components['schemas']['DiscoverItem'];
 export type MyMapItem = components['schemas']['DiscoverMineItem'];
 export type ProtectedArea = components['schemas']['Area'];
+export type Notice = components['schemas']['Notice'];
+export type RouteWeather = components['schemas']['RouteWeatherOutputBody'];
+export type JourneyWeather = components['schemas']['JourneyWeatherOutputBody'];
+export type ForecastDay = components['schemas']['ForecastDay'];
 export type Profile = components['schemas']['ProfileOutputBody'];
 export type Home = components['schemas']['Home'];
-export type Travel = components['schemas']['JourneyTravel'];
+export type Travel = components['schemas']['Travel'];
 export type TravelWay = components['schemas']['Way'];
 export type Trip = components['schemas']['TransitTrip'];
 

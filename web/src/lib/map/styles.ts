@@ -1,4 +1,4 @@
-import type { StyleSpecification } from 'maplibre-gl';
+import type { RasterDEMSourceSpecification, StyleSpecification } from 'maplibre-gl';
 import { TILE_PROTOCOL } from './tiles';
 
 /** Switzerland and Liechtenstein with a margin: no tiles are requested outside. */
@@ -12,7 +12,7 @@ export type BaseMapId = 'landeskarte' | 'landeskarte_grau' | 'luftbild' | 'basem
 export type RasterOverlayId =
 	'wanderwege' | 'wanderland' | 'hangneigung' | 'wildruhezonen' | 'jagdbanngebiete' | 'relief';
 /** Huts and accommodation from our places, drawn as points. */
-export type PlaceOverlayId = 'huts' | 'lodging';
+export type PlaceOverlayId = 'huts' | 'lodging' | 'pois';
 export type OverlayId = RasterOverlayId | PlaceOverlayId;
 
 export const BASE_MAPS: BaseMapId[] = ['landeskarte', 'landeskarte_grau', 'luftbild', 'basemap'];
@@ -24,7 +24,8 @@ export const OVERLAYS: OverlayId[] = [
 	'jagdbanngebiete',
 	'relief',
 	'huts',
-	'lodging'
+	'lodging',
+	'pois'
 ];
 
 /** swisstopo WMTS layers (EPSG:3857) served through our tile cache. */
@@ -90,6 +91,22 @@ export function keepOwnLayers(
 	return {
 		...next,
 		sources: { ...next.sources, ...sources },
-		layers: [...next.layers, ...overlays, ...routes]
+		layers: [...next.layers, ...overlays, ...routes],
+		...(previous.terrain ? { terrain: previous.terrain } : {})
+	};
+}
+
+/** The terrain for 3D: Mapterhorn's open terrain tiles, through the tile cache. */
+export const TERRAIN_SOURCE = OVERLAY_PREFIX + 'terrain';
+
+export function terrainSource(origin: string): RasterDEMSourceSpecification {
+	return {
+		type: 'raster-dem',
+		tiles: [`${TILE_PROTOCOL}://${origin}/tiles/terrain/{z}/{x}/{y}.webp`],
+		encoding: 'terrarium',
+		tileSize: 512,
+		maxzoom: 14,
+		attribution:
+			'<a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">© Mapterhorn</a>'
 	};
 }

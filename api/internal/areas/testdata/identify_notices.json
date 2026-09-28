@@ -1,0 +1,193 @@
+{
+ "results": [
+  {
+   "type": "Feature",
+   "featureId": 1,
+   "id": 1,
+   "layerBodId": "ch.astra.wanderland-sperrungen_umleitungen",
+   "layerName": "Sperrungen Wanderwege",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      8.005,
+      46.66005
+     ],
+     [
+      8.008,
+      46.66005
+     ]
+    ]
+   },
+   "properties": {
+    "sperrungen_type": "closed_way",
+    "duration_de": "01.09.2026 – 31.10.2026",
+    "title_de": "Along the line",
+    "title_fr": "Along the line",
+    "title_it": "Along the line",
+    "title_en": "Along the line",
+    "reason_de": "Steinschlag",
+    "reason_fr": "Chutes de pierres",
+    "reason_it": "Caduta massi",
+    "reason_en": "Rockfall",
+    "land": "wanderland"
+   }
+  },
+  {
+   "type": "Feature",
+   "featureId": 2,
+   "id": 2,
+   "layerBodId": "ch.astra.wanderland-sperrungen_umleitungen",
+   "layerName": "Sperrungen Wanderwege",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      8.01,
+      46.655
+     ],
+     [
+      8.01,
+      46.665
+     ]
+    ]
+   },
+   "properties": {
+    "sperrungen_type": "closed_way",
+    "duration_de": "01.09.2026 – 31.10.2026",
+    "title_de": "Crossed only",
+    "title_fr": "Crossed only",
+    "title_it": "Crossed only",
+    "title_en": "Crossed only",
+    "reason_de": "Steinschlag",
+    "reason_fr": "Chutes de pierres",
+    "reason_it": "Caduta massi",
+    "reason_en": "Rockfall",
+    "land": "wanderland"
+   }
+  },
+  {
+   "type": "Feature",
+   "featureId": 3,
+   "id": 3,
+   "layerBodId": "ch.astra.wanderland-sperrungen_umleitungen",
+   "layerName": "Sperrungen Wanderwege",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      8.012,
+      46.66
+     ],
+     [
+      8.015,
+      46.66
+     ]
+    ]
+   },
+   "properties": {
+    "sperrungen_type": "detour",
+    "duration_de": "01.09.2026 – 31.10.2026",
+    "title_de": "The way round",
+    "title_fr": "The way round",
+    "title_it": "The way round",
+    "title_en": "The way round",
+    "reason_de": "Steinschlag",
+    "reason_fr": "Chutes de pierres",
+    "reason_it": "Caduta massi",
+    "reason_en": "Rockfall",
+    "land": "wanderland"
+   }
+  },
+  {
+   "type": "Feature",
+   "featureId": 4,
+   "id": 4,
+   "layerBodId": "ch.astra.wanderland-sperrungen_umleitungen",
+   "layerName": "Sperrungen Wanderwege",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      8.016,
+      46.66
+     ],
+     [
+      8.019,
+      46.66
+     ]
+    ]
+   },
+   "properties": {
+    "sperrungen_type": "closed_way",
+    "duration_de": "01.05.2026 – 31.08.2026",
+    "title_de": "Over already",
+    "title_fr": "Over already",
+    "title_it": "Over already",
+    "title_en": "Over already",
+    "reason_de": "Steinschlag",
+    "reason_fr": "Chutes de pierres",
+    "reason_it": "Caduta massi",
+    "reason_en": "Rockfall",
+    "land": "wanderland"
+   }
+  },
+  {
+   "type": "Feature",
+   "featureId": 5,
+   "id": 5,
+   "layerBodId": "ch.vbs.schiessanzeigen",
+   "layerName": "Schiessanzeigen",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       8.0,
+       46.65
+      ],
+      [
+       8.02,
+       46.65
+      ],
+      [
+       8.02,
+       46.67
+      ],
+      [
+       8.0,
+       46.67
+      ],
+      [
+       8.0,
+       46.65
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "bezeichnung": "Geissalp",
+    "infotelefonnr": "+41 58 467 19 90",
+    "url_de": "https://www.armee.ch/schiessanzeigen/1104.020",
+    "url_fr": "https://www.armee.ch/avisdetir/1104.020",
+    "url_it": "https://www.armee.ch/avvisoditiro/1104.020",
+    "url_en": "https://www.armee.ch/shootingrangebulletin/1104.020",
+    "belegungsdatum": [
+     "27.09.2026",
+     "28.09.2026",
+     "29.09.2026"
+    ],
+    "zeit_von": [
+     "0800",
+     "",
+     ""
+    ],
+    "zeit_bis": [
+     "1700",
+     "",
+     ""
+    ]
+   }
+  }
+ ]
+}

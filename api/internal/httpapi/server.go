@@ -31,6 +31,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/travel"
+	"github.com/tellbow/alvyo/api/internal/weather"
 )
 
 // Prefix is the path under which the versioned API is served.
@@ -51,6 +52,7 @@ type Deps struct {
 	Journeys    *journeys.Store
 	Places      *places.Store
 	Areas       *areas.Finder // protected areas along routes
+	Weather     *weather.Forecast
 	Live        *live.Store   // hikes shared with contacts
 	Travel      *travel.Store // homes and the way to and from journeys
 	Grants      *grants.Store
@@ -116,6 +118,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerAccount(api, d)
 	registerRouting(api, d)
 	registerAreas(api, d)
+	registerWeather(api, d)
 	registerLive(api, d)
 	registerRoutes(api, d)
 	registerRevisions(api, d)

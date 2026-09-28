@@ -201,9 +201,24 @@ Checked so far only in the simulator, with made-up or simulated positions
       planned on the website, saved offline in the app and hiked or walked
       past the border: the national map shows the French side, turns are
       spoken there, and the recorded hike is accepted.
+- [ ] **How to get there** (after a release): on a route, «Anreise» from
+      «Anderer Ort …» (a station found by the search) and «Heimreise» to a
+      home, on a day chosen: the connections match the SBB app, the chosen
+      one is drawn on the map; the same on the website afterwards.
+- [ ] **Weather** (after a release): on a route high up, «Wetter» names
+      forecast points at a similar height (a hut, not the valley village);
+      the days after «Heute» fit on the screen; on a journey only the
+      stages planned in the next days, and a planned day changed in the
+      stage sheet shows its forecast on returning. Compared with the
+      MeteoSwiss app for the same place and day.
 
 ## Web
 
+- [ ] **Stage sheets** printed on paper and saved as PDF, from Safari on
+      the iPhone and Mac and from Chrome and Firefox: one A4 page for a
+      real stage (Etappe of a Via Alpina journey), the map sharp enough to
+      read the trail, the grade badge and profile in colour, nothing cut
+      off at the page break; in dark mode the sheet is light.
 - [ ] **Place search** with more names: villages, peaks, passes, huts, stops and
       addresses, also French and Italian names.
 - [ ] **Dragging the line** onto a nearby path: GraphHopper snaps the new point

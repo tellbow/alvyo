@@ -1,4 +1,4 @@
-import type { ProtectedArea } from '$lib/api/client';
+import type { Notice, ProtectedArea } from '$lib/api/client';
 
 type Period = NonNullable<ProtectedArea['period']>;
 
@@ -25,4 +25,28 @@ export function ruleText(a: ProtectedArea, lang: string): string {
 	return (
 		(lang === 'fr' ? r.fr : lang === 'it' ? r.it : lang === 'en' ? r.en || r.de : r.de) || r.de
 	);
+}
+
+type Texts = Notice['title'];
+
+/** A text in the page's language (German where it has none). */
+export function noticeText(t: Texts, lang: string): string {
+	return (
+		((lang === 'fr' ? t.fr : lang === 'it' ? t.it : lang === 'en' ? t.en : t.de) || t.de) ?? ''
+	);
+}
+
+/** A day (YYYY-MM-DD) as «29. Sept.» in German. */
+export function shootingDay(day: string, locale: string): string {
+	return new Intl.DateTimeFormat(locale, {
+		day: 'numeric',
+		month: 'short',
+		timeZone: 'UTC'
+	}).format(new Date(`${day}T00:00:00Z`));
+}
+
+/** Whether a notice concerns one of the days (YYYY-MM-DD). */
+export function touches(n: Notice, days: string[]): boolean {
+	if (n.kind === 'shooting') return (n.days ?? []).some((d) => days.includes(d.date));
+	return days.some((d) => (!n.from || d >= n.from) && (!n.to || d <= n.to));
 }

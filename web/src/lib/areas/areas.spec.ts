@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inPeriod, periodDay, ruleText } from './areas';
+import { inPeriod, noticeText, periodDay, ruleText, shootingDay, touches } from './areas';
 
 describe('protected areas', () => {
 	it('knows whether a day is in a period over the new year', () => {
@@ -22,5 +22,34 @@ describe('protected areas', () => {
 		} as const;
 		expect(ruleText(a, 'fr')).toBe('Protection partielle');
 		expect(ruleText(a, 'en')).toBe('Teilschutz');
+	});
+});
+
+describe('closures and shooting', () => {
+	const closure = {
+		kind: 'closure' as const,
+		id: '1',
+		title: { de: 'Seewäldli', fr: '', it: '', en: 'Lake wood' },
+		from: '2026-09-01',
+		to: '2026-10-31'
+	};
+	const shooting = {
+		kind: 'shooting' as const,
+		id: '2',
+		title: { de: 'Geissalp', fr: '', it: '' },
+		days: [{ date: '2026-09-29', from: '0800', to: '1700' }]
+	};
+
+	it('concerns a hike on its days only', () => {
+		expect(touches(closure, ['2026-10-31'])).toBe(true);
+		expect(touches(closure, ['2026-11-01'])).toBe(false);
+		expect(touches(shooting, ['2026-09-28', '2026-09-29'])).toBe(true);
+		expect(touches(shooting, ['2026-09-30'])).toBe(false);
+	});
+
+	it('speaks the page language, German where the text is missing', () => {
+		expect(noticeText(closure.title, 'en')).toBe('Lake wood');
+		expect(noticeText(closure.title, 'fr')).toBe('Seewäldli');
+		expect(shootingDay('2026-09-29', 'de-CH')).toBe('29. Sept.');
 	});
 });

@@ -170,6 +170,12 @@
 	background: var(--color-surface);
 }
 
+/* Stage sheets and whatever else is printed: A4. */
+@page {
+	size: A4;
+	margin: 12mm;
+}
+
 /*
  * Safari on a phone zooms into a field whose text is under 16 px. Outside
  * the layers, so that it wins over text-sm on the field.

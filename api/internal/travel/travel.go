@@ -1,6 +1,6 @@
-// Package travel keeps a user's homes and, per journey, how they get from a
-// home to its first stage and back from its last by public transport. Both
-// are the user's own: no one else sees them.
+// Package travel keeps a user's homes and, per journey and route, how they
+// get from a home or another place to the start and back from the end by
+// public transport. Both are the user's own: no one else sees them.
 package travel
 
 import (
@@ -31,18 +31,45 @@ type Home struct {
 	Lat     float64 `json:"lat"`
 }
 
-// Way is the travel of one direction: from (to the first stage) or to (back
-// from the last) a home, leaving after or arriving before a time.
+// Way is the travel of one direction: from (to the start) or to (back from
+// the end) a home or another place, leaving after or arriving before a time.
 type Way struct {
-	HomeID string `json:"home_id" format:"uuid"`
-	Time   string `json:"time" pattern:"^([01][0-9]|2[0-3]):[0-5][0-9]$" doc:"HH:MM, Swiss time, on the stage's day"`
+	HomeID string `json:"home_id,omitempty" format:"uuid" doc:"One of one's homes; or place"`
+	Place  *Spot  `json:"place,omitempty" doc:"Anywhere else; or home_id"`
+	Time   string `json:"time" pattern:"^([01][0-9]|2[0-3]):[0-5][0-9]$" doc:"HH:MM, Swiss time, on the day of the hike"`
 	Arrive bool   `json:"arrive" doc:"Arriving before the time instead of leaving after it"`
 }
 
-// JourneyTravel is a user's travel for a journey; nil where none is chosen.
-type JourneyTravel struct {
-	To   *Way `json:"to,omitempty" doc:"From a home to the first stage; none if left out"`
-	Back *Way `json:"back,omitempty" doc:"From the last stage to a home; none if left out"`
+// Spot is where a way starts or ends that is not a home: a place found by
+// the search.
+type Spot struct {
+	Name string  `json:"name" minLength:"1" maxLength:"60"`
+	Lon  float64 `json:"lon" minimum:"-180" maximum:"180"`
+	Lat  float64 `json:"lat" minimum:"-90" maximum:"90"`
+}
+
+// Travel is a user's travel for a journey or a route; nil where none is
+// chosen.
+type Travel struct {
+	To   *Way `json:"to,omitempty" doc:"To the start; none if left out"`
+	Back *Way `json:"back,omitempty" doc:"Back from the end; none if left out"`
+}
+
+// For is what travel belongs to.
+type For int
+
+// A journey (to its first stage and back from its last) or a route.
+const (
+	Journey For = iota
+	Route
+)
+
+// table and column of the travel of f.
+func (f For) table() (string, string) {
+	if f == Route {
+		return "route_travel", "route_id"
+	}
+	return "journey_travel", "journey_id"
 }
 
 // Store keeps homes and travel.
@@ -103,49 +130,70 @@ func (s *Store) DeleteHome(ctx context.Context, owner, id uuid.UUID) error {
 	return nil
 }
 
-// Of returns a user's travel for a journey.
-func (s *Store) Of(ctx context.Context, user, journey uuid.UUID) (JourneyTravel, error) {
-	rows, err := s.DB.Query(ctx, `SELECT direction, home_id, at_time, arrive FROM journey_travel
-		WHERE user_id = $1 AND journey_id = $2`, user, journey)
+// Of returns a user's travel for a journey or route.
+func (s *Store) Of(ctx context.Context, f For, user, id uuid.UUID) (Travel, error) {
+	table, col := f.table()
+	rows, err := s.DB.Query(ctx, `SELECT direction, home_id, place_name, place_lon, place_lat, at_time, arrive
+		FROM `+table+` WHERE user_id = $1 AND `+col+` = $2`, user, id)
 	if err != nil {
-		return JourneyTravel{}, fmt.Errorf("travel: of: %w", err)
+		return Travel{}, fmt.Errorf("travel: of: %w", err)
 	}
 	defer rows.Close()
-	var j JourneyTravel
+	var t Travel
 	for rows.Next() {
 		var dir string
-		var home uuid.UUID
+		var home *uuid.UUID
+		var name *string
+		var lon, lat *float64
 		w := &Way{}
-		if err := rows.Scan(&dir, &home, &w.Time, &w.Arrive); err != nil {
-			return j, fmt.Errorf("travel: of: %w", err)
+		if err := rows.Scan(&dir, &home, &name, &lon, &lat, &w.Time, &w.Arrive); err != nil {
+			return t, fmt.Errorf("travel: of: %w", err)
 		}
-		w.HomeID = home.String()
+		if home != nil {
+			w.HomeID = home.String()
+		} else if name != nil && lon != nil && lat != nil {
+			w.Place = &Spot{Name: *name, Lon: *lon, Lat: *lat}
+		}
 		if dir == "to" {
-			j.To = w
+			t.To = w
 		} else {
-			j.Back = w
+			t.Back = w
 		}
 	}
-	return j, rows.Err()
+	return t, rows.Err()
 }
 
-// Set replaces a user's travel for a journey; the homes must be theirs.
-func (s *Store) Set(ctx context.Context, user, journey uuid.UUID, j JourneyTravel) error {
+// Set replaces a user's travel for a journey or route; the homes must be
+// theirs.
+func (s *Store) Set(ctx context.Context, f For, user, id uuid.UUID, t Travel) error {
+	table, col := f.table()
 	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(ctx, `DELETE FROM journey_travel WHERE user_id = $1 AND journey_id = $2`, user, journey); err != nil {
+		if _, err := tx.Exec(ctx, `DELETE FROM `+table+` WHERE user_id = $1 AND `+col+` = $2`, user, id); err != nil {
 			return fmt.Errorf("travel: set: %w", err)
 		}
-		for dir, w := range map[string]*Way{"to": j.To, "back": j.Back} {
+		for dir, w := range map[string]*Way{"to": t.To, "back": t.Back} {
 			if w == nil {
+				continue
+			}
+			if w.Place != nil {
+				if w.HomeID != "" {
+					return ErrNotFound
+				}
+				_, err := tx.Exec(ctx, `INSERT INTO `+table+` (user_id, `+col+`, direction, place_name, place_lon, place_lat, at_time, arrive)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+					user, id, dir, w.Place.Name, w.Place.Lon, w.Place.Lat, w.Time, w.Arrive)
+				if err != nil {
+					return fmt.Errorf("travel: set: %w", err)
+				}
 				continue
 			}
 			home, err := uuid.Parse(w.HomeID)
 			if err != nil {
 				return ErrNotFound
 			}
-			res, err := tx.Exec(ctx, `INSERT INTO journey_travel (user_id, journey_id, direction, home_id, at_time, arrive)
+			res, err := tx.Exec(ctx, `INSERT INTO `+table+` (user_id, `+col+`, direction, home_id, at_time, arrive)
 				SELECT $1, $2, $3, id, $5, $6 FROM homes WHERE id = $4 AND owner_id = $1`,
-				user, journey, dir, home, w.Time, w.Arrive)
+				user, id, dir, home, w.Time, w.Arrive)
 			if err != nil {
 				return fmt.Errorf("travel: set: %w", err)
 			}

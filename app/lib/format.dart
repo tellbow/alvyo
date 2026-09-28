@@ -15,16 +15,17 @@ String formatDuration(int seconds, [double pace = 1]) {
 /// main.dart); below a kilometre in metres.
 String formatDistance(double metres, [String? language]) {
   if (metres < 1000) return formatHeight(metres);
-  final lang = language ?? Intl.getCurrentLocale().split(RegExp('[_-]')).first;
-  // The Swiss variants, as on the website.
-  final locale = switch (lang) {
-    'fr' => 'fr_CH',
-    'it' => 'it_CH',
-    'en' => 'en_GB',
-    _ => 'de_CH',
-  };
-  return '${NumberFormat('0.0', locale).format(metres / 1000)}${_nbsp}km';
+  return '${NumberFormat('0.0', numberLocale(language)).format(metres / 1000)}${_nbsp}km';
 }
+
+/// The locale numbers are formatted in: the Swiss variants, as on the
+/// website.
+String numberLocale([String? language]) => switch (language ?? Intl.getCurrentLocale().split(RegExp('[_-]')).first) {
+  'fr' => 'fr_CH',
+  'it' => 'it_CH',
+  'en' => 'en_GB',
+  _ => 'de_CH',
+};
 
 /// Heights, ascents and short distances in whole metres: «1707 m».
 String formatHeight(double metres) => '${metres.round()}${_nbsp}m';

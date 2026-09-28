@@ -96,23 +96,28 @@ func (s *Store) Nearby(ctx context.Context, q Query) ([]Place, error) {
 // MaxInView bounds the places of one map view.
 const MaxInView = 2000
 
-// Pin is a place drawn on the map.
+// Pin is a place or point of interest drawn on the map.
 type Pin struct {
 	ID      string  `json:"id" format:"uuid"`
-	Kind    string  `json:"kind" enum:"pt_stop,hut,hotel,campsite"`
-	Name    string  `json:"name"`
-	Detail  string  `json:"detail"`
+	Kind    string  `json:"kind" enum:"pt_stop,hut,hotel,campsite,peak,viewpoint,waterfall,water,shelter"`
+	Name    string  `json:"name" doc:"Empty for some points of interest (drinking water, shelters)"`
+	Detail  string  `json:"detail" doc:"Places: see Place; summits: the height in metres"`
 	Website string  `json:"website,omitempty"`
 	Lon     float64 `json:"lon"`
 	Lat     float64 `json:"lat"`
 }
 
-// InView returns up to MaxInView places of the given kinds inside a box.
+// InView returns up to MaxInView places and points of interest of the
+// given kinds inside a box.
 func (s *Store) InView(ctx context.Context, west, south, east, north float64, kinds []string) ([]Pin, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT id, kind, name, detail, website, ST_X(geom), ST_Y(geom)
+		(SELECT id, kind, name, detail, website, ST_X(geom), ST_Y(geom)
 		FROM places
-		WHERE geom && ST_MakeEnvelope($1, $2, $3, $4, 4326) AND kind = ANY($5)
+		WHERE geom && ST_MakeEnvelope($1, $2, $3, $4, 4326) AND kind = ANY($5))
+		UNION ALL
+		(SELECT id, kind, name, coalesce(ele::text, ''), '', ST_X(geom), ST_Y(geom)
+		FROM pois
+		WHERE geom && ST_MakeEnvelope($1, $2, $3, $4, 4326) AND kind = ANY($5))
 		LIMIT $6`, west, south, east, north, kinds, MaxInView)
 	if err != nil {
 		return nil, fmt.Errorf("places: in view: %w", err)

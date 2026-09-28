@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
@@ -16,7 +17,8 @@ import (
 
 type areasOutput struct {
 	Body struct {
-		Areas []areas.Area `json:"areas"`
+		Areas   []areas.Area   `json:"areas"`
+		Notices []areas.Notice `json:"notices" doc:"Closed trails and shooting on the way, from today on"`
 	}
 }
 
@@ -28,13 +30,21 @@ type lineAreasInput struct {
 
 func registerAreas(api huma.API, d Deps) {
 	tags := []string{"routing"}
-	crossed := func(ctx context.Context, line []geo.Point) ([]areas.Area, error) {
+	zurich, err := time.LoadLocation("Europe/Zurich")
+	if err != nil {
+		panic(err) // cannot happen: time/tzdata is linked in
+	}
+	crossed := func(ctx context.Context, line []geo.Point) ([]areas.Area, []areas.Notice, error) {
 		found, err := d.Areas.Crossed(ctx, line)
+		var notices []areas.Notice
+		if err == nil {
+			notices, err = d.Areas.Notices(ctx, line, time.Now().In(zurich))
+		}
 		if errors.Is(err, areas.ErrUnavailable) {
 			slog.WarnContext(ctx, "protected areas", "err", err)
-			return nil, huma.Error503ServiceUnavailable("protected areas unavailable, please retry")
+			return nil, nil, huma.Error503ServiceUnavailable("protected areas unavailable, please retry")
 		}
-		return found, err
+		return found, notices, err
 	}
 	points := func(line [][3]float64) []geo.Point {
 		pts := make([]geo.Point, len(line))
@@ -62,7 +72,7 @@ func registerAreas(api huma.API, d Deps) {
 			line[i] = geo.Point{Lon: c[0], Lat: c[1]}
 		}
 		out := &areasOutput{}
-		out.Body.Areas, err = crossed(ctx, line)
+		out.Body.Areas, out.Body.Notices, err = crossed(ctx, line)
 		return out, err
 	})
 
@@ -75,7 +85,7 @@ func registerAreas(api huma.API, d Deps) {
 			return nil, err
 		}
 		out := &areasOutput{}
-		out.Body.Areas, err = crossed(ctx, points(r.Line()))
+		out.Body.Areas, out.Body.Notices, err = crossed(ctx, points(r.Line()))
 		return out, err
 	})
 
@@ -89,6 +99,8 @@ func registerAreas(api huma.API, d Deps) {
 		}
 		byID := map[string]*areas.Area{}
 		var order []string
+		noticeByID := map[string]*areas.Notice{}
+		var noticeOrder []string
 		for i, st := range j.StageList {
 			if st.Route == nil {
 				continue
@@ -97,9 +109,17 @@ func registerAreas(api huma.API, d Deps) {
 			if err != nil {
 				return nil, routeError(err)
 			}
-			found, err := crossed(ctx, points(r.Line()))
+			found, notices, err := crossed(ctx, points(r.Line()))
 			if err != nil {
 				return nil, err
+			}
+			for _, n := range notices {
+				key := n.Kind + "/" + n.ID
+				if noticeByID[key] == nil {
+					noticeByID[key] = &n
+					noticeOrder = append(noticeOrder, key)
+				}
+				noticeByID[key].Stages = append(noticeByID[key].Stages, i+1)
 			}
 			for _, a := range found {
 				key := a.Kind + "/" + a.ID
@@ -117,6 +137,10 @@ func registerAreas(api huma.API, d Deps) {
 		out.Body.Areas = []areas.Area{}
 		for _, k := range order {
 			out.Body.Areas = append(out.Body.Areas, *byID[k])
+		}
+		out.Body.Notices = []areas.Notice{}
+		for _, k := range noticeOrder {
+			out.Body.Notices = append(out.Body.Notices, *noticeByID[k])
 		}
 		return out, nil
 	})

@@ -44,6 +44,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/travel"
+	"github.com/tellbow/alvyo/api/internal/weather"
 	"github.com/tellbow/alvyo/swiss/elevation"
 	"github.com/tellbow/alvyo/swiss/ojp"
 )
@@ -122,6 +123,8 @@ func serve(ctx context.Context) error {
 	go photoStore.SweepEvery(ctx, time.Minute) // files of deleted photos
 	liveStore := &live.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
 	go liveStore.CheckEvery(ctx, time.Minute) // overdue hikes, old positions
+	forecast := &weather.Forecast{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
+	go forecast.Keep(ctx, time.Hour) // MeteoSwiss updates hourly
 	var planner httpapi.Planner
 	if cfg.OJPToken != "" {
 		planner = &ojp.Client{URL: cfg.OJPURL, Token: cfg.OJPToken, RequestorRef: "alvyo/" + version}
@@ -143,6 +146,7 @@ func serve(ctx context.Context) error {
 		Live:        liveStore,
 		Travel:      &travel.Store{DB: pool},
 		Areas:       &areas.Finder{DB: pool, UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"},
+		Weather:     forecast,
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},
 		Discover:    &discover.Store{DB: pool},

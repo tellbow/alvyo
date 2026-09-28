@@ -154,63 +154,22 @@ func lineKey(pts []geo.Point) string {
 }
 
 type identifyResponse struct {
-	Results []struct {
-		LayerBodID string         `json:"layerBodId"`
-		FeatureID  json.Number    `json:"featureId"`
-		Attributes map[string]any `json:"attributes"`
-	} `json:"results"`
+	Results []identifyResult `json:"results"`
+}
+
+type identifyResult struct {
+	LayerBodID string         `json:"layerBodId"`
+	FeatureID  json.Number    `json:"featureId"`
+	Attributes map[string]any `json:"attributes"`
+	// With geometries (as GeoJSON) the attributes come as properties.
+	Properties map[string]any  `json:"properties"`
+	Geometry   json.RawMessage `json:"geometry"`
 }
 
 func (f *Finder) identify(ctx context.Context, pts []geo.Point) ([]Area, error) {
-	path := make([][2]float64, len(pts))
-	west, south, east, north := pts[0].Lon, pts[0].Lat, pts[0].Lon, pts[0].Lat
-	for i, p := range pts {
-		path[i] = [2]float64{round5(p.Lon), round5(p.Lat)}
-		west, east = min(west, p.Lon), max(east, p.Lon)
-		south, north = min(south, p.Lat), max(north, p.Lat)
-	}
-	geom, _ := json.Marshal(map[string]any{"paths": [][][2]float64{path}, "spatialReference": map[string]int{"wkid": 4326}})
-	q := url.Values{
-		"geometryType":   {"esriGeometryPolyline"},
-		"geometry":       {string(geom)},
-		"layers":         {"all:" + restLayer + "," + reserveLayer},
-		"sr":             {"4326"},
-		"tolerance":      {"0"},
-		"returnGeometry": {"false"},
-		"lang":           {"de"},
-		// Needed by the service; with tolerance 0 they change nothing.
-		"mapExtent":    {fmt.Sprintf("%f,%f,%f,%f", west, south, east, north)},
-		"imageDisplay": {"1000,1000,96"},
-	}
-	base := f.URL
-	if base == "" {
-		base = IdentifyURL
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, base+"?"+q.Encode(), nil)
+	r, err := f.ask(ctx, pts, []string{restLayer, reserveLayer}, false)
 	if err != nil {
 		return nil, err
-	}
-	if f.UserAgent != "" {
-		req.Header.Set("User-Agent", f.UserAgent)
-	}
-	client := f.Client
-	if client == nil {
-		client = &http.Client{Timeout: 10 * time.Second}
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
-	}
-	defer func() { _ = resp.Body.Close() }()
-	raw, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: status %d", ErrUnavailable, resp.StatusCode)
-	}
-	var r identifyResponse
-	d := json.NewDecoder(bytes.NewReader(raw))
-	d.UseNumber()
-	if err := d.Decode(&r); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
 	var out []Area
 	for _, res := range r.Results {
@@ -240,6 +199,70 @@ func (f *Finder) identify(ctx context.Context, pts []geo.Point) ([]Area, error) 
 		}
 	}
 	return out, nil
+}
+
+// ask asks geo.admin for the features of layers along pts, with their
+// geometries if geometry.
+func (f *Finder) ask(ctx context.Context, pts []geo.Point, layers []string, geometry bool) (identifyResponse, error) {
+	path := make([][2]float64, len(pts))
+	west, south, east, north := pts[0].Lon, pts[0].Lat, pts[0].Lon, pts[0].Lat
+	for i, p := range pts {
+		path[i] = [2]float64{round5(p.Lon), round5(p.Lat)}
+		west, east = min(west, p.Lon), max(east, p.Lon)
+		south, north = min(south, p.Lat), max(north, p.Lat)
+	}
+	geom, _ := json.Marshal(map[string]any{"paths": [][][2]float64{path}, "spatialReference": map[string]int{"wkid": 4326}})
+	q := url.Values{
+		"geometryType":   {"esriGeometryPolyline"},
+		"geometry":       {string(geom)},
+		"layers":         {"all:" + strings.Join(layers, ",")},
+		"sr":             {"4326"},
+		"tolerance":      {"0"},
+		"returnGeometry": {strconv.FormatBool(geometry)},
+		"lang":           {"de"},
+		// Needed by the service; with tolerance 0 they change nothing.
+		"mapExtent":    {fmt.Sprintf("%f,%f,%f,%f", west, south, east, north)},
+		"imageDisplay": {"1000,1000,96"},
+	}
+	if geometry {
+		q.Set("geometryFormat", "geojson")
+	}
+	base := f.URL
+	if base == "" {
+		base = IdentifyURL
+	}
+	var r identifyResponse
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, base+"?"+q.Encode(), nil)
+	if err != nil {
+		return r, err
+	}
+	if f.UserAgent != "" {
+		req.Header.Set("User-Agent", f.UserAgent)
+	}
+	client := f.Client
+	if client == nil {
+		client = &http.Client{Timeout: 10 * time.Second}
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return r, fmt.Errorf("%w: %w", ErrUnavailable, err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return r, fmt.Errorf("%w: status %d", ErrUnavailable, resp.StatusCode)
+	}
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.UseNumber()
+	if err := d.Decode(&r); err != nil {
+		return r, fmt.Errorf("%w: %w", ErrUnavailable, err)
+	}
+	for i, res := range r.Results {
+		if res.Attributes == nil {
+			r.Results[i].Attributes = res.Properties
+		}
+	}
+	return r, nil
 }
 
 // round5 keeps about a metre.

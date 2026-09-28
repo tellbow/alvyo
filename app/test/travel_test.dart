@@ -100,7 +100,7 @@ void main() {
     });
     final trips = await travelTrips(
       api,
-      home,
+      waySpot(const TravelWay(homeId: 'h1', time: '06:00'), [home])!,
       journeyEnds(_journey()).start!,
       const TravelWay(homeId: 'h1', time: '06:00'),
       to: true,
@@ -116,7 +116,7 @@ void main() {
     });
     expect(trips.single.legs.single.track, hasLength(2));
     expect(
-      const JourneyTravel(
+      const Travel(
         to: TravelWay(homeId: 'h1', time: '06:00'),
       ).toJson(),
       {
@@ -180,7 +180,8 @@ void main() {
       }
       return http.Response('', 404);
     });
-    JourneyTravel? result;
+    final api = Api('https://alvyo.test', token: 't', client: client);
+    Travel? result;
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('de'),
@@ -193,12 +194,13 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Builder(
           builder: (context) => TextButton(
-            onPressed: () async => result = await Navigator.of(context).push<JourneyTravel>(
+            onPressed: () async => result = await Navigator.of(context).push<Travel>(
               MaterialPageRoute(
                 builder: (_) => TravelScreen(
-                  api: Api('https://alvyo.test', token: 't', client: client),
-                  journey: _journey(),
-                  travel: const JourneyTravel(),
+                  api: api,
+                  at: journeyEnds(_journey(), start: 'Start der Tour', end: 'Ende der Tour').end,
+                  save: (t) => api.setTravel('j1', t),
+                  travel: const Travel(),
                   to: false,
                   map: const SizedBox.expand(),
                 ),
@@ -251,5 +253,129 @@ void main() {
     await Navigator.of(tester.element(find.byType(TravelScreen))).maybePop();
     await settle();
     expect(result?.back?.arrive, isTrue);
+  });
+
+  test("a route is met at its first and last point, named after the planner's points", () {
+    final r = RouteDetail.fromJson({
+      'id': 'r1',
+      'title': 'Weisstannental',
+      'owner_username': 'anna',
+      'profile': 'hike',
+      'visibility': 'private',
+      'anchors': [
+        {'lon': 9.34, 'lat': 46.99, 'name': 'Weisstannen, Oberdorf'},
+        {'lon': 9.3, 'lat': 46.97},
+      ],
+      'legs': [
+        {
+          'coordinates': [
+            [9.34, 46.99, 1000.0],
+            [9.3, 46.97, 1200.0],
+          ],
+        },
+      ],
+      'totals': {'distance_m': 1.0, 'ascent_m': 0.0, 'descent_m': 0.0, 'duration_s': 60, 'sac_grade': 1, 'sac_max': 1},
+    });
+    final (:start, :end) = routeEnds(r, start: 'Start', end: 'Ziel');
+    expect((start?.at, start?.name, start?.day), ('9.34000,46.99000', 'Weisstannen, Oberdorf', null));
+    expect((end?.at, end?.name), ('9.30000,46.97000', 'Ziel'));
+  });
+
+  testWidgets('to a route from anywhere: a place found, saved for the route, on the day chosen', (tester) async {
+    Map<String, Object?> travel = {};
+    final asked = <Map<String, String>>[];
+    final client = MockClient((req) async {
+      switch ((req.method, req.url.path)) {
+        case ('GET', '/api/v1/me/homes'):
+          return _json({'homes': <Object>[]});
+        case ('GET', '/api/v1/places/search'):
+          return _json({
+            'places': [
+              {
+                'name': 'Sargans',
+                'kind': 'pt_stop',
+                'detail': 'Zug',
+                'at': [9.4447, 47.0448],
+              },
+            ],
+          });
+        case ('PUT', '/api/v1/routes/r1/travel'):
+          travel = jsonDecode(req.body) as Map<String, Object?>;
+          return _json(travel);
+        case ('GET', '/api/v1/connections'):
+          asked.add(req.url.queryParameters);
+          return _json({'trips': <Object>[]});
+      }
+      return http.Response('', 404);
+    });
+    final api = Api('https://alvyo.test', token: 't', client: client);
+    const at = (
+      at: '9.34000,46.99000',
+      name: 'Start',
+      day: null,
+      line: [
+        [9.34, 46.99],
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: TravelScreen(
+          api: api,
+          at: at,
+          travel: const Travel(),
+          to: true,
+          save: (t) => api.setRouteTravel('r1', t),
+          pickDay: true,
+          map: const SizedBox.expand(),
+        ),
+      ),
+    );
+    Future<void> settle() async {
+      for (var i = 0; i < 5; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await tester.pumpAndSettle();
+    }
+
+    await settle();
+    // No home: the hint, and still another place to choose.
+    expect(find.textContaining('fügst du in deinem Konto hinzu'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('travel-home')));
+    await settle();
+    await tester.tap(find.text('Anderer Ort …').last);
+    await settle();
+    await tester.tap(find.byKey(const Key('place-search-open')));
+    await settle();
+    await tester.enterText(find.byKey(const Key('place-search')), 'Sargans');
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await settle();
+    await tester.tap(find.byKey(const Key('place-result-0')));
+    await settle();
+    expect(travel, {
+      'to': {
+        'place': {'name': 'Sargans', 'lon': 9.4447, 'lat': 47.0448},
+        'time': '07:00',
+        'arrive': false,
+      },
+    });
+    expect(asked.last['from'], '9.44470,47.04480');
+    expect(asked.last['from_name'], 'Sargans');
+    expect(asked.last['date'], DateTime.now().toIso8601String().substring(0, 10));
+    expect(find.byKey(const Key('travel-day')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('travel-none')),
+      100,
+      scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first,
+    );
+    expect(find.byKey(const Key('travel-none')), findsOneWidget);
   });
 }

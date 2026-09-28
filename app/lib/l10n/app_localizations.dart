@@ -2341,7 +2341,7 @@ abstract class AppLocalizations {
   /// No description provided for @travelNoHomes.
   ///
   /// In de, this message translates to:
-  /// **'Füge in deinem Konto ein Zuhause hinzu, um die An- und Heimreise mit dem öffentlichen Verkehr zu planen.'**
+  /// **'Ein Zuhause, das du oft brauchst, fügst du in deinem Konto hinzu.'**
   String get travelNoHomes;
 
   /// No description provided for @travelPrivate.
@@ -2359,7 +2359,7 @@ abstract class AppLocalizations {
   /// No description provided for @travelChoose.
   ///
   /// In de, this message translates to:
-  /// **'Wähle ein Zuhause'**
+  /// **'Von wo und wann'**
   String get travelChoose;
 
   /// No description provided for @homesTitle.
@@ -2505,6 +2505,156 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Wieder als Wanderung'**
   String get plannerAlpineUndo;
+
+  /// No description provided for @noticesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Sperrungen und Schiessen'**
+  String get noticesTitle;
+
+  /// No description provided for @noticesClosure.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderweg gesperrt'**
+  String get noticesClosure;
+
+  /// No description provided for @noticesShooting.
+  ///
+  /// In de, this message translates to:
+  /// **'Schiessen der Armee'**
+  String get noticesShooting;
+
+  /// No description provided for @mapPois.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterwegs: Gipfel, Aussicht, Wasser'**
+  String get mapPois;
+
+  /// No description provided for @poiPeak.
+  ///
+  /// In de, this message translates to:
+  /// **'Gipfel'**
+  String get poiPeak;
+
+  /// No description provided for @poiViewpoint.
+  ///
+  /// In de, this message translates to:
+  /// **'Aussichtspunkt'**
+  String get poiViewpoint;
+
+  /// No description provided for @poiWaterfall.
+  ///
+  /// In de, this message translates to:
+  /// **'Wasserfall'**
+  String get poiWaterfall;
+
+  /// No description provided for @poiWater.
+  ///
+  /// In de, this message translates to:
+  /// **'Trinkwasser'**
+  String get poiWater;
+
+  /// No description provided for @poiShelter.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterstand'**
+  String get poiShelter;
+
+  /// No description provided for @poisTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterwegs'**
+  String get poisTitle;
+
+  /// No description provided for @poisAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle {count} zeigen'**
+  String poisAll(int count);
+
+  /// No description provided for @weatherTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wetter'**
+  String get weatherTitle;
+
+  /// No description provided for @weatherStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start'**
+  String get weatherStart;
+
+  /// No description provided for @weatherTop.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchster Punkt'**
+  String get weatherTop;
+
+  /// No description provided for @weatherEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel'**
+  String get weatherEnd;
+
+  /// No description provided for @weatherToday.
+  ///
+  /// In de, this message translates to:
+  /// **'Heute'**
+  String get weatherToday;
+
+  /// No description provided for @weatherDry.
+  ///
+  /// In de, this message translates to:
+  /// **'trocken'**
+  String get weatherDry;
+
+  /// No description provided for @weatherRain.
+  ///
+  /// In de, this message translates to:
+  /// **'{mm} mm Niederschlag ({lo}–{hi} mm)'**
+  String weatherRain(String mm, String lo, String hi);
+
+  /// No description provided for @weatherSource.
+  ///
+  /// In de, this message translates to:
+  /// **'Prognose von MeteoSchweiz für den Ort in der Nähe mit der ähnlichsten Höhe, von {time}.'**
+  String weatherSource(String time);
+
+  /// No description provided for @weatherStage.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe {n}, {date}'**
+  String weatherStage(int n, String date);
+
+  /// No description provided for @travelElsewhere.
+  ///
+  /// In de, this message translates to:
+  /// **'Anderer Ort …'**
+  String get travelElsewhere;
+
+  /// No description provided for @travelPlaceSearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Ort, Haltestelle oder Adresse'**
+  String get travelPlaceSearch;
+
+  /// No description provided for @travelDay.
+  ///
+  /// In de, this message translates to:
+  /// **'Am'**
+  String get travelDay;
+
+  /// No description provided for @travelRouteStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start'**
+  String get travelRouteStart;
+
+  /// No description provided for @travelRouteEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel'**
+  String get travelRouteEnd;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

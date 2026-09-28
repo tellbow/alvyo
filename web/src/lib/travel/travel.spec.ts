@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Home, Journey, JourneyStage, Place } from '$lib/api/client';
-import { journeyEnds, travelQuery, tripLines } from './travel';
+import type { Home, Journey, JourneyStage, Place, Route } from '$lib/api/client';
+import { chosenWays, journeyEnds, routeEnds, travelQuery, tripLines } from './travel';
 
 const stop = (name: string, ref: string, at: number[]): Place => ({
 	id: name,
@@ -99,6 +99,59 @@ describe('travel', () => {
 			date: '2026-09-28',
 			arrive: true
 		});
+	});
+
+	it("meets a route at its first and last point, named after the planner's points", () => {
+		const r = {
+			anchors: [
+				{ lon: 7.4, lat: 46.7, name: 'Gurnigel, Passhöhe' },
+				{ lon: 7.5, lat: 46.72 }
+			],
+			legs: [
+				{
+					coordinates: [
+						[7.4, 46.7, 1600],
+						[7.5, 46.72, 1700]
+					]
+				}
+			]
+		} as unknown as Route;
+		expect(routeEnds(r, { start: 'Start', end: 'Ziel' })).toEqual({
+			start: { at: '7.40000,46.70000', name: 'Gurnigel, Passhöhe', date: null },
+			end: { at: '7.50000,46.72000', name: 'Ziel', date: null }
+		});
+		expect(routeEnds({ ...r, legs: [] })).toEqual({});
+	});
+
+	it('lists the ways chosen, from a home or a place, on the day given', () => {
+		const ends = {
+			start: { at: '8507483', name: 'Spiez', date: null },
+			end: { at: '7.74831,46.02449', name: 'Zermatt', date: null }
+		};
+		const bern = { name: 'Bern, Bahnhof', lon: 7.4391, lat: 46.949 };
+		const ways = chosenWays(
+			{
+				to: { home_id: 'h', time: '06:00', arrive: false },
+				back: { place: bern, time: '20:00', arrive: true }
+			},
+			[home],
+			ends,
+			'2026-10-03'
+		);
+		expect(ways.map((w) => [w.direction, w.from, w.to])).toEqual([
+			['to', 'Zuhause', 'Spiez'],
+			['back', 'Zermatt', 'Bern, Bahnhof']
+		]);
+		expect(ways[1].query).toMatchObject({
+			to: '7.43910,46.94900',
+			to_name: 'Bern, Bahnhof',
+			date: '2026-10-03',
+			lines: false
+		});
+		// A home deleted meanwhile: that way is left out.
+		expect(
+			chosenWays({ to: { home_id: 'gone', time: '06:00', arrive: false } }, [home], ends, '')
+		).toEqual([]);
 	});
 
 	it('draws the legs that have a way', () => {

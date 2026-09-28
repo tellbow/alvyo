@@ -13,6 +13,7 @@
 		type FoundPlace,
 		type Journey,
 		type Me,
+		type Notice,
 		type ProtectedArea,
 		type Route
 	} from '$lib/api/client';
@@ -25,6 +26,7 @@
 	import SavePanel from './SavePanel.svelte';
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
+	import Notices from '$lib/areas/Notices.svelte';
 	import { fetchLeg } from './api';
 	import { Planner, type LegSlot } from './planner.svelte';
 	import { formatDistance, formatDuration, formatHeight, type Profile } from './route';
@@ -98,11 +100,13 @@
 	// The protected areas the planned line crosses, asked for once the line
 	// has stopped changing for a moment.
 	let areas = $state<ProtectedArea[]>();
+	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
 	$effect(() => {
 		const line = planner.complete ? planner.line.coordinates.map((c) => [c[0], c[1]]) : [];
 		if (line.length < 2) {
 			areas = undefined;
+			notices = undefined;
 			return;
 		}
 		let stale = false;
@@ -112,6 +116,7 @@
 			});
 			if (stale) return;
 			areas = data?.areas;
+			notices = data?.notices;
 			areasFailed = !data;
 		}, 800);
 		return () => {
@@ -351,6 +356,7 @@
 				<p class="text-sm text-stone-600">{m.plan_hint_click()}</p>
 			{:else}
 				<StatsPanel totals={planner.totals} {pace} />
+				<Notices {notices} />
 				<ProtectedAreas {areas} failed={areasFailed} />
 
 				<section>

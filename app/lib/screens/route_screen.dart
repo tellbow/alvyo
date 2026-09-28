@@ -4,7 +4,9 @@ import 'package:maplibre/maplibre.dart';
 import '../api.dart';
 import '../camera.dart';
 import '../elevation_profile.dart';
+import '../pois.dart';
 import '../protected_areas.dart';
+import '../weather.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
@@ -14,6 +16,7 @@ import '../offline/downloads.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
+import '../travel.dart';
 import 'collections_screen.dart';
 import 'details.dart';
 import 'item_menu.dart';
@@ -23,6 +26,7 @@ import 'photos.dart';
 import 'report_dialog.dart';
 import 'social.dart';
 import 'tag_chips.dart';
+import 'travel_screen.dart';
 
 /// A route on the national map, with offline saving; its description,
 /// photos and comments, and a menu to change, share or export it.
@@ -43,9 +47,13 @@ class RouteScreen extends StatefulWidget {
 class _RouteScreenState extends State<RouteScreen> {
   final Future<PackStore> _store = PackStore.open();
   late Future<RouteDetail> _route = _load();
-  late final Future<List<ProtectedArea>> _areas = widget.api
+  late final Future<Along> _areas = widget.api
       .areas(routeId: widget.id)
-      .catchError((_) => <ProtectedArea>[]);
+      .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
+  late final Future<List<Poi>> _pois = widget.api.pois(widget.id).catchError((_) => <Poi>[]);
+  late final Future<RouteWeather?> _weather = widget.api
+      .routeWeather(widget.id)
+      .then<RouteWeather?>((w) => w, onError: (_) => null);
   SavedPack? _pack;
   bool _outdated = false;
   bool _resumable = false; // a hike on this route is still being recorded
@@ -381,7 +389,17 @@ class _RouteScreenState extends State<RouteScreen> {
                             ],
                             const SizedBox(height: 8),
                             ElevationProfile.ofLine(r.line),
+                            RouteWeatherView(_weather),
                             ProtectedAreas(_areas),
+                            PoiList(_pois),
+                            if (r.line.length >= 2)
+                              TravelTiles(
+                                api: widget.api,
+                                ends: routeEnds(r, start: t.travelRouteStart, end: t.travelRouteEnd),
+                                load: () => widget.api.routeTravel(widget.id),
+                                save: (travel) => widget.api.setRouteTravel(widget.id, travel),
+                                pickDay: true,
+                              ),
                             const SizedBox(height: 8),
                             if (r.line.length >= 2)
                               ValueListenableBuilder(

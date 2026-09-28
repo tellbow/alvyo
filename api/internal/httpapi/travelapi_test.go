@@ -58,6 +58,9 @@ func TestTravel(t *testing.T) {
 	for _, bad := range []map[string]any{
 		{"to": map[string]any{"home_id": "Thun", "time": "06:00", "arrive": false}},
 		{"to": map[string]any{"home_id": thun, "time": "6 Uhr", "arrive": false}},
+		{"to": map[string]any{"time": "06:00", "arrive": false}},
+		{"to": map[string]any{"home_id": thun, "place": map[string]any{"name": "Bern", "lon": 7.44, "lat": 46.95}, "time": "06:00", "arrive": false}},
+		{"to": map[string]any{"place": map[string]any{"name": " ", "lon": 7.44, "lat": 46.95}, "time": "06:00", "arrive": false}},
 	} {
 		if code, body := anna.do("PUT", at, bad); code != http.StatusUnprocessableEntity {
 			t.Errorf("bad travel %v: %d %s", bad, code, body)
@@ -106,5 +109,25 @@ func TestTravel(t *testing.T) {
 	}
 	if _, body := anna.do("GET", at, nil); strings.Contains(string(body), `"to"`) {
 		t.Errorf("after deleting the home: %s", body)
+	}
+
+	// A route: from anywhere, to its start and back from its end.
+	_, body = anna.do("POST", "/api/v1/routes", newRouteBody("Gantrisch", "private"))
+	var r savedRoute
+	_ = json.Unmarshal(body, &r)
+	rat := "/api/v1/routes/" + r.ID + "/travel"
+	bern := map[string]any{"name": "Bern, Bahnhof", "lon": 7.4391, "lat": 46.949}
+	if code, body := anna.do("PUT", rat, map[string]any{"to": map[string]any{"place": bern, "time": "07:00", "arrive": false}}); code != http.StatusOK ||
+		!strings.Contains(string(body), `"name":"Bern, Bahnhof"`) {
+		t.Errorf("route travel: %d %s", code, body)
+	}
+	if _, body := anna.do("GET", rat, nil); !strings.Contains(string(body), "Bern, Bahnhof") {
+		t.Errorf("route travel read: %s", body)
+	}
+	if code, _ := bea.do("GET", rat, nil); code != http.StatusNotFound {
+		t.Errorf("bea, private route: %d", code)
+	}
+	if code, _ := s.client(t).do("GET", rat, nil); code != http.StatusUnauthorized {
+		t.Errorf("signed out: %d", code)
 	}
 }

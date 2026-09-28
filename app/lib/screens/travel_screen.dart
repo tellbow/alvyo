@@ -8,28 +8,125 @@ import '../camera.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
+import '../place_search.dart';
 import '../route_layers.dart';
 import '../travel.dart';
 import 'account_screens.dart';
 import 'connections_screen.dart';
 
-/// The way from a home to a journey's first stage ([to]) or back home from
-/// its last: which home, leaving after or arriving before when, and the
-/// connections; the chosen one is drawn on the map with the stage, rides
-/// dashed and walks dotted. Pops with the travel as saved.
+/// The rows «Anreise» and «Heimreise» of a journey or route: from where and
+/// when, each opening a [TravelScreen]. Nothing while loading or offline.
+class TravelTiles extends StatefulWidget {
+  const TravelTiles({
+    super.key,
+    required this.api,
+    required this.ends,
+    required this.load,
+    required this.save,
+    this.pickDay = false,
+  });
+  final Api api;
+  final ({TravelEnd? start, TravelEnd? end}) ends;
+  final Future<Travel> Function() load;
+  final Future<Travel> Function(Travel) save;
+
+  /// A route has no day of its own: the [TravelScreen] asks for one.
+  final bool pickDay;
+
+  @override
+  State<TravelTiles> createState() => _TravelTilesState();
+}
+
+class _TravelTilesState extends State<TravelTiles> {
+  /// The user's own way there and back, and their homes; null offline.
+  late Future<(Travel, List<Home>)?> _travel = _load();
+
+  Future<(Travel, List<Home>)?> _load() async {
+    try {
+      return (await widget.load(), await widget.api.homes());
+    } on Object {
+      return null;
+    }
+  }
+
+  Future<void> _open(Travel travel, {required bool to}) async {
+    await Navigator.of(context).push<Travel>(
+      MaterialPageRoute(
+        builder: (_) => TravelScreen(
+          api: widget.api,
+          at: to ? widget.ends.start : widget.ends.end,
+          travel: travel,
+          to: to,
+          save: widget.save,
+          pickDay: widget.pickDay,
+        ),
+      ),
+    );
+    if (mounted) {
+      setState(() {
+        _travel = _load(); // the homes may have changed too
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return FutureBuilder(
+      future: _travel,
+      builder: (context, snap) {
+        final (travel, homes) = snap.data ?? (null, const <Home>[]);
+        if (travel == null) return const SizedBox.shrink();
+        Widget tile(bool to) {
+          final way = to ? travel.to : travel.back;
+          final spot = waySpot(way, homes);
+          return ListTile(
+            key: Key(to ? 'travel-to' : 'travel-back'),
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(to ? Icons.directions_transit_outlined : Icons.home_outlined),
+            title: Text(to ? t.travelTo : t.travelBack),
+            subtitle: Text(
+              way == null || spot == null
+                  ? t.travelChoose
+                  : '${spot.name} · ${way.arrive ? t.connectionsArrive : t.connectionsDepart} ${way.time}',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _open(travel, to: to),
+          );
+        }
+
+        return Column(children: [tile(true), tile(false)]);
+      },
+    );
+  }
+}
+
+/// The way from a home or another place to the start of a journey or route
+/// ([to]) or back from its end: from where, leaving after or arriving before
+/// when, and the connections; the chosen one is drawn on the map with the
+/// line, rides dashed and walks dotted. Pops with the travel as saved.
 class TravelScreen extends StatefulWidget {
   const TravelScreen({
     super.key,
     required this.api,
-    required this.journey,
+    required this.at,
     required this.travel,
     required this.to,
+    required this.save,
+    this.pickDay = false,
     this.map,
   });
   final Api api;
-  final JourneyDetail journey;
-  final JourneyTravel travel;
+
+  /// Where public transport meets the hike; null while a journey has no
+  /// route.
+  final TravelEnd? at;
+  final Travel travel;
   final bool to;
+  final Future<Travel> Function(Travel) save;
+
+  /// A route has no day of its own: one is chosen here, today at first.
+  final bool pickDay;
 
   /// Stands in for the map in widget tests.
   @visibleForTesting
@@ -40,7 +137,8 @@ class TravelScreen extends StatefulWidget {
 }
 
 class _TravelScreenState extends State<TravelScreen> {
-  late JourneyTravel _travel = widget.travel;
+  static const _elsewhere = '*';
+  late Travel _travel = widget.travel;
   late Future<List<Home>> _homes = widget.api.homes();
   Future<List<Trip>>? _trips;
   int _chosen = 0;
@@ -49,11 +147,11 @@ class _TravelScreenState extends State<TravelScreen> {
   Size? _mapSize;
   String? _error;
 
-  TravelEnd? get _at {
-    final t = AppLocalizations.of(context);
-    final ends = journeyEnds(widget.journey, start: t.travelStart, end: t.travelEnd);
-    return widget.to ? ends.start : ends.end;
-  }
+  /// «Anderer Ort …» chosen, the place not yet found.
+  bool _searching = false;
+  DateTime _day = DateUtils.dateOnly(DateTime.now());
+
+  TravelEnd? get _at => widget.at;
 
   TravelWay? get _way => widget.to ? _travel.to : _travel.back;
 
@@ -65,10 +163,9 @@ class _TravelScreenState extends State<TravelScreen> {
 
   Future<void> _search() async {
     final way = _way, at = _at;
-    final homes = await _homes;
-    final home = homes.where((h) => h.id == way?.homeId).firstOrNull;
+    final spot = waySpot(way, await _homes);
     if (!mounted) return;
-    if (way == null || home == null || at == null) {
+    if (way == null || spot == null || at == null) {
       setState(() => _trips = null);
       _draw(null);
       return;
@@ -76,10 +173,11 @@ class _TravelScreenState extends State<TravelScreen> {
     // Arriving by a time: the latest that fits first.
     final trips = travelTrips(
       widget.api,
-      home,
+      spot,
       at,
       way,
       to: widget.to,
+      day: widget.pickDay ? _day : null,
     ).then((t) => way.arrive ? t.reversed.toList() : t);
     setState(() {
       _trips = trips;
@@ -91,9 +189,9 @@ class _TravelScreenState extends State<TravelScreen> {
   /// Saves a change of this direction; [way] null for none.
   Future<void> _set(TravelWay? way) async {
     final t = AppLocalizations.of(context);
-    final next = widget.to ? JourneyTravel(to: way, back: _travel.back) : JourneyTravel(to: _travel.to, back: way);
+    final next = widget.to ? Travel(to: way, back: _travel.back) : Travel(to: _travel.to, back: way);
     try {
-      final saved = await widget.api.setTravel(widget.journey.id, next);
+      final saved = await widget.save(next);
       if (!mounted) return;
       setState(() {
         _travel = saved;
@@ -105,13 +203,19 @@ class _TravelScreenState extends State<TravelScreen> {
     }
   }
 
-  void _change({String? homeId, String? time, bool? arrive}) {
+  /// A home, another place, or the time.
+  void _change({String? homeId, TravelPlace? place, String? time, bool? arrive}) {
     final now = _way;
-    final home = homeId ?? now?.homeId;
-    if (home == null) return;
+    final (h, p) = homeId != null
+        ? (homeId, null)
+        : place != null
+        ? (null, place)
+        : (now?.homeId, now?.place);
+    if (h == null && p == null) return;
     _set(
       TravelWay(
-        homeId: home,
+        homeId: h,
+        place: p,
         time: time ?? now?.time ?? (widget.to ? '07:00' : '17:00'),
         arrive: arrive ?? now?.arrive ?? false,
       ),
@@ -273,51 +377,94 @@ class _TravelScreenState extends State<TravelScreen> {
                           },
                           child: Text(t.homesTitle),
                         ),
-                      ] else ...[
+                      ],
+                      const SizedBox(height: 8),
+                      DropdownMenu<String>(
+                        key: const Key('travel-home'),
+                        label: Text(widget.to ? t.travelFrom : t.travelToHome),
+                        expandedInsets: EdgeInsets.zero,
+                        initialSelection: _searching || way?.place != null ? _elsewhere : way?.homeId ?? '',
+                        onSelected: (v) {
+                          setState(() => _searching = v == _elsewhere);
+                          if (v == null || v.isEmpty) {
+                            _set(null);
+                          } else if (v != _elsewhere) {
+                            _change(homeId: v);
+                          }
+                        },
+                        dropdownMenuEntries: [
+                          DropdownMenuEntry(value: '', label: t.travelNone),
+                          for (final h in homes) DropdownMenuEntry(value: h.id, label: h.name),
+                          DropdownMenuEntry(value: _elsewhere, label: t.travelElsewhere),
+                        ],
+                      ),
+                      if (_searching || way?.place != null) ...[
                         const SizedBox(height: 8),
-                        DropdownMenu<String>(
-                          key: const Key('travel-home'),
-                          label: Text(widget.to ? t.travelFrom : t.travelToHome),
-                          expandedInsets: EdgeInsets.zero,
-                          initialSelection: way?.homeId ?? '',
-                          onSelected: (v) => v == null || v.isEmpty ? _set(null) : _change(homeId: v),
-                          dropdownMenuEntries: [
-                            DropdownMenuEntry(value: '', label: t.travelNone),
-                            for (final h in homes) DropdownMenuEntry(value: h.id, label: h.name),
+                        PlaceSearch(
+                          key: const Key('travel-place'),
+                          api: widget.api,
+                          label: way?.place?.name ?? t.travelPlaceSearch,
+                          near: () => switch (at?.line) {
+                            [final c, ...] => (lon: c[0], lat: c[1]),
+                            _ => null,
+                          },
+                          onPick: (p) {
+                            setState(() => _searching = false);
+                            final name = p.name.length > 60 ? p.name.substring(0, 60) : p.name;
+                            _change(place: (name: name, lon: p.lon, lat: p.lat));
+                          },
+                        ),
+                      ],
+                      if (widget.pickDay) ...[
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          key: const Key('travel-day'),
+                          icon: const Icon(Icons.calendar_today_outlined),
+                          label: Text('${t.travelDay} ${formatDate(_day)}'),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _day,
+                              firstDate: DateUtils.dateOnly(DateTime.now()),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked == null || !mounted) return;
+                            setState(() => _day = picked);
+                            await _search();
+                          },
+                        ),
+                      ],
+                      if (way != null) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          spacing: 8,
+                          children: [
+                            SegmentedButton<bool>(
+                              key: const Key('travel-mode'),
+                              showSelectedIcon: false,
+                              segments: [
+                                ButtonSegment(value: false, label: Text(t.connectionsDepart)),
+                                ButtonSegment(value: true, label: Text(t.connectionsArrive)),
+                              ],
+                              selected: {way.arrive},
+                              onSelectionChanged: (s) => _change(arrive: s.first),
+                            ),
+                            OutlinedButton(
+                              key: const Key('travel-time'),
+                              onPressed: () async {
+                                final parts = way.time.split(':');
+                                final picked = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+                                );
+                                if (picked == null) return;
+                                String two(int n) => n.toString().padLeft(2, '0');
+                                _change(time: '${two(picked.hour)}:${two(picked.minute)}');
+                              },
+                              child: Text(way.time),
+                            ),
                           ],
                         ),
-                        if (way != null) ...[
-                          const SizedBox(height: 12),
-                          Row(
-                            spacing: 8,
-                            children: [
-                              SegmentedButton<bool>(
-                                key: const Key('travel-mode'),
-                                showSelectedIcon: false,
-                                segments: [
-                                  ButtonSegment(value: false, label: Text(t.connectionsDepart)),
-                                  ButtonSegment(value: true, label: Text(t.connectionsArrive)),
-                                ],
-                                selected: {way.arrive},
-                                onSelectionChanged: (s) => _change(arrive: s.first),
-                              ),
-                              OutlinedButton(
-                                key: const Key('travel-time'),
-                                onPressed: () async {
-                                  final parts = way.time.split(':');
-                                  final picked = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
-                                  );
-                                  if (picked == null) return;
-                                  String two(int n) => n.toString().padLeft(2, '0');
-                                  _change(time: '${two(picked.hour)}:${two(picked.minute)}');
-                                },
-                                child: Text(way.time),
-                              ),
-                            ],
-                          ),
-                        ],
                       ],
                       if (_error case final e?)
                         Padding(
@@ -329,7 +476,8 @@ class _TravelScreenState extends State<TravelScreen> {
                         Text(t.travelNoRoute, style: muted),
                       ] else if (way != null && at != null) ...[
                         const SizedBox(height: 12),
-                        Text(at.day != null ? t.travelOn(formatDate(at.day!)) : t.travelNoDate, style: muted),
+                        if (!widget.pickDay)
+                          Text(at.day != null ? t.travelOn(formatDate(at.day!)) : t.travelNoDate, style: muted),
                         const SizedBox(height: 8),
                         FutureBuilder(
                           future: _trips,
@@ -383,7 +531,7 @@ class _TravelScreenState extends State<TravelScreen> {
 class TravelChoice extends StatefulWidget {
   const TravelChoice({super.key, required this.api, required this.onChanged});
   final Api api;
-  final ValueChanged<JourneyTravel> onChanged;
+  final ValueChanged<Travel> onChanged;
 
   @override
   State<TravelChoice> createState() => _TravelChoiceState();
@@ -391,7 +539,7 @@ class TravelChoice extends StatefulWidget {
 
 class _TravelChoiceState extends State<TravelChoice> {
   late final Future<List<Home>> _homes = widget.api.homes().catchError((_) => <Home>[]);
-  var _travel = const JourneyTravel();
+  var _travel = const Travel();
 
   void _set(bool to, {String? homeId, String? time, bool? arrive}) {
     final now = to ? _travel.to : _travel.back;
@@ -403,9 +551,7 @@ class _TravelChoiceState extends State<TravelChoice> {
             time: time ?? now?.time ?? (to ? '07:00' : '17:00'),
             arrive: arrive ?? now?.arrive ?? false,
           );
-    setState(
-      () => _travel = to ? JourneyTravel(to: way, back: _travel.back) : JourneyTravel(to: _travel.to, back: way),
-    );
+    setState(() => _travel = to ? Travel(to: way, back: _travel.back) : Travel(to: _travel.to, back: way));
     widget.onChanged(_travel);
   }
 

@@ -132,8 +132,10 @@
 	</a>
 {/snippet}
 
-<div class="flex h-dvh flex-col bg-ground text-stone-900">
-	<header class="relative flex items-center gap-6 border-b border-stone-200 px-4 py-2.5 xl:px-5">
+<div class="flex h-dvh flex-col bg-ground text-stone-900 print:h-auto">
+	<header
+		class="relative flex items-center gap-6 border-b border-stone-200 px-4 py-2.5 xl:px-5 print:hidden"
+	>
 		<a
 			href={resolve('/')}
 			aria-label="Alvyo"
@@ -201,7 +203,7 @@
 
 	{#if data.user && !data.user.email_verified}
 		<div
-			class="flex flex-wrap items-center gap-x-3 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+			class="flex flex-wrap items-center gap-x-3 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 print:hidden"
 		>
 			<span>{m.verify_banner()}</span>
 			{#if resent}

@@ -7,6 +7,8 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/downloads.dart';
 import '../offline/packs.dart';
+import '../travel.dart';
+import '../weather.dart';
 import 'collections_screen.dart';
 import 'details.dart';
 import 'item_menu.dart';
@@ -35,21 +37,18 @@ class JourneyScreen extends StatefulWidget {
 class _JourneyScreenState extends State<JourneyScreen> {
   final Future<PackStore> _store = PackStore.open();
   late Future<JourneyDetail> _journey = _load();
-  late final Future<List<ProtectedArea>> _areas = widget.api
+  late final Future<Along> _areas = widget.api
       .areas(journeyId: widget.id)
-      .catchError((_) => <ProtectedArea>[]);
+      .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
 
-  /// The user's own way from home and back, and their homes by id; nothing
-  /// offline.
-  late Future<(JourneyTravel, Map<String, Home>)?> _travel = _loadTravel();
-
-  Future<(JourneyTravel, Map<String, Home>)?> _loadTravel() async {
-    try {
-      final (travel, homes) = (await widget.api.travel(widget.id), await widget.api.homes());
-      return (travel, {for (final h in homes) h.id: h});
-    } on Object {
-      return null;
-    }
+  /// The forecast for the stages' planned days, loaded again when they change.
+  (String, Future<JourneyWeather?>)? _weather;
+  Future<JourneyWeather?> _weatherFor(JourneyDetail j) {
+    final key = [for (final s in j.stages) '${s.routeId}@${s.plannedDate}'].join();
+    if (_weather case (final k, final w) when k == key) return w;
+    final w = widget.api.journeyWeather(widget.id).then<JourneyWeather?>((w) => w, onError: (_) => null);
+    _weather = (key, w);
+    return w;
   }
 
   /// Stage routes saved offline.
@@ -158,46 +157,6 @@ class _JourneyScreenState extends State<JourneyScreen> {
       }
     }
   }
-
-  Future<void> _openTravel(JourneyDetail j, JourneyTravel travel, {required bool to}) async {
-    await Navigator.of(context).push<JourneyTravel>(
-      MaterialPageRoute(
-        builder: (_) => TravelScreen(api: widget.api, journey: j, travel: travel, to: to),
-      ),
-    );
-    if (mounted) {
-      setState(() {
-        _travel = _loadTravel(); // the homes may have changed too
-      });
-    }
-  }
-
-  Widget _travelTiles(AppLocalizations t, JourneyDetail j) => FutureBuilder(
-    future: _travel,
-    builder: (context, snap) {
-      final (travel, homes) = snap.data ?? (null, const <String, Home>{});
-      if (travel == null) return const SizedBox.shrink();
-      Widget tile(bool to) {
-        final way = to ? travel.to : travel.back;
-        final home = homes[way?.homeId];
-        return ListTile(
-          key: Key(to ? 'travel-to' : 'travel-back'),
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(to ? Icons.directions_transit_outlined : Icons.home_outlined),
-          title: Text(to ? t.travelTo : t.travelBack),
-          subtitle: Text(
-            way == null || home == null
-                ? t.travelChoose
-                : '${home.name} · ${way.arrive ? t.connectionsArrive : t.connectionsDepart} ${way.time}',
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _openTravel(j, travel, to: to),
-        );
-      }
-
-      return Column(children: [tile(true), tile(false)]);
-    },
-  );
 
   Future<void> _stage(JourneyDetail j, int i) async {
     final changed = await showStage(context, widget.api, j, i);
@@ -318,8 +277,14 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         ElevationProfile(distances: distances, elevations: elevations, breaks: breaks),
                         const SizedBox(height: 8),
                       ],
+                      JourneyWeatherView(_weatherFor(j)),
                       ProtectedAreas(_areas, days: [for (final s in j.stages) ?s.plannedDate]),
-                      _travelTiles(t, j),
+                      TravelTiles(
+                        api: widget.api,
+                        ends: journeyEnds(j, start: t.travelStart, end: t.travelEnd),
+                        load: () => widget.api.travel(widget.id),
+                        save: (travel) => widget.api.setTravel(widget.id, travel),
+                      ),
                       if (_saving case final i?) ...[
                         Text(key: const Key('journey-saving'), t.journeySaving(i + 1, routed.length)),
                         const SizedBox(height: 4),

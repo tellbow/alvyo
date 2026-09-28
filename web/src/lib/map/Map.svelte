@@ -6,16 +6,18 @@
 	import { api, type Pin } from '$lib/api/client';
 	import { placeDetail } from '$lib/journeys/places';
 	import { m as msg } from '$lib/paraglide/messages';
-	import { PLACE_OVERLAYS, placeFeatures, placeKinds, webLink } from './places';
+	import { PLACE_OVERLAYS, isPoi, placeFeatures, placeKinds, poiText, webLink } from './places';
 	import {
 		CH_CENTER,
 		OVERLAYS,
 		OVERLAY_PREFIX,
 		ROUTE_PREFIX,
 		SWISSTOPO_ATTRIBUTION,
+		TERRAIN_SOURCE,
 		baseStyle,
 		keepOwnLayers,
 		overlaySource,
+		terrainSource,
 		type BaseMapId,
 		type OverlayId,
 		type PlaceOverlayId,
@@ -92,13 +94,23 @@
 					[4.5, 45.0],
 					[12.0, 48.6]
 				],
-				attributionControl: false
+				attributionControl: false,
+				locale: {
+					'TerrainControl.Enable': msg.map_3d_on(),
+					'TerrainControl.Disable': msg.map_3d_off()
+				}
 			});
 			m.addControl(
 				new ml.AttributionControl({ customAttribution: SWISSTOPO_ATTRIBUTION, compact: false })
 			);
 			m.addControl(new ml.NavigationControl(), 'top-right');
 			m.addControl(new ml.GeolocateControl({ trackUserLocation: true }), 'top-right');
+			m.addControl(
+				new ml.TerrainControl({ source: TERRAIN_SOURCE, exaggeration: 1.2 }),
+				'top-right'
+			);
+			// 3D is seen from the side; flat from above again.
+			m.on('terrain', () => m.easeTo({ pitch: m.getTerrain() ? 60 : 0 }));
 			m.addControl(new ml.ScaleControl({ unit: 'metric' }), 'bottom-left');
 			m.on('styledata', () => {
 				layerIds = m
@@ -125,6 +137,8 @@
 			}
 			m.on('style.load', () => {
 				styleReady = true;
+				if (!m.getSource(TERRAIN_SOURCE))
+					m.addSource(TERRAIN_SOURCE, terrainSource(location.origin));
 				if (pendingOverlays) syncOverlays(m, pendingOverlays);
 			});
 			// style.load, not load: overlays and routes only need the style, not
@@ -195,6 +209,16 @@
 									'#b91c1c',
 									'campsite',
 									'#15803d',
+									'peak',
+									'#57534e',
+									'viewpoint',
+									'#7c3aed',
+									'waterfall',
+									'#0e7490',
+									'water',
+									'#0284c7',
+									'shelter',
+									'#a16207',
 									'#1d4ed8' // hotel
 								],
 								'circle-stroke-color': '#fff',
@@ -259,7 +283,10 @@
 		// MapLibre's popups stay white in dark mode: fixed light-mode colours.
 		const box = el('div', 'text-sm text-[#14201a]');
 		box.dataset.testid = 'place-popup';
-		box.append(el('p', 'font-medium', p.name), el('p', 'text-[#56645c]', placeDetail(p)));
+		const [title, detail] = isPoi(p.kind)
+			? poiText({ kind: p.kind, name: p.name, ele: Number(p.detail) || undefined })
+			: [p.name, placeDetail(p as Parameters<typeof placeDetail>[0])];
+		box.append(el('p', 'font-medium', title), el('p', 'text-[#56645c]', detail));
 		const href = webLink(p.website);
 		if (href) {
 			const a = el(

@@ -52,3 +52,54 @@ test('swisstopo map with overlays that survive a base map switch', async ({ page
 	await page.reload();
 	await expect(map).toHaveAttribute('data-layers', /ovl-relief/);
 });
+
+test('the terrain in 3D, from the tile cache, and flat again', async ({ page }) => {
+	const terrain: string[] = [];
+	page.on('response', (res) => {
+		if (res.url().includes('/tiles/terrain/') && res.ok()) terrain.push(res.url());
+	});
+	await page.goto('/plan');
+	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /\bovl-wanderwege\b/);
+	const on = page.getByRole('button', { name: 'Gelände in 3D zeigen' });
+	await on.click();
+	await expect(page.getByRole('button', { name: 'Gelände flach zeigen' })).toBeVisible();
+	await expect.poll(() => terrain.length).toBeGreaterThan(0);
+	expect(terrain.every((u) => new URL(u).origin === new URL(page.url()).origin)).toBe(true);
+	await page.waitForLoadState('networkidle');
+	await page.screenshot({ path: 'test-results/map-3d.png' });
+
+	// A base map switch keeps it.
+	await page.getByRole('button', { name: 'Karten' }).click();
+	await page.getByLabel('Luftbild').check();
+	await expect(page.getByRole('button', { name: 'Gelände flach zeigen' })).toBeVisible();
+	await page.getByRole('button', { name: 'Gelände flach zeigen' }).click();
+	await expect(on).toBeVisible();
+});
+
+test('summits and water on the map, with a popup', async ({ page }) => {
+	// Zoomed in on the Reeti above Grindelwald First, the layer chosen before.
+	await page.addInitScript(() =>
+		localStorage.setItem(
+			'alvyo.map',
+			JSON.stringify({
+				base: 'landeskarte',
+				overlays: ['wanderwege', 'pois'],
+				center: [8.01154, 46.66494],
+				zoom: 15
+			})
+		)
+	);
+	const pins = page.waitForResponse(
+		(r) => r.url().includes('/places/in-view') && r.url().includes('kind=peak')
+	);
+	await page.goto('/plan');
+	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /\bovl-pois\b/);
+	expect((await pins).ok()).toBe(true);
+	const canvas = page.locator('canvas.maplibregl-canvas');
+	await expect(canvas).toHaveCSS('cursor', /.*/);
+	const box = (await canvas.boundingBox())!;
+	await page.waitForTimeout(500); // the dots are drawn
+	await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+	await expect(page.getByTestId('place-popup')).toContainText('Reeti');
+	await expect(page.getByTestId('place-popup')).toContainText(/Gipfel · 2757\sm/);
+});

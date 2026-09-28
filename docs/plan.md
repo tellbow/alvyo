@@ -30,7 +30,7 @@ official figures: [hiking-time.md](hiking-time.md).
 | M1 | Web planner, journeys and stages, sharing, GPX export, public pages, deployment | done (0.1.0) |
 | M2 | Follows and feed, likes, comments, reports and moderation, photos, import (GPX, KML, TCX, FIT, Komoot), discovery, passkeys and OpenID Connect, French and Italian | done (0.1.0); open items in the backlog |
 | M3 | iOS app: offline maps, navigation, recording, Apple Watch import, spoken turns, journeys, planning | done up to 0.9.0; open items in the backlog |
-| M4 | Extras: weather, points of interest, PDF stage sheets, 3D, closures | open |
+| M4 | Extras: weather, points of interest, PDF stage sheets, 3D, closures, how to get there | done, not yet released; the own 1:25 000 map in the backlog |
 
 ## Releases
 
@@ -60,7 +60,7 @@ A `v*` tag builds the images; Flux deploys them
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–31 on 2026-09-28.
+21–37 on 2026-09-28.
 
 ### Done
 
@@ -352,6 +352,58 @@ From the project owner, numbered in the order given: 1–5 added on
     covered box (5.7–10.7° E, 45.65–47.95° N) takes points, imports and
     recorded hikes there; the texts say «bis 15 km über die Grenze».
 
+33. **Closures and shooting.** Along a route, a journey's stages and a line
+    being planned, with the protected areas: closed hiking trails the line
+    runs along for at least 50 m (ASTRA's «Sperrungen Wanderwege», from
+    the cantons' trail organisations; not the detours, not paths only
+    crossed), with reason and dates, and the army's shooting areas it
+    crosses, with the days and hours announced and the number to call.
+    Only what is not over; highlighted on today or a planned day. From
+    geo.admin, kept for an hour. Website and app.
+
+36. **3D.** A button on the website's maps shows the terrain in 3D (seen
+    from the side; flat and from above again with the same button), also
+    after changing the base map. The terrain comes from Mapterhorn's open
+    terrain tiles (swissALTI3D among their sources) through the tile cache,
+    like swisstopo's tiles. Not in the app.
+
+32. **Weather.** MeteoSwiss's local forecast (open data, for every
+    postcode, weather station and selected mountain point), loaded once an
+    hour: on a route's page the lowest and highest temperature and the
+    precipitation with its likely range at start, highest point and end,
+    for a day chosen from the next ones; on a journey's page, at each
+    stage's highest point for its planned day. Each place takes the
+    forecast point within 15 km most like it (distance plus 10 m per metre
+    of height difference). Website and app.
+
+35. **Stage sheets.** «Blatt zum Drucken» on a route's page and on each
+    stage of a journey: a page for A4 («Drucken oder als PDF sichern»),
+    light also in dark mode, without menu and buttons on paper. The line
+    on the national map with the hiking trails (drawn once as an image),
+    the profile, the numbers, what lies along the way (all of it) and the
+    weather of a day chosen (the stage's planned day, else today); for a
+    stage also start, end, accommodation and notes, and the connections of
+    that day: from home before the first stage and home after the last (as
+    chosen for the journey), and a transfer by public transport from the
+    previous stage; for a route the way there and back chosen for it.
+    Website only.
+
+37. **How to get there.** For routes as for journeys (24): the way by
+    public transport to the start and back from the end, from one of
+    one's homes or from anywhere (a place found by the search, kept with
+    its name), leaving after or arriving before a time; the connections
+    drawn on the map. A route has no day of its own: its connections are
+    those of the day chosen (today at first). Each person's own, on the
+    website and in the app.
+
+34. **Along the way.** Named summits (with their height), viewpoints,
+    waterfalls, drinking water and shelters (not those at bus stops) from
+    OpenStreetMap, imported with the huts into a table of their own (not
+    offered as stage starts and ends): a map layer «Unterwegs» from zoom 12
+    on the website and in the app, a tap names them; on a route's page the
+    ones within 200 m of the line, in the order they come, with the
+    distance from the start (the first ten, the rest on request).
+
 ### Open
 
 Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
@@ -376,9 +428,8 @@ Connect's course import.
 - Logo: the Λ of the Alvyo mock-up, drawn as a vector for the web and the
   app icon; a final one from a designer.
 - Design: the mock-up's moods, logbook and «send to app».
-- M4: MeteoSwiss weather, highlights and points of interest, PDF stage sheets,
-  3D terrain, closures, self-hosted Swiss Map Raster 25, full «how to get
-  there» by public transport.
+- M4: the Swiss Map Raster 25 (1:25 000) served from own tiles instead of
+  swisstopo's WMTS (20–40 GB of tiles).
 
 ## Not tested on devices
 

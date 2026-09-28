@@ -174,10 +174,18 @@
               "$ref": "#/components/schemas/Area"
             },
             "type": "array"
+          },
+          "notices": {
+            "description": "Closed trails and shooting on the way, from today on",
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            },
+            "type": "array"
           }
         },
         "required": [
-          "areas"
+          "areas",
+          "notices"
         ],
         "type": "object"
       },
@@ -1427,6 +1435,74 @@
         ],
         "type": "object"
       },
+      "ForecastDay": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "format": "date",
+            "type": "string"
+          },
+          "max_c": {
+            "description": "Highest temperature, °C",
+            "format": "double",
+            "type": "number"
+          },
+          "min_c": {
+            "description": "Lowest temperature, °C",
+            "format": "double",
+            "type": "number"
+          },
+          "rain_hi_mm": {
+            "format": "double",
+            "type": "number"
+          },
+          "rain_lo_mm": {
+            "format": "double",
+            "type": "number"
+          },
+          "rain_mm": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "min_c",
+          "max_c",
+          "rain_mm",
+          "rain_lo_mm",
+          "rain_hi_mm"
+        ],
+        "type": "object"
+      },
+      "ForecastPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "height": {
+            "description": "metres",
+            "format": "double",
+            "type": "number"
+          },
+          "lat": {
+            "format": "double",
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "height",
+          "lon",
+          "lat"
+        ],
+        "type": "object"
+      },
       "ForgotInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -2308,18 +2384,24 @@
         ],
         "type": "object"
       },
-      "JourneyTravel": {
+      "JourneyWeatherOutputBody": {
         "additionalProperties": false,
         "properties": {
-          "back": {
-            "$ref": "#/components/schemas/Way",
-            "description": "From the last stage to a home; none if left out"
+          "run": {
+            "format": "date-time",
+            "type": "string"
           },
-          "to": {
-            "$ref": "#/components/schemas/Way",
-            "description": "From a home to the first stage; none if left out"
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageWeather"
+            },
+            "type": "array"
           }
         },
+        "required": [
+          "run",
+          "stages"
+        ],
         "type": "object"
       },
       "KomootImportInputBody": {
@@ -2752,6 +2834,64 @@
         ],
         "type": "object"
       },
+      "Notice": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/ShootingDay"
+            },
+            "type": "array"
+          },
+          "from": {
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "description": "The layer's feature id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "closure",
+              "shooting"
+            ],
+            "type": "string"
+          },
+          "link": {
+            "$ref": "#/components/schemas/Texts",
+            "description": "The army's page on the shooting"
+          },
+          "phone": {
+            "description": "Shooting: where to ask",
+            "type": "string"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/Texts",
+            "description": "Closures: why"
+          },
+          "stages": {
+            "items": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "title": {
+            "$ref": "#/components/schemas/Texts"
+          },
+          "to": {
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "title"
+        ],
+        "type": "object"
+      },
       "PRFInputs": {
         "additionalProperties": false,
         "properties": {
@@ -3025,6 +3165,7 @@
         "additionalProperties": false,
         "properties": {
           "detail": {
+            "description": "Places: see Place; summits: the height in metres",
             "type": "string"
           },
           "id": {
@@ -3036,7 +3177,12 @@
               "pt_stop",
               "hut",
               "hotel",
-              "campsite"
+              "campsite",
+              "peak",
+              "viewpoint",
+              "waterfall",
+              "water",
+              "shelter"
             ],
             "type": "string"
           },
@@ -3049,6 +3195,7 @@
             "type": "number"
           },
           "name": {
+            "description": "Empty for some points of interest (drinking water, shelters)",
             "type": "string"
           },
           "website": {
@@ -3262,6 +3409,58 @@
         ],
         "type": "object"
       },
+      "Poi": {
+        "additionalProperties": false,
+        "properties": {
+          "along_m": {
+            "description": "How far along the line",
+            "format": "double",
+            "type": "number"
+          },
+          "at": {
+            "description": "lon, lat",
+            "items": {
+              "format": "double",
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "ele": {
+            "description": "Summits: height in metres",
+            "format": "int64",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "peak",
+              "viewpoint",
+              "waterfall",
+              "water",
+              "shelter"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "description": "Empty for many drinking water points and shelters",
+            "type": "string"
+          },
+          "off_m": {
+            "description": "How far from the line",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "at",
+          "along_m",
+          "off_m"
+        ],
+        "type": "object"
+      },
       "Point": {
         "additionalProperties": false,
         "properties": {
@@ -3281,6 +3480,21 @@
         "required": [
           "lon",
           "lat"
+        ],
+        "type": "object"
+      },
+      "PoisOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "pois": {
+            "items": {
+              "$ref": "#/components/schemas/Poi"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "pois"
         ],
         "type": "object"
       },
@@ -4268,6 +4482,27 @@
         ],
         "type": "object"
       },
+      "RouteWeatherOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherPlace"
+            },
+            "type": "array"
+          },
+          "run": {
+            "description": "When MeteoSwiss made the forecast",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run",
+          "places"
+        ],
+        "type": "object"
+      },
       "Run": {
         "additionalProperties": false,
         "properties": {
@@ -4448,6 +4683,25 @@
         ],
         "type": "object"
       },
+      "ShootingDay": {
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "format": "date",
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date"
+        ],
+        "type": "object"
+      },
       "SignupInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -4602,6 +4856,34 @@
         ],
         "type": "object"
       },
+      "Spot": {
+        "additionalProperties": false,
+        "properties": {
+          "lat": {
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number"
+          },
+          "lon": {
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number"
+          },
+          "name": {
+            "maxLength": 60,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "lon",
+          "lat"
+        ],
+        "type": "object"
+      },
       "Stage": {
         "additionalProperties": false,
         "properties": {
@@ -4696,6 +4978,28 @@
           "profile",
           "anchors",
           "legs"
+        ],
+        "type": "object"
+      },
+      "StageWeather": {
+        "additionalProperties": false,
+        "properties": {
+          "day": {
+            "$ref": "#/components/schemas/ForecastDay"
+          },
+          "point": {
+            "$ref": "#/components/schemas/ForecastPoint",
+            "description": "At the stage's highest point"
+          },
+          "stage": {
+            "description": "From 1",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stage",
+          "point"
         ],
         "type": "object"
       },
@@ -5093,6 +5397,20 @@
           "transfers",
           "legs"
         ],
+        "type": "object"
+      },
+      "Travel": {
+        "additionalProperties": false,
+        "properties": {
+          "back": {
+            "$ref": "#/components/schemas/Way",
+            "description": "Back from the end; none if left out"
+          },
+          "to": {
+            "$ref": "#/components/schemas/Way",
+            "description": "To the start; none if left out"
+          }
+        },
         "type": "object"
       },
       "Turn": {
@@ -5499,19 +5817,52 @@
             "type": "boolean"
           },
           "home_id": {
+            "description": "One of one's homes; or place",
             "format": "uuid",
             "type": "string"
           },
+          "place": {
+            "$ref": "#/components/schemas/Spot",
+            "description": "Anywhere else; or home_id"
+          },
           "time": {
-            "description": "HH:MM, Swiss time, on the stage's day",
+            "description": "HH:MM, Swiss time, on the day of the hike",
             "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
             "type": "string"
           }
         },
         "required": [
-          "home_id",
           "time",
           "arrive"
+        ],
+        "type": "object"
+      },
+      "WeatherPlace": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "From today on",
+            "items": {
+              "$ref": "#/components/schemas/ForecastDay"
+            },
+            "type": "array"
+          },
+          "point": {
+            "$ref": "#/components/schemas/ForecastPoint",
+            "description": "MeteoSwiss's forecast point"
+          },
+          "roles": {
+            "description": "start, top (the highest point), end",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "roles",
+          "point",
+          "days"
         ],
         "type": "object"
       }
@@ -9592,12 +9943,12 @@
             }
           },
           {
-            "description": "Share token of an unlisted journey",
+            "description": "Share token of an unlisted journey or route",
             "explode": false,
             "in": "query",
             "name": "t",
             "schema": {
-              "description": "Share token of an unlisted journey",
+              "description": "Share token of an unlisted journey or route",
               "maxLength": 64,
               "type": "string"
             }
@@ -9608,7 +9959,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JourneyTravel"
+                  "$ref": "#/components/schemas/Travel"
                 }
               }
             },
@@ -9625,14 +9976,77 @@
             "description": "Error"
           }
         },
-        "summary": "One's own way from home to the first stage and back from the last",
+        "summary": "One's own way from home or elsewhere to the first stage and back from the last",
         "tags": [
           "travel"
         ]
       },
       "put": {
-        "description": "Replaces both directions; one left out is none. The homes must be one's own.",
+        "description": "Replaces both directions; one left out is none. Each from or to one of one's homes or a place.",
         "operationId": "set-journey-travel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey or route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey or route",
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Travel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Travel"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Set one's own way there and back",
+        "tags": [
+          "travel"
+        ]
+      }
+    },
+    "/journeys/{id}/weather": {
+      "get": {
+        "operationId": "journey-weather",
         "parameters": [
           {
             "in": "path",
@@ -9650,27 +10064,16 @@
             "name": "t",
             "schema": {
               "description": "Share token of an unlisted journey",
-              "maxLength": 64,
               "type": "string"
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/JourneyTravel"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/JourneyTravel"
+                  "$ref": "#/components/schemas/JourneyWeatherOutputBody"
                 }
               }
             },
@@ -9687,9 +10090,9 @@
             "description": "Error"
           }
         },
-        "summary": "Set one's own way from home and back",
+        "summary": "MeteoSwiss's forecast at each stage's highest point, for its planned day",
         "tags": [
-          "travel"
+          "weather"
         ]
       }
     },
@@ -10867,7 +11270,12 @@
                 "enum": [
                   "hut",
                   "hotel",
-                  "campsite"
+                  "campsite",
+                  "peak",
+                  "viewpoint",
+                  "waterfall",
+                  "water",
+                  "shelter"
                 ],
                 "type": "string"
               },
@@ -10898,7 +11306,7 @@
             "description": "Error"
           }
         },
-        "summary": "Huts and accommodation in a map view, for the map overlays",
+        "summary": "Huts, accommodation and points of interest in a map view, for the map overlays",
         "tags": [
           "places"
         ]
@@ -12562,6 +12970,59 @@
         ]
       }
     },
+    "/routes/{id}/pois": {
+      "get": {
+        "description": "Within 200 m of the line, in the order they come; from OpenStreetMap.",
+        "operationId": "route-pois",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoisOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Summits, viewpoints, waterfalls, drinking water and shelters along a route",
+        "tags": [
+          "places"
+        ]
+      }
+    },
     "/routes/{id}/revisions": {
       "get": {
         "operationId": "list-route-revisions",
@@ -12838,6 +13299,121 @@
         ]
       }
     },
+    "/routes/{id}/travel": {
+      "get": {
+        "operationId": "get-route-travel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey or route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey or route",
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Travel"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "One's own way from home or elsewhere to the start and back from the end",
+        "tags": [
+          "travel"
+        ]
+      },
+      "put": {
+        "description": "Replaces both directions; one left out is none. Each from or to one of one's homes or a place.",
+        "operationId": "set-route-travel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey or route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey or route",
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Travel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Travel"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Set one's own way there and back",
+        "tags": [
+          "travel"
+        ]
+      }
+    },
     "/routes/{id}/turns": {
       "get": {
         "description": "The route's line matched onto the path network. Where it does not follow the network, as GPS tracks and straight legs do not, there are no turns.",
@@ -12888,6 +13464,59 @@
         "summary": "Turns along a route, for spoken navigation",
         "tags": [
           "routes"
+        ]
+      }
+    },
+    "/routes/{id}/weather": {
+      "get": {
+        "description": "For each, the forecast point nearby of the most similar height; the next days. 503 before the first forecast is loaded.",
+        "operationId": "route-weather",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteWeatherOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "MeteoSwiss's forecast at a route's start, highest point and end",
+        "tags": [
+          "weather"
         ]
       }
     },

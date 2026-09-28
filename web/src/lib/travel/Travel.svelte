@@ -1,32 +1,32 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import {
-		api,
-		type Home,
-		type Journey,
-		type Travel,
-		type TravelWay,
-		type Trip
-	} from '$lib/api/client';
+	import { api, type Home, type Travel, type TravelWay, type Trip } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import TripList from './TripList.svelte';
-	import { journeyEnds, travelQuery } from './travel';
+	import { swissToday, travelQuery, waySpot, type End } from './travel';
 
 	let {
-		journey,
+		kind,
+		id,
 		token,
+		ends,
 		onshow
 	}: {
-		journey: Journey;
-		/** Share token of an unlisted journey. */
+		kind: 'journeys' | 'routes';
+		id: string;
+		/** Share token of an unlisted journey or route. */
 		token?: string;
+		/** Where public transport meets the hike. */
+		ends: { start?: End; end?: End };
 		/** Gets the trips chosen to be drawn on the map. */
 		onshow: (trips: Trip[]) => void;
 	} = $props();
 
 	type Direction = 'to' | 'back';
+	const ELSEWHERE = 'elsewhere';
 	const hydrated = new Hydrated();
 	let homes = $state<Home[]>();
 	let travel = $state<Travel>({});
@@ -34,9 +34,13 @@
 	let problem = $state<Record<Direction, string>>({ to: '', back: '' });
 	let busy = $state<Record<Direction, boolean>>({ to: false, back: false });
 	let chosen = $state<Record<Direction, number>>({ to: 0, back: 0 });
+	/** Searching for another place than a home. */
+	let searching = $state<Record<Direction, boolean>>({ to: false, back: false });
+	// A route has no day of its own: the connections of the day chosen here.
+	let day = $state(swissToday());
 
-	const ends = $derived(journeyEnds(journey, { start: m.travel_start(), end: m.travel_end() }));
 	const query = $derived(token ? { t: token } : {});
+	const params = $derived({ params: { path: { id }, query } });
 
 	$effect(() => {
 		onshow(
@@ -50,7 +54,9 @@
 	onMount(async () => {
 		const [h, t] = await Promise.all([
 			api().GET('/me/homes'),
-			api().GET('/journeys/{id}/travel', { params: { path: { id: journey.id }, query } })
+			kind === 'routes'
+				? api().GET('/routes/{id}/travel', params)
+				: api().GET('/journeys/{id}/travel', params)
 		]);
 		homes = h.data?.homes ?? [];
 		travel = t.data ?? {};
@@ -60,14 +66,14 @@
 
 	async function search(d: Direction) {
 		const way = travel[d];
-		const home = homes?.find((h) => h.id === way?.home_id);
+		const spot = waySpot(way, homes ?? []);
 		const at = d === 'to' ? ends.start : ends.end;
 		trips[d] = undefined;
 		problem[d] = '';
-		if (!way || !home || !at) return;
+		if (!way || !spot || !at) return;
 		busy[d] = true;
 		const { data, response } = await api().GET('/connections', {
-			params: { query: travelQuery(d, home, at, way) }
+			params: { query: travelQuery(d, spot, { ...at, date: at.date ?? day }, way) }
 		});
 		busy[d] = false;
 		// Arriving by a time: the latest that fits first.
@@ -81,37 +87,78 @@
 	async function change(d: Direction, way: TravelWay | undefined) {
 		const next = { ...travel, [d]: way };
 		if (!way) delete next[d];
-		const { data } = await api().PUT('/journeys/{id}/travel', {
-			params: { path: { id: journey.id }, query },
-			body: next
-		});
+		const body = { ...params, body: next };
+		const { data } =
+			kind === 'routes'
+				? await api().PUT('/routes/{id}/travel', body)
+				: await api().PUT('/journeys/{id}/travel', body);
 		if (data) {
 			travel = data;
 			void search(d);
 		}
 	}
 
+	/** A home, another place, or the time; home_id '' for none. */
 	function edit(d: Direction, patch: Partial<TravelWay>) {
 		const now = travel[d];
 		if (patch.home_id === '') return change(d, undefined);
-		const home = patch.home_id ?? now?.home_id;
-		if (!home) return;
+		const where = patch.home_id
+			? { home_id: patch.home_id }
+			: patch.place
+				? { place: patch.place }
+				: now?.place
+					? { place: now.place }
+					: now?.home_id
+						? { home_id: now.home_id }
+						: undefined;
+		if (!where) return;
 		void change(d, {
-			home_id: home,
+			...where,
 			time: patch.time ?? now?.time ?? (d === 'to' ? '07:00' : '17:00'),
 			arrive: patch.arrive ?? now?.arrive ?? false
 		});
+	}
+
+	function choose(d: Direction, value: string) {
+		searching[d] = value === ELSEWHERE;
+		if (value !== ELSEWHERE) void edit(d, { home_id: value });
+	}
+
+	/** A stop has only its number: the search then prefers nothing nearby. */
+	function coordsOf(at: End): [number, number] | undefined {
+		const [lon, lat] = at.at.split(',').map(Number);
+		return at.at.includes(',') ? [lon, lat] : undefined;
+	}
+
+	function changeDay(value: string) {
+		if (!value) return;
+		day = value;
+		void search('to');
+		void search('back');
 	}
 </script>
 
 <section class="flex flex-col gap-3 text-sm" data-testid="travel">
 	<h2 class="font-semibold">{m.travel_title()}</h2>
-	{#if homes && homes.length === 0}
-		<p class="text-stone-600">
-			{m.travel_no_homes()}
-			<a href={resolve('/account')} class="text-accent-ink underline">{m.travel_account()}</a>
-		</p>
-	{:else if homes}
+	{#if homes}
+		{#if homes.length === 0}
+			<p class="text-stone-600">
+				{m.travel_no_homes()}
+				<a href={resolve('/account')} class="text-accent-ink underline">{m.travel_account()}</a>
+			</p>
+		{/if}
+		{#if kind === 'routes'}
+			<label class="flex items-center gap-1">
+				{m.travel_day()}
+				<input
+					type="date"
+					class="rounded border border-stone-300 px-1 py-0.5"
+					value={day}
+					onchange={(e) => changeDay(e.currentTarget.value)}
+					data-testid="travel-day"
+				/>
+			</label>
+		{/if}
 		{#each ['to', 'back'] as const as d (d)}
 			{@const way = travel[d]}
 			{@const at = d === 'to' ? ends.start : ends.end}
@@ -127,17 +174,26 @@
 						{d === 'to' ? m.travel_from() : m.travel_to_home()}
 						<select
 							class="rounded border border-stone-300 px-1 py-0.5"
-							value={way?.home_id ?? ''}
+							value={searching[d] || way?.place ? ELSEWHERE : (way?.home_id ?? '')}
 							disabled={!hydrated.value}
-							onchange={(e) => edit(d, { home_id: e.currentTarget.value })}
+							onchange={(e) => choose(d, e.currentTarget.value)}
 							data-testid="travel-{d}-home"
 						>
 							<option value="">{m.travel_none()}</option>
 							{#each homes as h (h.id)}
 								<option value={h.id}>{h.name}</option>
 							{/each}
+							<option value={ELSEWHERE}>{m.travel_elsewhere()}</option>
 						</select>
 					</label>
+					{#if way?.place && !searching[d]}
+						<span data-testid="travel-{d}-place">{way.place.name}</span>
+						<button
+							type="button"
+							class="text-accent-ink underline"
+							onclick={() => (searching[d] = true)}>{m.place_change()}</button
+						>
+					{/if}
 					{#if way}
 						<select
 							class="rounded border border-stone-300 px-1 py-0.5"
@@ -159,6 +215,18 @@
 						/>
 					{/if}
 				</div>
+				{#if searching[d]}
+					<div data-testid="travel-{d}-search">
+						<PlaceSearch
+							label={m.travel_place_search()}
+							near={() => (at ? coordsOf(at) : undefined)}
+							onpick={(p) => {
+								searching[d] = false;
+								void edit(d, { place: { name: p.name.slice(0, 60), lon: p.at[0], lat: p.at[1] } });
+							}}
+						/>
+					</div>
+				{/if}
 				{#if way && !at}
 					<p class="text-xs text-stone-500">{m.travel_no_route()}</p>
 				{:else if way && at}

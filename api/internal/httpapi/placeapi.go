@@ -7,6 +7,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 type nearbyPlacesInput struct {
@@ -25,7 +26,13 @@ type searchPlacesInput struct {
 
 type placesInViewInput struct {
 	BBox string   `query:"bbox" required:"true" doc:"The map view: west,south,east,north (WGS84)" example:"7.9,46.55,8.1,46.7"`
-	Kind []string `query:"kind,explode" required:"true" minItems:"1" enum:"hut,hotel,campsite"`
+	Kind []string `query:"kind,explode" required:"true" minItems:"1" enum:"hut,hotel,campsite,peak,viewpoint,waterfall,water,shelter"`
+}
+
+type poisOutput struct {
+	Body struct {
+		Pois []places.Poi `json:"pois"`
+	}
 }
 
 type placesInViewOutput struct {
@@ -61,8 +68,27 @@ func registerPlaces(api huma.API, d Deps) {
 	})
 
 	huma.Register(api, huma.Operation{
+		OperationID: "route-pois", Method: http.MethodGet, Path: "/routes/{id}/pois",
+		Summary:     "Summits, viewpoints, waterfalls, drinking water and shelters along a route",
+		Description: "Within 200 m of the line, in the order they come; from OpenStreetMap.",
+		Tags:        []string{"places"},
+	}, func(ctx context.Context, in *routeIDInput) (*poisOutput, error) {
+		r, _, err := loadRoute(ctx, d, in.ID, in.Token)
+		if err != nil {
+			return nil, err
+		}
+		line := make([]geo.Point, 0, len(r.Line()))
+		for _, c := range r.Line() {
+			line = append(line, geo.Point{Lon: c[0], Lat: c[1]})
+		}
+		out := &poisOutput{}
+		out.Body.Pois, err = d.Places.Along(ctx, geo.Simplify(line, 5))
+		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
 		OperationID: "places-in-view", Method: http.MethodGet, Path: "/places/in-view",
-		Summary:     "Huts and accommodation in a map view, for the map overlays",
+		Summary:     "Huts, accommodation and points of interest in a map view, for the map overlays",
 		Description: "At most 2000, in no particular order.",
 		Tags:        []string{"places"},
 	}, func(ctx context.Context, in *placesInViewInput) (*placesInViewOutput, error) {

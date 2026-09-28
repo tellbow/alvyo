@@ -1,14 +1,22 @@
 import type { FeatureCollection, LineString } from 'geojson';
-import type { Home, Journey, Place, Trip, TravelWay } from '$lib/api/client';
+import type { Home, Journey, Place, Route, Travel, Trip, TravelWay } from '$lib/api/client';
 
-/** Where public transport meets the journey: a stop, or a point on the line. */
+/** Where public transport meets the hike: a stop, or a point on the line. */
 export type End = {
 	/** Didok number of a stop, for the timetable; else lon,lat. */
 	at: string;
 	name: string;
-	/** The stage's day, YYYY-MM-DD; null if not planned. */
+	/** The stage's day, YYYY-MM-DD; null if not planned (and for routes). */
 	date: string | null;
 };
+
+/** Where a way starts or ends away from the hike: a home or another place. */
+export type Spot = { name: string; lon: number; lat: number };
+
+/** The home or place of a way. */
+export function waySpot(way: TravelWay | undefined, homes: Home[]): Spot | undefined {
+	return way?.place ?? homes.find((h) => h.id === way?.home_id);
+}
 
 const coords = (p: number[]) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`;
 
@@ -42,17 +50,54 @@ export function journeyEnds(
 	};
 }
 
+/** A route's start and end, with the names of its first and last point. */
+export function routeEnds(r: Route, names = { start: '', end: '' }): { start?: End; end?: End } {
+	const first = r.legs[0]?.coordinates[0];
+	const last = r.legs.at(-1)?.coordinates.at(-1);
+	if (!first || !last) return {};
+	return {
+		start: end(null, first, null, r.anchors[0]?.name || names.start),
+		end: end(null, last, null, r.anchors.at(-1)?.name || names.end)
+	};
+}
+
+/**
+ * The ways there and back that one has chosen, with the connections to ask
+ * for on `date`: for a sheet to print.
+ */
+export function chosenWays(
+	travel: Travel,
+	homes: Home[],
+	ends: { start?: End; end?: End },
+	date: string
+) {
+	return (['to', 'back'] as const).flatMap((d) => {
+		const way = travel[d];
+		const spot = waySpot(way, homes);
+		const at = d === 'to' ? ends.start : ends.end;
+		if (!way || !spot || !at) return [];
+		return [
+			{
+				direction: d,
+				from: d === 'to' ? spot.name : at.name,
+				to: d === 'to' ? at.name : spot.name,
+				query: { ...travelQuery(d, spot, { ...at, date }, way), lines: false }
+			}
+		];
+	});
+}
+
 /** Today in Switzerland, YYYY-MM-DD. */
 export const swissToday = (now = new Date()) =>
 	new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Zurich' }).format(now);
 
 /**
- * `GET /connections` for the way from home to the journey's start (to) or
- * from its end home (back), with the ways to draw.
+ * `GET /connections` for the way from home (or another place) to the start
+ * (to) or from the end home (back), with the ways to draw.
  */
 export function travelQuery(
 	direction: 'to' | 'back',
-	home: Home,
+	home: Spot,
 	at: End,
 	way: TravelWay,
 	today = swissToday()

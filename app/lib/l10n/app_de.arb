@@ -738,10 +738,10 @@
     }
   },
   "travelNoDate": "Die Etappe hat kein Datum: Verbindungen von heute.",
-  "travelNoHomes": "Füge in deinem Konto ein Zuhause hinzu, um die An- und Heimreise mit dem öffentlichen Verkehr zu planen.",
+  "travelNoHomes": "Ein Zuhause, das du oft brauchst, fügst du in deinem Konto hinzu.",
   "travelPrivate": "Nur du siehst deine An- und Heimreise.",
   "travelNoRoute": "Sobald eine Etappe eine Route hat.",
-  "travelChoose": "Wähle ein Zuhause",
+  "travelChoose": "Von wo und wann",
   "homesTitle": "Zuhause",
   "homesIntro": "Von hier planst du die Anreise zu deinen Etappentouren und die Heimreise mit dem öffentlichen Verkehr. Höchstens 5; nur du siehst sie.",
   "homesName": "Name",
@@ -796,5 +796,67 @@
   },
   "plannerAlpineUse": "Diesen Abschnitt alpin planen",
   "plannerAlpineUsed": "Mit «Alpinwandern» geplant.",
-  "plannerAlpineUndo": "Wieder als Wanderung"
+  "plannerAlpineUndo": "Wieder als Wanderung",
+  "noticesTitle": "Sperrungen und Schiessen",
+  "noticesClosure": "Wanderweg gesperrt",
+  "noticesShooting": "Schiessen der Armee",
+  "mapPois": "Unterwegs: Gipfel, Aussicht, Wasser",
+  "poiPeak": "Gipfel",
+  "poiViewpoint": "Aussichtspunkt",
+  "poiWaterfall": "Wasserfall",
+  "poiWater": "Trinkwasser",
+  "poiShelter": "Unterstand",
+  "poisTitle": "Unterwegs",
+  "poisAll": "Alle {count} zeigen",
+  "@poisAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherTitle": "Wetter",
+  "weatherStart": "Start",
+  "weatherTop": "Höchster Punkt",
+  "weatherEnd": "Ziel",
+  "weatherToday": "Heute",
+  "weatherDry": "trocken",
+  "weatherRain": "{mm} mm Niederschlag ({lo}–{hi} mm)",
+  "@weatherRain": {
+    "placeholders": {
+      "mm": {
+        "type": "String"
+      },
+      "lo": {
+        "type": "String"
+      },
+      "hi": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherSource": "Prognose von MeteoSchweiz für den Ort in der Nähe mit der ähnlichsten Höhe, von {time}.",
+  "@weatherSource": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weatherStage": "Etappe {n}, {date}",
+  "@weatherStage": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "travelElsewhere": "Anderer Ort …",
+  "travelPlaceSearch": "Ort, Haltestelle oder Adresse",
+  "travelDay": "Am",
+  "travelRouteStart": "Start",
+  "travelRouteEnd": "Ziel"
 }

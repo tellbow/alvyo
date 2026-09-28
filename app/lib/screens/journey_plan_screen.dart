@@ -294,7 +294,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   }
 
   /// From and to which home by public transport, saved with the journey.
-  var _travel = const JourneyTravel();
+  var _travel = const Travel();
 
   Future<void> _create() async {
     final stages = _stages;

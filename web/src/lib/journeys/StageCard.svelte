@@ -262,6 +262,13 @@
 			>
 				{s.route ? m.journey_edit_stage() : m.journey_plan_stage()}
 			</a>
+			{#if s.route}
+				<a
+					href={resolve('/journeys/[id]/stages/[stage]/sheet', { id: journeyId, stage: s.id })}
+					class="rounded px-2 py-1 ring-1 ring-stone-300 hover:bg-stone-50"
+					data-testid="stage-sheet">{m.sheet_link()}</a
+				>
+			{/if}
 			{#if s.route && !replacing}
 				<button
 					type="button"
@@ -323,6 +330,11 @@
 			<a
 				href="{resolve('/routes/[id]', { id: s.route.id })}{q}"
 				class="text-xs text-accent-ink underline">→</a
+			>
+			<a
+				href="{resolve('/journeys/[id]/stages/[stage]/sheet', { id: journeyId, stage: s.id })}{q}"
+				class="ml-2 text-xs text-accent-ink underline"
+				data-testid="stage-sheet">{m.sheet_link()}</a
 			>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		{/if}

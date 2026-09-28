@@ -222,6 +222,16 @@ type Grant struct {
 	CollectionID *uuid.UUID
 }
 
+type Home struct {
+	ID        uuid.UUID
+	OwnerID   uuid.UUID
+	Name      string
+	Address   string
+	Lon       float64
+	Lat       float64
+	CreatedAt time.Time
+}
+
 type Identity struct {
 	Provider   string
 	Subject    string
@@ -244,6 +254,18 @@ type Journey struct {
 	CommentsEnabled bool
 	PublishedAt     *time.Time
 	Tags            []string
+}
+
+type JourneyTravel struct {
+	UserID    uuid.UUID
+	JourneyID uuid.UUID
+	Direction string
+	HomeID    *uuid.UUID
+	AtTime    string
+	Arrive    bool
+	PlaceName *string
+	PlaceLon  *float64
+	PlaceLat  *float64
 }
 
 type Like struct {
@@ -327,6 +349,15 @@ type Place struct {
 	Website  string
 }
 
+type Poi struct {
+	ID       uuid.UUID
+	Kind     string
+	Name     string
+	Ele      *int32
+	SourceID string
+	Geom     interface{}
+}
+
 type Report struct {
 	ID         uuid.UUID
 	ReporterID *uuid.UUID
@@ -379,6 +410,33 @@ type Route struct {
 	HikedS           *int32
 	PlannedRouteID   *uuid.UUID
 	Tags             []string
+	ContentAt        time.Time
+	ContentBy        *uuid.UUID
+}
+
+type RouteRevision struct {
+	RouteID   uuid.UUID
+	Version   int32
+	Profile   string
+	Anchors   []byte
+	Legs      []byte
+	DistanceM int32
+	AscentM   int32
+	DurationS int32
+	SavedAt   time.Time
+	SavedBy   *uuid.UUID
+}
+
+type RouteTravel struct {
+	UserID    uuid.UUID
+	RouteID   uuid.UUID
+	Direction string
+	HomeID    *uuid.UUID
+	PlaceName *string
+	PlaceLon  *float64
+	PlaceLat  *float64
+	AtTime    string
+	Arrive    bool
 }
 
 type Session struct {

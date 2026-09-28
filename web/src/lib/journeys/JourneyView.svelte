@@ -9,6 +9,7 @@
 		api,
 		type Journey,
 		type Me,
+		type Notice,
 		type ProtectedArea,
 		type RouteSummary,
 		type StagePatch,
@@ -23,6 +24,8 @@
 	import ProfileDock from '$lib/planner/ProfileDock.svelte';
 	import StatsPanel from '$lib/planner/StatsPanel.svelte';
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
+	import Notices from '$lib/areas/Notices.svelte';
+	import JourneyWeather from '$lib/weather/JourneyWeather.svelte';
 	import {
 		formatDistance,
 		formatDuration,
@@ -34,6 +37,7 @@
 	import Seo from '$lib/seo/Seo.svelte';
 	import { STAGE_RUN_COLORS } from './colors';
 	import Connections from './Connections.svelte';
+	import { transferStops } from './transfer';
 	import JourneyLayers from './JourneyLayers.svelte';
 	import { sbbTimetableUrl } from './sbb';
 	import AddToCollection from '$lib/collections/AddToCollection.svelte';
@@ -45,6 +49,7 @@
 	import StageCard from './StageCard.svelte';
 	import Travel from '$lib/travel/Travel.svelte';
 	import TravelLayers from '$lib/travel/TravelLayers.svelte';
+	import { journeyEnds } from '$lib/travel/travel';
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagInput from '$lib/tags/TagInput.svelte';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
@@ -76,6 +81,7 @@
 	let confirming = $state(false); // deleting the journey
 	let myRoutes = $state<RouteSummary[]>([]);
 	let areas = $state<ProtectedArea[]>();
+	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
 	// The stages' planned days, to say when an area's rules apply then.
 	const plannedDays = $derived(
@@ -96,6 +102,7 @@
 			.then(({ data }) => {
 				if (stale) return;
 				areas = data?.areas;
+				notices = data?.notices;
 				areasFailed = !data;
 			});
 		return () => {
@@ -185,17 +192,8 @@
 
 	const path = (stage: string) => ({ params: { path: { id: journey.id, stage } } });
 
-	/** The stops of a public transport transfer from the previous stage's end. */
-	function transferStops(i: number) {
-		const s = journey.stage_list[i];
-		if (s.transfer_before !== 'pt' || s.start_place?.kind !== 'pt_stop') return undefined;
-		const prev = journey.stage_list.slice(0, i).findLast((p) => p.route)?.end_place;
-		if (prev?.kind !== 'pt_stop') return undefined;
-		return { from: prev, to: s.start_place };
-	}
-
 	function transferUrl(i: number): string | undefined {
-		const t = transferStops(i);
+		const t = transferStops(journey, i);
 		if (!t) return undefined;
 		const date = journey.stage_list[i].planned_date;
 		return sbbTimetableUrl({ from: t.from.name, to: t.to.name, date, locale: getLocale() });
@@ -414,11 +412,19 @@
 
 		{#if journey.totals.distance_m > 0}
 			<StatsPanel {totals} pace={user?.speed_factor ?? 1} />
+			<JourneyWeather id={journey.id} {token} key={routeKey + plannedDays.join()} />
+			<Notices {notices} days={plannedDays} />
 			<ProtectedAreas {areas} failed={areasFailed} days={plannedDays} />
 		{/if}
 
 		{#if user}
-			<Travel {journey} {token} onshow={(t) => (travelTrips = t)} />
+			<Travel
+				kind="journeys"
+				id={journey.id}
+				{token}
+				ends={journeyEnds(journey, { start: m.travel_start(), end: m.travel_end() })}
+				onshow={(t) => (travelTrips = t)}
+			/>
 		{/if}
 
 		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
@@ -466,7 +472,7 @@
 								<!-- eslint-enable svelte/no-navigation-without-resolve -->
 							{/if}
 							{#if user}
-								{@const stops = transferStops(i)}
+								{@const stops = transferStops(journey, i)}
 								{#if stops?.from.ref && stops.to.ref}
 									<button
 										type="button"

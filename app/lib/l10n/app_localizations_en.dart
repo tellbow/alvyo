@@ -1238,7 +1238,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get travelNoDate => 'The stage has no date: today’s connections.';
 
   @override
-  String get travelNoHomes => 'Add a home in your account to plan getting there and back by public transport.';
+  String get travelNoHomes => 'Add a home you often need in your account.';
 
   @override
   String get travelPrivate => 'Only you see how you get there and back.';
@@ -1247,7 +1247,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get travelNoRoute => 'Once a stage has a route.';
 
   @override
-  String get travelChoose => 'Choose a home';
+  String get travelChoose => 'From where and when';
 
   @override
   String get homesTitle => 'Homes';
@@ -1326,4 +1326,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerAlpineUndo => 'Back to hiking';
+
+  @override
+  String get noticesTitle => 'Closures and shooting';
+
+  @override
+  String get noticesClosure => 'trail closed';
+
+  @override
+  String get noticesShooting => 'army shooting';
+
+  @override
+  String get mapPois => 'Along the way: summits, views, water';
+
+  @override
+  String get poiPeak => 'Summit';
+
+  @override
+  String get poiViewpoint => 'Viewpoint';
+
+  @override
+  String get poiWaterfall => 'Waterfall';
+
+  @override
+  String get poiWater => 'Drinking water';
+
+  @override
+  String get poiShelter => 'Shelter';
+
+  @override
+  String get poisTitle => 'Along the way';
+
+  @override
+  String poisAll(int count) {
+    return 'Show all $count';
+  }
+
+  @override
+  String get weatherTitle => 'Weather';
+
+  @override
+  String get weatherStart => 'Start';
+
+  @override
+  String get weatherTop => 'Highest point';
+
+  @override
+  String get weatherEnd => 'End';
+
+  @override
+  String get weatherToday => 'Today';
+
+  @override
+  String get weatherDry => 'dry';
+
+  @override
+  String weatherRain(String mm, String lo, String hi) {
+    return '$mm mm precipitation ($lo–$hi mm)';
+  }
+
+  @override
+  String weatherSource(String time) {
+    return 'MeteoSwiss forecast for the nearby place of the most similar height, of $time.';
+  }
+
+  @override
+  String weatherStage(int n, String date) {
+    return 'Stage $n, $date';
+  }
+
+  @override
+  String get travelElsewhere => 'Another place …';
+
+  @override
+  String get travelPlaceSearch => 'Place, stop or address';
+
+  @override
+  String get travelDay => 'On';
+
+  @override
+  String get travelRouteStart => 'Start';
+
+  @override
+  String get travelRouteEnd => 'End';
 }

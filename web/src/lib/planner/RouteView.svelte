@@ -23,7 +23,14 @@
 	import RouteLayers from './RouteLayers.svelte';
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
-	import type { ProtectedArea } from '$lib/api/client';
+	import Notices from '$lib/areas/Notices.svelte';
+	import Pois from '$lib/map/Pois.svelte';
+	import RouteWeather from '$lib/weather/RouteWeather.svelte';
+	import Travel from '$lib/travel/Travel.svelte';
+	import TravelLayers from '$lib/travel/TravelLayers.svelte';
+	import { routeEnds } from '$lib/travel/travel';
+	import type { Trip } from '$lib/api/client';
+	import type { Notice, ProtectedArea } from '$lib/api/client';
 	import { onMount } from 'svelte';
 	import { Planner } from './planner.svelte';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Profile } from './route';
@@ -37,12 +44,14 @@
 	}: { route: Route; token?: string; user: Me | null; revision?: Revision } = $props();
 
 	let areas = $state<ProtectedArea[]>();
+	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
 	onMount(async () => {
 		const { data } = await api().GET('/routes/{id}/areas', {
 			params: { path: { id: route.id }, query: token ? { t: token } : {} }
 		});
 		areas = data?.areas;
+		notices = data?.notices;
 		areasFailed = !data;
 	});
 	// Link previews (Signal, WhatsApp, Slack …) read these tags from the SSR page.
@@ -63,6 +72,7 @@
 	let map = $state<MapLibreMap>();
 	let lib = $state<typeof MapLibre>();
 	let hoverIndex = $state<number>();
+	let travelTrips = $state<Trip[]>([]);
 	let confirmDelete = $state(false);
 	// Stage routes have their photos on the journey; an earlier version shows
 	// the line only.
@@ -120,6 +130,7 @@
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} editable={false} />
 			{#if gallery}<PhotoPins {map} {lib} {gallery} />{/if}
+			<TravelLayers {map} {lib} trips={travelTrips} />
 		{/if}
 		<ProfileDock>
 			<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
@@ -225,11 +236,32 @@
 			<a href="/api/v1/routes/{route.id}/gpx" download class="text-sm text-accent-ink underline"
 				>{m.route_gpx()}</a
 			>
+			{#if route.legs.length > 0}
+				<!-- The share token rides along; resolve() cannot express query strings. -->
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a
+					href="{resolve('/routes/[id]/sheet', { id: route.id })}{token ? `?t=${token}` : ''}"
+					class="text-sm text-accent-ink underline"
+					data-testid="sheet-link">{m.sheet_link()}</a
+				>
+			{/if}
 		{/if}
 		{#if route.legs.length > 0}
 			<StatsPanel totals={planner.totals} pace={user?.speed_factor ?? 1} />
 		{/if}
+		{#if !revision}<RouteWeather id={route.id} {token} />{/if}
+		<Notices {notices} />
 		<ProtectedAreas {areas} failed={areasFailed} />
+		{#if !revision}<Pois id={route.id} {token} />{/if}
+		{#if user && !revision && route.legs.length > 0}
+			<Travel
+				kind="routes"
+				id={route.id}
+				{token}
+				ends={routeEnds(route, { start: m.place_start(), end: m.place_end() })}
+				onshow={(t) => (travelTrips = t)}
+			/>
+		{/if}
 		{#if route.can_edit && !revision}
 			<Revisions id={route.id} />
 		{/if}

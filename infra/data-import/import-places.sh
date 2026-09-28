@@ -1,5 +1,6 @@
 #!/bin/sh
-# Loads the places offered as stage starts and ends:
+# Loads the places offered as stage starts and ends, and the points of
+# interest along routes (pois):
 #  - public transport stops from the BAV list of stops (© BAV, OGD), keyed by
 #    their Didok number
 #  - named huts and accommodation from OpenStreetMap (© OpenStreetMap
@@ -39,12 +40,23 @@ osmium tags-filter --overwrite -o osm-places.pbf "$pbf" \
 osmium export --overwrite -f geojsonseq -x print_record_separator=false \
 	--geometry-types=point,polygon -a type,id -o osm-places.geojsonseq osm-places.pbf
 
+# Along the way: summits, viewpoints, waterfalls, drinking water and
+# shelters (not those at bus stops).
+osmium tags-filter --overwrite -o osm-pois.pbf "$pbf" \
+	n/natural=peak n/tourism=viewpoint nw/waterway=waterfall n/amenity=drinking_water \
+	n/drinking_water=yes nwr/amenity=shelter
+osmium export --overwrite -f geojsonseq -x print_record_separator=false \
+	--geometry-types=point,linestring,polygon -a type,id -o osm-pois.geojsonseq osm-pois.pbf
+
 psql -v ON_ERROR_STOP=1 -q <<'SQL'
 CREATE UNLOGGED TABLE IF NOT EXISTS import_osm (j jsonb NOT NULL);
 TRUNCATE import_osm;
 -- CSV with characters that never occur in JSON as quote and delimiter, so
 -- every line arrives verbatim (text COPY would eat the backslashes).
 \copy import_osm FROM 'osm-places.geojsonseq' WITH (FORMAT csv, QUOTE E'\x01', DELIMITER E'\x02')
+CREATE UNLOGGED TABLE IF NOT EXISTS import_pois (j jsonb NOT NULL);
+TRUNCATE import_pois;
+\copy import_pois FROM 'osm-pois.geojsonseq' WITH (FORMAT csv, QUOTE E'\x01', DELIMITER E'\x02')
 
 BEGIN;
 CREATE TEMP TABLE incoming ON COMMIT DROP AS
@@ -75,7 +87,37 @@ DELETE FROM places p
 WHERE NOT EXISTS (SELECT 1 FROM incoming i WHERE i.source = p.source AND i.source_id = p.source_id);
 COMMIT;
 
-DROP TABLE import_stops, import_osm;
+BEGIN;
+CREATE TEMP TABLE incoming_pois ON COMMIT DROP AS
+SELECT k AS kind, coalesce(p->>'name', '') AS name,
+	-- «2502», «2502 m», «2'502»: the digits before any decimals
+	nullif(regexp_replace(split_part(replace(p->>'ele', ',', '.'), '.', 1), '[^0-9]', '', 'g'), '')::int AS ele,
+	left(p->>'@type', 1) || (p->>'@id') AS source_id,
+	ST_PointOnSurface(ST_SetSRID(ST_GeomFromGeoJSON(j->'geometry'), 4326)) AS geom
+FROM import_pois, jsonb_extract_path(j, 'properties') AS p,
+	LATERAL (SELECT CASE
+		WHEN p->>'natural' = 'peak' THEN 'peak'
+		WHEN p->>'tourism' = 'viewpoint' THEN 'viewpoint'
+		WHEN p->>'waterway' = 'waterfall' THEN 'waterfall'
+		WHEN p->>'amenity' = 'shelter' AND coalesce(p->>'shelter_type', '') <> 'public_transport' THEN 'shelter'
+		WHEN p->>'amenity' = 'drinking_water' OR p->>'drinking_water' = 'yes' THEN 'water'
+	END AS k) kinds
+WHERE k IS NOT NULL
+	-- a summit without a name is a bump on the map
+	AND (k <> 'peak' OR p->>'name' IS NOT NULL)
+	AND coalesce(p->>'access', '') NOT IN ('private', 'no');
+
+INSERT INTO pois (kind, name, ele, source_id, geom)
+SELECT DISTINCT ON (source_id) kind, name, CASE WHEN ele BETWEEN 0 AND 5000 THEN ele END, source_id, geom
+FROM incoming_pois
+ON CONFLICT (source_id) DO UPDATE
+	SET kind = excluded.kind, name = excluded.name, ele = excluded.ele, geom = excluded.geom;
+DELETE FROM pois p WHERE NOT EXISTS (SELECT 1 FROM incoming_pois i WHERE i.source_id = p.source_id);
+COMMIT;
+
+DROP TABLE import_stops, import_osm, import_pois;
 ANALYZE places;
+ANALYZE pois;
 SELECT kind, count(*) FROM places GROUP BY 1 ORDER BY 1;
+SELECT kind, count(*) FROM pois GROUP BY 1 ORDER BY 1;
 SQL

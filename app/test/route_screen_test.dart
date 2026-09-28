@@ -57,6 +57,55 @@ void main() {
               },
             ],
           });
+        case '/api/v1/routes/r1/weather':
+          return _json({
+            'run': '2026-09-28T18:00:00Z',
+            'places': [
+              {
+                'roles': ['start'],
+                'point': {'name': 'Sargans', 'height': 482.0, 'lon': 9.44, 'lat': 47.04},
+                'days': [
+                  {'date': '2026-09-29', 'min_c': 4.4, 'max_c': 18.6, 'rain_mm': 0, 'rain_lo_mm': 0, 'rain_hi_mm': 0.2},
+                  {
+                    'date': '2026-09-30',
+                    'min_c': 4.4,
+                    'max_c': 15,
+                    'rain_mm': 3.2,
+                    'rain_lo_mm': 0.4,
+                    'rain_hi_mm': 9.8,
+                  },
+                ],
+              },
+              {
+                'roles': ['top', 'end'],
+                'point': {'name': 'Weisstannen', 'height': 1004.0, 'lon': 9.35, 'lat': 46.99},
+                'days': [
+                  {'date': '2026-09-29', 'min_c': 4.4, 'max_c': 14, 'rain_mm': 0, 'rain_lo_mm': 0, 'rain_hi_mm': 0},
+                  {'date': '2026-09-30', 'min_c': 4.4, 'max_c': 11, 'rain_mm': 4, 'rain_lo_mm': 1, 'rain_hi_mm': 12},
+                ],
+              },
+            ],
+          });
+        case '/api/v1/routes/r1/pois':
+          return _json({
+            'pois': [
+              {
+                'kind': 'water',
+                'name': '',
+                'at': [9.43, 47.03],
+                'along_m': 1200.0,
+                'off_m': 20.0,
+              },
+              {
+                'kind': 'peak',
+                'name': 'Gonzen',
+                'ele': 1830,
+                'at': [9.42, 47.03],
+                'along_m': 5300.0,
+                'off_m': 90.0,
+              },
+            ],
+          });
         case '/api/v1/routes/r1/areas':
           return _json({
             'areas': [
@@ -68,6 +117,31 @@ void main() {
                   'rule': {'de': 'Zutrittsverbot'},
                   'period': {'from': '12-20', 'to': '04-30'},
                 },
+            ],
+            'notices': [
+              {
+                'kind': 'closure',
+                'id': '1',
+                'title': {'de': 'Seewäldli', 'fr': 'Seewäldli', 'it': 'Seewäldli', 'en': 'Seewäldli'},
+                'reason': {
+                  'de': 'Forstarbeiten',
+                  'fr': 'Travaux forestiers',
+                  'it': 'Lavori forestali',
+                  'en': 'Forestry work',
+                },
+                'from': '2026-08-31',
+                'to': '2026-10-30',
+              },
+              {
+                'kind': 'shooting',
+                'id': '2',
+                'title': {'de': 'Geissalp', 'fr': '', 'it': ''},
+                'days': [
+                  {'date': '2026-09-29', 'from': '0800', 'to': '1700'},
+                  {'date': '2026-09-30'},
+                ],
+                'phone': '+41 58 467 19 90',
+              },
             ],
           });
       }
@@ -96,6 +170,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.textContaining('Wildruhezone Nummer 0'), findsOneWidget);
+    expect(find.text('Sperrungen und Schiessen'), findsOneWidget);
+    expect(find.text('1.2\u00a0km · Trinkwasser'), findsOneWidget);
+    expect(find.text('5.3\u00a0km · Gonzen · Gipfel · 1830\u00a0m'), findsOneWidget);
+    expect(find.text('Seewäldli (Wanderweg gesperrt)\nForstarbeiten · 31.8.–30.10.'), findsOneWidget);
+    expect(find.text('Geissalp (Schiessen der Armee)\n29.9. 08:00–17:00, 30.9. · +41 58 467 19 90'), findsOneWidget);
+    // The weather of today, then of the day chosen.
+    expect(find.text('Start · Sargans, 482\u00a0m\n4–19\u00a0°C · trocken'), findsOneWidget);
+    expect(find.text('Höchster Punkt, Ziel · Weisstannen, 1004\u00a0m\n4–14\u00a0°C · trocken'), findsOneWidget);
+    await tester.ensureVisible(find.text('Mi., 30.9.'));
+    await tester.tap(find.text('Mi., 30.9.'));
+    await tester.pump();
+    expect(find.text('Start · Sargans, 482\u00a0m\n4–15\u00a0°C · 3.2 mm Niederschlag (0.4–9.8 mm)'), findsOneWidget);
     // The map keeps at least half of what is left above the keyboard.
     expect(tester.getSize(find.byKey(const Key('map'))).height, greaterThan(150));
     expect(tester.takeException(), isNull);

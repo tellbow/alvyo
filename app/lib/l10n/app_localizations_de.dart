@@ -1245,8 +1245,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get travelNoDate => 'Die Etappe hat kein Datum: Verbindungen von heute.';
 
   @override
-  String get travelNoHomes =>
-      'Füge in deinem Konto ein Zuhause hinzu, um die An- und Heimreise mit dem öffentlichen Verkehr zu planen.';
+  String get travelNoHomes => 'Ein Zuhause, das du oft brauchst, fügst du in deinem Konto hinzu.';
 
   @override
   String get travelPrivate => 'Nur du siehst deine An- und Heimreise.';
@@ -1255,7 +1254,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get travelNoRoute => 'Sobald eine Etappe eine Route hat.';
 
   @override
-  String get travelChoose => 'Wähle ein Zuhause';
+  String get travelChoose => 'Von wo und wann';
 
   @override
   String get homesTitle => 'Zuhause';
@@ -1334,4 +1333,87 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerAlpineUndo => 'Wieder als Wanderung';
+
+  @override
+  String get noticesTitle => 'Sperrungen und Schiessen';
+
+  @override
+  String get noticesClosure => 'Wanderweg gesperrt';
+
+  @override
+  String get noticesShooting => 'Schiessen der Armee';
+
+  @override
+  String get mapPois => 'Unterwegs: Gipfel, Aussicht, Wasser';
+
+  @override
+  String get poiPeak => 'Gipfel';
+
+  @override
+  String get poiViewpoint => 'Aussichtspunkt';
+
+  @override
+  String get poiWaterfall => 'Wasserfall';
+
+  @override
+  String get poiWater => 'Trinkwasser';
+
+  @override
+  String get poiShelter => 'Unterstand';
+
+  @override
+  String get poisTitle => 'Unterwegs';
+
+  @override
+  String poisAll(int count) {
+    return 'Alle $count zeigen';
+  }
+
+  @override
+  String get weatherTitle => 'Wetter';
+
+  @override
+  String get weatherStart => 'Start';
+
+  @override
+  String get weatherTop => 'Höchster Punkt';
+
+  @override
+  String get weatherEnd => 'Ziel';
+
+  @override
+  String get weatherToday => 'Heute';
+
+  @override
+  String get weatherDry => 'trocken';
+
+  @override
+  String weatherRain(String mm, String lo, String hi) {
+    return '$mm mm Niederschlag ($lo–$hi mm)';
+  }
+
+  @override
+  String weatherSource(String time) {
+    return 'Prognose von MeteoSchweiz für den Ort in der Nähe mit der ähnlichsten Höhe, von $time.';
+  }
+
+  @override
+  String weatherStage(int n, String date) {
+    return 'Etappe $n, $date';
+  }
+
+  @override
+  String get travelElsewhere => 'Anderer Ort …';
+
+  @override
+  String get travelPlaceSearch => 'Ort, Haltestelle oder Adresse';
+
+  @override
+  String get travelDay => 'Am';
+
+  @override
+  String get travelRouteStart => 'Start';
+
+  @override
+  String get travelRouteEnd => 'Ziel';
 }

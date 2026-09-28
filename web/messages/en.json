@@ -601,5 +601,12 @@
 	"homes_remove": "Remove",
 	"homes_full": "At most 5 homes.",
 	"travel_start": "Start of the journey",
-	"travel_end": "End of the journey"
+	"travel_end": "End of the journey",
+	"error_not_found_title": "This page doesn't exist",
+	"error_not_found_text": "It may have been deleted or made private, or the address is misspelt.",
+	"error_title": "Something went wrong",
+	"error_text": "Reload the page or try again later.",
+	"error_home": "Go to the home page",
+	"profile_hide": "Hide elevation profile",
+	"nav_menu": "Menu"
 }

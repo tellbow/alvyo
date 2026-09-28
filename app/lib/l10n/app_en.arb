@@ -104,7 +104,6 @@
   "liveNoContacts": "Add contacts to share with on the website under “Account”.",
   "navRecord": "Record",
   "navProfile": "Profile",
-  "recordHint": "Choose a route and tap “{start}” to record the hike.",
   "mapLayers": "Maps",
   "mapHuts": "Huts",
   "mapLodging": "Hotels and campsites",
@@ -388,5 +387,11 @@
   "homesRemove": "Remove",
   "homesFull": "At most 5 homes.",
   "travelStart": "Start of the journey",
-  "travelEnd": "End of the journey"
+  "travelEnd": "End of the journey",
+  "recordTitle": "Hike",
+  "recordStart": "Start recording",
+  "recordRefused": "Not saved: the hike is too short or leaves Switzerland and Liechtenstein.",
+  "barRoutes": "Routes",
+  "barJourneys": "Journeys",
+  "planAction": "Plan"
 }

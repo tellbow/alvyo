@@ -18,13 +18,14 @@
 	import Photos from '$lib/photos/Photos.svelte';
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
+	import ProfileDock from './ProfileDock.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
 	import type { ProtectedArea } from '$lib/api/client';
 	import { onMount } from 'svelte';
 	import { Planner } from './planner.svelte';
-	import { formatDistance, formatDuration, formatSAC, type Profile } from './route';
+	import { formatDistance, formatHeight, formatDuration, formatSAC, type Profile } from './route';
 
 	let { route, token, user }: { route: Route; token?: string; user: Me | null } = $props();
 
@@ -42,7 +43,7 @@
 		[
 			formatDistance(route.totals.distance_m),
 			formatDuration(route.totals.duration_s),
-			`↑ ${Math.round(route.totals.ascent_m)} m`,
+			`↑\u00a0${formatHeight(route.totals.ascent_m)}`,
 			formatSAC(route.totals.sac_grade, route.totals.sac_max)
 		].join(' · ')
 	);
@@ -94,22 +95,22 @@
 	index={route.visibility === 'public' && !route.journey_id}
 />
 
-<main class="flex min-h-0 flex-1">
-	<section class="relative flex-1">
+<main class="flex min-h-0 flex-1 flex-col md:flex-row">
+	<section class="relative h-[50dvh] shrink-0 md:h-auto md:flex-1 md:shrink">
 		<Map bind:base bind:overlays {onready} />
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} editable={false} />
 			{#if gallery}<PhotoPins {map} {lib} {gallery} />{/if}
 		{/if}
-		<div
-			class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-surface/95 px-2 py-1 shadow ring-1 ring-stone-300"
-		>
+		<ProfileDock>
 			<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
-		</div>
+		</ProfileDock>
 	</section>
 
-	<aside class="flex w-80 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4">
+	<aside
+		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-80 md:flex-none md:border-t-0 md:border-l"
+	>
 		<div>
 			<h1 class="text-xl font-semibold" data-testid="route-title">{route.title}</h1>
 			<p class="text-sm text-stone-500">

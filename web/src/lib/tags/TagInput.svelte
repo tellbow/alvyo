@@ -47,7 +47,7 @@
 </script>
 
 <div
-	class="flex flex-wrap items-center gap-1 rounded-md border border-stone-300 bg-surface px-2 py-1"
+	class="flex flex-wrap items-center gap-1 rounded-md border border-stone-300 bg-surface px-2 py-1 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/25"
 	data-testid="tag-input"
 >
 	{#each tags as t (t)}

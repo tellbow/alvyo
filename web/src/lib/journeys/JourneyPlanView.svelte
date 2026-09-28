@@ -17,11 +17,11 @@
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
-	import { SAC_COLOR } from '$lib/planner/colors';
+	import { sacBackground, sacInk } from '$lib/planner/colors';
 	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
 	import PlanTabs from '$lib/planner/PlanTabs.svelte';
 	import TravelChoice from '$lib/travel/TravelChoice.svelte';
-	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { stageColor } from './colors';
 	import {
@@ -308,8 +308,8 @@
 
 <Seo title={m.jplan_title()} index={false} />
 
-<main class="flex min-h-0 flex-1">
-	<section class="relative flex-1">
+<main class="flex min-h-0 flex-1 flex-col md:flex-row">
+	<section class="relative h-[50dvh] shrink-0 md:h-auto md:flex-1 md:shrink">
 		<Map bind:base bind:overlays {onready} />
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map}
@@ -324,7 +324,7 @@
 	</section>
 
 	<aside
-		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
+		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-96 md:flex-none md:border-t-0 md:border-l"
 		data-testid="journey-plan-panel"
 	>
 		<PlanTabs current="journey" />
@@ -350,7 +350,7 @@
 							>
 							<button
 								type="button"
-								class="w-6 rounded text-stone-600 hover:bg-stone-100"
+								class="icon-button"
 								aria-label={m.plan_point_remove()}
 								title={m.plan_point_remove()}
 								onclick={() => removePoint(i)}>×</button
@@ -531,12 +531,13 @@
 									st.totals.duration_s,
 									pace
 								)}
-								· ↑ {Math.round(st.totals.ascent_m)} m
+								· ↑&nbsp;{formatHeight(st.totals.ascent_m)}
 							</span>
 							{#if st.totals.sac_grade > 0}
 								<span
-									class="rounded px-1 text-xs font-semibold text-white"
-									style:background={SAC_COLOR[`T${st.totals.sac_grade}`] ?? '#a8a29e'}
+									class="rounded px-1 text-xs font-semibold"
+									style:background={sacBackground(st.totals.sac_grade)}
+									style:color={sacInk(st.totals.sac_grade)}
 									>{formatSAC(st.totals.sac_grade, st.totals.sac_max)}</span
 								>
 							{/if}

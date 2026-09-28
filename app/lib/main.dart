@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
@@ -67,6 +68,11 @@ class _AlvyoAppState extends State<AlvyoApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
+      // Numbers in the app's language («19,3 km» in French, format.dart).
+      builder: (context, child) {
+        Intl.defaultLocale = Localizations.localeOf(context).languageCode;
+        return child!;
+      },
       home: FutureBuilder(
         future: _restored,
         builder: (context, snap) {

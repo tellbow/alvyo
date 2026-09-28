@@ -188,6 +188,14 @@ Checked so far only in the simulator, with made-up or simulated positions
       arriving by 8:00 give the trains one would take (compared with the
       SBB app), the dashed line runs from the door to the start, and the
       GPX has only the stages.
+- [ ] **Recording without a route** (the record button) on a real hike,
+      with the screen locked: the track has no gaps; the app stopped by iOS
+      and opened again, the record button goes on with the same hike;
+      «Beenden» opens the new route «Wanderung, <date>». Offline at the
+      end: the message says it goes up later, and it does once online.
+      Simulator 2026-09-28 (iPhone 17 Pro, iOS 26.5): made-up positions
+      along «Sargans–Weisstannen»: the track grows on the map, 8.2 km
+      uploaded and opened as a route.
 
 ## Web
 
@@ -218,6 +226,11 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **Dark mode** in Safari, Chrome and Firefox (system setting): every page
       readable, including dialogs, drop-downs, the photo lightbox and the
       elevation profile.
+- [ ] **The website on a phone** (iPhone Safari, an Android phone): the menu
+      opens and closes, nothing scrolls sideways; on the map pages the map
+      stays half the screen when the address bar hides and shows, the panel
+      scrolls below it, and «Speichern» stays at the panel's bottom edge in
+      the planner; tapping the map adds points; the ↑ ↓ × are easy to hit.
 - [ ] **Old address**: links to `odysgeh.tellbow.ch` (shared routes, live
       shares, e-mails sent before) end on the same page at
       `alvyo.tellbow.ch`. Passkeys made on the old address do not work on the

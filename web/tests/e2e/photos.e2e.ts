@@ -40,6 +40,9 @@ test('photos: upload, pin along the route, caption and view', async ({ page, bro
 	const lightbox = page.getByTestId('lightbox');
 	await expect(lightbox).toContainText('1 / 2');
 	await expect(lightbox).toContainText('04.07.2026');
+	// The keyboard stays in the viewer.
+	for (let i = 0; i < 12; i++) await page.keyboard.press('Tab');
+	expect(await page.evaluate(() => !!document.activeElement?.closest('dialog'))).toBe(true);
 	await lightbox.getByLabel('Beschreibung').fill('Blick zum Eiger');
 	await lightbox.getByLabel('Beschreibung').press('Tab');
 	await lightbox.getByRole('button', { name: 'Nächstes Foto' }).click();

@@ -11,8 +11,8 @@
 	import type { BaseMapId, OverlayId } from '$lib/map/styles';
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
-	import { SAC_COLOR } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import { sacBackground, sacInk } from '$lib/planner/colors';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagInput from '$lib/tags/TagInput.svelte';
@@ -128,8 +128,8 @@
 	index={collection.visibility === 'public'}
 />
 
-<main class="flex min-h-0 flex-1">
-	<section class="relative flex-1">
+<main class="flex min-h-0 flex-1 flex-col md:flex-row">
+	<section class="relative h-[50dvh] shrink-0 md:h-auto md:flex-1 md:shrink">
 		<Map bind:base bind:overlays {onready} />
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map}
@@ -138,7 +138,7 @@
 	</section>
 
 	<aside
-		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
+		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-96 md:flex-none md:border-t-0 md:border-l"
 		data-testid="collection-panel"
 	>
 		<div>
@@ -213,16 +213,16 @@
 							<span>{m.shared_by({ user: it.owner_username })}</span>
 							{#if it.distance_m > 0}
 								<span class="ml-auto"
-									>{formatDistance(it.distance_m)} · {formatDuration(it.duration_s, pace)} · ↑ {Math.round(
+									>{formatDistance(it.distance_m)} · {formatDuration(it.duration_s, pace)} · ↑&nbsp;{formatHeight(
 										it.ascent_m
-									)} m</span
+									)}</span
 								>
 							{/if}
 							{#if it.sac_grade > 0}
 								<span
-									class="rounded px-1 font-semibold text-white"
-									style:background={SAC_COLOR[`T${it.sac_grade}`] ?? '#a8a29e'}
-									>{formatSAC(it.sac_grade, it.sac_max)}</span
+									class="rounded px-1 font-semibold"
+									style:background={sacBackground(it.sac_grade)}
+									style:color={sacInk(it.sac_grade)}>{formatSAC(it.sac_grade, it.sac_max)}</span
 								>
 							{/if}
 						</div>

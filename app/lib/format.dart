@@ -1,13 +1,33 @@
+import 'package:intl/intl.dart';
+
+/// Keeps a number and its unit on one line.
+const _nbsp = '\u00a0';
+
 /// Formats like the web app: hiking time rounded to 5 minutes.
 String formatDuration(int seconds, [double pace = 1]) {
   final minutes = ((seconds * pace) / 60 / 5).round() * 5;
   final h = minutes ~/ 60, m = minutes % 60;
-  if (h == 0) return '$m min';
-  return m == 0 ? '$h h' : '$h h $m min';
+  if (h == 0) return '$m${_nbsp}min';
+  return m == 0 ? '$h${_nbsp}h' : '$h${_nbsp}h $m${_nbsp}min';
 }
 
-String formatDistance(double metres) =>
-    metres < 1000 ? '${metres.round()} m' : '${(metres / 1000).toStringAsFixed(1)} km';
+/// «19.3 km» in German, «19,3 km» in French (the app's language, set in
+/// main.dart); below a kilometre in metres.
+String formatDistance(double metres, [String? language]) {
+  if (metres < 1000) return formatHeight(metres);
+  final lang = language ?? Intl.getCurrentLocale().split(RegExp('[_-]')).first;
+  // The Swiss variants, as on the website.
+  final locale = switch (lang) {
+    'fr' => 'fr_CH',
+    'it' => 'it_CH',
+    'en' => 'en_GB',
+    _ => 'de_CH',
+  };
+  return '${NumberFormat('0.0', locale).format(metres / 1000)}${_nbsp}km';
+}
+
+/// Heights, ascents and short distances in whole metres: «1707 m».
+String formatHeight(double metres) => '${metres.round()}${_nbsp}m';
 
 String formatSac(int grade, int max) {
   if (grade == 0) return '–';

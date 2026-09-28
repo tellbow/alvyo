@@ -8,11 +8,13 @@ import 'tracker.dart';
 /// Uploads the finished hikes (see Recording.finish) of the logged-in account
 /// and deletes each once the server has it; another account's wait for it. Hikes the server can never take (outside Switzerland, too
 /// short) are deleted too; the others wait for the next try, unreadable ones
-/// are set aside (.bad). Returns how many were uploaded.
-Future<int> uploadHikes(Api api, Directory recordings) async {
+/// are set aside (.bad). Returns the route the server made of each hike
+/// tried, by the hike's id, null for those it can never take; hikes not
+/// tried (offline) are left out.
+Future<Map<String, String?>> uploadHikes(Api api, Directory recordings) async {
   final done = Directory('${recordings.path}/done');
-  if (!await done.exists()) return 0;
-  var uploaded = 0;
+  final routes = <String, String?>{};
+  if (!await done.exists()) return routes;
   for (final file in (await done.list().toList()).whereType<File>()) {
     if (!file.path.endsWith('.json')) continue;
     final Map<String, dynamic> j;
@@ -28,26 +30,29 @@ Future<int> uploadHikes(Api api, Directory recordings) async {
       await file.rename('${file.path}.bad'); // unreadable: set aside, not in the way of the others
       continue;
     }
+    final id = j['started'] as String;
     try {
-      if (points.length >= 2) {
-        await api.uploadHike(
-          id: j['started'] as String,
-          routeId: j['route_id'] as String?,
-          title: hikeTitle(j['title'] as String, started),
-          points: points,
-        );
-        uploaded++;
-      }
+      routes[id] = points.length < 2
+          ? null
+          : await api.uploadHike(
+              id: id,
+              routeId: j['route_id'] as String?,
+              title: hikeTitle(j['title'] as String, started),
+              points: points,
+            );
       await file.delete();
     } on ApiException catch (e) {
       // Only what the server can never take; anything else is tried again.
-      if (e.status == 422 && e.message.startsWith('the hike ')) await file.delete();
+      if (e.status == 422 && e.message.startsWith('the hike ')) {
+        routes[id] = null;
+        await file.delete();
+      }
       if (e.status == 401) rethrow; // logged out: no use trying the others
     } on Exception {
-      return uploaded; // offline: later
+      return routes; // offline: later
     }
   }
-  return uploaded;
+  return routes;
 }
 
 /// A hike's title: the route's and the date, within the server's 120

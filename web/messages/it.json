@@ -601,5 +601,12 @@
 	"homes_remove": "Rimuovi",
 	"homes_full": "Al massimo 5 case.",
 	"travel_start": "Partenza del trekking",
-	"travel_end": "Arrivo del trekking"
+	"travel_end": "Arrivo del trekking",
+	"error_not_found_title": "Questa pagina non esiste",
+	"error_not_found_text": "Forse è stata eliminata o resa privata, oppure l'indirizzo è scritto male.",
+	"error_title": "Qualcosa è andato storto",
+	"error_text": "Ricarica la pagina o riprova più tardi.",
+	"error_home": "Vai alla pagina iniziale",
+	"profile_hide": "Nascondi profilo altimetrico",
+	"nav_menu": "Menu"
 }

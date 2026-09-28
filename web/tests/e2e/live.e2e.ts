@@ -14,9 +14,10 @@ test('share a hike with a contact, who follows it by the link', async ({ page, b
 	// The contact is added in the account.
 	const friend = `friend-${id}@example.ch`;
 	await page.goto('/account');
-	await page.getByLabel('Name', { exact: true }).fill('Freundin');
-	await page.getByLabel('E-Mail', { exact: true }).fill(friend);
-	await page.getByRole('button', { name: 'Hinzufügen', exact: true }).click();
+	const form = page.getByTestId('contact-form');
+	await form.getByLabel('Name', { exact: true }).fill('Freundin');
+	await form.getByLabel('E-Mail', { exact: true }).fill(friend);
+	await form.getByRole('button', { name: 'Hinzufügen', exact: true }).click();
 	await expect(page.getByTestId('contacts')).toContainText('Freundin');
 
 	// The app starts the hike and sends positions (here through the API).

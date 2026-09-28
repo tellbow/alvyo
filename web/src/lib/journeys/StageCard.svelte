@@ -3,8 +3,8 @@
 	import type { JourneyStage, StagePatch } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
-	import { SAC_COLOR } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import { sacBackground, sacInk } from '$lib/planner/colors';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
 	import { stageColor } from './colors';
 	import PlacePicker from './PlacePicker.svelte';
 	import { placeDetail } from './places';
@@ -111,16 +111,17 @@
 					s.route.totals.duration_s,
 					pace
 				)}
-				· ↑ {Math.round(s.route.totals.ascent_m)} m
+				· ↑&nbsp;{formatHeight(s.route.totals.ascent_m)}
 			</span>
 			<span
-				class="rounded px-1 text-xs font-semibold text-white"
-				style:background={SAC_COLOR[`T${s.route.totals.sac_grade}`] ?? '#a8a29e'}
+				class="rounded px-1 text-xs font-semibold"
+				style:background={sacBackground(s.route.totals.sac_grade)}
+				style:color={sacInk(s.route.totals.sac_grade)}
 			>
 				{formatSAC(s.route.totals.sac_grade, s.route.totals.sac_max)}
 			</span>
 		{:else}
-			<span class="ml-auto text-xs text-stone-400">{m.journey_no_route()}</span>
+			<span class="ml-auto text-xs text-stone-500">{m.journey_no_route()}</span>
 		{/if}
 	</div>
 
@@ -168,7 +169,7 @@
 								· {m.place_suggested()}{/if}
 						</span>
 					{:else}
-						<span class="text-stone-400">{m.place_none()}</span>
+						<span class="text-stone-500">{m.place_none()}</span>
 					{/if}
 					{#if canEdit}
 						<button
@@ -275,14 +276,14 @@
 			{/if}
 			<button
 				type="button"
-				class="px-1"
+				class="icon-button"
 				disabled={i === 0}
 				onclick={() => onmove(-1)}
 				aria-label={m.journey_move_up()}>↑</button
 			>
 			<button
 				type="button"
-				class="px-1"
+				class="icon-button"
 				disabled={i === count - 1}
 				onclick={() => onmove(1)}
 				aria-label={m.journey_move_down()}>↓</button

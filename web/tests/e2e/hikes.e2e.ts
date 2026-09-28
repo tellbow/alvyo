@@ -39,7 +39,7 @@ test('a hike recorded with the app shows when it was hiked and its planned route
 	await expect(hike).toContainText('Gewandert am 20.09.2026');
 	await hike.getByRole('link', { name: /Bachalpsee/ }).click();
 	await expect(page.getByTestId('hike')).toHaveText(
-		/Gewandert am 20\.09\.2026 · 50 min unterwegs · geplante Route/
+		/Gewandert am 20\.09\.2026 · 50\smin unterwegs · geplante Route/
 	);
 	await page.getByTestId('hike').getByRole('link', { name: 'geplante Route' }).click();
 	await expect(page.getByTestId('route-title')).toHaveText('Bachalpsee');

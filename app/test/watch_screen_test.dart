@@ -95,7 +95,7 @@ void main() {
     );
     await pump(tester, FakeWorkouts([hike, indoor]), api);
     expect(find.text('Wanderung, 20.09.2026'), findsOneWidget);
-    expect(find.text('9.3 km · 3 h 5 min · Apple Watch'), findsOneWidget);
+    expect(find.text('9.3\u00a0km · 3\u00a0h 5\u00a0min · Apple Watch'), findsOneWidget);
 
     await tester.tap(find.descendant(of: find.byKey(const Key('workout-w1')), matching: find.text('Importieren')));
     await settle(tester);

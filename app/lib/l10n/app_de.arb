@@ -236,15 +236,6 @@
   },
   "navRecord": "Aufzeichnen",
   "navProfile": "Profil",
-  "recordHint": "Wähle eine Route und tippe auf «{start}», um die Wanderung aufzuzeichnen.",
-  "@recordHint": {
-    "description": "{start} is the text of the button that starts a hike (navStart).",
-    "placeholders": {
-      "start": {
-        "type": "String"
-      }
-    }
-  },
   "mapLayers": "Karten",
   "mapHuts": "Hütten",
   "mapLodging": "Hotels und Campingplätze",
@@ -760,5 +751,23 @@
   "homesRemove": "Entfernen",
   "homesFull": "Höchstens 5 Zuhause.",
   "travelStart": "Start der Tour",
-  "travelEnd": "Ende der Tour"
+  "travelEnd": "Ende der Tour",
+  "recordTitle": "Wanderung",
+  "@recordTitle": {
+    "description": "The title of a hike recorded without a route; the date is added."
+  },
+  "recordStart": "Aufzeichnung starten",
+  "recordRefused": "Nicht gespeichert: Die Wanderung ist zu kurz oder verlässt die Schweiz und Liechtenstein.",
+  "barRoutes": "Routen",
+  "@barRoutes": {
+    "description": "Short name under the icon in the app's bar (routesTitle)."
+  },
+  "barJourneys": "Etappen",
+  "@barJourneys": {
+    "description": "Short name under the icon in the app's bar (journeysTitle)."
+  },
+  "planAction": "Planen",
+  "@planAction": {
+    "description": "Button above My routes that opens «Route planen»."
+  }
 }

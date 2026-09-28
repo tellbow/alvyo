@@ -104,7 +104,6 @@
   "liveNoContacts": "Ajoute des contacts sur le site web sous « Compte ».",
   "navRecord": "Enregistrer",
   "navProfile": "Profil",
-  "recordHint": "Choisis un itinéraire et touche « {start} » pour enregistrer la randonnée.",
   "mapLayers": "Cartes",
   "mapHuts": "Cabanes",
   "mapLodging": "Hôtels et campings",
@@ -388,5 +387,11 @@
   "homesRemove": "Retirer",
   "homesFull": "5 domiciles au plus.",
   "travelStart": "Départ de la randonnée",
-  "travelEnd": "Arrivée de la randonnée"
+  "travelEnd": "Arrivée de la randonnée",
+  "recordTitle": "Randonnée",
+  "recordStart": "Commencer l'enregistrement",
+  "recordRefused": "Non enregistrée : la randonnée est trop courte ou sort de la Suisse et du Liechtenstein.",
+  "barRoutes": "Itinéraires",
+  "barJourneys": "Étapes",
+  "planAction": "Planifier"
 }

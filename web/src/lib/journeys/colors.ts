@@ -1,5 +1,8 @@
-/** Stage colours on the journey map and profile, cycled. */
-export const STAGE_COLORS = ['#a21caf', '#2563eb', '#0f766e', '#c2410c', '#4d7c0f', '#be123c'];
+/**
+ * Stage colours on the journey map and profile, cycled; in an order where
+ * neighbours differ also for red-green colour blindness (colors.spec.ts).
+ */
+export const STAGE_COLORS = ['#a21caf', '#4d7c0f', '#2563eb', '#c2410c', '#0f766e', '#be123c'];
 
 export const stageColor = (i: number) => STAGE_COLORS[i % STAGE_COLORS.length];
 

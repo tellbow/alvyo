@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -23,11 +22,22 @@ import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
 
-/// What was recorded, for the route screen to show.
+/// What was recorded, for the screen that started the hike to show.
 class HikeSummary {
-  const HikeSummary(this.distanceM, this.duration);
+  const HikeSummary(this.distanceM, this.duration, this.id);
   final double distanceM;
   final Duration duration;
+
+  /// The hike's id when uploaded (see uploadHikes).
+  final String id;
+
+  /// What became of it, from what uploadHikes returned: saved as a route,
+  /// refused by the server, or waiting to be uploaded.
+  String message(AppLocalizations t, Map<String, String?> routes) {
+    final distance = formatDistance(distanceM), time = formatDuration(duration.inSeconds);
+    if (!routes.containsKey(id)) return t.navSaved(distance, time);
+    return routes[id] != null ? t.navUploaded(distance, time) : t.recordRefused;
+  }
 }
 
 /// Hiking a route: the position on the (offline) map, how far it is still,
@@ -188,13 +198,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
       _progress = p ?? _progress;
       _gpsLost = false;
     });
-    await _style?.updateGeoJsonSource(
-      id: 'me',
-      data: jsonEncode({
-        'type': 'Point',
-        'coordinates': [fix.lon, fix.lat],
-      }),
-    );
+    await _style?.updateGeoJsonSource(id: 'me', data: positionJson(fix.lon, fix.lat));
     if (_follow) {
       // A short glide rather than a jump to each position.
       await _map?.animateCamera(
@@ -221,39 +225,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
     _style = style;
     await _places.addTo(style);
     await addRouteLine(style, widget.route.line);
-    final f = _fix;
-    await style.addSource(
-      GeoJsonSource(
-        id: 'me',
-        data: jsonEncode(
-          f == null
-              ? {'type': 'FeatureCollection', 'features': []}
-              : {
-                  'type': 'Point',
-                  'coordinates': [f.lon, f.lat],
-                },
-        ),
-      ),
-    );
-    await style.addLayer(
-      const CircleStyleLayer(
-        id: 'me-halo',
-        sourceId: 'me',
-        paint: {'circle-radius': 16, 'circle-color': '#2563eb', 'circle-opacity': 0.2},
-      ),
-    );
-    await style.addLayer(
-      const CircleStyleLayer(
-        id: 'me-dot',
-        sourceId: 'me',
-        paint: {
-          'circle-radius': 7,
-          'circle-color': '#2563eb',
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 2,
-        },
-      ),
-    );
+    await addPositionDot(style, _fix?.lon, _fix?.lat);
   }
 
   Future<void> _finish() async {
@@ -288,6 +260,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
       summary = HikeSummary(
         trackLengthM(fixes),
         fixes.isEmpty ? Duration.zero : fixes.last.time.difference(rec.started),
+        rec.started.toIso8601String(),
       );
     }
     if (mounted) Navigator.of(context).pop(summary);
@@ -430,11 +403,11 @@ class _NavigateScreenState extends State<NavigateScreen> {
                             key: const Key('nav-progress'),
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _Stat(t.navDone, '${formatDistance(p.doneM)} · ↑ ${p.ascentDoneM.round()} m'),
+                              _Stat(t.navDone, '${formatDistance(p.doneM)} · ↑\u00a0${formatHeight(p.ascentDoneM)}'),
                               _Stat(
                                 t.navRemaining,
                                 '${formatDistance(p.remainingM)} · ${formatDuration(p.remaining.inSeconds)}\n'
-                                '↑ ${p.ascentRemainingM.round()} m',
+                                '↑\u00a0${formatHeight(p.ascentRemainingM)}',
                               ),
                               if (_recording != null)
                                 _Stat(

@@ -33,6 +33,8 @@ test('find a public route on the map, then its author', async ({ page }) => {
 	await expect(mine).toHaveCount(1);
 	await expect(mine).toContainText(`Aussichtsweg ${id}`);
 	await expect(mine).toContainText('T2');
+	// Its start has a dot, to be found from afar.
+	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /collection-start/);
 
 	// The route is T2, so it is gone when only T1 is allowed; the address keeps the filter.
 	await page.getByLabel('Schwierigkeit').selectOption({ label: 'bis T1' });

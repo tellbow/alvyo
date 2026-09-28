@@ -718,12 +718,6 @@ abstract class AppLocalizations {
   /// **'Profil'**
   String get navProfile;
 
-  /// {start} is the text of the button that starts a hike (navStart).
-  ///
-  /// In de, this message translates to:
-  /// **'Wähle eine Route und tippe auf «{start}», um die Wanderung aufzuzeichnen.'**
-  String recordHint(String start);
-
   /// No description provided for @mapLayers.
   ///
   /// In de, this message translates to:
@@ -2427,6 +2421,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ende der Tour'**
   String get travelEnd;
+
+  /// The title of a hike recorded without a route; the date is added.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderung'**
+  String get recordTitle;
+
+  /// No description provided for @recordStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufzeichnung starten'**
+  String get recordStart;
+
+  /// No description provided for @recordRefused.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht gespeichert: Die Wanderung ist zu kurz oder verlässt die Schweiz und Liechtenstein.'**
+  String get recordRefused;
+
+  /// Short name under the icon in the app's bar (routesTitle).
+  ///
+  /// In de, this message translates to:
+  /// **'Routen'**
+  String get barRoutes;
+
+  /// Short name under the icon in the app's bar (journeysTitle).
+  ///
+  /// In de, this message translates to:
+  /// **'Etappen'**
+  String get barJourneys;
+
+  /// Button above My routes that opens «Route planen».
+  ///
+  /// In de, this message translates to:
+  /// **'Planen'**
+  String get planAction;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

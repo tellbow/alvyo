@@ -226,15 +226,18 @@ void main() {
     final server = FakeServer();
     final api = Api('https://alvyo.test', token: 't', client: server.client);
     await pumpList(tester, api, find.text('Via Alpina'));
-    expect(find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'), findsOneWidget);
+    expect(find.text('0 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
 
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Gaflei – Sargans'));
     expect(find.text('Gaflei – Sargans'), findsOneWidget);
-    expect(find.text('18.5 km · 4 h 45 min · ↑ 101 m · T2–T3\nGaflei, Klinik → Sargans'), findsOneWidget);
+    expect(
+      find.text('18.5\u00a0km · 4\u00a0h 45\u00a0min · ↑\u00a0101\u00a0m · T2–T3\nGaflei, Klinik → Sargans'),
+      findsOneWidget,
+    );
     expect(
       find.text(
-        '02.10.2026 · 18.5 km · 4 h 45 min · ↑ 101 m · T2–T3\n'
+        '02.10.2026 · 18.5\u00a0km · 4\u00a0h 45\u00a0min · ↑\u00a0101\u00a0m · T2–T3\n'
         'Überbrückt mit öffentlichem Verkehr\nUnterkunft: Gasthaus Alpenhof · gebucht',
       ),
       findsOneWidget,
@@ -246,7 +249,7 @@ void main() {
     // Without a title and route: numbered, and opens its sheet (details,
     // public transport) instead of a map.
     expect(find.text('Etappe 3'), findsOneWidget);
-    expect(find.text('Noch keine Route\n800 m Abstand zum Ende der vorherigen Etappe'), findsOneWidget);
+    expect(find.text('Noch keine Route\n800\u00a0m Abstand zum Ende der vorherigen Etappe'), findsOneWidget);
     await tester.tap(find.text('Etappe 3'));
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsOneWidget);
@@ -265,7 +268,7 @@ void main() {
     server.offline = true;
     await pumpList(tester, api, find.byKey(const Key('journeys-offline')));
     expect(find.byKey(const Key('journeys-offline')), findsOneWidget);
-    expect(find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'), findsOneWidget);
+    expect(find.text('0 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Sargans – Weisstannen'));
     expect(find.text('Sargans – Weisstannen'), findsOneWidget);
@@ -348,7 +351,7 @@ void main() {
     expect(find.byKey(const Key('stage-done-2')), findsNothing);
 
     await tester.tap(find.byKey(const Key('stage-done-0')));
-    await until(tester, find.text('1 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'));
+    await until(tester, find.text('1 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'));
     expect(server.patches.single['status'], 'done');
     expect(server.patches.single['done_on'], matches(RegExp(r'^\d{4}-\d{2}-\d{2}$')));
     expect(tester.widget<IconButton>(find.byKey(const Key('stage-done-0'))).isSelected, isTrue);
@@ -359,7 +362,7 @@ void main() {
       ..s1Version = 7;
     await tester.tap(find.byKey(const Key('stage-done-0')));
     await until(tester, find.text('Jemand hat die Etappe inzwischen geändert. Hier ist der neue Stand.'));
-    await until(tester, find.text('0 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'));
+    await until(tester, find.text('0 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'));
     expect(server.patches, hasLength(1));
     expect(tester.widget<IconButton>(find.byKey(const Key('stage-done-0'))).isSelected, isFalse);
   });
@@ -379,8 +382,8 @@ void main() {
     await until(tester, find.text('Gaflei – Sargans'));
     server.s1Status = 'done'; // changed elsewhere
     await tester.fling(find.text('Gaflei – Sargans'), const Offset(0, 400), 1000);
-    await until(tester, find.text('1 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'));
-    expect(find.text('1 von 3 Etappen · 32.6 km · 9 h 35 min · ↑ 1118 m'), findsOneWidget);
+    await until(tester, find.text('1 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'));
+    expect(find.text('1 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

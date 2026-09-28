@@ -177,6 +177,6 @@
 				{/if}
 			</div>
 		{/each}
-		<p class="text-xs text-stone-400">{m.travel_private()}</p>
+		<p class="text-xs text-stone-500">{m.travel_private()}</p>
 	{/if}
 </section>

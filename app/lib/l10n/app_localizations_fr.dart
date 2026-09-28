@@ -355,11 +355,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navProfile => 'Profil';
 
   @override
-  String recordHint(String start) {
-    return 'Choisis un itinéraire et touche « $start » pour enregistrer la randonnée.';
-  }
-
-  @override
   String get mapLayers => 'Cartes';
 
   @override
@@ -1292,4 +1287,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get travelEnd => 'Arrivée de la randonnée';
+
+  @override
+  String get recordTitle => 'Randonnée';
+
+  @override
+  String get recordStart => 'Commencer l\'enregistrement';
+
+  @override
+  String get recordRefused =>
+      'Non enregistrée : la randonnée est trop courte ou sort de la Suisse et du Liechtenstein.';
+
+  @override
+  String get barRoutes => 'Itinéraires';
+
+  @override
+  String get barJourneys => 'Étapes';
+
+  @override
+  String get planAction => 'Planifier';
 }

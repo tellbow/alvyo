@@ -4,7 +4,7 @@
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { intlLocale } from '$lib/util/locale';
-	import { SAC_COLOR } from '$lib/planner/colors';
+	import { sacBackground, sacInk } from '$lib/planner/colors';
 	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
 
 	let { data } = $props();
@@ -73,9 +73,9 @@
 					>
 					{#if it.sac_grade > 0}
 						<span
-							class="rounded px-1.5 py-0.5 text-xs font-semibold text-white"
-							style:background={SAC_COLOR[`T${it.sac_grade}`] ?? '#a8a29e'}
-							>{formatSAC(it.sac_grade, it.sac_max)}</span
+							class="rounded px-1.5 py-0.5 text-xs font-semibold"
+							style:background={sacBackground(it.sac_grade)}
+							style:color={sacInk(it.sac_grade)}>{formatSAC(it.sac_grade, it.sac_max)}</span
 						>
 					{/if}
 				</li>

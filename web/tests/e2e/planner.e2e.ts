@@ -51,7 +51,15 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 	await expect(page.getByTestId('stat-time')).toContainText(/min|h/);
 	await expect(page.getByTestId('stat-sac')).toContainText(/T\d/);
 	await expect(page.getByTestId('elevation-profile')).toBeVisible();
+	await expect(page.getByTestId('point').first()).toContainText(/\d+\sm/);
 	await page.screenshot({ path: 'test-results/planner.png' });
+
+	// The profile folds away and back; the browser remembers it.
+	await page.getByTestId('profile-hide').click();
+	await expect(page.getByTestId('elevation-profile')).toBeHidden();
+	expect(await page.evaluate(() => localStorage.getItem('alvyo.profileFolded'))).toBe('1');
+	await page.getByTestId('profile-show').click();
+	await expect(page.getByTestId('elevation-profile')).toBeVisible();
 
 	// Dragging the middle anchor recomputes exactly its two adjacent legs.
 	const middle = (await page.getByTestId('anchor').nth(1).boundingBox())!;

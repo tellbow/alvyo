@@ -35,6 +35,16 @@ describe('Planner', () => {
 		expect(calls).toHaveLength(5);
 	});
 
+	it('knows the height of each point once its legs are computed', async () => {
+		const { planner: p } = setup();
+		p.add(8.0, 46.0);
+		expect(p.height(0)).toBeUndefined();
+		p.add(8.1, 46.1);
+		p.add(8.2, 46.2);
+		await p.idle();
+		expect([p.height(0), p.height(1), p.height(2)]).toEqual([500, 600, 600]);
+	});
+
 	it('undo, redo and reverse reuse computed legs', async () => {
 		const { planner: p, calls } = setup();
 		p.add(8.0, 46.0);

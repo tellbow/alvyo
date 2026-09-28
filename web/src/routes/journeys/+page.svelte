@@ -90,8 +90,10 @@
 		>
 			{#each journeys as j (j.id)}
 				<!-- The title's link covers the row; the tags link above it. -->
-				<li class="relative flex items-center gap-4 px-4 py-3 hover:bg-stone-50">
-					<span class="flex flex-1 flex-col gap-1">
+				<li
+					class="relative flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-stone-50"
+				>
+					<span class="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:flex-1">
 						<a
 							href={resolve('/journeys/[id]', { id: j.id })}
 							class="font-medium after:absolute after:inset-0">{j.title}</a
@@ -101,17 +103,17 @@
 					<span class="text-sm text-stone-600"
 						>{m.journey_stages_count({ done: j.stages_done, total: j.stages })}</span
 					>
-					<span class="w-20 text-sm text-stone-600 tabular-nums"
+					<span class="text-sm text-stone-600 tabular-nums sm:w-20"
 						>{formatDistance(j.distance_m)}</span
 					>
-					<span class="w-24 text-sm text-stone-600 tabular-nums"
+					<span class="text-sm text-stone-600 tabular-nums sm:w-24"
 						>{formatDuration(j.duration_s)}</span
 					>
 					<!-- Above the title's link. -->
 					{#if confirming === j.id}
 						<button
 							type="button"
-							class="relative rounded bg-red-700 px-2 py-1 text-xs text-white"
+							class="relative ml-auto rounded bg-red-700 px-2 py-1 text-xs text-white sm:ml-0"
 							data-testid="journey-list-delete-confirm"
 							onclick={() => remove(j.id)}>{m.journey_delete_confirm()}</button
 						>
@@ -119,7 +121,7 @@
 						<button
 							type="button"
 							disabled={!hydrated.value}
-							class="relative text-xs text-stone-500 underline hover:text-red-700"
+							class="relative ml-auto text-xs text-stone-500 underline hover:text-red-700 sm:ml-0"
 							data-testid="journey-list-delete"
 							onclick={() => (confirming = j.id)}>{m.route_delete()}</button
 						>
@@ -136,16 +138,16 @@
 			data-testid="shared-journeys"
 		>
 			{#each shared as j (j.id)}
-				<li class="flex items-center gap-4 px-4 py-3">
+				<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
 					<a
 						href={resolve('/journeys/[id]', { id: j.id })}
-						class="flex-1 font-medium hover:underline">{j.title}</a
+						class="w-full font-medium hover:underline sm:w-auto sm:flex-1">{j.title}</a
 					>
 					<span class="text-sm text-stone-600">{m.shared_by({ user: j.owner_username })}</span>
 					<span class="text-sm text-stone-600"
 						>{m.journey_stages_count({ done: j.stages_done, total: j.stages })}</span
 					>
-					<span class="w-28 text-xs text-stone-500"
+					<span class="text-xs text-stone-500 sm:w-28"
 						>{j.role === 'editor' ? m.role_editor() : m.role_viewer()}</span
 					>
 					<button type="button" class="text-xs text-stone-500 underline" onclick={() => leave(j.id)}

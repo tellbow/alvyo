@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { combine, formatDuration, formatSAC, legKey, reverseLeg, totals } from './route';
+import {
+	combine,
+	formatDistance,
+	formatDuration,
+	formatHeight,
+	formatSAC,
+	gradeAt,
+	legKey,
+	reverseLeg,
+	totals
+} from './route';
 import { fakeLeg } from './testing';
 
 describe('legKey', () => {
@@ -83,10 +93,31 @@ describe('totals and combine', () => {
 
 describe('formatting', () => {
 	it('rounds hiking times to 5 minutes like signposts', () => {
-		expect(formatDuration(3 * 3600 + 23 * 60)).toBe('3 h 25 min');
-		expect(formatDuration(3600)).toBe('1 h');
-		expect(formatDuration(12 * 60)).toBe('10 min');
-		expect(formatDuration(3600, 1.5)).toBe('1 h 30 min');
+		expect(formatDuration(3 * 3600 + 23 * 60)).toBe('3\u00a0h 25\u00a0min');
+		expect(formatDuration(3600)).toBe('1\u00a0h');
+		expect(formatDuration(12 * 60)).toBe('10\u00a0min');
+		expect(formatDuration(3600, 1.5)).toBe('1\u00a0h 30\u00a0min');
+	});
+	it("writes distances in the reader's language, the unit on the same line", () => {
+		expect(formatDistance(19_349, 'de-CH')).toBe('19.3\u00a0km');
+		expect(formatDistance(1_234_500, 'de-CH')).toBe('1234.5\u00a0km');
+		expect(formatDistance(152.4, 'de-CH')).toBe('152\u00a0m');
+		expect(formatDistance(19_349, 'fr-CH')).toBe('19,3\u00a0km');
+		expect(formatHeight(1706.6)).toBe('1707\u00a0m');
+	});
+	it('names the grade under the pointer, not a stage', () => {
+		const line = {
+			coordinates: [],
+			distance: [],
+			sac: [
+				{ from: 0, to: 4, value: 'T2' },
+				{ from: 4, to: 9, value: 'T4' }
+			]
+		};
+		expect(gradeAt(line, 2)).toBe('T2');
+		expect(gradeAt(line, 7)).toBe('T4');
+		expect(gradeAt(line, 12)).toBeUndefined();
+		expect(gradeAt({ ...line, sac: [{ from: 0, to: 9, value: 'S0' }] }, 2)).toBeUndefined();
 	});
 	it('shows SAC ranges', () => {
 		expect(formatSAC(2, 3)).toBe('T2–T3');

@@ -5,7 +5,7 @@
 	import { outline } from '$lib/discover/outline';
 	import { m } from '$lib/paraglide/messages';
 	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
-	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
 	import Seo from '$lib/seo/Seo.svelte';
 
 	let { data } = $props();
@@ -24,7 +24,7 @@
 	}
 
 	function stats(it: DiscoverItem) {
-		return `${formatDistance(it.distance_m)} · ${formatDuration(it.duration_s, pace)} · ↑ ${Math.round(it.ascent_m)} m`;
+		return `${formatDistance(it.distance_m)} · ${formatDuration(it.duration_s, pace)} · ↑\u00a0${formatHeight(it.ascent_m)}`;
 	}
 
 	// A place: the public hikes around it.
@@ -111,7 +111,7 @@
 					label={m.home_search()}
 					near={() => undefined}
 					onpick={(p) => around(p.at)}
-					inputClass="h-14 w-full rounded-2xl border border-stone-300 bg-ground px-4 text-base outline-none focus:border-accent"
+					inputClass="h-14 w-full rounded-2xl border border-stone-300 bg-ground px-4 text-base focus:border-accent focus:ring-2 focus:ring-accent/25 focus:outline-none"
 				/>
 			{/if}
 			<div class="flex gap-3">
@@ -205,7 +205,7 @@
 						<div class="flex flex-col-reverse">
 							<dt class="text-xs text-stone-600">{m.stat_ascent()}</dt>
 							<dd class="font-display text-[22px] font-semibold tabular-nums">
-								{Math.round(featured.ascent_m)} m
+								{formatHeight(featured.ascent_m)}
 							</dd>
 						</div>
 					</dl>

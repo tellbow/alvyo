@@ -133,14 +133,10 @@ class _RouteScreenState extends State<RouteScreen> {
     if (!mounted) return;
     setState(() => _resumable = false);
     if (summary == null) return;
-    final uploaded = await uploadHikes(widget.api, await Recording.defaultRoot()).catchError((_) => 0);
-    final distance = formatDistance(summary.distanceM), duration = formatDuration(summary.duration.inSeconds);
+    final routes = await uploadHikes(widget.api, await Recording.defaultRoot()).catchError((_) => <String, String?>{});
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          key: const Key('nav-saved'),
-          uploaded > 0 ? t.navUploaded(distance, duration) : t.navSaved(distance, duration),
-        ),
+        content: Text(key: const Key('nav-saved'), summary.message(t, routes)),
         duration: const Duration(seconds: 8),
         // A stage's route: offer to tick the stage off, if the user may.
         action: r.journeyId == null || !r.canEdit
@@ -358,7 +354,7 @@ class _RouteScreenState extends State<RouteScreen> {
                           children: [
                             Text(
                               '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
-                              '↑ ${r.totals.ascentM.round()} m ↓ ${r.totals.descentM.round()} m · '
+                              '↑\u00a0${formatHeight(r.totals.ascentM)} ↓\u00a0${formatHeight(r.totals.descentM)} · '
                               '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
@@ -403,7 +399,8 @@ class _RouteScreenState extends State<RouteScreen> {
                                       label: Text(t.offlineSaved),
                                     ),
                                   ] else
-                                    FilledButton.tonalIcon(
+                                    // Below «Wanderung starten», not as bright.
+                                    OutlinedButton.icon(
                                       key: const Key('offline-save'),
                                       onPressed: _save,
                                       icon: const Icon(Icons.download),

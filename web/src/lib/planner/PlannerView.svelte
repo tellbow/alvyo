@@ -19,6 +19,7 @@
 	import StageSavePanel from '$lib/journeys/StageSavePanel.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
+	import ProfileDock from './ProfileDock.svelte';
 	import PlaceSearch from './PlaceSearch.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import SavePanel from './SavePanel.svelte';
@@ -26,7 +27,7 @@
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
 	import { fetchLeg } from './api';
 	import { Planner, type LegSlot } from './planner.svelte';
-	import { formatDistance, formatDuration, type Profile } from './route';
+	import { formatDistance, formatDuration, formatHeight, type Profile } from './route';
 
 	let {
 		user,
@@ -189,8 +190,8 @@
 
 <svelte:window {onkeydown} />
 
-<main class="flex min-h-0 flex-1">
-	<section class="relative flex-1">
+<main class="flex min-h-0 flex-1 flex-col md:flex-row">
+	<section class="relative h-[50dvh] shrink-0 md:h-auto md:flex-1 md:shrink">
 		<Map
 			bind:base
 			bind:overlays
@@ -204,16 +205,14 @@
 			<RouteLayers {map} {lib} {planner} {hover} {ghosts} {dragPath} />
 		{/if}
 		{#if planner.line.coordinates.length > 1}
-			<div
-				class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-surface/95 px-2 py-1 shadow ring-1 ring-stone-300"
-			>
+			<ProfileDock>
 				<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
-			</div>
+			</ProfileDock>
 		{/if}
 	</section>
 
 	<aside
-		class="flex w-80 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
+		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-80 md:flex-none md:border-t-0 md:border-l"
 		data-testid="planner-panel"
 	>
 		<PlanTabs current="route" />
@@ -268,16 +267,22 @@
 					<ol class="mb-2 flex flex-col gap-1 text-sm">
 						{#each planner.anchors as a, i (a.id)}
 							{@const kind = i === 0 ? 'start' : i === planner.anchors.length - 1 ? 'end' : 'via'}
-							<li class="flex items-center gap-2" data-testid="point">
+							{@const height = planner.height(i)}
+							<li class="flex items-center gap-1" data-testid="point">
 								<span class="anchor anchor-{kind} shrink-0" style="cursor: default"
 									>{kind === 'via' ? i : ''}</span
 								>
 								<span class="min-w-0 flex-1 truncate" class:text-stone-500={!a.name}
 									>{a.name ?? m.plan_point_map()}</span
 								>
+								{#if height !== undefined}
+									<span class="shrink-0 text-xs text-stone-500 tabular-nums"
+										>{formatHeight(height)}</span
+									>
+								{/if}
 								<button
 									type="button"
-									class="icon"
+									class="icon-button"
 									aria-label={m.plan_point_up()}
 									title={m.plan_point_up()}
 									disabled={i === 0}
@@ -285,7 +290,7 @@
 								>
 								<button
 									type="button"
-									class="icon"
+									class="icon-button"
 									aria-label={m.plan_point_down()}
 									title={m.plan_point_down()}
 									disabled={i === planner.anchors.length - 1}
@@ -293,7 +298,7 @@
 								>
 								<button
 									type="button"
-									class="icon"
+									class="icon-button"
 									aria-label={m.plan_point_remove()}
 									title={m.plan_point_remove()}
 									onclick={() => planner.remove(a.id)}>×</button
@@ -369,7 +374,7 @@
 											)}
 										</span>
 									{:else if slot.state === 'loading'}
-										<span class="flex-1 text-stone-400">…</span>
+										<span class="flex-1 text-stone-500">…</span>
 									{:else}
 										<span class="flex-1"></span>
 									{/if}
@@ -415,16 +420,5 @@
 	}
 	.btn:disabled {
 		opacity: 0.4;
-	}
-	.icon {
-		width: 1.5rem;
-		border-radius: 0.25rem;
-		color: var(--color-stone-600);
-	}
-	.icon:hover:not(:disabled) {
-		background: var(--color-stone-100);
-	}
-	.icon:disabled {
-		opacity: 0.3;
 	}
 </style>

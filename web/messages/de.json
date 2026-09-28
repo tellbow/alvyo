@@ -601,5 +601,12 @@
 	"homes_remove": "Entfernen",
 	"homes_full": "Höchstens 5 Zuhause.",
 	"travel_start": "Start der Tour",
-	"travel_end": "Ende der Tour"
+	"travel_end": "Ende der Tour",
+	"error_not_found_title": "Diese Seite gibt es nicht",
+	"error_not_found_text": "Vielleicht wurde sie gelöscht, ist privat oder die Adresse ist falsch geschrieben.",
+	"error_title": "Etwas ist schiefgelaufen",
+	"error_text": "Lade die Seite neu oder versuche es später nochmals.",
+	"error_home": "Zur Startseite",
+	"profile_hide": "Höhenprofil ausblenden",
+	"nav_menu": "Menü"
 }

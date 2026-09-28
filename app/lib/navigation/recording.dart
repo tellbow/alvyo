@@ -20,14 +20,18 @@ enum Before {
   setAside,
 }
 
-/// A hike being recorded. Positions are appended to a file as they come, so
-/// nothing is lost when iOS stops the app; opening the route again resumes.
-/// Finished hikes wait in `<root>/done/` until they are uploaded.
+/// A hike being recorded, on a route or without one. Positions are appended
+/// to a file as they come, so nothing is lost when iOS stops the app; opening
+/// the route (or the record button) again resumes. Finished hikes wait in
+/// `<root>/done/` until they are uploaded.
 class Recording {
   Recording._(this.root, this.routeId, this.title, this.started, this.owner);
 
   final Directory root;
-  final String routeId, title;
+  final String title;
+
+  /// The route hiked; null when hiking without one.
+  final String? routeId;
   final DateTime started;
 
   /// The account it is recorded for; it uploads only to that one. Null for
@@ -68,7 +72,7 @@ class Recording {
     final r =
         Recording._(
             root,
-            m['route_id'] as String,
+            m['route_id'] as String?,
             m['title'] as String,
             DateTime.parse(m['started'] as String),
             m['owner'] as String?,
@@ -97,10 +101,10 @@ class Recording {
     if (last != 10) await _fixes.writeAsString('\n', mode: FileMode.append);
   }
 
-  /// Starts recording a hike on a route; one at a time.
+  /// Starts recording a hike, on a route or without one; one at a time.
   static Future<Recording> start(
     Directory root, {
-    required String routeId,
+    String? routeId,
     required String title,
     String? owner,
     DateTime? now,
@@ -125,7 +129,7 @@ class Recording {
   }
 
   Map<String, dynamic> _metaJson() => {
-    'route_id': routeId,
+    'route_id': ?routeId,
     'title': title,
     'started': started.toIso8601String(),
     'owner': ?owner,
@@ -136,9 +140,9 @@ class Recording {
   /// Whether it belongs to someone else than [user] (both known).
   bool ownedByOther(String? user) => owner != null && user != null && owner != user;
 
-  /// What starting a hike on [routeId] for [user] means for the recording
-  /// in progress, [active].
-  static Before before(Recording? active, String routeId, String? user) {
+  /// What starting a hike on [routeId] (null: without a route) for [user]
+  /// means for the recording in progress, [active].
+  static Before before(Recording? active, String? routeId, String? user) {
     if (active == null) return Before.start;
     if (active.ownedByOther(user)) return Before.setAside;
     return active.routeId == routeId ? Before.resume : Before.ask;

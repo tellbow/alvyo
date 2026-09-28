@@ -355,11 +355,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navProfile => 'Profilo';
 
   @override
-  String recordHint(String start) {
-    return 'Scegli un percorso e tocca «$start» per registrare l\'escursione.';
-  }
-
-  @override
   String get mapLayers => 'Carte';
 
   @override
@@ -1290,4 +1285,22 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get travelEnd => 'Arrivo del trekking';
+
+  @override
+  String get recordTitle => 'Escursione';
+
+  @override
+  String get recordStart => 'Avvia la registrazione';
+
+  @override
+  String get recordRefused => 'Non salvata: l\'escursione è troppo corta o esce dalla Svizzera e dal Liechtenstein.';
+
+  @override
+  String get barRoutes => 'Percorsi';
+
+  @override
+  String get barJourneys => 'Tappe';
+
+  @override
+  String get planAction => 'Pianifica';
 }

@@ -41,29 +41,29 @@
 	}
 </script>
 
-<form
-	method="post"
-	onsubmit={save}
-	class="flex flex-col gap-2 rounded-md border border-stone-200 p-3"
-	data-testid="save-panel"
->
-	<p class="text-sm">
-		<span class="font-medium">{m.journey_stage({ n: index + 1 })}</span>
-		{#if stage.title}· {stage.title}{/if}
-		<br /><span class="text-xs text-stone-500">{journey.title}</span>
-	</p>
-	<button
-		disabled={!hydrated.value || !canSave}
-		class="rounded-md bg-accent px-3 py-1.5 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
-	>
-		{status === 'saving' ? m.saving() : m.stage_save()}
-	</button>
-	{#if status === 'conflict'}
-		<p class="text-xs text-red-700 dark:text-red-400" role="alert">{m.save_conflict()}</p>
-	{:else if status === 'failed'}
-		<p class="text-xs text-red-700 dark:text-red-400" role="alert">{m.save_failed()}</p>
-	{:else if !planner.complete && planner.anchors.length > 1}
-		<p class="text-xs text-stone-500">{m.save_incomplete()}</p>
-	{/if}
-	<a href={back} class="text-xs text-accent-ink underline">{m.journey_back()}</a>
+<!-- The button stays at the bottom of the panel, as in SavePanel. -->
+<form method="post" onsubmit={save} class="contents" data-testid="save-panel">
+	<div class="flex flex-col gap-2 rounded-md border border-stone-200 p-3">
+		<p class="text-sm">
+			<span class="font-medium">{m.journey_stage({ n: index + 1 })}</span>
+			{#if stage.title}· {stage.title}{/if}
+			<br /><span class="text-xs text-stone-500">{journey.title}</span>
+		</p>
+		<a href={back} class="text-xs text-accent-ink underline">{m.journey_back()}</a>
+	</div>
+	<div class="save-bar">
+		<button
+			disabled={!hydrated.value || !canSave}
+			class="w-full rounded-md bg-accent px-3 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-50"
+		>
+			{status === 'saving' ? m.saving() : m.stage_save()}
+		</button>
+		{#if status === 'conflict'}
+			<p class="text-xs text-red-700 dark:text-red-400" role="alert">{m.save_conflict()}</p>
+		{:else if status === 'failed'}
+			<p class="text-xs text-red-700 dark:text-red-400" role="alert">{m.save_failed()}</p>
+		{:else if !planner.complete && planner.anchors.length > 1}
+			<p class="text-xs text-stone-500">{m.save_incomplete()}</p>
+		{/if}
+	</div>
 </form>

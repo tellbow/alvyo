@@ -15,7 +15,8 @@ import 'journey_screen.dart';
 import 'travel_screen.dart';
 
 /// Stage colours as on the website, cycled.
-const _stageColors = ['#a21caf', '#2563eb', '#0f766e', '#c2410c', '#4d7c0f', '#be123c'];
+// As on the website: neighbours differ also for red-green colour blindness.
+const _stageColors = ['#a21caf', '#4d7c0f', '#2563eb', '#c2410c', '#0f766e', '#be123c'];
 
 Color _color(String hex) => Color(int.parse('ff${hex.substring(1)}', radix: 16));
 
@@ -764,7 +765,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                     Expanded(
                       child: Text(
                         '${formatDistance(st.totals.distanceM)} · ${formatDuration(st.totals.durationS, _pace)} · '
-                        '↑ ${st.totals.ascentM.round()} m · ${formatSac(st.totals.sacGrade, st.totals.sacMax)}',
+                        '↑\u00a0${formatHeight(st.totals.ascentM)} · ${formatSac(st.totals.sacGrade, st.totals.sacMax)}',
                         textAlign: TextAlign.end,
                         style: small,
                       ),

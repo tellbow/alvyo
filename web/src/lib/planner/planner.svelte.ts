@@ -90,6 +90,15 @@ export class Planner {
 	totals = $derived(totals(this.readyLegs));
 	line = $derived(combine(this.readyLegs));
 
+	/** The height of the anchor at `i` on its computed legs, if known. */
+	height(i: number): number | undefined {
+		const before = this.legs[i - 1];
+		if (before?.state === 'ok') return before.leg.coordinates.at(-1)?.[2];
+		const after = this.legs[i];
+		if (after?.state === 'ok') return after.leg.coordinates[0]?.[2];
+		return undefined;
+	}
+
 	/** Resumes a saved route; its legs are reused as computed. */
 	load(c: PlannerContent) {
 		this.profile = c.profile;

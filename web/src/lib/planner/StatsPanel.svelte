@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages';
 	import BreakdownBar from './BreakdownBar.svelte';
-	import { SAC_COLOR, SURFACE_COLOR, TRAIL_COLOR, WAY_COLOR } from './colors';
-	import { formatDistance, formatDuration, formatSAC, type Totals } from './route';
+	import { SURFACE_COLOR, TRAIL_COLOR, WAY_COLOR, sacBackground, sacInk } from './colors';
+	import { formatDistance, formatHeight, formatDuration, formatSAC, type Totals } from './route';
 
 	let {
 		totals,
@@ -50,15 +50,16 @@
 	<div>
 		<dt class="text-xs text-stone-500">{m.stat_ascent()} / {m.stat_descent()}</dt>
 		<dd class="font-semibold whitespace-nowrap tabular-nums">
-			↑ {Math.round(totals.ascentM)} m ↓ {Math.round(totals.descentM)} m
+			↑&nbsp;{formatHeight(totals.ascentM)} ↓&nbsp;{formatHeight(totals.descentM)}
 		</dd>
 	</div>
 	<div>
 		<dt class="text-xs text-stone-500">{m.stat_sac()}</dt>
 		<dd>
 			<span
-				class="rounded px-1.5 py-0.5 text-sm font-semibold text-white"
-				style:background={SAC_COLOR[`T${totals.sacGrade}`] ?? '#a8a29e'}
+				class="rounded px-1.5 py-0.5 text-sm font-semibold"
+				style:background={sacBackground(totals.sacGrade)}
+				style:color={sacInk(totals.sacGrade)}
 				data-testid="stat-sac"
 			>
 				{formatSAC(totals.sacGrade, totals.sacMax)}
@@ -83,10 +84,12 @@
 	values={totals.surfaces}
 	colors={SURFACE_COLOR}
 	labels={surfaceLabels}
+	unknown="unknown"
 />
 <BreakdownBar
 	title={m.breakdown_way()}
 	values={totals.wayTypes}
 	colors={WAY_COLOR}
 	labels={wayLabels}
+	unknown="unknown"
 />

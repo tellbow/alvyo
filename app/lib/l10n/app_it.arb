@@ -104,7 +104,6 @@
   "liveNoContacts": "Aggiungi i contatti sul sito web in «Account».",
   "navRecord": "Registra",
   "navProfile": "Profilo",
-  "recordHint": "Scegli un percorso e tocca «{start}» per registrare l'escursione.",
   "mapLayers": "Carte",
   "mapHuts": "Capanne",
   "mapLodging": "Alberghi e campeggi",
@@ -388,5 +387,11 @@
   "homesRemove": "Rimuovi",
   "homesFull": "Al massimo 5 case.",
   "travelStart": "Partenza del trekking",
-  "travelEnd": "Arrivo del trekking"
+  "travelEnd": "Arrivo del trekking",
+  "recordTitle": "Escursione",
+  "recordStart": "Avvia la registrazione",
+  "recordRefused": "Non salvata: l'escursione è troppo corta o esce dalla Svizzera e dal Liechtenstein.",
+  "barRoutes": "Percorsi",
+  "barJourneys": "Tappe",
+  "planAction": "Pianifica"
 }

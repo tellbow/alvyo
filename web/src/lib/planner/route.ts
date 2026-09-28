@@ -1,4 +1,5 @@
 import type { Leg } from '$lib/api/client';
+import { intlLocale } from '$lib/util/locale';
 
 export type Profile = 'hike' | 'alpine';
 export type Run = Leg['details']['sac'][number];
@@ -108,6 +109,12 @@ export type Profile3 = {
 	sac: Run[];
 };
 
+/** The SAC grade at coordinate `i` («T3»), if the runs are grades. */
+export function gradeAt(line: Profile3, i: number): string | undefined {
+	const run = line.sac.find((r) => r.from <= i && i <= r.to);
+	return run && /^T[1-6]$/.test(run.value) ? run.value : undefined;
+}
+
 /** Joins legs into one line with cumulative distances for the profile. */
 export function combine(legs: Leg[]): Profile3 {
 	const coordinates: number[][] = [];
@@ -148,12 +155,27 @@ export function formatDuration(seconds: number, factor = 1): string {
 	const minutes = Math.round((seconds * factor) / 60 / 5) * 5;
 	const h = Math.floor(minutes / 60);
 	const m = minutes % 60;
-	if (h === 0) return `${m} min`;
-	return m === 0 ? `${h} h` : `${h} h ${m} min`;
+	if (h === 0) return `${m}${NBSP}min`;
+	return m === 0 ? `${h}${NBSP}h` : `${h}${NBSP}h ${m}${NBSP}min`;
 }
 
-export function formatDistance(metres: number): string {
-	return metres < 1000 ? `${Math.round(metres)} m` : `${(metres / 1000).toFixed(1)} km`;
+// Keeps a number and its unit on one line.
+const NBSP = '\u00a0';
+
+/** «19.3 km» in German, «19,3 km» in French; below a kilometre in metres. */
+export function formatDistance(metres: number, locale = intlLocale()): string {
+	if (metres < 1000) return formatHeight(metres);
+	const km = new Intl.NumberFormat(locale, {
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1,
+		useGrouping: false
+	}).format(metres / 1000);
+	return `${km}${NBSP}km`;
+}
+
+/** Heights, ascents and short distances in whole metres: «1707 m». */
+export function formatHeight(metres: number): string {
+	return `${Math.round(metres)}${NBSP}m`;
 }
 
 export function formatSAC(grade: number, max: number): string {

@@ -355,11 +355,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navProfile => 'Profil';
 
   @override
-  String recordHint(String start) {
-    return 'Wähle eine Route und tippe auf «$start», um die Wanderung aufzuzeichnen.';
-  }
-
-  @override
   String get mapLayers => 'Karten';
 
   @override
@@ -1292,4 +1287,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get travelEnd => 'Ende der Tour';
+
+  @override
+  String get recordTitle => 'Wanderung';
+
+  @override
+  String get recordStart => 'Aufzeichnung starten';
+
+  @override
+  String get recordRefused =>
+      'Nicht gespeichert: Die Wanderung ist zu kurz oder verlässt die Schweiz und Liechtenstein.';
+
+  @override
+  String get barRoutes => 'Routen';
+
+  @override
+  String get barJourneys => 'Etappen';
+
+  @override
+  String get planAction => 'Planen';
 }

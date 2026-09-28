@@ -246,9 +246,9 @@ void main() {
     expect(body['kinds'], ['hut', 'hotel', 'campsite']);
     expect(body['profile'], 'hike');
 
-    expect(text(tester, 'jplan-summary'), '3 Tage · 45.0 km');
+    expect(text(tester, 'jplan-summary'), '3 Tage · 45.0\u00a0km');
     // 4 h 30 min Swiss time at 1.25.
-    expect(find.textContaining('5 h 40 min'), findsNWidgets(3));
+    expect(find.textContaining('5\u00a0h 40\u00a0min'), findsNWidgets(3));
     expect(text(tester, 'jplan-end-0'), '→ Blüemlisalphütte');
     expect(text(tester, 'jplan-end-2'), '→ bis zum Ziel');
     expect(find.text('Website: https://bluemlisalp.ch'), findsOneWidget);
@@ -341,9 +341,9 @@ void main() {
     expect(server.requests.single.$2['days'], 3);
     expect(find.text('Weg 1: direkt'), findsOneWidget);
     expect(find.text('Weg 2: über Gemmi'), findsOneWidget);
-    expect(find.textContaining('4 Tage · 60.0 km\nKandersteg · Gfellalp · Gampel'), findsOneWidget);
+    expect(find.textContaining('4 Tage · 60.0\u00a0km\nKandersteg · Gfellalp · Gampel'), findsOneWidget);
     expect(find.textContaining('Wo zwei Wege am gleichen Ort übernachten'), findsOneWidget);
-    expect(text(tester, 'jplan-summary'), '4 Tage · 60.0 km');
+    expect(text(tester, 'jplan-summary'), '4 Tage · 60.0\u00a0km');
 
     // Way 1 sleeps in Kandersteg and Gampel as way 2 does.
     expect(find.byKey(const Key('jplan-switch-0-1')), findsOneWidget);
@@ -353,7 +353,7 @@ void main() {
 
     // Over the first way to Gampel, then on along the second.
     await tap(tester, 'jplan-switch-2-1');
-    expect(text(tester, 'jplan-summary'), '5 Tage · 75.0 km');
+    expect(text(tester, 'jplan-summary'), '5 Tage · 75.0\u00a0km');
     expect(text(tester, 'jplan-end-2'), '→ Gampel · Weg 1');
     expect(text(tester, 'jplan-end-3'), '→ St. Niklaus · Weg 2');
     // Put together: the nights cannot be moved one by one.
@@ -370,7 +370,7 @@ void main() {
     expect(body['points'], hasLength(3));
     expect(body['ends'], ['Sunnbüel', 'Gemmi', 'Gampel', 'St. Niklaus']);
     // The answer replaces the second way's days; it stays the one chosen.
-    expect(text(tester, 'jplan-summary'), '3 Tage · 45.0 km');
+    expect(text(tester, 'jplan-summary'), '3 Tage · 45.0\u00a0km');
     expect(
       tester
           .widget<ListTile>(find.descendant(of: find.byKey(const Key('jplan-way-1')), matching: find.byType(ListTile)))

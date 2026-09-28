@@ -27,6 +27,29 @@ double heightAt(List<double> distances, List<double> elevations, double m) {
   return elevations[i - 1] + t * (elevations[i] - elevations[i - 1]);
 }
 
+/// The height axis of a profile: from a little below the lowest to a little
+/// above the highest point (at least 100 m, so that flat routes look flat),
+/// with grid lines every [step] metres within.
+({double lo, double hi, double step}) profileAxis(double lowest, double highest) {
+  var lo = lowest, hi = highest;
+  if (hi - lo < 100) {
+    final mid = (hi + lo) / 2;
+    lo = mid - 50;
+    hi = mid + 50;
+  }
+  lo = (lo / 50).floorToDouble() * 50;
+  hi = (hi / 50).ceilToDouble() * 50;
+  return (lo: lo, hi: hi, step: _niceStep((hi - lo) / 3));
+}
+
+/// 10, 20, 25, 50, 100 … metres between grid lines.
+double _niceStep(double raw) {
+  for (final s in [10.0, 20.0, 25.0, 50.0, 100.0, 200.0, 250.0, 500.0, 1000.0]) {
+    if (raw <= s) return s;
+  }
+  return 1000;
+}
+
 /// Height over distance of a route or journey. A finger on it reads the
 /// distance and height there; [markerM] marks a place (where the hiker is).
 class ElevationProfile extends StatefulWidget {
@@ -113,7 +136,7 @@ class _ElevationProfileState extends State<ElevationProfile> {
                 right: 0,
                 child: Text(
                   key: const Key('elevation-readout'),
-                  '${formatDistance(touchM)} · ${_eleAt(touchM).round()} m',
+                  '${formatDistance(touchM)} · ${formatHeight(_eleAt(touchM))}',
                   style: text.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -145,31 +168,22 @@ class _ProfilePainter extends CustomPainter {
   final TextStyle label;
 
   /// Room for the height labels on the left and the distance below.
-  static Rect plotRect(Size size) => Rect.fromLTRB(40, 14, size.width - 4, size.height - 14);
+  static Rect plotRect(Size size) => Rect.fromLTRB(48, 14, size.width - 4, size.height - 14);
 
   @override
   void paint(Canvas canvas, Size size) {
     final plot = plotRect(size);
     final length = distances.last;
-    var lo = elevations.reduce(min), hi = elevations.reduce(max);
-    // At least 100 m of height, so that flat routes look flat.
-    if (hi - lo < 100) {
-      final mid = (hi + lo) / 2;
-      lo = mid - 50;
-      hi = mid + 50;
-    }
-    final step = _niceStep((hi - lo) / 3);
-    lo = (lo / step).floor() * step;
-    hi = (hi / step).ceil() * step;
+    final (:lo, :hi, :step) = profileAxis(elevations.reduce(min), elevations.reduce(max));
     double x(double m) => plot.left + (length == 0 ? 0 : m / length) * plot.width;
     double y(double e) => plot.bottom - (e - lo) / (hi - lo) * plot.height;
 
     final gridPaint = Paint()
       ..color = grid
       ..strokeWidth = 1;
-    for (var e = lo; e <= hi + 0.1; e += step) {
+    for (var e = (lo / step).ceil() * step; e <= hi + 0.1; e += step) {
       canvas.drawLine(Offset(plot.left, y(e)), Offset(plot.right, y(e)), gridPaint);
-      _text(canvas, '${e.round()}', Offset(plot.left - 4, y(e)), align: Alignment.centerRight);
+      _text(canvas, formatHeight(e), Offset(plot.left - 4, y(e)), align: Alignment.centerRight);
     }
     for (final (m, align) in [
       (0.0, Alignment.topLeft),
@@ -238,14 +252,6 @@ class _ProfilePainter extends CustomPainter {
     final dx = at.dx - tp.width * (align.x + 1) / 2;
     final dy = at.dy - tp.height * (align.y + 1) / 2;
     tp.paint(canvas, Offset(dx, dy));
-  }
-
-  /// 50, 100, 200, 250, 500 … metres between grid lines.
-  static double _niceStep(double raw) {
-    for (final s in [10.0, 20.0, 25.0, 50.0, 100.0, 200.0, 250.0, 500.0, 1000.0]) {
-      if (raw <= s) return s;
-    }
-    return 1000;
   }
 
   @override

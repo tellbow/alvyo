@@ -300,7 +300,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                       Text(
                         '${t.journeyStagesCount(j.stagesDone, j.stagesTotal)} · '
                         '${formatDistance(j.totals.distanceM)} · ${formatDuration(j.totals.durationS)} · '
-                        '↑ ${j.totals.ascentM.round()} m',
+                        '↑\u00a0${formatHeight(j.totals.ascentM)}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       if (!j.isOwner && j.owner.isNotEmpty) OwnerLine(api: widget.api, owner: j.owner, open: true),
@@ -421,7 +421,7 @@ class _StageTile extends StatelessWidget {
         if (s.plannedDate case final d?) formatDate(d),
         if (totals != null)
           '${formatDistance(totals.distanceM)} · ${formatDuration(totals.durationS)} · '
-              '↑ ${totals.ascentM.round()} m · ${formatSac(totals.sacGrade, totals.sacMax)}'
+              '↑\u00a0${formatHeight(totals.ascentM)} · ${formatSac(totals.sacGrade, totals.sacMax)}'
         else
           t.journeyNoRoute,
       ].join(' · '),

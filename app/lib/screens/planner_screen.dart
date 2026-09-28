@@ -359,7 +359,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
         Text(
           key: const Key('planner-totals'),
           '${formatDistance(totals.distanceM)} · ${formatDuration(totals.durationS, _pace)} · '
-          '↑ ${totals.ascentM.round()} m ↓ ${totals.descentM.round()} m · '
+          '↑\u00a0${formatHeight(totals.ascentM)} ↓\u00a0${formatHeight(totals.descentM)} · '
           '${formatSac(totals.sacGrade, totals.sacMax)}',
           style: theme.textTheme.titleMedium,
         ),

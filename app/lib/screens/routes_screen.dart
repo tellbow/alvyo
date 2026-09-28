@@ -11,8 +11,10 @@ import 'bottom_bar.dart';
 import 'discover_screen.dart';
 import 'feed_tab.dart';
 import 'journeys_list.dart';
+import 'navigate_screen.dart';
 import 'planner_screen.dart';
 import 'profile_tab.dart';
+import 'record_screen.dart';
 import 'route_screen.dart';
 import 'tiles.dart';
 import 'watch_screen.dart';
@@ -21,12 +23,15 @@ import 'watch_screen.dart';
 /// server cannot be reached) and those shared with them, journeys, the feed
 /// and the account, with the record button in the bar between them.
 class RoutesScreen extends StatefulWidget {
-  const RoutesScreen({super.key, required this.api, required this.onLogout, this.settings});
+  const RoutesScreen({super.key, required this.api, required this.onLogout, this.settings, this.record});
   final Api api;
   final VoidCallback onLogout;
 
   /// The app's; tests pass their own.
   final AppSettings? settings;
+
+  /// For tests: stands in for the recording screen (GPS and map).
+  final Widget Function()? record;
 
   @override
   State<RoutesScreen> createState() => _RoutesScreenState();
@@ -61,8 +66,8 @@ class _RoutesScreenState extends State<RoutesScreen> {
   Future<void> _uploadHikes() async {
     final root = await Recording.defaultRoot();
     await LiveOutbox(root).flush(widget.api).catchError((_) => 0); // ends of shared hikes sent offline
-    final n = await uploadHikes(widget.api, root).catchError((_) => 0);
-    if (n > 0 && mounted) _reload();
+    final routes = await uploadHikes(widget.api, root).catchError((_) => <String, String?>{});
+    if (routes.values.any((id) => id != null) && mounted) _reload();
   }
 
   void _reload() => setState(() {
@@ -70,23 +75,44 @@ class _RoutesScreenState extends State<RoutesScreen> {
     _shared = _loadShared();
   });
 
-  /// A hike in progress opens its route, where it goes on; without one, the
-  /// routes are where a hike is started.
+  /// Records a hike without a route; one on a route still being recorded
+  /// goes on there. The finished hike is uploaded and opened as a route.
   Future<void> _record() async {
     final t = AppLocalizations.of(context);
-    final active = await Recording.active(await Recording.defaultRoot());
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final root = await Recording.defaultRoot();
+    final active = await Recording.active(root);
     if (!mounted) return;
-    if (active != null && Recording.before(active, active.routeId, widget.api.userId) == Before.resume) {
-      await Navigator.of(context).push(
+    if (active?.routeId case final id? when Recording.before(active, id, widget.api.userId) == Before.resume) {
+      await navigator.push(
         MaterialPageRoute(
-          builder: (_) => RouteScreen(api: widget.api, id: active.routeId, title: active.title),
+          builder: (_) => RouteScreen(api: widget.api, id: id, title: active!.title),
         ),
       );
       if (mounted) _reload();
       return;
     }
-    setState(() => _tab = 0);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.recordHint(t.navStart))));
+    final summary = await navigator.push<HikeSummary>(
+      MaterialPageRoute(builder: (_) => widget.record?.call() ?? RecordScreen(api: widget.api)),
+    );
+    if (summary == null || !mounted) return;
+    final routes = await uploadHikes(widget.api, root).catchError((_) => <String, String?>{});
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(key: const Key('nav-saved'), summary.message(t, routes)),
+        duration: const Duration(seconds: 8),
+      ),
+    );
+    _reload();
+    if (routes[summary.id] case final id?) {
+      await navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => RouteScreen(api: widget.api, id: id, title: t.recordTitle),
+        ),
+      );
+    }
   }
 
   void _select(int tab) => setState(() => _tab = tab);
@@ -95,15 +121,16 @@ class _RoutesScreenState extends State<RoutesScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final items = [
-      BarItem(const Key('tab-routes'), Icons.map_outlined, t.routesTitle),
-      BarItem(const Key('tab-journeys'), Icons.flag_outlined, t.journeysTitle),
+      BarItem(const Key('tab-routes'), Icons.map_outlined, t.barRoutes),
+      BarItem(const Key('tab-journeys'), Icons.flag_outlined, t.barJourneys),
       BarItem(const Key('tab-feed'), Icons.dynamic_feed_outlined, t.navFeed),
       BarItem(const Key('tab-profile'), Icons.person_outline, t.navProfile),
     ];
+    final titles = [t.routesTitle, t.journeysTitle, t.navFeed, t.navProfile];
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: Text(items[_tab].label),
+        title: Text(titles[_tab]),
         actions: [
           if (_tab == 0) ...[
             IconButton(
@@ -123,10 +150,10 @@ class _RoutesScreenState extends State<RoutesScreen> {
                 if (mounted) _reload(); // imported hikes are routes now
               },
             ),
-            IconButton(
+            TextButton.icon(
               key: const Key('plan-route'),
-              tooltip: t.plannerTitle,
-              icon: const Icon(Icons.add_road),
+              icon: const Icon(Icons.add),
+              label: Text(t.planAction, semanticsLabel: t.plannerTitle),
               onPressed: () async {
                 final planner = MaterialPageRoute<void>(builder: (_) => PlannerScreen(api: widget.api));
                 await Navigator.of(context).push(planner);

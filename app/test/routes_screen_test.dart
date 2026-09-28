@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,9 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/navigation/tracker.dart';
+import 'package:alvyo/screens/record_screen.dart';
+import 'package:alvyo/screens/route_screen.dart';
 import 'package:alvyo/screens/routes_screen.dart';
 import 'package:alvyo/theme.dart';
 
@@ -23,7 +27,12 @@ void main() {
   });
   tearDownAll(() => support.deleteSync(recursive: true));
 
+  final hikes = <Map<String, dynamic>>[];
   final client = MockClient((req) async {
+    if (req.url.path == '/api/v1/hikes') {
+      hikes.add(jsonDecode(req.body) as Map<String, dynamic>);
+      return http.Response(jsonEncode({'id': 'route-9'}), 201, headers: {'content-type': 'application/json'});
+    }
     final body = switch (req.url.path) {
       '/api/v1/routes' => {'routes': <Object>[]},
       '/api/v1/journeys' => {'journeys': <Object>[]},
@@ -43,7 +52,13 @@ void main() {
     }
   }
 
-  Future<void> pump(WidgetTester tester, Brightness brightness, VoidCallback onLogout) async {
+  Future<void> pump(
+    WidgetTester tester,
+    Brightness brightness,
+    VoidCallback onLogout, {
+    Widget Function(Api api)? record,
+  }) async {
+    final api = Api('https://alvyo.test', token: 't', client: client);
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('de'),
@@ -55,33 +70,25 @@ void main() {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
-        home: RoutesScreen(
-          api: Api('https://alvyo.test', token: 't', client: client),
-          onLogout: onLogout,
-        ),
+        home: RoutesScreen(api: api, onLogout: onLogout, record: record == null ? null : () => record(api)),
       ),
     );
     await until(tester, find.text('Noch keine Routen. Plane sie auf der Website.'));
   }
 
   for (final brightness in Brightness.values) {
-    testWidgets('the bar: journeys, the record button, the feed and the profile ($brightness)', (tester) async {
+    testWidgets('the bar: journeys, the feed and the profile ($brightness)', (tester) async {
       var loggedOut = false;
       await pump(tester, brightness, () => loggedOut = true);
       expect(find.text('Meine Routen'), findsOneWidget);
+      // Named under their icons, shorter than the titles.
+      for (final name in ['Routen', 'Etappen', 'Neuigkeiten', 'Profil']) {
+        expect(find.text(name), findsOneWidget);
+      }
 
       await tester.tap(find.byKey(const Key('tab-journeys')));
       await until(tester, find.text('Etappentouren'));
       expect(find.text('Etappentouren'), findsOneWidget);
-
-      // No hike in progress: where one is started.
-      await tester.tap(find.byKey(const Key('record')));
-      await until(tester, find.byType(SnackBar));
-      expect(
-        find.text('Wähle eine Route und tippe auf «Wanderung starten», um die Wanderung aufzuzeichnen.'),
-        findsOneWidget,
-      );
-      expect(find.text('Meine Routen'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('tab-feed')));
       await until(tester, find.byKey(const Key('feed-empty')));
@@ -100,4 +107,40 @@ void main() {
       expect(loggedOut, isTrue);
     });
   }
+
+  testWidgets('the record button records a hike without a route, which becomes one', (tester) async {
+    final positions = StreamController<Fix>();
+    Fix at(int i) => Fix(lon: 8, lat: 46.5 + i * 0.001, accuracyM: 5, time: DateTime.now().toUtc());
+    await pump(
+      tester,
+      Brightness.light,
+      () {},
+      record: (api) => RecordScreen(api: api, positions: () => positions.stream, map: const SizedBox.expand()),
+    );
+
+    await tester.tap(find.byKey(const Key('record')));
+    await until(tester, find.byKey(const Key('record-start')));
+    expect(find.text('Warte auf GPS …'), findsOneWidget);
+    positions.add(at(0)); // shown before the start, and where the hike starts
+    await until(tester, find.text('Aufzeichnung starten'));
+    await tester.tap(find.byKey(const Key('record-start')));
+    await until(tester, find.byKey(const Key('record-progress')));
+    positions
+      ..add(at(1))
+      ..add(at(2));
+    await until(tester, find.text('223\u00a0m'));
+    expect(find.text('223\u00a0m'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('nav-finish')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('nav-finish-confirm')));
+    await until(tester, find.byType(RouteScreen));
+    expect(hikes.single.containsKey('route_id'), isFalse);
+    expect(hikes.single['title'], startsWith('Wanderung, '));
+    expect(hikes.single['points'], hasLength(3));
+    final saved = find.textContaining('Gespeichert unter «Meine Routen»: 223\u00a0m');
+    await until(tester, saved);
+    expect(saved, findsOneWidget);
+    unawaited(positions.close());
+  });
 }

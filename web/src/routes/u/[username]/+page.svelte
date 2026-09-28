@@ -5,8 +5,8 @@
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { intlLocale } from '$lib/util/locale';
-	import { SAC_COLOR } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import { sacBackground, sacInk } from '$lib/planner/colors';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
 
 	let { data } = $props();
 	const profile = $derived(data.profile);
@@ -133,11 +133,12 @@
 							>{formatDuration(r.totals.duration_s, pace)}</span
 						>
 						<span class="w-20 text-sm text-stone-600 tabular-nums"
-							>↑ {Math.round(r.totals.ascent_m)} m</span
+							>↑&nbsp;{formatHeight(r.totals.ascent_m)}</span
 						>
 						<span
-							class="w-16 rounded px-1.5 py-0.5 text-center text-xs font-semibold text-white"
-							style:background={SAC_COLOR[`T${r.totals.sac_grade}`] ?? '#a8a29e'}
+							class="w-16 rounded px-1.5 py-0.5 text-center text-xs font-semibold"
+							style:background={sacBackground(r.totals.sac_grade)}
+							style:color={sacInk(r.totals.sac_grade)}
 						>
 							{formatSAC(r.totals.sac_grade, r.totals.sac_max)}
 						</span>

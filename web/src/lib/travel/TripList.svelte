@@ -56,4 +56,4 @@
 		</li>
 	{/each}
 </ol>
-<p class="mt-1 text-xs text-stone-400">{m.connections_source()}</p>
+<p class="mt-1 text-xs text-stone-500">{m.connections_source()}</p>

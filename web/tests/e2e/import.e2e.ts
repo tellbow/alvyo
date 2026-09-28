@@ -162,7 +162,7 @@ test('a GPX file becomes the route of a stage', async ({ page }) => {
 		)
 	});
 	await stage2.getByLabel('Datei importieren').setInputFiles(gpx(30));
-	await expect(stage2).toContainText(/2\.\d km/);
+	await expect(stage2).toContainText(/2\.\d\skm/);
 	await expect(page.getByTestId('stage-marker')).toHaveCount(1);
 
 	// A route is only replaced after asking.
@@ -171,7 +171,7 @@ test('a GPX file becomes the route of a stage', async ({ page }) => {
 		'wird durch die Datei ersetzt'
 	);
 	await stage2.getByLabel('Datei wählen').setInputFiles(gpx(10));
-	await expect(stage2).toContainText(/\b[6-8]\d\d m/);
+	await expect(stage2).toContainText(/\b[6-8]\d\d\sm/);
 	await expect(stage2.getByTestId('stage-import-replace')).toHaveCount(0);
 });
 

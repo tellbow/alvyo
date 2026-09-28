@@ -289,7 +289,7 @@ void main() {
       await search('Weisstannen');
       expect(find.byKey(const Key('planner-totals')), findsOneWidget);
       // 30 min at pace 1.5: 45 min.
-      expect(find.text('1.0 km · 45 min · ↑ 100 m ↓ 20 m · T2'), findsOneWidget);
+      expect(find.text('1.0\u00a0km · 45\u00a0min · ↑\u00a0100\u00a0m ↓\u00a020\u00a0m · T2'), findsOneWidget);
 
       await search('Gletscher');
       expect(find.byKey(const Key('planner-leg-error-1')), findsOneWidget);

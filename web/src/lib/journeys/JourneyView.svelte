@@ -20,11 +20,13 @@
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import ElevationProfile from '$lib/planner/ElevationProfile.svelte';
+	import ProfileDock from '$lib/planner/ProfileDock.svelte';
 	import StatsPanel from '$lib/planner/StatsPanel.svelte';
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
 	import {
 		formatDistance,
 		formatDuration,
+		formatHeight,
 		formatSAC,
 		type Profile3,
 		type Totals
@@ -332,7 +334,7 @@
 		stats: [
 			formatDistance(journey.totals.distance_m),
 			formatDuration(journey.totals.duration_s),
-			`↑ ${Math.round(journey.totals.ascent_m)} m`,
+			`↑\u00a0${formatHeight(journey.totals.ascent_m)}`,
 			formatSAC(journey.totals.sac_grade, journey.totals.sac_max)
 		].join(' · ')
 	})} ${journey.description ?? ''}`}
@@ -342,8 +344,8 @@
 	index={journey.visibility === 'public'}
 />
 
-<main class="flex min-h-0 flex-1">
-	<section class="relative flex-1">
+<main class="flex min-h-0 flex-1 flex-col md:flex-row">
+	<section class="relative h-[50dvh] shrink-0 md:h-auto md:flex-1 md:shrink">
 		<Map bind:base bind:overlays {onready} />
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
@@ -352,21 +354,19 @@
 			<PhotoPins {map} {lib} {gallery} />
 		{/if}
 		{#if profile.coordinates.length > 1}
-			<div
-				class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-surface/95 px-2 py-1 shadow ring-1 ring-stone-300"
-			>
+			<ProfileDock>
 				<ElevationProfile
 					line={profile}
 					colors={STAGE_RUN_COLORS}
 					breaks={journey.profile.breaks}
 					bind:hover={hoverIndex}
 				/>
-			</div>
+			</ProfileDock>
 		{/if}
 	</section>
 
 	<aside
-		class="flex w-96 flex-col gap-4 overflow-y-auto border-l border-stone-200 bg-surface p-4"
+		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-96 md:flex-none md:border-t-0 md:border-l"
 		data-testid="journey-panel"
 	>
 		<div>

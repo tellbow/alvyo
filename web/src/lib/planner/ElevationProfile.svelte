@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages';
 	import { SAC_COLOR } from './colors';
-	import { formatDistance, type Profile3 } from './route';
+	import { formatDistance, formatHeight, gradeAt, type Profile3 } from './route';
 
 	let {
 		line,
@@ -113,11 +113,17 @@
 					stroke-dasharray="2 2"
 				/>
 				<text
-					x={Math.min(Math.max(hx, pad.l + 40), width - 60)}
+					x={Math.min(Math.max(hx, pad.l + 40), width - 140)}
 					y={12}
 					class="fill-stone-800 text-[11px] font-medium"
 				>
-					{formatDistance(line.distance[hover])} · {Math.round(line.coordinates[hover][2])} m
+					{[
+						formatDistance(line.distance[hover]),
+						formatHeight(line.coordinates[hover][2]),
+						gradeAt(line, hover)
+					]
+						.filter(Boolean)
+						.join(' · ')}
 				</text>
 			{/if}
 		</svg>

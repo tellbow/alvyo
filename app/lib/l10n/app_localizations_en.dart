@@ -355,11 +355,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navProfile => 'Profile';
 
   @override
-  String recordHint(String start) {
-    return 'Choose a route and tap “$start” to record the hike.';
-  }
-
-  @override
   String get mapLayers => 'Maps';
 
   @override
@@ -1284,4 +1279,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelEnd => 'End of the journey';
+
+  @override
+  String get recordTitle => 'Hike';
+
+  @override
+  String get recordStart => 'Start recording';
+
+  @override
+  String get recordRefused => 'Not saved: the hike is too short or leaves Switzerland and Liechtenstein.';
+
+  @override
+  String get barRoutes => 'Routes';
+
+  @override
+  String get barJourneys => 'Journeys';
+
+  @override
+  String get planAction => 'Plan';
 }

@@ -17,10 +17,10 @@ import 'route_screen.dart';
 /// The line colours, cycled through the results as on the website.
 const discoverColors = [
   Color(0xffa21caf),
-  Color(0xff2563eb),
-  Color(0xff0f766e),
-  Color(0xffc2410c),
   Color(0xff4d7c0f),
+  Color(0xff2563eb),
+  Color(0xffc2410c),
+  Color(0xff0f766e),
   Color(0xffbe123c),
 ];
 
@@ -295,7 +295,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           subtitle: Text(
             [
               [journey ? t.discoverJourney : t.discoverRoute, if (!widget.mine) t.discoverBy(it.owner)].join(' · '),
-              '${formatDistance(it.distanceM)} · ${formatDuration(it.durationS, _pace)} · ↑ ${it.ascentM.round()} m'
+              '${formatDistance(it.distanceM)} · ${formatDuration(it.durationS, _pace)} · ↑\u00a0${formatHeight(it.ascentM)}'
                   '${it.sacGrade > 0 ? ' · ${formatSac(it.sacGrade, it.sacMax)}' : ''}',
               if (journey) '${t.discoverStages(it.stages)} · ${t.discoverLongest(formatDuration(it.longestS, _pace))}',
             ].join('\n'),

@@ -56,24 +56,34 @@
 	{/each}
 </ul>
 {#if contacts.length < 10}
-	<form method="post" onsubmit={add} class="mt-2 flex flex-wrap gap-2 text-sm">
-		<input
-			bind:value={name}
-			required
-			maxlength="80"
-			placeholder={m.contacts_name()}
-			aria-label={m.contacts_name()}
-			class="min-w-0 flex-1 rounded-md border border-stone-300 px-2 py-1"
-		/>
-		<input
-			bind:value={email}
-			required
-			type="email"
-			maxlength="254"
-			placeholder={m.contacts_email()}
-			aria-label={m.contacts_email()}
-			class="min-w-0 flex-1 rounded-md border border-stone-300 px-2 py-1"
-		/>
+	<form
+		method="post"
+		onsubmit={add}
+		class="mt-2 flex flex-wrap items-end gap-2 text-sm"
+		data-testid="contact-form"
+	>
+		<label class="flex min-w-32 flex-1 flex-col gap-1">
+			<span class="text-xs font-medium text-stone-600">{m.contacts_name()}</span>
+			<input
+				bind:value={name}
+				required
+				maxlength="80"
+				autocomplete="off"
+				class="rounded-md border border-stone-300 px-2 py-1"
+			/>
+		</label>
+		<label class="flex min-w-32 flex-1 flex-col gap-1">
+			<span class="text-xs font-medium text-stone-600">{m.contacts_email()}</span>
+			<input
+				bind:value={email}
+				required
+				type="email"
+				maxlength="254"
+				autocomplete="off"
+				spellcheck="false"
+				class="rounded-md border border-stone-300 px-2 py-1"
+			/>
+		</label>
 		<button
 			disabled={!hydrated.value}
 			class="rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"

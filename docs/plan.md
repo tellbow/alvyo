@@ -58,7 +58,7 @@ A `v*` tag builds the images; Flux deploys them
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–24 on 2026-09-28.
+21–27 on 2026-09-28.
 
 ### Done
 
@@ -265,6 +265,54 @@ From the project owner, numbered in the order given: 1–5 added on
     drawn on the map, rides dashed and walks dotted; it is never part of the
     GPX, and no one else sees the homes or times.
 
+25. **The website on a phone, and what a review found.** From a review
+    of the website's screens against the Web Interface Guidelines, on a
+    computer (1440 px) and a phone (390 px), on 2026-09-28. Below 1280 px
+    the header's links, language, theme and account are in a menu; below
+    768 px the map pages show the map in the upper half and the panel below
+    it, and list rows put the title on a line of its own (at 390 px every
+    page was 1157 px wide). Also: a page for unknown addresses and errors
+    in the reader's language; distances in the reader's language («19,3 km»
+    in French), the unit never on a line of its own; «Speichern» stays at
+    the bottom edge of the planner's panel; the points of the planner show
+    their height; the ↑ ↓ × are 32 px (44 px on touch screens); «Belag» and
+    «Wegtyp» are left out when nothing is known; the elevation profile
+    folds away (folded at first on a phone); on the discover map each hike
+    has a dot at its start; the photo viewer keeps the keyboard in it; the
+    contact fields have visible labels; focus rings on the home page's
+    search and the tag input.
+
+26. **Readable colours, and numbers and profiles in the app.** From a
+    second review on 2026-09-28 (ui-ux-pro-max: the website, and the app
+    in the simulator at normal and large text; dataviz: the charts and
+    their colours). Grade badges take dark text where white does not read
+    (T1: 1.9:1, no grade: 2.5:1); `stone-500` is darker and text no longer
+    uses `stone-400` (both checked in `palette.spec.ts`); fields on touch
+    screens have 16 px text, so Safari does not zoom; T3 and T4 have new
+    steps so that neighbouring grades differ (T4 and T5 differed by 5.8,
+    OKLab ×100) and the profile's readout names the grade; the stage
+    colours are ordered so that neighbours differ also for red-green colour
+    blindness (web and app, `colors.spec.ts`); the app writes numbers like
+    the website («19,3 km» in French, units and arrows never on a line of
+    their own); the app's profile spans the route's heights instead of
+    starting at 0 m, its labels with «m». The photo viewer's grey texts no
+    longer turn dark on black in dark mode.
+
+27. **Recording without a route, and the app's bar.** The record button
+    in the middle of the app's bar only showed a message pointing to the
+    routes; it now records a hike without a planned route: the map shows
+    the position before «Aufzeichnung starten», then the track, the
+    distance and the time. «Beenden» uploads the hike, which becomes a
+    route like any other («Wanderung, 28.09.2026»), and opens it; offline
+    it goes up later, and one too short or outside Switzerland and
+    Liechtenstein is not kept, which the message says. A hike on a route
+    still being recorded goes on on its route. Not shared live with
+    contacts (that needs a route's expected end). From the review for 26
+    too: the bar names its places under the icons («Routen», «Etappen»,
+    «Neuigkeiten», «Profil»); «Planen» with its name instead of an icon
+    that read as a filter; «Offline speichern» outlined, below «Wanderung
+    starten».
+
 ### Open
 
 Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
@@ -291,8 +339,7 @@ Connect's course import.
 - Texts: the French and Italian texts to be reviewed by a native speaker.
 - Logo: the Λ of the Alvyo mock-up, drawn as a vector for the web and the
   app icon; a final one from a designer.
-- Design: the mock-up's moods, logbook and «send to app»; hiking without a
-  planned route in the app.
+- Design: the mock-up's moods, logbook and «send to app».
 - M4: MeteoSwiss weather, highlights and points of interest, PDF stage sheets,
   3D terrain, closures, self-hosted Swiss Map Raster 25, full «how to get
   there» by public transport.

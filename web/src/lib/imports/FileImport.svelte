@@ -4,7 +4,7 @@
 	import { api, type Proposal } from '$lib/api/client';
 	import type { components } from '$lib/api/schema';
 	import { m } from '$lib/paraglide/messages';
-	import { formatDistance, formatDuration } from '$lib/planner/route';
+	import { formatDistance, formatDuration, formatHeight } from '$lib/planner/route';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import ImportResult from './ImportResult.svelte';
 
@@ -236,7 +236,7 @@
 						<span class="font-medium">{m.jplan_day({ n: i + 1 })}</span>
 						<span class="text-stone-600 tabular-nums"
 							>{formatDistance(st.totals.distance_m)} · {formatDuration(st.totals.duration_s, pace)} ·
-							↑ {Math.round(st.totals.ascent_m)} m</span
+							↑&nbsp;{formatHeight(st.totals.ascent_m)}</span
 						>
 						<span class="ml-auto" data-testid="import-stage-end"
 							>→ {st.end_place ? st.end_place.name : m.jplan_to_end()}</span

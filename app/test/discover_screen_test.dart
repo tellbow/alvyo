@@ -148,9 +148,14 @@ void main() {
     expect(find.text('Via Alpina'), findsOneWidget);
     expect(find.byKey(const Key('line-r1')), findsOneWidget);
     // 1 h Swiss hiking time is 1 h 15 min at 1.25.
-    expect(find.text('Route · von anna\n12.4 km · 1 h 15 min · ↑ 812 m · T2–T3'), findsOneWidget);
     expect(
-      find.text('Etappentour · von anna\n12.4 km · 1 h 15 min · ↑ 812 m · T2–T3\n2 Etappen · längste 2 h 30 min'),
+      find.text('Route · von anna\n12.4\u00a0km · 1\u00a0h 15\u00a0min · ↑\u00a0812\u00a0m · T2–T3'),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Etappentour · von anna\n12.4\u00a0km · 1\u00a0h 15\u00a0min · ↑\u00a0812\u00a0m · T2–T3\n2 Etappen · längste 2\u00a0h 30\u00a0min',
+      ),
       findsOneWidget,
     );
     expect(find.byKey(const Key('discover-more')), findsOneWidget);

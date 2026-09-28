@@ -103,6 +103,18 @@ void main() {
     expect((jsonDecode(await file.readAsString()) as Map<String, dynamic>)['owner'], 'u-anna');
   });
 
+  test('a hike without a route: resumed by the record button, asked about on a route', () async {
+    final rec = await Recording.start(root, title: 'Wanderung', owner: 'u-anna', now: t0);
+    await rec.add(fix(1));
+    final active = (await Recording.active(root))!;
+    expect(active.routeId, isNull);
+    expect(Recording.before(active, null, 'u-anna'), Before.resume);
+    expect(Recording.before(active, 'r1', 'u-anna'), Before.ask);
+    final saved = jsonDecode(await (await active.finish()).readAsString()) as Map<String, dynamic>;
+    expect(saved.containsKey('route_id'), isFalse);
+    expect(saved['fixes'], hasLength(1));
+  });
+
   test('recordings from before accounts were kept belong to whoever is logged in', () async {
     await Recording.start(root, routeId: 'r1', title: 'Alt', now: t0);
     final active = (await Recording.active(root))!;

@@ -114,6 +114,6 @@
 				</li>
 			{/each}
 		</ol>
-		<p class="text-stone-400">{m.connections_source()}</p>
+		<p class="text-stone-500">{m.connections_source()}</p>
 	{/if}
 </div>

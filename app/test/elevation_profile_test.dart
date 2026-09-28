@@ -15,12 +15,19 @@ void main() {
     expect(heightAt([0, 1000, 2000], [500, 700, 600], 5000), 600);
   });
 
+  test('the height axis hugs the heights, in round steps', () {
+    // 480 to 1780 m: not from 0 m, where a third of the chart stays empty.
+    expect(profileAxis(480, 1780), (lo: 450.0, hi: 1800.0, step: 500.0));
+    // Flat: at least 100 m.
+    expect(profileAxis(510, 530), (lo: 450.0, hi: 600.0, step: 50.0));
+  });
+
   testWidgets('a finger on the profile reads distance and height', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
           body: SizedBox(
-            width: 444, // 400 px of plot after the labels
+            width: 452, // 400 px of plot after the labels
             child: ElevationProfile(distances: [0, 2000, 4000], elevations: [500, 900, 700]),
           ),
         ),
@@ -28,13 +35,13 @@ void main() {
     );
     expect(find.byKey(const Key('elevation-readout')), findsNothing);
     final box = tester.getRect(find.byKey(const Key('elevation-profile')));
-    // Half way along the plot (40 px labels on the left, 4 px on the right).
+    // Half way along the plot (48 px labels on the left, 4 px on the right).
     // A drag starts once past the touch slop; it ends half way.
-    final gesture = await tester.startGesture(Offset(box.left + 40 + 170, box.center.dy));
+    final gesture = await tester.startGesture(Offset(box.left + 48 + 170, box.center.dy));
     await gesture.moveBy(const Offset(31, 0));
     await gesture.moveBy(const Offset(-1, 0));
     await tester.pump();
-    expect(find.text('2.0 km · 900 m'), findsOneWidget);
+    expect(find.text('2.0\u00a0km · 900\u00a0m'), findsOneWidget);
     await gesture.up();
     await tester.pump();
     expect(find.byKey(const Key('elevation-readout')), findsNothing);

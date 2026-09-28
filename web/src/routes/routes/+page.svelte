@@ -5,8 +5,8 @@
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { hikeDate } from '$lib/util/locale';
-	import { SAC_COLOR } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import { sacBackground, sacInk } from '$lib/planner/colors';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagFilter from '$lib/tags/TagFilter.svelte';
 	import { hasTag } from '$lib/tags/tags';
@@ -39,7 +39,7 @@
 <Seo title={m.routes_title()} index={false} />
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
-	<div class="mb-6 flex items-center justify-between">
+	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<h1 class="text-2xl font-semibold">{m.routes_title()}</h1>
 		<div class="flex items-center gap-4">
 			<a href={resolve('/routes/map')} class="text-sm hover:text-accent-ink">{m.mymap_link()}</a>
@@ -62,8 +62,10 @@
 		>
 			{#each routes as r (r.id)}
 				<!-- The title's link covers the row; the tags link above it. -->
-				<li class="relative flex items-center gap-4 px-4 py-3 hover:bg-stone-50">
-					<span class="flex flex-1 flex-col gap-1">
+				<li
+					class="relative flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 hover:bg-stone-50"
+				>
+					<span class="flex w-full min-w-0 flex-col gap-1 sm:w-auto sm:flex-1">
 						<a
 							href={resolve('/routes/[id]', { id: r.id })}
 							class="font-medium after:absolute after:inset-0">{r.title}</a
@@ -78,33 +80,34 @@
 					<span class="text-sm text-stone-600 tabular-nums"
 						>{formatDistance(r.totals.distance_m)}</span
 					>
-					<span class="w-24 text-sm text-stone-600 tabular-nums"
+					<span class="text-sm text-stone-600 tabular-nums sm:w-24"
 						>{formatDuration(r.totals.duration_s, pace)}</span
 					>
-					<span class="w-20 text-sm text-stone-600 tabular-nums"
-						>↑ {Math.round(r.totals.ascent_m)} m</span
+					<span class="text-sm text-stone-600 tabular-nums sm:w-20"
+						>↑&nbsp;{formatHeight(r.totals.ascent_m)}</span
 					>
 					<span
-						class="w-16 rounded px-1.5 py-0.5 text-center text-xs font-semibold text-white"
-						style:background={SAC_COLOR[`T${r.totals.sac_grade}`] ?? '#a8a29e'}
+						class="w-16 rounded px-1.5 py-0.5 text-center text-xs font-semibold"
+						style:background={sacBackground(r.totals.sac_grade)}
+						style:color={sacInk(r.totals.sac_grade)}
 					>
 						{formatSAC(r.totals.sac_grade, r.totals.sac_max)}
 					</span>
-					<span class="w-20 text-right text-xs text-stone-500">
+					<span class="text-xs text-stone-500 sm:w-20 sm:text-right">
 						{r.visibility === 'public' ? m.visibility_public() : m.visibility_private()}
 					</span>
 					<!-- Above the title's link. -->
 					{#if confirming === r.id}
 						<button
 							type="button"
-							class="relative rounded bg-red-700 px-2 py-1 text-xs text-white"
+							class="relative ml-auto rounded bg-red-700 px-2 py-1 text-xs text-white sm:ml-0"
 							data-testid="route-list-delete-confirm"
 							onclick={() => remove(r.id)}>{m.route_delete_confirm()}</button
 						>
 					{:else}
 						<button
 							type="button"
-							class="relative text-xs text-stone-500 underline hover:text-red-700"
+							class="relative ml-auto text-xs text-stone-500 underline hover:text-red-700 sm:ml-0"
 							data-testid="route-list-delete"
 							onclick={() => (confirming = r.id)}>{m.route_delete()}</button
 						>
@@ -121,15 +124,16 @@
 			data-testid="shared-routes"
 		>
 			{#each shared as r (r.id)}
-				<li class="flex items-center gap-4 px-4 py-3">
-					<a href={resolve('/routes/[id]', { id: r.id })} class="flex-1 font-medium hover:underline"
-						>{r.title}</a
+				<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
+					<a
+						href={resolve('/routes/[id]', { id: r.id })}
+						class="w-full font-medium hover:underline sm:w-auto sm:flex-1">{r.title}</a
 					>
 					<span class="text-sm text-stone-600">{m.shared_by({ user: r.owner_username })}</span>
 					<span class="text-sm text-stone-600 tabular-nums"
 						>{formatDistance(r.totals.distance_m)}</span
 					>
-					<span class="w-28 text-xs text-stone-500"
+					<span class="text-xs text-stone-500 sm:w-28"
 						>{r.role === 'editor' ? m.role_editor() : m.role_viewer()}</span
 					>
 					<button type="button" class="text-xs text-stone-500 underline" onclick={() => leave(r.id)}

@@ -601,5 +601,12 @@
 	"homes_remove": "Retirer",
 	"homes_full": "5 domiciles au plus.",
 	"travel_start": "Départ de la randonnée",
-	"travel_end": "Arrivée de la randonnée"
+	"travel_end": "Arrivée de la randonnée",
+	"error_not_found_title": "Cette page n'existe pas",
+	"error_not_found_text": "Elle a peut-être été supprimée, rendue privée, ou l'adresse est mal écrite.",
+	"error_title": "Quelque chose n'a pas fonctionné",
+	"error_text": "Recharge la page ou réessaie plus tard.",
+	"error_home": "Aller à l'accueil",
+	"profile_hide": "Masquer le profil altimétrique",
+	"nav_menu": "Menu"
 }

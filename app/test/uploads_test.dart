@@ -13,13 +13,19 @@ void main() {
   setUp(() => root = Directory.systemTemp.createTempSync('recordings'));
   tearDown(() => root.deleteSync(recursive: true));
 
-  void hike(String started, String title, {List<double> accuracies = const [5, 5, 80, 5], String? owner}) {
+  void hike(
+    String started,
+    String title, {
+    List<double> accuracies = const [5, 5, 80, 5],
+    String? owner,
+    String? routeId = 'r1',
+  }) {
     final t0 = DateTime.parse(started);
     File('${root.path}/done/${started.replaceAll(':', '-')}.json')
       ..createSync(recursive: true)
       ..writeAsStringSync(
         jsonEncode({
-          'route_id': 'r1',
+          'route_id': ?routeId,
           'title': title,
           'owner': ?owner,
           'started': started,
@@ -58,11 +64,11 @@ void main() {
     );
     List<String> left() => [for (final f in Directory('${root.path}/done').listSync()) f.uri.pathSegments.last];
 
-    expect(await uploadHikes(api, root), 0);
+    expect(await uploadHikes(api, root), isEmpty);
     expect(left(), hasLength(2), reason: 'offline: all kept');
 
     online = true;
-    expect(await uploadHikes(api, root), 1);
+    expect(await uploadHikes(api, root), {'2026-09-20T08:00:00.000Z': 'new', '2026-09-21T08:00:00.000Z': null});
     expect(left(), isEmpty);
     final sent = bodies.firstWhere((b) => b['title'] == 'Gratweg, 20.09.2026');
     expect(sent['id'], '2026-09-20T08:00:00.000Z');
@@ -85,7 +91,7 @@ void main() {
             : http.Response(jsonEncode({'id': 'new'}), 201);
       }),
     );
-    expect(await uploadHikes(api, root), 1);
+    expect(await uploadHikes(api, root), {'2026-09-20T08:00:00.000Z': 'new'});
     expect(titles.single.length, lessThanOrEqualTo(120));
     expect(titles.single, endsWith('Etappe, 20.09.2026'));
     expect(
@@ -101,8 +107,26 @@ void main() {
       token: 't',
       client: MockClient((_) async => http.Response(jsonEncode({'detail': 'validation failed'}), 422)),
     );
-    expect(await uploadHikes(api, root), 0);
+    expect(await uploadHikes(api, root), isEmpty);
     expect(Directory('${root.path}/done').listSync(), hasLength(1));
+  });
+
+  test('a hike without a route becomes one; one too short for it is dropped', () async {
+    hike('2026-09-20T08:00:00.000Z', 'Wanderung', routeId: null);
+    hike('2026-09-21T08:00:00.000Z', 'Wanderung', routeId: null, accuracies: [5]);
+    final bodies = <Map<String, dynamic>>[];
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        bodies.add(jsonDecode(req.body) as Map<String, dynamic>);
+        return http.Response(jsonEncode({'id': 'route-1'}), 201);
+      }),
+    );
+    expect(await uploadHikes(api, root), {'2026-09-20T08:00:00.000Z': 'route-1', '2026-09-21T08:00:00.000Z': null});
+    expect(bodies.single.containsKey('route_id'), isFalse);
+    expect(bodies.single['title'], 'Wanderung, 20.09.2026');
+    expect(Directory('${root.path}/done').listSync(), isEmpty);
   });
 
   test('points closer than 5 m are left out, but not the last', () {
@@ -138,12 +162,12 @@ void main() {
     );
     List<String> left() => [for (final f in Directory('${root.path}/done').listSync()) f.uri.pathSegments.last]..sort();
 
-    expect(await uploadHikes(as('u-bea'), root), 2);
+    expect(await uploadHikes(as('u-bea'), root), hasLength(2));
     expect(titles, unorderedEquals(['Beas, 21.09.2026', 'Alt, 22.09.2026']));
     expect(left(), ['2026-09-20T08-00-00.000Z.json']);
     // Not knowing who is logged in, nobody's is sent.
-    expect(await uploadHikes(as(null), root), 0);
-    expect(await uploadHikes(as('u-anna'), root), 1);
+    expect(await uploadHikes(as(null), root), isEmpty);
+    expect(await uploadHikes(as('u-anna'), root), {'2026-09-20T08:00:00.000Z': 'new'});
     expect(left(), isEmpty);
   });
 }

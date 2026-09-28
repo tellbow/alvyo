@@ -52,6 +52,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.10.0 | 2026-09-27 | Planning easier to find: «Route / Etappentour» at the top of both planners, a button on «Etappentouren»; collections filled from the collection itself («Route oder Etappentour hinzufügen …» searches one's own and shared routes and journeys) |
 | 0.11.0 | 2026-09-28 | Deleting routes and journeys (19): «Löschen» in the app's menu of one's own, offline copies removed too, and in the website's lists; the most per day kept (20): no plan with a longer day, instead the fewest days that fit and «In N Tagen planen» |
 | 0.12.0 | 2026-09-28 | Light or dark chosen on the website and in the app (21); the app's language (22); the app like the website (23): descriptions, photos, likes and comments, sharing, GPX, collections, reporting, a stage's details and public transport, the feed, profiles, what others shared, the map of one's tours and the account's settings |
+| 0.13.0 | 2026-09-28 | From home and back by public transport (24): up to five homes, per journey and person the way from a home to the first stage and back from the last, leaving after or arriving before a time; the connections from the Swiss Open Journey Planner, the chosen one drawn on the map (not in the GPX) |
 
 ## Requirements
 
@@ -252,7 +253,7 @@ From the project owner, numbered in the order given: 1–5 added on
     deleting the account; signing up and a forgotten password open the
     website. Left to the website: moderation, imports (files, Komoot),
     passkeys and sign-in providers, planning a route again on its map.
-24. **From home and back by public transport** (unreleased). Up to five
+24. **From home and back by public transport** (0.13.0). Up to five
     homes in the account (a name and an address from the place search).
     For a journey, each person who can open it chooses for themselves a
     home to set off from before the first stage and one to return to after

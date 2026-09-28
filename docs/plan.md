@@ -51,6 +51,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.9.0 | 2026-09-27 | Several ways to choose from (16): «Mehrere Wege vorschlagen» in «Etappentour planen», and a journey put together from them where they share a night; hours per day from … to, the days follow (17); huts, hotels and campsites on every map (15); in the app planning like on the website (18): «Route planen», «Etappentour planen» and «Entdecken», the huts layer, and the search on a page of its own; planning fixes: ways to night places start on the line (Thun → Zermatt failed), no nights at places near the line but far by path, no ferries and car trains (a new graph, operations.md), heights of legs without length; fixes from a review of all parts: a sign-in provider connected before the address was proven is dropped on a password reset, the client address behind the proxy, photo limits under concurrent uploads, offline packs of a route changed back, crashes in the multi-day planner and in turns, times without a zone in imports, the login redirect, stale plans in the web planner, recordings and live location in the app (hangs, a start cut off by iOS, loops), and faster deletes, reorders and pack builds |
 | 0.10.0 | 2026-09-27 | Planning easier to find: «Route / Etappentour» at the top of both planners, a button on «Etappentouren»; collections filled from the collection itself («Route oder Etappentour hinzufügen …» searches one's own and shared routes and journeys) |
 | 0.11.0 | 2026-09-28 | Deleting routes and journeys (19): «Löschen» in the app's menu of one's own, offline copies removed too, and in the website's lists; the most per day kept (20): no plan with a longer day, instead the fewest days that fit and «In N Tagen planen» |
+| 0.12.0 | 2026-09-28 | Light or dark chosen on the website and in the app (21); the app's language (22); the app like the website (23): descriptions, photos, likes and comments, sharing, GPX, collections, reporting, a stage's details and public transport, the feed, profiles, what others shared, the map of one's tours and the account's settings |
 
 ## Requirements
 
@@ -227,15 +228,15 @@ From the project owner, numbered in the order given: 1–5 added on
     if none does. Website and app say it, with «In N Tagen planen». Days
     moved by hand (`ends`) are only marked; up to 15 minutes over count as
     within, as the split estimates the way to a place.
-21. **Light or dark, chosen** (unreleased). Website and app follow the
+21. **Light or dark, chosen** (0.12.0). Website and app follow the
     system's setting unless «Hell» or «Dunkel» is chosen: on the website in
     the header («Darstellung», kept in a cookie, so the page comes rendered
     in it), in the app in the profile (kept on the phone).
-22. **The app's language** (unreleased). In the profile: «Automatisch» (the
+22. **The app's language** (0.12.0). In the profile: «Automatisch» (the
     iPhone's), Deutsch, English, Français or Italiano; for the account also
     the language of e-mails, as on the website.
 23. **The app does what the website does**, where it makes sense on a phone
-    (unreleased). A route's and a journey's description, tags, owner,
+    (0.12.0). A route's and a journey's description, tags, owner,
     photos (from the camera or the library) and likes and comments with
     replies; a menu to change title, description, tags and visibility, to
     share (link, people invited as viewers or editors), to send the GPX,

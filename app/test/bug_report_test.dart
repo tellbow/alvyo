@@ -8,6 +8,10 @@ import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/bug_report.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/main.dart';
+import 'package:alvyo/session.dart';
+import 'package:alvyo/settings.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   Future<void> pump(WidgetTester tester, Api? api, GlobalKey<NavigatorState> nav) => tester.pumpWidget(
@@ -63,4 +67,28 @@ void main() {
     await pump(tester, null, GlobalKey<NavigatorState>());
     expect(find.byKey(const Key('bug-open')), findsNothing);
   });
+
+  // Started with a saved login: the tab is there without logging in again.
+  testWidgets('with a saved session, from the start', (tester) async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((_) async => http.Response('{}', 404, headers: {'content-type': 'application/json'})),
+    );
+    await tester.pumpWidget(AlvyoApp(session: _Saved(api), settings: AppSettings()));
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byKey(const Key('bug-open')), findsOneWidget);
+  });
+}
+
+class _Saved extends Session {
+  _Saved(this.api);
+  final Api api;
+
+  @override
+  Future<Api?> restore() async => api;
 }

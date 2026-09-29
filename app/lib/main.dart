@@ -124,6 +124,13 @@ class _AlvyoAppState extends State<AlvyoApp> with WidgetsBindingObserver {
             _api = snap.data;
             _restoredOnce = true;
             _learnUser(_api);
+            // The frame above (bug reports) learns of the session: built anew
+            // after this frame, not during it.
+            if (_api != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() {});
+              });
+            }
           }
           final api = _api;
           if (api == null) {

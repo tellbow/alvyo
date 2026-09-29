@@ -163,19 +163,13 @@ class PlaceLayer {
     _rasterShown
       ..clear()
       ..add('wanderwege');
-    await style.addSource(GeoJsonSource(id: _id, data: _geojson(_shown), attribution: '© OpenStreetMap contributors'));
+    await style.addSource(
+      GeoJsonSource(id: _id, data: _geojson(_shownPlaces), attribution: '© OpenStreetMap contributors'),
+    );
     await style.addLayer(
       const CircleStyleLayer(
         id: _id,
         sourceId: _id,
-        filter: [
-          'in',
-          ['get', 'kind'],
-          [
-            'literal',
-            ['hut', 'hotel', 'campsite'],
-          ],
-        ],
         paint: {
           'circle-radius': [
             'interpolate',
@@ -209,21 +203,17 @@ class PlaceLayer {
         painter: (canvas) => paintPoiIcon(canvas, kind, 66),
       );
     }
+    // Their own source, not a filter on one: MapLibre's iOS plugin turns
+    // filters into predicates, which drop expressions like «in».
+    await style.addSource(
+      GeoJsonSource(id: _poisId, data: _geojson(_shownPois), attribution: '© OpenStreetMap contributors'),
+    );
     await style.addLayer(
       const SymbolStyleLayer(
         id: _poisId,
-        sourceId: _id,
-        filter: [
-          'in',
-          ['get', 'kind'],
-          ['literal', poiKinds],
-        ],
+        sourceId: _poisId,
         layout: {
-          'icon-image': [
-            'concat',
-            'poi-',
-            ['get', 'kind'],
-          ],
+          'icon-image': ['get', 'icon'],
           'icon-size': [
             'interpolate',
             ['linear'],
@@ -233,13 +223,7 @@ class PlaceLayer {
             16,
             0.36,
           ],
-          'icon-allow-overlap': [
-            'step',
-            ['zoom'],
-            false,
-            15,
-            true,
-          ],
+          'icon-allow-overlap': false,
         },
       ),
     );
@@ -260,11 +244,7 @@ class PlaceLayer {
         id: _alongId,
         sourceId: _alongId,
         layout: {
-          'icon-image': [
-            'concat',
-            'poi-',
-            ['get', 'kind'],
-          ],
+          'icon-image': ['get', 'icon'],
           'icon-size': [
             'interpolate',
             ['linear'],
@@ -274,13 +254,7 @@ class PlaceLayer {
             16,
             0.36,
           ],
-          'icon-allow-overlap': [
-            'step',
-            ['zoom'],
-            false,
-            14,
-            true,
-          ],
+          'icon-allow-overlap': true, // few, along one line
         },
       ),
     );
@@ -395,9 +369,20 @@ class PlaceLayer {
     });
   }
 
+  /// Huts and accommodation as dots, what lies along the way as icons.
+  List<Pin> get _shownPlaces => [
+    for (final p in _shown)
+      if (!poiIcons.containsKey(p.kind)) p,
+  ];
+  List<Pin> get _shownPois => [
+    for (final p in _shown)
+      if (poiIcons.containsKey(p.kind)) p,
+  ];
+
   void _show(List<Pin> pins) {
     _shown = pins;
-    _style?.updateGeoJsonSource(id: _id, data: _geojson(pins)).catchError((_) {});
+    _style?.updateGeoJsonSource(id: _id, data: _geojson(_shownPlaces)).catchError((_) {});
+    _style?.updateGeoJsonSource(id: _poisId, data: _geojson(_shownPois)).catchError((_) {});
   }
 
   /// A finger is wider than a dot.
@@ -423,7 +408,8 @@ class PlaceLayer {
             'type': 'Point',
             'coordinates': [p.lon, p.lat],
           },
-          'properties': {'id': p.id, 'kind': p.kind},
+          // The icon's image by name: a plain property, as iOS takes it.
+          'properties': {'id': p.id, 'kind': p.kind, 'icon': 'poi-${p.kind}'},
         },
     ],
   });

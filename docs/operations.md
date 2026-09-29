@@ -24,6 +24,7 @@ The API calls these services; allow them if egress is restricted:
 |---|---|
 | `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
 | `api.opentransportdata.swiss` | Connections (OJP), only if `ALVYO_OJP_TOKEN` is set |
+| `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for `tellbow/alvyo` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write». Without it reports are only kept in the database. |
 | `api.komoot.de` | Komoot import. This is Komoot's unofficial API: when Komoot changes it, the import fails with 502, while GPX, KML, TCX and FIT upload keep working. |
 
 Reverse proxies in front of `/api` must accept request bodies of 22 MB
@@ -117,7 +118,10 @@ a 3 GB heap (2.3 GB used, 3 min); GraphHopper serves it in about 1.4 GB
 
 New GHCR packages are private; make them public once in the package settings
 (or give the cluster a pull secret). The data-import image carries its
-scripts, so Kubernetes jobs can run `sh /scripts/import-places.sh` etc.
+scripts, so Kubernetes jobs can run `sh /scripts/import-places.sh` etc. The
+cron jobs `places-import` and `tlm-import` are suspended: after a change to
+their script, run them by hand (`kubectl create job --from=cronjob/places-import …`);
+0.16.0's points of interest were missing until then.
 
 ## Moderation
 

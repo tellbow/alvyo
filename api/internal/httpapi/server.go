@@ -17,6 +17,7 @@ import (
 
 	"github.com/tellbow/alvyo/api/internal/areas"
 	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/bugs"
 	"github.com/tellbow/alvyo/api/internal/collections"
 	"github.com/tellbow/alvyo/api/internal/community"
 	"github.com/tellbow/alvyo/api/internal/discover"
@@ -28,6 +29,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/packs"
 	"github.com/tellbow/alvyo/api/internal/photos"
 	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/travel"
@@ -66,6 +68,8 @@ type Deps struct {
 	Importer    *imports.Importer
 	Komoot      *imports.Komoot
 	Images      *og.Renderer
+	Bugs        *bugs.Store
+	Reminders   *reminders.Store
 	Version     string // git SHA or release tag, shown for the AGPL source link
 	PublicURL   string // origin of the web app: CSRF check and cookie Secure flag
 	TrustProxy  bool   // take the client IP from X-Forwarded-For
@@ -126,6 +130,8 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerJourneyPlan(api, d)
 	registerPlaces(api, d)
 	registerGrants(api, d)
+	registerPeople(api, d)
+	registerReminders(api, d)
 	registerCollections(api, d)
 	registerTags(api, d)
 	registerConnections(api, d)
@@ -138,6 +144,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerPasskeys(api, d)
 	registerOIDC(api, d)
 	registerPacks(api, d)
+	registerBugReports(api, d)
 
 	h := withCompression(mux)
 	if d.Auth != nil {

@@ -98,8 +98,29 @@ test('summits and water on the map, with a popup', async ({ page }) => {
 	const canvas = page.locator('canvas.maplibregl-canvas');
 	await expect(canvas).toHaveCSS('cursor', /.*/);
 	const box = (await canvas.boundingBox())!;
-	await page.waitForTimeout(500); // the dots are drawn
-	await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-	await expect(page.getByTestId('place-popup')).toContainText('Reeti');
+	// Once the icons are drawn.
+	await expect(async () => {
+		await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+		await expect(page.getByTestId('place-popup')).toContainText('Reeti', { timeout: 500 });
+	}).toPass();
 	await expect(page.getByTestId('place-popup')).toContainText(/Gipfel · 2757\sm/);
+	await page.screenshot({ path: 'test-results/map-pois.png' });
+
+	// Summits switched off: no longer asked for, and so on the next page.
+	await page.keyboard.press('Escape');
+	await page.getByRole('button', { name: 'Karten' }).click();
+	const kinds = page.getByTestId('poi-kinds');
+	await expect(kinds.getByRole('checkbox')).toHaveCount(10);
+	const without = page.waitForResponse(
+		(r) =>
+			r.url().includes('/places/in-view') &&
+			r.url().includes('kind=water') &&
+			!r.url().includes('kind=peak')
+	);
+	await kinds.getByLabel('Gipfel').uncheck();
+	await without;
+	await page.goto('/discover');
+	await page.getByRole('button', { name: 'Karten' }).click();
+	await expect(page.getByTestId('poi-kinds').getByLabel('Gipfel')).not.toBeChecked();
+	await expect(page.getByTestId('poi-kinds').getByLabel('Feuerstelle')).toBeChecked();
 });

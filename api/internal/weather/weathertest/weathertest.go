@@ -20,7 +20,9 @@ type Point struct {
 
 // Params are the daily values the forecast reads, with the value served
 // for every point and day.
-var Params = map[string]string{"tre200pn": "4.5", "tre200px": "12.0", "rka150p0": "3.2", "rreq10p0": "0.4", "rreq90p0": "9.8"}
+var Params = map[string]string{
+	"tre200pn": "4.5", "tre200px": "12.0", "rka150p0": "3.2", "rreq10p0": "0.4", "rreq90p0": "9.8", "jp2000d0": "6",
+}
 
 // Server serves the collection at /c (with the point list), its items (one,
 // with a complete run at 18:00 and an incomplete one at 19:00) and the

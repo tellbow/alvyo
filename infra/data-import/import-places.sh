@@ -40,11 +40,14 @@ osmium tags-filter --overwrite -o osm-places.pbf "$pbf" \
 osmium export --overwrite -f geojsonseq -x print_record_separator=false \
 	--geometry-types=point,polygon -a type,id -o osm-places.geojsonseq osm-places.pbf
 
-# Along the way: summits, viewpoints, waterfalls, drinking water and
-# shelters (not those at bus stops).
+# Along the way: summits, viewpoints, waterfalls, drinking water, shelters
+# (not those at bus stops), fire places, picnic spots, restaurants and cafés,
+# toilets and cable car stations.
 osmium tags-filter --overwrite -o osm-pois.pbf "$pbf" \
 	n/natural=peak n/tourism=viewpoint nw/waterway=waterfall n/amenity=drinking_water \
-	n/drinking_water=yes nwr/amenity=shelter
+	n/drinking_water=yes nwr/amenity=shelter nw/leisure=firepit nw/tourism=picnic_site \
+	n/leisure=picnic_table nwr/amenity=restaurant,cafe,biergarten nwr/amenity=toilets \
+	n/aerialway=station
 osmium export --overwrite -f geojsonseq -x print_record_separator=false \
 	--geometry-types=point,linestring,polygon -a type,id -o osm-pois.geojsonseq osm-pois.pbf
 
@@ -101,10 +104,16 @@ FROM import_pois, jsonb_extract_path(j, 'properties') AS p,
 		WHEN p->>'waterway' = 'waterfall' THEN 'waterfall'
 		WHEN p->>'amenity' = 'shelter' AND coalesce(p->>'shelter_type', '') <> 'public_transport' THEN 'shelter'
 		WHEN p->>'amenity' = 'drinking_water' OR p->>'drinking_water' = 'yes' THEN 'water'
+		WHEN p->>'leisure' = 'firepit' THEN 'firepit'
+		WHEN p->>'tourism' = 'picnic_site' OR p->>'leisure' = 'picnic_table' THEN 'picnic'
+		WHEN p->>'amenity' IN ('restaurant', 'cafe', 'biergarten') THEN 'restaurant'
+		WHEN p->>'amenity' = 'toilets' THEN 'toilets'
+		WHEN p->>'aerialway' = 'station' THEN 'cablecar'
 	END AS k) kinds
 WHERE k IS NOT NULL
-	-- a summit without a name is a bump on the map
-	AND (k <> 'peak' OR p->>'name' IS NOT NULL)
+	-- a summit without a name is a bump on the map, one of a restaurant or
+	-- cable car station a mistake
+	AND (k NOT IN ('peak', 'restaurant', 'cablecar') OR p->>'name' IS NOT NULL)
 	AND coalesce(p->>'access', '') NOT IN ('private', 'no');
 
 INSERT INTO pois (kind, name, ele, source_id, geom)

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../api.dart';
+import '../bug_report.dart';
+import '../camera.dart';
 import '../elevation_profile.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
@@ -17,8 +19,18 @@ import 'route_screen.dart';
 /// Plans a route from A to B, as on the website: points by tapping the map
 /// or by search, the legs between them computed, then saved and opened.
 class PlannerScreen extends StatefulWidget {
-  const PlannerScreen({super.key, required this.api, this.map});
+  const PlannerScreen({super.key, required this.api, this.map, this.stage, this.start, this.edit});
   final Api api;
+
+  /// Plans the route of this stage (without one yet); pops with the journey.
+  final ({String journeyId, String stageId, String title})? stage;
+
+  /// The first point, e.g. where the previous stage ends.
+  final LonLat? start;
+
+  /// Changes this route's line: start, destination and every point
+  /// between; pops with the route saved.
+  final RouteDetail? edit;
 
   /// Instead of the map, in widget tests (MapLibre cannot render there).
   @visibleForTesting
@@ -28,7 +40,14 @@ class PlannerScreen extends StatefulWidget {
   State<PlannerScreen> createState() => _PlannerScreenState();
 }
 
-class _PlannerScreenState extends State<PlannerScreen> {
+class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<PlannerScreen> {
+  @override
+  String get place => switch ((widget.edit, widget.stage)) {
+    (final r?, _) => '/plan/${r.id}',
+    (_, final st?) => '/journeys/${st.journeyId}/stages/${st.stageId}/plan',
+    _ => '/plan',
+  };
+
   late final _planner = RoutePlanner(widget.api)..addListener(_changed);
   late final _places = PlaceLayer(widget.api, onTap: _showPlace);
   MapController? _map;
@@ -42,6 +61,11 @@ class _PlannerScreenState extends State<PlannerScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.edit case final r?) {
+      _planner.load(r.profile, r.anchors, r.legs);
+    } else if (widget.start case final p?) {
+      _planner.add(p.lon, p.lat);
+    }
     widget.api
         .me()
         .then((me) {
@@ -62,11 +86,24 @@ class _PlannerScreenState extends State<PlannerScreen> {
     _draw();
   }
 
-  Widget _buildMap() => MapLibreMap(
+  Widget _buildMap() => LayoutBuilder(builder: (context, size) => _buildMapIn(size));
+
+  Widget _buildMapIn(BoxConstraints size) {
+    // A route being changed, or a stage going on from the one before: there.
+    final points = [
+      for (final p in _planner.points) [p.lon, p.lat],
+    ];
+    final view = points.isEmpty
+        ? (lon: 8.23, lat: 46.8, zoom: 7.0)
+        : fitLine(points, size.maxWidth, size.maxHeight * 0.6, maxZoom: 13);
+    return _mapLibre(view);
+  }
+
+  Widget _mapLibre(({double lon, double lat, double zoom}) view) => MapLibreMap(
     options: MapOptions(
       initStyle: swisstopoStyle(widget.api.server),
-      initCenter: const Geographic(lon: 8.23, lat: 46.8),
-      initZoom: 7,
+      initCenter: Geographic(lon: view.lon, lat: view.lat),
+      initZoom: view.zoom,
     ),
     onEvent: (e) {
       _places.onEvent(e);
@@ -216,6 +253,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
   Future<void> _save() async {
     if (_saving || !_planner.complete) return;
     final t = AppLocalizations.of(context);
+    if (widget.edit != null || widget.stage != null) return _saveInto();
     final title = await showDialog<String>(
       context: context,
       builder: (context) => _TitleDialog(initial: _planner.suggestedTitle),
@@ -243,11 +281,49 @@ class _PlannerScreenState extends State<PlannerScreen> {
     }
   }
 
+  /// Into the route being changed, or the stage being planned; back with
+  /// what was saved.
+  Future<void> _saveInto() async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    setState(() => _saving = true);
+    try {
+      final Object saved = switch ((widget.edit, widget.stage)) {
+        (final r?, _) => await widget.api.updateRoute(r.id, r.version, {
+          'profile': _planner.profile,
+          'anchors': [for (final a in _planner.anchors) a.toJson()],
+          'legs': [for (final l in _planner.readyLegs) l.json],
+        }),
+        (_, final st?) => await widget.api.createStageRoute(
+          st.journeyId,
+          st.stageId,
+          profile: _planner.profile,
+          anchors: _planner.anchors,
+          legs: _planner.readyLegs,
+        ),
+        _ => throw StateError('nothing to save into'),
+      };
+      if (mounted) nav.pop(saved);
+    } on Object catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      final conflict = e is ApiException && (e.status == 412 || e.status == 409);
+      messenger.showSnackBar(SnackBar(content: Text(conflict ? t.saveConflict : t.plannerSaveFailed)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(t.plannerTitle)),
+      appBar: AppBar(
+        title: Text(switch ((widget.edit, widget.stage)) {
+          (final r?, _) => r.title,
+          (_, final st?) => st.title,
+          _ => t.plannerTitle,
+        }),
+      ),
       body: Stack(
         children: [
           Positioned.fill(child: _mapView),

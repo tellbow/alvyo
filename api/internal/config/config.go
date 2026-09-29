@@ -32,7 +32,11 @@ type Config struct {
 	// RelaxedLimits (ALVYO_RELAXED_LIMITS=true) lifts the per-IP signup
 	// limit for end-to-end tests. Never set it in production.
 	RelaxedLimits bool
-	SMTP          mailer.SMTPConfig
+	// Bug reports open issues in ALVYO_GITHUB_REPO (default tellbow/alvyo)
+	// with ALVYO_GITHUB_TOKEN (issues: write); without it they are only kept.
+	GitHubRepo  string
+	GitHubToken string
+	SMTP        mailer.SMTPConfig
 	// OIDC sign-in providers: ALVYO_OIDC_PROVIDERS lists ids (a-z, 0-9),
 	// each with ALVYO_OIDC_<ID>_ISSUER, _CLIENT_ID, _CLIENT_SECRET and
 	// optionally _NAME (the button label).
@@ -85,6 +89,8 @@ func FromEnv() (Config, error) {
 		RelaxedLimits: os.Getenv("ALVYO_RELAXED_LIMITS") == "true",
 		OJPURL:        getenv("ALVYO_OJP_URL", "https://api.opentransportdata.swiss/ojp20"),
 		OJPToken:      os.Getenv("ALVYO_OJP_TOKEN"),
+		GitHubRepo:    getenv("ALVYO_GITHUB_REPO", "tellbow/alvyo"),
+		GitHubToken:   os.Getenv("ALVYO_GITHUB_TOKEN"),
 		SMTP: mailer.SMTPConfig{
 			Host:     getenv("ALVYO_SMTP_HOST", "localhost"),
 			Username: os.Getenv("ALVYO_SMTP_USER"),

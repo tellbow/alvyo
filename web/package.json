@@ -48,6 +48,7 @@
 		"vitest": "^4.1.8"
 	},
 	"dependencies": {
-		"@simplewebauthn/browser": "^14.0.0"
+		"@simplewebauthn/browser": "^14.0.0",
+		"html-to-image": "1.11.13"
 	}
 }

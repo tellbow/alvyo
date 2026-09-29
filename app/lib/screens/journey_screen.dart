@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../bug_report.dart';
 import '../elevation_profile.dart';
 import '../protected_areas.dart';
+import '../reminders.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/downloads.dart';
@@ -12,7 +14,10 @@ import '../weather.dart';
 import 'collections_screen.dart';
 import 'details.dart';
 import 'item_menu.dart';
+import 'journey_map_screen.dart';
+import 'people_section.dart';
 import 'photos.dart';
+import 'planner_screen.dart';
 import 'report_dialog.dart';
 import 'route_screen.dart';
 import 'social.dart';
@@ -34,8 +39,12 @@ class JourneyScreen extends StatefulWidget {
   State<JourneyScreen> createState() => _JourneyScreenState();
 }
 
-class _JourneyScreenState extends State<JourneyScreen> {
+class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<JourneyScreen> {
+  @override
+  String get place => '/journeys/${widget.id}';
+
   final Future<PackStore> _store = PackStore.open();
+
   late Future<JourneyDetail> _journey = _load();
   late final Future<Along> _areas = widget.api
       .areas(journeyId: widget.id)
@@ -49,6 +58,49 @@ class _JourneyScreenState extends State<JourneyScreen> {
     final w = widget.api.journeyWeather(widget.id).then<JourneyWeather?>((w) => w, onError: (_) => null);
     _weather = (key, w);
     return w;
+  }
+
+  /// Who comes along (null: not ours to see, or offline).
+  late Future<List<Person>?> _people = _loadPeople();
+  List<Person> _peopleNow = const [];
+  Future<List<Person>?> _loadPeople() => widget.api.people(widget.id).then<List<Person>?>((p) {
+    if (mounted) setState(() => _peopleNow = p);
+    return p;
+  }, onError: (_) => null);
+
+  /// The user's reminders before the start, loaded again when the days
+  /// change; the phone's are scheduled from them for the owner and the
+  /// people along.
+  (String, Future<({bool on, DateTime? start})?>)? _reminders;
+  late final Future<String?> _me = widget.api.me().then<String?>((m) => m.username, onError: (_) => null);
+  Future<({bool on, DateTime? start})?> _remindersFor(JourneyDetail j) {
+    final key = [for (final s in j.stages) '${s.plannedDate}${s.status}${s.booked}'].join();
+    if (_reminders case (final k, final r) when k == key) return r;
+    final t = AppLocalizations.of(context);
+    final r = widget.api.reminders(widget.id).then<({bool on, DateTime? start})?>((r) async {
+      await _schedule(t, j, r);
+      return r;
+    }, onError: (_) => null);
+    _reminders = (key, r);
+    return r;
+  }
+
+  Future<void> _schedule(AppLocalizations t, JourneyDetail j, ({bool on, DateTime? start}) r) async {
+    final me = await _me;
+    final along = j.isOwner || ((await _people)?.any((p) => p.username.isNotEmpty && p.username == me) ?? false);
+    await PhoneReminders.instance.schedule(t, j, on: r.on && along, start: r.start);
+  }
+
+  Future<void> _setReminders(JourneyDetail j, bool on) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final r = await widget.api.setReminders(j.id, on);
+      await _schedule(t, j, r);
+      if (mounted) setState(() => _reminders = (_reminders?.$1 ?? '', Future.value(r)));
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
   }
 
   /// Stage routes saved offline.
@@ -135,6 +187,40 @@ class _JourneyScreenState extends State<JourneyScreen> {
       setState(() {
         _journey = Future.value(j);
       });
+    }
+  }
+
+  /// Plans stage [i]'s route (it has none yet), going on from where the
+  /// stage before ends.
+  Future<void> _planStage(JourneyDetail j, int i) async {
+    final t = AppLocalizations.of(context);
+    final before = [
+      for (final (k, line) in j.stageLines)
+        if (k < i && line.isNotEmpty) line.last,
+    ].lastOrNull;
+    final s = j.stages[i];
+    final saved = await Navigator.of(context).push<Object>(
+      MaterialPageRoute(
+        builder: (_) => PlannerScreen(
+          api: widget.api,
+          stage: (journeyId: j.id, stageId: s.id, title: s.title.isEmpty ? t.journeyStage(i + 1) : s.title),
+          start: before == null ? null : (lon: before[0], lat: before[1]),
+        ),
+      ),
+    );
+    if (saved is JourneyDetail) await _show(saved);
+  }
+
+  /// A new stage at the end, planned at once.
+  Future<void> _addStage(JourneyDetail j) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final added = await widget.api.addStage(j.id);
+      await _show(added);
+      if (mounted) await _planStage(added, added.stages.length - 1);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
     }
   }
 
@@ -246,6 +332,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
               final next = _load();
               setState(() {
                 _journey = next;
+                _people = _loadPeople();
               });
               await next; // the spinner stays until it is there
             },
@@ -264,6 +351,20 @@ class _JourneyScreenState extends State<JourneyScreen> {
                       ),
                       if (!j.isOwner && j.owner.isNotEmpty) OwnerLine(api: widget.api, owner: j.owner, open: true),
                       if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
+                      if (j.stageLines.isNotEmpty)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            key: const Key('journey-map'),
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => JourneyMapScreen(api: widget.api, journey: j),
+                              ),
+                            ),
+                            icon: const Icon(Icons.map_outlined),
+                            label: Text(t.journeyMap),
+                          ),
+                        ),
                       if (j.description.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(key: const Key('journey-description'), j.description),
@@ -279,6 +380,35 @@ class _JourneyScreenState extends State<JourneyScreen> {
                       ],
                       JourneyWeatherView(_weatherFor(j)),
                       ProtectedAreas(_areas, days: [for (final s in j.stages) ?s.plannedDate]),
+                      FutureBuilder(
+                        future: _people,
+                        builder: (context, snap) => switch (snap.data) {
+                          final people? when people.isNotEmpty || j.isOwner => PeopleSection(
+                            api: widget.api,
+                            journey: j,
+                            people: people,
+                            onChanged: (p) => setState(() {
+                              _people = Future.value(p);
+                              _peopleNow = p;
+                            }),
+                          ),
+                          _ => const SizedBox.shrink(),
+                        },
+                      ),
+                      FutureBuilder(
+                        future: _remindersFor(j),
+                        builder: (context, snap) => switch (snap.data) {
+                          (:final on, start: _?) => SwitchListTile(
+                            key: const Key('journey-reminders'),
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(t.remindersOn),
+                            subtitle: Text(t.remindersHint),
+                            value: on,
+                            onChanged: (v) => _setReminders(j, v),
+                          ),
+                          _ => const SizedBox.shrink(),
+                        },
+                      ),
                       TravelTiles(
                         api: widget.api,
                         ends: journeyEnds(j, start: t.travelStart, end: t.travelEnd),
@@ -315,6 +445,10 @@ class _JourneyScreenState extends State<JourneyScreen> {
                     key: Key('stage-$i'),
                     n: i + 1,
                     stage: s,
+                    people: [
+                      for (final p in _peopleNow)
+                        if (p.stages.contains(s.id)) p.name.isEmpty ? t.peopleInvited : p.name,
+                    ],
                     saved: _saved.contains(s.routeId),
                     onDone: j.canEdit && s.routeId != null ? (done) => _setDone(j, s, done) : null,
                     onMore: () => _stage(j, i),
@@ -331,8 +465,19 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         );
                         await _checkSaved(j); // saved or removed there
                       },
-                      _ => () => _stage(j, i), // no route yet: its details
+                      // No route yet: planned by those who may, else its details.
+                      _ => j.canEdit ? () => _planStage(j, i) : () => _stage(j, i),
                     },
+                  ),
+                if (j.canEdit)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                    child: OutlinedButton.icon(
+                      key: const Key('journey-add-stage'),
+                      onPressed: () => _addStage(j),
+                      icon: const Icon(Icons.add),
+                      label: Text(t.journeyAddStage),
+                    ),
                   ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
@@ -358,6 +503,7 @@ class _StageTile extends StatelessWidget {
     super.key,
     required this.n,
     required this.stage,
+    this.people = const [],
     required this.saved,
     required this.onDone,
     required this.onMore,
@@ -365,6 +511,9 @@ class _StageTile extends StatelessWidget {
   });
   final int n;
   final Stage stage;
+
+  /// The names of those who come along on it.
+  final List<String> people;
   final bool saved;
 
   /// Opens the stage's sheet: details, public transport, changes.
@@ -401,6 +550,7 @@ class _StageTile extends StatelessWidget {
         t.gapWarning(formatDistance(s.gapM)),
       if (s.accommodation.isNotEmpty)
         '${t.stageAccommodation(s.accommodation)}${s.booked ? ' · ${t.stageBooked}' : ''}',
+      if (people.isNotEmpty) t.peopleOnStage(people.join(', ')),
     ];
     return ListTile(
       leading: CircleAvatar(

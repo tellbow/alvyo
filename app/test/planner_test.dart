@@ -221,6 +221,54 @@ void main() {
       expect([for (final c in planner.line) c[0]], [8.0, 8.1, 8.2, 8.3]);
     });
 
+    test('a saved route: its legs kept as they are, only changed ones asked for', () async {
+      final asked = <String>[];
+      final planner = RoutePlanner(
+        Api(
+          'https://alvyo.test',
+          client: MockClient((req) async {
+            asked.add(_asked(req));
+            return _json(_leg(jsonDecode(req.body) as Map<String, dynamic>));
+          }),
+        ),
+      );
+      Leg leg(double from, double to) => Leg.fromJson(
+        _leg({
+          'from': {'lon': from, 'lat': 46.0},
+          'to': {'lon': to, 'lat': 46.0},
+        }),
+      );
+      planner.load(
+        'alpine',
+        const [
+          Anchor(8.0, 46.0, name: 'A'),
+          Anchor(8.1, 46.0, through: (lon: 8.05, lat: 46.01)),
+          Anchor(8.2, 46.0, straight: true, name: 'C'),
+        ],
+        [leg(8.0, 8.1), leg(8.1, 8.2)],
+      );
+      await planner.idle();
+      expect(asked, isEmpty);
+      expect(planner.complete, isTrue);
+      expect(planner.profile, 'alpine');
+      expect(planner.anchors[1].through, (lon: 8.05, lat: 46.01));
+      expect(planner.anchors[2].straight, isTrue);
+
+      // A new destination: the legs before stay as they were made.
+      planner.add(8.3, 46.0);
+      await planner.idle();
+      expect(asked, ['8.2>8.3']);
+      expect(planner.anchors[2].straight, isTrue);
+      // A new start: the leg from it is planned anew, without the detour.
+      planner.remove(planner.points.first.id);
+      planner.add(7.9, 46.0);
+      planner.reorder(planner.points.length - 1, 0);
+      await planner.idle();
+      expect(asked.last, '7.9>8.1');
+      expect(planner.anchors[1].through, isNull);
+      expect(planner.anchors[2].straight, isTrue);
+    });
+
     test('the title from the first and last point names', () {
       final planner = RoutePlanner(Api('https://alvyo.test', client: MockClient((_) async => http.Response('', 500))));
       expect(planner.suggestedTitle, '');
@@ -361,6 +409,173 @@ void main() {
       expect(saved!['legs'], hasLength(1));
       expect(find.byType(RouteScreen), findsOneWidget);
       expect(find.byType(PlannerScreen), findsNothing);
+    });
+  });
+
+  group('saving into', () {
+    Map<String, dynamic> routeJson({int version = 3}) => {
+      'id': 'r1',
+      'title': 'Sargans – Weisstannen',
+      'owner_username': 'wodan',
+      'role': 'owner',
+      'can_edit': true,
+      'profile': 'hike',
+      'version': version,
+      'totals': {
+        'distance_m': 1000.0,
+        'ascent_m': 100.0,
+        'descent_m': 20.0,
+        'duration_s': 1800,
+        'sac_grade': 2,
+        'sac_max': 2,
+      },
+      'anchors': [
+        {'lon': 9.44, 'lat': 47.0, 'name': 'Sargans'},
+        {'lon': 9.35, 'lat': 47.0, 'name': 'Weisstannen'},
+      ],
+      'legs': [
+        _leg({
+          'from': {'lon': 9.44, 'lat': 47.0},
+          'to': {'lon': 9.35, 'lat': 47.0},
+        }),
+      ],
+    };
+
+    Future<Object?> run(WidgetTester tester, Widget Function(Api api) screen, MockClient client) async {
+      tester.view.physicalSize = const Size(400, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      Object? popped;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('de'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => popped = await Navigator.of(context).push<Object>(
+                MaterialPageRoute(
+                  builder: (_) => screen(Api('https://alvyo.test', token: 't', client: client)),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      return () => popped;
+    }
+
+    testWidgets('a route changed on the map: its points, saved over the version seen', (tester) async {
+      Map<String, dynamic>? patched;
+      String? ifMatch;
+      final asked = <String>[];
+      final client = MockClient((req) async {
+        switch ((req.method, req.url.path)) {
+          case ('GET', '/api/v1/me'):
+            return _json({'id': 'u1', 'username': 'wodan', 'display_name': 'Wodan', 'speed_factor': 1.0});
+          case ('POST', '/api/v1/routing/leg'):
+            asked.add(_asked(req));
+            return _json(_leg(jsonDecode(req.body) as Map<String, dynamic>));
+          case ('PATCH', '/api/v1/routes/r1'):
+            patched = jsonDecode(req.body) as Map<String, dynamic>;
+            ifMatch = req.headers['If-Match'];
+            return _json(routeJson(version: 4));
+        }
+        return http.Response('', 404);
+      });
+      final popped =
+          await run(
+                tester,
+                (api) => PlannerScreen(api: api, edit: RouteDetail.fromJson(routeJson()), map: const SizedBox.expand()),
+                client,
+              )
+              as Object? Function();
+      expect(find.text('Sargans – Weisstannen'), findsWidgets); // the title, and the points
+      expect(find.byKey(const Key('planner-totals')), findsOneWidget);
+      expect(asked, isEmpty, reason: 'the saved leg is kept');
+      await tester.ensureVisible(find.byKey(const Key('planner-save')));
+      await tester.tap(find.byKey(const Key('planner-save')));
+      await tester.pumpAndSettle();
+      expect(ifMatch, '"3"');
+      expect((patched!['anchors'] as List).length, 2);
+      expect((patched!['legs'] as List).length, 1);
+      expect(popped(), isA<RouteDetail>());
+    });
+
+    testWidgets('a stage planned from where the one before ends', (tester) async {
+      Map<String, dynamic>? posted;
+      final client = MockClient((req) async {
+        switch ((req.method, req.url.path)) {
+          case ('GET', '/api/v1/me'):
+            return _json({'id': 'u1', 'username': 'wodan', 'display_name': 'Wodan', 'speed_factor': 1.0});
+          case ('POST', '/api/v1/routing/leg'):
+            return _json(_leg(jsonDecode(req.body) as Map<String, dynamic>));
+          case ('GET', '/api/v1/places/search'):
+            return _json({
+              'places': [
+                {
+                  'name': 'Weisstannen',
+                  'kind': 'pt_stop',
+                  'detail': '',
+                  'at': [9.3, 47.0],
+                },
+              ],
+            });
+          case ('POST', '/api/v1/journeys/j1/stages/s2/route'):
+            posted = jsonDecode(req.body) as Map<String, dynamic>;
+            return _json({
+              'id': 'j1',
+              'title': 'Via Alpina',
+              'role': 'owner',
+              'can_edit': true,
+              'totals': {
+                'distance_m': 0.0,
+                'ascent_m': 0.0,
+                'descent_m': 0.0,
+                'duration_s': 0,
+                'sac_grade': 0,
+                'sac_max': 0,
+              },
+              'progress': {'stages_done': 0, 'stages_total': 2},
+              'stage_list': <Object>[],
+            });
+        }
+        return http.Response('', 404);
+      });
+      final popped =
+          await run(
+                tester,
+                (api) => PlannerScreen(
+                  api: api,
+                  stage: (journeyId: 'j1', stageId: 's2', title: 'Etappe 2'),
+                  start: (lon: 9.35, lat: 47.0),
+                  map: const SizedBox.expand(),
+                ),
+                client,
+              )
+              as Object? Function();
+      expect(find.text('Etappe 2'), findsOneWidget);
+      // The start is there: the destination by the search.
+      await tester.tap(find.byKey(const Key('place-search-open')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('place-search')), 'Weisstannen');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('place-result-0')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('planner-save')));
+      await tester.tap(find.byKey(const Key('planner-save')));
+      await tester.pumpAndSettle();
+      expect((posted!['anchors'] as List).first, {'lon': 9.35, 'lat': 47.0});
+      expect(popped(), isA<JourneyDetail>());
     });
   });
 }

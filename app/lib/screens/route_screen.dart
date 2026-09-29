@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../api.dart';
+import '../bug_report.dart';
 import '../camera.dart';
 import '../elevation_profile.dart';
 import '../pois.dart';
@@ -26,6 +27,7 @@ import 'photos.dart';
 import 'report_dialog.dart';
 import 'social.dart';
 import 'tag_chips.dart';
+import 'planner_screen.dart';
 import 'travel_screen.dart';
 
 /// A route on the national map, with offline saving; its description,
@@ -44,7 +46,10 @@ class RouteScreen extends StatefulWidget {
   State<RouteScreen> createState() => _RouteScreenState();
 }
 
-class _RouteScreenState extends State<RouteScreen> {
+class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen> {
+  @override
+  String get place => '/routes/${widget.id}';
+
   final Future<PackStore> _store = PackStore.open();
   late Future<RouteDetail> _route = _load();
   late final Future<Along> _areas = widget.api
@@ -235,6 +240,23 @@ class _RouteScreenState extends State<RouteScreen> {
     }
   }
 
+  /// A new start, destination or points between, in the planner; the
+  /// route opens anew once saved.
+  Future<void> _editLine(RouteDetail r) async {
+    final nav = Navigator.of(context);
+    final saved = await nav.push<Object>(
+      MaterialPageRoute(
+        builder: (_) => PlannerScreen(api: widget.api, edit: r),
+      ),
+    );
+    if (saved is! RouteDetail || !mounted) return;
+    nav.pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => RouteScreen(api: widget.api, id: saved.id, title: saved.title),
+      ),
+    );
+  }
+
   /// Deletes the route on the server and its offline map, then leaves.
   Future<void> _delete() async {
     final t = AppLocalizations.of(context);
@@ -256,6 +278,8 @@ class _RouteScreenState extends State<RouteScreen> {
     return ItemMenu(
       actions: [
         if (r.canEdit) MenuAction('edit', Icons.edit_outlined, t.editAction, () => _edit(r)),
+        if (r.canEdit && r.anchors.length > 1)
+          MenuAction('edit-line', Icons.alt_route, t.routeEditLine, () => _editLine(r)),
         if (r.isOwner && !stage)
           MenuAction(
             'share',
@@ -343,6 +367,7 @@ class _RouteScreenState extends State<RouteScreen> {
                                 onStyleLoaded: (style) async {
                                   await _places.addTo(style);
                                   await addRouteLine(style, r.line);
+                                  await _places.addAlong(style, await _pois);
                                 },
                               );
                             },
@@ -389,10 +414,16 @@ class _RouteScreenState extends State<RouteScreen> {
                             ],
                             const SizedBox(height: 8),
                             ElevationProfile.ofLine(r.line),
-                            RouteWeatherView(_weather),
+                            RouteWeatherView(
+                              _weather,
+                              later: (date) => widget.api
+                                  .routeWeather(widget.id, date: date)
+                                  .then<RouteWeather?>((w) => w, onError: (_) => null),
+                            ),
                             ProtectedAreas(_areas),
                             PoiList(_pois),
-                            if (r.line.length >= 2)
+                            // A stage's way there and back is its journey's.
+                            if (r.line.length >= 2 && r.journeyId == null)
                               TravelTiles(
                                 api: widget.api,
                                 ends: routeEnds(r, start: t.travelRouteStart, end: t.travelRouteEnd),

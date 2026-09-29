@@ -25,7 +25,10 @@
 	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
 	import Notices from '$lib/areas/Notices.svelte';
 	import Pois from '$lib/map/Pois.svelte';
+	import PoiPins from '$lib/map/PoiPins.svelte';
+	import type { Poi } from '$lib/map/places';
 	import RouteWeather from '$lib/weather/RouteWeather.svelte';
+	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
 	import Travel from '$lib/travel/Travel.svelte';
 	import TravelLayers from '$lib/travel/TravelLayers.svelte';
 	import { routeEnds } from '$lib/travel/travel';
@@ -73,6 +76,7 @@
 	let lib = $state<typeof MapLibre>();
 	let hoverIndex = $state<number>();
 	let travelTrips = $state<Trip[]>([]);
+	let routePois = $state<Poi[]>([]);
 	let confirmDelete = $state(false);
 	// Stage routes have their photos on the journey; an earlier version shows
 	// the line only.
@@ -130,6 +134,7 @@
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} editable={false} />
 			{#if gallery}<PhotoPins {map} {lib} {gallery} />{/if}
+			<PoiPins {map} {lib} pois={routePois} />
 			<TravelLayers {map} {lib} trips={travelTrips} />
 		{/if}
 		<ProfileDock>
@@ -236,6 +241,7 @@
 			<a href="/api/v1/routes/{route.id}/gpx" download class="text-sm text-accent-ink underline"
 				>{m.route_gpx()}</a
 			>
+			<OpenInApp kind="routes" id={route.id} />
 			{#if route.legs.length > 0}
 				<!-- The share token rides along; resolve() cannot express query strings. -->
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -252,8 +258,9 @@
 		{#if !revision}<RouteWeather id={route.id} {token} />{/if}
 		<Notices {notices} />
 		<ProtectedAreas {areas} failed={areasFailed} />
-		{#if !revision}<Pois id={route.id} {token} />{/if}
-		{#if user && !revision && route.legs.length > 0}
+		{#if !revision}<Pois id={route.id} {token} onload={(p) => (routePois = p)} />{/if}
+		<!-- A stage's way there and back is its journey's (from home, before the first and after the last). -->
+		{#if user && !revision && !route.journey_id && route.legs.length > 0}
 			<Travel
 				kind="routes"
 				id={route.id}

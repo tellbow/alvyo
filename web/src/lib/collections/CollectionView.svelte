@@ -1,4 +1,5 @@
 <script lang="ts">
+	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
@@ -153,6 +154,7 @@
 				/>
 			{:else}
 				<h1 class="text-xl font-semibold" data-testid="collection-title">{collection.title}</h1>
+				<OpenInApp kind="collections" id={collection.id} />
 			{/if}
 			<p class="text-sm text-stone-500">
 				{collection.role === 'editor'

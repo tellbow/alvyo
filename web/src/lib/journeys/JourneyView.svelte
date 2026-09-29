@@ -1,4 +1,5 @@
 <script lang="ts">
+	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { untrack } from 'svelte';
@@ -47,6 +48,10 @@
 	import Photos from '$lib/photos/Photos.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import StageCard from './StageCard.svelte';
+	import JourneyPeople from './JourneyPeople.svelte';
+	import JourneyReminders from './JourneyReminders.svelte';
+	import { stagePeople } from './people';
+	import type { Person } from '$lib/api/client';
 	import Travel from '$lib/travel/Travel.svelte';
 	import TravelLayers from '$lib/travel/TravelLayers.svelte';
 	import { journeyEnds } from '$lib/travel/travel';
@@ -83,6 +88,8 @@
 	let areas = $state<ProtectedArea[]>();
 	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
+	// Who comes along (for those who may see it), shown on their stages too.
+	let people = $state<Person[]>([]);
 	// The stages' planned days, to say when an area's rules apply then.
 	const plannedDays = $derived(
 		journey.stage_list.flatMap((s) => (s.planned_date ? [s.planned_date] : []))
@@ -418,6 +425,8 @@
 		{/if}
 
 		{#if user}
+			<JourneyPeople id={journey.id} stages={journey.stage_list} {isOwner} {canEdit} bind:people />
+			<JourneyReminders id={journey.id} key={plannedDays.join()} />
 			<Travel
 				kind="journeys"
 				id={journey.id}
@@ -501,6 +510,7 @@
 						onmove={(delta) => move(s.id, delta)}
 						onremove={() => removeStage(s.id)}
 						onimport={(file) => importStage(s.id, file)}
+						people={stagePeople(people, s.id)}
 					/>
 				{/each}
 			</ol>
@@ -592,6 +602,7 @@
 			>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		{/if}
+		<OpenInApp kind="journeys" id={journey.id} />
 
 		<Photos {gallery} loggedIn={!!user} />
 		<Social kind="journeys" id={journey.id} {token} {user} />

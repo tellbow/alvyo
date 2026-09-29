@@ -800,12 +800,28 @@
   "noticesTitle": "Sperrungen und Schiessen",
   "noticesClosure": "Wanderweg gesperrt",
   "noticesShooting": "Schiessen der Armee",
-  "mapPois": "Unterwegs: Gipfel, Aussicht, Wasser",
+  "mapPois": "Unterwegs",
   "poiPeak": "Gipfel",
   "poiViewpoint": "Aussichtspunkt",
   "poiWaterfall": "Wasserfall",
   "poiWater": "Trinkwasser",
   "poiShelter": "Unterstand",
+  "mapBase": "Hintergrund",
+  "mapOverlays": "Überlagerungen",
+  "mapBaseNational": "Landeskarte",
+  "mapBaseGrey": "Landeskarte grau",
+  "mapBaseAerial": "Luftbild",
+  "mapOverlayTrails": "Wanderwege",
+  "mapOverlayWanderland": "SchweizMobil-Wanderrouten",
+  "mapOverlaySlope": "Hangneigung über 30°",
+  "mapOverlayRestAreas": "Wildruhezonen",
+  "mapOverlayHuntingReserves": "Eidg. Jagdbanngebiete",
+  "mapOverlayRelief": "Relief",
+  "poiFirepit": "Feuerstelle",
+  "poiPicnic": "Picknickplatz",
+  "poiRestaurant": "Restaurant, Café",
+  "poiToilets": "Toilette",
+  "poiCablecar": "Seilbahnstation",
   "poisTitle": "Unterwegs",
   "poisAll": "Alle {count} zeigen",
   "@poisAll": {
@@ -858,5 +874,102 @@
   "travelPlaceSearch": "Ort, Haltestelle oder Adresse",
   "travelDay": "Am",
   "travelRouteStart": "Start",
-  "travelRouteEnd": "Ziel"
+  "travelRouteEnd": "Ziel",
+  "areasNow": "gilt jetzt",
+  "areasOnDate": "gilt an einem geplanten Tag",
+  "hintsOpen": "{count} anzeigen",
+  "@hintsOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherOtherDay": "Anderes Datum",
+  "weatherClimate": "Üblich im {month}: {min}–{max} °C, an {days} von {total} Tagen Regen, {mm} mm im Monat",
+  "weatherClimateSource": "Noch keine Prognose für diesen Tag: Klimanormwerte 1991–2020 von MeteoSchweiz (Temperatur: {station}, auf die Höhe umgerechnet; Niederschlag: {rain}). Die Prognose gibt es für die nächsten 9 Tage.",
+  "@weatherClimate": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "mm": {
+        "type": "String"
+      }
+    }
+  },
+  "@weatherClimateSource": {
+    "placeholders": {
+      "station": {
+        "type": "String"
+      },
+      "rain": {
+        "type": "String"
+      }
+    }
+  },
+  "journeyMap": "Karte der Etappentour",
+  "journeyAddStage": "Etappe hinzufügen",
+  "routeEditLine": "Auf der Karte ändern",
+  "bugOpen": "Fehler melden",
+  "bugWhat": "Was ist passiert? Was hast du erwartet?",
+  "bugWithScreenshot": "Bildschirmfoto mitsenden",
+  "bugScreenshotAlt": "Bildschirmfoto dieser Seite",
+  "bugPrivacy": "Mit dem Bericht gehen die Adresse ({place}), die Version, dein Benutzername und das Bildschirmfoto an die Entwickler (GitHub). Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.",
+  "bugSend": "Senden",
+  "bugSent": "Danke! Der Fehler ist gemeldet.",
+  "bugFailed": "Das hat nicht geklappt. Versuch es später nochmals.",
+  "bugBusy": "Du hast heute schon einige Fehler gemeldet. Versuch es später nochmals.",
+  "close": "Schliessen",
+  "@bugPrivacy": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "peopleTitle": "Wer kommt mit",
+  "peopleNone": "Noch niemand. Wer mitkommt, sieht die Etappentour und die Etappen, auf denen er oder sie dabei ist.",
+  "peopleInvited": "Eingeladen",
+  "peopleRemove": "Kommt nicht mit",
+  "peopleWho": "Benutzername oder E-Mail-Adresse",
+  "peopleAdd": "Hinzufügen",
+  "peopleHint": "Wer noch keinen Zugang hat, wird eingeladen und kann die Etappentour ansehen. Die Zahlen sind die Etappen: antippen, wer wo dabei ist.",
+  "peopleUnknown": "Diese Person gibt es nicht, oder du bist es selbst.",
+  "peopleVerify": "Bestätige zuerst deine E-Mail-Adresse.",
+  "peopleFailed": "Das hat nicht geklappt. Versuch es nochmals.",
+  "peopleOnStage": "Mit {names}",
+  "peopleStages": "Etappen von {name}",
+  "remindersTitle": "Erinnerungen",
+  "remindersOn": "Erinnerungen per E-Mail vor dem Start",
+  "remindersHint": "Für dich und alle, die mitkommen; in der App auch auf dem Telefon.",
+  "reminderBook": "In drei Wochen geht es los: Sind alle Übernachtungen gebucht?",
+  "reminderWeather": "Übermorgen geht es los: Schau dir das Wetter an.",
+  "reminderStart": "Morgen geht es los. Gute Wanderung!",
+  "@peopleOnStage": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "@peopleStages": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -26,7 +26,7 @@ type searchPlacesInput struct {
 
 type placesInViewInput struct {
 	BBox string   `query:"bbox" required:"true" doc:"The map view: west,south,east,north (WGS84)" example:"7.9,46.55,8.1,46.7"`
-	Kind []string `query:"kind,explode" required:"true" minItems:"1" enum:"hut,hotel,campsite,peak,viewpoint,waterfall,water,shelter"`
+	Kind []string `query:"kind,explode" required:"true" minItems:"1" enum:"hut,hotel,campsite,peak,viewpoint,waterfall,water,shelter,firepit,picnic,restaurant,toilets,cablecar"`
 }
 
 type poisOutput struct {
@@ -69,7 +69,7 @@ func registerPlaces(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "route-pois", Method: http.MethodGet, Path: "/routes/{id}/pois",
-		Summary:     "Summits, viewpoints, waterfalls, drinking water and shelters along a route",
+		Summary:     "Summits, viewpoints, water, shelters, fire places, restaurants and more along a route",
 		Description: "Within 200 m of the line, in the order they come; from OpenStreetMap.",
 		Tags:        []string{"places"},
 	}, func(ctx context.Context, in *routeIDInput) (*poisOutput, error) {

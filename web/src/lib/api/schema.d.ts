@@ -217,6 +217,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/bug-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report a bug, with what is open and a screenshot
+         * @description Opens an issue on GitHub; the screenshot stays with us. A few a day per person.
+         */
+        post: operations["report-bug"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bug-reports/{id}/screenshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A bug report's screenshot (moderators) */
+        get: operations["bug-screenshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/collections": {
         parameters: {
             query?: never;
@@ -877,6 +914,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journeys/{id}/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who comes along, on which stages (owner and people it is shared with) */
+        get: operations["list-journey-people"];
+        put?: never;
+        /**
+         * Someone comes along (owner)
+         * @description Someone without access becomes a viewer and is invited by e-mail; a role they have is kept.
+         */
+        post: operations["add-journey-person"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journeys/{id}/people/{person}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** The stages someone is on (owner and editors) */
+        put: operations["set-journey-person-stages"];
+        post?: never;
+        /**
+         * Someone no longer comes along (owner)
+         * @description They keep the access they have; stop sharing under grants.
+         */
+        delete: operations["remove-journey-person"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys/{id}/photos": {
         parameters: {
             query?: never;
@@ -931,6 +1010,24 @@ export interface paths {
         head?: never;
         /** Change a photo's caption or take it off the map (owner and editors) */
         patch: operations["update-journey-photo"];
+        trace?: never;
+    };
+    "/journeys/{id}/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reminders before the journey starts, for the caller */
+        get: operations["journey-reminders"];
+        /** Turn the caller's reminders by e-mail on or off */
+        put: operations["set-journey-reminders"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/journeys/{id}/social": {
@@ -1071,7 +1168,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** MeteoSwiss's forecast at each stage's highest point, for its planned day */
+        /**
+         * MeteoSwiss's forecast at each stage's highest point, for its planned day
+         * @description A planned day beyond the forecast has the climate normals of its month instead.
+         */
         get: operations["journey-weather"];
         put?: never;
         post?: never;
@@ -1857,7 +1957,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Summits, viewpoints, waterfalls, drinking water and shelters along a route
+         * Summits, viewpoints, water, shelters, fire places, restaurants and more along a route
          * @description Within 200 m of the line, in the order they come; from OpenStreetMap.
          */
         get: operations["route-pois"];
@@ -1991,7 +2091,7 @@ export interface paths {
         };
         /**
          * MeteoSwiss's forecast at a route's start, highest point and end
-         * @description For each, the forecast point nearby of the most similar height; the next days. 503 before the first forecast is loaded.
+         * @description For each, the forecast point nearby of the most similar height; the next days, and for a `date` beyond them the climate normals of its month. 503 before the first forecast is loaded.
          */
         get: operations["route-weather"];
         put?: never;
@@ -2196,6 +2296,17 @@ export interface components {
              */
             route_id?: string;
         };
+        AddPersonInputBody: {
+            /**
+             * Format: email
+             * @description An address; it applies once someone signs in with it
+             */
+            email?: string;
+            /** @description The stages they are on; all without */
+            stages?: string[];
+            /** @description An account (either this or email) */
+            username?: string;
+        };
         AddStageInputBody: {
             /**
              * Format: uuid
@@ -2264,6 +2375,53 @@ export interface components {
         };
         BlockedOutputBody: {
             users: components["schemas"]["UserRef"][];
+        };
+        BugReportInputBody: {
+            description: string;
+            /** @description The page's address or the app's screen, and the item open */
+            place: string;
+            /** @enum {string} */
+            platform: "web" | "ios";
+            /** @description PNG or JPEG, base64, up to 4 MB */
+            screenshot?: string;
+            version: string;
+        };
+        BugReportOutputBody: {
+            /** Format: uuid */
+            id: string;
+            /** @description The GitHub issue, when one was opened */
+            issue_url?: string;
+        };
+        Climate: {
+            /**
+             * Format: double
+             * @description The station's, metres
+             */
+            height: number;
+            /**
+             * Format: double
+             * @description Mean highest temperature of a day, °C, at the place's height
+             */
+            max_c: number;
+            /**
+             * Format: double
+             * @description Mean lowest temperature of a day, °C, at the place's height
+             */
+            min_c: number;
+            /** Format: int64 */
+            month: number;
+            /**
+             * Format: double
+             * @description Mean days of the month with at least 1 mm
+             */
+            rain_days: number;
+            /**
+             * Format: double
+             * @description Mean precipitation of the month, mm
+             */
+            rain_mm: number;
+            rain_station: string;
+            station: string;
         };
         CollectionBody: {
             can_edit: boolean;
@@ -2682,6 +2840,8 @@ export interface components {
             rain_lo_mm: number;
             /** Format: double */
             rain_mm: number;
+            /** Format: int64 */
+            symbol?: number;
         };
         ForecastPoint: {
             /**
@@ -3151,11 +3311,29 @@ export interface components {
         PasskeysOutputBody: {
             passkeys: components["schemas"]["PasskeyInfo"][];
         };
+        PeopleOutputBody: {
+            people: components["schemas"]["Person"][];
+        };
         Period: {
             /** @description MM-DD */
             from: string;
             /** @description MM-DD */
             to: string;
+        };
+        Person: {
+            display_name?: string;
+            email?: string;
+            /**
+             * Format: uuid
+             * @description The grant
+             */
+            id: string;
+            /** @description The ids of the stages they are on */
+            stages: string[];
+            username?: string;
+        };
+        PersonStagesInputBody: {
+            stages: string[];
         };
         Photo: {
             caption: string;
@@ -3191,7 +3369,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            kind: "pt_stop" | "hut" | "hotel" | "campsite" | "peak" | "viewpoint" | "waterfall" | "water" | "shelter";
+            kind: "pt_stop" | "hut" | "hotel" | "campsite" | "peak" | "viewpoint" | "waterfall" | "water" | "shelter" | "firepit" | "picnic" | "restaurant" | "toilets" | "cablecar";
             /** Format: double */
             lat: number;
             /** Format: double */
@@ -3278,8 +3456,8 @@ export interface components {
              */
             ele?: number;
             /** @enum {string} */
-            kind: "peak" | "viewpoint" | "waterfall" | "water" | "shelter";
-            /** @description Empty for many drinking water points and shelters */
+            kind: "peak" | "viewpoint" | "waterfall" | "water" | "shelter" | "firepit" | "picnic" | "restaurant" | "toilets" | "cablecar";
+            /** @description Empty for many drinking water points, shelters, fire places, picnic spots and toilets */
             name: string;
             /**
              * Format: double
@@ -3389,6 +3567,23 @@ export interface components {
         RelyingPartyEntity: {
             id: string;
             name: string;
+        };
+        Reminder: {
+            /** Format: date */
+            day: string;
+            /**
+             * @description Book the nights (three weeks before), the weather (two days before), the start (the day before)
+             * @enum {string}
+             */
+            kind: "book" | "weather" | "start";
+        };
+        RemindersOutputBody: {
+            /** @description Whether the caller gets the reminders by e-mail (the owner and the people along) */
+            on: boolean;
+            /** Format: date */
+            start?: string;
+            /** @description The reminders still to come, by day */
+            upcoming: components["schemas"]["Reminder"][];
         };
         ReorderInputBody: {
             stage_ids: string[];
@@ -3643,6 +3838,9 @@ export interface components {
         SessionOutputBody: {
             user: components["schemas"]["Me"];
         };
+        SetRemindersInputBody: {
+            on: boolean;
+        };
         SettingsInputBody: {
             /**
              * @description Language of e-mails
@@ -3755,7 +3953,10 @@ export interface components {
             profile: "hike" | "alpine";
         };
         StageWeather: {
+            climate?: components["schemas"]["Climate"];
             day?: components["schemas"]["ForecastDay"];
+            /** Format: date */
+            planned_date?: string;
             /** @description At the stage's highest point */
             point: components["schemas"]["ForecastPoint"];
             /**
@@ -4033,6 +4234,7 @@ export interface components {
             time: string;
         };
         WeatherPlace: {
+            climate?: components["schemas"]["Climate"];
             /** @description From today on */
             days: components["schemas"]["ForecastDay"][];
             /** @description MeteoSwiss's forecast point */
@@ -4427,6 +4629,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "report-bug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BugReportInputBody"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BugReportOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "bug-screenshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Content-Type"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
             };
             /** @description Error */
             default: {
@@ -6138,6 +6406,140 @@ export interface operations {
             };
         };
     };
+    "list-journey-people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeopleOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "add-journey-person": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddPersonInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeopleOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "set-journey-person-stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                person: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonStagesInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeopleOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "remove-journey-person": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                person: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeopleOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "list-journey-photos": {
         parameters: {
             query?: {
@@ -6301,6 +6703,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PhotosBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "journey-reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RemindersOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "set-journey-reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetRemindersInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RemindersOutputBody"];
                 };
             };
             /** @description Error */
@@ -7548,7 +8016,7 @@ export interface operations {
             query: {
                 /** @description The map view: west,south,east,north (WGS84) */
                 bbox: string;
-                kind: ("hut" | "hotel" | "campsite" | "peak" | "viewpoint" | "waterfall" | "water" | "shelter")[];
+                kind: ("hut" | "hotel" | "campsite" | "peak" | "viewpoint" | "waterfall" | "water" | "shelter" | "firepit" | "picnic" | "restaurant" | "toilets" | "cablecar")[];
             };
             header?: never;
             path?: never;
@@ -8919,6 +9387,8 @@ export interface operations {
             query?: {
                 /** @description Share token of an unlisted route */
                 t?: string;
+                /** @description A day beyond the forecast: the climate normals of its month come along */
+                date?: string;
             };
             header?: never;
             path: {

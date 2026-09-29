@@ -3,7 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
+import 'bug_report.dart';
 import 'l10n/app_localizations.dart';
+import 'links.dart';
 import 'screens/login_screen.dart';
 import 'screens/routes_screen.dart';
 import 'session.dart';
@@ -21,7 +23,43 @@ class AlvyoApp extends StatefulWidget {
   State<AlvyoApp> createState() => _AlvyoAppState();
 }
 
-class _AlvyoAppState extends State<AlvyoApp> {
+class _AlvyoAppState extends State<AlvyoApp> with WidgetsBindingObserver {
+  final _nav = GlobalKey<NavigatorState>();
+
+  /// A link that arrived before signing in, opened after.
+  ItemLink? _pending;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Started by a link.
+    _pending = parseItemLink(WidgetsBinding.instance.platformDispatcher.defaultRouteName);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// A link to a route, journey or collection, while the app runs.
+  @override
+  Future<bool> didPushRouteInformation(RouteInformation info) async {
+    final link = parseItemLink(info.uri.toString());
+    if (link == null) return false;
+    _pending = link;
+    _openPending();
+    return true;
+  }
+
+  void _openPending() {
+    final api = _api, nav = _nav.currentState, link = _pending;
+    if (api == null || nav == null || link == null) return;
+    _pending = null;
+    openLink(nav, api, link);
+  }
+
   late final Session _session = widget.session ?? Session();
   late final AppSettings _settings = widget.settings ?? AppSettings.instance;
   // The settings first, so the first screen is in the chosen look.
@@ -56,6 +94,9 @@ class _AlvyoAppState extends State<AlvyoApp> {
 
   Widget _app(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _nav,
+      // Links are opened by didPushRouteInformation, not as named routes.
+      initialRoute: '/',
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: alvyoTheme(Brightness.light),
       darkTheme: alvyoTheme(Brightness.dark),
@@ -71,7 +112,7 @@ class _AlvyoAppState extends State<AlvyoApp> {
       // Numbers in the app's language («19,3 km» in French, format.dart).
       builder: (context, child) {
         Intl.defaultLocale = Localizations.localeOf(context).languageCode;
-        return child!;
+        return BugReportFrame(api: () => _api, navigator: _nav, child: child!);
       },
       home: FutureBuilder(
         future: _restored,
@@ -88,6 +129,7 @@ class _AlvyoAppState extends State<AlvyoApp> {
           if (api == null) {
             return LoginScreen(session: _session, onLoggedIn: (a) => setState(() => _api = a));
           }
+          if (_pending != null) WidgetsBinding.instance.addPostFrameCallback((_) => _openPending());
           return RoutesScreen(api: api, onLogout: _logout, settings: _settings);
         },
       ),

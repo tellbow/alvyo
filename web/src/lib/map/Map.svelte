@@ -7,6 +7,9 @@
 	import { placeDetail } from '$lib/journeys/places';
 	import { m as msg } from '$lib/paraglide/messages';
 	import { PLACE_OVERLAYS, isPoi, placeFeatures, placeKinds, poiText, webLink } from './places';
+	import { drawPoiIcon } from './poiIcons';
+	import { poiShown } from './poiKinds.svelte';
+	import { liveMaps } from './registry';
 	import {
 		CH_CENTER,
 		OVERLAYS,
@@ -131,6 +134,13 @@
 				const popup = new ml.Popup({ maxWidth: '260px' }).setLngLat([lon, lat]);
 				popup.setDOMContent(placePopup({ ...p, lon, lat }, () => popup.remove())).addTo(m);
 			});
+			// The icons along the way are drawn when a style first needs them.
+			m.on('styleimagemissing', (e: { id: string }) => {
+				const kind = e.id.replace(/^poi-/, '');
+				if (e.id === kind || !isPoi(kind)) return;
+				const data = drawPoiIcon(kind, 22, devicePixelRatio);
+				if (data) m.addImage(e.id, data, { pixelRatio: devicePixelRatio });
+			});
 			for (const id of PLACE_LAYERS) {
 				m.on('mouseenter', id, () => (m.getCanvas().style.cursor = 'pointer'));
 				m.on('mouseleave', id, () => (m.getCanvas().style.cursor = ''));
@@ -148,10 +158,12 @@
 				onready?.(m, ml);
 			});
 			instance = m;
+			liveMaps.add(m);
 		});
 		return () => {
 			destroyed = true;
 			clearTimeout(placesTimer);
+			if (instance) liveMaps.delete(instance);
 			instance?.remove();
 		};
 	});
@@ -170,6 +182,17 @@
 		save();
 		loadPlaces();
 	});
+
+	// Kinds along the way switched on or off: shown at once, fetched anew.
+	$effect(() => {
+		const kinds = [...poiShown.kinds];
+		if (!map) return;
+		if (map.getLayer(placeLayer('pois'))) map.setFilter(placeLayer('pois'), poiFilter(kinds));
+		loadPlaces();
+	});
+
+	const poiFilter = (kinds: string[]) =>
+		['in', ['get', 'kind'], ['literal', kinds]] as MapLibre.FilterSpecification;
 
 	/** Adds and removes overlay layers; waits while a new base style loads. */
 	function syncOverlays(m: MapLibreMap, wanted: OverlayId[]) {
@@ -193,40 +216,48 @@
 							data: places,
 							attribution: '© OpenStreetMap contributors'
 						});
-					m.addLayer(
-						{
-							id: layerId,
-							type: 'circle',
-							source: PLACES,
-							minzoom: o.minZoom,
-							filter: ['in', ['get', 'kind'], ['literal', o.kinds]],
-							paint: {
-								'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 4, 14, 7],
-								'circle-color': [
-									'match',
-									['get', 'kind'],
-									'hut',
-									'#b91c1c',
-									'campsite',
-									'#15803d',
-									'peak',
-									'#57534e',
-									'viewpoint',
-									'#7c3aed',
-									'waterfall',
-									'#0e7490',
-									'water',
-									'#0284c7',
-									'shelter',
-									'#a16207',
-									'#1d4ed8' // hotel
-								],
-								'circle-stroke-color': '#fff',
-								'circle-stroke-width': 1.5
-							}
-						},
-						below([])
-					);
+					// Along the way: an icon per kind; huts and accommodation: dots.
+					if (id === 'pois')
+						m.addLayer(
+							{
+								id: layerId,
+								type: 'symbol',
+								source: PLACES,
+								minzoom: o.minZoom,
+								filter: poiFilter(poiShown.kinds),
+								layout: {
+									'icon-image': ['concat', 'poi-', ['get', 'kind']],
+									'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.8, 16, 1],
+									'icon-allow-overlap': ['step', ['zoom'], false, 15, true]
+								}
+							},
+							below([])
+						);
+					else
+						m.addLayer(
+							{
+								id: layerId,
+								type: 'circle',
+								source: PLACES,
+								minzoom: o.minZoom,
+								filter: ['in', ['get', 'kind'], ['literal', o.kinds]],
+								paint: {
+									'circle-radius': ['interpolate', ['linear'], ['zoom'], 8, 4, 14, 7],
+									'circle-color': [
+										'match',
+										['get', 'kind'],
+										'hut',
+										'#b91c1c',
+										'campsite',
+										'#15803d',
+										'#1d4ed8' // hotel
+									],
+									'circle-stroke-color': '#fff',
+									'circle-stroke-width': 1.5
+								}
+							},
+							below([])
+						);
 				} else if (!wanted.includes(id) && present) m.removeLayer(layerId);
 			} else if (wanted.includes(id) && !present) {
 				if (!m.getSource(layerId))
@@ -254,7 +285,7 @@
 		placesTimer = setTimeout(async () => {
 			if (!map) return;
 			const asked = ++placesAsked;
-			const kinds = placeKinds(overlays, map.getZoom());
+			const kinds = placeKinds(overlays, map.getZoom(), poiShown.kinds);
 			let pins: Pin[] = [];
 			if (kinds.length) {
 				const b = map.getBounds();

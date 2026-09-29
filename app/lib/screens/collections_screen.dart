@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../bug_report.dart';
 import '../l10n/app_localizations.dart';
+import 'details.dart';
 import 'item_menu.dart';
 import 'item_card.dart';
 import 'tiles.dart';
@@ -108,7 +110,10 @@ class CollectionScreen extends StatefulWidget {
   State<CollectionScreen> createState() => _CollectionScreenState();
 }
 
-class _CollectionScreenState extends State<CollectionScreen> {
+class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<CollectionScreen> {
+  @override
+  String get place => '/collections/${widget.id}';
+
   late Future<Collection> _collection = widget.api.collection(widget.id);
 
   Future<void> _remove(CollectionItem i) async {
@@ -148,7 +153,29 @@ class _CollectionScreenState extends State<CollectionScreen> {
         return Scaffold(
           appBar: AppBar(
             title: Text(c?.title ?? widget.title),
-            actions: [if (c != null && c.isOwner) ItemMenu(question: t.collectionDeleteConfirm, onDelete: _delete)],
+            actions: [
+              if (c != null && c.isOwner)
+                ItemMenu(
+                  actions: [
+                    MenuAction(
+                      'share',
+                      Icons.share_outlined,
+                      t.shareAction,
+                      () => shareSheet(
+                        context,
+                        widget.api,
+                        id: c.id,
+                        journey: false,
+                        collection: true,
+                        visibility: c.visibility,
+                        token: c.shareToken,
+                      ),
+                    ),
+                  ],
+                  question: t.collectionDeleteConfirm,
+                  onDelete: _delete,
+                ),
+            ],
           ),
           body: switch (snap) {
             _ when snap.hasError => Center(child: Text(t.errorServer)),

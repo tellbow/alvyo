@@ -89,5 +89,20 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Links from the website («In der App öffnen»): alvyo://open/routes/{id}?t=…
+	     Universal links need a paid developer account (Associated Domains). -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ch.tellbow.alvyo</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>alvyo</string>
+			</array>
+		</dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 </dict>
 </plist>

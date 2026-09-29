@@ -13,8 +13,9 @@ need new API endpoints work only after a release.
 1. The phone must be **unlocked** and on the same Wi-Fi; ask the user if
    unsure.
 2. `cd app && flutter devices` lists «Wodan (wireless)» with its id.
-3. `flutter run --release --no-resident -d <id>` builds (about a minute),
-   installs and starts the app.
+3. `flutter run --release --no-resident -d <id> --dart-define=ALVYO_VERSION=$(git describe --tags --always)`
+   builds (about a minute), installs and starts the app; bug reports from
+   the app name that version.
 4. If it ends with «Could not run build/ios/iphoneos/Runner.app»: the build is
    there, install it directly:
    `xcrun devicectl device install app --device <id> build/ios/iphoneos/Runner.app`.

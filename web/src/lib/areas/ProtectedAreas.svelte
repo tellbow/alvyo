@@ -4,6 +4,7 @@
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { intlLocale } from '$lib/util/locale';
 	import { inPeriod, periodDay, ruleText } from './areas';
+	import HintPopup from './HintPopup.svelte';
 
 	let {
 		areas,
@@ -18,13 +19,25 @@
 	} = $props();
 
 	const today = new Date();
+	const applies = (a: ProtectedArea) =>
+		!a.period || inPeriod(a.period, today)
+			? 'now'
+			: days.some((d) => inPeriod(a.period!, d))
+				? 'planned'
+				: undefined;
+	const note = $derived(
+		areas?.some((a) => applies(a) === 'now')
+			? m.areas_now()
+			: areas?.some((a) => applies(a) === 'planned')
+				? m.areas_on_date()
+				: undefined
+	);
 </script>
 
 {#if failed}
 	<p class="text-xs text-stone-500" data-testid="areas-failed">{m.areas_failed()}</p>
 {:else if areas && areas.length > 0}
-	<section class="flex flex-col gap-2 text-sm" data-testid="protected-areas">
-		<h3 class="text-xs font-medium tracking-wide text-stone-500 uppercase">{m.areas_title()}</h3>
+	<HintPopup title={m.areas_title()} count={areas.length} {note} testid="protected-areas">
 		<ul class="flex flex-col gap-2">
 			{#each areas as a (a.kind + a.id)}
 				{@const now = !a.period || inPeriod(a.period, today)}
@@ -81,5 +94,5 @@
 			{/each}
 		</ul>
 		<p class="text-xs text-stone-500">{m.areas_source()}</p>
-	</section>
+	</HintPopup>
 {/if}

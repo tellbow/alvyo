@@ -1343,7 +1343,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get noticesShooting => 'tiri dell\'esercito';
 
   @override
-  String get mapPois => 'Lungo il cammino: cime, panorami, acqua';
+  String get mapPois => 'Lungo il cammino';
 
   @override
   String get poiPeak => 'Cima';
@@ -1359,6 +1359,54 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get poiShelter => 'Riparo';
+
+  @override
+  String get mapBase => 'Sfondo';
+
+  @override
+  String get mapOverlays => 'Sovrapposizioni';
+
+  @override
+  String get mapBaseNational => 'Carta nazionale';
+
+  @override
+  String get mapBaseGrey => 'Carta nazionale grigia';
+
+  @override
+  String get mapBaseAerial => 'Immagine aerea';
+
+  @override
+  String get mapOverlayTrails => 'Sentieri escursionistici';
+
+  @override
+  String get mapOverlayWanderland => 'Percorsi escursionistici SvizzeraMobile';
+
+  @override
+  String get mapOverlaySlope => 'Pendenza oltre 30°';
+
+  @override
+  String get mapOverlayRestAreas => 'Zone di tranquillità';
+
+  @override
+  String get mapOverlayHuntingReserves => 'Bandite federali di caccia';
+
+  @override
+  String get mapOverlayRelief => 'Rilievo';
+
+  @override
+  String get poiFirepit => 'Focolare';
+
+  @override
+  String get poiPicnic => 'Area picnic';
+
+  @override
+  String get poiRestaurant => 'Ristorante, caffè';
+
+  @override
+  String get poiToilets => 'Servizi igienici';
+
+  @override
+  String get poiCablecar => 'Stazione della funivia';
 
   @override
   String get poisTitle => 'Lungo il cammino';
@@ -1415,4 +1463,128 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get travelRouteEnd => 'Arrivo';
+
+  @override
+  String get areasNow => 'in vigore ora';
+
+  @override
+  String get areasOnDate => 'in vigore in un giorno pianificato';
+
+  @override
+  String hintsOpen(int count) {
+    return 'Mostra ($count)';
+  }
+
+  @override
+  String get weatherOtherDay => 'Altra data';
+
+  @override
+  String weatherClimate(String month, String min, String max, String days, String total, String mm) {
+    return 'Di solito a $month: $min–$max °C, pioggia in $days giorni su $total, $mm mm nel mese';
+  }
+
+  @override
+  String weatherClimateSource(String station, String rain) {
+    return 'Ancora nessuna previsione per questo giorno: valori climatici normali 1991–2020 di MeteoSvizzera (temperatura: $station, riportata all’altitudine; precipitazioni: $rain). La previsione copre i prossimi 9 giorni.';
+  }
+
+  @override
+  String get journeyMap => 'Mappa del trekking a tappe';
+
+  @override
+  String get journeyAddStage => 'Aggiungi tappa';
+
+  @override
+  String get routeEditLine => 'Modifica sulla mappa';
+
+  @override
+  String get bugOpen => 'Segnala un errore';
+
+  @override
+  String get bugWhat => 'Cos’è successo? Cosa ti aspettavi?';
+
+  @override
+  String get bugWithScreenshot => 'Invia uno screenshot';
+
+  @override
+  String get bugScreenshotAlt => 'Screenshot di questa pagina';
+
+  @override
+  String bugPrivacy(String place) {
+    return 'La segnalazione invia l’indirizzo ($place), la versione, il tuo nome utente e lo screenshot agli sviluppatori (GitHub). Lo screenshot resta presso Alvyo e viene eliminato con il tuo account.';
+  }
+
+  @override
+  String get bugSend => 'Invia';
+
+  @override
+  String get bugSent => 'Grazie! L’errore è segnalato.';
+
+  @override
+  String get bugFailed => 'Non ha funzionato. Riprova più tardi.';
+
+  @override
+  String get bugBusy => 'Oggi hai già segnalato diversi errori. Riprova più tardi.';
+
+  @override
+  String get close => 'Chiudi';
+
+  @override
+  String get peopleTitle => 'Chi viene';
+
+  @override
+  String get peopleNone => 'Ancora nessuno. Chi viene vede il trekking e le tappe a cui partecipa.';
+
+  @override
+  String get peopleInvited => 'Invitato/a';
+
+  @override
+  String get peopleRemove => 'Non viene';
+
+  @override
+  String get peopleWho => 'Nome utente o indirizzo e-mail';
+
+  @override
+  String get peopleAdd => 'Aggiungi';
+
+  @override
+  String get peopleHint =>
+      'Chi non ha ancora accesso viene invitato e può vedere il trekking. I numeri sono le tappe: tocca chi partecipa a quale.';
+
+  @override
+  String get peopleUnknown => 'Questa persona non esiste, oppure sei tu.';
+
+  @override
+  String get peopleVerify => 'Conferma prima il tuo indirizzo e-mail.';
+
+  @override
+  String get peopleFailed => 'Non ha funzionato. Riprova.';
+
+  @override
+  String peopleOnStage(String names) {
+    return 'Con $names';
+  }
+
+  @override
+  String peopleStages(String name) {
+    return 'Tappe di $name';
+  }
+
+  @override
+  String get remindersTitle => 'Promemoria';
+
+  @override
+  String get remindersOn => 'Promemoria via e-mail prima della partenza';
+
+  @override
+  String get remindersHint => 'Per te e per chi viene; nell’app anche sul telefono.';
+
+  @override
+  String get reminderBook => 'Si parte tra tre settimane: tutte le notti sono prenotate?';
+
+  @override
+  String get reminderWeather => 'Si parte dopodomani: dai un’occhiata al meteo.';
+
+  @override
+  String get reminderStart => 'Si parte domani. Buon cammino!';
 }

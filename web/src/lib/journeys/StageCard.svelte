@@ -21,7 +21,8 @@
 		onpatch,
 		onmove,
 		onremove,
-		onimport
+		onimport,
+		people = []
 	}: {
 		journeyId: string;
 		stage: JourneyStage;
@@ -36,6 +37,8 @@
 		onremove: () => void;
 		/** Uploads a track file as the stage's route (replacing it if there is one). */
 		onimport: (file: File) => Promise<unknown>;
+		/** The names of the people who come along on this stage. */
+		people?: string[];
 	} = $props();
 
 	let confirming = $state(false);
@@ -155,6 +158,11 @@
 	{:else}
 		{#if s.title || placesTitle}<p class="mt-1">{s.title || placesTitle}</p>{/if}
 		{#if s.planned_date}<p class="text-xs text-stone-500">{s.planned_date}</p>{/if}
+	{/if}
+	{#if people.length > 0}
+		<p class="mt-1 text-xs" data-testid="stage-people">
+			{m.people_on_stage({ names: people.join(', ') })}
+		</p>
 	{/if}
 
 	{#if s.route}

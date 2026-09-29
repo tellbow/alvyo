@@ -105,6 +105,28 @@ class RouteSummary {
   final DateTime? hikedAt;
 }
 
+/// Someone who comes along on a journey, and the ids of their stages.
+class Person {
+  Person.fromJson(Map<String, dynamic> j)
+    : id = j['id'] as String,
+      username = j['username'] as String? ?? '',
+      displayName = j['display_name'] as String? ?? '',
+      email = j['email'] as String? ?? '',
+      stages = [for (final s in j['stages'] as List) s as String];
+  final String id, username, displayName;
+
+  /// For the owner, for invitations by address.
+  final String email;
+  final List<String> stages;
+
+  /// The account's name, else the address invited (owner), else empty.
+  String get name => displayName.isNotEmpty
+      ? displayName
+      : username.isNotEmpty
+      ? username
+      : email;
+}
+
 /// A route with its line (lon, lat, elevation per point).
 class RouteDetail extends RouteSummary {
   RouteDetail.fromJson(super.j)
@@ -140,6 +162,29 @@ class RouteDetail extends RouteSummary {
 
   /// For the owner: the link of an unlisted route is /routes/{id}?t=token.
   String? get shareToken => json['share_token'] as String?;
+
+  /// hike or alpine.
+  String get profile => json['profile'] as String? ?? 'hike';
+
+  /// The points it was planned through.
+  List<Anchor> get anchors => [
+    for (final a in json['anchors'] as List? ?? const [])
+      if (a case final Map<String, dynamic> m)
+        Anchor(
+          (m['lon'] as num).toDouble(),
+          (m['lat'] as num).toDouble(),
+          name: m['name'] as String?,
+          straight: m['straight'] as bool? ?? false,
+          alpine: m['alpine'] as bool? ?? false,
+          through: switch (m['through']) {
+            {'lon': final num lon, 'lat': final num lat} => (lon: lon.toDouble(), lat: lat.toDouble()),
+            _ => null,
+          },
+        ),
+  ];
+
+  /// The legs between the anchors, as the server keeps them.
+  List<Leg> get legs => [for (final l in json['legs'] as List? ?? const []) Leg.fromJson(l as Map<String, dynamic>)];
 }
 
 /// A junction where the route turns, [alongM] metres from its start; the
@@ -269,6 +314,31 @@ class JourneyDetail {
 
   /// The combined profile of all stages: metres along (gaps between stages
   /// not counted), [lon, lat, elevation], and where each stage starts.
+  /// Each routed stage's line (lon, lat, elevation), from the profile's
+  /// samples: the stage's index (from 0) and its points.
+  List<(int, List<List<double>>)> get stageLines {
+    final p = json['profile'] as Map<String, dynamic>? ?? const {};
+    final points = [
+      for (final pt in p['points'] as List? ?? const []) [for (final v in pt as List) (v as num).toDouble()],
+    ];
+    final breaks = [for (final b in p['breaks'] as List? ?? const []) (b as num).toInt()];
+    final routed = [
+      for (final (i, s) in stages.indexed)
+        if (s.routeId != null) i,
+    ];
+    return [
+      for (final (k, start) in breaks.indexed)
+        if (k < routed.length)
+          (
+            routed[k],
+            points.sublist(
+              start.clamp(0, points.length),
+              (k + 1 < breaks.length ? breaks[k + 1] : points.length).clamp(0, points.length),
+            ),
+          ),
+    ];
+  }
+
   ({List<double> distances, List<double> elevations, List<int> breaks}) get profile {
     final p = json['profile'] as Map<String, dynamic>? ?? const {};
     return (
@@ -303,17 +373,30 @@ class Poi {
     : kind = j['kind'] as String,
       name = j['name'] as String? ?? '',
       ele = (j['ele'] as num?)?.toInt(),
+      lon = ((j['at'] as List?)?[0] as num?)?.toDouble() ?? 0,
+      lat = ((j['at'] as List?)?[1] as num?)?.toDouble() ?? 0,
       alongM = (j['along_m'] as num).toDouble();
 
-  /// peak, viewpoint, waterfall, water or shelter.
+  /// peak, viewpoint, waterfall, water, shelter, firepit, picnic,
+  /// restaurant, toilets or cablecar.
   final String kind;
 
-  /// Empty for many drinking water points and shelters.
+  /// Empty for many drinking water points, shelters, fire places and toilets.
   final String name;
 
   /// Summits: height in metres.
   final int? ele;
-  final double alongM;
+  final double lon, lat, alongM;
+
+  /// As a place on the map, to show when tapped.
+  Pin toPin(int i) => Pin.fromJson({
+    'id': 'along-$i',
+    'kind': kind,
+    'name': name,
+    'detail': ele?.toString() ?? '',
+    'lon': lon,
+    'lat': lat,
+  });
 }
 
 /// MeteoSwiss's forecast of one day at a point.
@@ -324,7 +407,8 @@ class ForecastDay {
       maxC = (j['max_c'] as num).toDouble(),
       rainMm = (j['rain_mm'] as num).toDouble(),
       rainLoMm = (j['rain_lo_mm'] as num).toDouble(),
-      rainHiMm = (j['rain_hi_mm'] as num).toDouble();
+      rainHiMm = (j['rain_hi_mm'] as num).toDouble(),
+      symbol = (j['symbol'] as num?)?.toInt();
 
   /// YYYY-MM-DD.
   final String date;
@@ -332,7 +416,32 @@ class ForecastDay {
 
   /// Precipitation, and the range it likely stays in.
   final double rainMm, rainLoMm, rainHiMm;
+
+  /// MeteoSwiss's pictogram number (weather_symbols.dart).
+  final int? symbol;
 }
+
+/// What is usual at a place in a month (MeteoSwiss's climate normals
+/// 1991–2020), for a day beyond the forecast.
+class Climate {
+  Climate.fromJson(Map<String, dynamic> j)
+    : month = (j['month'] as num).toInt(),
+      station = j['station'] as String,
+      rainStation = j['rain_station'] as String,
+      minC = (j['min_c'] as num).toDouble(),
+      maxC = (j['max_c'] as num).toDouble(),
+      rainMm = (j['rain_mm'] as num).toDouble(),
+      rainDays = (j['rain_days'] as num).toDouble();
+
+  final int month;
+
+  /// Where the temperatures (carried to the place's height) and the
+  /// precipitation were measured.
+  final String station, rainStation;
+  final double minC, maxC, rainMm, rainDays;
+}
+
+Climate? _climate(Object? j) => j == null ? null : Climate.fromJson(j as Map<String, dynamic>);
 
 /// A place MeteoSwiss forecasts for.
 typedef ForecastPoint = ({String name, double height});
@@ -351,13 +460,15 @@ class RouteWeather {
             roles: [for (final r in (p as Map<String, dynamic>)['roles'] as List) r as String],
             point: _forecastPoint(p['point'] as Map<String, dynamic>),
             days: [for (final d in p['days'] as List) ForecastDay.fromJson(d as Map<String, dynamic>)],
+            climate: _climate(p['climate']),
           ),
       ];
 
   final DateTime run;
 
-  /// roles: start, top, end.
-  final List<({List<String> roles, ForecastPoint point, List<ForecastDay> days})> places;
+  /// roles: start, top, end; climate for a date asked for beyond the
+  /// forecast.
+  final List<({List<String> roles, ForecastPoint point, List<ForecastDay> days, Climate? climate})> places;
 }
 
 /// The forecast at each stage's highest point; [day] for a planned day
@@ -371,11 +482,15 @@ class JourneyWeather {
             stage: ((s as Map<String, dynamic>)['stage'] as num).toInt(),
             point: _forecastPoint(s['point'] as Map<String, dynamic>),
             day: s['day'] == null ? null : ForecastDay.fromJson(s['day'] as Map<String, dynamic>),
+            climate: _climate(s['climate']),
+            plannedDate: s['planned_date'] as String?,
           ),
       ];
 
   final DateTime run;
-  final List<({int stage, ForecastPoint point, ForecastDay? day})> stages;
+
+  /// [climate] for a planned day beyond the forecast.
+  final List<({int stage, ForecastPoint point, ForecastDay? day, Climate? climate, String? plannedDate})> stages;
 }
 
 /// What lies along a route: protected areas, closures and shooting.
@@ -941,9 +1056,15 @@ class Collection {
       owner = j['owner_username'] as String,
       canEdit = j['can_edit'] as bool? ?? false,
       isOwner = j['role'] == 'owner',
+      visibility = j['visibility'] as String? ?? 'private',
+      shareToken = j['share_token'] as String?,
       items = [for (final i in j['item_list'] as List) CollectionItem.fromJson(i as Map<String, dynamic>)];
   final String id, title, description, owner;
   final bool canEdit, isOwner;
+
+  /// private, unlisted or public; for the owner the link's token.
+  final String visibility;
+  final String? shareToken;
   final List<CollectionItem> items;
 }
 
@@ -1076,7 +1197,16 @@ class Api {
   String? userId;
   final http.Client _http;
 
-  Uri _uri(String path) => Uri.parse('$server/api/v1$path');
+  Uri _uri(String path) {
+    final uri = Uri.parse('$server/api/v1$path');
+    // An item opened from a link keeps the link's share token on every call.
+    final id = RegExp(r'^/(?:routes|journeys|collections)/([0-9a-f-]{36})').firstMatch(path)?[1];
+    final t = shareTokens[id];
+    return t == null ? uri : uri.replace(queryParameters: {...uri.queryParameters, 't': t});
+  }
+
+  /// The share tokens of unlisted items opened from links, by item id.
+  final shareTokens = <String, String>{};
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',
@@ -1100,9 +1230,15 @@ class Api {
     return r.body.isEmpty ? null : jsonDecode(r.body);
   }
 
-  Future<dynamic> _get(String path, [Map<String, Object>? query]) async => _decode(
-    await _http.get(query == null ? _uri(path) : _uri(path).replace(queryParameters: query), headers: _headers),
-  );
+  Future<dynamic> _get(String path, [Map<String, Object>? query]) async {
+    final uri = _uri(path);
+    return _decode(
+      await _http.get(
+        query == null ? uri : uri.replace(queryParameters: {...uri.queryParameters, ...query}),
+        headers: _headers,
+      ),
+    );
+  }
 
   /// Logs in with e-mail or username and password.
   Future<Me> login(String login, String password) async {
@@ -1253,8 +1389,10 @@ class Api {
   }
 
   /// MeteoSwiss's forecast at a route's start, highest point and end.
-  Future<RouteWeather> routeWeather(String routeId) async =>
-      RouteWeather.fromJson(await _get('/routes/$routeId/weather') as Map<String, dynamic>);
+  /// A [date] (YYYY-MM-DD) beyond the forecast brings the climate normals
+  /// of its month.
+  Future<RouteWeather> routeWeather(String routeId, {String? date}) async =>
+      RouteWeather.fromJson(await _get('/routes/$routeId/weather', {'date': ?date}) as Map<String, dynamic>);
 
   /// MeteoSwiss's forecast at each stage's highest point, for its planned day.
   Future<JourneyWeather> journeyWeather(String journeyId) async =>
@@ -1326,6 +1464,68 @@ class Api {
           'profile': profile,
           'visibility': visibility,
           'tags': tags,
+          'anchors': [for (final a in anchors) a.toJson()],
+          'legs': [for (final l in legs) l.json],
+        })
+        as Map<String, dynamic>,
+  );
+
+  /// Who comes along on a journey and on which stages; 403 for those it is
+  /// not shared with.
+  Future<List<Person>> people(String journeyId) async => _people(await _get('/journeys/$journeyId/people'));
+
+  /// Someone comes along (owner), by username or e-mail address, on all stages.
+  Future<List<Person>> addPerson(String journeyId, String who) async => _people(
+    await _send('POST', '/journeys/$journeyId/people', {
+      if (who.contains('@')) 'email': who.trim() else 'username': who.trim().replaceFirst('@', ''),
+    }),
+  );
+
+  /// The stages someone is on (owner and editors).
+  Future<List<Person>> setPersonStages(String journeyId, String personId, List<String> stages) async =>
+      _people(await _send('PUT', '/journeys/$journeyId/people/$personId', {'stages': stages}));
+
+  /// Someone no longer comes along (owner); their access stays.
+  Future<List<Person>> removePerson(String journeyId, String personId) async =>
+      _people(await _send('DELETE', '/journeys/$journeyId/people/$personId'));
+
+  List<Person> _people(dynamic j) => [
+    for (final p in (j as Map<String, dynamic>)['people'] as List) Person.fromJson(p as Map<String, dynamic>),
+  ];
+
+  /// Whether reminders before the journey's start come by e-mail to the
+  /// user, and the start (the first planned stage's day).
+  Future<({bool on, DateTime? start})> reminders(String journeyId) async =>
+      _reminders(await _get('/journeys/$journeyId/reminders'));
+
+  Future<({bool on, DateTime? start})> setReminders(String journeyId, bool on) async =>
+      _reminders(await _send('PUT', '/journeys/$journeyId/reminders', {'on': on}));
+
+  ({bool on, DateTime? start}) _reminders(dynamic j) {
+    final m = j as Map<String, dynamic>;
+    return (
+      on: m['on'] as bool,
+      start: switch (m['start']) {
+        final String d => DateTime.parse(d),
+        _ => null,
+      },
+    );
+  }
+
+  /// Adds a stage at the end of a journey, without a route yet.
+  Future<JourneyDetail> addStage(String journeyId) async =>
+      JourneyDetail.fromJson(await _send('POST', '/journeys/$journeyId/stages', {}) as Map<String, dynamic>);
+
+  /// Gives a stage without a route its planned route.
+  Future<JourneyDetail> createStageRoute(
+    String journeyId,
+    String stageId, {
+    required String profile,
+    required List<Anchor> anchors,
+    required List<Leg> legs,
+  }) async => JourneyDetail.fromJson(
+    await _send('POST', '/journeys/$journeyId/stages/$stageId/route', {
+          'profile': profile,
           'anchors': [for (final a in anchors) a.toJson()],
           'legs': [for (final l in legs) l.json],
         })
@@ -1590,31 +1790,65 @@ class Api {
 
   Map<String, String> get authHeaders => {if (token != null) 'Authorization': 'Bearer $token'};
 
-  /// For the owner: who the route or journey is shared with.
-  Future<List<Grant>> grants(String id, {bool journey = false}) async =>
-      _grants(await _get('/${_kind(journey)}/$id/grants'));
+  /// For the owner: who the route, journey or collection is shared with.
+  Future<List<Grant>> grants(String id, {bool journey = false, bool collection = false}) async =>
+      _grants(await _get('/${_shared(journey, collection)}/$id/grants'));
 
   List<Grant> _grants(dynamic j) => [
     for (final g in (j as Map<String, dynamic>)['grants'] as List) Grant.fromJson(g as Map<String, dynamic>),
   ];
 
   /// Shares with an account (username) or an e-mail address, as viewer or editor.
-  Future<List<Grant>> invite(String id, String who, String role, {bool journey = false}) async => _grants(
-    await _send('POST', '/${_kind(journey)}/$id/grants', {
+  Future<List<Grant>> invite(
+    String id,
+    String who,
+    String role, {
+    bool journey = false,
+    bool collection = false,
+  }) async => _grants(
+    await _send('POST', '/${_shared(journey, collection)}/$id/grants', {
       if (who.contains('@')) 'email': who else 'username': who,
       'role': role,
     }),
   );
 
-  Future<List<Grant>> setGrantRole(String id, String grantId, String role, {bool journey = false}) async =>
-      _grants(await _send('PATCH', '/${_kind(journey)}/$id/grants/$grantId', {'role': role}));
+  Future<List<Grant>> setGrantRole(
+    String id,
+    String grantId,
+    String role, {
+    bool journey = false,
+    bool collection = false,
+  }) async => _grants(await _send('PATCH', '/${_shared(journey, collection)}/$id/grants/$grantId', {'role': role}));
 
-  Future<List<Grant>> removeGrant(String id, String grantId, {bool journey = false}) async =>
-      _grants(await _send('DELETE', '/${_kind(journey)}/$id/grants/$grantId'));
+  Future<List<Grant>> removeGrant(String id, String grantId, {bool journey = false, bool collection = false}) async =>
+      _grants(await _send('DELETE', '/${_shared(journey, collection)}/$id/grants/$grantId'));
 
   /// Replaces the share link; the old one stops working. Returns the new token.
-  Future<String> rotateLink(String id, {bool journey = false}) async =>
-      ((await _send('POST', '/${_kind(journey)}/$id/link/rotate')) as Map<String, dynamic>)['share_token'] as String;
+  Future<String> rotateLink(String id, {bool journey = false, bool collection = false}) async =>
+      ((await _send('POST', '/${_shared(journey, collection)}/$id/link/rotate')) as Map<String, dynamic>)['share_token']
+          as String;
+
+  static String _shared(bool journey, bool collection) => collection ? 'collections' : _kind(journey);
+
+  /// Reports a bug: what happened, where ([place]), the app's version and
+  /// a screenshot (PNG); the issue's address, if one was opened.
+  Future<String?> reportBug({
+    required String description,
+    required String place,
+    required String version,
+    List<int>? screenshot,
+  }) async {
+    final j =
+        await _send('POST', '/bug-reports', {
+              'description': description,
+              'place': place,
+              'version': version,
+              'platform': 'ios',
+              if (screenshot != null) 'screenshot': base64Encode(screenshot),
+            })
+            as Map<String, dynamic>;
+    return j['issue_url'] as String?;
+  }
 
   /// Reports a route, journey, comment, photo ([id]) or user ([username]) to
   /// the moderators; [reason] spam, offensive, dangerous or other.

@@ -128,42 +128,12 @@ func (s *Store) List(ctx context.Context, t Target) ([]Grant, error) {
 // Invite grants access or changes the role of an existing grant. New grants
 // are announced by e-mail; delivery failures are logged, not returned.
 func (s *Store) Invite(ctx context.Context, t Target, owner dbq.User, in Invite) error {
-	var userID *uuid.UUID
-	var email *string
-	// Who receives the invitation e-mail, and in which language.
-	to, locale := "", owner.Locale
-	switch {
-	case in.Username != "":
-		var id uuid.UUID
-		var uEmail, uLocale string
-		err := s.DB.QueryRow(ctx, `SELECT id, email, locale FROM users WHERE username = $1 AND banned_at IS NULL`,
-			strings.TrimPrefix(strings.TrimSpace(in.Username), "@")).Scan(&id, &uEmail, &uLocale)
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrNoUser
-		}
-		if err != nil {
-			return err
-		}
-		if id == owner.ID {
-			return ErrSelf
-		}
-		userID, to, locale = &id, uEmail, uLocale
-	default:
-		addr := strings.ToLower(strings.TrimSpace(in.Email))
-		if strings.EqualFold(addr, owner.Email) {
-			return ErrSelf
-		}
-		email, to = &addr, addr
-		// Write in the invitee's language if the address has a verified account.
-		var l string
-		if err := s.DB.QueryRow(ctx, `SELECT locale FROM users WHERE email = $1 AND email_verified_at IS NOT NULL`,
-			addr).Scan(&l); err == nil {
-			locale = l
-		}
+	g, err := s.grantee(ctx, owner, in)
+	if err != nil {
+		return err
 	}
-
 	var inserted bool
-	err := pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+	err = pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
 		// Serialize invitations per item so the limit holds.
 		if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext($1))`, t.ID.String()); err != nil {
 			return err
@@ -176,7 +146,7 @@ func (s *Store) Invite(ctx context.Context, t Target, owner dbq.User, in Invite)
 			INSERT INTO grants (`+t.Kind.column()+`, user_id, email, role, invited_by)
 			VALUES ($1, $2, $3, $4::grant_role, $5)
 			ON CONFLICT ON CONSTRAINT grants_target_grantee_key DO UPDATE SET role = excluded.role
-			RETURNING xmax = 0`, t.ID, userID, email, in.Role, owner.ID).Scan(&inserted)
+			RETURNING xmax = 0`, t.ID, g.userID, g.email, in.Role, owner.ID).Scan(&inserted)
 		if err != nil {
 			return err
 		}
@@ -189,12 +159,59 @@ func (s *Store) Invite(ctx context.Context, t Target, owner dbq.User, in Invite)
 		return err
 	}
 	if inserted {
-		m := inviteMail(to, locale, owner, t, in.Role, s.PublicURL+t.Kind.path()+t.ID.String())
-		if err := s.Mail.Send(ctx, m); err != nil {
-			slog.ErrorContext(ctx, "invitation e-mail", "err", err)
-		}
+		s.announce(ctx, g, owner, t, in.Role)
 	}
 	return nil
+}
+
+// invitee is who a grant goes to: an account or an address, and who
+// receives the invitation e-mail, in which language.
+type invitee struct {
+	userID     *uuid.UUID
+	email      *string
+	to, locale string
+}
+
+func (s *Store) grantee(ctx context.Context, owner dbq.User, in Invite) (invitee, error) {
+	g := invitee{locale: owner.Locale}
+	switch {
+	case in.Username != "":
+		var id uuid.UUID
+		var uEmail, uLocale string
+		err := s.DB.QueryRow(ctx, `SELECT id, email, locale FROM users WHERE username = $1 AND banned_at IS NULL`,
+			strings.TrimPrefix(strings.TrimSpace(in.Username), "@")).Scan(&id, &uEmail, &uLocale)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return g, ErrNoUser
+		}
+		if err != nil {
+			return g, err
+		}
+		if id == owner.ID {
+			return g, ErrSelf
+		}
+		g.userID, g.to, g.locale = &id, uEmail, uLocale
+	default:
+		addr := strings.ToLower(strings.TrimSpace(in.Email))
+		if strings.EqualFold(addr, owner.Email) {
+			return g, ErrSelf
+		}
+		g.email, g.to = &addr, addr
+		// Write in the invitee's language if the address has a verified account.
+		var l string
+		if err := s.DB.QueryRow(ctx, `SELECT locale FROM users WHERE email = $1 AND email_verified_at IS NOT NULL`,
+			addr).Scan(&l); err == nil {
+			g.locale = l
+		}
+	}
+	return g, nil
+}
+
+// announce sends the invitation e-mail; failures are logged.
+func (s *Store) announce(ctx context.Context, g invitee, owner dbq.User, t Target, role string) {
+	m := inviteMail(g.to, g.locale, owner, t, role, s.PublicURL+t.Kind.path()+t.ID.String())
+	if err := s.Mail.Send(ctx, m); err != nil {
+		slog.ErrorContext(ctx, "invitation e-mail", "err", err)
+	}
 }
 
 // SetRole changes the role of a grant on the item.

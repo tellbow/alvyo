@@ -156,11 +156,25 @@ Future<void> shareGpx(BuildContext context, Api api, String id, String title, {b
 
 /// The link others open a route or journey with: its page, for unlisted
 /// ones with the share token; null while private.
-String? shareUrl(Api api, String id, String visibility, String? token, {bool journey = false}) => switch (visibility) {
-  'public' => '${api.server}/${journey ? 'journeys' : 'routes'}/$id',
-  'unlisted' when token != null => '${api.server}/${journey ? 'journeys' : 'routes'}/$id?t=$token',
-  _ => null,
-};
+String? shareUrl(
+  Api api,
+  String id,
+  String visibility,
+  String? token, {
+  bool journey = false,
+  bool collection = false,
+}) {
+  final kind = collection
+      ? 'collections'
+      : journey
+      ? 'journeys'
+      : 'routes';
+  return switch (visibility) {
+    'public' => '${api.server}/$kind/$id',
+    'unlisted' when token != null => '${api.server}/$kind/$id?t=$token',
+    _ => null,
+  };
+}
 
 /// «von @user», opening the profile when it is someone else's public item.
 class OwnerLine extends StatelessWidget {
@@ -195,12 +209,14 @@ Future<void> shareSheet(
   Api api, {
   required String id,
   required bool journey,
+  bool collection = false,
   required String visibility,
   required String? token,
 }) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
-  builder: (_) => _ShareSheet(api: api, id: id, journey: journey, visibility: visibility, token: token),
+  builder: (_) =>
+      _ShareSheet(api: api, id: id, journey: journey, collection: collection, visibility: visibility, token: token),
 );
 
 class _ShareSheet extends StatefulWidget {
@@ -208,12 +224,13 @@ class _ShareSheet extends StatefulWidget {
     required this.api,
     required this.id,
     required this.journey,
+    required this.collection,
     required this.visibility,
     required this.token,
   });
   final Api api;
   final String id;
-  final bool journey;
+  final bool journey, collection;
   final String visibility;
   final String? token;
 
@@ -222,7 +239,11 @@ class _ShareSheet extends StatefulWidget {
 }
 
 class _ShareSheetState extends State<_ShareSheet> {
-  late Future<List<Grant>> _grants = widget.api.grants(widget.id, journey: widget.journey);
+  late Future<List<Grant>> _grants = widget.api.grants(
+    widget.id,
+    journey: widget.journey,
+    collection: widget.collection,
+  );
   late String? _token = widget.token;
   final _who = TextEditingController();
   var _role = 'viewer';
@@ -269,7 +290,7 @@ class _ShareSheetState extends State<_ShareSheet> {
   Future<void> _rotate() async {
     final t = AppLocalizations.of(context);
     try {
-      final token = await widget.api.rotateLink(widget.id, journey: widget.journey);
+      final token = await widget.api.rotateLink(widget.id, journey: widget.journey, collection: widget.collection);
       if (mounted) setState(() => _token = token);
     } on Object catch (e) {
       if (mounted) setState(() => _error = _explain(t, e));
@@ -280,7 +301,14 @@ class _ShareSheetState extends State<_ShareSheet> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final muted = TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant);
-    final link = shareUrl(widget.api, widget.id, widget.visibility, _token, journey: widget.journey);
+    final link = shareUrl(
+      widget.api,
+      widget.id,
+      widget.visibility,
+      _token,
+      journey: widget.journey,
+      collection: widget.collection,
+    );
     String role(String r) => r == 'editor' ? t.roleEditor : t.roleViewer;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -340,8 +368,19 @@ class _ShareSheetState extends State<_ShareSheet> {
                         trailing: PopupMenuButton<String>(
                           onSelected: (v) => _run(
                             () => v == 'remove'
-                                ? widget.api.removeGrant(widget.id, g.id, journey: widget.journey)
-                                : widget.api.setGrantRole(widget.id, g.id, v, journey: widget.journey),
+                                ? widget.api.removeGrant(
+                                    widget.id,
+                                    g.id,
+                                    journey: widget.journey,
+                                    collection: widget.collection,
+                                  )
+                                : widget.api.setGrantRole(
+                                    widget.id,
+                                    g.id,
+                                    v,
+                                    journey: widget.journey,
+                                    collection: widget.collection,
+                                  ),
                           ),
                           itemBuilder: (_) => [
                             PopupMenuItem(value: 'viewer', child: Text(t.roleViewer)),
@@ -377,7 +416,16 @@ class _ShareSheetState extends State<_ShareSheet> {
                     : () {
                         final who = _who.text.trim();
                         if (who.isEmpty) return;
-                        _run(() => widget.api.invite(widget.id, who, _role, journey: widget.journey), done: _who.clear);
+                        _run(
+                          () => widget.api.invite(
+                            widget.id,
+                            who,
+                            _role,
+                            journey: widget.journey,
+                            collection: widget.collection,
+                          ),
+                          done: _who.clear,
+                        );
                       },
                 child: Text(t.shareInvite),
               ),

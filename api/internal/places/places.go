@@ -99,7 +99,7 @@ const MaxInView = 2000
 // Pin is a place or point of interest drawn on the map.
 type Pin struct {
 	ID      string  `json:"id" format:"uuid"`
-	Kind    string  `json:"kind" enum:"pt_stop,hut,hotel,campsite,peak,viewpoint,waterfall,water,shelter"`
+	Kind    string  `json:"kind" enum:"pt_stop,hut,hotel,campsite,peak,viewpoint,waterfall,water,shelter,firepit,picnic,restaurant,toilets,cablecar"`
 	Name    string  `json:"name" doc:"Empty for some points of interest (drinking water, shelters)"`
 	Detail  string  `json:"detail" doc:"Places: see Place; summits: the height in metres"`
 	Website string  `json:"website,omitempty"`

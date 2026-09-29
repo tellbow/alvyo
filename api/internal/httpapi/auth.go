@@ -41,6 +41,8 @@ type Limits struct {
 	Pack *ratelimit.Limiter
 	// Place searches while typing, per user.
 	Search *ratelimit.Limiter
+	// Bug reports open GitHub issues: a few a day per user.
+	BugReport *ratelimit.Limiter
 }
 
 // DefaultLimits are generous for people and tight for scripts.
@@ -64,6 +66,7 @@ func DefaultLimits() Limits {
 		Photo:           ratelimit.New(3*time.Second, 30),
 		Pack:            ratelimit.New(time.Minute, 20),
 		Search:          ratelimit.New(time.Second, 30),
+		BugReport:       ratelimit.New(3*time.Hour, 5),
 	}
 }
 

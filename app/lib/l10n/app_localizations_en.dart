@@ -1337,7 +1337,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noticesShooting => 'army shooting';
 
   @override
-  String get mapPois => 'Along the way: summits, views, water';
+  String get mapPois => 'Along the way';
 
   @override
   String get poiPeak => 'Summit';
@@ -1353,6 +1353,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get poiShelter => 'Shelter';
+
+  @override
+  String get mapBase => 'Base map';
+
+  @override
+  String get mapOverlays => 'Overlays';
+
+  @override
+  String get mapBaseNational => 'National map';
+
+  @override
+  String get mapBaseGrey => 'National map grey';
+
+  @override
+  String get mapBaseAerial => 'Aerial imagery';
+
+  @override
+  String get mapOverlayTrails => 'Hiking trails';
+
+  @override
+  String get mapOverlayWanderland => 'SwitzerlandMobility hiking routes';
+
+  @override
+  String get mapOverlaySlope => 'Slopes over 30°';
+
+  @override
+  String get mapOverlayRestAreas => 'Wildlife rest areas';
+
+  @override
+  String get mapOverlayHuntingReserves => 'Federal hunting reserves';
+
+  @override
+  String get mapOverlayRelief => 'Hillshade';
+
+  @override
+  String get poiFirepit => 'Fire place';
+
+  @override
+  String get poiPicnic => 'Picnic spot';
+
+  @override
+  String get poiRestaurant => 'Restaurant, café';
+
+  @override
+  String get poiToilets => 'Toilets';
+
+  @override
+  String get poiCablecar => 'Cable car station';
 
   @override
   String get poisTitle => 'Along the way';
@@ -1409,4 +1457,128 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelRouteEnd => 'End';
+
+  @override
+  String get areasNow => 'applies now';
+
+  @override
+  String get areasOnDate => 'applies on a planned day';
+
+  @override
+  String hintsOpen(int count) {
+    return 'Show $count';
+  }
+
+  @override
+  String get weatherOtherDay => 'Another date';
+
+  @override
+  String weatherClimate(String month, String min, String max, String days, String total, String mm) {
+    return 'Usual in $month: $min–$max °C, rain on $days of $total days, $mm mm in the month';
+  }
+
+  @override
+  String weatherClimateSource(String station, String rain) {
+    return 'No forecast for this day yet: MeteoSwiss climate normals 1991–2020 (temperature: $station, adjusted to the height; precipitation: $rain). The forecast covers the next 9 days.';
+  }
+
+  @override
+  String get journeyMap => 'Map of the journey';
+
+  @override
+  String get journeyAddStage => 'Add stage';
+
+  @override
+  String get routeEditLine => 'Change on the map';
+
+  @override
+  String get bugOpen => 'Report a bug';
+
+  @override
+  String get bugWhat => 'What happened? What did you expect?';
+
+  @override
+  String get bugWithScreenshot => 'Send a screenshot';
+
+  @override
+  String get bugScreenshotAlt => 'Screenshot of this page';
+
+  @override
+  String bugPrivacy(String place) {
+    return 'The report sends the address ($place), the version, your username and the screenshot to the developers (GitHub). The screenshot stays with Alvyo and is deleted with your account.';
+  }
+
+  @override
+  String get bugSend => 'Send';
+
+  @override
+  String get bugSent => 'Thank you! The bug is reported.';
+
+  @override
+  String get bugFailed => 'That did not work. Please try again later.';
+
+  @override
+  String get bugBusy => 'You have reported several bugs today already. Please try again later.';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get peopleTitle => 'Who comes along';
+
+  @override
+  String get peopleNone => 'Nobody yet. Those who come along see the journey and the stages they are on.';
+
+  @override
+  String get peopleInvited => 'Invited';
+
+  @override
+  String get peopleRemove => 'Not coming';
+
+  @override
+  String get peopleWho => 'Username or e-mail address';
+
+  @override
+  String get peopleAdd => 'Add';
+
+  @override
+  String get peopleHint =>
+      'Someone without access yet is invited and can view the journey. The numbers are the stages: tap who is on which.';
+
+  @override
+  String get peopleUnknown => 'There is no such person, or it is you.';
+
+  @override
+  String get peopleVerify => 'Confirm your e-mail address first.';
+
+  @override
+  String get peopleFailed => 'That did not work. Please try again.';
+
+  @override
+  String peopleOnStage(String names) {
+    return 'With $names';
+  }
+
+  @override
+  String peopleStages(String name) {
+    return 'Stages of $name';
+  }
+
+  @override
+  String get remindersTitle => 'Reminders';
+
+  @override
+  String get remindersOn => 'Reminders by e-mail before the start';
+
+  @override
+  String get remindersHint => 'For you and everyone coming along; in the app also on the phone.';
+
+  @override
+  String get reminderBook => 'It starts in three weeks: are all nights booked?';
+
+  @override
+  String get reminderWeather => 'It starts the day after tomorrow: have a look at the weather.';
+
+  @override
+  String get reminderStart => 'It starts tomorrow. Have a good hike!';
 }

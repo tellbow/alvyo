@@ -79,7 +79,39 @@ class RoutePlanner extends ChangeNotifier {
   /// «Start – Ziel» from the names of the first and last point, as far as known.
   String get suggestedTitle => [?_points.firstOrNull?.name, if (_points.length > 1) ?_points.last.name].join(' – ');
 
-  List<Anchor> get anchors => [for (final p in _points) Anchor(p.lon, p.lat, name: p.name, alpine: p.alpine)];
+  List<Anchor> get anchors => [
+    for (final (i, p) in _points.indexed)
+      // A leg kept from the route being changed keeps how it was made.
+      switch (i > 0 ? _kept[_key(_points[i - 1], p)] : null) {
+        final k? when identical(_cache[_key(_points[i - 1], p)], k.slot) => Anchor(
+          p.lon,
+          p.lat,
+          name: p.name,
+          alpine: p.alpine,
+          straight: k.anchor.straight,
+          through: k.anchor.through,
+        ),
+        _ => Anchor(p.lon, p.lat, name: p.name, alpine: p.alpine),
+      },
+  ];
+
+  /// The legs of a saved route, by their key: kept while their points are.
+  final _kept = <String, ({LegSlot slot, Anchor anchor})>{};
+
+  /// Starts from a saved route: its points, and its legs as they are (also
+  /// those dragged onto another path or drawn straight), so only changed
+  /// legs are computed again.
+  void load(String profile, List<Anchor> anchors, List<Leg> legs) {
+    _profile = profile;
+    _points = [for (final a in anchors) PlanPoint(_nextId++, a.lon, a.lat, a.name, a.alpine)];
+    for (var i = 1; i < _points.length && i - 1 < legs.length; i++) {
+      final key = _key(_points[i - 1], _points[i]);
+      final slot = LegSlot._(leg: legs[i - 1]);
+      _cache[key] = slot;
+      _kept[key] = (slot: slot, anchor: anchors[i]);
+    }
+    _sync();
+  }
 
   /// A new point becomes the destination.
   void add(double lon, double lat, {String? name}) => _change([..._points, PlanPoint(_nextId++, lon, lat, name)]);

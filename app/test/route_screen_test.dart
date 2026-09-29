@@ -10,6 +10,7 @@ import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/screens/route_screen.dart';
+import 'package:alvyo/screens/travel_screen.dart';
 
 http.Response _json(Object body) =>
     http.Response(jsonEncode(body), 200, headers: {'content-type': 'application/json; charset=utf-8'});
@@ -57,6 +58,27 @@ void main() {
               },
             ],
           });
+        case '/api/v1/routes/r1/weather' when req.url.queryParameters['date'] != null:
+          return _json({
+            'run': '2026-09-28T18:00:00Z',
+            'places': [
+              {
+                'roles': ['start', 'top', 'end'],
+                'point': {'name': 'Sargans', 'height': 482.0, 'lon': 9.44, 'lat': 47.04},
+                'days': <Object>[],
+                'climate': {
+                  'month': 12,
+                  'station': 'Bad Ragaz',
+                  'height': 496.0,
+                  'rain_station': 'Sargans',
+                  'min_c': -2.6,
+                  'max_c': 4.4,
+                  'rain_mm': 81.3,
+                  'rain_days': 9.6,
+                },
+              },
+            ],
+          });
         case '/api/v1/routes/r1/weather':
           return _json({
             'run': '2026-09-28T18:00:00Z',
@@ -65,7 +87,15 @@ void main() {
                 'roles': ['start'],
                 'point': {'name': 'Sargans', 'height': 482.0, 'lon': 9.44, 'lat': 47.04},
                 'days': [
-                  {'date': '2026-09-29', 'min_c': 4.4, 'max_c': 18.6, 'rain_mm': 0, 'rain_lo_mm': 0, 'rain_hi_mm': 0.2},
+                  {
+                    'date': '2026-09-29',
+                    'min_c': 4.4,
+                    'max_c': 18.6,
+                    'rain_mm': 0,
+                    'rain_lo_mm': 0,
+                    'rain_hi_mm': 0.2,
+                    'symbol': 1,
+                  },
                   {
                     'date': '2026-09-30',
                     'min_c': 4.4,
@@ -169,12 +199,25 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
-    expect(find.textContaining('Wildruhezone Nummer 0'), findsOneWidget);
-    expect(find.text('Sperrungen und Schiessen'), findsOneWidget);
     expect(find.text('1.2\u00a0km · Trinkwasser'), findsOneWidget);
     expect(find.text('5.3\u00a0km · Gonzen · Gipfel · 1830\u00a0m'), findsOneWidget);
+    // Closures and areas: a line with how many, the list in a sheet.
+    expect(find.text('Sperrungen und Schiessen'), findsOneWidget);
+    expect(find.textContaining('Wildruhezone Nummer 0'), findsNothing);
+    expect(find.text('8 anzeigen'), findsOneWidget);
+    await tester.ensureVisible(find.textContaining('2 anzeigen'));
+    await tester.tap(find.textContaining('2 anzeigen'));
+    await tester.pumpAndSettle();
     expect(find.text('Seewäldli (Wanderweg gesperrt)\nForstarbeiten · 31.8.–30.10.'), findsOneWidget);
     expect(find.text('Geissalp (Schiessen der Armee)\n29.9. 08:00–17:00, 30.9. · +41 58 467 19 90'), findsOneWidget);
+    await tester.tapAt(const Offset(200, 20)); // beside the sheet
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('8 anzeigen'));
+    await tester.tap(find.text('8 anzeigen'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Wildruhezone Nummer 0'), findsOneWidget);
+    await tester.tapAt(const Offset(200, 20));
+    await tester.pumpAndSettle();
     // The weather of today, then of the day chosen.
     expect(find.text('Start · Sargans, 482\u00a0m\n4–19\u00a0°C · trocken'), findsOneWidget);
     expect(find.text('Höchster Punkt, Ziel · Weisstannen, 1004\u00a0m\n4–14\u00a0°C · trocken'), findsOneWidget);
@@ -182,6 +225,28 @@ void main() {
     await tester.tap(find.text('Mi., 30.9.'));
     await tester.pump();
     expect(find.text('Start · Sargans, 482\u00a0m\n4–15\u00a0°C · 3.2 mm Niederschlag (0.4–9.8 mm)'), findsOneWidget);
+    // Today's symbol as an icon, named.
+    expect(find.bySemanticsLabel('sonnig'), findsNothing, reason: 'the 30th has no symbol');
+    await tester.tap(find.text('Heute'));
+    await tester.pump();
+    expect(find.bySemanticsLabel('sonnig'), findsOneWidget);
+    // A day beyond the forecast: what is usual in its month.
+    await tester.ensureVisible(find.byKey(const Key('weather-date')));
+    await tester.tap(find.byKey(const Key('weather-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.edit_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '24.12.2026');
+    await tester.tap(find.text('OK'));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Start, Höchster Punkt, Ziel · Sargans, 482\u00a0m\nÜblich im Dezember: -3–4\u00a0°C, an 10 von 31 Tagen Regen, 81 mm im Monat',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('weather-climate-source')), findsOneWidget);
     // The map keeps at least half of what is left above the keyboard.
     expect(tester.getSize(find.byKey(const Key('map'))).height, greaterThan(150));
     expect(tester.takeException(), isNull);
@@ -247,6 +312,65 @@ void main() {
     expect(find.byKey(const Key('offline-save')), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  // A stage has no way there and back of its own: its journey's is from home.
+  for (final journey in [null, 'j1']) {
+    testWidgets('the way there and back ${journey == null ? 'on a route' : 'not on a stage'}', (tester) async {
+      final client = MockClient((req) async {
+        if (req.url.path == '/api/v1/routes/r1') {
+          return _json({
+            'id': 'r1',
+            'title': 'Weisstannen',
+            'owner_username': 'wodan',
+            'role': 'owner',
+            'can_edit': true,
+            'journey_id': journey,
+            'profile': 'hike',
+            'totals': {
+              'distance_m': 1000.0,
+              'ascent_m': 10.0,
+              'descent_m': 10.0,
+              'duration_s': 900,
+              'sac_grade': 1,
+              'sac_max': 1,
+            },
+            'legs': [
+              {
+                'coordinates': [
+                  [9.44, 47.04, 500.0],
+                  [9.45, 47.04, 510.0],
+                ],
+              },
+            ],
+          });
+        }
+        return http.Response('', 404);
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('de'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: RouteScreen(
+            api: Api('http://test', token: 't', client: client),
+            id: 'r1',
+            title: 'Weisstannen',
+            map: const SizedBox.expand(),
+          ),
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byType(TravelTiles, skipOffstage: false), journey == null ? findsOneWidget : findsNothing);
+    });
+  }
 
   // A route of one's own is deleted from its menu, after asking; a stage's
   // route is deleted with its stage.

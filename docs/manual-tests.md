@@ -211,6 +211,32 @@ Checked so far only in the simulator, with made-up or simulated positions
       stages planned in the next days, and a planned day changed in the
       stage sheet shows its forecast on returning. Compared with the
       MeteoSwiss app for the same place and day.
+- [ ] **Map layers** (42, 43, 48, 56): in «Karten» the Luftbild and the grey
+      national map replace the national map, the overlays (slopes, wildlife
+      rest areas, relief …) lie above it and below huts and the route line,
+      and both stay chosen on the next screen and after restarting the app.
+      «Unterwegs» shows its icons from zoom 12, sharp (not blurry), a tap
+      names them, and the kinds switched off stay off.
+- [ ] **A route's points along the way on its map** (47): on a stage's route,
+      the icons of what lies along it, above the line; tapping one names it.
+- [ ] **A journey's map** (40): «Karte der Etappentour» shows all stages in
+      their colours, the whole journey in view; a stage below opens it.
+- [ ] **Adding and planning a stage** (38) and **changing a route on the map**
+      (49), after a release: the new stage's planner starts where the stage
+      before ends; a changed route keeps the legs not touched (also dragged
+      ones from the website).
+- [ ] **Links into the app** (45): on the iPhone, a shared link opens the
+      website; «In der App öffnen» there opens the route, journey or
+      collection in the app, also an unlisted one (its link's token), also
+      when the app was closed or not signed in yet (opened after signing in).
+- [ ] **Reporting a bug from the app** (41): the tab at the right edge on
+      every screen, not in the way of buttons; the screenshot shows the
+      screen (the map itself stays empty: MapLibre draws it natively); the
+      issue arrives on GitHub once `ALVYO_GITHUB_TOKEN` is set.
+- [ ] **Reminders on the phone** (54): with a stage planned in a few days,
+      the notifications «Übermorgen geht es los» and «Morgen geht es los»
+      come at 18:00; turned off on the journey, they no longer come; for
+      someone along, on their phone too.
 
 ## Web
 
@@ -256,7 +282,19 @@ Checked so far only in the simulator, with made-up or simulated positions
       `alvyo.tellbow.ch`. Passkeys made on the old address do not work on the
       new one: log in with the password and add a passkey again.
 
+- [ ] **Screenshots of bug reports** (41) in Safari, Chrome and Firefox: the
+      page with its map, in dark mode too; the issue on GitHub links to the
+      screenshot, which opens for moderators only.
+- [ ] **New kinds along the way** (48), after `places-import` has run with
+      the new script in production: fire places, picnic spots, restaurants,
+      toilets and cable car stations on the map and in a route's list; in a
+      town, whether restaurants crowd the list.
+
 ## Server
+
+- [ ] **Reminder e-mails** (54): for a journey starting in three weeks with
+      nights not booked, «Übernachtungen buchen» arrives after 8:00 to the
+      owner and those along; two days and one day before the others.
 
 - [ ] **Turns for imported Komoot tours**: planned ones get turns, recorded ones
       (GPS tracks) none or few; nothing announced along a straight leg.

@@ -208,4 +208,16 @@ void main() {
     });
     expect(always.appliesOn(DateTime(2026, 8, 1)), isTrue);
   });
+
+  test('a point along the way keeps where it is, to be tapped on the map', () {
+    final p = Poi.fromJson({
+      'kind': 'firepit',
+      'name': 'Grillplatz',
+      'at': [8.01, 46.66],
+      'along_m': 120,
+      'off_m': 20,
+    });
+    final pin = p.toPin(3);
+    expect((pin.id, pin.kind, pin.name, pin.lon, pin.lat), ('along-3', 'firepit', 'Grillplatz', 8.01, 46.66));
+  });
 }

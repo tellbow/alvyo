@@ -51,4 +51,25 @@ func TestPois(t *testing.T) {
 	}
 }
 
+// The kinds added later are kept and shown like the first ones.
+func TestPoiKinds(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	for i, kind := range PoiKinds {
+		if _, err := pool.Exec(ctx, `INSERT INTO pois (kind, name, source_id, geom)
+			VALUES ($1, '', $1, ST_SetSRID(ST_MakePoint($2, 46.5), 4326))`, kind, 8.0+float64(i)*0.001); err != nil {
+			t.Fatalf("%s: %v", kind, err)
+		}
+	}
+	s := &Store{DB: pool}
+	pins, err := s.InView(ctx, 7.9, 46.4, 8.1, 46.6, []string{"firepit", "cablecar"})
+	if err != nil || len(pins) != 2 {
+		t.Fatalf("in view: %+v %v", pins, err)
+	}
+	got, err := s.Along(ctx, []geo.Point{{Lon: 7.99, Lat: 46.5}, {Lon: 8.02, Lat: 46.5}})
+	if err != nil || len(got) != len(PoiKinds) {
+		t.Fatalf("along: %+v %v", got, err)
+	}
+}
+
 func ptr(v int) *int { return &v }

@@ -30,9 +30,11 @@ test('from home to the start of a journey by public transport, chosen once and k
 	const journeyId = (await created.json()).id as string;
 	const api = `/api/v1/journeys/${journeyId}`;
 	const one = await (await page.request.post(`${api}/stages`, { data: {} })).json();
-	await page.request.post(`${api}/stages/${one.stage_list[0].id}/route`, {
-		data: routeContent(9.34116, 46.9892)
-	});
+	const withRoute = await (
+		await page.request.post(`${api}/stages/${one.stage_list[0].id}/route`, {
+			data: routeContent(9.34116, 46.9892)
+		})
+	).json();
 
 	// The journey planner is stubbed: tests must not spend the OJP quota.
 	const asked: URL[] = [];
@@ -96,6 +98,11 @@ test('from home to the start of a journey by public transport, chosen once and k
 	await expect(page.getByTestId('travel-to-time')).toHaveValue('06:00');
 	const gpx = await (await page.request.get(`${api}/gpx`)).body();
 	expect(gpx.includes(Buffer.from('B 432'))).toBe(false);
+
+	// The stage's own page has no way there and back of its own.
+	await page.goto(`/routes/${withRoute.stage_list[0].route.id}`);
+	await expect(page.getByTestId('route-stats')).toBeVisible();
+	await expect(page.getByTestId('travel')).toHaveCount(0);
 });
 
 test('to a route and back from anywhere, on a day chosen, and on its sheet', async ({ page }) => {
@@ -151,6 +158,8 @@ test('to a route and back from anywhere, on a day chosen, and on its sheet', asy
 	await expect(to.getByTestId('travel-to-place')).toContainText('Sargans');
 	await expect(to.getByTestId('trip')).toContainText('06:10 → 07:10');
 	expect(asked.at(-1)?.searchParams.get('from_name')).toContain('Sargans');
+	// A route has no stages: its day is the one chosen, not a stage's.
+	await expect(to).not.toContainText('Die Etappe hat kein Datum');
 
 	// Another day: its connections.
 	await page.getByTestId('travel-day').fill('2027-07-05');

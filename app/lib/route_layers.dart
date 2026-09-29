@@ -2,6 +2,56 @@ import 'dart:convert';
 
 import 'package:maplibre/maplibre.dart';
 
+/// The colours of a journey's stages, one after the other, as on the
+/// website (neighbours differ also for red-green colour blindness).
+const stageColors = ['#a21caf', '#4d7c0f', '#2563eb', '#c2410c', '#0f766e', '#be123c'];
+
+/// A journey's stages (each a list of lon, lat points) in their colours,
+/// with a white casing; [stages] maps each line to its stage (from 0).
+Future<void> addStageLines(StyleController style, List<(int, List<List<double>>)> stages) async {
+  await style.addSource(
+    GeoJsonSource(
+      id: 'stages',
+      data: jsonEncode({
+        'type': 'FeatureCollection',
+        'features': [
+          for (final (i, line) in stages)
+            if (line.length >= 2)
+              {
+                'type': 'Feature',
+                'properties': {'color': stageColors[i % stageColors.length], 'stage': i},
+                'geometry': {
+                  'type': 'LineString',
+                  'coordinates': [
+                    for (final c in line) [c[0], c[1]],
+                  ],
+                },
+              },
+        ],
+      }),
+    ),
+  );
+  await style.addLayer(
+    const LineStyleLayer(
+      id: 'stages-casing',
+      sourceId: 'stages',
+      paint: {'line-color': '#ffffff', 'line-width': 7},
+      layout: {'line-cap': 'round', 'line-join': 'round'},
+    ),
+  );
+  await style.addLayer(
+    const LineStyleLayer(
+      id: 'stages-line',
+      sourceId: 'stages',
+      paint: {
+        'line-color': ['get', 'color'],
+        'line-width': 4,
+      },
+      layout: {'line-cap': 'round', 'line-join': 'round'},
+    ),
+  );
+}
+
 /// Draws a route line (lon, lat[, ele] points) on the map, like the website.
 Future<void> addRouteLine(StyleController style, List<List<double>> line) async {
   await style.addSource(GeoJsonSource(id: 'route', data: lineJson(line)));

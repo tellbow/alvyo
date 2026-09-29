@@ -8,6 +8,17 @@ describe('placeKinds', () => {
 		expect(placeKinds(['huts', 'lodging'], 9)).toEqual(['hut']);
 		expect(placeKinds(['lodging', 'huts'], 10)).toEqual(['hut', 'hotel', 'campsite']);
 	});
+
+	it('asks along the way only for the kinds switched on', () => {
+		expect(placeKinds(['pois'], 11)).toEqual([]);
+		expect(placeKinds(['pois'], 12)).toHaveLength(10);
+		expect(placeKinds(['pois', 'huts'], 12, ['water', 'firepit'])).toEqual([
+			'hut',
+			'water',
+			'firepit'
+		]);
+		expect(placeKinds(['pois'], 12, [])).toEqual([]);
+	});
 });
 
 describe('placeFeatures', () => {

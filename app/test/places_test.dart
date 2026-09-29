@@ -35,6 +35,31 @@ void main() {
     expect(placeKinds({PlaceGroup.lodging}, 12), ['hotel', 'campsite']);
   });
 
+  test('along the way from zoom 12, only the kinds switched on', () {
+    expect(placeKinds({PlaceGroup.pois}, 11), isEmpty);
+    expect(placeKinds({PlaceGroup.pois}, 12), hasLength(10));
+    expect(placeKinds({PlaceGroup.pois, PlaceGroup.huts}, 12, {'water', 'firepit'}), ['hut', 'water', 'firepit']);
+  });
+
+  test('base map, overlays and kinds along the way are remembered', () async {
+    FlutterSecureStorage.setMockInitialValues({});
+    final s = PlaceSettings();
+    await s.loaded;
+    expect(s.base.value, 'landeskarte');
+    expect(s.overlays.value, {'wanderwege'});
+    expect(s.pois.value, hasLength(10));
+    await s.setBase('luftbild');
+    await s.toggleOverlay('wanderwege');
+    await s.toggleOverlay('hangneigung');
+    await s.togglePoi('restaurant');
+    final again = PlaceSettings();
+    await again.loaded;
+    expect(again.base.value, 'luftbild');
+    expect(again.overlays.value, {'hangneigung'});
+    expect(again.pois.value, isNot(contains('restaurant')));
+    expect(again.pois.value, contains('firepit'));
+  });
+
   test('websites are links only when http(s)', () {
     expect(webLink('https://www.sac-cas.ch'), 'https://www.sac-cas.ch');
     expect(webLink(' http://huette.ch/x '), 'http://huette.ch/x');
@@ -70,11 +95,34 @@ void main() {
     await tester.pumpWidget(_app(Center(child: PlaceLayerButton(settings: s))));
     await tester.tap(find.byKey(const Key('map-layers')));
     await tester.pumpAndSettle();
+
+    // The base map and an overlay.
+    await tester.tap(find.text('Luftbild'));
+    await tester.pumpAndSettle();
+    expect(s.base.value, 'luftbild');
+    await tester.scrollUntilVisible(find.byKey(const Key('map-overlay-jagdbanngebiete')), 100);
+    await tester.tap(find.byKey(const Key('map-overlay-wildruhezonen')));
+    await tester.pumpAndSettle();
+    expect(s.overlays.value, {'wanderwege', 'wildruhezonen'});
+
+    await tester.scrollUntilVisible(find.byKey(const Key('map-layer-lodging')), 100);
     await tester.tap(find.byKey(const Key('map-layer-huts')));
     await tester.pumpAndSettle();
     expect(s.shown.value, {PlaceGroup.huts});
     expect(tester.widget<SwitchListTile>(find.byKey(const Key('map-layer-huts'))).value, isTrue);
     expect(tester.widget<SwitchListTile>(find.byKey(const Key('map-layer-lodging'))).value, isFalse);
+
+    // Along the way: the kinds only once it is on.
+    expect(find.byKey(const Key('map-poi-firepit')), findsNothing);
+    await tester.scrollUntilVisible(find.byKey(const Key('map-layer-pois')), 100);
+    await tester.tap(find.byKey(const Key('map-layer-pois')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const Key('map-poi-firepit')), 100);
+    expect(find.text('Feuerstelle'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('map-poi-firepit')));
+    await tester.pumpAndSettle();
+    expect(s.pois.value, isNot(contains('firepit')));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a tapped place: name, kind and the website to copy', (tester) async {

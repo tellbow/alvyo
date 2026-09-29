@@ -2527,7 +2527,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapPois.
   ///
   /// In de, this message translates to:
-  /// **'Unterwegs: Gipfel, Aussicht, Wasser'**
+  /// **'Unterwegs'**
   String get mapPois;
 
   /// No description provided for @poiPeak.
@@ -2559,6 +2559,102 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Unterstand'**
   String get poiShelter;
+
+  /// No description provided for @mapBase.
+  ///
+  /// In de, this message translates to:
+  /// **'Hintergrund'**
+  String get mapBase;
+
+  /// No description provided for @mapOverlays.
+  ///
+  /// In de, this message translates to:
+  /// **'Überlagerungen'**
+  String get mapOverlays;
+
+  /// No description provided for @mapBaseNational.
+  ///
+  /// In de, this message translates to:
+  /// **'Landeskarte'**
+  String get mapBaseNational;
+
+  /// No description provided for @mapBaseGrey.
+  ///
+  /// In de, this message translates to:
+  /// **'Landeskarte grau'**
+  String get mapBaseGrey;
+
+  /// No description provided for @mapBaseAerial.
+  ///
+  /// In de, this message translates to:
+  /// **'Luftbild'**
+  String get mapBaseAerial;
+
+  /// No description provided for @mapOverlayTrails.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderwege'**
+  String get mapOverlayTrails;
+
+  /// No description provided for @mapOverlayWanderland.
+  ///
+  /// In de, this message translates to:
+  /// **'SchweizMobil-Wanderrouten'**
+  String get mapOverlayWanderland;
+
+  /// No description provided for @mapOverlaySlope.
+  ///
+  /// In de, this message translates to:
+  /// **'Hangneigung über 30°'**
+  String get mapOverlaySlope;
+
+  /// No description provided for @mapOverlayRestAreas.
+  ///
+  /// In de, this message translates to:
+  /// **'Wildruhezonen'**
+  String get mapOverlayRestAreas;
+
+  /// No description provided for @mapOverlayHuntingReserves.
+  ///
+  /// In de, this message translates to:
+  /// **'Eidg. Jagdbanngebiete'**
+  String get mapOverlayHuntingReserves;
+
+  /// No description provided for @mapOverlayRelief.
+  ///
+  /// In de, this message translates to:
+  /// **'Relief'**
+  String get mapOverlayRelief;
+
+  /// No description provided for @poiFirepit.
+  ///
+  /// In de, this message translates to:
+  /// **'Feuerstelle'**
+  String get poiFirepit;
+
+  /// No description provided for @poiPicnic.
+  ///
+  /// In de, this message translates to:
+  /// **'Picknickplatz'**
+  String get poiPicnic;
+
+  /// No description provided for @poiRestaurant.
+  ///
+  /// In de, this message translates to:
+  /// **'Restaurant, Café'**
+  String get poiRestaurant;
+
+  /// No description provided for @poiToilets.
+  ///
+  /// In de, this message translates to:
+  /// **'Toilette'**
+  String get poiToilets;
+
+  /// No description provided for @poiCablecar.
+  ///
+  /// In de, this message translates to:
+  /// **'Seilbahnstation'**
+  String get poiCablecar;
 
   /// No description provided for @poisTitle.
   ///
@@ -2655,6 +2751,228 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ziel'**
   String get travelRouteEnd;
+
+  /// No description provided for @areasNow.
+  ///
+  /// In de, this message translates to:
+  /// **'gilt jetzt'**
+  String get areasNow;
+
+  /// No description provided for @areasOnDate.
+  ///
+  /// In de, this message translates to:
+  /// **'gilt an einem geplanten Tag'**
+  String get areasOnDate;
+
+  /// No description provided for @hintsOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} anzeigen'**
+  String hintsOpen(int count);
+
+  /// No description provided for @weatherOtherDay.
+  ///
+  /// In de, this message translates to:
+  /// **'Anderes Datum'**
+  String get weatherOtherDay;
+
+  /// No description provided for @weatherClimate.
+  ///
+  /// In de, this message translates to:
+  /// **'Üblich im {month}: {min}–{max} °C, an {days} von {total} Tagen Regen, {mm} mm im Monat'**
+  String weatherClimate(String month, String min, String max, String days, String total, String mm);
+
+  /// No description provided for @weatherClimateSource.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Prognose für diesen Tag: Klimanormwerte 1991–2020 von MeteoSchweiz (Temperatur: {station}, auf die Höhe umgerechnet; Niederschlag: {rain}). Die Prognose gibt es für die nächsten 9 Tage.'**
+  String weatherClimateSource(String station, String rain);
+
+  /// No description provided for @journeyMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Karte der Etappentour'**
+  String get journeyMap;
+
+  /// No description provided for @journeyAddStage.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappe hinzufügen'**
+  String get journeyAddStage;
+
+  /// No description provided for @routeEditLine.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf der Karte ändern'**
+  String get routeEditLine;
+
+  /// No description provided for @bugOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler melden'**
+  String get bugOpen;
+
+  /// No description provided for @bugWhat.
+  ///
+  /// In de, this message translates to:
+  /// **'Was ist passiert? Was hast du erwartet?'**
+  String get bugWhat;
+
+  /// No description provided for @bugWithScreenshot.
+  ///
+  /// In de, this message translates to:
+  /// **'Bildschirmfoto mitsenden'**
+  String get bugWithScreenshot;
+
+  /// No description provided for @bugScreenshotAlt.
+  ///
+  /// In de, this message translates to:
+  /// **'Bildschirmfoto dieser Seite'**
+  String get bugScreenshotAlt;
+
+  /// No description provided for @bugPrivacy.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit dem Bericht gehen die Adresse ({place}), die Version, dein Benutzername und das Bildschirmfoto an die Entwickler (GitHub). Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.'**
+  String bugPrivacy(String place);
+
+  /// No description provided for @bugSend.
+  ///
+  /// In de, this message translates to:
+  /// **'Senden'**
+  String get bugSend;
+
+  /// No description provided for @bugSent.
+  ///
+  /// In de, this message translates to:
+  /// **'Danke! Der Fehler ist gemeldet.'**
+  String get bugSent;
+
+  /// No description provided for @bugFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Das hat nicht geklappt. Versuch es später nochmals.'**
+  String get bugFailed;
+
+  /// No description provided for @bugBusy.
+  ///
+  /// In de, this message translates to:
+  /// **'Du hast heute schon einige Fehler gemeldet. Versuch es später nochmals.'**
+  String get bugBusy;
+
+  /// No description provided for @close.
+  ///
+  /// In de, this message translates to:
+  /// **'Schliessen'**
+  String get close;
+
+  /// No description provided for @peopleTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wer kommt mit'**
+  String get peopleTitle;
+
+  /// No description provided for @peopleNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch niemand. Wer mitkommt, sieht die Etappentour und die Etappen, auf denen er oder sie dabei ist.'**
+  String get peopleNone;
+
+  /// No description provided for @peopleInvited.
+  ///
+  /// In de, this message translates to:
+  /// **'Eingeladen'**
+  String get peopleInvited;
+
+  /// No description provided for @peopleRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Kommt nicht mit'**
+  String get peopleRemove;
+
+  /// No description provided for @peopleWho.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzername oder E-Mail-Adresse'**
+  String get peopleWho;
+
+  /// No description provided for @peopleAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinzufügen'**
+  String get peopleAdd;
+
+  /// No description provided for @peopleHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wer noch keinen Zugang hat, wird eingeladen und kann die Etappentour ansehen. Die Zahlen sind die Etappen: antippen, wer wo dabei ist.'**
+  String get peopleHint;
+
+  /// No description provided for @peopleUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Person gibt es nicht, oder du bist es selbst.'**
+  String get peopleUnknown;
+
+  /// No description provided for @peopleVerify.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätige zuerst deine E-Mail-Adresse.'**
+  String get peopleVerify;
+
+  /// No description provided for @peopleFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Das hat nicht geklappt. Versuch es nochmals.'**
+  String get peopleFailed;
+
+  /// No description provided for @peopleOnStage.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit {names}'**
+  String peopleOnStage(String names);
+
+  /// No description provided for @peopleStages.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappen von {name}'**
+  String peopleStages(String name);
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Erinnerungen'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Erinnerungen per E-Mail vor dem Start'**
+  String get remindersOn;
+
+  /// No description provided for @remindersHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Für dich und alle, die mitkommen; in der App auch auf dem Telefon.'**
+  String get remindersHint;
+
+  /// No description provided for @reminderBook.
+  ///
+  /// In de, this message translates to:
+  /// **'In drei Wochen geht es los: Sind alle Übernachtungen gebucht?'**
+  String get reminderBook;
+
+  /// No description provided for @reminderWeather.
+  ///
+  /// In de, this message translates to:
+  /// **'Übermorgen geht es los: Schau dir das Wetter an.'**
+  String get reminderWeather;
+
+  /// No description provided for @reminderStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Morgen geht es los. Gute Wanderung!'**
+  String get reminderStart;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

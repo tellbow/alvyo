@@ -31,7 +31,7 @@ func TestForecast(t *testing.T) {
 	if err != nil || p.Name != "Männlichen" || p.Height != 2230 {
 		t.Fatalf("high: %+v %v", p, err)
 	}
-	if len(days) != 2 || days[0].Date != "2026-09-28" || days[1] != (ForecastDay{Date: "2026-09-29", MinC: 4.5, MaxC: 12, RainMM: 3.2, RainLoMM: 0.4, RainHiMM: 9.8}) {
+	if len(days) != 2 || days[0].Date != "2026-09-28" || days[1] != (ForecastDay{Date: "2026-09-29", MinC: 4.5, MaxC: 12, RainMM: 3.2, RainLoMM: 0.4, RainHiMM: 9.8, Symbol: 6}) {
 		t.Errorf("days: %+v", days)
 	}
 	if p, _, _ = f.At(8.03, 46.62, 1050); p.Name != "Grindelwald" {

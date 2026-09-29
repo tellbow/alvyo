@@ -1,6 +1,7 @@
 // Package weather holds MeteoSwiss's local forecast (open data): for every
 // postcode, weather station and selected point in the mountains the lowest
-// and highest temperature and the precipitation of the next nine days. The
+// and highest temperature, the precipitation and the weather symbol of the
+// next nine days; and the climate normals of its stations (normals.go). The
 // latest run is loaded into memory once an hour; points along a route take
 // the forecast point nearby of the most similar height.
 package weather
@@ -37,6 +38,8 @@ const (
 	paramRain   = "rka150p0"
 	paramRain10 = "rreq10p0"
 	paramRain90 = "rreq90p0"
+	// MeteoSwiss's pictogram number for the day (1–42); read when a run has it.
+	paramSymbol = "jp2000d0"
 )
 
 var params = []string{paramMin, paramMax, paramRain, paramRain10, paramRain90}
@@ -63,6 +66,9 @@ type ForecastDay struct {
 	RainMM   float64 `json:"rain_mm"`
 	RainLoMM float64 `json:"rain_lo_mm"`
 	RainHiMM float64 `json:"rain_hi_mm"`
+	// Symbol is MeteoSwiss's pictogram number for the daytime (1–42);
+	// its meaning is in their list of weather symbols.
+	Symbol int `json:"symbol,omitempty"`
 }
 
 // Forecast is the latest local forecast.
@@ -148,6 +154,11 @@ func (f *Forecast) Refresh(ctx context.Context) error {
 			return err
 		}
 	}
+	if href := files[paramSymbol]; href != "" {
+		if values[paramSymbol], err = f.readParam(ctx, href, paramSymbol); err != nil {
+			return err
+		}
+	}
 	days := map[string][]ForecastDay{}
 	for key, byDate := range values[paramMax] {
 		dates := make([]string, 0, len(byDate))
@@ -159,6 +170,7 @@ func (f *Forecast) Refresh(ctx context.Context) error {
 			days[key] = append(days[key], ForecastDay{
 				Date: d, MinC: values[paramMin][key][d], MaxC: byDate[d],
 				RainMM: values[paramRain][key][d], RainLoMM: values[paramRain10][key][d], RainHiMM: values[paramRain90][key][d],
+				Symbol: int(values[paramSymbol][key][d]),
 			})
 		}
 	}

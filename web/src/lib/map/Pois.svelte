@@ -3,13 +3,23 @@
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
 	import { formatDistance } from '$lib/planner/route';
-	import { poiText, type PoiKind } from './places';
+	import PoiIcon from './PoiIcon.svelte';
+	import { poiText, type Poi } from './places';
 
-	// Summits, viewpoints, water and shelters along a saved route, in order;
+	// What lies along a saved route (summits, water, fire places …), in order;
 	// the first ten unless `showAll`.
-	let { id, token, showAll = false }: { id: string; token?: string; showAll?: boolean } = $props();
-
-	type Poi = { kind: PoiKind; name: string; ele?: number; along_m: number };
+	let {
+		id,
+		token,
+		showAll = false,
+		onload
+	}: {
+		id: string;
+		token?: string;
+		showAll?: boolean;
+		/** Given the points once loaded, e.g. for the map. */
+		onload?: (pois: Poi[]) => void;
+	} = $props();
 	let pois = $state<Poi[]>();
 	let more = $state(false);
 	const all = $derived(showAll || more);
@@ -20,6 +30,7 @@
 			params: { path: { id }, query: token ? { t: token } : {} }
 		});
 		pois = data?.pois;
+		if (pois) onload?.(pois);
 	});
 </script>
 
@@ -33,6 +44,7 @@
 					<span class="w-14 shrink-0 text-right text-stone-500 tabular-nums"
 						>{formatDistance(p.along_m)}</span
 					>
+					<PoiIcon kind={p.kind} />
 					<span
 						>{title}{#if detail}<span class="text-stone-500">{` · ${detail}`}</span>{/if}</span
 					>

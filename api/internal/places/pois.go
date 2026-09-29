@@ -10,15 +10,17 @@ import (
 )
 
 // PoiKinds are the points of interest along routes.
-var PoiKinds = []string{"peak", "viewpoint", "waterfall", "water", "shelter"}
+var PoiKinds = []string{
+	"peak", "viewpoint", "waterfall", "water", "shelter", "firepit", "picnic", "restaurant", "toilets", "cablecar",
+}
 
 // alongM: points of interest this close to a line are on the way.
 const alongM = 200
 
 // Poi is a point of interest along a line.
 type Poi struct {
-	Kind   string     `json:"kind" enum:"peak,viewpoint,waterfall,water,shelter"`
-	Name   string     `json:"name" doc:"Empty for many drinking water points and shelters"`
+	Kind   string     `json:"kind" enum:"peak,viewpoint,waterfall,water,shelter,firepit,picnic,restaurant,toilets,cablecar"`
+	Name   string     `json:"name" doc:"Empty for many drinking water points, shelters, fire places, picnic spots and toilets"`
 	Ele    *int       `json:"ele,omitempty" doc:"Summits: height in metres"`
 	At     [2]float64 `json:"at" doc:"lon, lat"`
 	AlongM float64    `json:"along_m" doc:"How far along the line"`

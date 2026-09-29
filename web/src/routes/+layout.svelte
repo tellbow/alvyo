@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BugReport from '$lib/bugs/BugReport.svelte';
 	import './layout.css';
 	import { afterNavigate, goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -215,4 +216,5 @@
 	{/if}
 
 	{@render children()}
+	{#if data.user}<BugReport />{/if}
 </div>

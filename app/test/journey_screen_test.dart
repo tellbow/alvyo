@@ -243,9 +243,15 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('elevation-profile')), findsOneWidget, reason: 'all stages\' profile');
+    final line = find.byKey(const Key('protected-areas'));
+    await until(tester, line); // asked for after the journey
+    await tester.ensureVisible(find.descendant(of: line, matching: find.byType(OutlinedButton)));
+    await tester.tap(find.descendant(of: line, matching: find.byType(OutlinedButton)));
+    await tester.pumpAndSettle();
     final area = find.text('Weisstannen Siez (Wildruhezone, verbindlich)\nZutrittsverbot · 1.12. bis 20.4. · Etappe 2');
-    await until(tester, area); // asked for after the journey
     expect(area, findsOneWidget);
+    await tester.tapAt(const Offset(200, 20)); // beside the sheet
+    await tester.pumpAndSettle();
     // Without a title and route: numbered, and opens its sheet (details,
     // public transport) instead of a map.
     expect(find.text('Etappe 3'), findsOneWidget);
@@ -327,6 +333,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('item-edit')), findsOneWidget);
     expect(find.byKey(const Key('item-delete')), findsNothing);
+    // An editor adds stages; the journey's map is a tap away.
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byKey(const Key('journey-add-stage')), 200);
+    expect(find.byKey(const Key('journey-add-stage')), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const Key('journey-map')), -200);
+    expect(find.byKey(const Key('journey-map')), findsOneWidget);
+  });
+
+  testWidgets('a viewer adds no stages', (tester) async {
+    final server = FakeServer()
+      ..canEdit = false
+      ..role = 'viewer';
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
+    await pumpList(tester, api, find.text('Via Alpina'));
+    await tester.tap(find.text('Via Alpina'));
+    await until(tester, find.text('Gaflei – Sargans'));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('stage-2')),
+      200,
+      scrollable: find.ancestor(of: find.byKey(const Key('stage-0')), matching: find.byType(Scrollable)).first,
+    );
+    expect(find.byKey(const Key('journey-add-stage')), findsNothing);
   });
 
   testWidgets('without a connection and nothing saved: says so', (tester) async {

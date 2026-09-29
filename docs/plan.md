@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-09-28.
+Status: 2026-09-29.
 
 ## Goal
 
@@ -56,12 +56,13 @@ A `v*` tag builds the images; Flux deploys them
 | 0.14.0 | 2026-09-28 | The website on a phone (25): a menu below 1280 px, the map above the panel below 768 px, a page for unknown addresses and errors, distances in the reader's language, the elevation profile folds away, start dots on the discover map; readable colours (26): grade badges, grey text, grade and stage colours that differ for colour-blind readers, 16 px fields on touch screens; in the app numbers like the website and profiles spanning the route's heights; recording without a route (27): the record button records a hike that becomes a route; names under the icons of the app's bar |
 | 0.15.0 | 2026-09-28 | Privacy zones (28): others see recorded hikes without their first and last 500 m, on every page, map, GPX and preview; versions (29): the last 20 lines of a route, shown and restored on the website; the alpine way (30): a leg much longer by «Wandern» offers «Alpinwandern» for that leg alone (from the gap at Chamanna Jenatsch); across the border (31): routing and huts 15 km into the neighbouring countries |
 | 0.16.0 | 2026-09-28 | Weather (32): MeteoSwiss's forecast at a route's start, highest point and end for a day chosen, and at each stage's highest point for its planned day; closures and shooting (33): closed trails and the army's shooting areas along routes, journeys and lines being planned; along the way (34): summits, viewpoints, waterfalls, water and shelters, a map layer «Unterwegs» and the list along a route; stage sheets (35): «Blatt zum Drucken» for routes and stages, A4 with map, profile, numbers, places, weather and connections; 3D (36): the terrain on the website's maps; how to get there (37): the way there and back for routes as for journeys, from a home or anywhere |
+| next | | Travel only where a journey starts and ends (39); in the app: adding and planning stages (38), a journey's map (40), map layers and base maps (42, 43), changing a route on the map (49), inviting to collections (46); bug reports with a screenshot as GitHub issues (41); links into the app (45); along the way in more kinds, with icons, also on a route's map (47, 48, 56); closures and protected areas on request (50, 51); weather with MeteoSwiss's symbols and for any date, with the climate normals (52, 53); people who come along (55) and reminders before a journey (54) |
 
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–37 on 2026-09-28.
+21–37 on 2026-09-28, 38–56 on 2026-09-29.
 
 ### Done
 
@@ -405,10 +406,103 @@ From the project owner, numbered in the order given: 1–5 added on
     ones within 200 m of the line, in the order they come, with the
     distance from the start (the first ten, the rest on request).
 
+38. **Stages added to a journey in the app.** «Etappe hinzufügen» below
+    the stages (owner and editors) adds one and opens the planner for it,
+    starting where the stage before ends; a stage without a route opens the
+    planner too (`POST /journeys/{id}/stages/{stage}/route`).
+39. **The way there and back only where a journey starts and ends.** A
+    stage's route page (website and app) no longer offers its own way there
+    and back: the journey has it, from home before the first stage and home
+    after the last (24).
+40. **A journey's map in the app.** «Karte der Etappentour» shows all stages
+    in their colours (those of the website), with the layer menu; below,
+    the stages, each opening as a route.
+41. **Reporting a bug.** A tab at the right edge of every page and screen
+    for signed-in people: a description, what is open (the address without
+    a share token, or the app's screen and item), the version and a
+    screenshot (taken before the dialog opens; maps included on the
+    website, empty in the app, where MapLibre draws natively) go to
+    `POST /bug-reports`. The API opens an issue in the private repository
+    with `ALVYO_GITHUB_TOKEN` (the description in a fence, so it mentions
+    no one); the screenshot stays in the database, goes with the account
+    and opens for moderators only (`/bug-reports/{id}/screenshot`). Five
+    in a burst, then one every three hours per person.
+42. **The app's map layers.** The website's overlays in the app's «Karten»:
+    hiking trails, SchweizMobil, slopes over 30°, wildlife rest areas,
+    hunting reserves, relief, huts, hotels and campsites, along the way;
+    remembered on the phone.
+43. **The app's base maps.** National map, grey and aerial photo
+    (SWISSIMAGE). The website's vector «Basiskarte» is left out: switching
+    to it would reload the style and every screen's own layers.
+45. **Opening what was sent.** The app is signed with a free Apple ID,
+    which cannot use universal links (Associated Domains need a paid
+    developer account). So a shared link opens the website, and there, on
+    an iPhone or iPad, «In der App öffnen» opens the route, journey or
+    collection in the app (`alvyo://open/routes/{id}?t=…`), also when the
+    app was closed or not signed in yet; the link's share token goes along
+    with every call for that item. Universal links once there is a paid
+    account.
+46. **Inviting in the app.** The share sheet of routes and journeys also
+    for collections: the link, and people invited by name or e-mail
+    address as viewers or editors.
+47. **Along the way on a stage's map.** What lies along a route or stage
+    (34) is drawn on its map with the kinds' icons, on the website and in
+    the app, named on a tap; the kinds switched off stay off.
+48. **Along the way, in more kinds.** Besides summits, viewpoints,
+    waterfalls, drinking water and shelters: fire places, picnic spots,
+    restaurants and cafés (all of them, named ones), toilets and cable car
+    stations, from OpenStreetMap (`import-places.sh`; run the import after
+    the release). Under «Unterwegs» in the layer menu each kind is switched
+    on and off, remembered.
+49. **Changing a route in the app.** «Auf der Karte ändern» in a route's
+    menu opens the planner with its points: a new start, destination or
+    points between; the legs not touched are kept as they are (also those
+    dragged onto another path on the website), saved over the version seen.
+50. **Closures and shooting on request.** A line with how many there are
+    («2 anzeigen», highlighted with «gilt jetzt» or «gilt an einem geplanten
+    Tag»); the list in a popup (website) or sheet (app). The closures have
+    no areas of their own in our data, so no map layer.
+51. **Protected areas on request.** As 50; their areas are on the map as
+    the overlays «Wildruhezonen» and «Eidg. Jagdbanngebiete».
+52. **Weather with icons.** MeteoSwiss's pictogram number of the day
+    (`jp2000d0`), as our own icons (MeteoSwiss's graphics may not be
+    reused), eleven for the 42 symbols, named with MeteoSwiss's words in
+    the four languages.
+53. **Weather for any date.** Besides the next days, any date up to a year
+    ahead. Beyond the forecast: MeteoSwiss's climate normals 1991–2020 of
+    the station most like the place (temperatures carried to its height,
+    6.5 °C per 1000 m) and of the nearest precipitation station: «Üblich im
+    Oktober: 3–11 °C, an 10 von 31 Tagen Regen, 102 mm im Monat»; on a
+    journey for stages planned later. The normals are part of the API
+    (`api/internal/weather/normals/`).
+54. **Journeys planned ahead, with reminders.** By e-mail to the owner and
+    the people along with an account, after 8:00: three weeks before the
+    first planned stage «Übernachtungen buchen» (only while nights before
+    the last stage are not booked, listed), two days before the weather,
+    the day before the start; each once per start date. On the phone the
+    same as local notifications (9:00 and 18:00). Each person turns theirs
+    off on the journey («Erinnerungen», `PUT /journeys/{id}/reminders`).
+55. **People on stages and journeys.** «Wer kommt mit» on a journey: the
+    owner adds people by name or e-mail address (someone without access is
+    invited as a viewer; a role they have is kept) and removes them; owner
+    and editors choose their stages. Shown on the journey and on each stage
+    («Mit Anna, Beat»), to the owner and those it is shared with, never to
+    the public; addresses to the owner only (`/journeys/{id}/people`).
+56. **Icons along the way.** Each kind of 48 has its icon (a white shape on
+    a disc of its colour, the same on the website and in the app), on the
+    map, in the layer menu and in a route's list.
+
 ### Open
 
-Added on 2026-09-24 from a survey of Komoot, AllTrails, Outdooractive,
-SchweizMobil, the swisstopo app and others. 14 waits for Garmin.
+14 was added on 2026-09-24 from a survey of Komoot, AllTrails,
+Outdooractive, SchweizMobil, the swisstopo app and others, and waits for
+Garmin. 44 is from the project owner on 2026-09-29.
+
+#### 44. 3D in the app (blocked)
+
+The terrain in 3D as on the website (36). MapLibre Native for iOS (6.29,
+under the Flutter plugin) has hillshading but no 3D terrain. Possible: the
+website's 3D map in a web view, or waiting for MapLibre Native.
 
 #### 14. Routes to Garmin devices (deferred)
 

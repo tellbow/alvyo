@@ -4,8 +4,9 @@ import 'api.dart';
 import 'format.dart';
 import 'l10n/app_localizations.dart';
 import 'place_layer.dart';
+import 'poi_icons.dart';
 
-/// Summits, viewpoints, water and shelters along a route, in the order they
+/// What lies along a route (summits, water, fire places …), in the order they
 /// come: the first ten, the rest on request. Nothing while loading or
 /// offline.
 class PoiList extends StatefulWidget {
@@ -37,13 +38,24 @@ class _PoiListState extends State<PoiList> {
             const SizedBox(height: 8),
             Text(t.poisTitle, style: theme.textTheme.labelMedium),
             for (final p in shown)
-              Text(
-                [
-                  formatDistance(p.alongM),
-                  if (p.name.isNotEmpty) p.name,
-                  placeKindText(t, p.kind, p.ele?.toString() ?? ''),
-                ].join(' · '),
-                style: theme.textTheme.bodySmall,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child: Row(
+                  spacing: 6,
+                  children: [
+                    PoiIcon(p.kind, size: 16),
+                    Expanded(
+                      child: Text(
+                        [
+                          formatDistance(p.alongM),
+                          if (p.name.isNotEmpty) p.name,
+                          placeKindText(t, p.kind, p.ele?.toString() ?? ''),
+                        ].join(' · '),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             if (!_all && pois.length > _first)
               Align(

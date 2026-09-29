@@ -8,6 +8,8 @@ import 'package:maplibre/maplibre.dart';
 import 'api.dart';
 import 'format.dart';
 import 'l10n/app_localizations.dart';
+import 'map_style.dart';
+import 'poi_icons.dart';
 
 /// The places a map can show, each switched on in the layer menu.
 enum PlaceGroup { huts, lodging, pois }
@@ -15,20 +17,38 @@ enum PlaceGroup { huts, lodging, pois }
 const _groupKinds = {
   PlaceGroup.huts: ['hut'],
   PlaceGroup.lodging: ['hotel', 'campsite'],
-  PlaceGroup.pois: ['peak', 'viewpoint', 'waterfall', 'water', 'shelter'],
+  PlaceGroup.pois: poiKinds,
 };
 
 /// Below these zooms, too many points.
 const _groupMinZoom = {PlaceGroup.huts: 8.0, PlaceGroup.lodging: 10.0, PlaceGroup.pois: 12.0};
 
-/// The kinds to fetch for the [shown] groups at [zoom].
-List<String> placeKinds(Set<PlaceGroup> shown, double zoom) => [
+/// The kinds to fetch for the [shown] groups at [zoom], along the way only
+/// the [pois] switched on.
+List<String> placeKinds(Set<PlaceGroup> shown, double zoom, [Set<String>? pois]) => [
   for (final g in PlaceGroup.values)
-    if (shown.contains(g) && zoom >= _groupMinZoom[g]!) ..._groupKinds[g]!,
+    if (shown.contains(g) && zoom >= _groupMinZoom[g]!)
+      for (final k in _groupKinds[g]!)
+        if (g != PlaceGroup.pois || pois == null || pois.contains(k)) k,
 ];
 
-/// Which places the maps show: off until switched on, remembered in the
-/// Keychain like the session.
+/// The base maps and overlays of swisstopo and the federal offices, as on
+/// the website: layer, image type, highest zoom and opacity. The vector
+/// base map is left to the website: switching to it would reload the style.
+const baseMaps = ['landeskarte', 'landeskarte_grau', 'luftbild'];
+const rasterOverlays = ['wanderwege', 'wanderland', 'hangneigung', 'wildruhezonen', 'jagdbanngebiete', 'relief'];
+const _raster = {
+  'landeskarte_grau': ('ch.swisstopo.pixelkarte-grau', 'jpeg', 19, 1.0),
+  'luftbild': ('ch.swisstopo.swissimage', 'jpeg', 20, 1.0),
+  'wanderland': ('ch.astra.wanderland', 'png', 18, 1.0),
+  'hangneigung': ('ch.swisstopo.hangneigung-ueber_30', 'png', 17, 0.6),
+  'wildruhezonen': ('ch.bafu.wrz-wildruhezonen_portal', 'png', 18, 0.7),
+  'jagdbanngebiete': ('ch.bafu.bundesinventare-jagdbanngebiete', 'png', 18, 0.6),
+  'relief': ('ch.swisstopo.swissalti3d-reliefschattierung', 'png', 18, 0.5),
+};
+
+/// What the maps show: off until switched on (the hiking trails on),
+/// remembered in the Keychain like the session.
 class PlaceSettings {
   PlaceSettings({FlutterSecureStorage? storage}) : _storage = storage ?? const FlutterSecureStorage();
 
@@ -38,6 +58,11 @@ class PlaceSettings {
   static const _key = 'map-places';
   final FlutterSecureStorage _storage;
   final shown = ValueNotifier<Set<PlaceGroup>>({});
+  final base = ValueNotifier<String>('landeskarte');
+  final overlays = ValueNotifier<Set<String>>({'wanderwege'});
+
+  /// The kinds along the way shown when [PlaceGroup.pois] is on.
+  final pois = ValueNotifier<Set<String>>({...poiKinds});
   late final Future<void> loaded = _load();
 
   Future<void> _load() async {
@@ -48,30 +73,65 @@ class PlaceSettings {
           for (final g in PlaceGroup.values)
             if (g.name == name) g,
       };
+      final b = await _storage.read(key: '$_key-base');
+      if (baseMaps.contains(b)) base.value = b!;
+      if (await _storage.read(key: '$_key-overlays') case final o?) {
+        overlays.value = o.split(',').where(rasterOverlays.contains).toSet();
+      }
+      if (await _storage.read(key: '$_key-pois') case final k?) {
+        pois.value = k.split(',').where(poiKinds.contains).toSet();
+      }
     } on Object {
-      // no Keychain (tests): all off
+      // no Keychain (tests): the defaults
     }
   }
 
   Future<void> toggle(PlaceGroup g) async {
     await loaded;
     shown.value = shown.value.contains(g) ? ({...shown.value}..remove(g)) : {...shown.value, g};
+    await _write(_key, shown.value.map((g) => g.name));
+  }
+
+  Future<void> setBase(String id) async {
+    await loaded;
+    base.value = id;
+    await _write('$_key-base', [id]);
+  }
+
+  Future<void> toggleOverlay(String id) async {
+    await loaded;
+    overlays.value = overlays.value.contains(id) ? ({...overlays.value}..remove(id)) : {...overlays.value, id};
+    await _write('$_key-overlays', overlays.value);
+  }
+
+  Future<void> togglePoi(String kind) async {
+    await loaded;
+    pois.value = pois.value.contains(kind) ? ({...pois.value}..remove(kind)) : {...pois.value, kind};
+    await _write('$_key-pois', pois.value);
+  }
+
+  Future<void> _write(String key, Iterable<String> values) async {
     try {
-      await _storage.write(key: _key, value: shown.value.map((g) => g.name).join(','));
+      await _storage.write(key: key, value: values.join(','));
     } on Object {
       // not remembered, still switched
     }
   }
 }
 
-/// Huts (red), hotels (blue) and campsites (green) of the visible area on a
-/// MapLibre map, from `GET /places/in-view`. The screen calls [addTo] when
-/// its style has loaded, before adding its own layers (which then lie on
-/// top), and passes the map's events to [onEvent]. Without a connection what
-/// is shown stays.
+/// The layers of the layer menu on a MapLibre map: the base map and
+/// overlays as raster tiles of [Api.server]'s tile cache, huts (red), hotels
+/// (blue) and campsites (green) as dots and what lies along the way as
+/// icons, from `GET /places/in-view`. The screen calls [addTo] when its
+/// style has loaded, before adding its own layers (which then lie on top),
+/// and passes the map's events to [onEvent]. Without a connection what is
+/// shown stays.
 class PlaceLayer {
   PlaceLayer(this.api, {required this.onTap, PlaceSettings? settings}) : settings = settings ?? PlaceSettings.instance {
     this.settings.shown.addListener(_switched);
+    this.settings.pois.addListener(_switched);
+    this.settings.base.addListener(_syncRaster);
+    this.settings.overlays.addListener(_syncRaster);
   }
 
   final Api api;
@@ -79,6 +139,8 @@ class PlaceLayer {
   final PlaceSettings settings;
 
   static const _id = 'places';
+  static const _poisId = 'places-pois';
+  static const _alongId = 'places-along';
   MapController? _map;
   StyleController? _style;
   Timer? _timer;
@@ -87,13 +149,33 @@ class PlaceLayer {
   int _asked = 0;
   List<Pin> _shown = const [];
 
+  /// What lies along the screen's route, from [addAlong].
+  List<Pin> _along = const [];
+
+  /// Raster layers are added and removed one change after the other.
+  Future<void> _rasterDone = Future.value();
+
+  /// The raster layers on the map: the style brings the hiking trails.
+  final _rasterShown = <String>{'wanderwege'};
+
   Future<void> addTo(StyleController style) async {
     _style = null;
+    _rasterShown
+      ..clear()
+      ..add('wanderwege');
     await style.addSource(GeoJsonSource(id: _id, data: _geojson(_shown), attribution: '© OpenStreetMap contributors'));
     await style.addLayer(
       const CircleStyleLayer(
         id: _id,
         sourceId: _id,
+        filter: [
+          'in',
+          ['get', 'kind'],
+          [
+            'literal',
+            ['hut', 'hotel', 'campsite'],
+          ],
+        ],
         paint: {
           'circle-radius': [
             'interpolate',
@@ -111,16 +193,6 @@ class PlaceLayer {
             '#b91c1c',
             'campsite',
             '#15803d',
-            'peak',
-            '#57534e',
-            'viewpoint',
-            '#7c3aed',
-            'waterfall',
-            '#0e7490',
-            'water',
-            '#0284c7',
-            'shelter',
-            '#a16207',
             '#1d4ed8',
           ],
           'circle-stroke-color': '#ffffff',
@@ -128,10 +200,93 @@ class PlaceLayer {
         },
       ),
     );
+    // Drawn three times as large: images are taken at one pixel a point.
+    for (final kind in poiKinds) {
+      await style.addImageFromCanvas(
+        id: 'poi-$kind',
+        width: 66,
+        height: 66,
+        painter: (canvas) => paintPoiIcon(canvas, kind, 66),
+      );
+    }
+    await style.addLayer(
+      const SymbolStyleLayer(
+        id: _poisId,
+        sourceId: _id,
+        filter: [
+          'in',
+          ['get', 'kind'],
+          ['literal', poiKinds],
+        ],
+        layout: {
+          'icon-image': [
+            'concat',
+            'poi-',
+            ['get', 'kind'],
+          ],
+          'icon-size': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            12,
+            0.28,
+            16,
+            0.36,
+          ],
+          'icon-allow-overlap': [
+            'step',
+            ['zoom'],
+            false,
+            15,
+            true,
+          ],
+        },
+      ),
+    );
     _style = style;
     await settings.loaded;
+    _syncRaster();
     _load(now: true);
   }
+
+  /// What lies along a route, drawn with the kinds' icons on top of the
+  /// screen's layers (call after [addTo] and the route line); the kinds
+  /// switched off in the layer menu stay off.
+  Future<void> addAlong(StyleController style, List<Poi> pois) async {
+    _along = [for (final (i, p) in pois.indexed) p.toPin(i)];
+    await style.addSource(GeoJsonSource(id: _alongId, data: _alongJson(), attribution: '© OpenStreetMap contributors'));
+    await style.addLayer(
+      const SymbolStyleLayer(
+        id: _alongId,
+        sourceId: _alongId,
+        layout: {
+          'icon-image': [
+            'concat',
+            'poi-',
+            ['get', 'kind'],
+          ],
+          'icon-size': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            10,
+            0.24,
+            16,
+            0.36,
+          ],
+          'icon-allow-overlap': [
+            'step',
+            ['zoom'],
+            false,
+            14,
+            true,
+          ],
+        },
+      ),
+    );
+  }
+
+  String _alongJson() => _geojson(_along.where((p) => settings.pois.value.contains(p.kind)).toList());
 
   void onEvent(MapEvent e) {
     switch (e) {
@@ -147,15 +302,70 @@ class PlaceLayer {
 
   void dispose() {
     settings.shown.removeListener(_switched);
+    settings.pois.removeListener(_switched);
+    settings.base.removeListener(_syncRaster);
+    settings.overlays.removeListener(_syncRaster);
     _timer?.cancel();
     _asked++;
+    _style = null;
   }
 
   /// Switched off: gone at once; switched on: fetched.
   void _switched() {
-    final kinds = {for (final g in settings.shown.value) ..._groupKinds[g]!};
+    final kinds = placeKinds(settings.shown.value, double.infinity, settings.pois.value).toSet();
     _show(_shown.where((p) => kinds.contains(p.kind)).toList());
+    if (_along.isNotEmpty) _style?.updateGeoJsonSource(id: _alongId, data: _alongJson()).catchError((_) {});
     _load(now: true);
+  }
+
+  /// The base map above the style's national map, the overlays above it in
+  /// the menu's order, all below the places. The style's hiking trails are
+  /// the overlay «wanderwege».
+  void _syncRaster() {
+    _rasterDone = _rasterDone.then((_) async {
+      final style = _style;
+      if (style == null) return;
+      try {
+        final base = settings.base.value;
+        final wanted = [
+          if (base != 'landeskarte') 'base-$base',
+          for (final o in rasterOverlays)
+            if (settings.overlays.value.contains(o)) o == 'wanderwege' ? o : 'ovl-$o',
+        ];
+        for (final id in [..._rasterShown]) {
+          if (wanted.contains(id)) continue;
+          await style.removeLayer(id);
+          if (id != 'wanderwege') await style.removeSource(id);
+          _rasterShown.remove(id);
+        }
+        for (final (i, id) in wanted.indexed.toList().reversed) {
+          if (_rasterShown.contains(id)) continue;
+          // Below the next one shown, else below the places.
+          final below = wanted.skip(i + 1).where(_rasterShown.contains).firstOrNull ?? _id;
+          final (layer, ext, maxzoom, opacity) =
+              _raster[id.replaceFirst(RegExp('^(base|ovl)-'), '')] ?? ('', '', 0, 1.0);
+          if (id != 'wanderwege') {
+            await style.addSource(
+              RasterSource(
+                id: id,
+                tiles: ['${api.server}/tiles/wmts/$layer/{z}/{x}/{y}.$ext'],
+                tileSize: 256,
+                maxZoom: maxzoom.toDouble(),
+                bounds: chBounds,
+                attribution: '© swisstopo',
+              ),
+            );
+          }
+          await style.addLayer(
+            RasterStyleLayer(id: id, sourceId: id, paint: {'raster-opacity': opacity}),
+            belowLayerId: below,
+          );
+          _rasterShown.add(id);
+        }
+      } on Object {
+        // the map went away meanwhile
+      }
+    });
   }
 
   /// Once the map rests a moment.
@@ -165,7 +375,7 @@ class PlaceLayer {
       final map = _map;
       if (map == null || _style == null) return;
       final asked = ++_asked;
-      final kinds = placeKinds(settings.shown.value, map.getCamera().zoom);
+      final kinds = placeKinds(settings.shown.value, map.getCamera().zoom, settings.pois.value);
       if (kinds.isEmpty) {
         _show(const []);
         return;
@@ -193,11 +403,14 @@ class PlaceLayer {
   /// A finger is wider than a dot.
   void _tap(Offset at) {
     final map = _map;
-    if (map == null || _style == null || _shown.isEmpty) return;
-    final found = map.featuresInRect(Rect.fromCircle(center: at, radius: 16), layerIds: [_id]);
+    if (map == null || _style == null || (_shown.isEmpty && _along.isEmpty)) return;
+    final found = map.featuresInRect(
+      Rect.fromCircle(center: at, radius: 16),
+      layerIds: [_id, _poisId, if (_along.isNotEmpty) _alongId],
+    );
     if (found.isEmpty) return;
     final id = found.first.properties['id'];
-    if (_shown.where((p) => p.id == id).firstOrNull case final pin?) onTap(pin);
+    if ([..._shown, ..._along].where((p) => p.id == id).firstOrNull case final pin?) onTap(pin);
   }
 
   static String _geojson(List<Pin> pins) => jsonEncode({
@@ -234,24 +447,60 @@ class PlaceLayerButton extends StatelessWidget {
         if (!context.mounted) return;
         await showModalBottomSheet<void>(
           context: context,
-          builder: (context) => SafeArea(
-            child: ValueListenableBuilder(
-              valueListenable: s.shown,
-              builder: (context, shown, _) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final (g, label) in [
-                    (PlaceGroup.huts, t.mapHuts),
-                    (PlaceGroup.lodging, t.mapLodging),
-                    (PlaceGroup.pois, t.mapPois),
-                  ])
-                    SwitchListTile(
-                      key: Key('map-layer-${g.name}'),
-                      title: Text(label),
-                      value: shown.contains(g),
-                      onChanged: (_) => s.toggle(g),
+          isScrollControlled: true,
+          builder: (context) => DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.6,
+            maxChildSize: 0.9,
+            builder: (context, scroll) => SafeArea(
+              child: ListenableBuilder(
+                listenable: Listenable.merge([s.shown, s.base, s.overlays, s.pois]),
+                builder: (context, _) => ListView(
+                  controller: scroll,
+                  children: [
+                    ListTile(title: Text(t.mapBase, style: Theme.of(context).textTheme.titleSmall)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SegmentedButton<String>(
+                        key: const Key('map-base'),
+                        showSelectedIcon: false,
+                        segments: [for (final b in baseMaps) ButtonSegment(value: b, label: Text(baseMapText(t, b)))],
+                        selected: {s.base.value},
+                        onSelectionChanged: (v) => s.setBase(v.first),
+                      ),
                     ),
-                ],
+                    ListTile(title: Text(t.mapOverlays, style: Theme.of(context).textTheme.titleSmall)),
+                    for (final o in rasterOverlays)
+                      SwitchListTile(
+                        key: Key('map-overlay-$o'),
+                        title: Text(overlayText(t, o)),
+                        value: s.overlays.value.contains(o),
+                        onChanged: (_) => s.toggleOverlay(o),
+                      ),
+                    for (final (g, label) in [
+                      (PlaceGroup.huts, t.mapHuts),
+                      (PlaceGroup.lodging, t.mapLodging),
+                      (PlaceGroup.pois, t.mapPois),
+                    ])
+                      SwitchListTile(
+                        key: Key('map-layer-${g.name}'),
+                        title: Text(label),
+                        value: s.shown.value.contains(g),
+                        onChanged: (_) => s.toggle(g),
+                      ),
+                    if (s.shown.value.contains(PlaceGroup.pois))
+                      for (final k in poiKinds)
+                        CheckboxListTile(
+                          key: Key('map-poi-$k'),
+                          dense: true,
+                          contentPadding: const EdgeInsets.only(left: 32, right: 16),
+                          secondary: PoiIcon(k, size: 22),
+                          title: Text(placeKindText(t, k, '')),
+                          value: s.pois.value.contains(k),
+                          onChanged: (_) => s.togglePoi(k),
+                        ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -261,6 +510,21 @@ class PlaceLayerButton extends StatelessWidget {
     );
   }
 }
+
+String baseMapText(AppLocalizations t, String id) => switch (id) {
+  'landeskarte_grau' => t.mapBaseGrey,
+  'luftbild' => t.mapBaseAerial,
+  _ => t.mapBaseNational,
+};
+
+String overlayText(AppLocalizations t, String id) => switch (id) {
+  'wanderwege' => t.mapOverlayTrails,
+  'wanderland' => t.mapOverlayWanderland,
+  'hangneigung' => t.mapOverlaySlope,
+  'wildruhezonen' => t.mapOverlayRestAreas,
+  'jagdbanngebiete' => t.mapOverlayHuntingReserves,
+  _ => t.mapOverlayRelief,
+};
 
 /// What kind of place it is, as specific as the data allows.
 String placeKindText(AppLocalizations t, String kind, String detail) => switch (kind) {
@@ -274,6 +538,11 @@ String placeKindText(AppLocalizations t, String kind, String detail) => switch (
   'waterfall' => t.poiWaterfall,
   'water' => t.poiWater,
   'shelter' => t.poiShelter,
+  'firepit' => t.poiFirepit,
+  'picnic' => t.poiPicnic,
+  'restaurant' => t.poiRestaurant,
+  'toilets' => t.poiToilets,
+  'cablecar' => t.poiCablecar,
   'address' => t.placeAddress,
   _ => detail, // a name from the national map: its kind and municipality
 };

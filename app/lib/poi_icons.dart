@@ -1,0 +1,142 @@
+import 'package:flutter/material.dart';
+
+/// Each kind along the way: a white shape (24 × 24) on a disc of its colour,
+/// as on the website (`web/src/lib/map/poi-icons.json`, compared in a test).
+const poiIcons = <String, ({int color, bool evenOdd, String path})>{
+  'peak': (color: 0xFF57534e, evenOdd: false, path: 'M4 18L10 7L13 12L15 9L20 18Z'),
+  'viewpoint': (
+    color: 0xFF7c3aed,
+    evenOdd: false,
+    path:
+        'M4.5 15C4.5 13.07 6.07 11.5 8 11.5C9.93 11.5 11.5 13.07 11.5 15C11.5 16.93 9.93 18.5 8 18.5C6.07 18.5 4.5 16.93 4.5 15ZM12.5 15C12.5 13.07 14.07 11.5 16 11.5C17.93 11.5 19.5 13.07 19.5 15C19.5 16.93 17.93 18.5 16 18.5C14.07 18.5 12.5 16.93 12.5 15ZM5.5 7L10 7L10 14L5.5 14ZM14 7L18.5 7L18.5 14L14 14ZM10 10L14 10L14 12.5L10 12.5Z',
+  ),
+  'waterfall': (
+    color: 0xFF0e7490,
+    evenOdd: false,
+    path:
+        'M4 4L20 4L20 6.5L4 6.5ZM6.5 7.5L8.5 7.5L8.5 16.5L6.5 16.5ZM11 7.5L13 7.5L13 19L11 19ZM15.5 7.5L17.5 7.5L17.5 15.5L15.5 15.5Z',
+  ),
+  'water': (
+    color: 0xFF0284c7,
+    evenOdd: false,
+    path: 'M12 3.5C12 3.5 6 10.5 6 14.5C6 17.8 8.7 20.5 12 20.5C15.3 20.5 18 17.8 18 14.5C18 10.5 12 3.5 12 3.5Z',
+  ),
+  'shelter': (
+    color: 0xFFa16207,
+    evenOdd: false,
+    path: 'M2.5 11L12 3.5L21.5 11L20 12.8L12 6.5L4 12.8ZM6 11.5L8 11.5L8 19.5L6 19.5ZM16 11.5L18 11.5L18 19.5L16 19.5Z',
+  ),
+  'firepit': (
+    color: 0xFFc2410c,
+    evenOdd: false,
+    path:
+        'M12 3C13 7 17 8.5 17 13.5C17 17.1 14.8 20 12 20C9.2 20 7 17.1 7 13.5C7 11 8.3 9.5 9.5 8.5C9.5 11 10.5 12.3 11.6 12.3C11.6 9 11 6 12 3Z',
+  ),
+  'picnic': (
+    color: 0xFF4d7c0f,
+    evenOdd: false,
+    path:
+        'M4 7L20 7L20 9.2L4 9.2ZM7.5 9.2L9.7 9.2L6.7 19.5L4.5 19.5ZM14.3 9.2L16.5 9.2L19.5 19.5L17.3 19.5ZM3.5 13.5L20.5 13.5L20.5 15.5L3.5 15.5Z',
+  ),
+  'restaurant': (
+    color: 0xFFbe123c,
+    evenOdd: false,
+    path:
+        'M6 3.5L7.3 3.5L7.3 9.5L6 9.5ZM8.35 3.5L9.65 3.5L9.65 9.5L8.35 9.5ZM10.7 3.5L12 3.5L12 9.5L10.7 9.5ZM6 8.5L12 8.5L12 11L6 11ZM8.2 10L9.8 10L9.8 20.5L8.2 20.5ZM15 3.5C18 4.5 18.3 9.5 17.3 12L17.3 20.5L15 20.5Z',
+  ),
+  'toilets': (
+    color: 0xFF52525b,
+    evenOdd: false,
+    path:
+        'M5.5 5.5C5.5 4.4 6.4 3.5 7.5 3.5C8.6 3.5 9.5 4.4 9.5 5.5C9.5 6.6 8.6 7.5 7.5 7.5C6.4 7.5 5.5 6.6 5.5 5.5ZM5 9L10 9L10 15L9 15L9 20.5L6 20.5L6 15L5 15ZM14.5 5.5C14.5 4.4 15.4 3.5 16.5 3.5C17.6 3.5 18.5 4.4 18.5 5.5C18.5 6.6 17.6 7.5 16.5 7.5C15.4 7.5 14.5 6.6 14.5 5.5ZM15 9L18 9L20.5 16L18.2 16L18.2 20.5L14.8 20.5L14.8 16L12.5 16Z',
+  ),
+  'cablecar': (
+    color: 0xFF4338ca,
+    evenOdd: true,
+    path:
+        'M2.5 5.2L21.5 2.8L21.5 4.3L2.5 6.7ZM11.3 5L12.7 5L12.7 8L11.3 8ZM6 8L18 8L18 20L6 20ZM7.7 10L11.5 10L11.5 14L7.7 14ZM12.5 10L16.3 10L16.3 14L12.5 14Z',
+  ),
+};
+
+/// The kinds along the way, in the order of the layer menu.
+const poiKinds = [
+  'peak',
+  'viewpoint',
+  'waterfall',
+  'water',
+  'shelter',
+  'firepit',
+  'picnic',
+  'restaurant',
+  'toilets',
+  'cablecar',
+];
+
+/// An icon's path: absolute M, L, C and Z only, as the icons use.
+Path iconPath(String d) {
+  final path = Path();
+  final tokens = RegExp(r'[MLCZ]|-?[\d.]+').allMatches(d).map((m) => m[0]!).toList();
+  var i = 0;
+  double next() => double.parse(tokens[i++]);
+  while (i < tokens.length) {
+    switch (tokens[i++]) {
+      case 'M':
+        path.moveTo(next(), next());
+      case 'L':
+        path.lineTo(next(), next());
+      case 'C':
+        path.cubicTo(next(), next(), next(), next(), next(), next());
+      case 'Z':
+        path.close();
+      default:
+        throw FormatException('icon path', d);
+    }
+  }
+  return path;
+}
+
+/// Draws a kind's icon, [size] wide, at the canvas's origin.
+void paintPoiIcon(Canvas canvas, String kind, double size) {
+  final icon = poiIcons[kind];
+  if (icon == null) return;
+  final s = size / 24;
+  canvas.drawCircle(Offset(size / 2, size / 2), size / 2 - 0.75 * s, Paint()..color = Color(icon.color));
+  canvas.drawCircle(
+    Offset(size / 2, size / 2),
+    size / 2 - 0.75 * s,
+    Paint()
+      ..color = const Color(0xFFFFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5 * s,
+  );
+  canvas.save();
+  // The shape at 70 %, centred.
+  canvas.translate(3.6 * s, 3.6 * s);
+  canvas.scale(0.7 * s);
+  canvas.drawPath(
+    iconPath(icon.path)..fillType = icon.evenOdd ? PathFillType.evenOdd : PathFillType.nonZero,
+    Paint()..color = const Color(0xFFFFFFFF),
+  );
+  canvas.restore();
+}
+
+/// A kind's icon in a list or sheet.
+class PoiIcon extends StatelessWidget {
+  const PoiIcon(this.kind, {super.key, this.size = 18});
+  final String kind;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(size: Size.square(size), painter: _PoiIconPainter(kind));
+}
+
+class _PoiIconPainter extends CustomPainter {
+  _PoiIconPainter(this.kind);
+  final String kind;
+
+  @override
+  void paint(Canvas canvas, Size size) => paintPoiIcon(canvas, kind, size.width);
+
+  @override
+  bool shouldRepaint(_PoiIconPainter old) => old.kind != kind;
+}

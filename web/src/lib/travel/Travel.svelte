@@ -230,11 +230,14 @@
 				{#if way && !at}
 					<p class="text-xs text-stone-500">{m.travel_no_route()}</p>
 				{:else if way && at}
-					<p class="text-xs text-stone-500">
-						{at.date
-							? m.travel_on({ date: at.date.split('-').reverse().join('.') })
-							: m.travel_no_date()}
-					</p>
+					<!-- A route's day is the one chosen above. -->
+					{#if kind === 'journeys'}
+						<p class="text-xs text-stone-500">
+							{at.date
+								? m.travel_on({ date: at.date.split('-').reverse().join('.') })
+								: m.travel_no_date()}
+						</p>
+					{/if}
 					{#if busy[d]}
 						<p class="text-xs text-stone-500">…</p>
 					{:else if problem[d]}

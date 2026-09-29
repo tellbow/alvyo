@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../api.dart';
+import '../route_layers.dart';
 import '../format.dart';
 import '../journey_ways.dart';
 import '../l10n/app_localizations.dart';
@@ -16,7 +17,6 @@ import 'travel_screen.dart';
 
 /// Stage colours as on the website, cycled.
 // As on the website: neighbours differ also for red-green colour blindness.
-const _stageColors = ['#a21caf', '#4d7c0f', '#2563eb', '#c2410c', '#0f766e', '#be123c'];
 
 Color _color(String hex) => Color(int.parse('ff${hex.substring(1)}', radix: 16));
 
@@ -451,7 +451,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 
   String _daysJson() => _collection([
     for (final (i, st) in (_stages ?? const <PlannedStage>[]).indexed)
-      _lineFeature(st.line, {'color': _stageColors[i % _stageColors.length]}),
+      _lineFeature(st.line, {'color': stageColors[i % stageColors.length]}),
   ]);
 
   String _pointsJson() => _collection([
@@ -760,7 +760,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                 Row(
                   spacing: 8,
                   children: [
-                    CircleAvatar(radius: 6, backgroundColor: _color(_stageColors[i % _stageColors.length])),
+                    CircleAvatar(radius: 6, backgroundColor: _color(stageColors[i % stageColors.length])),
                     Text(t.jplanDay(i + 1), style: const TextStyle(fontWeight: FontWeight.w600)),
                     Expanded(
                       child: Text(

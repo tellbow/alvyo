@@ -4,6 +4,7 @@
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { intlLocale } from '$lib/util/locale';
 	import { noticeText, shootingDay, touches } from './areas';
+	import HintPopup from './HintPopup.svelte';
 
 	let {
 		notices,
@@ -17,11 +18,16 @@
 
 	const today = new Date().toLocaleDateString('sv', { timeZone: 'Europe/Zurich' });
 	const when = $derived(days.length > 0 ? days : [today]);
+	const urgent = $derived(notices?.some((n) => touches(n, when)));
 </script>
 
 {#if notices && notices.length > 0}
-	<section class="flex flex-col gap-2 text-sm" data-testid="notices">
-		<h3 class="text-xs font-medium tracking-wide text-stone-500 uppercase">{m.notices_title()}</h3>
+	<HintPopup
+		title={m.notices_title()}
+		count={notices.length}
+		note={urgent ? (days.length > 0 ? m.areas_on_date() : m.areas_now()) : undefined}
+		testid="notices"
+	>
 		<ul class="flex flex-col gap-2">
 			{#each notices as n (n.kind + n.id)}
 				<li
@@ -84,5 +90,5 @@
 			{/each}
 		</ul>
 		<p class="text-xs text-stone-500">{m.notices_source()}</p>
-	</section>
+	</HintPopup>
 {/if}

@@ -42,54 +42,124 @@ class ProtectedAreas extends StatelessWidget {
           child: Text(text, style: theme.textTheme.bodySmall),
         );
 
+        final noticeBoxes = [
+          for (final n in notices)
+            box(
+              null,
+              n.on(DateTime.now()) || days.any(n.on),
+              [
+                '${n.titleIn(lang)} (${n.kind == 'closure' ? t.noticesClosure : t.noticesShooting})',
+                [
+                  if (n.reasonIn(lang).isNotEmpty) n.reasonIn(lang),
+                  if ((n.from, n.to) case (final f?, final u?)) '${date(f)}–${date(u)}',
+                  if (n.days.isNotEmpty)
+                    n.days
+                        .map(
+                          (d) => d.from.length == 4 && d.to.length == 4
+                              ? '${date(d.date)} ${hour(d.from)}–${hour(d.to)}'
+                              : date(d.date),
+                        )
+                        .join(', '),
+                  if (n.phone.isNotEmpty) n.phone,
+                  if (n.stages.isNotEmpty) t.areasStages(n.stages.join(', ')),
+                ].join(' · '),
+              ].join('\n'),
+            ),
+        ];
+        final areaBoxes = [
+          for (final a in list)
+            box(
+              null,
+              a.appliesOn(DateTime.now()) || days.any(a.appliesOn),
+              [
+                '${a.name} (${a.kind == 'wildlife_rest' ? t.areasWildlifeRest : t.areasHuntingReserve}, '
+                    '${a.binding ? t.areasBinding : t.areasRecommended})',
+                [
+                  a.ruleIn(lang),
+                  if (a.period case final p?) t.areasPeriod(day(p.from), day(p.to)),
+                  if (a.stages.isNotEmpty) t.areasStages(a.stages.join(', ')),
+                ].join(' · '),
+              ].join('\n'),
+            ),
+        ];
+        // What applies now, else on a planned day, is said beside the count.
+        String? note(bool Function(DateTime) on) =>
+            on(DateTime.now()) ? t.areasNow : (days.any(on) ? t.areasOnDate : null);
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (notices.isNotEmpty) ...[
-              Text(key: const Key('notices'), t.noticesTitle, style: theme.textTheme.labelMedium),
-              for (final n in notices)
-                box(
-                  null,
-                  n.on(DateTime.now()) || days.any(n.on),
-                  [
-                    '${n.titleIn(lang)} (${n.kind == 'closure' ? t.noticesClosure : t.noticesShooting})',
-                    [
-                      if (n.reasonIn(lang).isNotEmpty) n.reasonIn(lang),
-                      if ((n.from, n.to) case (final f?, final u?)) '${date(f)}–${date(u)}',
-                      if (n.days.isNotEmpty)
-                        n.days
-                            .map(
-                              (d) => d.from.length == 4 && d.to.length == 4
-                                  ? '${date(d.date)} ${hour(d.from)}–${hour(d.to)}'
-                                  : date(d.date),
-                            )
-                            .join(', '),
-                      if (n.phone.isNotEmpty) n.phone,
-                      if (n.stages.isNotEmpty) t.areasStages(n.stages.join(', ')),
-                    ].join(' · '),
-                  ].join('\n'),
-                ),
-              const SizedBox(height: 8),
-            ],
+            if (notices.isNotEmpty)
+              _HintLine(
+                key: const Key('notices'),
+                title: t.noticesTitle,
+                count: notices.length,
+                note: note((d) => notices.any((n) => n.on(d))),
+                children: noticeBoxes,
+              ),
             if (list.isNotEmpty)
-              Text(key: const Key('protected-areas'), t.areasTitle, style: theme.textTheme.labelMedium),
-            for (final a in list)
-              box(
-                null,
-                a.appliesOn(DateTime.now()) || days.any(a.appliesOn),
-                [
-                  '${a.name} (${a.kind == 'wildlife_rest' ? t.areasWildlifeRest : t.areasHuntingReserve}, '
-                      '${a.binding ? t.areasBinding : t.areasRecommended})',
-                  [
-                    a.ruleIn(lang),
-                    if (a.period case final p?) t.areasPeriod(day(p.from), day(p.to)),
-                    if (a.stages.isNotEmpty) t.areasStages(a.stages.join(', ')),
-                  ].join(' · '),
-                ].join('\n'),
+              _HintLine(
+                key: const Key('protected-areas'),
+                title: t.areasTitle,
+                count: list.length,
+                note: note((d) => list.any((a) => a.appliesOn(d))),
+                children: areaBoxes,
               ),
           ],
         );
       },
+    );
+  }
+}
+
+/// A line with how many there are; the list itself in a sheet, on request.
+class _HintLine extends StatelessWidget {
+  const _HintLine({super.key, required this.title, required this.count, this.note, required this.children});
+  final String title;
+  final int count;
+  final String? note;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: theme.textTheme.labelMedium),
+          const SizedBox(height: 4),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              backgroundColor: note != null ? theme.colorScheme.tertiaryContainer : null,
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => DraggableScrollableSheet(
+                expand: false,
+                initialChildSize: 0.6,
+                maxChildSize: 0.9,
+                builder: (context, scroll) => SafeArea(
+                  child: ListView(
+                    controller: scroll,
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      Text(title, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                      ...children,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            child: Text(note == null ? t.hintsOpen(count) : '${t.hintsOpen(count)} · $note'),
+          ),
+        ],
+      ),
     );
   }
 }

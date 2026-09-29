@@ -32,6 +32,10 @@ features the minor one.
      (migrations run in the api's init container)
    - `curl -s https://alvyo.tellbow.ch/api/v1/openapi.json | jq -r .info.version` shows X.Y.Z
    - the logs have no errors: `kubectl --context rk1 -n alvyo logs deploy/api --since=10m`
+   - if an import script changed since the last release
+     (`git diff vPREVIOUS -- infra/data-import`): the `places-import` and
+     `tlm-import` cron jobs are suspended, so run the changed one by hand,
+     e.g. `kubectl --context rk1 -n alvyo create job --from=cronjob/places-import places-import-X-Y-Z`
 6. **Record:** in `docs/plan.md`, the «next» row becomes the X.Y.Z row with
    today's date; commit and push. If the app changed, offer the
    `iphone-install` skill.

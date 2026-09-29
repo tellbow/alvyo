@@ -392,6 +392,45 @@ void main() {
     ]);
   });
 
+  testWidgets('a collection shared: its link, and someone invited by e-mail', (tester) async {
+    var grants = <Object>[];
+    final server = _Server((req) {
+      switch ((req.method, req.url.path)) {
+        case ('GET', '/api/v1/collections/c1'):
+          return _json({
+            'id': 'c1',
+            'title': 'Herbst',
+            'owner_username': 'wodan',
+            'role': 'owner',
+            'can_edit': true,
+            'visibility': 'unlisted',
+            'share_token': 'tok',
+            'item_list': <Object>[],
+          });
+        case ('POST', '/api/v1/collections/c1/grants'):
+          grants = [
+            {'id': 'g1', 'role': 'viewer', 'email': 'anna@example.ch'},
+          ];
+          return _json({'grants': grants});
+        case ('GET', '/api/v1/collections/c1/grants'):
+          return _json({'grants': grants});
+      }
+      return _json({'detail': 'not found'}, 404);
+    });
+    await _pump(tester, CollectionScreen(api: server.api, id: 'c1', title: 'Herbst'));
+    await _settle(tester);
+    await tester.tap(find.byKey(const Key('item-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('item-share')));
+    await _settle(tester);
+    expect(find.text('https://alvyo.test/collections/c1?t=tok'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('share-who')), 'anna@example.ch');
+    await tester.tap(find.byKey(const Key('share-invite')));
+    await _settle(tester);
+    expect(server.calls, contains('POST /api/v1/collections/c1/grants {"email":"anna@example.ch","role":"viewer"}'));
+    expect(find.textContaining('anna@example.ch'), findsOneWidget);
+  });
+
   testWidgets('photos: added from the library, one after the other', (tester) async {
     var photos = <Object>[];
     final server = _Server((req) {

@@ -33,6 +33,8 @@ export type Suggestion = Omit<components['schemas']['Suggestion'], 'proposal'> &
 	proposal: Proposal;
 };
 export type Grant = components['schemas']['Grant'];
+export type Person = components['schemas']['Person'];
+export type JourneyReminders = components['schemas']['RemindersOutputBody'];
 export type SharedRoute = components['schemas']['RouteShared'];
 export type SharedJourney = components['schemas']['JourneyShared'];
 export type Collection = components['schemas']['CollectionBody'];
@@ -44,6 +46,7 @@ export type MyMapItem = components['schemas']['DiscoverMineItem'];
 export type ProtectedArea = components['schemas']['Area'];
 export type Notice = components['schemas']['Notice'];
 export type RouteWeather = components['schemas']['RouteWeatherOutputBody'];
+export type Climate = components['schemas']['Climate'];
 export type JourneyWeather = components['schemas']['JourneyWeatherOutputBody'];
 export type ForecastDay = components['schemas']['ForecastDay'];
 export type Profile = components['schemas']['ProfileOutputBody'];

@@ -26,6 +26,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/admin"
 	"github.com/tellbow/alvyo/api/internal/areas"
 	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/bugs"
 	"github.com/tellbow/alvyo/api/internal/collections"
 	"github.com/tellbow/alvyo/api/internal/community"
 	"github.com/tellbow/alvyo/api/internal/config"
@@ -41,6 +42,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/packs"
 	"github.com/tellbow/alvyo/api/internal/photos"
 	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/travel"
@@ -123,6 +125,8 @@ func serve(ctx context.Context) error {
 	go photoStore.SweepEvery(ctx, time.Minute) // files of deleted photos
 	liveStore := &live.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
 	go liveStore.CheckEvery(ctx, time.Minute) // overdue hikes, old positions
+	reminderStore := &reminders.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
+	go reminderStore.CheckEvery(ctx, 15*time.Minute) // before journeys start
 	forecast := &weather.Forecast{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
 	go forecast.Keep(ctx, time.Hour) // MeteoSwiss updates hourly
 	var planner httpapi.Planner
@@ -130,6 +134,10 @@ func serve(ctx context.Context) error {
 		planner = &ojp.Client{URL: cfg.OJPURL, Token: cfg.OJPToken, RequestorRef: "alvyo/" + version}
 	}
 	var limits httpapi.Limits // zero value: defaults
+	bugStore := &bugs.Store{DB: pool, PublicURL: cfg.PublicURL}
+	if cfg.GitHubToken != "" {
+		bugStore.GitHub = &bugs.GitHub{Repo: cfg.GitHubRepo, Token: cfg.GitHubToken}
+	}
 	if cfg.RelaxedLimits {
 		slog.Warn("relaxed rate limits (ALVYO_RELAXED_LIMITS): for tests only")
 		limits = httpapi.RelaxedLimits()
@@ -156,6 +164,8 @@ func serve(ctx context.Context) error {
 		Packs:       packService,
 		Planner:     planner,
 		Images:      &og.Renderer{TilesURL: cfg.TilesURL, CacheDir: cfg.CacheDir},
+		Bugs:        bugStore,
+		Reminders:   reminderStore,
 		Version:     version,
 		PublicURL:   cfg.PublicURL,
 		TrustProxy:  cfg.TrustProxy,

@@ -6,7 +6,6 @@
       "name": "web",
       "dependencies": {
         "@simplewebauthn/browser": "^14.0.0",
-        "html-to-image": "1.11.13",
       },
       "devDependencies": {
         "@eslint/js": "^10.0.1",
@@ -24,6 +23,7 @@
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-svelte": "^3.19.0",
         "globals": "^17.6.0",
+        "html-to-image": "1.11.13",
         "maplibre-gl": "6.10.0",
         "openapi-fetch": "^0.17.0",
         "openapi-typescript": "^7.13.0",

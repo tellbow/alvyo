@@ -224,7 +224,7 @@ func adminCommand(ctx context.Context, cmd string, args []string) error {
 	}
 	defer pool.Close()
 
-	usage := errors.New("usage: alvyo user ban|unban <username> | user role <username> <role> | route unpublish <id>")
+	usage := errors.New("usage: alvyo user ban|unban <username> | user role <username> <role> | route unpublish <id> | route retrail")
 	switch {
 	case cmd == "user" && len(args) == 2 && args[0] == "ban":
 		err = admin.Ban(ctx, pool, args[1])
@@ -234,6 +234,12 @@ func adminCommand(ctx context.Context, cmd string, args []string) error {
 		err = admin.SetRole(ctx, pool, args[1], args[2])
 	case cmd == "route" && len(args) == 2 && args[0] == "unpublish":
 		err = admin.Unpublish(ctx, pool, args[1])
+	case cmd == "route" && len(args) == 1 && args[0] == "retrail":
+		// After loading the official trail network (tlm-import): routes
+		// planned without it.
+		var n int
+		n, err = (&routes.Store{DB: pool}).Retrail(ctx, &routing.TrailMatcher{DB: pool})
+		slog.Info("routes retrailed", "changed", n)
 	default:
 		return usage
 	}

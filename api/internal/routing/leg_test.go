@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/tellbow/alvyo/api/internal/testdb"
@@ -408,5 +409,64 @@ func TestLegAlpineWay(t *testing.T) {
 	detourLat = 46.662
 	if leg, _ = r.Leg(ctx, LegRequest{From: from, To: to, Profile: "hike"}); leg.Alpine != nil {
 		t.Errorf("a short detour: %+v", leg.Alpine)
+	}
+}
+
+// A leg planned while the trail network was missing gets, once it is there,
+// the categories and grades of a leg planned with it, on the same line.
+func TestRetrail(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	r := &Router{
+		GraphHopper: &GraphHopper{URL: fixtureServer(t).URL},
+		Elevation:   slopeSampler{},
+		Trails:      &TrailMatcher{DB: pool},
+	}
+	before, err := r.Leg(ctx, LegRequest{From: first, To: bachalpse, Profile: "hike"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if before.Trails["Bergwanderweg"] != 0 || before.SAC.UnofficialM == 0 {
+		t.Fatalf("without the network: trails %v, unofficial %.0f", before.Trails, before.SAC.UnofficialM)
+	}
+	if _, ch, err := r.Trails.Retrail(ctx, before); err != nil || ch {
+		t.Errorf("nothing new: changed %v, %v", ch, err)
+	}
+
+	lons, lats := fixtureCoords(t, 20, 101)
+	if _, err := pool.Exec(ctx, `
+		INSERT INTO tlm_hiking_paths (id, category, geom)
+		VALUES (1, 'Bergwanderweg', ST_Multi(ST_Transform(ST_SetSRID(ST_MakeLine(ARRAY(
+			SELECT ST_MakePoint(lon, lat) FROM unnest($1::float8[], $2::float8[]) AS t(lon, lat))), 4326), 2056)))`,
+		lons, lats); err != nil {
+		t.Fatal(err)
+	}
+	want, err := r.Leg(ctx, LegRequest{From: first, To: bachalpse, Profile: "hike"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ch, err := r.Trails.Retrail(ctx, want); err != nil || ch {
+		t.Errorf("planned with the network: changed %v, %v", ch, err)
+	}
+	got, changed, err := r.Trails.Retrail(ctx, before)
+	if err != nil || !changed {
+		t.Fatalf("changed %v, %v", changed, err)
+	}
+	if !reflect.DeepEqual(got.Details.Trail, want.Details.Trail) || !reflect.DeepEqual(got.Trails, want.Trails) {
+		t.Errorf("trails %v, want %v", got.Trails, want.Trails)
+	}
+	if got.SAC.Grade != want.SAC.Grade || got.SAC.Max != want.SAC.Max || !reflect.DeepEqual(got.SAC.Breakdown, want.SAC.Breakdown) {
+		t.Errorf("SAC %+v, want %+v", got.SAC, want.SAC)
+	}
+	// Which footpaths were guessed is not known: rather too much than too
+	// little, and never more than before.
+	if got.SAC.UnofficialM > before.SAC.UnofficialM || got.SAC.UnofficialM < want.SAC.UnofficialM {
+		t.Errorf("guessed %.0f m, before %.0f m, planned anew %.0f m", got.SAC.UnofficialM, before.SAC.UnofficialM, want.SAC.UnofficialM)
+	}
+	if !reflect.DeepEqual(got.Coordinates, before.Coordinates) || got.DurationS != before.DurationS {
+		t.Error("the line or the time changed")
+	}
+	if !reflect.DeepEqual(got.Surfaces, before.Surfaces) || !reflect.DeepEqual(got.WayTypes, before.WayTypes) {
+		t.Errorf("surfaces %v / %v, ways %v / %v", got.Surfaces, before.Surfaces, got.WayTypes, before.WayTypes)
 	}
 }

@@ -123,8 +123,11 @@ cron jobs `places-import` and `tlm-import` are suspended: after a change to
 their script, run them by hand (`kubectl create job --from=cronjob/places-import …`);
 0.16.0's points of interest were missing until then. On a new cluster run
 both once: the official trail network (`tlm-import`) was missing on this one
-until 2026-10-02, so routes planned before show all their way as «Kein
-Wanderweg» (and a guessed SAC grade) until their legs are planned again.
+until 2026-10-02, so routes planned before showed all their way as «Kein
+Wanderweg» with a guessed SAC grade. After loading or updating the network,
+`alvyo route retrail` (in the api container: `kubectl exec deploy/api --
+/alvyo route retrail`) matches every stored route against it again and grades
+it anew; line, times and version stay. Running it again changes nothing.
 
 ## Moderation
 

@@ -1430,6 +1430,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get routeTabTravel => 'Accès';
 
   @override
+  String get journeyTabStages => 'Étapes';
+
+  @override
   String get statTime => 'Temps de marche';
 
   @override

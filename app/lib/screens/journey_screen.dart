@@ -15,6 +15,7 @@ import 'collections_screen.dart';
 import 'details.dart';
 import 'item_menu.dart';
 import 'journey_map_screen.dart';
+import 'panel_tabs.dart';
 import 'people_section.dart';
 import 'photos.dart';
 import 'planner_screen.dart';
@@ -27,8 +28,9 @@ import 'travel_screen.dart';
 
 /// A journey's stages. Each opens as a route: its map, saving it offline,
 /// hiking it; all can be saved offline at once. A stage's sheet has its
-/// details, public transport and changes; the journey's photos and
-/// comments are below the stages.
+/// details, public transport and changes. Weather, areas and people, the
+/// way there and back, and the photos and comments are in tabs beside the
+/// stages.
 class JourneyScreen extends StatefulWidget {
   const JourneyScreen({super.key, required this.api, required this.id, required this.title});
   final Api api;
@@ -44,6 +46,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   String get place => '/journeys/${widget.id}';
 
   final Future<PackStore> _store = PackStore.open();
+  String _tab = 'stages';
 
   late Future<JourneyDetail> _journey = _load();
   late final Future<Along> _areas = widget.api
@@ -327,6 +330,13 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final j = snap.data!;
           final routed = [for (final s in j.stages) ?s.routeId];
+          // The stages first: what is worked on most; the rest in tabs beside them.
+          final tabs = [
+            (id: 'stages', label: '${t.journeyTabStages} ${j.stages.length}'),
+            (id: 'overview', label: t.routeTabOverview),
+            (id: 'travel', label: t.routeTabTravel),
+            (id: 'photos', label: t.photosTitle),
+          ];
           return RefreshIndicator(
             onRefresh: () async {
               final next = _load();
@@ -336,157 +346,206 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
               });
               await next; // the spinner stays until it is there
             },
-            child: ListView(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        '${t.journeyStagesCount(j.stagesDone, j.stagesTotal)} · '
-                        '${formatDistance(j.totals.distanceM)} · ${formatHikingTime(j.totals.durationS)} · '
-                        '↑\u00a0${formatHeight(j.totals.ascentM)}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      if (!j.isOwner && j.owner.isNotEmpty) OwnerLine(api: widget.api, owner: j.owner, open: true),
-                      if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
-                      if (j.stageLines.isNotEmpty)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            key: const Key('journey-map'),
-                            onPressed: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => JourneyMapScreen(api: widget.api, journey: j),
-                              ),
-                            ),
-                            icon: const Icon(Icons.map_outlined),
-                            label: Text(t.journeyMap),
-                          ),
-                        ),
-                      if (j.description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(key: const Key('journey-description'), j.description),
-                      ],
-                      const SizedBox(height: 8),
-                      if (j.profile case (
-                        :final distances,
-                        :final elevations,
-                        :final breaks,
-                      ) when distances.length > 1 && distances.length == elevations.length) ...[
-                        ElevationProfile(distances: distances, elevations: elevations, breaks: breaks),
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        StatsStrip(j.totals),
                         const SizedBox(height: 8),
-                      ],
-                      JourneyWeatherView(_weatherFor(j)),
-                      ProtectedAreas(_areas, days: [for (final s in j.stages) ?s.plannedDate]),
-                      FutureBuilder(
-                        future: _people,
-                        builder: (context, snap) => switch (snap.data) {
-                          final people? when people.isNotEmpty || j.isOwner => PeopleSection(
-                            api: widget.api,
-                            journey: j,
-                            people: people,
-                            onChanged: (p) => setState(() {
-                              _people = Future.value(p);
-                              _peopleNow = p;
-                            }),
-                          ),
-                          _ => const SizedBox.shrink(),
-                        },
-                      ),
-                      FutureBuilder(
-                        future: _remindersFor(j),
-                        builder: (context, snap) => switch (snap.data) {
-                          (:final on, start: _?) => SwitchListTile(
-                            key: const Key('journey-reminders'),
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(t.remindersOn),
-                            subtitle: Text(t.remindersHint),
-                            value: on,
-                            onChanged: (v) => _setReminders(j, v),
-                          ),
-                          _ => const SizedBox.shrink(),
-                        },
-                      ),
-                      TravelTiles(
-                        api: widget.api,
-                        ends: journeyEnds(j, start: t.travelStart, end: t.travelEnd),
-                        load: () => widget.api.travel(widget.id),
-                        save: (travel) => widget.api.setTravel(widget.id, travel),
-                      ),
-                      if (_saving case final i?) ...[
-                        Text(key: const Key('journey-saving'), t.journeySaving(i + 1, routed.length)),
+                        Text(
+                          key: const Key('journey-progress'),
+                          t.journeyStagesCount(j.stagesDone, j.stagesTotal),
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         const SizedBox(height: 4),
-                        ValueListenableBuilder(
-                          valueListenable: PackDownloads.instance.progress(routed[i]),
-                          builder: (context, p, _) => LinearProgressIndicator(
-                            value: (i + (p != null && p.downloading ? p.share : 0)) / routed.length,
-                          ),
-                        ),
-                      ] else if (routed.isNotEmpty && routed.every(_saved.contains))
-                        Row(
-                          key: const Key('journey-saved'),
-                          children: [const Icon(Icons.offline_pin), const SizedBox(width: 8), Text(t.journeySaved)],
-                        )
-                      else if (routed.isNotEmpty)
-                        FilledButton.tonalIcon(
-                          key: const Key('journey-save'),
-                          onPressed: () => _saveAll(j),
-                          icon: const Icon(Icons.download),
-                          label: Text(t.journeySaveAll),
-                        ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                for (final (i, s) in j.stages.indexed)
-                  _StageTile(
-                    key: Key('stage-$i'),
-                    n: i + 1,
-                    stage: s,
-                    people: [
-                      for (final p in _peopleNow)
-                        if (p.stages.contains(s.id)) p.name.isEmpty ? t.peopleInvited : p.name,
-                    ],
-                    saved: _saved.contains(s.routeId),
-                    onDone: j.canEdit && s.routeId != null ? (done) => _setDone(j, s, done) : null,
-                    onMore: () => _stage(j, i),
-                    onTap: switch (s.routeId) {
-                      final id? => () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => RouteScreen(
-                              api: widget.api,
-                              id: id,
-                              title: s.title.isEmpty ? t.journeyStage(i + 1) : s.title,
+                        LinearProgressIndicator(value: j.stagesTotal == 0 ? 0 : j.stagesDone / j.stagesTotal),
+                        if (!j.isOwner && j.owner.isNotEmpty) OwnerLine(api: widget.api, owner: j.owner, open: true),
+                        if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
+                        if (j.stageLines.isNotEmpty)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              key: const Key('journey-map'),
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => JourneyMapScreen(api: widget.api, journey: j),
+                                ),
+                              ),
+                              icon: const Icon(Icons.map_outlined),
+                              label: Text(t.journeyMap),
                             ),
                           ),
-                        );
-                        await _checkSaved(j); // saved or removed there
-                      },
-                      // No route yet: planned by those who may, else its details.
-                      _ => j.canEdit ? () => _planStage(j, i) : () => _stage(j, i),
-                    },
-                  ),
-                if (j.canEdit)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-                    child: OutlinedButton.icon(
-                      key: const Key('journey-add-stage'),
-                      onPressed: () => _addStage(j),
-                      icon: const Icon(Icons.add),
-                      label: Text(t.journeyAddStage),
+                        if (_saving case final i?) ...[
+                          Text(key: const Key('journey-saving'), t.journeySaving(i + 1, routed.length)),
+                          const SizedBox(height: 4),
+                          ValueListenableBuilder(
+                            valueListenable: PackDownloads.instance.progress(routed[i]),
+                            builder: (context, p, _) => LinearProgressIndicator(
+                              value: (i + (p != null && p.downloading ? p.share : 0)) / routed.length,
+                            ),
+                          ),
+                        ] else if (routed.isNotEmpty && routed.every(_saved.contains))
+                          Row(
+                            key: const Key('journey-saved'),
+                            children: [const Icon(Icons.offline_pin), const SizedBox(width: 8), Text(t.journeySaved)],
+                          )
+                        else if (routed.isNotEmpty)
+                          FilledButton.tonalIcon(
+                            key: const Key('journey-save'),
+                            onPressed: () => _saveAll(j),
+                            icon: const Icon(Icons.download),
+                            label: Text(t.journeySaveAll),
+                          ),
+                      ],
                     ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      PhotoStrip(api: widget.api, id: j.id, journey: true),
-                      SocialPanel(api: widget.api, id: j.id, journey: true),
-                    ],
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: PinnedTabBar(
+                    PanelTabBar(tabs: tabs, current: _tab, onTap: (id) => setState(() => _tab = id)),
+                  ),
+                ),
+                SliverSafeArea(
+                  top: false,
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Every tab stays built: what each one loaded is kept.
+                        tabPane(
+                          _tab == 'stages',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (final (i, s) in j.stages.indexed)
+                                _StageTile(
+                                  key: Key('stage-$i'),
+                                  n: i + 1,
+                                  stage: s,
+                                  people: [
+                                    for (final p in _peopleNow)
+                                      if (p.stages.contains(s.id)) p.name.isEmpty ? t.peopleInvited : p.name,
+                                  ],
+                                  saved: _saved.contains(s.routeId),
+                                  onDone: j.canEdit && s.routeId != null ? (done) => _setDone(j, s, done) : null,
+                                  onMore: () => _stage(j, i),
+                                  onTap: switch (s.routeId) {
+                                    final id? => () async {
+                                      await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => RouteScreen(
+                                            api: widget.api,
+                                            id: id,
+                                            title: s.title.isEmpty ? t.journeyStage(i + 1) : s.title,
+                                          ),
+                                        ),
+                                      );
+                                      await _checkSaved(j); // saved or removed there
+                                    },
+                                    // No route yet: planned by those who may, else its details.
+                                    _ => j.canEdit ? () => _planStage(j, i) : () => _stage(j, i),
+                                  },
+                                ),
+                              if (j.canEdit)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                                  child: OutlinedButton.icon(
+                                    key: const Key('journey-add-stage'),
+                                    onPressed: () => _addStage(j),
+                                    icon: const Icon(Icons.add),
+                                    label: Text(t.journeyAddStage),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        tabPane(
+                          _tab == 'overview',
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (j.description.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(key: const Key('journey-description'), j.description),
+                                ],
+                                const SizedBox(height: 8),
+                                if (j.profile case (
+                                  :final distances,
+                                  :final elevations,
+                                  :final breaks,
+                                ) when distances.length > 1 && distances.length == elevations.length) ...[
+                                  ElevationProfile(distances: distances, elevations: elevations, breaks: breaks),
+                                  const SizedBox(height: 8),
+                                ],
+                                JourneyWeatherView(_weatherFor(j)),
+                                ProtectedAreas(_areas, days: [for (final s in j.stages) ?s.plannedDate]),
+                                FutureBuilder(
+                                  future: _people,
+                                  builder: (context, snap) => switch (snap.data) {
+                                    final people? when people.isNotEmpty || j.isOwner => PeopleSection(
+                                      api: widget.api,
+                                      journey: j,
+                                      people: people,
+                                      onChanged: (p) => setState(() {
+                                        _people = Future.value(p);
+                                        _peopleNow = p;
+                                      }),
+                                    ),
+                                    _ => const SizedBox.shrink(),
+                                  },
+                                ),
+                                FutureBuilder(
+                                  future: _remindersFor(j),
+                                  builder: (context, snap) => switch (snap.data) {
+                                    (:final on, start: _?) => SwitchListTile(
+                                      key: const Key('journey-reminders'),
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(t.remindersOn),
+                                      subtitle: Text(t.remindersHint),
+                                      value: on,
+                                      onChanged: (v) => _setReminders(j, v),
+                                    ),
+                                    _ => const SizedBox.shrink(),
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        tabPane(
+                          _tab == 'travel',
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: TravelTiles(
+                              api: widget.api,
+                              ends: journeyEnds(j, start: t.travelStart, end: t.travelEnd),
+                              load: () => widget.api.travel(widget.id),
+                              save: (travel) => widget.api.setTravel(widget.id, travel),
+                            ),
+                          ),
+                        ),
+                        tabPane(
+                          _tab == 'photos',
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                PhotoStrip(api: widget.api, id: j.id, journey: true),
+                                SocialPanel(api: widget.api, id: j.id, journey: true),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

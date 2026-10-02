@@ -66,6 +66,9 @@ test('save a planned route, reopen and edit it, then delete it', async ({ page, 
 	await page.getByRole('link', { name: /Bachalpsee Runde/ }).click();
 	await expect(page.getByTestId('route-title')).toHaveText('Bachalpsee Runde');
 	await expect(page.getByTestId('stat-sac')).toContainText(/T\d/);
+	// The tab bar scrolls sideways on a narrow screen, never up and down.
+	const tabs = page.getByRole('tablist');
+	expect(await tabs.evaluate((e) => e.scrollHeight - e.clientHeight)).toBe(0);
 	await page.screenshot({ path: 'test-results/route-view.png' });
 
 	const [download] = await Promise.all([

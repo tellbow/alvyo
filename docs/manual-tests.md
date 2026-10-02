@@ -322,6 +322,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       (pending notifications; not waited for); gone when turned off, back
       when on; scheduled for someone along too.
 
+- [ ] **A journey's tabs on the phone** (58): «Etappen» first; ticking a
+      stage off, adding one and «Alle Etappen offline speichern» as before;
+      people and reminders on «Übersicht».
+      Simulator 2026-10-02 (iPhone 17 Pro, iOS 26.5): the four tabs, the
+      numbers and the profile on «Übersicht»; `journey_test.dart` passes.
 - [ ] **A route's tabs on the phone** (58): the four numbers fit in one row
       on the smallest iPhone; «Wanderung starten» and the tab bar are reached
       without scrolling; the tab bar stays while the panel scrolls; switching

@@ -79,6 +79,7 @@ test('from home to the start of a journey by public transport, chosen once and k
 	});
 
 	await page.goto(`/journeys/${journeyId}`);
+	await page.getByTestId('tab-travel').click();
 	const to = page.getByTestId('travel-to');
 	await to.getByTestId('travel-to-home').selectOption({ label: 'Zuhause' });
 	await to.getByTestId('travel-to-time').fill('06:00');
@@ -94,6 +95,7 @@ test('from home to the start of a journey by public transport, chosen once and k
 
 	// Kept with the journey, for this user only; the GPX has only the stage.
 	await page.reload();
+	await page.getByTestId('tab-travel').click();
 	await expect(page.getByTestId('travel-to-home')).toHaveValue(/.+/);
 	await expect(page.getByTestId('travel-to-time')).toHaveValue('06:00');
 	const gpx = await (await page.request.get(`${api}/gpx`)).body();

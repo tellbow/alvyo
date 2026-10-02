@@ -38,8 +38,8 @@ test('collect routes and a journey, reorder and annotate them', async ({ page })
 	// Add from the route and journey pages.
 	for (const path of [`/routes/${first}`, `/journeys/${journeyId}`]) {
 		await page.goto(path);
-		// On a route, in its menu.
-		if (path.startsWith('/routes/')) await page.getByTestId('route-menu').click();
+		// In the page's «⋯» menu.
+		await page.getByTestId(path.startsWith('/routes/') ? 'route-menu' : 'journey-menu').click();
 		const select = page.getByTestId('add-to-collection');
 		await expect(select.locator('option', { hasText: 'Sommer 2027' })).toHaveCount(1);
 		await select.selectOption({ label: 'Sommer 2027' });

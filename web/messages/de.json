@@ -719,5 +719,6 @@
 	"breakdown_details": "Details in km",
 	"weather_tomorrow": "Morgen",
 	"pois_filter_all": "Alle {count}",
-	"connections_more": "Weitere Verbindungen"
+	"connections_more": "Weitere Verbindungen",
+	"journey_tab_stages": "Etappen"
 }

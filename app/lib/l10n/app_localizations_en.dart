@@ -1422,6 +1422,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get routeTabTravel => 'Getting there';
 
   @override
+  String get journeyTabStages => 'Stages';
+
+  @override
   String get statTime => 'Hiking time';
 
   @override

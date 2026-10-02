@@ -121,7 +121,10 @@ New GHCR packages are private; make them public once in the package settings
 scripts, so Kubernetes jobs can run `sh /scripts/import-places.sh` etc. The
 cron jobs `places-import` and `tlm-import` are suspended: after a change to
 their script, run them by hand (`kubectl create job --from=cronjob/places-import …`);
-0.16.0's points of interest were missing until then.
+0.16.0's points of interest were missing until then. On a new cluster run
+both once: the official trail network (`tlm-import`) was missing on this one
+until 2026-10-02, so routes planned before show all their way as «Kein
+Wanderweg» (and a guessed SAC grade) until their legs are planned again.
 
 ## Moderation
 

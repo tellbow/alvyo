@@ -1428,6 +1428,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get routeTabTravel => 'Come arrivare';
 
   @override
+  String get journeyTabStages => 'Tappe';
+
+  @override
   String get statTime => 'Tempo di marcia';
 
   @override

@@ -8,7 +8,6 @@ import '../elevation_profile.dart';
 import '../pois.dart';
 import '../protected_areas.dart';
 import '../weather.dart';
-import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
 import '../navigation/recording.dart';
@@ -22,6 +21,7 @@ import 'collections_screen.dart';
 import 'details.dart';
 import 'item_menu.dart';
 import 'live_sheet.dart';
+import 'panel_tabs.dart';
 import 'navigate_screen.dart';
 import 'photos.dart';
 import 'report_dialog.dart';
@@ -323,40 +323,10 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   /// The four numbers, who planned it, and starting the hike.
   Widget _head(AppLocalizations t, RouteDetail r, SavedPack? pack) {
     final theme = Theme.of(context);
-    // Four in a row on the narrowest phone: what does not fit shrinks.
-    Widget stat(String label, Widget value) => Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FittedBox(fit: BoxFit.scaleDown, child: value),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          ),
-        ],
-      ),
-    );
-    final strong = theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          key: const Key('route-stats'),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            spacing: 4,
-            children: [
-              stat(t.statTime, Text(formatHikingTime(r.totals.durationS), style: strong)),
-              stat(t.statDistance, Text(formatDistance(r.totals.distanceM), style: strong)),
-              stat(t.statHeights, Text('↑${r.totals.ascentM.round()} ↓${r.totals.descentM.round()}', style: strong)),
-              stat(t.statSac, Text(formatSac(r.totals.sacGrade, r.totals.sacMax), style: strong)),
-            ],
-          ),
-        ),
+        StatsStrip(r.totals),
         if (!r.isOwner) OwnerLine(api: widget.api, owner: r.owner, open: true),
         if (r.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(r.tags)],
         if (r.hikedAt != null) ...[
@@ -419,57 +389,24 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     );
   }
 
-  Widget _tabBar(AppLocalizations t, List<_Tab> tabs) {
-    final theme = Theme.of(context);
-    String label(_Tab tab) => switch (tab) {
-      _Tab.overview => t.routeTabOverview,
-      _Tab.along => '${t.poisTitle} $_poiCount',
-      _Tab.travel => t.routeTabTravel,
-      _Tab.photos => t.photosTitle,
-    };
-    return Material(
-      color: theme.colorScheme.surface,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: theme.dividerColor)),
+  Widget _tabBar(AppLocalizations t, List<_Tab> tabs) => PanelTabBar(
+    tabs: [
+      for (final tab in tabs)
+        (
+          id: tab.name,
+          label: switch (tab) {
+            _Tab.overview => t.routeTabOverview,
+            _Tab.along => '${t.poisTitle} $_poiCount',
+            _Tab.travel => t.routeTabTravel,
+            _Tab.photos => t.photosTitle,
+          },
         ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: Row(
-            children: [
-              for (final tab in tabs)
-                InkWell(
-                  key: Key('tab-${tab.name}'),
-                  onTap: () => setState(() => _tab = tab),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: tab == _tab ? theme.colorScheme.primary : Colors.transparent,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      label(tab),
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: tab == _tab ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
-                        fontWeight: tab == _tab ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+    ],
+    current: _tab.name,
+    onTap: (id) => setState(() => _tab = _Tab.values.byName(id)),
+  );
 
-  /// A tab's content, kept (with what it loaded) while another is shown.
-  Widget _pane(_Tab tab, Widget child) => Visibility(visible: _tab == tab, maintainState: true, child: child);
+  Widget _pane(_Tab tab, Widget child) => tabPane(_tab == tab, child);
 
   @override
   Widget build(BuildContext context) {
@@ -550,7 +487,8 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
                         sliver: SliverToBoxAdapter(child: _head(t, r, pack)),
                       ),
-                      if (tabs.length > 1) SliverPersistentHeader(pinned: true, delegate: _TabBar(_tabBar(t, tabs))),
+                      if (tabs.length > 1)
+                        SliverPersistentHeader(pinned: true, delegate: PinnedTabBar(_tabBar(t, tabs))),
                       SliverSafeArea(
                         top: false,
                         sliver: SliverPadding(
@@ -621,21 +559,3 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
 }
 
 enum _Tab { overview, along, travel, photos }
-
-/// The tab bar, pinned to the top of the panel while it scrolls.
-class _TabBar extends SliverPersistentHeaderDelegate {
-  _TabBar(this.child);
-  final Widget child;
-
-  @override
-  double get minExtent => 46;
-
-  @override
-  double get maxExtent => 46;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => SizedBox.expand(child: child);
-
-  @override
-  bool shouldRebuild(_TabBar old) => true;
-}

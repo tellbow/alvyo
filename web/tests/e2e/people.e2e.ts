@@ -48,6 +48,7 @@ test('who comes along, on which stages, and reminders before the start', async (
 
 	// The friend comes along, only on the second stage.
 	await page.goto(`/journeys/${id}`);
+	await page.getByTestId('tab-overview').click();
 	const people = page.getByTestId('journey-people');
 	await people.getByTestId('people-who').fill(friend);
 	await people.getByTestId('people-add').click();
@@ -58,21 +59,25 @@ test('who comes along, on which stages, and reminders before the start', async (
 		'aria-pressed',
 		'false'
 	);
+	await page.getByTestId('tab-stages').click();
 	await expect(page.getByTestId('stage').nth(1).getByTestId('stage-people')).toHaveText(
 		`Mit Name ${friend}`
 	);
 	await expect(page.getByTestId('stage').first().getByTestId('stage-people')).toHaveCount(0);
 
 	// Reminders: on, three to come; turned off, kept off.
+	await page.getByTestId('tab-overview').click();
 	const reminders = page.getByTestId('journey-reminders');
 	await expect(reminders.getByTestId('reminders-on')).toBeChecked();
 	await expect(reminders.getByRole('listitem')).toHaveCount(3);
 	await reminders.getByTestId('reminders-on').uncheck();
 	await page.reload();
+	await page.getByTestId('tab-overview').click();
 	await expect(page.getByTestId('journey-reminders').getByTestId('reminders-on')).not.toBeChecked();
 
 	// The friend sees who comes along; a stranger on the public journey does not.
 	await friendPage.goto(`/journeys/${id}`);
+	await friendPage.getByTestId('tab-overview').click();
 	await expect(friendPage.getByTestId('journey-people').getByTestId('person')).toContainText(
 		`Name ${friend}`
 	);

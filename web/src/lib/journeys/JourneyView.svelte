@@ -48,6 +48,11 @@
 	import PhotoPins from '$lib/photos/PhotoPins.svelte';
 	import Photos from '$lib/photos/Photos.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
+	import { actionButton, menuItem } from '$lib/components/actions';
+	import MoreMenu from '$lib/components/MoreMenu.svelte';
+	import ShareButton from '$lib/components/ShareButton.svelte';
+	import TabBar from '$lib/components/TabBar.svelte';
+	import LikeButton from '$lib/community/LikeButton.svelte';
 	import StageCard from './StageCard.svelte';
 	import JourneyPeople from './JourneyPeople.svelte';
 	import JourneyReminders from './JourneyReminders.svelte';
@@ -157,6 +162,19 @@
 			: ''
 	);
 	const q = $derived(token ? `?t=${token}` : '');
+
+	// The stages first: what is worked on most; the rest in tabs beside them.
+	let tab = $state('stages');
+	const overview = $derived(journey.totals.distance_m > 0 || !!user);
+	const tabs = $derived(
+		[
+			{ id: 'stages', label: m.journey_tab_stages(), n: journey.stage_list.length },
+			overview && { id: 'overview', label: m.route_tab_overview() },
+			user && { id: 'travel', label: m.route_tab_travel() },
+			{ id: 'photos', label: m.photos_title(), n: gallery.photos.length },
+			isOwner && { id: 'share', label: m.route_share() }
+		].filter((t) => !!t)
+	);
 
 	/** Index in stage_list of the k-th stage that has a route. */
 	function routedStageIndex(k: number): number {
@@ -374,240 +392,312 @@
 	</section>
 
 	<aside
-		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-96 md:flex-none md:border-t-0 md:border-l"
+		class="flex min-h-0 flex-1 flex-col overflow-y-auto border-t border-stone-200 bg-surface md:w-96 md:flex-none md:border-t-0 md:border-l"
 		data-testid="journey-panel"
 	>
-		<div>
-			<h1 class="text-xl font-semibold" data-testid="journey-title">{journey.title}</h1>
-			<p class="text-sm text-stone-500">
-				{#if journey.role === 'editor'}
-					{m.shared_editor_note({ user: journey.owner_username })}
-				{:else if journey.visibility === 'public'}
-					<a
-						href={resolve('/u/[username]', { username: journey.owner_username })}
-						class="hover:underline">{m.route_by({ user: journey.owner_username })}</a
-					>
-				{:else}
-					{m.route_by({ user: journey.owner_username })}
+		<div class="flex flex-col gap-3 p-4 pb-3">
+			<div class="flex items-start justify-between gap-2">
+				<div class="min-w-0">
+					<h1 class="text-xl font-semibold" data-testid="journey-title">{journey.title}</h1>
+					<p class="text-sm text-stone-500">
+						{#if journey.role === 'editor'}
+							{m.shared_editor_note({ user: journey.owner_username })}
+						{:else if journey.visibility === 'public'}
+							<a
+								href={resolve('/u/[username]', { username: journey.owner_username })}
+								class="hover:underline">{m.route_by({ user: journey.owner_username })}</a
+							>
+						{:else}
+							{m.route_by({ user: journey.owner_username })}
+						{/if}
+					</p>
+				</div>
+				{#if user}
+					<!-- What is done now and then: collections, the app, deleting. -->
+					<MoreMenu testid="journey-menu" onclose={() => (confirming = false)}>
+						<OpenInApp kind="journeys" id={journey.id} class={menuItem} />
+						<div class="px-1.5 py-1"><AddToCollection kind="journey" id={journey.id} /></div>
+						{#if isOwner}
+							<hr class="my-1 border-stone-200" />
+							{#if confirming}
+								<button
+									type="button"
+									class="{menuItem} bg-red-700 font-medium text-white hover:bg-red-800"
+									onclick={removeJourney}
+								>
+									{m.journey_delete_confirm()}
+								</button>
+							{:else}
+								<button
+									type="button"
+									class="{menuItem} text-red-700 dark:text-red-400"
+									onclick={() => (confirming = true)}
+								>
+									{m.journey_delete()}
+								</button>
+							{/if}
+						{/if}
+					</MoreMenu>
 				{/if}
-			</p>
-			<div class="mt-2">
+			</div>
+			<div class="-mt-2">
 				{#if canEdit}
 					<TagInput tags={journey.tags} onchange={setTags} />
 				{:else}
 					<TagChips tags={journey.tags} />
 				{/if}
 			</div>
+			<!-- The stages are changed in place: no main action, the small ones only. -->
+			<div class="flex flex-wrap gap-2 text-sm">
+				{#if journey.stage_list.some((s) => s.route)}
+					<!-- API download, not a page: resolve() does not apply. -->
+					<!-- eslint-disable svelte/no-navigation-without-resolve -->
+					<a
+						href="/api/v1/journeys/{journey.id}/gpx{q}"
+						download
+						class={actionButton}
+						aria-label={m.journey_gpx()}
+						title={m.journey_gpx()}>↓ GPX</a
+					>
+					<!-- eslint-enable svelte/no-navigation-without-resolve -->
+				{/if}
+				<LikeButton {community} {user} testid="journey-like" />
+				<ShareButton
+					title={journey.title}
+					token={token ?? (journey.visibility === 'unlisted' ? journey.share_token : undefined)}
+					testid="journey-share"
+				/>
+			</div>
+			{#if !user}<OpenInApp kind="journeys" id={journey.id} />{/if}
+			{#if journey.totals.distance_m > 0}
+				<StatsPanel {totals} pace={user?.speed_factor ?? 1} breakdown={false} />
+			{/if}
+			<div>
+				<div class="mb-1 flex justify-between text-xs text-stone-500">
+					<span>{m.journey_progress()}</span>
+					<span data-testid="journey-progress">
+						{m.journey_stages_count({
+							done: journey.progress.stages_done,
+							total: journey.progress.stages_total
+						})}
+					</span>
+				</div>
+				<div class="h-2 overflow-hidden rounded-full bg-stone-100">
+					<div
+						class="h-full bg-accent"
+						style:width="{journey.progress.distance_total_m > 0
+							? (journey.progress.distance_done_m / journey.progress.distance_total_m) * 100
+							: 0}%"
+					></div>
+				</div>
+			</div>
+			{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 		</div>
 
-		<div>
-			<div class="mb-1 flex justify-between text-xs text-stone-500">
-				<span>{m.journey_progress()}</span>
-				<span data-testid="journey-progress">
-					{m.journey_stages_count({
-						done: journey.progress.stages_done,
-						total: journey.progress.stages_total
-					})}
-				</span>
-			</div>
-			<div class="h-2 overflow-hidden rounded-full bg-stone-100">
-				<div
-					class="h-full bg-accent"
-					style:width="{journey.progress.distance_total_m > 0
-						? (journey.progress.distance_done_m / journey.progress.distance_total_m) * 100
-						: 0}%"
-				></div>
-			</div>
-		</div>
+		<TabBar {tabs} bind:current={tab} />
 
-		{#if journey.totals.distance_m > 0}
-			<StatsPanel {totals} pace={user?.speed_factor ?? 1} />
-			<JourneyWeather id={journey.id} {token} key={routeKey + plannedDays.join()} />
-			<Notices {notices} days={plannedDays} />
-			<ProtectedAreas {areas} failed={areasFailed} days={plannedDays} />
-		{/if}
-
-		{#if user}
-			<JourneyPeople id={journey.id} stages={journey.stage_list} {isOwner} {canEdit} bind:people />
-			<JourneyReminders id={journey.id} key={plannedDays.join()} />
-			<Travel
-				kind="journeys"
-				id={journey.id}
-				{token}
-				ends={journeyEnds(journey, { start: m.travel_start(), end: m.travel_end() })}
-				onshow={(t) => (travelTrips = t)}
-			/>
-		{/if}
-
-		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
-
-		{#key conflicts}
-			<ol class="flex flex-col gap-2" data-testid="stage-list">
-				{#each journey.stage_list as s, i (s.id)}
-					{#if s.gap && s.gap.status !== 'ok'}
-						<li
-							class="rounded-md px-2 py-1 text-xs {s.gap.status === 'transfer'
-								? 'bg-sky-50 text-sky-900 dark:bg-sky-950/40 dark:text-sky-200'
-								: 'bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'}"
-							data-testid="gap"
-							data-status={s.gap.status}
-						>
-							{m.gap_warning({ distance: formatDistance(s.gap.metres) })}
-							{#if canEdit}
-								<label class="mt-1 flex items-center gap-1">
-									{m.gap_transfer()}
-									<select
-										class="rounded border border-stone-300 px-1 py-0.5"
-										value={s.transfer_before ?? ''}
-										onchange={(e) =>
-											patchStage(s.id, {
-												transfer_before: e.currentTarget.value as StagePatch['transfer_before']
-											})}
+		<!-- Every tab stays mounted: the map shows what each one loads. -->
+		<div
+			class="flex flex-col gap-3 p-4"
+			role="tabpanel"
+			id="pane-stages"
+			aria-labelledby="tab-stages"
+			hidden={tab !== 'stages'}
+		>
+			{#key conflicts}
+				<ol class="flex flex-col gap-2" data-testid="stage-list">
+					{#each journey.stage_list as s, i (s.id)}
+						{#if s.gap && s.gap.status !== 'ok'}
+							<li
+								class="rounded-md px-2 py-1 text-xs {s.gap.status === 'transfer'
+									? 'bg-sky-50 text-sky-900 dark:bg-sky-950/40 dark:text-sky-200'
+									: 'bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200'}"
+								data-testid="gap"
+								data-status={s.gap.status}
+							>
+								{m.gap_warning({ distance: formatDistance(s.gap.metres) })}
+								{#if canEdit}
+									<label class="mt-1 flex items-center gap-1">
+										{m.gap_transfer()}
+										<select
+											class="rounded border border-stone-300 px-1 py-0.5"
+											value={s.transfer_before ?? ''}
+											onchange={(e) =>
+												patchStage(s.id, {
+													transfer_before: e.currentTarget.value as StagePatch['transfer_before']
+												})}
+										>
+											<option value="">{m.transfer_none()}</option>
+											<option value="pt">{m.transfer_pt()}</option>
+											<option value="cablecar">{m.transfer_cablecar()}</option>
+											<option value="other">{m.transfer_other()}</option>
+										</select>
+									</label>
+								{/if}
+								{#if transferUrl(i)}
+									<!-- External timetable link: resolve() does not apply. -->
+									<!-- eslint-disable svelte/no-navigation-without-resolve -->
+									<a
+										href={transferUrl(i)}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="mt-1 block underline"
+										data-testid="sbb-transfer">{m.sbb_transfer()} ↗</a
 									>
-										<option value="">{m.transfer_none()}</option>
-										<option value="pt">{m.transfer_pt()}</option>
-										<option value="cablecar">{m.transfer_cablecar()}</option>
-										<option value="other">{m.transfer_other()}</option>
-									</select>
-								</label>
-							{/if}
-							{#if transferUrl(i)}
-								<!-- External timetable link: resolve() does not apply. -->
-								<!-- eslint-disable svelte/no-navigation-without-resolve -->
-								<a
-									href={transferUrl(i)}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="mt-1 block underline"
-									data-testid="sbb-transfer">{m.sbb_transfer()} ↗</a
-								>
-								<!-- eslint-enable svelte/no-navigation-without-resolve -->
-							{/if}
-							{#if user}
-								{@const stops = transferStops(journey, i)}
-								{#if stops?.from.ref && stops.to.ref}
-									<button
-										type="button"
-										class="mt-1 underline"
-										disabled={!hydrated.value}
-										onclick={() => (showConnections = showConnections === s.id ? undefined : s.id)}
-									>
-										{showConnections === s.id ? m.connections_hide() : m.connections_show()}
-									</button>
-									{#if showConnections === s.id}
-										<Connections from={stops.from} to={stops.to} date={s.planned_date} />
+									<!-- eslint-enable svelte/no-navigation-without-resolve -->
+								{/if}
+								{#if user}
+									{@const stops = transferStops(journey, i)}
+									{#if stops?.from.ref && stops.to.ref}
+										<button
+											type="button"
+											class="mt-1 underline"
+											disabled={!hydrated.value}
+											onclick={() =>
+												(showConnections = showConnections === s.id ? undefined : s.id)}
+										>
+											{showConnections === s.id ? m.connections_hide() : m.connections_show()}
+										</button>
+										{#if showConnections === s.id}
+											<Connections from={stops.from} to={stops.to} date={s.planned_date} />
+										{/if}
 									{/if}
 								{/if}
-							{/if}
-						</li>
-					{/if}
-					<StageCard
-						journeyId={journey.id}
-						stage={s}
-						index={i}
-						count={journey.stage_list.length}
-						{canEdit}
-						pace={user?.speed_factor ?? 1}
-						{q}
-						onpatch={(body) => patchStage(s.id, body)}
-						onmove={(delta) => move(s.id, delta)}
-						onremove={() => removeStage(s.id)}
-						onimport={(file) => importStage(s.id, file)}
-						people={stagePeople(people, s.id)}
-					/>
-				{/each}
-			</ol>
-		{/key}
-
-		{#if canEdit}
-			<div class="flex flex-col gap-2 text-sm">
-				<button
-					type="button"
-					class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
-					onclick={() => addStage()}
-				>
-					{m.journey_add_stage()}
-				</button>
-				<select
-					class="rounded-md border border-stone-300 px-2 py-1.5"
-					onfocus={loadMyRoutes}
-					use:choose={(id, select) => {
-						select.value = '';
-						if (id) addStage(id);
-					}}
-					aria-label={m.journey_add_from_route()}
-				>
-					<option value="">{m.journey_add_from_route()}</option>
-					{#each myRoutes as r (r.id)}
-						<option value={r.id}>{r.title} · {formatDistance(r.totals.distance_m)}</option>
+							</li>
+						{/if}
+						<StageCard
+							journeyId={journey.id}
+							stage={s}
+							index={i}
+							count={journey.stage_list.length}
+							{canEdit}
+							pace={user?.speed_factor ?? 1}
+							{q}
+							onpatch={(body) => patchStage(s.id, body)}
+							onmove={(delta) => move(s.id, delta)}
+							onremove={() => removeStage(s.id)}
+							onimport={(file) => importStage(s.id, file)}
+							people={stagePeople(people, s.id)}
+						/>
 					{/each}
-				</select>
-			</div>
-		{/if}
+				</ol>
+			{/key}
 
-		{#if isOwner}
-			<section class="flex flex-col gap-2 rounded-md border border-stone-200 p-3 text-sm">
-				<h2 class="font-medium">{m.journey_settings()}</h2>
-				<label class="flex flex-col gap-1">
-					<span>{m.field_visibility()}</span>
+			{#if canEdit}
+				<div class="flex flex-col gap-2 text-sm">
+					<button
+						type="button"
+						class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
+						onclick={() => addStage()}
+					>
+						{m.journey_add_stage()}
+					</button>
 					<select
 						class="rounded-md border border-stone-300 px-2 py-1.5"
-						value={journey.visibility}
-						use:choose={(v) => setVisibility(v as 'private' | 'unlisted' | 'public')}
+						onfocus={loadMyRoutes}
+						use:choose={(id, select) => {
+							select.value = '';
+							if (id) addStage(id);
+						}}
+						aria-label={m.journey_add_from_route()}
 					>
-						<option value="private">{m.visibility_private()}</option>
-						<option value="unlisted" disabled={!user?.email_verified}
-							>{m.visibility_unlisted()}</option
-						>
-						<option value="public" disabled={!user?.email_verified}>{m.visibility_public()}</option>
+						<option value="">{m.journey_add_from_route()}</option>
+						{#each myRoutes as r (r.id)}
+							<option value={r.id}>{r.title} · {formatDistance(r.totals.distance_m)}</option>
+						{/each}
 					</select>
-				</label>
-				{#if shareUrl && journey.visibility === 'unlisted'}
-					<input
-						readonly
-						value={shareUrl}
-						class="rounded border border-stone-300 px-1.5 py-1 text-xs"
-						data-testid="journey-share-link"
-					/>
-				{/if}
-				{#if confirming}
-					<button
-						type="button"
-						class="self-start rounded bg-red-700 px-2 py-1 text-white"
-						onclick={removeJourney}
-					>
-						{m.journey_delete_confirm()}
-					</button>
-				{:else}
-					<button
-						type="button"
-						class="self-start text-stone-500 underline"
-						onclick={() => (confirming = true)}
-					>
-						{m.journey_delete()}
-					</button>
-				{/if}
-			</section>
-			<SharePanel kind="journeys" id={journey.id} verified={!!user?.email_verified} />
-		{/if}
-
-		{#if user}
-			<AddToCollection kind="journey" id={journey.id} />
-		{/if}
-
-		{#if journey.stage_list.some((s) => s.route)}
-			<!-- API download, not a page: resolve() does not apply. -->
-			<!-- eslint-disable svelte/no-navigation-without-resolve -->
-			<a
-				href="/api/v1/journeys/{journey.id}/gpx{q}"
-				download
-				class="text-sm text-accent-ink underline">{m.journey_gpx()}</a
+				</div>
+			{/if}
+		</div>
+		{#if overview}
+			<div
+				class="flex flex-col gap-3 p-4"
+				role="tabpanel"
+				id="pane-overview"
+				aria-labelledby="tab-overview"
+				hidden={tab !== 'overview'}
 			>
-			<!-- eslint-enable svelte/no-navigation-without-resolve -->
+				{#if journey.totals.distance_m > 0}
+					<JourneyWeather id={journey.id} {token} key={routeKey + plannedDays.join()} />
+					<Notices {notices} days={plannedDays} />
+					<ProtectedAreas {areas} failed={areasFailed} days={plannedDays} />
+				{/if}
+				{#if user}
+					<JourneyPeople
+						id={journey.id}
+						stages={journey.stage_list}
+						{isOwner}
+						{canEdit}
+						bind:people
+					/>
+					<JourneyReminders id={journey.id} key={plannedDays.join()} />
+				{/if}
+			</div>
 		{/if}
-		<OpenInApp kind="journeys" id={journey.id} />
-
-		<Photos {gallery} loggedIn={!!user} />
-		<Social {community} {user} />
+		{#if user}
+			<div
+				class="p-4"
+				role="tabpanel"
+				id="pane-travel"
+				aria-labelledby="tab-travel"
+				hidden={tab !== 'travel'}
+			>
+				<Travel
+					kind="journeys"
+					id={journey.id}
+					{token}
+					ends={journeyEnds(journey, { start: m.travel_start(), end: m.travel_end() })}
+					onshow={(t) => (travelTrips = t)}
+				/>
+			</div>
+		{/if}
+		<div
+			class="flex flex-col gap-3 p-4"
+			role="tabpanel"
+			id="pane-photos"
+			aria-labelledby="tab-photos"
+			hidden={tab !== 'photos'}
+		>
+			<Photos {gallery} loggedIn={!!user} />
+			<Social {community} {user} />
+		</div>
+		{#if isOwner}
+			<div
+				class="flex flex-col gap-3 p-4"
+				role="tabpanel"
+				id="pane-share"
+				aria-labelledby="tab-share"
+				hidden={tab !== 'share'}
+			>
+				<section class="flex flex-col gap-2 rounded-md border border-stone-200 p-3 text-sm">
+					<h2 class="font-medium">{m.journey_settings()}</h2>
+					<label class="flex flex-col gap-1">
+						<span>{m.field_visibility()}</span>
+						<select
+							class="rounded-md border border-stone-300 px-2 py-1.5"
+							value={journey.visibility}
+							use:choose={(v) => setVisibility(v as 'private' | 'unlisted' | 'public')}
+						>
+							<option value="private">{m.visibility_private()}</option>
+							<option value="unlisted" disabled={!user?.email_verified}
+								>{m.visibility_unlisted()}</option
+							>
+							<option value="public" disabled={!user?.email_verified}
+								>{m.visibility_public()}</option
+							>
+						</select>
+					</label>
+					{#if shareUrl && journey.visibility === 'unlisted'}
+						<input
+							readonly
+							value={shareUrl}
+							class="rounded border border-stone-300 px-1.5 py-1 text-xs"
+							data-testid="journey-share-link"
+						/>
+					{/if}
+				</section>
+				<SharePanel kind="journeys" id={journey.id} verified={!!user?.email_verified} />
+			</div>
+		{/if}
 	</aside>
 </main>

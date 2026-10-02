@@ -242,6 +242,10 @@ void main() {
       ),
       findsOneWidget,
     );
+    // The profile and the areas are on «Übersicht».
+    expect(find.byKey(const Key('elevation-profile')), findsNothing);
+    await tester.tap(find.byKey(const Key('tab-overview')));
+    await tester.pump();
     expect(find.byKey(const Key('elevation-profile')), findsOneWidget, reason: 'all stages\' profile');
     final line = find.byKey(const Key('protected-areas'));
     await until(tester, line); // asked for after the journey
@@ -252,6 +256,10 @@ void main() {
     expect(area, findsOneWidget);
     await tester.tapAt(const Offset(200, 20)); // beside the sheet
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('tab-stages')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('tab-stages')));
+    await tester.pump();
     // Without a title and route: numbered, and opens its sheet (details,
     // public transport) instead of a map.
     expect(find.text('Etappe 3'), findsOneWidget);
@@ -336,9 +344,10 @@ void main() {
     // An editor adds stages; the journey's map is a tap away.
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.byKey(const Key('journey-add-stage')), 200);
+    final panel = find.ancestor(of: find.byKey(const Key('stage-0')), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.byKey(const Key('journey-add-stage')), 200, scrollable: panel);
     expect(find.byKey(const Key('journey-add-stage')), findsOneWidget);
-    await tester.scrollUntilVisible(find.byKey(const Key('journey-map')), -200);
+    await tester.scrollUntilVisible(find.byKey(const Key('journey-map')), -200, scrollable: panel);
     expect(find.byKey(const Key('journey-map')), findsOneWidget);
   });
 
@@ -411,8 +420,8 @@ void main() {
     await until(tester, find.text('Gaflei – Sargans'));
     server.s1Status = 'done'; // changed elsewhere
     await tester.fling(find.text('Gaflei – Sargans'), const Offset(0, 400), 1000);
-    await until(tester, find.text('1 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'));
-    expect(find.text('1 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
+    await until(tester, find.text('1 von 3 Etappen'));
+    expect(find.text('1 von 3 Etappen'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

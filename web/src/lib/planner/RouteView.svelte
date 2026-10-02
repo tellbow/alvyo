@@ -38,7 +38,11 @@
 	import type { Trip } from '$lib/api/client';
 	import type { Notice, ProtectedArea } from '$lib/api/client';
 	import { onMount } from 'svelte';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { actionButton, mainAction, menuItem } from '$lib/components/actions';
+	import MoreMenu from '$lib/components/MoreMenu.svelte';
+	import ShareButton from '$lib/components/ShareButton.svelte';
+	import TabBar from '$lib/components/TabBar.svelte';
+	import LikeButton from '$lib/community/LikeButton.svelte';
 	import { TRAIL_COLOR } from './colors';
 	import { Planner } from './planner.svelte';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Profile } from './route';
@@ -90,11 +94,6 @@
 	// svelte-ignore state_referenced_locally
 	const community = gallery && new Community('routes', route.id, token);
 	let changed = $state(false);
-	// Tabs and menu answer only once hydrated: a click before would be lost.
-	const hydrated = new Hydrated();
-	let menu = $state(false);
-	let menuBox = $state<HTMLElement>();
-	let copied = $state(false);
 
 	// Read-only planner: renders the stored legs, never routes. Loaded once;
 	// the page re-creates this component for another route ({#key}).
@@ -119,16 +118,15 @@
 	}
 
 	// Details on demand: the rest of the page in tabs, the counts beside them.
-	type Tab = 'overview' | 'along' | 'travel' | 'photos';
-	let tab = $state<Tab>('overview');
+	let tab = $state('overview');
 	// A stage's way there and back is its journey's (from home, before the first and after the last).
 	const travel = $derived(!!user && !revision && !route.journey_id && route.legs.length > 0);
 	const tabs = $derived(
 		[
-			{ id: 'overview' as Tab, label: m.route_tab_overview() },
-			routePois.length > 0 && { id: 'along' as Tab, label: m.pois_title(), n: routePois.length },
-			travel && { id: 'travel' as Tab, label: m.route_tab_travel() },
-			gallery && { id: 'photos' as Tab, label: m.photos_title(), n: gallery.photos.length }
+			{ id: 'overview', label: m.route_tab_overview() },
+			routePois.length > 0 && { id: 'along', label: m.pois_title(), n: routePois.length },
+			travel && { id: 'travel', label: m.route_tab_travel() },
+			gallery && { id: 'photos', label: m.photos_title(), n: gallery.photos.length }
 		].filter((t) => !!t)
 	);
 	// Off marked trails all the way: said in words, not as a bar of one colour.
@@ -136,19 +134,6 @@
 		const parts = breakdownParts(planner.totals.trails, Object.keys(TRAIL_COLOR));
 		return parts.length === 1 && parts[0].key === 'none';
 	});
-
-	/** The page's address with the share token, if there is one, to send. */
-	async function share() {
-		const t = token ?? (route.visibility === 'unlisted' ? route.share_token : undefined);
-		const url = `${page.url.origin}${page.url.pathname}${t ? `?t=${encodeURIComponent(t)}` : ''}`;
-		if (navigator.share) {
-			await navigator.share({ title: route.title, url }).catch(() => {});
-			return;
-		}
-		await navigator.clipboard.writeText(url);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
 
 	async function restore(version: number) {
 		const { response } = await api().POST('/routes/{id}/revisions/{version}/restore', {
@@ -158,28 +143,11 @@
 		else changed = response.status === 412;
 	}
 
-	const button =
-		'inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-lg border border-stone-300 px-2.5 hover:bg-stone-100 disabled:opacity-60';
-	const item = 'flex w-full rounded-lg px-2.5 py-2 text-left hover:bg-stone-100';
-
 	async function remove() {
 		const { response } = await api().DELETE('/routes/{id}', { params: { path: { id: route.id } } });
 		if (response.ok) await goto(resolve('/routes'));
 	}
 </script>
-
-<svelte:window
-	onclick={(e) => {
-		// The path as clicked: «Löschen» is gone from the page by now.
-		if (menu && menuBox && !e.composedPath().includes(menuBox)) {
-			menu = false;
-			confirmDelete = false;
-		}
-	}}
-	onkeydown={(e) => {
-		if (e.key === 'Escape') menu = false;
-	}}
-/>
 
 <Seo
 	title={route.title}
@@ -247,60 +215,42 @@
 				</div>
 				{#if !revision}
 					<!-- What is done now and then: printing, collections, versions, deleting. -->
-					<div class="relative shrink-0" bind:this={menuBox}>
-						<button
-							type="button"
-							class={button}
-							aria-label={m.route_more()}
-							aria-expanded={menu}
-							aria-controls="route-menu"
-							disabled={!hydrated.value}
-							onclick={() => (menu = !menu)}
-							data-testid="route-menu">⋯</button
-						>
-						<div
-							id="route-menu"
-							class="absolute top-11 right-0 z-20 flex w-64 flex-col rounded-xl border border-stone-200 bg-surface p-1.5 text-sm shadow-lg"
-							hidden={!menu}
-						>
-							{#if route.legs.length > 0}
-								<!-- The share token rides along; resolve() cannot express query strings. -->
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-								<a
-									href="{resolve('/routes/[id]/sheet', { id: route.id })}{token
-										? `?t=${token}`
-										: ''}"
-									class={item}
-									data-testid="sheet-link">{m.sheet_link()}</a
+					<MoreMenu testid="route-menu" onclose={() => (confirmDelete = false)}>
+						{#if route.legs.length > 0}
+							<!-- The share token rides along; resolve() cannot express query strings. -->
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+							<a
+								href="{resolve('/routes/[id]/sheet', { id: route.id })}{token ? `?t=${token}` : ''}"
+								class={menuItem}
+								data-testid="sheet-link">{m.sheet_link()}</a
+							>
+						{/if}
+						<OpenInApp kind="routes" id={route.id} class={menuItem} />
+						{#if user && !route.journey_id}
+							<div class="px-1.5 py-1"><AddToCollection kind="route" id={route.id} /></div>
+						{/if}
+						{#if route.can_edit}
+							<div class="px-2.5 py-2"><Revisions id={route.id} /></div>
+							<hr class="my-1 border-stone-200" />
+							{#if confirmDelete}
+								<button
+									type="button"
+									class="{menuItem} bg-red-700 font-medium text-white hover:bg-red-800"
+									onclick={remove}
 								>
+									{m.route_delete_confirm()}
+								</button>
+							{:else}
+								<button
+									type="button"
+									class="{menuItem} text-red-700 dark:text-red-400"
+									onclick={() => (confirmDelete = true)}
+								>
+									{m.route_delete()}
+								</button>
 							{/if}
-							<OpenInApp kind="routes" id={route.id} class={item} />
-							{#if user && !route.journey_id}
-								<div class="px-1.5 py-1"><AddToCollection kind="route" id={route.id} /></div>
-							{/if}
-							{#if route.can_edit}
-								<div class="px-2.5 py-2"><Revisions id={route.id} /></div>
-								<hr class="my-1 border-stone-200" />
-								{#if confirmDelete}
-									<button
-										type="button"
-										class="{item} bg-red-700 font-medium text-white hover:bg-red-800"
-										onclick={remove}
-									>
-										{m.route_delete_confirm()}
-									</button>
-								{:else}
-									<button
-										type="button"
-										class="{item} text-red-700 dark:text-red-400"
-										onclick={() => (confirmDelete = true)}
-									>
-										{m.route_delete()}
-									</button>
-								{/if}
-							{/if}
-						</div>
-					</div>
+						{/if}
+					</MoreMenu>
 				{/if}
 			</div>
 			{#if route.tags.length > 0 || route.hike}
@@ -336,10 +286,7 @@
 				<!-- One main action; the others small beside it. -->
 				<div class="flex flex-wrap gap-2 text-sm">
 					{#if route.can_edit}
-						<a
-							href={resolve('/plan/[id]', { id: route.id })}
-							class="{button} border-accent bg-accent font-semibold text-on-accent hover:bg-accent-hover"
-						>
+						<a href={resolve('/plan/[id]', { id: route.id })} class={mainAction}>
 							✎ {m.route_edit()}
 						</a>
 					{/if}
@@ -348,46 +295,17 @@
 					<a
 						href="/api/v1/routes/{route.id}/gpx"
 						download
-						class={button}
+						class={actionButton}
 						aria-label={m.route_gpx()}
 						title={m.route_gpx()}>↓ GPX</a
 					>
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
-					{#if community}
-						<button
-							type="button"
-							class="{button} {community.social?.liked ? 'text-rose-700 dark:text-rose-400' : ''}"
-							aria-pressed={community.social?.liked ?? false}
-							disabled={!user || !community.social || community.busy}
-							title={user ? undefined : m.community_login_to_like()}
-							onclick={() => community.like()}
-							data-testid="route-like"
-							>{community.social?.liked ? '♥' : '♡'} {m.route_like()}</button
-						>
-					{/if}
-					<button
-						type="button"
-						class={button}
-						aria-label={m.route_share()}
-						title={copied ? m.share_copied() : m.route_share()}
-						onclick={share}
-						data-testid="route-share"
-					>
-						{#if copied}{m.share_copied()}{:else}
-							<svg
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								aria-hidden="true"
-								><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg
-							>
-						{/if}
-					</button>
+					{#if community}<LikeButton {community} {user} testid="route-like" />{/if}
+					<ShareButton
+						title={route.title}
+						token={token ?? (route.visibility === 'unlisted' ? route.share_token : undefined)}
+						testid="route-share"
+					/>
 				</div>
 			{/if}
 			{#if route.legs.length > 0}
@@ -395,34 +313,7 @@
 			{/if}
 		</div>
 
-		{#if tabs.length > 1}
-			<div
-				class="sticky top-0 z-10 flex shrink-0 gap-1 overflow-x-auto border-b border-stone-200 bg-surface px-3 text-sm"
-				role="tablist"
-				aria-label={m.route_sections()}
-			>
-				{#each tabs as t (t.id)}
-					<button
-						type="button"
-						role="tab"
-						id="tab-{t.id}"
-						aria-selected={tab === t.id}
-						aria-controls="pane-{t.id}"
-						disabled={!hydrated.value}
-						class="-mb-px border-b-2 px-2 py-2.5 whitespace-nowrap {tab === t.id
-							? 'border-accent font-semibold text-stone-900'
-							: 'border-transparent text-stone-500 hover:text-stone-900'}"
-						onclick={() => (tab = t.id)}
-						data-testid="tab-{t.id}"
-					>
-						{t.label}{#if t.n !== undefined}<span
-								class="ml-1 rounded-full bg-stone-100 px-1.5 text-xs font-normal tabular-nums"
-								>{t.n}</span
-							>{/if}
-					</button>
-				{/each}
-			</div>
-		{/if}
+		{#if tabs.length > 1}<TabBar {tabs} bind:current={tab} />{/if}
 
 		<!-- Every tab stays mounted: the map shows what each one loads. -->
 		<div

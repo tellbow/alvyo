@@ -2692,6 +2692,12 @@ abstract class AppLocalizations {
   /// **'Anreise'**
   String get routeTabTravel;
 
+  /// No description provided for @journeyTabStages.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappen'**
+  String get journeyTabStages;
+
   /// No description provided for @statTime.
   ///
   /// In de, this message translates to:

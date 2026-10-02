@@ -520,7 +520,15 @@ From the project owner, numbered in the order given: 1–5 added on
     chosen one with its legs, three and then «Weitere Verbindungen») and
     «Fotos» with likes and comments. The sidebar is 384 px wide. The app's
     route screen has the same numbers and tabs below «Wanderung starten»,
-    its tab bar pinned while the panel scrolls.
+    its tab bar pinned while the panel scrolls. Journeys the same way
+    (2026-10-02): GPX, «Merken» and «Teilen» at the top, collections, the
+    app and deleting in «⋯», the numbers and the progress, then «Etappen»
+    (first: what is worked on most), «Übersicht» (weather, closures and
+    areas, «Wer kommt mit», reminders), «Anreise», «Fotos» and, for the
+    owner, «Teilen» (visibility, link, invitations); journeys have no
+    trail conditions (their totals carry none). In the app «Etappen»,
+    «Übersicht», «Anreise» and «Fotos» below «Alle Etappen offline
+    speichern» (sharing stays in the menu).
 
 ### Open
 

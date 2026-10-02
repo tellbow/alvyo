@@ -77,6 +77,7 @@ test('save a planned route, reopen and edit it, then delete it', async ({ page, 
 	expect(gpx).toContain('<trkpt');
 	expect(gpx).toContain('<ele>');
 
+	await page.getByTestId('route-menu').click();
 	await page.getByRole('button', { name: 'Löschen' }).click();
 	await page.getByRole('button', { name: 'Wirklich löschen?' }).click();
 	await expect(page).toHaveURL('/routes');

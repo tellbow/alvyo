@@ -63,9 +63,9 @@ Widget _source(AppLocalizations t, ThemeData theme, DateTime run) => Padding(
   ),
 );
 
-/// MeteoSwiss's forecast at a route's start, highest point and end, for a
-/// day chosen from the next ones; any later day, loaded by [later], has
-/// what is usual in its month. Nothing while loading or offline.
+/// MeteoSwiss's forecast at a route's start, highest point and end, for
+/// today, tomorrow or a day picked; a day beyond the forecast, loaded by
+/// [later], has what is usual in its month. Nothing while loading or offline.
 class RouteWeatherView extends StatefulWidget {
   const RouteWeatherView(this.weather, {super.key, this.later});
   final Future<RouteWeather?> weather;
@@ -129,9 +129,11 @@ class _RouteWeatherViewState extends State<RouteWeatherView> {
               spacing: 4,
               runSpacing: 4,
               children: [
-                for (final (i, date) in dates.indexed)
+                // Today, tomorrow or any day up to a year ahead.
+                for (final (i, date) in dates.take(2).indexed)
                   ChoiceChip(
-                    label: Text(i == 0 ? t.weatherToday : forecastDate(date, locale)),
+                    key: Key('weather-day-$date'),
+                    label: Text(i == 0 ? t.weatherToday : t.weatherTomorrow),
                     selected: later == null && i == chosen,
                     onSelected: (_) => setState(() {
                       _chosen = i;
@@ -143,8 +145,14 @@ class _RouteWeatherViewState extends State<RouteWeatherView> {
                   ChoiceChip(
                     key: const Key('weather-date'),
                     avatar: const Icon(Icons.calendar_month, size: 16),
-                    label: Text(later == null ? t.weatherOtherDay : formatDate(DateTime.parse(later.$1))),
-                    selected: later != null,
+                    label: Text(
+                      later != null
+                          ? formatDate(DateTime.parse(later.$1))
+                          : chosen >= 2
+                          ? forecastDate(dates[chosen], locale)
+                          : t.weatherOtherDay,
+                    ),
+                    selected: later != null || chosen >= 2,
                     onSelected: (_) => _pickLater(dates),
                     visualDensity: VisualDensity.compact,
                   ),

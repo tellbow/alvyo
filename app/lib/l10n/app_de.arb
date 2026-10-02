@@ -826,8 +826,14 @@
   "poiToilets": "Toilette",
   "poiCablecar": "Seilbahnstation",
   "poisTitle": "Unterwegs",
-  "poisAll": "Alle {count} zeigen",
-  "@poisAll": {
+  "routeTabOverview": "Übersicht",
+  "routeTabTravel": "Anreise",
+  "statTime": "Wanderzeit",
+  "statDistance": "Distanz",
+  "statHeights": "Höhenmeter",
+  "statSac": "Schwierigkeit",
+  "poisFilterAll": "Alle {count}",
+  "@poisFilterAll": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -839,6 +845,7 @@
   "weatherTop": "Höchster Punkt",
   "weatherEnd": "Ziel",
   "weatherToday": "Heute",
+  "weatherTomorrow": "Morgen",
   "weatherDry": "trocken",
   "weatherRain": "{mm} mm Niederschlag ({lo}–{hi} mm)",
   "@weatherRain": {

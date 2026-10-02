@@ -162,7 +162,10 @@
 		{#each ['to', 'back'] as const as d (d)}
 			{@const way = travel[d]}
 			{@const at = d === 'to' ? ends.start : ends.end}
-			<div class="flex flex-col gap-1.5" data-testid="travel-{d}">
+			<div
+				class="flex flex-col gap-1.5 rounded-xl border border-stone-200 p-3"
+				data-testid="travel-{d}"
+			>
 				<p class="font-medium">
 					{d === 'to' ? m.travel_to() : m.travel_back()}
 					{#if at?.name}<span class="font-normal text-stone-500">

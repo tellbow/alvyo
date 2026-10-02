@@ -3,33 +3,23 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { api, type Me } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
 	import { m } from '$lib/paraglide/messages';
 	import { intlLocale } from '$lib/util/locale';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import type { Community, SocialBody } from './community.svelte';
 	import ReportButton from './ReportButton.svelte';
 
-	type Social = components['schemas']['SocialBody'];
-	type Comment = Social['comments'][number];
+	type Comment = SocialBody['comments'][number];
 
-	let {
-		kind,
-		id,
-		token,
-		user
-	}: {
-		kind: 'routes' | 'journeys';
-		id: string;
-		/** Share token of an unlisted item. */
-		token?: string;
-		user: Me | null;
-	} = $props();
+	let { community, user }: { community: Community; user: Me | null } = $props();
 
 	const hydrated = new Hydrated();
-	let social = $state<Social>();
+	const social = $derived(community.social);
+	const busy = $derived(community.busy);
+	const error = $derived(community.error);
+	// svelte-ignore state_referenced_locally
+	const { kind, id, token } = community;
 	let text = $state('');
-	let busy = $state(false);
-	let error = $state('');
 	// The comment being replied to or edited, and the text typed for it.
 	let replyTo = $state<string>();
 	let editing = $state<string>();
@@ -51,28 +41,9 @@
 		})
 	);
 
-	// Routes and journeys have the same endpoints; the paths differ only in
-	// the first segment.
-	const at = <S extends string>(suffix: S) => `/${kind}/{id}${suffix}` as `/routes/{id}${S}`;
-	const params = () => ({ path: { id }, query: token ? { t: token } : {} });
-
-	async function run(call: Promise<{ data?: Social; response: Response }>) {
-		busy = true;
-		error = '';
-		const { data, response } = await call;
-		busy = false;
-		if (data) social = data;
-		else error = response.status === 429 ? m.community_rate() : m.error_generic();
-		return !!data;
-	}
-
-	function like() {
-		return run(
-			social?.liked
-				? api().DELETE(at('/like'), { params: params() })
-				: api().PUT(at('/like'), { params: params() })
-		);
-	}
+	const at = <S extends string>(suffix: S) => community.at(suffix);
+	const params = () => community.params();
+	const run = (call: Parameters<Community['run']>[0]) => community.run(call);
 
 	async function post(e: SubmitEvent) {
 		e.preventDefault();
@@ -119,13 +90,7 @@
 		);
 	}
 
-	function toggle(on: boolean) {
-		return run(
-			api().PATCH(at('/social'), { params: { path: { id } }, body: { comments_enabled: on } })
-		);
-	}
-
-	onMount(() => void run(api().GET(at('/social'), { params: params() })));
+	onMount(() => void community.load());
 </script>
 
 {#snippet item(c: Comment, thread: string)}
@@ -191,7 +156,7 @@
 				aria-pressed={social.liked}
 				disabled={!user || busy}
 				title={user ? undefined : m.community_login_to_like()}
-				onclick={like}
+				onclick={() => community.like()}
 				data-testid="like"
 			>
 				{social.liked ? '♥' : '♡'}
@@ -203,7 +168,7 @@
 					<input
 						type="checkbox"
 						checked={social.comments_enabled}
-						onchange={(e) => toggle(e.currentTarget.checked)}
+						onchange={(e) => community.toggle(e.currentTarget.checked)}
 					/>
 					{m.community_comments_allowed()}
 				</label>

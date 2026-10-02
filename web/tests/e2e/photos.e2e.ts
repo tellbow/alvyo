@@ -26,6 +26,7 @@ test('photos: upload, pin along the route, caption and view', async ({ page, bro
 	const route = (await created.json()).id as string;
 
 	await page.goto(`/routes/${route}`);
+	await page.getByTestId('tab-photos').click();
 	const photos = page.getByTestId('photos');
 	await expect(photos.locator('input[type=file]')).toBeEnabled();
 	await photos.locator('input[type=file]').setInputFiles([
@@ -56,6 +57,7 @@ test('photos: upload, pin along the route, caption and view', async ({ page, bro
 	const visitor = await browser.newContext({ viewport: { width: 1400, height: 900 } });
 	const visitorPage = await visitor.newPage();
 	await visitorPage.goto(`/routes/${route}`);
+	await visitorPage.getByTestId('tab-photos').click();
 	await visitorPage.getByTestId('photos').getByRole('button', { name: 'Blick zum Eiger' }).click();
 	const view = visitorPage.getByTestId('lightbox');
 	await expect(view).toContainText('Blick zum Eiger');
@@ -88,6 +90,7 @@ test('an iPhone photo in HEIC is taken as a JPEG', async ({ page }) => {
 	);
 
 	await page.goto(`/routes/${route}`);
+	await page.getByTestId('tab-photos').click();
 	const photos = page.getByTestId('photos');
 	await expect(photos.locator('input[type=file]')).toBeEnabled();
 	await photos

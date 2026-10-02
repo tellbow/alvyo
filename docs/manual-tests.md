@@ -322,8 +322,19 @@ Checked so far only in the simulator, with made-up or simulated positions
       (pending notifications; not waited for); gone when turned off, back
       when on; scheduled for someone along too.
 
+- [ ] **A route's tabs on the phone** (58): the four numbers fit in one row
+      on the smallest iPhone; «Wanderung starten» and the tab bar are reached
+      without scrolling; the tab bar stays while the panel scrolls; switching
+      tabs keeps what was loaded (photos, the way there).
+
 ## Web
 
+- [ ] **A route's page** (58) in Safari on the iPhone and the Mac and in
+      Firefox: «Teilen» opens the share sheet on the iPhone and copies the
+      link on the Mac; «Anderes Datum» opens the date picker; the «⋯» menu
+      closes when tapping beside it; the tab bar stays while scrolling.
+      Playwright 2026-10-02 (Chromium, 1440 px and 390 px, light and dark):
+      the tabs, menu, numbers and cards as proposed.
 - [ ] **Stage sheets** printed on paper and saved as PDF, from Safari on
       the iPhone and Mac and from Chrome and Firefox: one A4 page for a
       real stage (Etappe of a Via Alpina journey), the map sharp enough to

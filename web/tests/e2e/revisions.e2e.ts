@@ -27,6 +27,7 @@ test('an earlier version of a route is shown and restored', async ({ page }) => 
 	await page.goto(`/routes/${routeId}`);
 	await expect(page.getByTestId('stat-distance')).toHaveText(/^3\d\d\sm$/);
 	const versions = page.getByTestId('revisions');
+	await page.getByTestId('route-menu').click();
 	await versions.getByText('Versionen').click();
 	await expect(versions.getByRole('listitem')).toHaveCount(1);
 	await expect(versions.getByRole('listitem')).toContainText(`· ${id} · 1`);
@@ -41,6 +42,7 @@ test('an earlier version of a route is shown and restored', async ({ page }) => 
 	await expect(page).toHaveURL(new RegExp(`/routes/${routeId}$`));
 	await expect(page.getByTestId('revision')).toHaveCount(0);
 	await expect(page.getByTestId('stat-distance')).toHaveText(/^1\d\d\sm$/);
+	await page.getByTestId('route-menu').click();
 	await versions.getByText('Versionen').click();
 	await expect(versions.getByRole('listitem')).toHaveCount(2); // the 300 m line too
 });

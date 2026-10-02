@@ -38,6 +38,8 @@ test('collect routes and a journey, reorder and annotate them', async ({ page })
 	// Add from the route and journey pages.
 	for (const path of [`/routes/${first}`, `/journeys/${journeyId}`]) {
 		await page.goto(path);
+		// On a route, in its menu.
+		if (path.startsWith('/routes/')) await page.getByTestId('route-menu').click();
 		const select = page.getByTestId('add-to-collection');
 		await expect(select.locator('option', { hasText: 'Sommer 2027' })).toHaveCount(1);
 		await select.selectOption({ label: 'Sommer 2027' });
@@ -45,6 +47,7 @@ test('collect routes and a journey, reorder and annotate them', async ({ page })
 	}
 	// Adding twice is refused politely.
 	await page.goto(`/routes/${first}`);
+	await page.getByTestId('route-menu').click();
 	await page.getByTestId('add-to-collection').selectOption({ label: 'Sommer 2027' });
 	await expect(page.getByRole('status')).toHaveText('Schon in «Sommer 2027»');
 
@@ -92,6 +95,7 @@ test('browsing a drop-down with the arrow keys acts only on Enter', async ({ pag
 	}
 
 	await page.goto(`/routes/${route}`);
+	await page.getByTestId('route-menu').click();
 	const select = page.getByTestId('add-to-collection');
 	await expect(select.locator('option')).toHaveCount(3);
 	await select.focus();

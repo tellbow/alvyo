@@ -110,6 +110,9 @@ void main() {
     );
     expect((await api.route(route.id)).description, note);
 
+    // Likes, photos and comments in their tab.
+    await tester.tap(find.byKey(const Key('tab-photos')));
+    await settle(tester);
     await scrollTo(tester, find.byKey(const Key('like')));
     final likes = (await api.social(route.id)).likes;
     final liked = (await api.social(route.id)).liked;
@@ -122,12 +125,12 @@ void main() {
     await settle(tester);
     await tester.enterText(find.byKey(const Key('comment-dialog-text')), note);
     await tester.tap(find.byKey(const Key('comment-dialog-ok')));
-    // The description and the comment, once the dialog has gone.
+    // The comment, once the dialog has gone (the description is on «Übersicht»).
     final shown = find.byWidgetPredicate((w) => w is Text && w.data == note);
-    for (var i = 0; i < 120 && shown.evaluate().length < 2; i++) {
+    for (var i = 0; i < 120 && shown.evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 250));
     }
-    expect(shown, findsNWidgets(2));
+    expect(shown, findsOneWidget);
     final comment = (await api.social(route.id)).comments.lastWhere((c) => c.body == note);
 
     await tester.tap(find.byKey(const Key('item-menu')));

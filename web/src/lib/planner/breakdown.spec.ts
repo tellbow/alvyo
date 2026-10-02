@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { breakdownParts } from './breakdown';
+import { breakdownParts, legendParts } from './breakdown';
 
 describe('breakdownParts', () => {
 	const keys = ['paved', 'gravel', 'unknown'];
@@ -18,5 +18,18 @@ describe('breakdownParts', () => {
 
 	it('keeps a breakdown without an unknown part', () => {
 		expect(breakdownParts({ none: 10 }, ['Wanderweg', 'none'])).toHaveLength(1);
+	});
+});
+
+describe('legendParts', () => {
+	it('keeps the three largest and sums the rest', () => {
+		const parts = [0.05, 0.5, 0.02, 0.3, 0.13].map((share, i) => ({ key: `k${i}`, share }));
+		const { top, other } = legendParts(parts);
+		expect(top.map((p) => p.key)).toEqual(['k1', 'k3', 'k4']);
+		expect(other).toBeCloseTo(0.07);
+	});
+
+	it('has no rest when there are three or fewer', () => {
+		expect(legendParts([{ share: 1 }]).other).toBe(0);
 	});
 });

@@ -1422,8 +1422,26 @@ class AppLocalizationsIt extends AppLocalizations {
   String get poisTitle => 'Lungo il cammino';
 
   @override
-  String poisAll(int count) {
-    return 'Mostra tutti i $count';
+  String get routeTabOverview => 'Panoramica';
+
+  @override
+  String get routeTabTravel => 'Come arrivare';
+
+  @override
+  String get statTime => 'Tempo di marcia';
+
+  @override
+  String get statDistance => 'Distanza';
+
+  @override
+  String get statHeights => 'Dislivello';
+
+  @override
+  String get statSac => 'Difficoltà';
+
+  @override
+  String poisFilterAll(int count) {
+    return 'Tutti $count';
   }
 
   @override
@@ -1440,6 +1458,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get weatherToday => 'Oggi';
+
+  @override
+  String get weatherTomorrow => 'Domani';
 
   @override
   String get weatherDry => 'asciutto';

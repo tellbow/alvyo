@@ -6,7 +6,11 @@
 	// On an iPhone or iPad, a link that opens this route, journey or collection
 	// in the app (its own scheme: universal links need a paid developer
 	// account); the share token rides along.
-	let { kind, id }: { kind: 'routes' | 'journeys' | 'collections'; id: string } = $props();
+	let {
+		kind,
+		id,
+		class: className = 'text-sm text-accent-ink underline'
+	}: { kind: 'routes' | 'journeys' | 'collections'; id: string; class?: string } = $props();
 
 	let ios = $state(false);
 	onMount(() => {
@@ -24,6 +28,5 @@
 {#if ios}
 	<!-- The app's own scheme: resolve() does not apply. -->
 	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-	<a {href} class="text-sm text-accent-ink underline" data-testid="open-in-app">{m.open_in_app()}</a
-	>
+	<a {href} class={className} data-testid="open-in-app">{m.open_in_app()}</a>
 {/if}

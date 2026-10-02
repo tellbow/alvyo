@@ -163,7 +163,10 @@
 			{#if !data.user}{@render signup()}{/if}
 		</div>
 
-		<div class="ml-auto flex items-center gap-2 xl:hidden">
+		<!-- In the header, not over the page: it hid what was below it. -->
+		{#if data.user}<BugReport />{/if}
+
+		<div class="flex items-center gap-2 xl:hidden {data.user ? '' : 'ml-auto'}">
 			{#if !data.user}{@render signup()}{/if}
 			<button
 				type="button"
@@ -216,5 +219,4 @@
 	{/if}
 
 	{@render children()}
-	{#if data.user}<BugReport />{/if}
 </div>

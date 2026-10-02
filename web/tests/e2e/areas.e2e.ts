@@ -39,6 +39,7 @@ test('a route through a wildlife rest area says so, with its rules', async ({ pa
 	await expect(popup).toBeHidden();
 
 	// Along the way: the Reeti (2757 m) right at the start, from OpenStreetMap.
+	await page.getByTestId('tab-along').click();
 	await expect(page.getByTestId('poi').first()).toHaveText(/^\d+\sm\s*Reeti · Gipfel · 2757\sm$/);
 	// Also on the map, with their icons.
 	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /\broute-pois\b/);
@@ -47,6 +48,7 @@ test('a route through a wildlife rest area says so, with its rules', async ({ pa
 
 	// The weather: MeteoSwiss's symbol for today; a date beyond the forecast
 	// has what is usual in its month.
+	await page.getByTestId('tab-overview').click();
 	const weather = page.getByTestId('weather');
 	await expect(weather.getByTestId('weather-icon').first()).toBeVisible({ timeout: 20_000 });
 	const later = new Date(Date.now() + 60 * 864e5).toISOString().slice(0, 10);

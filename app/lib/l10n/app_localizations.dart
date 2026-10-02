@@ -2680,11 +2680,47 @@ abstract class AppLocalizations {
   /// **'Unterwegs'**
   String get poisTitle;
 
-  /// No description provided for @poisAll.
+  /// No description provided for @routeTabOverview.
   ///
   /// In de, this message translates to:
-  /// **'Alle {count} zeigen'**
-  String poisAll(int count);
+  /// **'Übersicht'**
+  String get routeTabOverview;
+
+  /// No description provided for @routeTabTravel.
+  ///
+  /// In de, this message translates to:
+  /// **'Anreise'**
+  String get routeTabTravel;
+
+  /// No description provided for @statTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderzeit'**
+  String get statTime;
+
+  /// No description provided for @statDistance.
+  ///
+  /// In de, this message translates to:
+  /// **'Distanz'**
+  String get statDistance;
+
+  /// No description provided for @statHeights.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenmeter'**
+  String get statHeights;
+
+  /// No description provided for @statSac.
+  ///
+  /// In de, this message translates to:
+  /// **'Schwierigkeit'**
+  String get statSac;
+
+  /// No description provided for @poisFilterAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle {count}'**
+  String poisFilterAll(int count);
 
   /// No description provided for @weatherTitle.
   ///
@@ -2715,6 +2751,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Heute'**
   String get weatherToday;
+
+  /// No description provided for @weatherTomorrow.
+  ///
+  /// In de, this message translates to:
+  /// **'Morgen'**
+  String get weatherTomorrow;
 
   /// No description provided for @weatherDry.
   ///

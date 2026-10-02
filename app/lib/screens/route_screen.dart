@@ -56,6 +56,8 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
       .areas(routeId: widget.id)
       .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
   late final Future<List<Poi>> _pois = widget.api.pois(widget.id).catchError((_) => <Poi>[]);
+  int _poiCount = 0;
+  _Tab _tab = _Tab.overview;
   late final Future<RouteWeather?> _weather = widget.api
       .routeWeather(widget.id)
       .then<RouteWeather?>((w) => w, onError: (_) => null);
@@ -75,6 +77,9 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     });
     // Saving since the screen was open before.
     _downloads.running(widget.id)?.then(_saved).catchError((_) {});
+    _pois.then((p) {
+      if (mounted) setState(() => _poiCount = p.length);
+    });
   }
 
   @override
@@ -315,6 +320,157 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     );
   }
 
+  /// The four numbers, who planned it, and starting the hike.
+  Widget _head(AppLocalizations t, RouteDetail r, SavedPack? pack) {
+    final theme = Theme.of(context);
+    // Four in a row on the narrowest phone: what does not fit shrinks.
+    Widget stat(String label, Widget value) => Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(fit: BoxFit.scaleDown, child: value),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ),
+        ],
+      ),
+    );
+    final strong = theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          key: const Key('route-stats'),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            spacing: 4,
+            children: [
+              stat(t.statTime, Text(formatHikingTime(r.totals.durationS), style: strong)),
+              stat(t.statDistance, Text(formatDistance(r.totals.distanceM), style: strong)),
+              stat(t.statHeights, Text('↑${r.totals.ascentM.round()} ↓${r.totals.descentM.round()}', style: strong)),
+              stat(t.statSac, Text(formatSac(r.totals.sacGrade, r.totals.sacMax), style: strong)),
+            ],
+          ),
+        ),
+        if (!r.isOwner) OwnerLine(api: widget.api, owner: r.owner, open: true),
+        if (r.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(r.tags)],
+        if (r.hikedAt != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            key: const Key('hike-privacy'),
+            r.canEdit
+                ? t.routePrivacyOwner
+                : r.line.length < 2
+                ? t.routePrivacyAll
+                : t.routePrivacyOthers,
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+        if (r.line.length >= 2) ...[
+          const SizedBox(height: 8),
+          ValueListenableBuilder(
+            valueListenable: _downloads.progress(widget.id),
+            builder: (context, progress, _) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FilledButton.icon(
+                  key: const Key('nav-start'),
+                  onPressed: progress == null ? () => _hike(r) : null,
+                  icon: const Icon(Icons.hiking),
+                  label: Text(_resumable ? t.navResume : t.navStart),
+                ),
+                const SizedBox(height: 8),
+                if (progress case final p?) ...[
+                  Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
+                  const SizedBox(height: 4),
+                  LinearProgressIndicator(value: p.share),
+                ] else if (pack != null) ...[
+                  if (_outdated)
+                    FilledButton.icon(
+                      key: const Key('offline-update'),
+                      onPressed: _save,
+                      icon: const Icon(Icons.sync),
+                      label: Text(t.offlineOutdated),
+                    ),
+                  OutlinedButton.icon(
+                    key: const Key('offline-remove'),
+                    onPressed: _remove,
+                    icon: const Icon(Icons.offline_pin),
+                    label: Text(t.offlineSaved),
+                  ),
+                ] else
+                  // Below «Wanderung starten», not as bright.
+                  OutlinedButton.icon(
+                    key: const Key('offline-save'),
+                    onPressed: _save,
+                    icon: const Icon(Icons.download),
+                    label: Text(t.offlineSave),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _tabBar(AppLocalizations t, List<_Tab> tabs) {
+    final theme = Theme.of(context);
+    String label(_Tab tab) => switch (tab) {
+      _Tab.overview => t.routeTabOverview,
+      _Tab.along => '${t.poisTitle} $_poiCount',
+      _Tab.travel => t.routeTabTravel,
+      _Tab.photos => t.photosTitle,
+    };
+    return Material(
+      color: theme.colorScheme.surface,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: theme.dividerColor)),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Row(
+            children: [
+              for (final tab in tabs)
+                InkWell(
+                  key: Key('tab-${tab.name}'),
+                  onTap: () => setState(() => _tab = tab),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: tab == _tab ? theme.colorScheme.primary : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      label(tab),
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: tab == _tab ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant,
+                        fontWeight: tab == _tab ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A tab's content, kept (with what it loaded) while another is shown.
+  Widget _pane(_Tab tab, Widget child) => Visibility(visible: _tab == tab, maintainState: true, child: child);
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -341,6 +497,14 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final r = snap.data!;
           final pack = _pack;
+          final tabs = [
+            _Tab.overview,
+            if (_poiCount > 0) _Tab.along,
+            // A stage's way there and back is its journey's; its photos and
+            // comments are on its journey too.
+            if (r.line.length >= 2 && r.journeyId == null) _Tab.travel,
+            if (r.journeyId == null) _Tab.photos,
+          ];
           return LayoutBuilder(
             builder: (context, body) => Column(
               children: [
@@ -376,113 +540,75 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                     ],
                   ),
                 ),
-                // Many protected areas along a route: the panel scrolls, the map
-                // keeps at least half.
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: body.maxHeight / 2),
-                  child: SingleChildScrollView(
-                    child: SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              '${formatDistance(r.totals.distanceM)} · ${formatHikingTime(r.totals.durationS)} · '
-                              '↑\u00a0${formatHeight(r.totals.ascentM)} ↓\u00a0${formatHeight(r.totals.descentM)} · '
-                              '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            if (!r.isOwner) OwnerLine(api: widget.api, owner: r.owner, open: true),
-                            if (r.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(r.tags)],
-                            if (r.description.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(key: const Key('route-description'), r.description),
-                            ],
-                            if (r.hikedAt != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                key: const Key('hike-privacy'),
-                                r.canEdit
-                                    ? t.routePrivacyOwner
-                                    : r.line.length < 2
-                                    ? t.routePrivacyAll
-                                    : t.routePrivacyOthers,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                            const SizedBox(height: 8),
-                            ElevationProfile.ofLine(r.line),
-                            RouteWeatherView(
-                              _weather,
-                              later: (date) => widget.api
-                                  .routeWeather(widget.id, date: date)
-                                  .then<RouteWeather?>((w) => w, onError: (_) => null),
-                            ),
-                            ProtectedAreas(_areas),
-                            PoiList(_pois),
-                            // A stage's way there and back is its journey's.
-                            if (r.line.length >= 2 && r.journeyId == null)
-                              TravelTiles(
-                                api: widget.api,
-                                ends: routeEnds(r, start: t.travelRouteStart, end: t.travelRouteEnd),
-                                load: () => widget.api.routeTravel(widget.id),
-                                save: (travel) => widget.api.setRouteTravel(widget.id, travel),
-                                pickDay: true,
-                              ),
-                            const SizedBox(height: 8),
-                            if (r.line.length >= 2)
-                              ValueListenableBuilder(
-                                valueListenable: _downloads.progress(widget.id),
-                                builder: (context, progress, _) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    FilledButton.icon(
-                                      key: const Key('nav-start'),
-                                      onPressed: progress == null ? () => _hike(r) : null,
-                                      icon: const Icon(Icons.hiking),
-                                      label: Text(_resumable ? t.navResume : t.navStart),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    if (progress case final p?) ...[
-                                      Text(p.downloading ? t.offlineDownloading : t.offlinePreparing),
-                                      const SizedBox(height: 4),
-                                      LinearProgressIndicator(value: p.share),
-                                    ] else if (pack != null) ...[
-                                      if (_outdated)
-                                        FilledButton.icon(
-                                          key: const Key('offline-update'),
-                                          onPressed: _save,
-                                          icon: const Icon(Icons.sync),
-                                          label: Text(t.offlineOutdated),
-                                        ),
-                                      OutlinedButton.icon(
-                                        key: const Key('offline-remove'),
-                                        onPressed: _remove,
-                                        icon: const Icon(Icons.offline_pin),
-                                        label: Text(t.offlineSaved),
+                // Half the screen, so it keeps its height between the tabs; the
+                // tab bar stays while the rest scrolls.
+                SizedBox(
+                  height: body.maxHeight / 2,
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                        sliver: SliverToBoxAdapter(child: _head(t, r, pack)),
+                      ),
+                      if (tabs.length > 1) SliverPersistentHeader(pinned: true, delegate: _TabBar(_tabBar(t, tabs))),
+                      SliverSafeArea(
+                        top: false,
+                        sliver: SliverPadding(
+                          padding: const EdgeInsets.all(12),
+                          sliver: SliverToBoxAdapter(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Every tab stays built: the map shows what each one loads.
+                                _pane(
+                                  _Tab.overview,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      if (r.description.isNotEmpty) ...[
+                                        Text(key: const Key('route-description'), r.description),
+                                        const SizedBox(height: 8),
+                                      ],
+                                      ElevationProfile.ofLine(r.line),
+                                      ProtectedAreas(_areas),
+                                      RouteWeatherView(
+                                        _weather,
+                                        later: (date) => widget.api
+                                            .routeWeather(widget.id, date: date)
+                                            .then<RouteWeather?>((w) => w, onError: (_) => null),
                                       ),
-                                    ] else
-                                      // Below «Wanderung starten», not as bright.
-                                      OutlinedButton.icon(
-                                        key: const Key('offline-save'),
-                                        onPressed: _save,
-                                        icon: const Icon(Icons.download),
-                                        label: Text(t.offlineSave),
-                                      ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            // A stage's photos and comments are on its journey.
-                            if (r.journeyId == null) ...[
-                              PhotoStrip(api: widget.api, id: r.id),
-                              SocialPanel(api: widget.api, id: r.id),
-                            ],
-                          ],
+                                _pane(_Tab.along, PoiList(_pois)),
+                                if (tabs.contains(_Tab.travel))
+                                  _pane(
+                                    _Tab.travel,
+                                    TravelTiles(
+                                      api: widget.api,
+                                      ends: routeEnds(r, start: t.travelRouteStart, end: t.travelRouteEnd),
+                                      load: () => widget.api.routeTravel(widget.id),
+                                      save: (travel) => widget.api.setRouteTravel(widget.id, travel),
+                                      pickDay: true,
+                                    ),
+                                  ),
+                                if (tabs.contains(_Tab.photos))
+                                  _pane(
+                                    _Tab.photos,
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        PhotoStrip(api: widget.api, id: r.id),
+                                        SocialPanel(api: widget.api, id: r.id),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ],
@@ -492,4 +618,24 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
       ),
     );
   }
+}
+
+enum _Tab { overview, along, travel, photos }
+
+/// The tab bar, pinned to the top of the panel while it scrolls.
+class _TabBar extends SliverPersistentHeaderDelegate {
+  _TabBar(this.child);
+  final Widget child;
+
+  @override
+  double get minExtent => 46;
+
+  @override
+  double get maxExtent => 46;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => SizedBox.expand(child: child);
+
+  @override
+  bool shouldRebuild(_TabBar old) => true;
 }

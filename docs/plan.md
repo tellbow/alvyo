@@ -64,7 +64,7 @@ A `v*` tag builds the images; Flux deploys them
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–37 on 2026-09-28, 38–56 on 2026-09-29, 57 on 2026-10-02.
+21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02.
 
 ### Done
 
@@ -424,8 +424,9 @@ From the project owner, numbered in the order given: 1–5 added on
 40. **A journey's map in the app.** «Karte der Etappentour» shows all stages
     in their colours (those of the website), with the layer menu; below,
     the stages, each opening as a route.
-41. **Reporting a bug.** A tab at the right edge of every page and screen
-    for signed-in people: a description, what is open (the address without
+41. **Reporting a bug.** A button in the website's header (until
+    2026-10-02 a tab at its right edge, over the page) and a tab at the
+    right edge of every app screen, for signed-in people: a description, what is open (the address without
     a share token, or the app's screen and item), the version and a
     screenshot (taken before the dialog opens; maps included on the
     website, empty in the app, where MapLibre draws natively) go to
@@ -502,6 +503,23 @@ From the project owner, numbered in the order given: 1–5 added on
     app's profile: hiking times as 60–200 % of the signposts'
     (`speed_factor`), shown so on the website and in the app (in the app
     before only in planning and while hiking).
+58. **A route's page in tabs.** After a proposal for the sidebar: one
+    main action («Bearbeiten»), beside it GPX, «Merken» (the like, the same
+    as the one with the comments) and «Teilen» (the address, with the share
+    token of an unlisted route; the phone's share sheet where there is one);
+    the sheet to print, collections, versions and deleting in a «⋯» menu.
+    The four numbers in one strip, the way back in the time's tooltip. Below,
+    tabs that stay at the top while the sidebar scrolls: «Übersicht»
+    (description, closures and protected areas, the weather for today,
+    tomorrow or a date picked, and «Wegbeschaffenheit»: trail network,
+    surface and kind of way, a bar only where there is more than one kind,
+    the three largest in per cent, the kilometres behind «Details»; a route
+    off marked trails all the way says so in a warning), «Unterwegs» with
+    its count and a chip per kind, «Anreise» (a connection per line, the
+    chosen one with its legs, three and then «Weitere Verbindungen») and
+    «Fotos» with likes and comments. The sidebar is 384 px wide. The app's
+    route screen has the same numbers and tabs below «Wanderung starten»,
+    its tab bar pinned while the panel scrolls.
 
 ### Open
 

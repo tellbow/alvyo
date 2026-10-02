@@ -1416,8 +1416,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poisTitle => 'Along the way';
 
   @override
-  String poisAll(int count) {
-    return 'Show all $count';
+  String get routeTabOverview => 'Overview';
+
+  @override
+  String get routeTabTravel => 'Getting there';
+
+  @override
+  String get statTime => 'Hiking time';
+
+  @override
+  String get statDistance => 'Distance';
+
+  @override
+  String get statHeights => 'Ascent/descent';
+
+  @override
+  String get statSac => 'Difficulty';
+
+  @override
+  String poisFilterAll(int count) {
+    return 'All $count';
   }
 
   @override
@@ -1434,6 +1452,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherToday => 'Today';
+
+  @override
+  String get weatherTomorrow => 'Tomorrow';
 
   @override
   String get weatherDry => 'dry';

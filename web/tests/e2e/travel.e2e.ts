@@ -151,6 +151,7 @@ test('to a route and back from anywhere, on a day chosen, and on its sheet', asy
 
 	// No home saved: from a place found by the search.
 	await page.goto(`/routes/${route}`);
+	await page.getByTestId('tab-travel').click();
 	const to = page.getByTestId('travel-to');
 	await to.getByTestId('travel-to-home').selectOption({ label: 'Anderer Ort …' });
 	await to.getByRole('combobox', { name: 'Ort, Haltestelle oder Adresse' }).fill('Sargans');
@@ -168,6 +169,7 @@ test('to a route and back from anywhere, on a day chosen, and on its sheet', asy
 
 	// Kept for the route; on its sheet with the day of the sheet.
 	await page.reload();
+	await page.getByTestId('tab-travel').click();
 	await expect(page.getByTestId('travel-to-place')).toContainText('Sargans');
 	await page.goto(`/routes/${route}/sheet`);
 	await page.getByLabel('Tag').fill('2027-07-06');

@@ -32,8 +32,8 @@ List<PoiRow> groupPois(List<Poi> pois, {double withinM = 1000}) {
 }
 
 /// What lies along a route (summits, water, fire places …), in the order they
-/// come, a town's fountains and restaurants each on one line: the first ten
-/// lines, the rest on request. Nothing while loading or offline.
+/// come, a town's fountains and restaurants each on one line; chips above
+/// show one kind only. Nothing while loading or offline.
 class PoiList extends StatefulWidget {
   const PoiList(this.pois, {super.key});
   final Future<List<Poi>> pois;
@@ -43,8 +43,8 @@ class PoiList extends StatefulWidget {
 }
 
 class _PoiListState extends State<PoiList> {
-  static const _first = 10;
-  bool _all = false;
+  /// The kind shown alone; null for all.
+  String? _only;
 
   @override
   Widget build(BuildContext context) {
@@ -53,16 +53,50 @@ class _PoiListState extends State<PoiList> {
     return FutureBuilder(
       future: widget.pois,
       builder: (context, snap) {
-        final rows = groupPois(snap.data ?? const <Poi>[]);
-        if (rows.isEmpty) return const SizedBox.shrink();
-        final shown = _all ? rows : rows.take(_first);
+        final pois = snap.data ?? const <Poi>[];
+        if (pois.isEmpty) return const SizedBox.shrink();
+        final counts = <String, int>{};
+        for (final p in pois) {
+          counts[p.kind] = (counts[p.kind] ?? 0) + 1;
+        }
+        final rows = groupPois(
+          _only == null
+              ? pois
+              : [
+                  for (final p in pois)
+                    if (p.kind == _only) p,
+                ],
+        );
         return Column(
           key: const Key('pois'),
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
-            Text(t.poisTitle, style: theme.textTheme.labelMedium),
-            for (final (:first, :count, :toM) in shown)
+            if (counts.length > 1)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    ChoiceChip(
+                      label: Text(t.poisFilterAll(pois.length)),
+                      selected: _only == null,
+                      onSelected: (_) => setState(() => _only = null),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    for (final MapEntry(key: kind, value: n) in counts.entries)
+                      ChoiceChip(
+                        key: Key('pois-$kind'),
+                        avatar: PoiIcon(kind, size: 16),
+                        label: Text('${placeKindText(t, kind, '')} $n'),
+                        selected: _only == kind,
+                        onSelected: (_) => setState(() => _only = kind),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                  ],
+                ),
+              ),
+            for (final (:first, :count, :toM) in rows)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 1),
                 child: Row(
@@ -82,15 +116,6 @@ class _PoiListState extends State<PoiList> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            if (!_all && rows.length > _first)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  key: const Key('pois-all'),
-                  onPressed: () => setState(() => _all = true),
-                  child: Text(t.poisAll(rows.length)),
                 ),
               ),
           ],

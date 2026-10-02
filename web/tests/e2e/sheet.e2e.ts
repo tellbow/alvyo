@@ -33,6 +33,7 @@ test('a route on a sheet to print: map, profile and numbers, light on paper', as
 	const route = (await res.json()).id as string;
 
 	await page.goto(`/routes/${route}`);
+	await page.getByTestId('route-menu').click();
 	await page.getByTestId('sheet-link').click();
 	await expect(page).toHaveURL(`/routes/${route}/sheet`);
 	await expect(page.getByTestId('sheet-title')).toHaveText('Zum Mitnehmen');

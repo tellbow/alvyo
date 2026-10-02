@@ -104,7 +104,7 @@
 		</div>
 
 		<Breakdowns totals={planner.totals} class="grid grid-cols-3 gap-4 [&>*]:mt-0" />
-		<Pois id={route.id} {token} showAll />
+		<Pois id={route.id} {token} />
 		{@render connections?.()}
 	</article>
 </main>

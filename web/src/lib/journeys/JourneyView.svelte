@@ -42,6 +42,7 @@
 	import JourneyLayers from './JourneyLayers.svelte';
 	import { sbbTimetableUrl } from './sbb';
 	import AddToCollection from '$lib/collections/AddToCollection.svelte';
+	import { Community } from '$lib/community/community.svelte';
 	import Social from '$lib/community/Social.svelte';
 	import { Gallery } from '$lib/photos/gallery.svelte';
 	import PhotoPins from '$lib/photos/PhotoPins.svelte';
@@ -82,6 +83,8 @@
 	let lib = $state<typeof MapLibre>();
 	// svelte-ignore state_referenced_locally
 	const gallery = new Gallery('journeys', initial.id, token);
+	// svelte-ignore state_referenced_locally
+	const community = new Community('journeys', initial.id, token);
 	let hoverIndex = $state<number>();
 	let confirming = $state(false); // deleting the journey
 	let myRoutes = $state<RouteSummary[]>([]);
@@ -605,6 +608,6 @@
 		<OpenInApp kind="journeys" id={journey.id} />
 
 		<Photos {gallery} loggedIn={!!user} />
-		<Social kind="journeys" id={journey.id} {token} {user} />
+		<Social {community} {user} />
 	</aside>
 </main>

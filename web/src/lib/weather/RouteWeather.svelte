@@ -40,49 +40,60 @@
 	});
 
 	const shown = $derived(day ?? dates[0]);
+	// Neither today nor tomorrow: the date picker's.
+	const other = $derived(!!shown && !dates.slice(0, 2).includes(shown));
 	const climate = $derived(weather?.places.find((p) => p.climate)?.climate);
+	const segment = (on: boolean) =>
+		`rounded-md px-2.5 py-1 ${on ? 'bg-surface font-semibold shadow-sm' : 'text-stone-600 hover:text-stone-900'}`;
 	const role = (r: string) =>
 		r === 'start' ? m.weather_start() : r === 'top' ? m.weather_top() : m.weather_end();
 </script>
 
 {#if weather && (dates.length > 0 || climate)}
-	<section class="flex flex-col gap-2 text-sm print:text-xs" data-testid="weather">
-		<h3 class="text-xs font-medium tracking-wide text-stone-500 uppercase">
-			{m.weather_title()}{#if date}, {dayLabel(date)}{/if}
-		</h3>
-		{#if !date}
-			<div class="flex flex-wrap items-center gap-1" role="group" aria-label={m.weather_title()}>
-				{#each dates as d, i (d)}
-					<button
-						type="button"
-						class="rounded-full px-2 py-0.5 text-xs ring-1 ring-stone-300 {d === shown
-							? 'bg-accent text-on-accent ring-0'
-							: 'hover:bg-stone-100'}"
-						aria-pressed={d === shown}
-						onclick={() => (chosen = d)}>{i === 0 ? m.weather_today() : dayLabel(d)}</button
-					>
-				{/each}
-				<label class="flex items-center gap-1 text-xs">
-					<span class="sr-only">{m.weather_other_day()}</span>
-					<input
-						type="date"
-						min={today}
-						max={last}
-						value={shown}
-						class="rounded-full px-2 py-0.5 text-xs ring-1 ring-stone-300 {shown &&
-						!dates.includes(shown)
-							? 'bg-accent text-on-accent ring-0'
-							: ''}"
-						aria-label={m.weather_other_day()}
-						data-testid="weather-date"
-						onchange={(e) => {
-							const v = e.currentTarget.value;
-							if (v >= today) chosen = v;
-						}}
-					/>
-				</label>
-			</div>
-		{/if}
+	<section
+		class="flex flex-col gap-2 rounded-xl border border-stone-200 p-3 text-sm print:border-0 print:p-0 print:text-xs"
+		data-testid="weather"
+	>
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<h3 class="text-xs font-medium tracking-wide text-stone-500 uppercase">
+				{m.weather_title()}{#if date}, {dayLabel(date)}{/if}
+			</h3>
+			{#if !date}
+				<!-- Today, tomorrow or any day up to a year ahead. -->
+				<div
+					class="flex rounded-lg bg-stone-100 p-0.5 text-xs"
+					role="group"
+					aria-label={m.weather_title()}
+				>
+					{#each dates.slice(0, 2) as d, i (d)}
+						<button
+							type="button"
+							class={segment(d === shown)}
+							aria-pressed={d === shown}
+							onclick={() => (chosen = d)}
+							>{i === 0 ? m.weather_today() : m.weather_tomorrow()}</button
+						>
+					{/each}
+					<label class="relative {segment(other)}">
+						{other ? dayLabel(shown!) : m.weather_other_day()}
+						<input
+							type="date"
+							min={today}
+							max={last}
+							value={shown}
+							class="absolute inset-0 cursor-pointer opacity-0"
+							aria-label={m.weather_other_day()}
+							data-testid="weather-date"
+							onclick={(e) => e.currentTarget.showPicker?.()}
+							onchange={(e) => {
+								const v = e.currentTarget.value;
+								if (v >= today) chosen = v;
+							}}
+						/>
+					</label>
+				</div>
+			{/if}
+		</div>
 		<ul class="flex flex-col gap-1.5">
 			{#each weather.places as p (p.roles.join())}
 				{@const forecast = p.days.find((d) => d.date === shown)}

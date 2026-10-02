@@ -199,13 +199,23 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    // Along the way in a tab of its own, with its count; one kind alone by its chip.
+    expect(find.text('1.2\u00a0km · Trinkwasser'), findsNothing);
+    await tester.tap(find.text('Unterwegs 2'));
+    await tester.pump();
     expect(find.text('1.2\u00a0km · Trinkwasser'), findsOneWidget);
     expect(find.text('5.3\u00a0km · Gonzen · Gipfel · 1830\u00a0m'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('pois-peak')));
+    await tester.pump();
+    expect(find.text('1.2\u00a0km · Trinkwasser'), findsNothing);
+    await tester.tap(find.byKey(const Key('tab-overview')));
+    await tester.pump();
     // Closures and areas: a line with how many, the list in a sheet.
     expect(find.text('Sperrungen und Schiessen'), findsOneWidget);
     expect(find.textContaining('Wildruhezone Nummer 0'), findsNothing);
     expect(find.text('8 anzeigen'), findsOneWidget);
     await tester.ensureVisible(find.textContaining('2 anzeigen'));
+    await tester.pump(); // ensureVisible only scrolls
     await tester.tap(find.textContaining('2 anzeigen'));
     await tester.pumpAndSettle();
     expect(find.text('Seewäldli (Wanderweg gesperrt)\nForstarbeiten · 31.8.–30.10.'), findsOneWidget);
@@ -221,8 +231,8 @@ void main() {
     // The weather of today, then of the day chosen.
     expect(find.text('Start · Sargans, 482\u00a0m\n4–19\u00a0°C · trocken'), findsOneWidget);
     expect(find.text('Höchster Punkt, Ziel · Weisstannen, 1004\u00a0m\n4–14\u00a0°C · trocken'), findsOneWidget);
-    await tester.ensureVisible(find.text('Mi., 30.9.'));
-    await tester.tap(find.text('Mi., 30.9.'));
+    await tester.ensureVisible(find.text('Morgen'));
+    await tester.tap(find.text('Morgen'));
     await tester.pump();
     expect(find.text('Start · Sargans, 482\u00a0m\n4–15\u00a0°C · 3.2 mm Niederschlag (0.4–9.8 mm)'), findsOneWidget);
     // Today's symbol as an icon, named.
@@ -250,8 +260,12 @@ void main() {
     // The map keeps at least half of what is left above the keyboard.
     expect(tester.getSize(find.byKey(const Key('map'))).height, greaterThan(150));
     expect(tester.takeException(), isNull);
-    // The buttons are reached by scrolling the panel.
-    await tester.scrollUntilVisible(find.byKey(const Key('nav-start')), 100);
+    // The buttons are at the top of the panel, above the tabs.
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('nav-start')),
+      -100,
+      scrollable: find.descendant(of: find.byType(CustomScrollView), matching: find.byType(Scrollable)).first,
+    );
     expect(find.byKey(const Key('nav-start')), findsOneWidget);
   });
 

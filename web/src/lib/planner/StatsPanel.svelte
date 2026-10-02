@@ -18,33 +18,49 @@
 	} = $props();
 </script>
 
-<dl class="grid grid-cols-2 gap-x-4 gap-y-3" data-testid="route-stats">
-	<div>
+<!-- One strip of the four numbers, the value above its name; the way back
+     in the time's tooltip (on paper below it). -->
+<dl
+	class="grid grid-cols-[repeat(4,auto)] justify-between gap-x-2 rounded-xl bg-stone-100 px-3 py-2.5 text-center"
+	data-testid="route-stats"
+>
+	<div
+		class="flex flex-col"
+		title={m.stat_time_reverse({ time: formatDuration(totals.durationReverseS, pace) })}
+	>
 		<dt class="text-xs text-stone-500">{m.stat_time()}</dt>
-		<dd class="text-xl font-semibold tabular-nums" data-testid="stat-time">
+		<dd class="order-first font-semibold whitespace-nowrap tabular-nums" data-testid="stat-time">
 			{formatDuration(totals.durationS, pace)}
 		</dd>
-		<dd class="text-xs text-stone-500">
+		<dd class="hidden text-xs text-stone-500 print:block">
 			{m.stat_time_reverse({ time: formatDuration(totals.durationReverseS, pace) })}
 		</dd>
 	</div>
-	<div>
+	<div class="flex flex-col">
 		<dt class="text-xs text-stone-500">{m.stat_distance()}</dt>
-		<dd class="text-xl font-semibold tabular-nums" data-testid="stat-distance">
+		<dd
+			class="order-first font-semibold whitespace-nowrap tabular-nums"
+			data-testid="stat-distance"
+		>
 			{formatDistance(totals.distanceM)}
 		</dd>
 	</div>
-	<div>
-		<dt class="text-xs text-stone-500">{m.stat_ascent()} / {m.stat_descent()}</dt>
-		<dd class="font-semibold whitespace-nowrap tabular-nums">
-			↑&nbsp;{formatHeight(totals.ascentM)} ↓&nbsp;{formatHeight(totals.descentM)}
+	<div
+		class="flex flex-col"
+		title="{m.stat_ascent()} {formatHeight(totals.ascentM)} · {m.stat_descent()} {formatHeight(
+			totals.descentM
+		)}"
+	>
+		<dt class="text-xs text-stone-500">{m.stat_heights()}</dt>
+		<dd class="order-first text-sm leading-6 font-semibold whitespace-nowrap tabular-nums">
+			↑{Math.round(totals.ascentM)} ↓{Math.round(totals.descentM)}
 		</dd>
 	</div>
-	<div>
+	<div class="flex flex-col">
 		<dt class="text-xs text-stone-500">{m.stat_sac()}</dt>
-		<dd>
+		<dd class="order-first leading-6">
 			<span
-				class="rounded px-1.5 py-0.5 text-sm font-semibold"
+				class="rounded px-1.5 py-0.5 text-sm font-semibold whitespace-nowrap"
 				style:background={sacBackground(totals.sacGrade)}
 				style:color={sacInk(totals.sacGrade)}
 				data-testid="stat-sac"

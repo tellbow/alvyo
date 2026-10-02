@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:alvyo/api.dart';
+import 'package:alvyo/format.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/screens/collections_screen.dart';
 import 'package:alvyo/screens/photos.dart';
@@ -102,6 +103,26 @@ void main() {
     await _settle(tester);
     expect(server.calls, contains('PATCH /api/v1/me {"notify_comments":true}'));
     expect(tester.widget<SwitchListTile>(find.byKey(const Key('notify-comments'))).value, isTrue);
+  });
+
+  testWidgets('the pace chosen in the profile: saved, and hiking times follow it', (tester) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    addTearDown(() => hikerPace.value = 1);
+    final server = _Server((req) {
+      if (req.method == 'PATCH') return _json({..._me(), ...jsonDecode(req.body) as Map<String, dynamic>});
+      return _json(_me());
+    });
+    await _pump(tester, ProfileTab(api: server.api, onLogout: () {}, settings: AppSettings()));
+    await _settle(tester);
+    await tester.tap(find.byKey(const Key('pace')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('150\u00a0%').last);
+    await _settle(tester);
+    expect(server.calls, contains('PATCH /api/v1/me {"speed_factor":1.5}'));
+    expect(hikerPace.value, 1.5);
+    expect(formatHikingTime(3600), '1\u00a0h 30\u00a0min');
   });
 
   testWidgets('deleting the account asks for the password and says when it is wrong', (tester) async {

@@ -81,7 +81,7 @@ class _JourneyMapScreenState extends State<JourneyMapScreen> {
                     title: Text(s.title.isEmpty ? t.journeyStage(i + 1) : s.title),
                     subtitle: switch (s.totals) {
                       final totals? => Text(
-                        '${formatDistance(totals.distanceM)} · ${formatDuration(totals.durationS)} · '
+                        '${formatDistance(totals.distanceM)} · ${formatHikingTime(totals.durationS)} · '
                         '↑ ${formatHeight(totals.ascentM)}',
                       ),
                       _ => Text(t.journeyNoRoute),

@@ -249,11 +249,15 @@ func TestCommunity(t *testing.T) {
 	}
 
 	// Without notifications, no e-mail.
-	owner.do("PATCH", "/api/v1/me", map[string]any{"notify_comments": false, "locale": "fr"})
+	owner.do("PATCH", "/api/v1/me", map[string]any{"notify_comments": false, "locale": "fr", "speed_factor": 1.2})
 	_, body = owner.do("GET", "/api/v1/me", nil)
 	if !strings.Contains(string(body), `"notify_comments":false`) || !strings.Contains(string(body), `"notify_follows":true`) ||
-		!strings.Contains(string(body), `"locale":"fr"`) {
-		t.Errorf("notification settings: %s", body)
+		!strings.Contains(string(body), `"locale":"fr"`) || !strings.Contains(string(body), `"speed_factor":1.2`) {
+		t.Errorf("settings: %s", body)
+	}
+	// A pace outside what makes sense is refused.
+	if code, _ := owner.do("PATCH", "/api/v1/me", map[string]any{"speed_factor": 5}); code != http.StatusUnprocessableEntity {
+		t.Errorf("pace 5: %d", code)
 	}
 	before = mails()
 	fan.social("POST", j+"/comments?t="+journey.ShareToken, map[string]any{"body": "Noch einer"})

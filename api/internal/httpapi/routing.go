@@ -33,6 +33,20 @@ type legInput struct {
 
 type legOutput struct{ Body routing.Leg }
 
+type alternativesInput struct {
+	Body struct {
+		From    Point  `json:"from"`
+		To      Point  `json:"to"`
+		Profile string `json:"profile,omitempty" enum:"hike,alpine" default:"hike"`
+	}
+}
+
+type alternativesOutput struct {
+	Body struct {
+		Ways [][][2]float64 `json:"ways" doc:"The ways between the two points, the shortest first; [lon, lat] per point"`
+	}
+}
+
 type profile struct {
 	ID     string `json:"id"`
 	MaxSAC int    `json:"max_sac" doc:"Hardest SAC grade the profile routes over"`
@@ -77,17 +91,51 @@ func registerRouting(api huma.API, d Deps) {
 			req.Through = &p
 		}
 		leg, err := d.Router.Leg(ctx, req)
-		switch {
-		case errors.Is(err, routing.ErrPointNotFound), errors.Is(err, routing.ErrOutOfBounds):
-			return nil, huma.Error422UnprocessableEntity("no path near this point")
-		case errors.Is(err, routing.ErrNoConnection):
-			return nil, huma.Error422UnprocessableEntity("no connection between these points with this profile")
-		case errors.Is(err, routing.ErrElevation):
-			slog.WarnContext(ctx, "leg elevation failed", "err", err)
-			return nil, huma.Error503ServiceUnavailable("elevation service unavailable, please retry")
-		case err != nil:
+		if err := legError(ctx, err); err != nil {
 			return nil, err
 		}
 		return &legOutput{Body: leg}, nil
 	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "route-alternatives", Method: http.MethodPost, Path: "/routing/alternatives",
+		Summary:     "The ways between two anchors",
+		Description: "What a leg can be dragged onto: the paths GraphHopper offers, the shortest first. A leg with `through` on one of them takes that one.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *alternativesInput) (*alternativesOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if !d.Limits.LegUser.Allow(u.ID.String()) {
+			return nil, errTooMany
+		}
+		ways, err := d.Router.Alternatives(ctx, in.Body.From.geo(), in.Body.To.geo(), in.Body.Profile)
+		if err := legError(ctx, err); err != nil {
+			return nil, err
+		}
+		out := &alternativesOutput{}
+		out.Body.Ways = make([][][2]float64, len(ways))
+		for i, w := range ways {
+			out.Body.Ways[i] = make([][2]float64, len(w))
+			for j, p := range w {
+				out.Body.Ways[i][j] = [2]float64{p.Lon, p.Lat}
+			}
+		}
+		return out, nil
+	})
+}
+
+// legError is how a routing error is answered; nil without one.
+func legError(ctx context.Context, err error) error {
+	switch {
+	case errors.Is(err, routing.ErrPointNotFound), errors.Is(err, routing.ErrOutOfBounds):
+		return huma.Error422UnprocessableEntity("no path near this point")
+	case errors.Is(err, routing.ErrNoConnection):
+		return huma.Error422UnprocessableEntity("no connection between these points with this profile")
+	case errors.Is(err, routing.ErrElevation):
+		slog.WarnContext(ctx, "leg elevation failed", "err", err)
+		return huma.Error503ServiceUnavailable("elevation service unavailable, please retry")
+	}
+	return err
 }

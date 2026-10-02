@@ -101,6 +101,16 @@ func TestRouteLeg(t *testing.T) {
 	if code, body := c.do("GET", "/api/v1/routing/profiles", nil); code != http.StatusOK {
 		t.Errorf("profiles: %d %s", code, body)
 	}
+
+	// The ways a leg can be dragged onto, as lines; a point without a path: 422.
+	code, body = c.do("POST", "/api/v1/routing/alternatives", legBody(8.0535))
+	var alts struct{ Ways [][][2]float64 }
+	if err := json.Unmarshal(body, &alts); code != http.StatusOK || err != nil || len(alts.Ways) == 0 || len(alts.Ways[0]) < 100 {
+		t.Errorf("alternatives: %d %.200s", code, body)
+	}
+	if code, _ := c.do("POST", "/api/v1/routing/alternatives", legBody(6.5)); code != http.StatusUnprocessableEntity {
+		t.Errorf("alternatives without a path: %d", code)
+	}
 }
 
 func TestRouteTurns(t *testing.T) {

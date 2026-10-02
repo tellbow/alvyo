@@ -1287,7 +1287,7 @@ export interface paths {
         delete: operations["delete-me"];
         options?: never;
         head?: never;
-        /** Change settings: notification e-mails and their language */
+        /** Change settings: notification e-mails, their language and the pace */
         patch: operations["update-me"];
         trace?: never;
     };
@@ -2102,6 +2102,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/routing/alternatives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The ways between two anchors
+         * @description What a leg can be dragged onto: the paths GraphHopper offers, the shortest first. A leg with `through` on one of them takes that one.
+         */
+        post: operations["route-alternatives"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routing/areas": {
         parameters: {
             query?: never;
@@ -2328,6 +2348,19 @@ export interface components {
              * @description Hardest segment, 1–6, 0 unknown
              */
             sac_grade: number;
+        };
+        AlternativesInputBody: {
+            from: components["schemas"]["Point"];
+            /**
+             * @default hike
+             * @enum {string}
+             */
+            profile: "hike" | "alpine";
+            to: components["schemas"]["Point"];
+        };
+        AlternativesOutputBody: {
+            /** @description The ways between the two points, the shortest first; [lon, lat] per point */
+            ways: number[][][];
         };
         Area: {
             /** @description Legally binding; otherwise a recommendation */
@@ -3851,6 +3884,11 @@ export interface components {
             notify_comments?: boolean;
             /** @description E-mail when someone follows me */
             notify_follows?: boolean;
+            /**
+             * Format: double
+             * @description Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)
+             */
+            speed_factor?: number;
         };
         Share: {
             /** Format: date-time */
@@ -9405,6 +9443,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RouteWeatherOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "route-alternatives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlternativesInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlternativesOutputBody"];
                 };
             };
             /** @description Error */

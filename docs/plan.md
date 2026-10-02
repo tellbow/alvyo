@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-09-29.
+Status: 2026-10-02.
 
 ## Goal
 
@@ -63,7 +63,7 @@ A `v*` tag builds the images; Flux deploys them
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–37 on 2026-09-28, 38–56 on 2026-09-29.
+21–37 on 2026-09-28, 38–56 on 2026-09-29, 57 on 2026-10-02.
 
 ### Done
 
@@ -90,10 +90,15 @@ From the project owner, numbered in the order given: 1–5 added on
 9. **Dragging the line: a point, or a different path** (0.5.0). A switch in
    the planner («Beim Ziehen: Zwischenpunkt / anderer Weg», remembered in
    the browser; Alt/⌥ flips it for one drag). «Anderer Weg» keeps the points:
-   the leg takes the GraphHopper alternative passing closest to the release
-   point, or, if none comes within 100 m, the path through it. The point is
-   kept on the leg's end anchor (`through`), drawn as a small dot on the
-   line; a double-click on it gives the shortest path back. GraphHopper 11
+   while the line is dragged, the other ways between them show
+   (`/routing/alternatives`), the one in reach stronger; let go on one, the
+   leg takes it; elsewhere, or without another way, nothing changes and a
+   message says why, and a click on the line adds no point (2026-10-02:
+   before, the leg went through the release point when no way came within
+   100 m, which looked like a new point). The way is kept on the leg's end
+   anchor (`through`, a point where it differs most from the others),
+   drawn as a small dot on the line; a double-click on it gives the
+   shortest path back. GraphHopper 11
    offers alternatives with the CH profiles once its factors are loosened
    (paths up to twice as long, sharing up to 80 %), in about 30 ms.
 10. **Tags** (0.5.0). Routes (recorded hikes included), journeys and
@@ -492,6 +497,10 @@ From the project owner, numbered in the order given: 1–5 added on
 56. **Icons along the way.** Each kind of 48 has its icon (a white shape on
     a disc of its colour, the same on the website and in the app), on the
     map, in the layer menu and in a route's list.
+57. **One's pace chosen.** «Dein Tempo» on the account page and in the
+    app's profile: hiking times as 60–200 % of the signposts'
+    (`speed_factor`), shown so on the website and in the app (in the app
+    before only in planning and while hiking).
 
 ### Open
 

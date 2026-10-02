@@ -740,6 +740,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accountNotifyFollows => 'Quand quelqu\'un me suit';
 
   @override
+  String get accountPace => 'Ton rythme';
+
+  @override
+  String get accountPaceHint =>
+      'Les temps de marche en pourcentage des temps des indicateurs jaunes : en dessous de 100 % tu es plus rapide, au-dessus plus lent.';
+
+  @override
+  String get accountPaceSignposts => '100 % – comme les indicateurs';
+
+  @override
   String get contactsTitle => 'Contacts pour les randonnées partagées';
 
   @override

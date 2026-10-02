@@ -110,9 +110,10 @@ type resolveInput struct {
 
 type settingsInput struct {
 	Body struct {
-		NotifyComments *bool   `json:"notify_comments,omitempty" doc:"E-mail on comments on my routes and journeys"`
-		NotifyFollows  *bool   `json:"notify_follows,omitempty" doc:"E-mail when someone follows me"`
-		Locale         *string `json:"locale,omitempty" enum:"de,en,fr,it" doc:"Language of e-mails"`
+		NotifyComments *bool    `json:"notify_comments,omitempty" doc:"E-mail on comments on my routes and journeys"`
+		NotifyFollows  *bool    `json:"notify_follows,omitempty" doc:"E-mail when someone follows me"`
+		Locale         *string  `json:"locale,omitempty" enum:"de,en,fr,it" doc:"Language of e-mails"`
+		SpeedFactor    *float64 `json:"speed_factor,omitempty" minimum:"0.3" maximum:"3" doc:"Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)"`
 	}
 }
 
@@ -196,14 +197,14 @@ func registerCommunity(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "update-me", Method: http.MethodPatch, Path: "/me",
-		Summary: "Change settings: notification e-mails and their language", Tags: []string{"me"},
+		Summary: "Change settings: notification e-mails, their language and the pace", Tags: []string{"me"},
 	}, func(ctx context.Context, in *settingsInput) (*meOutput, error) {
 		u, err := requireUser(ctx)
 		if err != nil {
 			return nil, err
 		}
 		b := in.Body
-		if err := d.Community.SetSettings(ctx, u.ID, b.NotifyComments, b.NotifyFollows, b.Locale); err != nil {
+		if err := d.Community.SetSettings(ctx, u.ID, b.NotifyComments, b.NotifyFollows, b.Locale, b.SpeedFactor); err != nil {
 			return nil, err
 		}
 		if u, err = dbq.New(d.DB).GetUserByID(ctx, u.ID); err != nil {

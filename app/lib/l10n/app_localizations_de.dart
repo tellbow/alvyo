@@ -741,6 +741,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accountNotifyFollows => 'Wenn mir jemand folgt';
 
   @override
+  String get accountPace => 'Dein Tempo';
+
+  @override
+  String get accountPaceHint =>
+      'Wanderzeiten in Prozent der Zeiten auf den gelben Wegweisern: unter 100 % bist du schneller, darüber langsamer.';
+
+  @override
+  String get accountPaceSignposts => '100 % – wie die Wegweiser';
+
+  @override
   String get contactsTitle => 'Kontakte für geteilte Wanderungen';
 
   @override

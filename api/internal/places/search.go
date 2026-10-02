@@ -29,57 +29,76 @@ const (
 	sameWithinM = 500 // one place found in both sources, or twice
 )
 
-// Search finds places by name: our stops, huts and accommodation first (the
-// nearest to near among equally good matches), then swisstopo's names
-// without those that repeat a place already found. When swisstopo cannot be
-// reached, only our places are returned.
+// Search finds places by name: those named exactly so first (ours, then
+// swisstopo's; for a text with a house number its addresses), then our stops, huts and accommodation (the nearest to near
+// among equally good matches), then swisstopo's other names; without those
+// that repeat a place already found. When swisstopo cannot be reached, only
+// our places are returned.
 func (s *Store) Search(ctx context.Context, text string, near [2]float64, lang string) ([]Found, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT kind, name, detail, ST_X(geom), ST_Y(geom) FROM places
 		WHERE $1 <% name
-		ORDER BY word_similarity($1, name) DESC, geom <-> ST_SetSRID(ST_MakePoint($2, $3), 4326), length(name)
+		ORDER BY lower(name) = lower($1) DESC, word_similarity($1, name) DESC,
+			geom <-> ST_SetSRID(ST_MakePoint($2, $3), 4326), length(name)
 		LIMIT $4`, text, near[0], near[1], searchOurs)
 	if err != nil {
 		return nil, fmt.Errorf("places: search: %w", err)
 	}
 	defer rows.Close()
-	out := []Found{}
+	var ours []Found
 	for rows.Next() {
 		var f Found
 		if err := rows.Scan(&f.Kind, &f.Name, &f.Detail, &f.At[0], &f.At[1]); err != nil {
 			return nil, err
 		}
-		out = append(out, f)
+		ours = append(ours, f)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	if s.Names == nil {
-		return out, nil
-	}
-	names, err := s.Names.Search(ctx, text, lang)
-	if err != nil {
-		slog.WarnContext(ctx, "place search without swisstopo names", "err", err)
-		return out, nil
-	}
-	for _, n := range names {
-		if len(out) == searchTotal {
-			break
-		}
-		if !repeats(out, n) {
-			out = append(out, n)
+	var names []Found
+	if s.Names != nil {
+		if names, err = s.Names.Search(ctx, text, lang); err != nil {
+			slog.WarnContext(ctx, "place search without swisstopo names", "err", err)
+			names = nil
 		}
 	}
+	// With a house number, an address is what is meant.
+	number := strings.ContainsAny(text, "0123456789")
+	exact := func(f Found) bool {
+		return strings.EqualFold(strings.TrimSpace(f.Name), strings.TrimSpace(text)) || (number && f.Kind == "address")
+	}
+	out := []Found{}
+	add := func(list []Found, wanted bool, check bool) {
+		for _, f := range list {
+			if len(out) == searchTotal {
+				return
+			}
+			if exact(f) != wanted || (check && repeats(out, f, exact(f))) {
+				continue
+			}
+			out = append(out, f)
+		}
+	}
+	add(ours, true, false)
+	add(names, true, true)
+	add(ours, false, false)
+	add(names, false, true)
 	return out, nil
 }
 
 // repeats reports whether f names a place already in found: one name
-// contains the other and they are close.
-func repeats(found []Found, f Found) bool {
+// contains the other and they are close. A name just as searched only
+// repeats the same name: the pass is not the inn named after it.
+func repeats(found []Found, f Found, exact bool) bool {
 	name := strings.ToLower(f.Name)
 	for _, o := range found {
 		other := strings.ToLower(o.Name)
-		if (strings.Contains(name, other) || strings.Contains(other, name)) && distanceM(o.At, f.At) < sameWithinM {
+		same := name == other
+		if !exact {
+			same = strings.Contains(name, other) || strings.Contains(other, name)
+		}
+		if same && distanceM(o.At, f.At) < sameWithinM {
 			return true
 		}
 	}

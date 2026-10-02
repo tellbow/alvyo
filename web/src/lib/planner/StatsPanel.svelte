@@ -1,34 +1,21 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages';
-	import BreakdownBar from './BreakdownBar.svelte';
-	import { SURFACE_COLOR, TRAIL_COLOR, WAY_COLOR, sacBackground, sacInk } from './colors';
+	import Breakdowns from './Breakdowns.svelte';
+	import { sacBackground, sacInk } from './colors';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Totals } from './route';
 
 	let {
 		totals,
 		unofficialM = 0,
-		pace = 1
-	}: { totals: Totals; unofficialM?: number; pace?: number } = $props();
-
-	const trailLabels = {
-		Wanderweg: m.trail_Wanderweg,
-		Bergwanderweg: m.trail_Bergwanderweg,
-		Alpinwanderweg: m.trail_Alpinwanderweg,
-		none: m.trail_none
-	};
-	const surfaceLabels = {
-		paved: m.surface_paved,
-		gravel: m.surface_gravel,
-		natural: m.surface_natural,
-		unknown: m.surface_unknown
-	};
-	const wayLabels = {
-		road: m.way_road,
-		track: m.way_track,
-		path: m.way_path,
-		steps: m.way_steps,
-		unknown: m.way_unknown
-	};
+		pace = 1,
+		breakdown = true
+	}: {
+		totals: Totals;
+		unofficialM?: number;
+		pace?: number;
+		/** the bars of trails, surfaces and ways below; else placed apart */
+		breakdown?: boolean;
+	} = $props();
 </script>
 
 <dl class="grid grid-cols-2 gap-x-4 gap-y-3" data-testid="route-stats">
@@ -73,23 +60,4 @@
 	</p>
 {/if}
 
-<BreakdownBar
-	title={m.breakdown_trail()}
-	values={totals.trails}
-	colors={TRAIL_COLOR}
-	labels={trailLabels}
-/>
-<BreakdownBar
-	title={m.breakdown_surface()}
-	values={totals.surfaces}
-	colors={SURFACE_COLOR}
-	labels={surfaceLabels}
-	unknown="unknown"
-/>
-<BreakdownBar
-	title={m.breakdown_way()}
-	values={totals.wayTypes}
-	colors={WAY_COLOR}
-	labels={wayLabels}
-	unknown="unknown"
-/>
+{#if breakdown}<Breakdowns {totals} />{/if}

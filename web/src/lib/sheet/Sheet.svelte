@@ -6,6 +6,7 @@
 	import ElevationProfile from '$lib/planner/ElevationProfile.svelte';
 	import { Planner } from '$lib/planner/planner.svelte';
 	import type { Profile } from '$lib/planner/route';
+	import Breakdowns from '$lib/planner/Breakdowns.svelte';
 	import StatsPanel from '$lib/planner/StatsPanel.svelte';
 	import { intlLocale } from '$lib/util/locale';
 	import RouteWeather from '$lib/weather/RouteWeather.svelte';
@@ -61,7 +62,7 @@
 
 <main class="min-h-0 flex-1 overflow-y-auto bg-surface print:overflow-visible">
 	<article
-		class="mx-auto flex max-w-[190mm] flex-col gap-4 p-4 text-sm [print-color-adjust:exact] print:p-0"
+		class="mx-auto flex max-w-[190mm] flex-col gap-4 p-4 text-sm [print-color-adjust:exact] print:gap-2 print:p-0 print:text-xs"
 		data-testid="sheet"
 	>
 		<div class="flex flex-wrap items-center gap-3 print:hidden">
@@ -91,18 +92,18 @@
 		</header>
 
 		<SheetMap line={planner.line.coordinates} />
-		<div class="break-inside-avoid"><ElevationProfile line={planner.line} /></div>
+		<div class="break-inside-avoid"><ElevationProfile line={planner.line} height={80} /></div>
 
-		<div class="grid gap-6 sm:grid-cols-2 print:grid-cols-2">
+		<!-- On paper the numbers, places and weather side by side. -->
+		<div class="grid gap-6 sm:grid-cols-2 print:grid-cols-3 print:gap-4">
 			<div class="flex flex-col gap-3">
-				<StatsPanel totals={planner.totals} pace={user?.speed_factor ?? 1} />
+				<StatsPanel totals={planner.totals} pace={user?.speed_factor ?? 1} breakdown={false} />
 			</div>
-			<div class="flex flex-col gap-4">
-				{@render places?.()}
-				<RouteWeather id={route.id} {token} {date} />
-			</div>
+			{#if places}<div class="flex flex-col gap-4">{@render places()}</div>{/if}
+			<RouteWeather id={route.id} {token} {date} />
 		</div>
 
+		<Breakdowns totals={planner.totals} class="grid grid-cols-3 gap-4 [&>*]:mt-0" />
 		<Pois id={route.id} {token} showAll />
 		{@render connections?.()}
 	</article>

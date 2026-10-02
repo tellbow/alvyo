@@ -245,11 +245,12 @@ func (s *Store) DeleteComment(ctx context.Context, t Target, id uuid.UUID, v Vie
 	return ErrNotFound
 }
 
-// SetSettings changes which notification e-mails user gets and the language
-// of e-mails (nil: keep).
-func (s *Store) SetSettings(ctx context.Context, user uuid.UUID, comments, follows *bool, locale *string) error {
+// SetSettings changes which notification e-mails user gets, the language
+// of e-mails and the pace (nil: keep).
+func (s *Store) SetSettings(ctx context.Context, user uuid.UUID, comments, follows *bool, locale *string, pace *float64) error {
 	_, err := s.DB.Exec(ctx, `UPDATE users SET notify_comments = coalesce($2, notify_comments),
-		notify_follows = coalesce($3, notify_follows), locale = coalesce($4, locale) WHERE id = $1`,
-		user, comments, follows, locale)
+		notify_follows = coalesce($3, notify_follows), locale = coalesce($4, locale),
+		speed_factor = coalesce($5, speed_factor) WHERE id = $1`,
+		user, comments, follows, locale, pace)
 	return err
 }

@@ -60,6 +60,16 @@
 		}
 	}
 
+	// A message over the map for a few seconds, e.g. that there is no other way.
+	let notice = $state('');
+	let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+	function notify(text: string) {
+		notice = text;
+		clearTimeout(noticeTimer);
+		noticeTimer = setTimeout(() => (notice = ''), 5000);
+	}
+	const dragHint = () => notify(m.plan_drag_click());
+
 	const planner = new Planner(fetchLeg);
 	// svelte-ignore state_referenced_locally
 	if (route)
@@ -139,10 +149,25 @@
 			const hit = m.queryRenderedFeatures(e.point, {
 				layers: ROUTE_LINES.filter((id) => m.getLayer(id))
 			})[0];
-			if (hit) planner.insert(Number(hit.properties.leg) + 1, e.lngLat.lng, e.lngLat.lat);
-			else planner.add(e.lngLat.lng, e.lngLat.lat);
+			if (!hit) planner.add(e.lngLat.lng, e.lngLat.lat);
+			// Set to another way, a click adds no point: dragging moves the leg.
+			else if (dragPath !== e.originalEvent.altKey) dragHint();
+			else planner.insert(Number(hit.properties.leg) + 1, e.lngLat.lng, e.lngLat.lat);
 		});
 		m.doubleClickZoom.disable(); // double-click removes anchors
+		// A saved route opens with the map on it, not where the map was last.
+		const coords = route ? planner.line.coordinates : [];
+		if (coords.length > 0) {
+			const bounds = coords.reduce(
+				(b, c) => b.extend([c[0], c[1]]),
+				new l.LngLatBounds([coords[0][0], coords[0][1]], [coords[0][0], coords[0][1]])
+			);
+			m.fitBounds(bounds, {
+				padding: { top: 60, bottom: 200, left: 60, right: 60 },
+				maxZoom: 16,
+				duration: 0
+			});
+		}
 	}
 
 	function center(): [number, number] | undefined {
@@ -207,7 +232,16 @@
 		/>
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
-			<RouteLayers {map} {lib} {planner} {hover} {ghosts} {dragPath} />
+			<RouteLayers {map} {lib} {planner} {hover} {ghosts} {dragPath} onnotice={notify} />
+		{/if}
+		{#if notice}
+			<p
+				role="status"
+				class="pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-md bg-stone-900/85 px-3 py-2 text-sm text-white shadow"
+				data-testid="map-notice"
+			>
+				{notice}
+			</p>
 		{/if}
 		{#if planner.line.coordinates.length > 1}
 			<ProfileDock>

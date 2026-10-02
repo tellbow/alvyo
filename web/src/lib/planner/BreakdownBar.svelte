@@ -21,7 +21,7 @@
 </script>
 
 {#if parts.length > 0}
-	<section class="mt-4">
+	<section class="mt-4 print:mt-2">
 		<h3 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">{title}</h3>
 		<div class="flex h-2.5 overflow-hidden rounded-full bg-stone-100">
 			{#each parts as p (p.key)}

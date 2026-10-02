@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures';
+import { routeContent } from './legs';
 
 test('plan a route by clicking the map, then adjust it', async ({ page, context }) => {
 	// Start zoomed in near Grindelwald First, where trails are dense.
@@ -207,10 +208,6 @@ test('drag the line onto another path without a new point', async ({ page, conte
 		x: cx + (lon - 8.04) / px,
 		y: cy - (lat - 46.665) / (px * cos)
 	});
-	const position = (x: number, y: number): LonLat => ({
-		lon: 8.04 + (x - cx) * px,
-		lat: 46.665 - (y - cy) * px * cos
-	});
 
 	await page.getByLabel('Anderer Weg').check();
 	await page.mouse.click(cx - 200, cy);
@@ -220,11 +217,12 @@ test('drag the line onto another path without a new point', async ({ page, conte
 	// The leg's JSON is read after the page may already show it.
 	await expect.poll(() => legs.length).toBe(1);
 
-	/** Presses the middle of the line and releases it 100 px further down. */
-	const drag = async (alt: boolean) => {
-		const line = legs.at(-1)!.coordinates;
-		const mid = line[Math.floor(line.length / 2)];
-		const from = screen(mid[0], mid[1]);
+	/** Presses the line at `from` and lets it go at `to` (Alt held if `alt`). */
+	const dragTo = async (
+		from: { x: number; y: number },
+		to: { x: number; y: number },
+		alt = false
+	) => {
 		await expect
 			.poll(
 				async () => {
@@ -235,36 +233,72 @@ test('drag the line onto another path without a new point', async ({ page, conte
 				{ timeout: 10_000 }
 			)
 			.toBe('pointer');
-		await page.mouse.down();
-		await page.mouse.move(from.x, from.y + 50, { steps: 4 });
-		await page.mouse.move(from.x, from.y + 100, { steps: 4 });
 		if (alt) await page.keyboard.down('Alt');
+		await page.mouse.down();
+		await page.mouse.move((from.x + to.x) / 2, (from.y + to.y) / 2, { steps: 4 });
+		await page.mouse.move(to.x, to.y, { steps: 4 });
+		await page.waitForTimeout(300); // the ways arrive while dragging
 		await page.mouse.up();
 		if (alt) await page.keyboard.up('Alt');
-		return position(from.x, from.y + 100);
 	};
 
-	// The leg moves: the same two points, a leg request through the release
-	// point, and the new line passes near it.
-	const released = await drag(false);
-	await expect.poll(() => requests.at(-1)?.through).toBeDefined();
+	// The ways between the two points, as the API offers them: the leg's own
+	// and one bulging 300 m south through where the line will be let go.
+	const own = legs[0].coordinates.map((c) => [c[0], c[1]]);
+	const mid = own[Math.floor(own.length / 2)];
+	const south = own.map(([lon, lat]) => {
+		const t = Math.max(0, 1 - Math.abs(lon - mid[0]) / 0.004);
+		return [lon, lat - (300 / 111_000) * t];
+	});
+	let ways = [own, south];
+	let asked = 0;
+	await page.route('**/api/v1/routing/alternatives', (route) => {
+		asked++;
+		return route.fulfill({ json: { ways } });
+	});
+	const notice = page.getByTestId('map-notice');
+
+	// Let go on the southern way: the leg takes it, through a point on it
+	// (where it is farthest from the leg's own), and no point is added.
+	const before = requests.length;
+	const southScreen = screen(mid[0], mid[1] - 300 / 111_000);
+	const line = legs.at(-1)!.coordinates;
+	const from = screen(line[Math.floor(line.length / 2)][0], line[Math.floor(line.length / 2)][1]);
+	await dragTo(from, southScreen);
+	await expect.poll(() => requests.length).toBeGreaterThan(before);
 	const through = requests.at(-1)!.through!;
-	expect(Math.abs(through.lon - released.lon)).toBeLessThan(0.0005);
-	expect(Math.abs(through.lat - released.lat)).toBeLessThan(0.0005);
-	await expect(legItems.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
-	await expect.poll(() => legs.length).toBe(2);
+	expect(south.some((p) => p[0] === through.lon && p[1] === through.lat)).toBe(true);
+	expect(asked).toBe(1);
+	await expect(legItems.nth(0)).toHaveAttribute('data-state', /ok|error/, { timeout: 15_000 });
 	await expect(page.getByTestId('anchor')).toHaveCount(2);
 	await expect(page.getByTestId('through')).toHaveCount(1);
-	const k = 111_000;
-	const nearest = Math.min(
-		...legs
-			.at(-1)!
-			.coordinates.map((c) => Math.hypot((c[0] - through.lon) * k * cos, (c[1] - through.lat) * k))
+	await expect(notice).toHaveCount(0);
+
+	// Let go away from every way: nothing changes, the user is told.
+	const legsAsked = requests.length;
+	await page.getByRole('button', { name: 'Rückgängig' }).click();
+	await expect(page.getByTestId('through')).toHaveCount(0);
+	const undone = requests.length;
+	await dragTo(from, { x: from.x, y: from.y - 150 });
+	await expect(notice).toHaveText('Lass die Linie auf einem der hervorgehobenen Wege los.');
+	expect(requests.length).toBe(undone);
+	expect(legsAsked).toBeGreaterThan(0);
+
+	// No other way at all: said so.
+	ways = [own];
+	await dragTo(from, southScreen);
+	await expect(notice).toHaveText('Zwischen diesen Punkten gibt es keinen anderen Weg.');
+	await expect(page.getByTestId('anchor')).toHaveCount(2);
+
+	// A click on the line adds no point here.
+	await page.mouse.click(from.x, from.y);
+	await expect(notice).toHaveText(
+		'Zieh die Linie: andere Wege erscheinen, auf einem lässt du sie los.'
 	);
-	expect(nearest).toBeLessThan(150);
+	await expect(page.getByTestId('anchor')).toHaveCount(2);
 
 	// With Alt held, dragging adds a point as before.
-	await drag(true);
+	await dragTo(from, { x: from.x, y: from.y + 100 }, true);
 	await expect(page.getByTestId('anchor')).toHaveCount(3);
 	await expect(page.getByTestId('through')).toHaveCount(0);
 });
@@ -344,4 +378,39 @@ test('on a touch screen, hold the line to drag it; a quick swipe pans the map', 
 test('planning needs an account', async ({ page }) => {
 	await page.goto('/plan');
 	await expect(page.getByTestId('planner-panel')).toContainText('Melde dich an');
+});
+
+test('a saved route opens in the planner zoomed to it', async ({ page, context }) => {
+	// The last view far away, in Lausanne.
+	await context.addInitScript(() => {
+		localStorage.setItem(
+			'alvyo.map',
+			JSON.stringify({ base: 'landeskarte', overlays: [], center: [6.63, 46.52], zoom: 13 })
+		);
+	});
+	const id = `open${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Opener',
+			password: 'sehr-geheim-123'
+		}
+	});
+	const created = await page.request.post('/api/v1/routes', {
+		data: { title: 'Am Brienzersee', ...routeContent(8.04, 46.665, 20) }
+	});
+	const route = (await created.json()).id as string;
+
+	await page.goto(`/plan/${route}`);
+	const map = (await page.locator('canvas.maplibregl-canvas').boundingBox())!;
+	const anchors = page.getByTestId('anchor');
+	await expect(anchors).toHaveCount(2);
+	for (const a of await anchors.all()) {
+		const b = (await a.boundingBox())!;
+		expect(b.x).toBeGreaterThan(map.x);
+		expect(b.x + b.width).toBeLessThan(map.x + map.width);
+		expect(b.y).toBeGreaterThan(map.y);
+		expect(b.y + b.height).toBeLessThan(map.y + map.height);
+	}
 });

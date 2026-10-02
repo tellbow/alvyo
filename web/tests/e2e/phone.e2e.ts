@@ -34,6 +34,24 @@ test('on a phone no page is wider than the screen, and the menu leads on', async
 		expect(await wide(), path).toBeLessThanOrEqual(390);
 	}
 
+	// Not even while a route loads (the elevation profile before it measured
+	// its width): the widest of every frame.
+	await page.addInitScript(() => {
+		const w = window as unknown as { widest: number };
+		w.widest = 0;
+		const frame = () => {
+			w.widest = Math.max(w.widest, document.documentElement?.scrollWidth ?? 0);
+			requestAnimationFrame(frame);
+		};
+		requestAnimationFrame(frame);
+	});
+	await page.goto(`/routes/${route}`);
+	await expect(page.getByTestId('route-stats')).toBeVisible();
+	await page.waitForTimeout(1000);
+	expect(
+		await page.evaluate(() => (window as unknown as { widest: number }).widest)
+	).toBeLessThanOrEqual(390);
+
 	// The map above, the panel below.
 	const map = (await page.getByTestId('map').boundingBox())!;
 	expect(map.width).toBeGreaterThan(380);

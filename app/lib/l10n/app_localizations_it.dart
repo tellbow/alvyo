@@ -739,6 +739,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accountNotifyFollows => 'Quando qualcuno mi segue';
 
   @override
+  String get accountPace => 'Il tuo ritmo';
+
+  @override
+  String get accountPaceHint =>
+      'I tempi di cammino in percentuale dei tempi dei cartelli gialli: sotto il 100 % sei più veloce, sopra più lento.';
+
+  @override
+  String get accountPaceSignposts => '100 % – come i cartelli';
+
+  @override
   String get contactsTitle => 'Contatti per le escursioni condivise';
 
   @override

@@ -738,6 +738,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountNotifyFollows => 'When someone follows me';
 
   @override
+  String get accountPace => 'Your pace';
+
+  @override
+  String get accountPaceHint =>
+      'Hiking times as a percentage of the times on the yellow signposts: below 100 % you are faster, above it slower.';
+
+  @override
+  String get accountPaceSignposts => '100 % – as the signposts';
+
+  @override
   String get contactsTitle => 'Contacts for shared hikes';
 
   @override

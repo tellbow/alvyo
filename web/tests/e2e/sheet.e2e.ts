@@ -1,5 +1,12 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from './fixtures';
-import { routeContent } from './legs';
+import { leg, routeContent } from './legs';
+
+// Sargans – Weisstannen, every eighth point: through a town with many
+// fountains and restaurants along the way.
+const sargansWeisstannen: number[][] = JSON.parse(
+	readFileSync(new URL('files/sargans-weisstannen.json', import.meta.url), 'utf8')
+);
 
 async function signup(page: import('@playwright/test').Page, prefix: string) {
 	const id = `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
@@ -116,4 +123,76 @@ test('a stage on a sheet: its day, places and the transfer by public transport',
 	// Another day: the connections of that day.
 	await page.getByLabel('Tag').fill('2027-07-06');
 	await expect.poll(() => asked?.searchParams.get('date')).toBe('2027-07-06');
+});
+
+test('a real stage through a town on one A4 page', async ({ page, browserName }) => {
+	test.skip(browserName !== 'chromium', 'only Chromium prints to PDF');
+	await signup(page, 'onepage');
+	const journeyId = (
+		await (
+			await page.request.post('/api/v1/journeys', {
+				data: { title: 'Via Alpina', visibility: 'private' }
+			})
+		).json()
+	).id as string;
+	const api = `/api/v1/journeys/${journeyId}`;
+	await page.request.post(`${api}/stages`, { data: {} });
+	const two = await (await page.request.post(`${api}/stages`, { data: {} })).json();
+	const [s1, s2] = two.stage_list.map((s: { id: string }) => s.id);
+	const line = sargansWeisstannen;
+	// The stage before ends at the station where this one starts.
+	await page.request.post(`${api}/stages/${s1}/route`, {
+		data: routeContent(line[0][0] - 0.002, line[0][1])
+	});
+	const end = line[line.length - 1];
+	await page.request.post(`${api}/stages/${s2}/route`, {
+		data: {
+			profile: 'hike',
+			anchors: [
+				{ lon: line[0][0], lat: line[0][1] },
+				{ lon: end[0], lat: end[1] }
+			],
+			legs: [leg(line)]
+		}
+	});
+	const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+	const patched = await page.request.patch(`${api}/stages/${s2}`, {
+		headers: { 'If-Match': `"${two.stage_list[1].version}"` },
+		data: {
+			title: 'Sargans – Weisstannen',
+			transfer_before: 'pt',
+			planned_date: tomorrow,
+			accommodation: 'Gasthaus Alpenhof, Weisstannen',
+			notes: 'Proviant in Sargans kaufen.'
+		}
+	});
+	expect(patched.status()).toBe(200);
+	const trip = (h: number) => ({
+		start: `${tomorrow}T0${h}:05:00Z`,
+		end: `${tomorrow}T0${h + 1}:40:00Z`,
+		transfers: 1,
+		legs: [
+			['S12', 'Buchs SG', 'Sargans', 'E'],
+			['B 441', 'Sargans, Bahnhof', 'Weisstannen, Oberdorf', 'C']
+		].map(([line, from, to, platform], i) => ({
+			kind: 'ride',
+			mode: i ? 'bus' : 'train',
+			line,
+			from,
+			to,
+			departure: `${tomorrow}T0${h}:${i ? 45 : '05'}:00Z`,
+			arrival: `${tomorrow}T0${h}:${i ? 59 : 40}:00Z`,
+			platform
+		}))
+	});
+	await page.route('**/api/v1/connections?**', (route) =>
+		route.fulfill({ json: { trips: [trip(5), trip(6), trip(7)] } })
+	);
+
+	await page.goto(`/journeys/${journeyId}/stages/${s2}/sheet`);
+	await expect(page.getByTestId('sheet-map')).toBeVisible({ timeout: 20_000 });
+	await expect(page.getByTestId('sheet-trips')).toBeVisible();
+	await expect(page.getByTestId('pois')).toBeVisible();
+	const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+	expect(pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g)).toHaveLength(1);
 });

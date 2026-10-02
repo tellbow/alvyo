@@ -389,7 +389,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
+                              '${formatDistance(r.totals.distanceM)} · ${formatHikingTime(r.totals.durationS)} · '
                               '↑\u00a0${formatHeight(r.totals.ascentM)} ↓\u00a0${formatHeight(r.totals.descentM)} · '
                               '${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
                               style: Theme.of(context).textTheme.titleMedium,

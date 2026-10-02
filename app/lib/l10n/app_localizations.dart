@@ -1414,6 +1414,24 @@ abstract class AppLocalizations {
   /// **'Wenn mir jemand folgt'**
   String get accountNotifyFollows;
 
+  /// No description provided for @accountPace.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Tempo'**
+  String get accountPace;
+
+  /// No description provided for @accountPaceHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderzeiten in Prozent der Zeiten auf den gelben Wegweisern: unter 100 % bist du schneller, darüber langsamer.'**
+  String get accountPaceHint;
+
+  /// No description provided for @accountPaceSignposts.
+  ///
+  /// In de, this message translates to:
+  /// **'100 % – wie die Wegweiser'**
+  String get accountPaceSignposts;
+
   /// No description provided for @contactsTitle.
   ///
   /// In de, this message translates to:

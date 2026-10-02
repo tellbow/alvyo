@@ -207,9 +207,27 @@ const (
 	alpineSavedM = 1000
 )
 
+// Alternatives returns the ways GraphHopper offers between from and to, the
+// best first: where a leg can be dragged to. A leg with Through on one of
+// them takes that one.
+func (r *Router) Alternatives(ctx context.Context, from, to geo.Point, profile string) ([][]geo.Point, error) {
+	alts, err := r.GraphHopper.routes(ctx, []geo.Point{from, to}, profile, alternatives)
+	if err != nil {
+		return nil, err
+	}
+	out := make([][]geo.Point, 0, len(alts))
+	for _, a := range alts {
+		if len(a.Points) > 1 {
+			out = append(out, a.Points)
+		}
+	}
+	return out, nil
+}
+
 // routeThrough takes the one of GraphHopper's alternatives that passes
-// closest to req.Through, if one comes within throughM; otherwise the path
-// through the point itself, which then shapes the leg.
+// closest to req.Through, if one comes within throughM; otherwise (a leg
+// shaped so before the planner offered only the alternatives) the path
+// through the point itself.
 func (r *Router) routeThrough(ctx context.Context, req LegRequest) (ghRoute, error) {
 	alts, err := r.GraphHopper.routes(ctx, []geo.Point{req.From, req.To}, req.Profile, alternatives)
 	if err != nil {

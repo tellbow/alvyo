@@ -345,7 +345,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                     children: [
                       Text(
                         '${t.journeyStagesCount(j.stagesDone, j.stagesTotal)} · '
-                        '${formatDistance(j.totals.distanceM)} · ${formatDuration(j.totals.durationS)} · '
+                        '${formatDistance(j.totals.distanceM)} · ${formatHikingTime(j.totals.durationS)} · '
                         '↑\u00a0${formatHeight(j.totals.ascentM)}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
@@ -534,7 +534,7 @@ class _StageTile extends StatelessWidget {
         if (s.status == 'skipped') t.statusSkipped,
         if (s.plannedDate case final d?) formatDate(d),
         if (totals != null)
-          '${formatDistance(totals.distanceM)} · ${formatDuration(totals.durationS)} · '
+          '${formatDistance(totals.distanceM)} · ${formatHikingTime(totals.durationS)} · '
               '↑\u00a0${formatHeight(totals.ascentM)} · ${formatSac(totals.sacGrade, totals.sacMax)}'
         else
           t.journeyNoRoute,

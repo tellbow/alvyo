@@ -1,7 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 /// Keeps a number and its unit on one line.
 const _nbsp = '\u00a0';
+
+/// The signed-in hiker's pace (the account's speed factor; Api.me and
+/// Api.login set it): hiking times are shown at it, as on the website.
+final hikerPace = ValueNotifier<double>(1);
+
+/// A hiking time (Swiss hiking time) at the hiker's pace.
+String formatHikingTime(int seconds) => formatDuration(seconds, hikerPace.value);
 
 /// Formats like the web app: hiking time rounded to 5 minutes.
 String formatDuration(int seconds, [double pace = 1]) {
@@ -16,6 +24,13 @@ String formatDuration(int seconds, [double pace = 1]) {
 String formatDistance(double metres, [String? language]) {
   if (metres < 1000) return formatHeight(metres);
   return '${NumberFormat('0.0', numberLocale(language)).format(metres / 1000)}${_nbsp}km';
+}
+
+/// From … to along a route, the unit once: «0–0.9 km», «120–450 m».
+String formatRange(double from, double to, [String? language]) {
+  if (to < 1000) return '${from.round()}–${formatHeight(to)}';
+  final km = NumberFormat('0.0', numberLocale(language));
+  return '${from < 50 ? '0' : km.format(from / 1000)}–${km.format(to / 1000)}${_nbsp}km';
 }
 
 /// The locale numbers are formatted in: the Swiss variants, as on the

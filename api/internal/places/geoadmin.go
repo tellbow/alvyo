@@ -94,6 +94,8 @@ func parseLabel(label string) (name, detail string) {
 	text := func(s string) string {
 		return strings.TrimSpace(html.UnescapeString(tags.ReplaceAllString(s, "")))
 	}
+	// Some labels break the line inside the name ("<b>Genève\n</b>").
+	label = strings.Join(strings.Fields(label), " ")
 	if m := nameLabel.FindStringSubmatch(label); m != nil {
 		// Alternative names are joined with "|".
 		name = strings.ReplaceAll(text(m[2]), "|", " / ")

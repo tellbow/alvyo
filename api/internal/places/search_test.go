@@ -19,6 +19,8 @@ func TestParseLabel(t *testing.T) {
 		{"<i>Ort</i> <b>Büsingen am Hochrhein</b> () - Büsingen am Hochrhein", "Büsingen am Hochrhein", "Ort, Büsingen am Hochrhein"},
 		{"Seestrasse 1 <b>6375 Beckenried</b>", "Seestrasse 1, 6375 Beckenried", ""},
 		{"<b>Caf&eacute; <script>x</script></b>", "Café x", ""},
+		// The line broken inside the name, as for some towns.
+		{"<b>Genève\n</b> (GE) - Genève,Cologny", "Genève", "Genève,Cologny (GE)"},
 	} {
 		name, detail := parseLabel(c.label)
 		if name != c.name || detail != c.detail {
@@ -113,12 +115,13 @@ func TestSearch(t *testing.T) {
 	for _, f := range got {
 		names = append(names, f.Name)
 	}
-	// Ours first: whole words first, then the nearer of two equal matches.
-	// swisstopo's two "Brisenhaus" buildings repeat our hut, and its
-	// "Brisenmatt" the stop there.
+	// The name just as searched first (swisstopo's summit); then ours: whole
+	// words first, then the nearer of two equal matches. swisstopo's two
+	// "Brisenhaus" buildings repeat our hut, and its "Brisenmatt" the stop
+	// there.
 	want := []string{
-		"Brisen, Bergstation", "Brisen, Talstation", "Brisenhaus", "Welschenrohr, Brisenmatt",
-		"Brisen", "Obere Brisenmatt", "Untere Brisenmatt", "Brisenhüsli", "Hoh Brisen", "Eggen / Surenenpass",
+		"Brisen", "Brisen, Bergstation", "Brisen, Talstation", "Brisenhaus", "Welschenrohr, Brisenmatt",
+		"Obere Brisenmatt", "Untere Brisenmatt", "Brisenhüsli", "Hoh Brisen", "Eggen / Surenenpass",
 	}
 	if len(names) != len(want) {
 		t.Fatalf("got %q\nwant %q", names, want)
@@ -128,8 +131,8 @@ func TestSearch(t *testing.T) {
 			t.Fatalf("got %q\nwant %q", names, want)
 		}
 	}
-	if got[2].Kind != "hut" || got[4].Detail != "Hauptgipfel, Isenthal (UR)" {
-		t.Errorf("kinds and details: %+v, %+v", got[2], got[4])
+	if got[3].Kind != "hut" || got[0].Detail != "Hauptgipfel, Isenthal (UR)" {
+		t.Errorf("kinds and details: %+v, %+v", got[3], got[0])
 	}
 
 	// Without swisstopo, our places still come.
@@ -137,4 +140,51 @@ func TestSearch(t *testing.T) {
 	if got, err := s.Search(ctx, "sargans", near, "de"); err != nil || len(got) != 1 || got[0].Name != "Sargans" {
 		t.Errorf("without swisstopo: %+v, %v", got, err)
 	}
+
+	// Our stop named just so comes before the nearer stops named after it.
+	for i, name := range []string{"Zermatt, Spiss", "Zermatt Gant", "Zermatt Tuftern", "Zermatt Tufterchumme", "Zermatt, Bahnhofplatz", "Zermatt, Kirchbrücke"} {
+		if _, err := pool.Exec(ctx, `INSERT INTO places (kind, name, source, source_id, geom)
+			VALUES ('pt_stop', $1, 'didok', $1, ST_SetSRID(ST_MakePoint($2, 46.02), 4326))`, name, 7.75+float64(i)*0.001); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := pool.Exec(ctx, `INSERT INTO places (kind, name, source, source_id, geom)
+		VALUES ('pt_stop', 'Zermatt', 'didok', 'Zermatt', ST_SetSRID(ST_MakePoint(7.7478, 46.0240), 4326))`); err != nil {
+		t.Fatal(err)
+	}
+	s.Names = nil
+	if got, err = s.Search(ctx, "Zermatt", [2]float64{7.75, 46.02}, "de"); err != nil || len(got) == 0 || got[0].Name != "Zermatt" {
+		t.Errorf("zermatt: %+v, %v", got, err)
+	}
+
+	// With a house number, the address before the stops on that street.
+	if _, err := pool.Exec(ctx, `INSERT INTO places (kind, name, source, source_id, geom)
+		VALUES ('pt_stop', 'Beckenried, Seestrasse', 'didok', 'b1', ST_SetSRID(ST_MakePoint(8.48, 46.97), 4326))`); err != nil {
+		t.Fatal(err)
+	}
+	s.Names = &GeoAdmin{URL: srv.URL}
+	got, err = s.Search(ctx, "Seestrasse 1 Beckenried", near, "de")
+	if err != nil || len(got) != 3 || got[0].Kind != "address" || got[2].Name != "Beckenried, Seestrasse" {
+		t.Errorf("address: %+v, %v", got, err)
+	}
+
+	// The pass is not the inn named after it, 10 m away; a building of the
+	// same name as the inn is.
+	if _, err := pool.Exec(ctx, `INSERT INTO places (kind, name, source, source_id, geom)
+		VALUES ('hotel', 'Berggasthaus Hospiz Sustenpass', 'osm', 'n1', ST_SetSRID(ST_MakePoint(8.4491, 46.7286), 4326))`); err != nil {
+		t.Fatal(err)
+	}
+	s.Names = fixedNames{
+		{Name: "Sustenpass", Kind: "name", Detail: "Pass, Innertkirchen (BE)", At: [2]float64{8.4491, 46.7287}},
+		{Name: "Berggasthaus Hospiz Sustenpass", Kind: "name", At: [2]float64{8.4491, 46.7286}},
+	}
+	got, err = s.Search(ctx, "Sustenpass", near, "de")
+	if err != nil || len(got) != 2 || got[0].Name != "Sustenpass" || got[1].Kind != "hotel" {
+		t.Errorf("sustenpass: %+v, %v", got, err)
+	}
 }
+
+// fixedNames answers every search with the same names.
+type fixedNames []Found
+
+func (f fixedNames) Search(context.Context, string, string) ([]Found, error) { return f, nil }

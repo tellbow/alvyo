@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
 import 'bug_report.dart';
+import 'format.dart';
 import 'l10n/app_localizations.dart';
 import 'links.dart';
 import 'screens/login_screen.dart';
@@ -70,16 +71,18 @@ class _AlvyoAppState extends State<AlvyoApp> with WidgetsBindingObserver {
   Future<void> _logout() async {
     await _api?.logout().catchError((_) {});
     await _session.clear();
+    hikerPace.value = 1;
     setState(() => _api = null);
   }
 
-  /// A session saved before the account was kept with it learns the
-  /// account once online.
+  /// The account's pace once online (Api.me keeps it), and its id for a
+  /// session saved before the account was kept with it.
   void _learnUser(Api? api) {
-    if (api == null || api.userId != null) return;
+    if (api == null) return;
     api
         .me()
         .then((m) async {
+          if (api.userId != null) return;
           api.userId = m.id;
           await _session.save(api);
         })
@@ -88,7 +91,8 @@ class _AlvyoAppState extends State<AlvyoApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: Listenable.merge([_settings.theme, _settings.locale]),
+    // The hiker's pace too: hiking times are shown at it.
+    listenable: Listenable.merge([_settings.theme, _settings.locale, hikerPace]),
     builder: (context, _) => _app(context),
   );
 

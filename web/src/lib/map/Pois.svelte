@@ -2,12 +2,13 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
-	import { formatDistance } from '$lib/planner/route';
+	import { formatDistance, formatRange } from '$lib/planner/route';
 	import PoiIcon from './PoiIcon.svelte';
-	import { poiText, type Poi } from './places';
+	import { groupPois, poiLabel, poiText, type Poi } from './places';
 
-	// What lies along a saved route (summits, water, fire places …), in order;
-	// the first ten unless `showAll`.
+	// What lies along a saved route (summits, water, fire places …), in order,
+	// a town's fountains and restaurants each on one line; the first ten lines
+	// unless `showAll`.
 	let {
 		id,
 		token,
@@ -23,6 +24,7 @@
 	let pois = $state<Poi[]>();
 	let more = $state(false);
 	const all = $derived(showAll || more);
+	const rows = $derived(pois ? groupPois(pois) : []);
 	const FIRST = 10;
 
 	onMount(async () => {
@@ -34,26 +36,32 @@
 	});
 </script>
 
-{#if pois && pois.length > 0}
+{#if rows.length > 0}
+	{@const ranges = rows.some((r) => r.count > 1)}
 	<section class="flex flex-col gap-1 text-sm" data-testid="pois">
 		<h3 class="text-xs font-medium tracking-wide text-stone-500 uppercase">{m.pois_title()}</h3>
-		<ol class="flex flex-col gap-0.5">
-			{#each all ? pois : pois.slice(0, FIRST) as p, i (i)}
-				{@const [title, detail] = poiText(p)}
-				<li class="flex gap-2" data-testid="poi">
-					<span class="w-14 shrink-0 text-right text-stone-500 tabular-nums"
-						>{formatDistance(p.along_m)}</span
+		<!-- On paper in three columns: the sheet fits one page. -->
+		<ol class="flex flex-col gap-0.5 print:block print:columns-3 print:gap-4 print:text-[10px]">
+			{#each all ? rows : rows.slice(0, FIRST) as p, i (i)}
+				{@const [title, detail] =
+					p.count > 1 ? [`${poiLabel(p.kind)} ×${p.count}`, ''] : poiText(p)}
+				<li class="flex break-inside-avoid gap-2" data-testid="poi">
+					<span
+						class="{ranges
+							? 'w-20'
+							: 'w-14'} shrink-0 text-right whitespace-nowrap text-stone-500 tabular-nums"
+						>{p.count > 1 ? formatRange(p.along_m, p.to_m) : formatDistance(p.along_m)}</span
 					>
 					<PoiIcon kind={p.kind} />
-					<span
+					<span class="min-w-0"
 						>{title}{#if detail}<span class="text-stone-500">{` · ${detail}`}</span>{/if}</span
 					>
 				</li>
 			{/each}
 		</ol>
-		{#if !all && pois.length > FIRST}
+		{#if !all && rows.length > FIRST}
 			<button type="button" class="self-start text-xs underline" onclick={() => (more = true)}
-				>{m.pois_all({ count: pois.length })}</button
+				>{m.pois_all({ count: rows.length })}</button
 			>
 		{/if}
 		<p class="text-xs text-stone-500">{m.pois_source()}</p>

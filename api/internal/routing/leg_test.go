@@ -305,6 +305,19 @@ func alternativesServer(t *testing.T) (*httptest.Server, *[]int) {
 	return srv, &calls
 }
 
+func TestAlternatives(t *testing.T) {
+	srv, _ := alternativesServer(t)
+	r := &Router{GraphHopper: &GraphHopper{URL: srv.URL}}
+	ways, err := r.Alternatives(context.Background(), geo.Point{Lon: 8.00, Lat: 46.66}, geo.Point{Lon: 8.02, Lat: 46.66}, "hike")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The best first, then the one bulging north.
+	if len(ways) != 2 || len(ways[0]) != 2 || ways[1][1] != (geo.Point{Lon: 8.01, Lat: 46.67}) {
+		t.Errorf("ways %v", ways)
+	}
+}
+
 func TestLegThrough(t *testing.T) {
 	pool := testdb.New(t)
 	srv, calls := alternativesServer(t)

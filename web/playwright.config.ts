@@ -9,6 +9,11 @@ export default defineConfig({
 	testMatch: '**/*.e2e.{ts,js}',
 	// German, like most tests expect; the language follows the browser.
 	use: { baseURL: `http://localhost:${WEB_PORT}`, locale: 'de-CH' },
+	projects: [
+		{ name: 'chromium', use: { browserName: 'chromium' } },
+		// Safari's engine, for what differs there.
+		{ name: 'webkit', use: { browserName: 'webkit' }, testMatch: ['**/bugs.e2e.ts'] }
+	],
 	webServer: [
 		{
 			command:

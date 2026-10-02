@@ -21,15 +21,19 @@ export async function pageScreenshot(): Promise<string | undefined> {
 			// a map without a picture: the rest still helps
 		}
 	}
+	const options = {
+		quality: 0.8,
+		pixelRatio: Math.min(devicePixelRatio, 1.5),
+		backgroundColor: getComputedStyle(document.body).backgroundColor,
+		filter: (n: Node) => !(n instanceof HTMLElement && n.dataset.bugReport !== undefined),
+		// Our fonts and images come from here; others would taint the page.
+		skipFonts: false
+	};
 	try {
-		return await toJpeg(document.body, {
-			quality: 0.8,
-			pixelRatio: Math.min(devicePixelRatio, 1.5),
-			backgroundColor: getComputedStyle(document.body).backgroundColor,
-			filter: (n) => !(n instanceof HTMLElement && n.dataset.bugReport !== undefined),
-			// Our fonts and images come from here; others would taint the page.
-			skipFonts: false
-		});
+		// Safari leaves the maps' pictures out of the first rendering of a
+		// page: that one is thrown away.
+		await toJpeg(document.body, options);
+		return await toJpeg(document.body, options);
 	} catch {
 		return undefined;
 	} finally {

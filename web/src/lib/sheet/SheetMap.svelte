@@ -6,8 +6,14 @@
 	import { TILE_PROTOCOL, tileLoader } from '$lib/map/tiles';
 
 	// The line on the national map with the hiking trails, drawn once and
-	// kept as an image: a WebGL canvas does not print reliably.
+	// kept as an image: a WebGL canvas does not print reliably. Drawn at
+	// RENDER × RENDER × 3 / 8 pixels and shown smaller: about a zoom level more
+	// detail, sharp on paper; swisstopo's maps at the lower zoom are blown-up
+	// small-scale maps.
 	let { line }: { line: number[][] } = $props();
+	const RENDER = 1600;
+	/** Line widths for the picture shown at about a third of its size. */
+	const px = (n: number) => n * 2.2;
 
 	let container: HTMLDivElement;
 	let image = $state<string>();
@@ -30,11 +36,10 @@
 				container,
 				style: baseStyle('landeskarte', location.origin),
 				bounds,
-				fitBoundsOptions: { padding: 30, maxZoom: 15 },
+				fitBoundsOptions: { padding: px(30), maxZoom: 16 },
 				interactive: false,
 				attributionControl: false,
-				// Sharp on paper.
-				pixelRatio: Math.max(2, devicePixelRatio),
+				pixelRatio: 1,
 				canvasContextAttributes: { preserveDrawingBuffer: true }
 			});
 			remove = () => map.remove();
@@ -61,14 +66,14 @@
 					type: 'line',
 					source: 'line',
 					layout: { 'line-join': 'round', 'line-cap': 'round' },
-					paint: { 'line-color': '#ffffff', 'line-width': 7, 'line-opacity': 0.85 }
+					paint: { 'line-color': '#ffffff', 'line-width': px(7), 'line-opacity': 0.85 }
 				});
 				map.addLayer({
 					id: 'line',
 					type: 'line',
 					source: 'line',
 					layout: { 'line-join': 'round', 'line-cap': 'round' },
-					paint: { 'line-color': '#a21caf', 'line-width': 4 }
+					paint: { 'line-color': '#a21caf', 'line-width': px(4) }
 				});
 				map.addLayer({
 					id: 'ends',
@@ -76,10 +81,10 @@
 					source: 'line',
 					filter: ['==', ['geometry-type'], 'Point'],
 					paint: {
-						'circle-radius': 6,
+						'circle-radius': px(6),
 						'circle-color': ['match', ['get', 'end'], 0, '#15803d', '#b91c1c'],
 						'circle-stroke-color': '#ffffff',
-						'circle-stroke-width': 2
+						'circle-stroke-width': px(2)
 					}
 				});
 				map.once('idle', () => {
@@ -96,9 +101,14 @@
 </script>
 
 <figure
-	class="relative aspect-[3/2] w-full break-inside-avoid overflow-hidden rounded border border-stone-300"
+	class="relative aspect-[8/3] w-full break-inside-avoid overflow-hidden rounded border border-stone-300"
 >
-	<div bind:this={container} class="absolute inset-0"></div>
+	<div
+		bind:this={container}
+		class="invisible absolute top-0 left-0"
+		style:width="{RENDER}px"
+		style:height="{(RENDER * 3) / 8}px"
+	></div>
 	{#if image}
 		<img
 			src={image}

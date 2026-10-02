@@ -55,6 +55,35 @@ export function poiText(p: { kind: PoiKind; name: string; ele?: number }): [stri
 /** A point along a route, as `GET /routes/{id}/pois` gives it. */
 export type Poi = { kind: PoiKind; name: string; ele?: number; at: number[]; along_m: number };
 
+/** Kinds that come many at once in a town (fountains, restaurants): listed together. */
+const GROUPED: PoiKind[] = ['water', 'toilets', 'restaurant', 'picnic', 'firepit', 'shelter'];
+
+/** A line of the list along a route: one point, or `count` of its kind up to `to_m`. */
+export type PoiRow = Poi & { count: number; to_m: number };
+
+/**
+ * The points along a route as lines to list: those of a kind that comes many
+ * at once within `withinM` of the first of them become one line; summits,
+ * viewpoints, waterfalls and cable cars stay one each.
+ */
+export function groupPois(pois: Poi[], withinM = 1000): PoiRow[] {
+	const rows: PoiRow[] = [];
+	const open = new Map<PoiKind, PoiRow>();
+	for (const p of pois) {
+		const grouped = GROUPED.includes(p.kind);
+		const row = open.get(p.kind);
+		if (grouped && row && p.along_m - row.along_m <= withinM) {
+			row.count++;
+			row.to_m = p.along_m;
+			continue;
+		}
+		const next = { ...p, count: 1, to_m: p.along_m };
+		rows.push(next);
+		if (grouped) open.set(p.kind, next);
+	}
+	return rows;
+}
+
 export function isPoi(kind: string): kind is PoiKind {
 	return (POI_KINDS as string[]).includes(kind);
 }

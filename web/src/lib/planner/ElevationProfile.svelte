@@ -7,7 +7,8 @@
 		line,
 		hover = $bindable(),
 		colors = SAC_COLOR,
-		breaks = []
+		breaks = [],
+		height = 140
 	}: {
 		line: Profile3;
 		hover?: number;
@@ -15,10 +16,11 @@
 		colors?: Record<string, string>;
 		/** coordinate indices where a new stage starts (vertical separators) */
 		breaks?: number[];
+		/** in pixels */
+		height?: number;
 	} = $props();
 
 	let width = $state(600);
-	const height = 140;
 	const pad = { l: 44, r: 12, t: 18, b: 20 };
 
 	const total = $derived(line.distance.at(-1) ?? 0);
@@ -69,7 +71,8 @@
 </script>
 
 {#if line.coordinates.length > 1}
-	<figure class="w-full" bind:clientWidth={width} aria-label={m.profile_title()}>
+	<!-- Clipped until it has measured its width: no page wider than a phone. -->
+	<figure class="w-full overflow-hidden" bind:clientWidth={width} aria-label={m.profile_title()}>
 		<svg
 			{width}
 			{height}

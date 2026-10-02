@@ -139,16 +139,26 @@ String changeError(AppLocalizations t, Object e) => switch (e) {
   _ => t.errorServer,
 };
 
+/// The file name for a route's or journey's GPX: the title with dashes as
+/// «-» and other signs as spaces («Sargans – Weisstannen» stays readable).
+String gpxFileName(String title, String id, {bool journey = false}) {
+  final name = title
+      .replaceAll(RegExp(r'\p{Pd}', unicode: true), '-')
+      .replaceAll(RegExp(r'[^\p{L}\p{N} _-]+', unicode: true), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  return '${name.isEmpty ? id : name}.${journey ? 'zip' : 'gpx'}';
+}
+
 /// Shares the route or journey as GPX (a journey: a ZIP of its stages).
 Future<void> shareGpx(BuildContext context, Api api, String id, String title, {bool journey = false}) async {
   final t = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
   try {
     final bytes = await api.gpx(id, journey: journey);
-    final name = title.replaceAll(RegExp(r'[^\p{L}\p{N} _-]+', unicode: true), '').trim();
-    final file = File('${(await getTemporaryDirectory()).path}/${name.isEmpty ? id : name}.${journey ? 'zip' : 'gpx'}');
+    final file = File('${(await getTemporaryDirectory()).path}/${gpxFileName(title, id, journey: journey)}');
     await file.writeAsBytes(bytes);
-    await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+    await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], title: title));
   } on Object {
     messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
   }

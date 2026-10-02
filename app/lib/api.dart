@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'format.dart';
+
 /// A failed API call with its HTTP status.
 class ApiException implements Exception {
   ApiException(this.status, this.message, [this.errors = const []]);
@@ -1253,6 +1255,7 @@ class Api {
     token = session.group(1);
     final me = Me.fromJson(body['user'] as Map<String, dynamic>);
     userId = me.id;
+    hikerPace.value = me.speedFactor;
     return me;
   }
 
@@ -1261,7 +1264,11 @@ class Api {
     token = null;
   }
 
-  Future<Me> me() async => Me.fromJson(await _get('/me') as Map<String, dynamic>);
+  Future<Me> me() async {
+    final me = Me.fromJson(await _get('/me') as Map<String, dynamic>);
+    hikerPace.value = me.speedFactor;
+    return me;
+  }
 
   /// The user's own routes, newest first.
   Future<List<RouteSummary>> routes() async {
@@ -1669,14 +1676,21 @@ class Api {
   }
 
   /// Changes the notification e-mails and their language.
-  Future<Me> updateMe({String? locale, bool? notifyComments, bool? notifyFollows}) async => Me.fromJson(
-    await _send('PATCH', '/me', {
-          'locale': ?locale,
-          'notify_comments': ?notifyComments,
-          'notify_follows': ?notifyFollows,
-        })
-        as Map<String, dynamic>,
-  );
+  /// Changes the account's settings; [speedFactor] is the pace (hiking times
+  /// as a multiple of the signposts').
+  Future<Me> updateMe({String? locale, bool? notifyComments, bool? notifyFollows, double? speedFactor}) async {
+    final me = Me.fromJson(
+      await _send('PATCH', '/me', {
+            'locale': ?locale,
+            'notify_comments': ?notifyComments,
+            'notify_follows': ?notifyFollows,
+            'speed_factor': ?speedFactor,
+          })
+          as Map<String, dynamic>,
+    );
+    hikerPace.value = me.speedFactor;
+    return me;
+  }
 
   /// Deletes the account with all its routes; [password] confirms it
   /// (accounts without one need a recent login). 403 when it is wrong.

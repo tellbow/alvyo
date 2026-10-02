@@ -44,7 +44,7 @@ class RouteTile extends StatelessWidget {
             Text(
               '${owner != null ? '${t.ownerBy(owner!)} · ' : ''}'
               '${r.hikedAt != null ? '${t.routesHiked(formatDate(r.hikedAt!))} · ' : ''}'
-              '${formatDistance(r.totals.distanceM)} · ${formatDuration(r.totals.durationS)} · '
+              '${formatDistance(r.totals.distanceM)} · ${formatHikingTime(r.totals.durationS)} · '
               '↑\u00a0${formatHeight(r.totals.ascentM)} · ${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
             ),
             if (r.tags.isNotEmpty) TagChips(r.tags),
@@ -77,7 +77,7 @@ class JourneyTile extends StatelessWidget {
             Text(
               '${owner != null ? '${t.ownerBy(owner!)} · ' : ''}'
               '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
-              '${formatDistance(j.distanceM)} · ${formatDuration(j.durationS)} · ↑\u00a0${formatHeight(j.ascentM)}',
+              '${formatDistance(j.distanceM)} · ${formatHikingTime(j.durationS)} · ↑\u00a0${formatHeight(j.ascentM)}',
             ),
             if (j.tags.isNotEmpty) TagChips(j.tags),
           ],
@@ -129,7 +129,7 @@ class OtherTile extends StatelessWidget {
             [
               if (journey) t.collectionStages(stages),
               formatDistance(distanceM),
-              formatDuration(durationS),
+              formatHikingTime(durationS),
               '↑\u00a0${formatHeight(ascentM)}',
               formatSac(sacGrade, sacMax),
             ].join(' · '),

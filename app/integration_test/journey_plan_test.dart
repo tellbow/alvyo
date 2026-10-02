@@ -87,11 +87,18 @@ void main() {
     await show(find.byKey(const Key('jplan-stage-0')));
     expect(find.byKey(const Key('jplan-summary')), findsOneWidget);
 
-    // Where it shares a night with another way, go on along that one.
+    // Where it shares a night with another way, go on along that one. The
+    // days are built as they scroll into view.
     final switchButtons = find.byWidgetPredicate(
       (w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('jplan-switch-'),
     );
+    for (var i = 0; i < 40 && switchButtons.evaluate().isEmpty; i++) {
+      await tester.drag(panel, const Offset(0, -120));
+      await tester.pump(const Duration(milliseconds: 300));
+    }
     if (switchButtons.evaluate().isNotEmpty) {
+      await tester.ensureVisible(switchButtons.first);
+      await tester.pump(const Duration(milliseconds: 300));
       final to = int.parse((switchButtons.evaluate().first.widget.key! as ValueKey<String>).value.split('-').last);
       await tester.tap(switchButtons.first);
       await tester.pump(const Duration(seconds: 1));

@@ -46,7 +46,7 @@
 </script>
 
 {#if weather && (dates.length > 0 || climate)}
-	<section class="flex flex-col gap-2 text-sm" data-testid="weather">
+	<section class="flex flex-col gap-2 text-sm print:text-xs" data-testid="weather">
 		<h3 class="text-xs font-medium tracking-wide text-stone-500 uppercase">
 			{m.weather_title()}{#if date}, {dayLabel(date)}{/if}
 		</h3>

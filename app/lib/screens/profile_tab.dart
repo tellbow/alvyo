@@ -27,6 +27,10 @@ class _ProfileTabState extends State<ProfileTab> {
 
   static const _languages = {'de': 'Deutsch', 'en': 'English', 'fr': 'Français', 'it': 'Italiano'};
 
+  /// Paces to choose from, as on the website: hiking times as a multiple of
+  /// the signposts'.
+  static const _paces = [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2.0];
+
   /// The app's language, and on the server the language of e-mails: the
   /// phone's (among those there are) when automatic.
   Future<void> _language(String? code) async {
@@ -142,6 +146,21 @@ class _ProfileTabState extends State<ProfileTab> {
                 ],
               ),
             ),
+            if (me != null) ...[
+              const SizedBox(height: 16),
+              DropdownMenu<double>(
+                key: const Key('pace'),
+                label: Text(t.accountPace),
+                helperText: t.accountPaceHint,
+                expandedInsets: EdgeInsets.zero,
+                initialSelection: me.speedFactor,
+                onSelected: (v) => v == null ? null : _update(() => widget.api.updateMe(speedFactor: v)),
+                dropdownMenuEntries: [
+                  for (final p in {..._paces, me.speedFactor}.toList()..sort())
+                    DropdownMenuEntry(value: p, label: p == 1 ? t.accountPaceSignposts : '${(p * 100).round()}\u00a0%'),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             Text(t.accountNotifications, style: muted),
             SwitchListTile(

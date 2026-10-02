@@ -138,6 +138,55 @@
         ],
         "type": "object"
       },
+      "AlternativesInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "profile": {
+            "default": "hike",
+            "enum": [
+              "hike",
+              "alpine"
+            ],
+            "type": "string"
+          },
+          "to": {
+            "$ref": "#/components/schemas/Point"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "type": "object"
+      },
+      "AlternativesOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "ways": {
+            "description": "The ways between the two points, the shortest first; [lon, lat] per point",
+            "items": {
+              "items": {
+                "items": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "ways"
+        ],
+        "type": "object"
+      },
       "Area": {
         "additionalProperties": false,
         "properties": {
@@ -4876,6 +4925,13 @@
           "notify_follows": {
             "description": "E-mail when someone follows me",
             "type": "boolean"
+          },
+          "speed_factor": {
+            "description": "Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)",
+            "format": "double",
+            "maximum": 3,
+            "minimum": 0.3,
+            "type": "number"
           }
         },
         "type": "object"
@@ -11082,7 +11138,7 @@
             "description": "Error"
           }
         },
-        "summary": "Change settings: notification e-mails and their language",
+        "summary": "Change settings: notification e-mails, their language and the pace",
         "tags": [
           "me"
         ]
@@ -14206,6 +14262,48 @@
         "summary": "MeteoSwiss's forecast at a route's start, highest point and end",
         "tags": [
           "weather"
+        ]
+      }
+    },
+    "/routing/alternatives": {
+      "post": {
+        "description": "What a leg can be dragged onto: the paths GraphHopper offers, the shortest first. A leg with `through` on one of them takes that one.",
+        "operationId": "route-alternatives",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlternativesInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlternativesOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The ways between two anchors",
+        "tags": [
+          "routing"
         ]
       }
     },

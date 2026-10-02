@@ -12,6 +12,7 @@
 	import SignInMethods from '$lib/account/SignInMethods.svelte';
 	import Contacts from '$lib/account/Contacts.svelte';
 	import Homes from '$lib/account/Homes.svelte';
+	import { choose } from '$lib/util/choose';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();
@@ -24,7 +25,16 @@
 		blocked = b?.users ?? [];
 	});
 
-	async function notify(body: { notify_comments?: boolean; notify_follows?: boolean }) {
+	// Hiking times as a multiple of the signposts' (1.2: a fifth slower).
+	const PACES = [0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.75, 2];
+	const pace = $derived(data.user?.speed_factor ?? 1);
+	const paces = $derived(PACES.includes(pace) ? PACES : [...PACES, pace].sort((a, b) => a - b));
+
+	async function notify(body: {
+		notify_comments?: boolean;
+		notify_follows?: boolean;
+		speed_factor?: number;
+	}) {
 		const { response } = await api().PATCH('/me', { body });
 		if (response.ok) await invalidateAll();
 	}
@@ -57,6 +67,21 @@
 	<p class="text-stone-600">{data.user?.username} · {data.user?.email}</p>
 
 	{#if data.user}<SignInMethods user={data.user} />{/if}
+
+	<h2 class="mt-8 text-lg font-semibold">{m.account_pace()}</h2>
+	<p class="mt-1 text-sm text-stone-600">{m.account_pace_hint()}</p>
+	<select
+		class="mt-2 rounded-md border border-stone-300 bg-surface px-2 py-1.5 text-sm"
+		aria-label={m.account_pace()}
+		data-testid="pace"
+		value={pace}
+		disabled={!hydrated.value}
+		use:choose={(v) => notify({ speed_factor: Number(v) })}
+	>
+		{#each paces as p (p)}
+			<option value={p}>{p === 1 ? m.account_pace_signposts() : `${Math.round(p * 100)} %`}</option>
+		{/each}
+	</select>
 
 	<h2 class="mt-8 text-lg font-semibold">{m.account_notifications()}</h2>
 	<div class="mt-2 flex flex-col gap-2 text-sm" data-testid="notifications">

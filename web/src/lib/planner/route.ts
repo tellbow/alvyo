@@ -163,6 +163,17 @@ export function formatDuration(seconds: number, factor = 1): string {
 const NBSP = '\u00a0';
 
 /** «19.3 km» in German, «19,3 km» in French; below a kilometre in metres. */
+/** From … to along a route, the unit once: «0–0.9 km», «120–450 m». */
+export function formatRange(from: number, to: number, locale = intlLocale()): string {
+	if (to < 1000) return `${Math.round(from)}–${formatHeight(to)}`;
+	const km = new Intl.NumberFormat(locale, {
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1,
+		useGrouping: false
+	});
+	return `${from < 50 ? '0' : km.format(from / 1000)}–${km.format(to / 1000)}${NBSP}km`;
+}
+
 export function formatDistance(metres: number, locale = intlLocale()): string {
 	if (metres < 1000) return formatHeight(metres);
 	const km = new Intl.NumberFormat(locale, {

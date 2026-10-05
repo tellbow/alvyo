@@ -134,12 +134,14 @@
 				const popup = new ml.Popup({ maxWidth: '260px' }).setLngLat([lon, lat]);
 				popup.setDOMContent(placePopup({ ...p, lon, lat }, () => popup.remove())).addTo(m);
 			});
-			// The icons along the way are drawn when a style first needs them.
-			m.on('styleimagemissing', (e: { id: string }) => {
-				const kind = e.id.replace(/^poi-/, '');
-				if (e.id === kind || !isPoi(kind)) return;
+			// The icons along the way are drawn when a style first needs them:
+			// by the resolver, as a styleimagemissing listener comes too late
+			// for the request that misses it (MapLibre 6).
+			m.setMissingStyleImageResolver((id) => {
+				const kind = id.replace(/^poi-/, '');
+				if (id === kind || !isPoi(kind)) return;
 				const data = drawPoiIcon(kind, 22, devicePixelRatio);
-				if (data) m.addImage(e.id, data, { pixelRatio: devicePixelRatio });
+				if (data) m.addImage(id, data, { pixelRatio: devicePixelRatio });
 			});
 			for (const id of PLACE_LAYERS) {
 				m.on('mouseenter', id, () => (m.getCanvas().style.cursor = 'pointer'));

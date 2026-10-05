@@ -88,7 +88,7 @@
 
 {#snippet settings()}
 	<select
-		class="rounded-full border-0 bg-transparent py-0.5 text-stone-600"
+		class="rounded-full border border-stone-300 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
 		aria-label={m.nav_language()}
 		value={getLocale()}
 		disabled={!hydrated.value}
@@ -100,7 +100,7 @@
 		{/each}
 	</select>
 	<select
-		class="rounded-full border-0 bg-transparent py-0.5 text-stone-600"
+		class="rounded-full border border-stone-300 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
 		aria-label={m.nav_theme()}
 		value={data.theme}
 		disabled={!hydrated.value}
@@ -123,7 +123,7 @@
 		</a>
 		<a
 			href={resolve('/account')}
-			class="text-stone-600 hover:text-accent-ink"
+			class="text-stone-900 hover:text-accent-ink"
 			data-testid="current-user"
 		>
 			{data.user.username}

@@ -53,7 +53,7 @@
 <button
 	type="button"
 	data-bug-report
-	class="ml-auto flex size-10 shrink-0 items-center justify-center rounded-full text-stone-600 hover:bg-stone-100 hover:text-stone-900 xl:ml-0 print:hidden"
+	class="ml-auto flex size-10 shrink-0 items-center justify-center rounded-full border border-stone-300 bg-surface text-stone-900 hover:bg-stone-100 xl:ml-0 print:hidden"
 	aria-label={m.bug_open()}
 	title={m.bug_open()}
 	disabled={status === 'taking'}

@@ -59,7 +59,8 @@
 	let menu = $state(false);
 	afterNavigate(({ to }) => {
 		menu = false;
-		if (to && analyticsActive()) pageView(to.url, to.route.id);
+		// The page's route: to.route.id is null behind the language prefix.
+		if (to && analyticsActive()) pageView(to.url, page.route.id);
 	});
 
 	async function resend() {

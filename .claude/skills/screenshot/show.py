@@ -6,6 +6,10 @@ The shell of a tool call has no terminal of its own, so the image goes to
 the first ancestor process that has one.
 
     show.py shot.png [more.png ...] [--window] [--cols 80]
+    show.py --clear      removes the images shown in Claude Code's terminal
+
+Each inline show first removes the images shown before, so at most one set
+stays on the screen.
 """
 
 import argparse
@@ -35,6 +39,11 @@ def fitting(path: str, size: os.terminal_size, most: int) -> int:
     return max(10, min(most, size.columns - 2, int((size.lines - 3) * 2 * w / h)))
 
 
+def clear(tty) -> None:
+    """Deletes every image in the terminal, with its data (Kitty protocol)."""
+    tty.write("\x1b_Ga=d,d=A,q=2\x1b\\")
+
+
 def show(path: str, cols: int, tty) -> None:
     # Large screenshots shrunk (sips, macOS): a smaller transfer, same look.
     with tempfile.TemporaryDirectory() as tmp:
@@ -51,11 +60,20 @@ def show(path: str, cols: int, tty) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser()
-    p.add_argument("images", nargs="+")
+    p.add_argument("images", nargs="*")
+    p.add_argument("--clear", action="store_true", help="remove the images shown in Claude Code's terminal")
     p.add_argument("--cols", type=int, default=0, help="width in terminal columns (default: the window's)")
     p.add_argument("--window", action="store_true", help="in a new Ghostty window instead of Claude Code's terminal")
     p.add_argument("--here", action="store_true", help=argparse.SUPPRESS)  # inside the new window
     a = p.parse_args()
+    if a.clear:
+        dev = terminal()
+        with open(dev, "w") as tty:
+            clear(tty)
+        print(f"images removed on {dev}")
+        return
+    if not a.images:
+        p.error("no images")
     images = [os.path.abspath(i) for i in a.images]
     if a.here:
         for path in images:
@@ -67,6 +85,7 @@ def main() -> None:
         dev = terminal()
         rows, cols = map(int, subprocess.check_output(["stty", "-f", dev, "size"], text=True).split())
         with open(dev, "w") as tty:
+            clear(tty)
             for path in images:
                 show(path, a.cols or fitting(path, os.terminal_size((cols, rows)), 100), tty)
         print(f"shown on {dev}: {', '.join(images)}")

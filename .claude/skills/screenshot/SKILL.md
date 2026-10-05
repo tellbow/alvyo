@@ -61,5 +61,11 @@ This writes the image to the terminal Claude Code runs in (the user's
 choice, though Claude Code's prompts may be drawn over or under it; at most
 100 columns, fitted to the terminal's height). `--window` opens a new
 Ghostty window instead. Show it right before the final reply, not before a
-question to the user, and say in the reply what each image shows. Stop
+question to the user, and say in the reply what each image shows.
+
+An image stays on the terminal until it is deleted: the user cannot close
+it. Each show removes the images shown before; at the start of the next
+turn, remove it with `python3 .claude/skills/screenshot/show.py --clear`
+unless the user is still talking about it. Tell the user once that typing
+`! python3 .claude/skills/screenshot/show.py --clear` removes it too. Stop
 the API and the dev server afterwards if you started them.

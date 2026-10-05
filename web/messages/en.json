@@ -142,7 +142,7 @@
 	"about_data": "Maps, elevation model (swissALTI3D) and trail network: © swisstopo. Path network for routing, huts and accommodation: © OpenStreetMap contributors (ODbL). Public transport stops: Federal Office of Transport FOT. Hiking times use the SwitzerlandMobility / Swiss Hiking Trails formula.",
 	"about_safety": "Hiking times and difficulties are computed estimates. Check weather, conditions and the signposts on site.",
 	"about_privacy_title": "Privacy",
-	"about_privacy": "We store what your account needs: e-mail address, username, display name, a password hash (argon2id) and your routes, journeys, collections, comments, likes, follows and blocks. Only what you publish, your comments on it, your display name and how many followers you have are public. If you invite someone by e-mail, we store that address for the invitation. Reports, including the reported text, are kept for moderation. For passkeys we store only the public key, for connected accounts the id and e-mail address at the provider. A single cookie keeps you logged in; there is no tracking and no advertising. National map tiles load through our server; the vector base map and fonts are loaded by your browser directly from swisstopo (geo.admin.ch). For elevation profiles our server sends route coordinates to swisstopo, for connections stops and times to opentransportdata.swiss, in both cases without any information about you. Of photos we keep only the pictures themselves: we remove metadata such as camera and location; if the location is along the route, we keep it as a pin on the map. For the Komoot import, your Komoot password goes to Komoot only; we do not store it. Server logs with IP addresses are kept only briefly for troubleshooting and abuse prevention. You can delete your account and all its content at any time under “Account”.",
+	"about_privacy": "We store what your account needs: e-mail address, username, display name, a password hash (argon2id) and your routes, journeys, collections, comments, likes, follows and blocks. Only what you publish, your comments on it, your display name and how many followers you have are public. If you invite someone by e-mail, we store that address for the invitation. Reports, including the reported text, are kept for moderation. For passkeys we store only the public key, for connected accounts the id and e-mail address at the provider. A cookie keeps you logged in; there is no advertising. For statistics we use Google Analytics (Google Ireland; data may reach the USA): which pages are viewed, without the parts of addresses that give access (share and invite links, live locations) and without the titles of your tours. Google sets cookies only with your consent (changeable under “Statistics”); otherwise Google only gets page views without cookies or an identifier. National map tiles load through our server; the vector base map and fonts are loaded by your browser directly from swisstopo (geo.admin.ch). For elevation profiles our server sends route coordinates to swisstopo, for connections stops and times to opentransportdata.swiss, in both cases without any information about you. Of photos we keep only the pictures themselves: we remove metadata such as camera and location; if the location is along the route, we keep it as a pin on the map. For the Komoot import, your Komoot password goes to Komoot only; we do not store it. Server logs with IP addresses are kept only briefly for troubleshooting and abuse prevention. You can delete your account and all its content at any time under “Account”.",
 	"about_contact_title": "Contact",
 	"account_title": "Account",
 	"account_delete_title": "Delete account",
@@ -760,5 +760,12 @@
 	"done_filter_all": "All",
 	"done_filter_planned": "Planned",
 	"done_filter_done": "Hiked",
-	"done_filter_none": "Nothing in this selection."
+	"done_filter_none": "Nothing in this selection.",
+	"analytics_banner": "May we measure with Google Analytics how Alvyo is used? Google sets cookies for this; without your consent, Google only gets page views without cookies or an identifier.",
+	"analytics_accept": "Accept",
+	"analytics_decline": "Decline",
+	"analytics_title": "Statistics",
+	"analytics_granted": "You agreed to measurement with Google Analytics.",
+	"analytics_denied": "You declined measurement with Google Analytics; Google only gets page views without cookies.",
+	"analytics_undecided": "You have not decided yet whether we may measure with Google Analytics."
 }

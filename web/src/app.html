@@ -2,7 +2,37 @@
 
 <html lang="%paraglide.lang%" dir="%paraglide.dir%" data-theme="%alvyo.theme%">
 	<head>
+		<!-- First: browsers look for it in the first 1024 bytes. -->
 		<meta charset="utf-8" />
+		<!-- Google tag (gtag.js), once per page, on alvyo.tellbow.ch only (not
+		     in development and tests). Consent Mode: no cookies until the
+		     visitor agrees (banner); page views come from $lib/analytics.ts,
+		     without the secrets of an address. -->
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			if (location.hostname === 'alvyo.tellbow.ch') {
+				window.alvyoAnalytics = true;
+				var consent = null;
+				try {
+					consent = localStorage.getItem('alvyo_analytics');
+				} catch (e) {}
+				gtag('consent', 'default', {
+					analytics_storage: consent === 'granted' ? 'granted' : 'denied',
+					ad_storage: 'denied',
+					ad_user_data: 'denied',
+					ad_personalization: 'denied'
+				});
+				gtag('js', new Date());
+				gtag('config', 'G-0S92XGEV7Y', { send_page_view: false });
+				var tag = document.createElement('script');
+				tag.async = true;
+				tag.src = 'https://www.googletagmanager.com/gtag/js?id=G-0S92XGEV7Y';
+				document.head.appendChild(tag);
+			}
+		</script>
 
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 

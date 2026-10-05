@@ -340,6 +340,11 @@ Checked so far only in the simulator, with made-up or simulated positions
 
 ## Web
 
+- [ ] **Google Analytics** (62): after the release, the banner on the
+      first visit (also on a phone, not covering the planner's buttons);
+      GA's real-time report shows the visit, addresses without `?t=` and
+      `/live/-`. In GA's data stream, «Page changes based on browser history
+      events» is off (2026-10-05): the site sends its page views itself.
 - [ ] **Telemetry on rk1** (59): after the release, Prometheus scrapes
       the api and web targets (up) with their request durations;
       VictoriaLogs lines of the API carry `trace_id`; the collector logs no

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
+	import AnalyticsChoice from '$lib/components/AnalyticsChoice.svelte';
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
 
@@ -19,6 +20,7 @@
 
 	<h2 class="mt-8 text-lg font-semibold">{m.about_privacy_title()}</h2>
 	<p class="mt-2">{m.about_privacy()}</p>
+	<AnalyticsChoice />
 
 	<h2 class="mt-8 text-lg font-semibold">{m.about_source_title()}</h2>
 	<p class="mt-2">

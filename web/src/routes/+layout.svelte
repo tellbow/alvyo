@@ -1,5 +1,7 @@
 <script lang="ts">
 	import BugReport from '$lib/bugs/BugReport.svelte';
+	import { analyticsActive, pageView } from '$lib/analytics';
+	import ConsentBanner from '$lib/components/ConsentBanner.svelte';
 	import './layout.css';
 	import { afterNavigate, goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -55,7 +57,10 @@
 
 	// Below xl the links and settings go into a menu.
 	let menu = $state(false);
-	afterNavigate(() => (menu = false));
+	afterNavigate(({ to }) => {
+		menu = false;
+		if (to && analyticsActive()) pageView(to.url, to.route.id);
+	});
 
 	async function resend() {
 		const { response } = await api().POST('/auth/verify-email/resend');
@@ -225,4 +230,5 @@
 	{/if}
 
 	{@render children()}
+	<ConsentBanner />
 </div>

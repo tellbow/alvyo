@@ -69,7 +69,7 @@ A `v*` tag builds the images; Flux deploys them
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
 21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02, 59–61
-on 2026-10-05.
+on 2026-10-05, 62 on 2026-10-05.
 
 ### Done
 
@@ -566,6 +566,17 @@ on 2026-10-05.
     planned (`route_done_on`, `journey_done_on` in the database). «Meine
     Routen», «Etappentouren» and the app's lists filter «Alle / Geplant /
     Gewandert» and show the day; so does the map of one's hikes.
+
+62. **Statistics with Google Analytics.** The Google tag (G-0S92XGEV7Y)
+    once per page in `app.html`, on alvyo.tellbow.ch only (not in
+    development and tests). Consent Mode: until a visitor accepts the
+    banner («Akzeptieren / Ablehnen», remembered in the browser, changeable
+    under «Über» → «Statistik»), Google sets no cookies and gets cookieless
+    pings only. Page views are sent by the site itself on every navigation
+    (`$lib/analytics`): the address without query and fragment (share
+    tokens, password resets) and with the token of live location and
+    invitation links masked, the route's pattern as title (not the titles
+    of tours). The privacy text says so instead of «no tracking».
 
 ### Open
 

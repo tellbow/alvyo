@@ -245,12 +245,19 @@ func (s *Store) DeleteComment(ctx context.Context, t Target, id uuid.UUID, v Vie
 	return ErrNotFound
 }
 
-// SetSettings changes which notification e-mails user gets, the language
-// of e-mails and the pace (nil: keep).
-func (s *Store) SetSettings(ctx context.Context, user uuid.UUID, comments, follows *bool, locale *string, pace *float64) error {
+// Settings are what a user changes about their account; nil keeps it.
+type Settings struct {
+	NotifyComments, NotifyFollows, ProfilePublic *bool
+	Locale                                       *string
+	Pace                                         *float64
+}
+
+// SetSettings changes which notification e-mails user gets, their
+// language, the pace and whether the profile is public.
+func (s *Store) SetSettings(ctx context.Context, user uuid.UUID, c Settings) error {
 	_, err := s.DB.Exec(ctx, `UPDATE users SET notify_comments = coalesce($2, notify_comments),
 		notify_follows = coalesce($3, notify_follows), locale = coalesce($4, locale),
-		speed_factor = coalesce($5, speed_factor) WHERE id = $1`,
-		user, comments, follows, locale, pace)
+		speed_factor = coalesce($5, speed_factor), profile_public = coalesce($6, profile_public) WHERE id = $1`,
+		user, c.NotifyComments, c.NotifyFollows, c.Locale, c.Pace, c.ProfilePublic)
 	return err
 }

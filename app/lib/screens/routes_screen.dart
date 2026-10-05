@@ -9,6 +9,7 @@ import '../offline/packs.dart';
 import '../settings.dart';
 import 'bottom_bar.dart';
 import 'discover_screen.dart';
+import 'done.dart';
 import 'feed_tab.dart';
 import 'journeys_list.dart';
 import 'navigate_screen.dart';
@@ -38,6 +39,7 @@ class RoutesScreen extends StatefulWidget {
 }
 
 class _RoutesScreenState extends State<RoutesScreen> {
+  DoneFilter _done = DoneFilter.all;
   int _tab = 0;
   late Future<(List<RouteSummary>, bool offline)> _routes = _load();
   late Future<List<RouteSummary>> _shared = _loadShared();
@@ -190,7 +192,14 @@ class _RoutesScreenState extends State<RoutesScreen> {
         return FutureBuilder(
           future: offline ? Future.value(<RouteSummary>[]) : _shared,
           builder: (context, sharedSnap) {
-            final shared = sharedSnap.data ?? const <RouteSummary>[];
+            final shared = [
+              for (final r in sharedSnap.data ?? const <RouteSummary>[])
+                if (passesDone(_done, r.doneOn)) r,
+            ];
+            final shown = [
+              for (final r in routes)
+                if (passesDone(_done, r.doneOn)) r,
+            ];
             return ListView(
               padding: const EdgeInsets.only(bottom: 120),
               children: [
@@ -200,8 +209,13 @@ class _RoutesScreenState extends State<RoutesScreen> {
                     leading: const Icon(Icons.cloud_off),
                     title: Text(t.routesOffline),
                   ),
-                if (routes.isEmpty) ListTile(title: Text(t.routesEmpty)),
-                for (final r in routes) RouteTile(route: r, onTap: () => _open(r)),
+                if (routes.isEmpty)
+                  ListTile(title: Text(t.routesEmpty))
+                else ...[
+                  DoneFilterBar(value: _done, onChanged: (f) => setState(() => _done = f)),
+                  if (shown.isEmpty) ListTile(title: Text(t.doneFilterNone)),
+                ],
+                for (final r in shown) RouteTile(route: r, onTap: () => _open(r)),
                 if (shared.isNotEmpty) ListHeading(t.sharedTitle),
                 for (final r in shared) RouteTile(route: r, owner: r.owner, onTap: () => _open(r)),
               ],

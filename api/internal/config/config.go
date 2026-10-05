@@ -16,15 +16,19 @@ import (
 
 // Config is the runtime configuration of the Alvyo API.
 type Config struct {
-	Listen      string     // ALVYO_LISTEN, default ":8080"
-	DatabaseURL string     // ALVYO_DATABASE_URL (required)
-	LogLevel    slog.Level // ALVYO_LOG_LEVEL: debug, info, warn, error
-	PublicURL   string     // ALVYO_PUBLIC_URL: origin of the web app, default http://localhost:5173
-	TrustProxy  bool       // ALVYO_TRUST_PROXY: behind our reverse proxy
-	GraphHopper string     // ALVYO_GRAPHHOPPER_URL, default http://localhost:8989
-	TilesURL    string     // ALVYO_TILES_URL: our tile cache, default http://localhost:8081
-	CacheDir    string     // ALVYO_CACHE_DIR: rendered images etc., default <tmp>/alvyo
-	PhotosDir   string     // ALVYO_PHOTOS_DIR: uploaded photos (keep and back up), default data/photos
+	Listen string // ALVYO_LISTEN, default ":8080"
+	// MetricsListen serves /metrics for Prometheus apart from the API
+	// (not behind the ingress): ALVYO_METRICS_LISTEN, e.g. ":9464"; off if
+	// empty.
+	MetricsListen string
+	DatabaseURL   string     // ALVYO_DATABASE_URL (required)
+	LogLevel      slog.Level // ALVYO_LOG_LEVEL: debug, info, warn, error
+	PublicURL     string     // ALVYO_PUBLIC_URL: origin of the web app, default http://localhost:5173
+	TrustProxy    bool       // ALVYO_TRUST_PROXY: behind our reverse proxy
+	GraphHopper   string     // ALVYO_GRAPHHOPPER_URL, default http://localhost:8989
+	TilesURL      string     // ALVYO_TILES_URL: our tile cache, default http://localhost:8081
+	CacheDir      string     // ALVYO_CACHE_DIR: rendered images etc., default <tmp>/alvyo
+	PhotosDir     string     // ALVYO_PHOTOS_DIR: uploaded photos (keep and back up), default data/photos
 	// OJP (public transport connections): ALVYO_OJP_TOKEN is the
 	// opentransportdata.swiss API key; without it the feature is off.
 	OJPURL   string // ALVYO_OJP_URL, default the OJP 2.0 production endpoint
@@ -79,6 +83,7 @@ func oidcProviders() ([]OIDCProvider, error) {
 func FromEnv() (Config, error) {
 	c := Config{
 		Listen:        getenv("ALVYO_LISTEN", ":8080"),
+		MetricsListen: os.Getenv("ALVYO_METRICS_LISTEN"),
 		DatabaseURL:   os.Getenv("ALVYO_DATABASE_URL"),
 		PublicURL:     strings.TrimSuffix(getenv("ALVYO_PUBLIC_URL", "http://localhost:5173"), "/"),
 		TrustProxy:    os.Getenv("ALVYO_TRUST_PROXY") == "true",

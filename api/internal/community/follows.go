@@ -12,10 +12,11 @@ import (
 
 // Relation is how the viewer relates to another user.
 type Relation struct {
-	Followers int  `json:"followers"`
-	Following int  `json:"following"`
-	Followed  bool `json:"followed" doc:"The viewer follows this user"`
-	Blocked   bool `json:"blocked" doc:"The viewer blocked this user"`
+	Followers int    `json:"followers"`
+	Following int    `json:"following"`
+	Followed  bool   `json:"followed" doc:"The viewer follows this user"`
+	Blocked   bool   `json:"blocked" doc:"The viewer blocked this user"`
+	Friend    Friend `json:"friend" enum:"none,requested,incoming,friends" doc:"Friends, or who asked whom"`
 }
 
 // Relation returns other's follower counts and viewer's follow and block of
@@ -26,8 +27,9 @@ func (s *Store) Relation(ctx context.Context, viewer, other uuid.UUID) (Relation
 		(SELECT count(*) FROM follows f JOIN users u ON u.id = f.follower_id AND u.banned_at IS NULL WHERE f.followed_id = $2),
 		(SELECT count(*) FROM follows f JOIN users u ON u.id = f.followed_id AND u.banned_at IS NULL WHERE f.follower_id = $2),
 		EXISTS (SELECT 1 FROM follows WHERE follower_id = $1 AND followed_id = $2),
-		EXISTS (SELECT 1 FROM blocks WHERE blocker_id = $1 AND blocked_id = $2)`, viewer, other).
-		Scan(&r.Followers, &r.Following, &r.Followed, &r.Blocked)
+		EXISTS (SELECT 1 FROM blocks WHERE blocker_id = $1 AND blocked_id = $2),
+		`+friendState, viewer, other).
+		Scan(&r.Followers, &r.Following, &r.Followed, &r.Blocked, &r.Friend)
 	return r, err
 }
 
@@ -65,7 +67,7 @@ func (s *Store) Unfollow(ctx context.Context, follower, followed uuid.UUID) erro
 	return err
 }
 
-// Block blocks a user; follows between the two end.
+// Block blocks a user; follows and friendship between the two end.
 func (s *Store) Block(ctx context.Context, blocker, blocked uuid.UUID) error {
 	if blocker == blocked {
 		return ErrForbidden
@@ -80,6 +82,10 @@ func (s *Store) Block(ctx context.Context, blocker, blocked uuid.UUID) error {
 	}
 	if _, err := tx.Exec(ctx, `DELETE FROM follows WHERE (follower_id = $1 AND followed_id = $2)
 		OR (follower_id = $2 AND followed_id = $1)`, blocker, blocked); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `DELETE FROM friendships WHERE (requester_id = $1 AND addressee_id = $2)
+		OR (requester_id = $2 AND addressee_id = $1)`, blocker, blocked); err != nil {
 		return err
 	}
 	return tx.Commit(ctx)

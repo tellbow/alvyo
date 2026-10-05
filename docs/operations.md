@@ -129,6 +129,22 @@ Wanderweg» with a guessed SAC grade. After loading or updating the network,
 /alvyo route retrail`) matches every stored route against it again and grades
 it anew; line, times and version stay. Running it again changes nothing.
 
+## Telemetry
+
+The API and the web server send traces by OTLP when
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set (standard OpenTelemetry variables:
+`OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`, `OTEL_SDK_DISABLED=true` to
+switch off). On rk1 they reach the collector DaemonSet on their node
+(`http://$(HOST_IP):4318`, monitoring-system in the gitops repo), which drops
+them until a tracing backend is added there. Metrics are served for
+Prometheus on their own port when `ALVYO_METRICS_LISTEN` (API, e.g. `:9464`)
+and `METRICS_PORT` (web) are set; kube-prometheus-stack scrapes them through
+`cluster/alvyo/servicemonitor.yaml` (`http_server_request_duration_seconds`
+of the API, `http_server_request_duration` of the web, `db_client_*`, `go_*`).
+Logs are JSON on stderr; the collector reads them into VictoriaLogs; lines
+of a request carry `trace_id`. Locally: `docker run -p 4318:4318
+otel/opentelemetry-collector-contrib` with a debug exporter shows the traces.
+
 ## Moderation
 
 ```sh

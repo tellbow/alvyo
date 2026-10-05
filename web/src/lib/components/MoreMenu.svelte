@@ -5,9 +5,25 @@
 	import { actionButton } from './actions';
 
 	// «⋯»: what is done now and then (printing, collections, deleting …);
-	// closes on a click beside it or Escape.
-	let { testid, onclose, children }: { testid: string; onclose?: () => void; children: Snippet } =
-		$props();
+	// closes on a click beside it or Escape. With another label and button
+	// style a small popover of its own (opening at the button's left edge).
+	let {
+		testid,
+		label = '⋯',
+		ariaLabel = m.route_more(),
+		buttonClass = actionButton,
+		left = false,
+		onclose,
+		children
+	}: {
+		testid: string;
+		label?: string;
+		ariaLabel?: string;
+		buttonClass?: string;
+		left?: boolean;
+		onclose?: () => void;
+		children: Snippet<[close: () => void]>;
+	} = $props();
 
 	// A click before hydration would be lost.
 	const hydrated = new Hydrated();
@@ -33,19 +49,21 @@
 <div class="relative shrink-0" bind:this={box}>
 	<button
 		type="button"
-		class={actionButton}
-		aria-label={m.route_more()}
+		class={buttonClass}
+		aria-label={ariaLabel}
 		aria-expanded={open}
 		aria-controls="{testid}-items"
 		disabled={!hydrated.value}
 		onclick={() => (open ? close() : (open = true))}
-		data-testid={testid}>⋯</button
+		data-testid={testid}>{label}</button
 	>
 	<div
 		id="{testid}-items"
-		class="absolute top-11 right-0 z-20 flex w-64 flex-col rounded-xl border border-stone-200 bg-surface p-1.5 text-sm shadow-lg"
+		class="absolute top-11 z-20 flex w-64 flex-col rounded-xl border border-stone-200 bg-surface p-1.5 text-sm shadow-lg {left
+			? 'left-0'
+			: 'right-0'}"
 		hidden={!open}
 	>
-		{@render children()}
+		{@render children(close)}
 	</div>
 </div>

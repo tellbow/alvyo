@@ -92,7 +92,9 @@ type Me struct {
 	HasPassword   bool      `json:"has_password" doc:"False for accounts made through a sign-in provider until a password is set"`
 	// Notification e-mails.
 	NotifyComments bool `json:"notify_comments" doc:"E-mail on comments on my routes and journeys"`
-	NotifyFollows  bool `json:"notify_follows" doc:"E-mail when someone follows me"`
+	NotifyFollows  bool `json:"notify_follows" doc:"E-mail when someone follows me or asks to be friends"`
+	ProfilePublic  bool `json:"profile_public" doc:"Found by the user search; else seen by friends only"`
+	FriendRequests int  `json:"friend_requests" doc:"Friend requests waiting for an answer (on GET and PATCH /me)"`
 }
 
 func toMe(u dbq.User) Me {
@@ -110,7 +112,20 @@ func toMe(u dbq.User) Me {
 		HasPassword:    u.PasswordHash != nil,
 		NotifyComments: u.NotifyComments,
 		NotifyFollows:  u.NotifyFollows,
+		ProfilePublic:  u.ProfilePublic,
 	}
+}
+
+// fullMe is toMe with the friend requests waiting.
+func fullMe(ctx context.Context, d Deps, u dbq.User) (*meOutput, error) {
+	me := toMe(u)
+	if d.Community != nil {
+		var err error
+		if me.FriendRequests, err = d.Community.IncomingRequests(ctx, u.ID); err != nil {
+			return nil, err
+		}
+	}
+	return &meOutput{Body: me}, nil
 }
 
 type sessionOutput struct {
@@ -306,7 +321,7 @@ func registerAuth(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
-		return &meOutput{Body: toMe(u)}, nil
+		return fullMe(ctx, d, u)
 	})
 }
 

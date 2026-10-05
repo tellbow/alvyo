@@ -1,9 +1,12 @@
+import { readDone, type DoneFilter } from '$lib/done/done';
+
 export type Kind = 'route' | 'journey' | 'hike';
 export const KINDS: Kind[] = ['route', 'journey', 'hike'];
 
 /** The filters of the map of one's hikes, as shown (km, hours at one's pace). */
 export type Filters = {
 	kinds: Kind[]; // none: all
+	done: DoneFilter; // planned or hiked only; '': all
 	tags: string[]; // any of them; none: all
 	distance: [number | undefined, number | undefined]; // km
 	duration: [number | undefined, number | undefined]; // h
@@ -23,6 +26,7 @@ const grade = (v: string | null) => Math.min(Math.max(Math.round(Number(v)) || 0
 export function readFilters(p: URLSearchParams): Filters {
 	return {
 		kinds: (p.get('kind') ?? '').split(',').filter((k): k is Kind => KINDS.includes(k as Kind)),
+		done: readDone(p),
 		tags: p.getAll('tag').filter(Boolean),
 		distance: [positive(p.get('dmin')), positive(p.get('dmax'))],
 		duration: [positive(p.get('tmin')), positive(p.get('tmax'))],
@@ -40,6 +44,7 @@ export function writeFilters(f: Filters, bbox: string): URLSearchParams {
 		if (v) q.set(k, String(v));
 	};
 	set('kind', f.kinds.join(','));
+	set('done', f.done);
 	for (const t of f.tags) q.append('tag', t);
 	set('dmin', f.distance[0]);
 	set('dmax', f.distance[1]);
@@ -59,6 +64,7 @@ export function apiQuery(f: Filters, pace: number) {
 	const seconds = (h?: number) => (h ? Math.round((h * 3600) / pace) : undefined);
 	return {
 		kind: f.kinds.length ? f.kinds : undefined,
+		done: f.done || undefined,
 		tags: f.tags.length ? f.tags : undefined,
 		distance_min: metres(f.distance[0]),
 		distance_max: metres(f.distance[1]),

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { api, type JourneyStage, type Person } from '$lib/api/client';
+	import FriendOptions from '$lib/community/FriendOptions.svelte';
 	import { m } from '$lib/paraglide/messages';
 	import { personName } from './people';
 
@@ -136,8 +137,10 @@
 					placeholder={m.people_who()}
 					aria-label={m.people_who()}
 					autocomplete="off"
+					list="people-friends"
 					data-testid="people-who"
 				/>
+				<FriendOptions id="people-friends" />
 				<button
 					type="submit"
 					class="rounded-md px-3 py-1 ring-1 ring-stone-300"

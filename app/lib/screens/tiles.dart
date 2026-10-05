@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
+import 'done.dart';
 import 'item_card.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
@@ -43,7 +44,11 @@ class RouteTile extends StatelessWidget {
           children: [
             Text(
               '${owner != null ? '${t.ownerBy(owner!)} · ' : ''}'
-              '${r.hikedAt != null ? '${t.routesHiked(formatDate(r.hikedAt!))} · ' : ''}'
+              '${r.hikedAt != null
+                  ? '${t.routesHiked(formatDate(r.hikedAt!))} · '
+                  : r.doneOn != null
+                  ? '✓ ${doneText(t, r.doneOn!)} · '
+                  : ''}'
               '${formatDistance(r.totals.distanceM)} · ${formatHikingTime(r.totals.durationS)} · '
               '↑\u00a0${formatHeight(r.totals.ascentM)} · ${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
             ),
@@ -76,6 +81,7 @@ class JourneyTile extends StatelessWidget {
           children: [
             Text(
               '${owner != null ? '${t.ownerBy(owner!)} · ' : ''}'
+              '${j.doneOn != null ? '✓ ${doneText(t, j.doneOn!)} · ' : ''}'
               '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
               '${formatDistance(j.distanceM)} · ${formatHikingTime(j.durationS)} · ↑\u00a0${formatHeight(j.ascentM)}',
             ),

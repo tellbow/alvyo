@@ -43,6 +43,7 @@
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import LikeButton from '$lib/community/LikeButton.svelte';
+	import DoneButton from '$lib/done/DoneButton.svelte';
 	import { TRAIL_COLOR } from './colors';
 	import { Planner } from './planner.svelte';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Profile } from './route';
@@ -301,6 +302,16 @@
 					>
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{#if community}<LikeButton {community} {user} testid="route-like" />{/if}
+					{#if user && !route.journey_id}
+						<DoneButton
+							kind="routes"
+							id={route.id}
+							{token}
+							doneOn={route.done_on}
+							marked={route.done_marked}
+							by="hike"
+						/>
+					{/if}
 					<ShareButton
 						title={route.title}
 						token={token ?? (route.visibility === 'unlisted' ? route.share_token : undefined)}

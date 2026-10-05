@@ -1623,4 +1623,97 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get reminderStart => 'Morgen geht es los. Gute Wanderung!';
+
+  @override
+  String get friendsTitle => 'Freunde';
+
+  @override
+  String get friendsSearch => 'Personen suchen';
+
+  @override
+  String get friendsSearchHint => 'Benutzername oder Name; gefunden werden nur öffentliche Profile.';
+
+  @override
+  String get friendsNoneFound => 'Niemand gefunden.';
+
+  @override
+  String get friendsIncoming => 'Anfragen an dich';
+
+  @override
+  String get friendsOutgoing => 'Deine Anfragen';
+
+  @override
+  String get friendsList => 'Deine Freunde';
+
+  @override
+  String get friendsEmpty => 'Noch keine Freunde. Suche nach Personen oder schicke deinen Einladungslink.';
+
+  @override
+  String get friendAdd => 'Als Freund hinzufügen';
+
+  @override
+  String get friendRequested => 'Anfrage gesendet';
+
+  @override
+  String get friendWithdraw => 'Zurückziehen';
+
+  @override
+  String get friendAccept => 'Annehmen';
+
+  @override
+  String get friendDecline => 'Ablehnen';
+
+  @override
+  String get friendFriends => 'Befreundet';
+
+  @override
+  String get friendRemove => 'Freundschaft beenden';
+
+  @override
+  String get friendsLinkTitle => 'Dein Einladungslink';
+
+  @override
+  String get friendsLinkHint =>
+      'Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.';
+
+  @override
+  String get friendsLinkShare => 'Link senden';
+
+  @override
+  String get friendsLinkRenew => 'Neuen Link erzeugen';
+
+  @override
+  String get profilePublic => 'Öffentliches Profil';
+
+  @override
+  String get profilePublicHint => 'Andere finden dich in der Suche. Ein privates Profil sehen nur deine Freunde.';
+
+  @override
+  String get doneMark => 'Als gewandert markieren';
+
+  @override
+  String get doneRemove => 'Nicht gewandert';
+
+  @override
+  String get doneByHike => 'aufgezeichnet';
+
+  @override
+  String get doneByStages => 'alle Etappen erledigt';
+
+  @override
+  String get doneFilterAll => 'Alle';
+
+  @override
+  String get doneFilterPlanned => 'Geplant';
+
+  @override
+  String get doneFilterDone => 'Gewandert';
+
+  @override
+  String get doneFilterNone => 'Nichts in dieser Auswahl.';
+
+  @override
+  String doneOn(String date) {
+    return 'Gewandert am $date';
+  }
 }

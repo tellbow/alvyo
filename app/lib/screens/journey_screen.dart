@@ -13,6 +13,7 @@ import '../travel.dart';
 import '../weather.dart';
 import 'collections_screen.dart';
 import 'details.dart';
+import 'done.dart';
 import 'item_menu.dart';
 import 'journey_map_screen.dart';
 import 'panel_tabs.dart';
@@ -47,6 +48,9 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
 
   final Future<PackStore> _store = PackStore.open();
   String _tab = 'stages';
+
+  /// When the user finished it, as changed here; else as loaded.
+  DoneState? _done;
 
   late Future<JourneyDetail> _journey = _load();
   late final Future<Along> _areas = widget.api
@@ -301,6 +305,14 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                     t.gpxJourney,
                     () => shareGpx(context, widget.api, j.id, j.title, journey: true),
                   ),
+                  ...doneActions(
+                    context,
+                    widget.api,
+                    id: j.id,
+                    journey: true,
+                    state: _done ?? (doneOn: j.doneOn, marked: j.doneMarked),
+                    onDone: (s) => setState(() => _done = s),
+                  ),
                   MenuAction(
                     'collection',
                     Icons.collections_bookmark_outlined,
@@ -363,6 +375,17 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                         ),
                         const SizedBox(height: 4),
                         LinearProgressIndicator(value: j.stagesTotal == 0 ? 0 : j.stagesDone / j.stagesTotal),
+                        if ((_done ?? (doneOn: j.doneOn, marked: j.doneMarked)) case (
+                          doneOn: final on?,
+                          :final marked,
+                        )) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            key: const Key('done-on'),
+                            '✓ ${doneText(t, on)}${marked ? '' : ' · ${t.doneByStages}'}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                         if (!j.isOwner && j.owner.isNotEmpty) OwnerLine(api: widget.api, owner: j.owner, open: true),
                         if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
                         if (j.stageLines.isNotEmpty)

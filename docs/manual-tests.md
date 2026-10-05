@@ -332,8 +332,18 @@ Checked so far only in the simulator, with made-up or simulated positions
       without scrolling; the tab bar stays while the panel scrolls; switching
       tabs keeps what was loaded (photos, the way there).
 
+- [ ] **Friends in the app** (60): the invite link from «Link senden» opens
+      the website on the other phone and makes friends; requests and the
+      private profile switch as on the website.
+- [ ] **Hiked in the app** (61): «Als gewandert markieren» with the date
+      picker; the lists' «Geplant / Gewandert»; a recorded hike counts.
+
 ## Web
 
+- [ ] **Telemetry on rk1** (59): after the release, Prometheus scrapes
+      the api and web targets (up) with their request durations;
+      VictoriaLogs lines of the API carry `trace_id`; the collector logs no
+      export errors.
 - [ ] **A route's page** (58) in Safari on the iPhone and the Mac and in
       Firefox: «Teilen» opens the share sheet on the iPhone and copies the
       link on the Mac; «Anderes Datum» opens the date picker; the «⋯» menu

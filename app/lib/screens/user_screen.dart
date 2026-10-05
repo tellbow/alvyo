@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../api.dart';
 import '../l10n/app_localizations.dart';
+import 'friends_screen.dart';
 import 'report_dialog.dart';
 import 'tiles.dart';
 
@@ -94,6 +95,13 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                       if (p.blocked) Text(t.profileBlockedNote),
                       if (!p.self && !p.blocked) ...[
+                        const SizedBox(height: 8),
+                        FriendButton(
+                          key: Key('friend-${p.friend}'),
+                          api: widget.api,
+                          username: p.username,
+                          friend: p.friend,
+                        ),
                         const SizedBox(height: 8),
                         p.followed
                             ? OutlinedButton(

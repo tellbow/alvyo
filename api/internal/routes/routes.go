@@ -74,6 +74,10 @@ type Summary struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// Hike is set for routes recorded with the app.
 	Hike *Hike `json:"hike,omitempty"`
+	// DoneOn is when the viewer hiked it: marked, recorded with the app,
+	// or (journeys, for their owner and editors) all stages ticked off.
+	// Set in lists of one's own and shared items and on GET.
+	DoneOn *string `json:"done_on,omitempty" format:"date"`
 }
 
 // Route is a full route including its planner state.

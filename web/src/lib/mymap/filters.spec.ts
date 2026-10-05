@@ -4,11 +4,12 @@ import { apiQuery, readFilters, writeFilters } from './filters';
 describe('map filters', () => {
 	it('survive the address', () => {
 		const q = new URLSearchParams(
-			'bbox=7,46,8,47&kind=route,hike,bogus&tag=Winter&tag=mit%2C+Kindern&dmin=5&tmax=4.5&sacmin=2&sacmax=9&shared=1&color=sac'
+			'bbox=7,46,8,47&kind=route,hike,bogus&done=planned&tag=Winter&tag=mit%2C+Kindern&dmin=5&tmax=4.5&sacmin=2&sacmax=9&shared=1&color=sac'
 		);
 		const f = readFilters(q);
 		expect(f).toEqual({
 			kinds: ['route', 'hike'],
+			done: 'planned',
 			tags: ['Winter', 'mit, Kindern'],
 			distance: [5, undefined],
 			duration: [undefined, 4.5],

@@ -3039,6 +3039,186 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Morgen geht es los. Gute Wanderung!'**
   String get reminderStart;
+
+  /// No description provided for @friendsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Freunde'**
+  String get friendsTitle;
+
+  /// No description provided for @friendsSearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Personen suchen'**
+  String get friendsSearch;
+
+  /// No description provided for @friendsSearchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzername oder Name; gefunden werden nur öffentliche Profile.'**
+  String get friendsSearchHint;
+
+  /// No description provided for @friendsNoneFound.
+  ///
+  /// In de, this message translates to:
+  /// **'Niemand gefunden.'**
+  String get friendsNoneFound;
+
+  /// No description provided for @friendsIncoming.
+  ///
+  /// In de, this message translates to:
+  /// **'Anfragen an dich'**
+  String get friendsIncoming;
+
+  /// No description provided for @friendsOutgoing.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Anfragen'**
+  String get friendsOutgoing;
+
+  /// No description provided for @friendsList.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Freunde'**
+  String get friendsList;
+
+  /// No description provided for @friendsEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Freunde. Suche nach Personen oder schicke deinen Einladungslink.'**
+  String get friendsEmpty;
+
+  /// No description provided for @friendAdd.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Freund hinzufügen'**
+  String get friendAdd;
+
+  /// No description provided for @friendRequested.
+  ///
+  /// In de, this message translates to:
+  /// **'Anfrage gesendet'**
+  String get friendRequested;
+
+  /// No description provided for @friendWithdraw.
+  ///
+  /// In de, this message translates to:
+  /// **'Zurückziehen'**
+  String get friendWithdraw;
+
+  /// No description provided for @friendAccept.
+  ///
+  /// In de, this message translates to:
+  /// **'Annehmen'**
+  String get friendAccept;
+
+  /// No description provided for @friendDecline.
+  ///
+  /// In de, this message translates to:
+  /// **'Ablehnen'**
+  String get friendDecline;
+
+  /// No description provided for @friendFriends.
+  ///
+  /// In de, this message translates to:
+  /// **'Befreundet'**
+  String get friendFriends;
+
+  /// No description provided for @friendRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Freundschaft beenden'**
+  String get friendRemove;
+
+  /// No description provided for @friendsLinkTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Einladungslink'**
+  String get friendsLinkTitle;
+
+  /// No description provided for @friendsLinkHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.'**
+  String get friendsLinkHint;
+
+  /// No description provided for @friendsLinkShare.
+  ///
+  /// In de, this message translates to:
+  /// **'Link senden'**
+  String get friendsLinkShare;
+
+  /// No description provided for @friendsLinkRenew.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuen Link erzeugen'**
+  String get friendsLinkRenew;
+
+  /// No description provided for @profilePublic.
+  ///
+  /// In de, this message translates to:
+  /// **'Öffentliches Profil'**
+  String get profilePublic;
+
+  /// No description provided for @profilePublicHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Andere finden dich in der Suche. Ein privates Profil sehen nur deine Freunde.'**
+  String get profilePublicHint;
+
+  /// No description provided for @doneMark.
+  ///
+  /// In de, this message translates to:
+  /// **'Als gewandert markieren'**
+  String get doneMark;
+
+  /// No description provided for @doneRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht gewandert'**
+  String get doneRemove;
+
+  /// No description provided for @doneByHike.
+  ///
+  /// In de, this message translates to:
+  /// **'aufgezeichnet'**
+  String get doneByHike;
+
+  /// No description provided for @doneByStages.
+  ///
+  /// In de, this message translates to:
+  /// **'alle Etappen erledigt'**
+  String get doneByStages;
+
+  /// No description provided for @doneFilterAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle'**
+  String get doneFilterAll;
+
+  /// No description provided for @doneFilterPlanned.
+  ///
+  /// In de, this message translates to:
+  /// **'Geplant'**
+  String get doneFilterPlanned;
+
+  /// No description provided for @doneFilterDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewandert'**
+  String get doneFilterDone;
+
+  /// No description provided for @doneFilterNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Nichts in dieser Auswahl.'**
+  String get doneFilterNone;
+
+  /// No description provided for @doneOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewandert am {date}'**
+  String doneOn(String date);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

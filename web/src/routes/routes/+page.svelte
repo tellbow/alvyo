@@ -10,17 +10,22 @@
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagFilter from '$lib/tags/TagFilter.svelte';
 	import { hasTag } from '$lib/tags/tags';
+	import { doneDate, passes, readDone } from '$lib/done/done';
+	import DoneFilter from '$lib/done/DoneFilter.svelte';
 
 	let { data } = $props();
 	const pace = $derived(data.user?.speed_factor ?? 1);
 	// svelte-ignore state_referenced_locally
 	let shared = $state(data.shared);
 	const tag = $derived(page.url.searchParams.get('tag'));
+	const done = $derived(readDone(page.url.searchParams));
 	// Deleted here, and the one asking «really?».
 	let deleted = $state<string[]>([]);
 	let confirming = $state<string>();
 	const routes = $derived(
-		data.routes.filter((r) => hasTag(r.tags, tag) && !deleted.includes(r.id))
+		data.routes.filter(
+			(r) => hasTag(r.tags, tag) && passes(done, r.done_on) && !deleted.includes(r.id)
+		)
 	);
 	const byTag = (t: string) => `?tag=${encodeURIComponent(t)}`;
 
@@ -53,8 +58,11 @@
 		</div>
 	</div>
 	<TagFilter />
+	{#if data.routes.length > 0}<DoneFilter />{/if}
 	{#if data.routes.length === 0}
 		<p class="text-stone-600">{m.routes_empty()}</p>
+	{:else if routes.length === 0}
+		<p class="text-stone-600">{m.done_filter_none()}</p>
 	{:else}
 		<ul
 			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
@@ -73,6 +81,10 @@
 						{#if r.hike}
 							<span class="text-xs text-stone-500" data-testid="hiked"
 								>{m.routes_hiked({ date: hikeDate(r.hike.at) })}</span
+							>
+						{:else if r.done_on}
+							<span class="text-xs text-stone-500" data-testid="done-on"
+								>✓ {m.done_on({ date: doneDate(r.done_on) })}</span
 							>
 						{/if}
 						<TagChips tags={r.tags} href={byTag} />
@@ -123,7 +135,7 @@
 			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="shared-routes"
 		>
-			{#each shared as r (r.id)}
+			{#each shared.filter((r) => passes(done, r.done_on)) as r (r.id)}
 				<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
 					<a
 						href={resolve('/routes/[id]', { id: r.id })}

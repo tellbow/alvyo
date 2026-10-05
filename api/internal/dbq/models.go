@@ -153,6 +153,19 @@ type Block struct {
 	CreatedAt time.Time
 }
 
+type BugReport struct {
+	ID             uuid.UUID
+	UserID         uuid.UUID
+	CreatedAt      time.Time
+	Description    string
+	Place          string
+	Version        string
+	Platform       string
+	Screenshot     []byte
+	ScreenshotType *string
+	IssueNumber    *int32
+}
+
 type Collection struct {
 	ID          uuid.UUID
 	OwnerID     uuid.UUID
@@ -210,6 +223,13 @@ type Follow struct {
 	CreatedAt  time.Time
 }
 
+type Friendship struct {
+	RequesterID uuid.UUID
+	AddresseeID uuid.UUID
+	CreatedAt   time.Time
+	AcceptedAt  *time.Time
+}
+
 type Grant struct {
 	ID           uuid.UUID
 	RouteID      *uuid.UUID
@@ -220,6 +240,7 @@ type Grant struct {
 	InvitedBy    *uuid.UUID
 	CreatedAt    time.Time
 	CollectionID *uuid.UUID
+	Along        bool
 }
 
 type Home struct {
@@ -254,6 +275,19 @@ type Journey struct {
 	CommentsEnabled bool
 	PublishedAt     *time.Time
 	Tags            []string
+}
+
+type JourneyReminder struct {
+	JourneyID uuid.UUID
+	UserID    uuid.UUID
+	Kind      string
+	StartOn   pgtype.Date
+	SentAt    time.Time
+}
+
+type JourneyRemindersOff struct {
+	JourneyID uuid.UUID
+	UserID    uuid.UUID
 }
 
 type JourneyTravel struct {
@@ -468,6 +502,11 @@ type Stage struct {
 	Version             int32
 }
 
+type StagePerson struct {
+	StageID uuid.UUID
+	GrantID uuid.UUID
+}
+
 type TlmHikingPath struct {
 	ID       int64
 	Category string
@@ -488,4 +527,6 @@ type User struct {
 	CreatedAt       time.Time
 	NotifyComments  bool
 	NotifyFollows   bool
+	ProfilePublic   bool
+	FriendToken     *string
 }

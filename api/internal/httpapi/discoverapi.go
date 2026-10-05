@@ -44,6 +44,7 @@ type myMapInput struct {
 	SACMin       int      `query:"sac_min" minimum:"0" maximum:"6" doc:"Hardest SAC grade at least; 0 for no bound"`
 	SACMax       int      `query:"sac_max" minimum:"0" maximum:"6" doc:"Hardest SAC grade at most; 0 for no bound"`
 	LongestStage bool     `query:"longest_stage" doc:"Journeys: the distance and time bounds apply to the longest stage, not the whole journey"`
+	Done         string   `query:"done" enum:"done,planned" doc:"done: only what I hiked; planned: only what I have not; all if left out"`
 }
 
 type myMapOutput struct {
@@ -121,7 +122,7 @@ func registerDiscover(api huma.API, d Deps) {
 			Kinds: in.Kind, Tags: in.Tags, Shared: in.Shared,
 			MinDistanceM: in.DistanceMin, MaxDistanceM: in.DistanceMax,
 			MinDurationS: in.DurationMin, MaxDurationS: in.DurationMax,
-			MinSAC: in.SACMin, MaxSAC: in.SACMax, LongestStage: in.LongestStage,
+			MinSAC: in.SACMin, MaxSAC: in.SACMax, LongestStage: in.LongestStage, Done: in.Done,
 		})
 		if err != nil {
 			return nil, err
@@ -146,7 +147,7 @@ func registerDiscover(api huma.API, d Deps) {
 	huma.Register(api, huma.Operation{
 		OperationID: "get-profile", Method: http.MethodGet, Path: "/users/{username}",
 		Summary:     "A user's public profile with their public routes and journeys",
-		Description: "Only users who published something have a profile.",
+		Description: "A public profile is shown once it has published something; a private one to friends only. Friends and the user see it always.",
 		Tags:        []string{"discover"},
 	}, func(ctx context.Context, in *profileInput) (*profileOutput, error) {
 		notFound := huma.Error404NotFound("no such profile")
@@ -165,13 +166,18 @@ func registerDiscover(api huma.API, d Deps) {
 		if out.Body.Journeys, err = d.Journeys.ListPublicByOwner(ctx, u.ID); err != nil {
 			return nil, err
 		}
-		if len(out.Body.Routes) == 0 && len(out.Body.Journeys) == 0 {
-			return nil, notFound
-		}
 		v, _, _ := communityViewer(ctx)
 		out.Body.Self = v.ID == u.ID
-		out.Body.Relation, err = d.Community.Relation(ctx, v.ID, u.ID)
-		return out, err
+		if out.Body.Relation, err = d.Community.Relation(ctx, v.ID, u.ID); err != nil {
+			return nil, err
+		}
+		// A private profile is for friends; a public one for all once it has
+		// something to show. One's own and a friend's always.
+		friend := out.Body.Self || out.Body.Friend == community.Friends
+		if !friend && (!u.Public || len(out.Body.Routes) == 0 && len(out.Body.Journeys) == 0) {
+			return nil, notFound
+		}
+		return out, nil
 	})
 }
 

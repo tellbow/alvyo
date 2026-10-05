@@ -1,3 +1,9 @@
+import { context, metrics, propagation } from '@opentelemetry/api';
+import {
+	ATTR_HTTP_REQUEST_METHOD,
+	ATTR_HTTP_RESPONSE_STATUS_CODE,
+	ATTR_HTTP_ROUTE
+} from '@opentelemetry/semantic-conventions';
 import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { env } from '$env/dynamic/private';
@@ -93,7 +99,25 @@ const handleCompression: Handle = async ({ event, resolve }) => {
 	});
 };
 
+// Request durations per route (/routes/[id], not the address), sent with
+// OpenTelemetry when it is set up (instrumentation.server.ts).
+const durations = metrics
+	.getMeter('alvyo-web')
+	.createHistogram('http.server.request.duration', { unit: 's' });
+
+const handleMetrics: Handle = async ({ event, resolve }) => {
+	const start = performance.now();
+	const response = await resolve(event);
+	durations.record((performance.now() - start) / 1000, {
+		[ATTR_HTTP_REQUEST_METHOD]: event.request.method,
+		[ATTR_HTTP_ROUTE]: event.route.id ?? 'unmatched',
+		[ATTR_HTTP_RESPONSE_STATUS_CODE]: response.status
+	});
+	return response;
+};
+
 export const handle: Handle = sequence(
+	handleMetrics,
 	handleHeaders,
 	handleCompression,
 	handleParaglide,
@@ -111,6 +135,10 @@ export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
 		request = new Request(apiInternalURL() + url.pathname + url.search, request);
 		const cookie = event.request.headers.get('cookie');
 		if (cookie) request.headers.set('cookie', cookie);
+		// The API's spans join the trace of this page.
+		propagation.inject(context.active(), request.headers, {
+			set: (headers, key, value) => headers.set(key, value)
+		});
 	}
 	return fetch(request);
 };

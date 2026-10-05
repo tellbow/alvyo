@@ -1621,4 +1621,98 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get reminderStart => 'Si parte domani. Buon cammino!';
+
+  @override
+  String get friendsTitle => 'Amici';
+
+  @override
+  String get friendsSearch => 'Cerca persone';
+
+  @override
+  String get friendsSearchHint => 'Nome utente o nome; si trovano solo i profili pubblici.';
+
+  @override
+  String get friendsNoneFound => 'Nessuno trovato.';
+
+  @override
+  String get friendsIncoming => 'Richieste ricevute';
+
+  @override
+  String get friendsOutgoing => 'Le tue richieste';
+
+  @override
+  String get friendsList => 'I tuoi amici';
+
+  @override
+  String get friendsEmpty => 'Ancora nessun amico. Cerca persone o invia il tuo link di invito.';
+
+  @override
+  String get friendAdd => 'Aggiungi come amico';
+
+  @override
+  String get friendRequested => 'Richiesta inviata';
+
+  @override
+  String get friendWithdraw => 'Ritira';
+
+  @override
+  String get friendAccept => 'Accetta';
+
+  @override
+  String get friendDecline => 'Rifiuta';
+
+  @override
+  String get friendFriends => 'Amici';
+
+  @override
+  String get friendRemove => 'Rimuovi dagli amici';
+
+  @override
+  String get friendsLinkTitle => 'Il tuo link di invito';
+
+  @override
+  String get friendsLinkHint =>
+      'Chi apre questo link diventa tuo amico, anche se il tuo profilo è privato. Invialo solo a persone che conosci.';
+
+  @override
+  String get friendsLinkShare => 'Invia il link';
+
+  @override
+  String get friendsLinkRenew => 'Crea un nuovo link';
+
+  @override
+  String get profilePublic => 'Profilo pubblico';
+
+  @override
+  String get profilePublicHint =>
+      'Gli altri ti trovano nella ricerca. Un profilo privato è visibile solo ai tuoi amici.';
+
+  @override
+  String get doneMark => 'Segna come fatta';
+
+  @override
+  String get doneRemove => 'Non fatta';
+
+  @override
+  String get doneByHike => 'registrata';
+
+  @override
+  String get doneByStages => 'tutte le tappe fatte';
+
+  @override
+  String get doneFilterAll => 'Tutte';
+
+  @override
+  String get doneFilterPlanned => 'Pianificate';
+
+  @override
+  String get doneFilterDone => 'Fatte';
+
+  @override
+  String get doneFilterNone => 'Niente in questa selezione.';
+
+  @override
+  String doneOn(String date) {
+    return 'Fatta il $date';
+  }
 }

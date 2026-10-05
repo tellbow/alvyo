@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib" // database/sql driver for goose
 	"github.com/pressly/goose/v3"
@@ -15,11 +16,23 @@ import (
 
 // Open connects to the database and checks the connection.
 func Open(ctx context.Context, url string) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, url)
+	cfg, err := pgxpool.ParseConfig(url)
+	if err != nil {
+		return nil, fmt.Errorf("db: %w", err)
+	}
+	// Queries as spans of the request they serve (the statement, not its
+	// values), and the pool's use as metrics; without telemetry the global
+	// providers do nothing.
+	cfg.ConnConfig.Tracer = otelpgx.NewTracer()
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("db: %w", err)
 	}
 	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("db: %w", err)
+	}
+	if err := otelpgx.RecordStats(pool); err != nil {
 		pool.Close()
 		return nil, fmt.Errorf("db: %w", err)
 	}

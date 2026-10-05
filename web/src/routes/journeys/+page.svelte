@@ -9,6 +9,8 @@
 	import TagChips from '$lib/tags/TagChips.svelte';
 	import TagFilter from '$lib/tags/TagFilter.svelte';
 	import { hasTag } from '$lib/tags/tags';
+	import { doneDate, passes, readDone } from '$lib/done/done';
+	import DoneFilter from '$lib/done/DoneFilter.svelte';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 
 	let { data } = $props();
@@ -16,11 +18,14 @@
 	// svelte-ignore state_referenced_locally
 	let shared = $state(data.shared);
 	const tag = $derived(page.url.searchParams.get('tag'));
+	const done = $derived(readDone(page.url.searchParams));
 	// Deleted here, and the one asking «really?».
 	let deleted = $state<string[]>([]);
 	let confirming = $state<string>();
 	const journeys = $derived(
-		data.journeys.filter((j) => hasTag(j.tags, tag) && !deleted.includes(j.id))
+		data.journeys.filter(
+			(j) => hasTag(j.tags, tag) && passes(done, j.done_on) && !deleted.includes(j.id)
+		)
 	);
 	const byTag = (t: string) => `?tag=${encodeURIComponent(t)}`;
 
@@ -81,11 +86,14 @@
 	</form>
 
 	<div class="mt-6"><TagFilter /></div>
+	{#if data.journeys.length > 0}<DoneFilter />{/if}
 	{#if data.journeys.length === 0}
 		<p class="mt-6 text-stone-600">{m.journeys_empty()}</p>
+	{:else if journeys.length === 0}
+		<p class="text-stone-600">{m.done_filter_none()}</p>
 	{:else}
 		<ul
-			class="mt-6 divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
+			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="journey-list"
 		>
 			{#each journeys as j (j.id)}
@@ -98,6 +106,11 @@
 							href={resolve('/journeys/[id]', { id: j.id })}
 							class="font-medium after:absolute after:inset-0">{j.title}</a
 						>
+						{#if j.done_on}
+							<span class="text-xs text-stone-500" data-testid="done-on"
+								>✓ {m.done_on({ date: doneDate(j.done_on) })}</span
+							>
+						{/if}
 						<TagChips tags={j.tags} href={byTag} />
 					</span>
 					<span class="text-sm text-stone-600"
@@ -137,7 +150,7 @@
 			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
 			data-testid="shared-journeys"
 		>
-			{#each shared as j (j.id)}
+			{#each shared.filter((j) => passes(done, j.done_on)) as j (j.id)}
 				<li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
 					<a
 						href={resolve('/journeys/[id]', { id: j.id })}

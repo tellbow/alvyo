@@ -1245,6 +1245,11 @@
             "format": "double",
             "type": "number"
           },
+          "done_on": {
+            "description": "When the user hiked it, if they did",
+            "format": "date",
+            "type": "string"
+          },
           "duration_s": {
             "description": "Journeys: all stages together",
             "format": "int64",
@@ -1376,6 +1381,24 @@
           "kind",
           "id",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "DoneOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "done_marked": {
+            "description": "By their own mark, which can be taken back",
+            "type": "boolean"
+          },
+          "done_on": {
+            "description": "When the viewer hiked it, if they did",
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "done_marked"
         ],
         "type": "object"
       },
@@ -1743,6 +1766,83 @@
         ],
         "type": "object"
       },
+      "FriendLinkOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "description": "For the invite link /friends/invite/{token}",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "type": "object"
+      },
+      "FriendLists": {
+        "additionalProperties": false,
+        "properties": {
+          "friends": {
+            "description": "By name",
+            "items": {
+              "$ref": "#/components/schemas/FriendRef"
+            },
+            "type": "array"
+          },
+          "incoming": {
+            "description": "Asking the user, newest first",
+            "items": {
+              "$ref": "#/components/schemas/FriendRef"
+            },
+            "type": "array"
+          },
+          "outgoing": {
+            "description": "Asked by the user, newest first",
+            "items": {
+              "$ref": "#/components/schemas/FriendRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "friends",
+          "incoming",
+          "outgoing"
+        ],
+        "type": "object"
+      },
+      "FriendRef": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "type": "string"
+          },
+          "friend": {
+            "enum": [
+              "none",
+              "requested",
+              "incoming",
+              "friends"
+            ],
+            "type": "string"
+          },
+          "since": {
+            "description": "When they became friends, or were asked",
+            "format": "date-time",
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "display_name",
+          "friend",
+          "since"
+        ],
+        "type": "object"
+      },
       "Grant": {
         "additionalProperties": false,
         "properties": {
@@ -2056,6 +2156,14 @@
             "format": "double",
             "type": "number"
           },
+          "done_marked": {
+            "description": "done_on is the viewer's own mark, which can be taken back (on GET)",
+            "type": "boolean"
+          },
+          "done_on": {
+            "format": "date",
+            "type": "string"
+          },
           "duration_s": {
             "format": "int64",
             "type": "integer"
@@ -2131,6 +2239,7 @@
         "required": [
           "role",
           "can_edit",
+          "done_marked",
           "stage_list",
           "totals",
           "progress",
@@ -2273,6 +2382,10 @@
           "distance_m": {
             "format": "double",
             "type": "number"
+          },
+          "done_on": {
+            "format": "date",
+            "type": "string"
           },
           "duration_s": {
             "format": "int64",
@@ -2506,6 +2619,10 @@
           "distance_m": {
             "format": "double",
             "type": "number"
+          },
+          "done_on": {
+            "format": "date",
+            "type": "string"
           },
           "duration_s": {
             "format": "int64",
@@ -2916,6 +3033,17 @@
         ],
         "type": "object"
       },
+      "MarkDoneInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "done_on": {
+            "description": "The day; today (Swiss time) if left out",
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "Me": {
         "additionalProperties": false,
         "properties": {
@@ -2933,6 +3061,11 @@
           "email_verified": {
             "type": "boolean"
           },
+          "friend_requests": {
+            "description": "Friend requests waiting for an answer (on GET and PATCH /me)",
+            "format": "int64",
+            "type": "integer"
+          },
           "has_password": {
             "description": "False for accounts made through a sign-in provider until a password is set",
             "type": "boolean"
@@ -2949,7 +3082,11 @@
             "type": "boolean"
           },
           "notify_follows": {
-            "description": "E-mail when someone follows me",
+            "description": "E-mail when someone follows me or asks to be friends",
+            "type": "boolean"
+          },
+          "profile_public": {
+            "description": "Found by the user search; else seen by friends only",
             "type": "boolean"
           },
           "role": {
@@ -2981,7 +3118,9 @@
           "created_at",
           "has_password",
           "notify_comments",
-          "notify_follows"
+          "notify_follows",
+          "profile_public",
+          "friend_requests"
         ],
         "type": "object"
       },
@@ -3819,6 +3958,16 @@
             "format": "int64",
             "type": "integer"
           },
+          "friend": {
+            "description": "Friends, or who asked whom",
+            "enum": [
+              "none",
+              "requested",
+              "incoming",
+              "friends"
+            ],
+            "type": "string"
+          },
           "journeys": {
             "items": {
               "$ref": "#/components/schemas/JourneySummary"
@@ -3854,7 +4003,8 @@
           "followers",
           "following",
           "followed",
-          "blocked"
+          "blocked",
+          "friend"
         ],
         "type": "object"
       },
@@ -4048,13 +4198,24 @@
           "following": {
             "format": "int64",
             "type": "integer"
+          },
+          "friend": {
+            "description": "Friends, or who asked whom",
+            "enum": [
+              "none",
+              "requested",
+              "incoming",
+              "friends"
+            ],
+            "type": "string"
           }
         },
         "required": [
           "followers",
           "following",
           "followed",
-          "blocked"
+          "blocked",
+          "friend"
         ],
         "type": "object"
       },
@@ -4412,6 +4573,14 @@
           "description": {
             "type": "string"
           },
+          "done_marked": {
+            "description": "done_on is the viewer's own mark, which can be taken back (on GET)",
+            "type": "boolean"
+          },
+          "done_on": {
+            "format": "date",
+            "type": "string"
+          },
           "hike": {
             "$ref": "#/components/schemas/RouteHike"
           },
@@ -4477,6 +4646,7 @@
         "required": [
           "role",
           "can_edit",
+          "done_marked",
           "anchors",
           "legs",
           "id",
@@ -4603,6 +4773,10 @@
           "description": {
             "type": "string"
           },
+          "done_on": {
+            "format": "date",
+            "type": "string"
+          },
           "hike": {
             "$ref": "#/components/schemas/RouteHike"
           },
@@ -4676,6 +4850,10 @@
             "type": "string"
           },
           "description": {
+            "type": "string"
+          },
+          "done_on": {
+            "format": "date",
             "type": "string"
           },
           "hike": {
@@ -4923,7 +5101,11 @@
             "type": "boolean"
           },
           "notify_follows": {
-            "description": "E-mail when someone follows me",
+            "description": "E-mail when someone follows me or asks to be friends",
+            "type": "boolean"
+          },
+          "profile_public": {
+            "description": "Found by the user search; else seen by friends only",
             "type": "boolean"
           },
           "speed_factor": {
@@ -6056,6 +6238,21 @@
         "required": [
           "username",
           "display_name"
+        ],
+        "type": "object"
+      },
+      "UserSearchOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/FriendRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "users"
         ],
         "type": "object"
       },
@@ -7908,6 +8105,88 @@
         ]
       }
     },
+    "/friend-invites/{token}": {
+      "get": {
+        "operationId": "get-friend-invite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRef"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Whose invite link this is",
+        "tags": [
+          "community"
+        ]
+      },
+      "post": {
+        "operationId": "accept-friend-invite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRef"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Become friends with the owner of the invite link",
+        "tags": [
+          "community"
+        ]
+      }
+    },
     "/hikes": {
       "post": {
         "description": "The track gets elevation and trail data like an import, and the route knows when it was hiked, how long it took and the planned route. 201 for a new route, 200 when the recording was uploaded before; 503 when the elevation service is unavailable (upload again later).",
@@ -8910,6 +9189,117 @@
         "summary": "Change the text of one's own comment",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/journeys/{id}/done": {
+      "delete": {
+        "operationId": "unmark-journey-done",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Take back one's mark; a recorded hike still counts",
+        "tags": [
+          "done"
+        ]
+      },
+      "put": {
+        "operationId": "mark-journey-done",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkDoneInputBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Mark a journey as hiked, on a day",
+        "tags": [
+          "done"
         ]
       }
     },
@@ -11138,7 +11528,7 @@
             "description": "Error"
           }
         },
-        "summary": "Change settings: notification e-mails, their language and the pace",
+        "summary": "Change settings: notification e-mails, their language, the pace and the profile's visibility",
         "tags": [
           "me"
         ]
@@ -11277,6 +11667,97 @@
         "summary": "Remove a contact",
         "tags": [
           "live"
+        ]
+      }
+    },
+    "/me/friend-link": {
+      "get": {
+        "operationId": "get-friend-link",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendLinkOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "My invite link: whoever opens it becomes my friend",
+        "tags": [
+          "community"
+        ]
+      },
+      "post": {
+        "operationId": "rotate-friend-link",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendLinkOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "A new invite link; the old one stops working",
+        "tags": [
+          "community"
+        ]
+      }
+    },
+    "/me/friends": {
+      "get": {
+        "operationId": "list-friends",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendLists"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "My friends and the open friend requests",
+        "tags": [
+          "community"
         ]
       }
     },
@@ -11600,6 +12081,20 @@
             "schema": {
               "description": "Journeys: the distance and time bounds apply to the longest stage, not the whole journey",
               "type": "boolean"
+            }
+          },
+          {
+            "description": "done: only what I hiked; planned: only what I have not; all if left out",
+            "explode": false,
+            "in": "query",
+            "name": "done",
+            "schema": {
+              "description": "done: only what I hiked; planned: only what I have not; all if left out",
+              "enum": [
+                "done",
+                "planned"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -12768,6 +13263,117 @@
         "summary": "Change the text of one's own comment",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/routes/{id}/done": {
+      "delete": {
+        "operationId": "unmark-route-done",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Take back one's mark; a recorded hike still counts",
+        "tags": [
+          "done"
+        ]
+      },
+      "put": {
+        "operationId": "mark-route-done",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted item",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted item",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkDoneInputBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Mark a route as hiked, on a day",
+        "tags": [
+          "done"
         ]
       }
     },
@@ -14485,9 +15091,54 @@
         ]
       }
     },
+    "/users": {
+      "get": {
+        "operationId": "search-users",
+        "parameters": [
+          {
+            "description": "Start of a username or part of a name",
+            "explode": false,
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Start of a username or part of a name",
+              "maxLength": 60,
+              "minLength": 2,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSearchOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Find public profiles by username or name, at most 20",
+        "tags": [
+          "community"
+        ]
+      }
+    },
     "/users/{username}": {
       "get": {
-        "description": "Only users who published something have a profile.",
+        "description": "A public profile is shown once it has published something; a private one to friends only. Friends and the user see it always.",
         "operationId": "get-profile",
         "parameters": [
           {
@@ -14682,6 +15333,86 @@
           }
         },
         "summary": "Follow a user; their public hikes appear in the feed",
+        "tags": [
+          "community"
+        ]
+      }
+    },
+    "/users/{username}/friend": {
+      "delete": {
+        "operationId": "remove-friend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Relation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "End a friendship, or withdraw or decline a request",
+        "tags": [
+          "community"
+        ]
+      },
+      "put": {
+        "operationId": "request-friend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Relation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Ask a user to be friends, or accept their request",
         "tags": [
           "community"
         ]

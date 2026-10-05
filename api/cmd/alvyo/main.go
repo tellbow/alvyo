@@ -32,6 +32,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/config"
 	"github.com/tellbow/alvyo/api/internal/db"
 	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/grants"
 	"github.com/tellbow/alvyo/api/internal/httpapi"
 	"github.com/tellbow/alvyo/api/internal/imports"
@@ -45,6 +46,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/telemetry"
 	"github.com/tellbow/alvyo/api/internal/travel"
 	"github.com/tellbow/alvyo/api/internal/weather"
 	"github.com/tellbow/alvyo/swiss/elevation"
@@ -88,7 +90,27 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: cfg.LogLevel})))
+	slog.SetDefault(slog.New(telemetry.WithTraceIDs(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: cfg.LogLevel}))))
+	var metrics *http.Server
+	if telemetry.Tracing() || cfg.MetricsListen != "" {
+		tel, err := telemetry.Start(ctx, "alvyo-api", version, telemetry.Tracing())
+		if err != nil {
+			return fmt.Errorf("telemetry: %w", err)
+		}
+		if cfg.MetricsListen != "" {
+			mux := http.NewServeMux()
+			mux.Handle("GET /metrics", tel.Metrics)
+			metrics = &http.Server{Addr: cfg.MetricsListen, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+		}
+		defer func() {
+			// What is still buffered, after the server has stopped.
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := tel.Shutdown(ctx); err != nil {
+				slog.Warn("telemetry shutdown", "err", err)
+			}
+		}()
+	}
 
 	pool, err := db.Open(ctx, cfg.DatabaseURL)
 	if err != nil {
@@ -159,6 +181,7 @@ func serve(ctx context.Context) error {
 		Collections: &collections.Store{DB: pool},
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
+		Done:        &done.Store{DB: pool},
 		Photos:      photoStore,
 		OIDC:        oidcProviders(cfg),
 		Packs:       packService,
@@ -173,7 +196,7 @@ func serve(ctx context.Context) error {
 	})
 	srv := &http.Server{
 		Addr:              cfg.Listen,
-		Handler:           handler,
+		Handler:           telemetry.Handler(handler),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       2 * time.Minute, // uploads (photos, track files) of 20 MB from phones
 		// From the end of the headers, so it includes reading the upload;
@@ -182,11 +205,18 @@ func serve(ctx context.Context) error {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	errc := make(chan error, 1)
+	errc := make(chan error, 2)
 	go func() {
 		slog.Info("listening", "addr", cfg.Listen, "version", version)
 		errc <- srv.ListenAndServe()
 	}()
+	if metrics != nil {
+		go func() {
+			slog.Info("metrics", "addr", metrics.Addr)
+			errc <- metrics.ListenAndServe()
+		}()
+		defer func() { _ = metrics.Close() }()
+	}
 	select {
 	case err := <-errc:
 		return err

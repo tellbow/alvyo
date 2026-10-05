@@ -1615,4 +1615,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderStart => 'It starts tomorrow. Have a good hike!';
+
+  @override
+  String get friendsTitle => 'Friends';
+
+  @override
+  String get friendsSearch => 'Find people';
+
+  @override
+  String get friendsSearchHint => 'Username or name; only public profiles are found.';
+
+  @override
+  String get friendsNoneFound => 'Nobody found.';
+
+  @override
+  String get friendsIncoming => 'Requests to you';
+
+  @override
+  String get friendsOutgoing => 'Your requests';
+
+  @override
+  String get friendsList => 'Your friends';
+
+  @override
+  String get friendsEmpty => 'No friends yet. Find people or send your invite link.';
+
+  @override
+  String get friendAdd => 'Add as friend';
+
+  @override
+  String get friendRequested => 'Request sent';
+
+  @override
+  String get friendWithdraw => 'Withdraw';
+
+  @override
+  String get friendAccept => 'Accept';
+
+  @override
+  String get friendDecline => 'Decline';
+
+  @override
+  String get friendFriends => 'Friends';
+
+  @override
+  String get friendRemove => 'Unfriend';
+
+  @override
+  String get friendsLinkTitle => 'Your invite link';
+
+  @override
+  String get friendsLinkHint =>
+      'Whoever opens this link becomes your friend – even when your profile is private. Send it only to people you know.';
+
+  @override
+  String get friendsLinkShare => 'Send the link';
+
+  @override
+  String get friendsLinkRenew => 'Make a new link';
+
+  @override
+  String get profilePublic => 'Public profile';
+
+  @override
+  String get profilePublicHint => 'Others find you in the search. A private profile is seen by your friends only.';
+
+  @override
+  String get doneMark => 'Mark as hiked';
+
+  @override
+  String get doneRemove => 'Not hiked';
+
+  @override
+  String get doneByHike => 'recorded';
+
+  @override
+  String get doneByStages => 'all stages done';
+
+  @override
+  String get doneFilterAll => 'All';
+
+  @override
+  String get doneFilterPlanned => 'Planned';
+
+  @override
+  String get doneFilterDone => 'Hiked';
+
+  @override
+  String get doneFilterNone => 'Nothing in this selection.';
+
+  @override
+  String doneOn(String date) {
+    return 'Hiked on $date';
+  }
 }

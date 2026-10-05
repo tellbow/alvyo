@@ -67,7 +67,8 @@ A `v*` tag builds the images; Flux deploys them
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
-21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02.
+21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02, 59–61
+on 2026-10-05.
 
 ### Done
 
@@ -531,6 +532,39 @@ From the project owner, numbered in the order given: 1–5 added on
     trail conditions (their totals carry none). In the app «Etappen»,
     «Übersicht», «Anreise» and «Fotos» below «Alle Etappen offline
     speichern» (sharing stays in the menu).
+
+59. **Traces and metrics to the observability stack.** API and web are
+    instrumented with OpenTelemetry. Traces go by OTLP to the collector on
+    their node (rk1: the DaemonSet's host port 4318,
+    `OTEL_EXPORTER_OTLP_ENDPOINT` in the gitops repo; without an endpoint
+    nothing is sent); metrics are served for Prometheus on a port of their
+    own (9464, `ALVYO_METRICS_LISTEN` and `METRICS_PORT`, not behind the
+    ingress) and scraped through a ServiceMonitor. API: a span per
+    request named after its operation (`GET /api/v1/routes/{id}`), the
+    database queries (otelpgx) and outgoing requests (GraphHopper,
+    geo.admin, MeteoSwiss, OJP) under it; request, database pool and Go
+    runtime metrics. Web: SvelteKit's spans (handle, load, actions), the
+    trace continued into the API, request durations per route. Logs stay
+    on stderr, where the collector already reads every container's into
+    VictoriaLogs, now with `trace_id` and `span_id`. The collector drops
+    traces (`nop`) until there is a tracing backend.
+60. **Friends.** Mutual: one asks (an e-mail with the «new follower»
+    setting), the other accepts or declines, either ends it; blocking ends
+    it too. «Freunde» (website header with the requests waiting, the app's
+    profile): a search for public profiles by username or name, the
+    requests both ways, one's friends, and one's invite link (renewable):
+    whoever opens it and agrees becomes a friend at once. A profile is
+    public (default) or private («Öffentliches Profil» in the account and
+    the app's profile): a private one is not found and is seen by friends
+    only; follows stay as they were. Friends are offered when sharing and
+    in «Wer kommt mit».
+61. **Hiked.** «Gewandert» on a route or journey one can see marks it as
+    hiked on a day (today unless chosen), for oneself; one's recorded
+    hikes and the routes they were hiked on count without a mark, and a
+    journey for its owner and editors once none of its stages is left
+    planned (`route_done_on`, `journey_done_on` in the database). «Meine
+    Routen», «Etappentouren» and the app's lists filter «Alle / Geplant /
+    Gewandert» and show the day; so does the map of one's hikes.
 
 ### Open
 

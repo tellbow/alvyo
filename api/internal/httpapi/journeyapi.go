@@ -17,6 +17,7 @@ import (
 
 	"github.com/tellbow/alvyo/api/internal/access"
 	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/gpx"
 	"github.com/tellbow/alvyo/api/internal/journeys"
 	"github.com/tellbow/alvyo/api/internal/og"
@@ -29,6 +30,7 @@ type journeyBody struct {
 	Role       string `json:"role" enum:"owner,editor,viewer"`
 	CanEdit    bool   `json:"can_edit"`
 	ShareToken string `json:"share_token,omitempty" doc:"Owner only; the link is /journeys/{id}?t=token"`
+	DoneMarked bool   `json:"done_marked" doc:"done_on is the viewer's own mark, which can be taken back (on GET)"`
 }
 
 type journeyOutput struct {
@@ -206,7 +208,8 @@ func registerJourneys(api huma.API, d Deps) {
 		}
 		out := &journeyListOutput{}
 		out.Body.Journeys = list
-		return out, nil
+		return out, doneDays(ctx, d, u.ID, done.Journey, len(list),
+			func(i int) string { return list[i].ID }, func(i int, day *string) { list[i].DoneOn = day })
 	})
 
 	huma.Register(api, huma.Operation{
@@ -217,7 +220,10 @@ func registerJourneys(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
-		return journeyResponse(j, role), nil
+		out := journeyResponse(j, role)
+		st, err := d.Done.Of(ctx, viewerID(ctx), done.Journey, uuid.MustParse(j.ID))
+		out.Body.DoneOn, out.Body.DoneMarked = day(st.On), st.Marked
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{

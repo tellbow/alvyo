@@ -185,6 +185,22 @@
 				</div>
 			</fieldset>
 
+			<fieldset>
+				<legend class="mb-1 font-medium">{m.done_filter()}</legend>
+				<div class="inline-flex rounded-lg bg-stone-100 p-0.5" data-testid="mymap-done">
+					{#each [['', m.done_filter_all], ['planned', m.done_filter_planned], ['done', m.done_filter_done]] as const as [v, label] (v)}
+						<button
+							type="button"
+							aria-pressed={filters.done === v}
+							class="rounded-md px-3 py-1 {filters.done === v
+								? 'bg-surface font-semibold shadow-sm'
+								: 'text-stone-600 hover:text-stone-900'}"
+							onclick={() => (filters.done = v)}>{label()}</button
+						>
+					{/each}
+				</div>
+			</fieldset>
+
 			{#if tagChoices.length > 0}
 				<fieldset data-testid="mymap-tags">
 					<legend class="mb-1 font-medium">{m.mymap_tags()}</legend>

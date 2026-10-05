@@ -109,6 +109,12 @@
 
 {#snippet account()}
 	{#if data.user}
+		<a href={resolve('/friends')} class="hover:text-accent-ink" data-testid="nav-friends">
+			{m.nav_friends()}{#if data.user.friend_requests > 0}<span
+					class="ml-1 rounded-full bg-accent px-1.5 text-xs text-on-accent tabular-nums"
+					title={m.friends_incoming()}>{data.user.friend_requests}</span
+				>{/if}
+		</a>
 		<a
 			href={resolve('/account')}
 			class="text-stone-600 hover:text-accent-ink"

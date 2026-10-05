@@ -44,6 +44,10 @@ type Summary struct {
 	Version    int       `json:"version"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
+	// DoneOn is when the viewer hiked it: marked, recorded with the app,
+	// or (journeys, for their owner and editors) all stages ticked off.
+	// Set in lists of one's own and shared items and on GET.
+	DoneOn *string `json:"done_on,omitempty" format:"date"`
 }
 
 // StageRoute is the route of a stage as the journey page needs it.

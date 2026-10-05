@@ -19,6 +19,7 @@ import '../route_layers.dart';
 import '../travel.dart';
 import 'collections_screen.dart';
 import 'details.dart';
+import 'done.dart';
 import 'item_menu.dart';
 import 'live_sheet.dart';
 import 'panel_tabs.dart';
@@ -58,6 +59,9 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   late final Future<List<Poi>> _pois = widget.api.pois(widget.id).catchError((_) => <Poi>[]);
   int _poiCount = 0;
   _Tab _tab = _Tab.overview;
+
+  /// When the user hiked it, as changed here; else as loaded.
+  DoneState? _done;
   late final Future<RouteWeather?> _weather = widget.api
       .routeWeather(widget.id)
       .then<RouteWeather?>((w) => w, onError: (_) => null);
@@ -300,6 +304,16 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
             ),
           ),
         MenuAction('gpx', Icons.file_download_outlined, t.gpxRoute, () => shareGpx(context, widget.api, r.id, r.title)),
+        // A stage is ticked off on its journey.
+        if (!stage)
+          ...doneActions(
+            context,
+            widget.api,
+            id: r.id,
+            journey: false,
+            state: _done ?? (doneOn: r.doneOn, marked: r.doneMarked),
+            onDone: (s) => setState(() => _done = s),
+          ),
         if (!stage)
           MenuAction(
             'collection',
@@ -327,6 +341,14 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         StatsStrip(r.totals),
+        if ((_done ?? (doneOn: r.doneOn, marked: r.doneMarked)) case (doneOn: final on?, :final marked)) ...[
+          const SizedBox(height: 4),
+          Text(
+            key: const Key('done-on'),
+            '✓ ${doneText(t, on)}${marked ? '' : ' · ${t.doneByHike}'}',
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
         if (!r.isOwner) OwnerLine(api: widget.api, owner: r.owner, open: true),
         if (r.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(r.tags)],
         if (r.hikedAt != null) ...[

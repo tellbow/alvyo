@@ -11,6 +11,7 @@ import (
 
 	"github.com/tellbow/alvyo/api/internal/access"
 	"github.com/tellbow/alvyo/api/internal/collections"
+	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/grants"
 	"github.com/tellbow/alvyo/api/internal/journeys"
 	"github.com/tellbow/alvyo/api/internal/routes"
@@ -118,7 +119,13 @@ func registerGrants(api huma.API, d Deps) {
 		if out.Body.Collections, err = d.Collections.ListSharedWith(ctx, viewer(ctx)); err != nil {
 			return nil, err
 		}
-		return out, nil
+		rs, js := out.Body.Routes, out.Body.Journeys
+		if err := doneDays(ctx, d, u.ID, done.Route, len(rs),
+			func(i int) string { return rs[i].ID }, func(i int, day *string) { rs[i].DoneOn = day }); err != nil {
+			return nil, err
+		}
+		return out, doneDays(ctx, d, u.ID, done.Journey, len(js),
+			func(i int) string { return js[i].ID }, func(i int, day *string) { js[i].DoneOn = day })
 	})
 }
 

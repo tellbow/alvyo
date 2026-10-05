@@ -34,6 +34,7 @@
 		notify_comments?: boolean;
 		notify_follows?: boolean;
 		speed_factor?: number;
+		profile_public?: boolean;
 	}) {
 		const { response } = await api().PATCH('/me', { body });
 		if (response.ok) await invalidateAll();
@@ -82,6 +83,19 @@
 			<option value={p}>{p === 1 ? m.account_pace_signposts() : `${Math.round(p * 100)} %`}</option>
 		{/each}
 	</select>
+
+	<h2 class="mt-8 text-lg font-semibold">{m.account_profile()}</h2>
+	<label class="mt-2 flex items-center gap-2 text-sm">
+		<input
+			type="checkbox"
+			checked={data.user?.profile_public}
+			disabled={!hydrated.value}
+			onchange={(e) => notify({ profile_public: e.currentTarget.checked })}
+			data-testid="profile-public"
+		/>
+		{m.account_profile_public()}
+	</label>
+	<p class="mt-1 text-xs text-stone-500">{m.account_profile_public_hint()}</p>
 
 	<h2 class="mt-8 text-lg font-semibold">{m.account_notifications()}</h2>
 	<div class="mt-2 flex flex-col gap-2 text-sm" data-testid="notifications">

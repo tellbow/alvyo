@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import FriendOptions from '$lib/community/FriendOptions.svelte';
 	import { api, type Grant } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
 	import { choose } from '$lib/util/choose';
@@ -138,8 +139,10 @@
 				maxlength="254"
 				placeholder={m.share_who()}
 				aria-label={m.share_who()}
+				list="share-friends-{id}"
 				class="min-w-0 flex-1 rounded border border-stone-300 px-2 py-1"
 			/>
+			<FriendOptions id="share-friends-{id}" />
 			<select
 				bind:value={role}
 				disabled={!hydrated.value}

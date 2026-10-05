@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/packs.dart';
+import 'done.dart';
 import 'journey_plan_screen.dart';
 import 'journey_screen.dart';
 import 'tiles.dart';
@@ -18,6 +19,7 @@ class JourneysList extends StatefulWidget {
 }
 
 class _JourneysListState extends State<JourneysList> {
+  DoneFilter _done = DoneFilter.all;
   late Future<(List<JourneySummary>, bool offline)> _journeys = _load();
   late Future<List<JourneySummary>> _shared = _loadShared();
 
@@ -72,7 +74,14 @@ class _JourneysListState extends State<JourneysList> {
           return FutureBuilder(
             future: offline ? Future.value(<JourneySummary>[]) : _shared,
             builder: (context, sharedSnap) {
-              final shared = sharedSnap.data ?? const <JourneySummary>[];
+              final shared = [
+                for (final j in sharedSnap.data ?? const <JourneySummary>[])
+                  if (passesDone(_done, j.doneOn)) j,
+              ];
+              final shown = [
+                for (final j in journeys)
+                  if (passesDone(_done, j.doneOn)) j,
+              ];
               return ListView(
                 padding: const EdgeInsets.only(bottom: 120),
                 children: [
@@ -82,8 +91,13 @@ class _JourneysListState extends State<JourneysList> {
                       leading: const Icon(Icons.cloud_off),
                       title: Text(t.journeysOffline),
                     ),
-                  if (journeys.isEmpty) ListTile(title: Text(t.journeysEmpty)),
-                  for (final j in journeys) JourneyTile(journey: j, onTap: () => _open(j)),
+                  if (journeys.isEmpty)
+                    ListTile(title: Text(t.journeysEmpty))
+                  else ...[
+                    DoneFilterBar(value: _done, onChanged: (f) => setState(() => _done = f)),
+                    if (shown.isEmpty) ListTile(title: Text(t.doneFilterNone)),
+                  ],
+                  for (final j in shown) JourneyTile(journey: j, onTap: () => _open(j)),
                   if (shared.isNotEmpty) ListHeading(t.sharedTitle),
                   for (final j in shared) JourneyTile(journey: j, owner: j.owner, onTap: () => _open(j)),
                 ],

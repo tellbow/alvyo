@@ -475,4 +475,88 @@ void main() {
       expect(find.byType(RouteScreen), findsNothing, reason: 'left after deleting');
     });
   }
+
+  // «Als gewandert markieren» asks the day and says so; one's own mark can
+  // be taken back.
+  testWidgets('mark a route as hiked from its menu', (tester) async {
+    final sent = <String>[];
+    final client = MockClient((req) async {
+      switch ((req.method, req.url.path)) {
+        case ('PUT', '/api/v1/routes/r1/done'):
+          sent.add('PUT ${req.body}');
+          return _json({'done_on': '2026-10-01', 'done_marked': true});
+        case ('DELETE', '/api/v1/routes/r1/done'):
+          sent.add('DELETE');
+          return _json({'done_marked': false});
+        case ('GET', '/api/v1/routes/r1'):
+          return _json({
+            'id': 'r1',
+            'title': 'Rundweg',
+            'owner_username': 'wodan',
+            'role': 'owner',
+            'profile': 'hike',
+            'totals': {
+              'distance_m': 1000.0,
+              'ascent_m': 10.0,
+              'descent_m': 10.0,
+              'duration_s': 900,
+              'sac_grade': 1,
+              'sac_max': 1,
+            },
+            'legs': [
+              {
+                'coordinates': [
+                  [9.44, 47.04, 500.0],
+                  [9.45, 47.04, 510.0],
+                ],
+              },
+            ],
+          });
+      }
+      return _json({'areas': <Object>[]});
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: RouteScreen(
+          api: Api('http://test', token: 't', client: client),
+          id: 'r1',
+          title: 'Rundweg',
+          map: const SizedBox.expand(),
+        ),
+      ),
+    );
+    Future<void> settle() async {
+      for (var i = 0; i < 10; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    await settle();
+    expect(find.byKey(const Key('done-on')), findsNothing);
+    await tester.tap(find.byKey(const Key('item-menu')));
+    await settle();
+    expect(find.byKey(const Key('item-undone')), findsNothing, reason: 'no mark to take back');
+    await tester.tap(find.byKey(const Key('item-done')));
+    await settle();
+    await tester.tap(find.text('OK')); // today
+    await settle();
+    expect(sent.single, startsWith('PUT {"done_on":"'));
+    expect(find.text('✓ Gewandert am 01.10.2026'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('item-menu')));
+    await settle();
+    await tester.tap(find.byKey(const Key('item-undone')));
+    await settle();
+    expect(sent.last, 'DELETE');
+    expect(find.byKey(const Key('done-on')), findsNothing);
+  });
 }

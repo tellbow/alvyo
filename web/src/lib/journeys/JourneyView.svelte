@@ -53,6 +53,7 @@
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import LikeButton from '$lib/community/LikeButton.svelte';
+	import DoneButton from '$lib/done/DoneButton.svelte';
 	import StageCard from './StageCard.svelte';
 	import JourneyPeople from './JourneyPeople.svelte';
 	import JourneyReminders from './JourneyReminders.svelte';
@@ -462,6 +463,17 @@
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 				{/if}
 				<LikeButton {community} {user} testid="journey-like" />
+				<!-- As loaded: changes answer with the journey, not when one hiked it. -->
+				{#if user}
+					<DoneButton
+						kind="journeys"
+						id={journey.id}
+						{token}
+						doneOn={initial.done_on}
+						marked={initial.done_marked}
+						by="stages"
+					/>
+				{/if}
 				<ShareButton
 					title={journey.title}
 					token={token ?? (journey.visibility === 'unlisted' ? journey.share_token : undefined)}

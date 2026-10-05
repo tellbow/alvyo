@@ -482,6 +482,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/friend-invites/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whose invite link this is */
+        get: operations["get-friend-invite"];
+        put?: never;
+        /** Become friends with the owner of the invite link */
+        post: operations["accept-friend-invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/hikes": {
         parameters: {
             query?: never;
@@ -760,6 +778,24 @@ export interface paths {
         head?: never;
         /** Change the text of one's own comment */
         patch: operations["edit-journey-comment"];
+        trace?: never;
+    };
+    "/journeys/{id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark a journey as hiked, on a day */
+        put: operations["mark-journey-done"];
+        post?: never;
+        /** Take back one's mark; a recorded hike still counts */
+        delete: operations["unmark-journey-done"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/journeys/{id}/gpx": {
@@ -1287,7 +1323,7 @@ export interface paths {
         delete: operations["delete-me"];
         options?: never;
         head?: never;
-        /** Change settings: notification e-mails, their language and the pace */
+        /** Change settings: notification e-mails, their language, the pace and the profile's visibility */
         patch: operations["update-me"];
         trace?: never;
     };
@@ -1338,6 +1374,41 @@ export interface paths {
         post?: never;
         /** Remove a contact */
         delete: operations["delete-contact"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/friend-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My invite link: whoever opens it becomes my friend */
+        get: operations["get-friend-link"];
+        put?: never;
+        /** A new invite link; the old one stops working */
+        post: operations["rotate-friend-link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/friends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My friends and the open friend requests */
+        get: operations["list-friends"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1742,6 +1813,24 @@ export interface paths {
         head?: never;
         /** Change the text of one's own comment */
         patch: operations["edit-route-comment"];
+        trace?: never;
+    };
+    "/routes/{id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Mark a route as hiked, on a day */
+        put: operations["mark-route-done"];
+        post?: never;
+        /** Take back one's mark; a recorded hike still counts */
+        delete: operations["unmark-route-done"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/routes/{id}/gpx": {
@@ -2216,6 +2305,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find public profiles by username or name, at most 20 */
+        get: operations["search-users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{username}": {
         parameters: {
             query?: never;
@@ -2225,7 +2331,7 @@ export interface paths {
         };
         /**
          * A user's public profile with their public routes and journeys
-         * @description Only users who published something have a profile.
+         * @description A public profile is shown once it has published something; a private one to friends only. Friends and the user see it always.
          */
         get: operations["get-profile"];
         put?: never;
@@ -2267,6 +2373,24 @@ export interface paths {
         post?: never;
         /** Stop following a user */
         delete: operations["unfollow"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{username}/friend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Ask a user to be friends, or accept their request */
+        put: operations["request-friend"];
+        post?: never;
+        /** End a friendship, or withdraw or decline a request */
+        delete: operations["remove-friend"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2711,6 +2835,11 @@ export interface components {
              */
             distance_m: number;
             /**
+             * Format: date
+             * @description When the user hiked it, if they did
+             */
+            done_on?: string;
+            /**
              * Format: int64
              * @description Journeys: all stages together
              */
@@ -2755,6 +2884,15 @@ export interface components {
             kind: "route" | "journey" | "collection" | "profile";
             /** Format: date-time */
             updated_at: string;
+        };
+        DoneOutputBody: {
+            /** @description By their own mark, which can be taken back */
+            done_marked: boolean;
+            /**
+             * Format: date
+             * @description When the viewer hiked it, if they did
+             */
+            done_on?: string;
         };
         EditCommentInputBody: {
             body: string;
@@ -2901,6 +3039,29 @@ export interface components {
             kind: "pt_stop" | "hut" | "hotel" | "campsite" | "name" | "address";
             name: string;
         };
+        FriendLinkOutputBody: {
+            /** @description For the invite link /friends/invite/{token} */
+            token: string;
+        };
+        FriendLists: {
+            /** @description By name */
+            friends: components["schemas"]["FriendRef"][];
+            /** @description Asking the user, newest first */
+            incoming: components["schemas"]["FriendRef"][];
+            /** @description Asked by the user, newest first */
+            outgoing: components["schemas"]["FriendRef"][];
+        };
+        FriendRef: {
+            display_name: string;
+            /** @enum {string} */
+            friend: "none" | "requested" | "incoming" | "friends";
+            /**
+             * Format: date-time
+             * @description When they became friends, or were asked
+             */
+            since: string;
+            username: string;
+        };
         Grant: {
             /** Format: date-time */
             created_at: string;
@@ -2995,6 +3156,10 @@ export interface components {
             description: string;
             /** Format: double */
             distance_m: number;
+            /** @description done_on is the viewer's own mark, which can be taken back (on GET) */
+            done_marked: boolean;
+            /** Format: date */
+            done_on?: string;
             /** Format: int64 */
             duration_s: number;
             /** Format: uuid */
@@ -3054,6 +3219,8 @@ export interface components {
             description: string;
             /** Format: double */
             distance_m: number;
+            /** Format: date */
+            done_on?: string;
             /** Format: int64 */
             duration_s: number;
             /** Format: uuid */
@@ -3118,6 +3285,8 @@ export interface components {
             description: string;
             /** Format: double */
             distance_m: number;
+            /** Format: date */
+            done_on?: string;
             /** Format: int64 */
             duration_s: number;
             /** Format: uuid */
@@ -3244,6 +3413,13 @@ export interface components {
             login: string;
             password: string;
         };
+        MarkDoneInputBody: {
+            /**
+             * Format: date
+             * @description The day; today (Swiss time) if left out
+             */
+            done_on?: string;
+        };
         Me: {
             /** Format: date-time */
             created_at: string;
@@ -3251,6 +3427,11 @@ export interface components {
             /** Format: email */
             email: string;
             email_verified: boolean;
+            /**
+             * Format: int64
+             * @description Friend requests waiting for an answer (on GET and PATCH /me)
+             */
+            friend_requests: number;
             /** @description False for accounts made through a sign-in provider until a password is set */
             has_password: boolean;
             /** Format: uuid */
@@ -3258,8 +3439,10 @@ export interface components {
             locale: string;
             /** @description E-mail on comments on my routes and journeys */
             notify_comments: boolean;
-            /** @description E-mail when someone follows me */
+            /** @description E-mail when someone follows me or asks to be friends */
             notify_follows: boolean;
+            /** @description Found by the user search; else seen by friends only */
+            profile_public: boolean;
             /** @enum {string} */
             role: "user" | "moderator" | "admin";
             /**
@@ -3533,6 +3716,11 @@ export interface components {
             followers: number;
             /** Format: int64 */
             following: number;
+            /**
+             * @description Friends, or who asked whom
+             * @enum {string}
+             */
+            friend: "none" | "requested" | "incoming" | "friends";
             journeys: components["schemas"]["JourneySummary"][];
             routes: components["schemas"]["RouteSummary"][];
             /** @description This is the viewer's own profile */
@@ -3596,6 +3784,11 @@ export interface components {
             followers: number;
             /** Format: int64 */
             following: number;
+            /**
+             * @description Friends, or who asked whom
+             * @enum {string}
+             */
+            friend: "none" | "requested" | "incoming" | "friends";
         };
         RelyingPartyEntity: {
             id: string;
@@ -3709,6 +3902,10 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             description: string;
+            /** @description done_on is the viewer's own mark, which can be taken back (on GET) */
+            done_marked: boolean;
+            /** Format: date */
+            done_on?: string;
             hike?: components["schemas"]["RouteHike"];
             /** Format: uuid */
             id: string;
@@ -3773,6 +3970,8 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             description: string;
+            /** Format: date */
+            done_on?: string;
             hike?: components["schemas"]["RouteHike"];
             /** Format: uuid */
             id: string;
@@ -3794,6 +3993,8 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             description: string;
+            /** Format: date */
+            done_on?: string;
             hike?: components["schemas"]["RouteHike"];
             /** Format: uuid */
             id: string;
@@ -3882,8 +4083,10 @@ export interface components {
             locale?: "de" | "en" | "fr" | "it";
             /** @description E-mail on comments on my routes and journeys */
             notify_comments?: boolean;
-            /** @description E-mail when someone follows me */
+            /** @description E-mail when someone follows me or asks to be friends */
             notify_follows?: boolean;
+            /** @description Found by the user search; else seen by friends only */
+            profile_public?: boolean;
             /**
              * Format: double
              * @description Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)
@@ -4235,6 +4438,9 @@ export interface components {
         UserRef: {
             display_name: string;
             username: string;
+        };
+        UserSearchOutputBody: {
+            users: components["schemas"]["FriendRef"][];
         };
         VersionOutputBody: {
             /** @description Source code of this deployment (AGPL-3.0) */
@@ -5370,6 +5576,68 @@ export interface operations {
             };
         };
     };
+    "get-friend-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRef"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "accept-friend-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRef"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "upload-hike": {
         parameters: {
             query?: never;
@@ -6023,6 +6291,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "mark-journey-done": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MarkDoneInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "unmark-journey-done": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoneOutputBody"];
                 };
             };
             /** @description Error */
@@ -7592,6 +7932,93 @@ export interface operations {
             };
         };
     };
+    "get-friend-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendLinkOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "rotate-friend-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendLinkOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-friends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendLists"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "list-homes": {
         parameters: {
             query?: never;
@@ -7768,6 +8195,8 @@ export interface operations {
                 sac_max?: number;
                 /** @description Journeys: the distance and time bounds apply to the longest stage, not the whole journey */
                 longest_stage?: boolean;
+                /** @description done: only what I hiked; planned: only what I have not; all if left out */
+                done?: "done" | "planned";
             };
             header?: never;
             path?: never;
@@ -8512,6 +8941,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "mark-route-done": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MarkDoneInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "unmark-route-done": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted item */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoneOutputBody"];
                 };
             };
             /** @description Error */
@@ -9642,6 +10143,38 @@ export interface operations {
             };
         };
     };
+    "search-users": {
+        parameters: {
+            query?: {
+                /** @description Start of a username or part of a name */
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSearchOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "get-profile": {
         parameters: {
             query?: never;
@@ -9767,6 +10300,68 @@ export interface operations {
         };
     };
     unfollow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Relation"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "request-friend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Relation"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "remove-friend": {
         parameters: {
             query?: never;
             header?: never;

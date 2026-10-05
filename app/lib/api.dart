@@ -40,6 +40,8 @@ class Me {
     this.notifyComments = false,
     this.notifyFollows = false,
     this.emailVerified = true,
+    this.profilePublic = true,
+    this.friendRequests = 0,
   });
   factory Me.fromJson(Map<String, dynamic> j) => Me(
     id: j['id'] as String,
@@ -52,6 +54,8 @@ class Me {
     notifyComments: j['notify_comments'] as bool? ?? false,
     notifyFollows: j['notify_follows'] as bool? ?? false,
     emailVerified: j['email_verified'] as bool? ?? true,
+    profilePublic: j['profile_public'] as bool? ?? true,
+    friendRequests: (j['friend_requests'] as num?)?.toInt() ?? 0,
   );
   final String id, username;
   final String displayName;
@@ -70,6 +74,12 @@ class Me {
 
   /// Only verified accounts publish, share and comment.
   final bool emailVerified;
+
+  /// Found by the user search; a private profile is seen by friends only.
+  final bool profilePublic;
+
+  /// Friend requests waiting for an answer.
+  final int friendRequests;
 }
 
 /// The numbers of a route.
@@ -96,9 +106,13 @@ class RouteSummary {
       hikedAt = switch (j['hike']) {
         {'at': final String at} => DateTime.parse(at),
         _ => null,
-      };
+      },
+      doneOn = j['done_on'] as String?;
   final String id, title, owner;
   final Totals totals;
+
+  /// When the user hiked it (YYYY-MM-DD): marked, or recorded with the app.
+  final String? doneOn;
 
   /// The owner's labels; a stage route has its journey's.
   final List<String> tags;
@@ -133,6 +147,7 @@ class Person {
 class RouteDetail extends RouteSummary {
   RouteDetail.fromJson(super.j)
     : json = j,
+      doneMarked = j['done_marked'] as bool? ?? false,
       line = [
         for (final leg in j['legs'] as List)
           for (final c in (leg as Map<String, dynamic>)['coordinates'] as List)
@@ -143,6 +158,9 @@ class RouteDetail extends RouteSummary {
   /// As the server sent it, to keep a copy offline.
   final Map<String, dynamic> json;
   final List<List<double>> line;
+
+  /// doneOn is the user's own mark, which they can take back.
+  final bool doneMarked;
 
   /// The journey this route is a stage of, if it is one.
   String? get journeyId => json['journey_id'] as String?;
@@ -211,7 +229,8 @@ class JourneySummary {
       ascentM = (j['ascent_m'] as num).toDouble(),
       durationS = (j['duration_s'] as num).toInt(),
       tags = _tags(j['tags']),
-      owner = j['owner_username'] as String? ?? '';
+      owner = j['owner_username'] as String? ?? '',
+      doneOn = j['done_on'] as String?;
 
   /// The summary of a journey saved offline.
   JourneySummary.of(JourneyDetail j)
@@ -223,9 +242,13 @@ class JourneySummary {
       distanceM = j.totals.distanceM,
       ascentM = j.totals.ascentM,
       durationS = j.totals.durationS,
-      tags = j.tags;
+      tags = j.tags,
+      doneOn = j.doneOn;
   final String id, title, owner;
   final int stages, stagesDone, durationS;
+
+  /// When the user finished it (YYYY-MM-DD): marked, or all stages ticked off.
+  final String? doneOn;
   final double distanceM, ascentM;
   final List<String> tags;
 }
@@ -302,7 +325,9 @@ class JourneyDetail {
       stagesDone = ((json['progress'] as Map<String, dynamic>)['stages_done'] as num).toInt(),
       stagesTotal = ((json['progress'] as Map<String, dynamic>)['stages_total'] as num).toInt(),
       canEdit = json['can_edit'] as bool? ?? false,
-      tags = _tags(json['tags']);
+      tags = _tags(json['tags']),
+      doneOn = json['done_on'] as String?,
+      doneMarked = json['done_marked'] as bool? ?? false;
 
   /// As the server sent it, to keep a copy offline.
   final Map<String, dynamic> json;
@@ -313,6 +338,10 @@ class JourneyDetail {
 
   /// Skipped stages do not count.
   final int stagesDone, stagesTotal;
+
+  /// When the user finished it (YYYY-MM-DD), and whether by their own mark.
+  final String? doneOn;
+  final bool doneMarked;
 
   /// The combined profile of all stages: metres along (gaps between stages
   /// not counted), [lon, lat, elevation], and where each stage starts.
@@ -986,6 +1015,7 @@ class Profile {
       following = (j['following'] as num).toInt(),
       followed = j['followed'] as bool,
       blocked = j['blocked'] as bool,
+      friend = j['friend'] as String? ?? 'none',
       routes = [for (final r in j['routes'] as List) RouteSummary.fromJson(r as Map<String, dynamic>)],
       journeys = [for (final r in j['journeys'] as List) JourneySummary.fromJson(r as Map<String, dynamic>)];
   final String username, displayName;
@@ -999,6 +1029,9 @@ class Profile {
 
   /// The user follows, or blocked, this one.
   final bool followed, blocked;
+
+  /// none, requested (by the user), incoming (to the user) or friends.
+  final String friend;
   final List<RouteSummary> routes;
   final List<JourneySummary> journeys;
 }
@@ -1010,6 +1043,22 @@ class UserRef {
       displayName = j['display_name'] as String;
   final String username, displayName;
 }
+
+/// A user with how one stands with them as friends: none, requested (by
+/// one), incoming (to one) or friends.
+class FriendRef {
+  FriendRef.fromJson(Map<String, dynamic> j)
+    : username = j['username'] as String,
+      displayName = j['display_name'] as String,
+      friend = j['friend'] as String;
+  final String username, displayName, friend;
+}
+
+/// One's friends and the open requests.
+typedef FriendLists = ({List<FriendRef> friends, List<FriendRef> incoming, List<FriendRef> outgoing});
+
+/// When one hiked a route or journey (YYYY-MM-DD), and whether by one's own mark.
+typedef DoneState = ({String? doneOn, bool marked});
 
 /// A collection in lists.
 class CollectionSummary {
@@ -1678,13 +1727,20 @@ class Api {
   /// Changes the notification e-mails and their language.
   /// Changes the account's settings; [speedFactor] is the pace (hiking times
   /// as a multiple of the signposts').
-  Future<Me> updateMe({String? locale, bool? notifyComments, bool? notifyFollows, double? speedFactor}) async {
+  Future<Me> updateMe({
+    String? locale,
+    bool? notifyComments,
+    bool? notifyFollows,
+    double? speedFactor,
+    bool? profilePublic,
+  }) async {
     final me = Me.fromJson(
       await _send('PATCH', '/me', {
             'locale': ?locale,
             'notify_comments': ?notifyComments,
             'notify_follows': ?notifyFollows,
             'speed_factor': ?speedFactor,
+            'profile_public': ?profilePublic,
           })
           as Map<String, dynamic>,
     );
@@ -1898,6 +1954,45 @@ class Api {
 
   Future<void> block(String username, bool on) =>
       _send(on ? 'PUT' : 'DELETE', '/users/${Uri.encodeComponent(username)}/block');
+
+  /// Public profiles by the start of the username or a part of the name.
+  Future<List<FriendRef>> searchUsers(String q) async {
+    final j = await _get('/users?q=${Uri.encodeQueryComponent(q)}') as Map<String, dynamic>;
+    return [for (final u in j['users'] as List) FriendRef.fromJson(u as Map<String, dynamic>)];
+  }
+
+  /// Asks to be friends or accepts ([on]), or ends a friendship, withdraws
+  /// or declines; the state afterwards.
+  Future<String> friend(String username, bool on) async {
+    final j =
+        await _send(on ? 'PUT' : 'DELETE', '/users/${Uri.encodeComponent(username)}/friend') as Map<String, dynamic>;
+    return j['friend'] as String;
+  }
+
+  Future<FriendLists> friends() async {
+    final j = await _get('/me/friends') as Map<String, dynamic>;
+    List<FriendRef> list(String k) => [for (final u in j[k] as List) FriendRef.fromJson(u as Map<String, dynamic>)];
+    return (friends: list('friends'), incoming: list('incoming'), outgoing: list('outgoing'));
+  }
+
+  /// The token of one's invite link (/friends/invite/{token}); [renew]
+  /// makes a new one, the old link stops working.
+  Future<String> friendLink({bool renew = false}) async {
+    final j = (renew ? await _send('POST', '/me/friend-link') : await _get('/me/friend-link')) as Map<String, dynamic>;
+    return j['token'] as String;
+  }
+
+  /// Marks a route or journey as hiked on [day] (today if null), or takes
+  /// one's mark back.
+  Future<DoneState> setDone(String id, {required bool journey, required bool on, DateTime? day}) async {
+    final path = '/${_kind(journey)}/$id/done';
+    final j =
+        (on
+                ? await _send('PUT', path, {if (day != null) 'done_on': day.toIso8601String().substring(0, 10)})
+                : await _send('DELETE', path))
+            as Map<String, dynamic>;
+    return (doneOn: j['done_on'] as String?, marked: j['done_marked'] as bool? ?? false);
+  }
 
   /// Routes, journeys and collections others shared with the user.
   Future<Shared> shared() async {

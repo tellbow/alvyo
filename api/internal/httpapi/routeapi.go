@@ -18,6 +18,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/access"
 	"github.com/tellbow/alvyo/api/internal/auth"
 	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/gpx"
 	"github.com/tellbow/alvyo/api/internal/og"
 	"github.com/tellbow/alvyo/api/internal/routes"
@@ -45,6 +46,7 @@ type routeBody struct {
 	CanEdit bool   `json:"can_edit"`
 	// ShareToken is shown to the owner only; the link is /routes/{id}?t=token.
 	ShareToken string `json:"share_token,omitempty"`
+	DoneMarked bool   `json:"done_marked" doc:"done_on is the viewer's own mark, which can be taken back (on GET)"`
 }
 
 type createRouteInput struct {
@@ -144,7 +146,8 @@ func registerRoutes(api huma.API, d Deps) {
 		}
 		out := &routeListOutput{}
 		out.Body.Routes = list
-		return out, nil
+		return out, doneDays(ctx, d, u.ID, done.Route, len(list),
+			func(i int) string { return list[i].ID }, func(i int, day *string) { list[i].DoneOn = day })
 	})
 
 	huma.Register(api, huma.Operation{
@@ -155,7 +158,10 @@ func registerRoutes(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
-		return routeResponse(r, role), nil
+		out := routeResponse(r, role)
+		st, err := d.Done.Of(ctx, viewerID(ctx), done.Route, uuid.MustParse(r.ID))
+		out.Body.DoneOn, out.Body.DoneMarked = day(st.On), st.Marked
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{

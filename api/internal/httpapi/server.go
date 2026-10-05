@@ -21,6 +21,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/collections"
 	"github.com/tellbow/alvyo/api/internal/community"
 	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/grants"
 	"github.com/tellbow/alvyo/api/internal/imports"
 	"github.com/tellbow/alvyo/api/internal/journeys"
@@ -32,6 +33,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/telemetry"
 	"github.com/tellbow/alvyo/api/internal/travel"
 	"github.com/tellbow/alvyo/api/internal/weather"
 )
@@ -61,6 +63,7 @@ type Deps struct {
 	Collections *collections.Store
 	Discover    *discover.Store
 	Community   *community.Store
+	Done        *done.Store
 	Photos      *photos.Store
 	OIDC        *auth.OIDC // sign-in providers; nil for none
 	Packs       *packs.Service
@@ -114,6 +117,11 @@ func New(d Deps) (http.Handler, huma.API) {
 	cfg.Servers = []*huma.Server{{URL: Prefix}}
 	api := humago.NewWithPrefix(mux, Prefix, cfg)
 
+	// Spans and request metrics carry the operation, not the address.
+	api.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) {
+		telemetry.Route(ctx.Context(), ctx.Method(), Prefix+ctx.Operation().Path)
+		next(ctx)
+	})
 	if d.Limits == (Limits{}) {
 		d.Limits = DefaultLimits()
 	}
@@ -140,6 +148,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerHikes(api, d)
 	registerDiscover(api, d)
 	registerCommunity(api, d)
+	registerDone(api, d)
 	registerPhotos(api, d)
 	registerPasskeys(api, d)
 	registerOIDC(api, d)

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
+	import FriendButton from '$lib/community/FriendButton.svelte';
 	import ReportButton from '$lib/community/ReportButton.svelte';
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -71,6 +72,9 @@
 				>
 					{relation.followed ? m.profile_unfollow() : m.profile_follow()}
 				</button>
+				{#key profile.username}
+					<FriendButton username={profile.username} friend={profile.friend} />
+				{/key}
 			{/if}
 			<button
 				type="button"

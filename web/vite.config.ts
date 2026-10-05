@@ -22,7 +22,10 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			adapter: adapter(),
+			// OpenTelemetry: spans of requests, loads and actions, and
+			// src/instrumentation.server.ts loaded first to send them.
+			experimental: { tracing: { server: true }, instrumentation: { server: true } }
 		}),
 
 		paraglideVitePlugin({

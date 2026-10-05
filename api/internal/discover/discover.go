@@ -162,13 +162,14 @@ type User struct {
 	Username    string
 	DisplayName string
 	Since       time.Time // month the account was created
+	Public      bool      // the profile: found by the search, seen by all
 }
 
 // User looks up an account that is not banned.
 func (s *Store) User(ctx context.Context, username string) (User, error) {
 	var u User
-	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, date_trunc('month', created_at)
-		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Since)
+	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, date_trunc('month', created_at), profile_public
+		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Since, &u.Public)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return u, ErrNotFound
 	}

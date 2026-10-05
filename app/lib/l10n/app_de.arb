@@ -982,5 +982,42 @@
         "type": "String"
       }
     }
+  },
+  "friendsTitle": "Freunde",
+  "friendsSearch": "Personen suchen",
+  "friendsSearchHint": "Benutzername oder Name; gefunden werden nur öffentliche Profile.",
+  "friendsNoneFound": "Niemand gefunden.",
+  "friendsIncoming": "Anfragen an dich",
+  "friendsOutgoing": "Deine Anfragen",
+  "friendsList": "Deine Freunde",
+  "friendsEmpty": "Noch keine Freunde. Suche nach Personen oder schicke deinen Einladungslink.",
+  "friendAdd": "Als Freund hinzufügen",
+  "friendRequested": "Anfrage gesendet",
+  "friendWithdraw": "Zurückziehen",
+  "friendAccept": "Annehmen",
+  "friendDecline": "Ablehnen",
+  "friendFriends": "Befreundet",
+  "friendRemove": "Freundschaft beenden",
+  "friendsLinkTitle": "Dein Einladungslink",
+  "friendsLinkHint": "Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.",
+  "friendsLinkShare": "Link senden",
+  "friendsLinkRenew": "Neuen Link erzeugen",
+  "profilePublic": "Öffentliches Profil",
+  "profilePublicHint": "Andere finden dich in der Suche. Ein privates Profil sehen nur deine Freunde.",
+  "doneMark": "Als gewandert markieren",
+  "doneRemove": "Nicht gewandert",
+  "doneByHike": "aufgezeichnet",
+  "doneByStages": "alle Etappen erledigt",
+  "doneFilterAll": "Alle",
+  "doneFilterPlanned": "Geplant",
+  "doneFilterDone": "Gewandert",
+  "doneFilterNone": "Nichts in dieser Auswahl.",
+  "doneOn": "Gewandert am {date}",
+  "@doneOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }

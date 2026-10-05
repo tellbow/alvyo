@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -30,6 +31,9 @@ type MineQuery struct {
 	// LongestStage compares a journey's longest stage instead of the whole
 	// journey with the distance and time bounds.
 	LongestStage bool
+	// Done: "done" only what the user hiked, "planned" only the rest; ""
+	// all.
+	Done string
 }
 
 // MineItem is a route, journey or recorded hike on the user's map.
@@ -47,6 +51,7 @@ type MineItem struct {
 	SACGrade      int      `json:"sac_grade"`
 	SACMax        int      `json:"sac_max"`
 	Stages        int      `json:"stages" doc:"Journeys only"`
+	DoneOn        *string  `json:"done_on,omitempty" format:"date" doc:"When the user hiked it, if they did"`
 	// Lines are simplified (lon, lat) lines for the map.
 	Lines [][][2]float64 `json:"lines"`
 }
@@ -60,7 +65,8 @@ WITH granted AS (
 ), items AS (
 	SELECT CASE WHEN r.hiked_at IS NULL THEN 'route' ELSE 'hike' END AS kind, r.id, r.title, r.owner_id, r.tags,
 		r.distance_m::float8 AS distance_m, r.ascent_m::float8 AS ascent_m, r.duration_s,
-		r.distance_m::float8 AS longest_m, r.duration_s AS longest_s, r.sac_grade, r.sac_max, 0 AS stages, r.geom,
+		r.distance_m::float8 AS longest_m, r.duration_s AS longest_s, r.sac_grade, r.sac_max, 0 AS stages,
+		route_done_on(r, $1) AS done_on, r.geom,
 		-- others' recorded hikes without their start and end
 		CASE WHEN r.hiked_at IS NULL OR r.owner_id = $1 THEN r.geom ELSE shown_line(r.geom) END AS shown
 	FROM routes r
@@ -69,7 +75,8 @@ WITH granted AS (
 		AND ST_Intersects(r.geom, ST_MakeEnvelope($4, $5, $6, $7, 4326))
 	UNION ALL
 	SELECT 'journey', j.id, j.title, j.owner_id, j.tags,
-		js.distance_m, js.ascent_m, js.duration_s, js.longest_m, js.longest_s, js.sac_grade, js.sac_max, js.stages, js.geom,
+		js.distance_m, js.ascent_m, js.duration_s, js.longest_m, js.longest_s, js.sac_grade, js.sac_max, js.stages,
+		journey_done_on(j.id, $1), js.geom,
 		js.geom
 	FROM journeys j
 	CROSS JOIN LATERAL (
@@ -83,7 +90,7 @@ WITH granted AS (
 		AND ST_Intersects(js.geom, ST_MakeEnvelope($4, $5, $6, $7, 4326))
 )
 SELECT i.kind, i.id, i.title, u.username, i.tags, i.distance_m, i.ascent_m, i.duration_s, i.longest_m, i.longest_s,
-	i.sac_grade, i.sac_max, i.stages,
+	i.sac_grade, i.sac_max, i.stages, i.done_on,
 	ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(i.shown), $11::float8)), 5)
 FROM items i JOIN users u ON u.id = i.owner_id
 WHERE (cardinality($8::text[]) = 0 OR i.kind = ANY($8))
@@ -91,6 +98,7 @@ WHERE (cardinality($8::text[]) = 0 OR i.kind = ANY($8))
 	AND CASE WHEN $10 AND i.kind = 'journey' THEN i.longest_m ELSE i.distance_m END BETWEEN $14 AND $15
 	AND CASE WHEN $10 AND i.kind = 'journey' THEN i.longest_s ELSE i.duration_s END BETWEEN $16 AND $17
 	AND i.sac_grade BETWEEN $18 AND $19
+	AND ($21 = '' OR ($21 = 'done') = (i.done_on IS NOT NULL))
 ORDER BY i.geom <-> ST_Point($12, $13, 4326), i.id
 LIMIT $20`
 
@@ -116,7 +124,7 @@ func (s *Store) Mine(ctx context.Context, q MineQuery) (items []MineItem, more b
 		kinds, tags, q.LongestStage, tolerance, (q.West+q.East)/2, (q.South+q.North)/2,
 		q.MinDistanceM, open(q.MaxDistanceM, math.MaxFloat64),
 		q.MinDurationS, int(open(float64(q.MaxDurationS), math.MaxInt32)),
-		q.MinSAC, int(open(float64(q.MaxSAC), 6)), MaxMine+1)
+		q.MinSAC, int(open(float64(q.MaxSAC), 6)), MaxMine+1, q.Done)
 	if err != nil {
 		return nil, false, fmt.Errorf("discover: mine: %w", err)
 	}
@@ -126,9 +134,14 @@ func (s *Store) Mine(ctx context.Context, q MineQuery) (items []MineItem, more b
 		var it MineItem
 		var id uuid.UUID
 		var line *string
+		var doneOn *time.Time
 		if err := rows.Scan(&it.Kind, &id, &it.Title, &it.OwnerUsername, &it.Tags, &it.DistanceM, &it.AscentM,
-			&it.DurationS, &it.LongestM, &it.LongestS, &it.SACGrade, &it.SACMax, &it.Stages, &line); err != nil {
+			&it.DurationS, &it.LongestM, &it.LongestS, &it.SACGrade, &it.SACMax, &it.Stages, &doneOn, &line); err != nil {
 			return nil, false, err
+		}
+		if doneOn != nil {
+			s := doneOn.Format(time.DateOnly)
+			it.DoneOn = &s
 		}
 		it.ID = id.String()
 		it.Lines = [][][2]float64{}

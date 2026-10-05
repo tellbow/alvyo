@@ -18,6 +18,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/collections"
 	"github.com/tellbow/alvyo/api/internal/community"
 	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/grants"
 	"github.com/tellbow/alvyo/api/internal/journeys"
 	"github.com/tellbow/alvyo/api/internal/mailer"
@@ -62,6 +63,7 @@ func newTestServerWith(t *testing.T, adjust func(*Deps)) *testServer {
 		Collections: &collections.Store{DB: pool},
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: rec, PublicURL: origin},
+		Done:        &done.Store{DB: pool},
 		Photos:      &photos.Store{DB: pool, Files: &photos.Files{Dir: t.TempDir()}},
 		Travel:      &travel.Store{DB: pool},
 		Reminders:   &reminders.Store{DB: pool, Mail: rec, PublicURL: origin},

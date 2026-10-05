@@ -8,6 +8,7 @@ import '../settings.dart';
 import 'account_screens.dart';
 import 'collections_screen.dart';
 import 'discover_screen.dart';
+import 'friends_screen.dart';
 import 'user_screen.dart';
 
 /// The account: who is logged in, the profile, collections and map of
@@ -98,6 +99,30 @@ class _ProfileTabState extends State<ProfileTab> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _push(UserScreen(api: widget.api, username: me.username)),
               ),
+            if (me != null)
+              ListTile(
+                key: const Key('friends'),
+                leading: const Icon(Icons.people_outline),
+                title: Text(t.friendsTitle),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (me.friendRequests > 0) Badge.count(count: me.friendRequests),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
+                onTap: () async {
+                  await Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute<void>(builder: (_) => FriendsScreen(api: widget.api)));
+                  // Requests answered there.
+                  if (mounted) {
+                    setState(() {
+                      _me = widget.api.me();
+                    });
+                  }
+                },
+              ),
             ListTile(
               key: const Key('collections'),
               leading: const Icon(Icons.collections_bookmark_outlined),
@@ -163,6 +188,14 @@ class _ProfileTabState extends State<ProfileTab> {
             ],
             const SizedBox(height: 16),
             Text(t.accountNotifications, style: muted),
+            SwitchListTile(
+              key: const Key('profile-public'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(t.profilePublic),
+              subtitle: Text(t.profilePublicHint),
+              value: me?.profilePublic ?? true,
+              onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(profilePublic: v)),
+            ),
             SwitchListTile(
               key: const Key('notify-comments'),
               contentPadding: EdgeInsets.zero,

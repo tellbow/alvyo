@@ -48,6 +48,10 @@ const (
 	onLineShare = 0.9
 	areaM       = 150
 	nearM       = 30
+	// wiggleMax: a line this much longer than the path it follows around a
+	// turn zigzags, as a GPS track's jitter does; its turns are not there.
+	// Within 8 m most jitter passes the share above, not this.
+	wiggleMax = 1.3
 	// sampleM is the step for comparing the matched path with the line.
 	sampleM = 10
 )
@@ -173,9 +177,9 @@ func placeTurns(line, path []geo.Point, turns []matchedTurn) []Turn {
 	// points show the jitter.
 	lc := geo.CumulativeDistance(line)
 	g := newFinder(path)
-	lineOff := make([]float64, len(line))
+	lineAlong, lineOff := make([]float64, len(line)), make([]float64, len(line))
 	for i, p := range line {
-		_, lineOff[i] = g.find(p)
+		lineAlong[i], lineOff[i] = g.find(p)
 	}
 
 	out := []Turn{}
@@ -187,7 +191,10 @@ func placeTurns(line, path []geo.Point, turns []matchedTurn) []Turn {
 			ok = ok && off[j] <= onLineM
 		}
 		on, near := 0, 0
-		for i := sort.SearchFloat64s(lc, along[k]-areaM); i < len(lc) && lc[i] <= along[k]+areaM; i++ {
+		first := sort.SearchFloat64s(lc, along[k]-areaM)
+		last := first
+		for i := first; i < len(lc) && lc[i] <= along[k]+areaM; i++ {
+			last = i
 			switch {
 			case lineOff[i] <= onLineM:
 				on++
@@ -195,7 +202,9 @@ func placeTurns(line, path []geo.Point, turns []matchedTurn) []Turn {
 				near++
 			}
 		}
-		if ok && float64(on) >= onLineShare*float64(on+near) && (len(out) == 0 || along[k] >= out[len(out)-1].AlongM) {
+		pathM := lineAlong[last] - lineAlong[first]
+		calmLine := pathM > 0 && lc[last]-lc[first] <= wiggleMax*pathM
+		if ok && calmLine && float64(on) >= onLineShare*float64(on+near) && (len(out) == 0 || along[k] >= out[len(out)-1].AlongM) {
 			out = append(out, Turn{AlongM: math.Round(along[k]*10) / 10, Kind: t.Kind})
 		}
 	}

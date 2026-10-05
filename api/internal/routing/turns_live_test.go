@@ -68,14 +68,17 @@ func TestTurnsLive(t *testing.T) {
 	})
 
 	t.Run("gps jitter", func(t *testing.T) {
-		// A position every 5 m, as the app uploads them.
+		// A position every 5 m, as the app uploads them; ten tracks, as one
+		// may pass by luck.
 		fine, _ := geo.Densify(line, 5)
-		noisy := make([]geo.Point, len(fine))
-		for i, p := range fine {
-			noisy[i] = offset(p, rng.NormFloat64()*6, rng.NormFloat64()*6)
-		}
-		if got := turns(t, gh, noisy); len(got) != 0 {
-			t.Errorf("%d turns on a GPS track", len(got))
+		for track := range 10 {
+			noisy := make([]geo.Point, len(fine))
+			for i, p := range fine {
+				noisy[i] = offset(p, rng.NormFloat64()*6, rng.NormFloat64()*6)
+			}
+			if got := turns(t, gh, noisy); len(got) != 0 {
+				t.Errorf("track %d: %d turns on a GPS track", track+1, len(got))
+			}
 		}
 	})
 

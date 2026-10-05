@@ -91,16 +91,19 @@ func TestTurnsFromFixture(t *testing.T) {
 
 func TestTurnsOfGPSTrack(t *testing.T) {
 	// The same path, but the line a GPS track along it: a position every
-	// 5 m, off by some metres each.
+	// 5 m, off by some metres each; ten tracks, as one may pass by luck.
 	srv, _ := matchServer(t)
-	fine, _ := geo.Densify(fixtureLine(t), 5)
-	rng := rand.New(rand.NewPCG(1, 2))
-	for i, p := range fine {
-		fine[i] = offset(p, rng.NormFloat64()*6, rng.NormFloat64()*6)
-	}
-	got, err := (&GraphHopper{URL: srv.URL}).Turns(context.Background(), fine)
-	if err != nil || len(got) != 0 {
-		t.Errorf("got %v, %v; want no turns", got, err)
+	line := fixtureLine(t)
+	for seed := range uint64(10) {
+		fine, _ := geo.Densify(line, 5)
+		rng := rand.New(rand.NewPCG(seed+1, 2))
+		for i, p := range fine {
+			fine[i] = offset(p, rng.NormFloat64()*6, rng.NormFloat64()*6)
+		}
+		got, err := (&GraphHopper{URL: srv.URL}).Turns(context.Background(), fine)
+		if err != nil || len(got) != 0 {
+			t.Errorf("track %d: got %v, %v; want no turns", seed+1, got, err)
+		}
 	}
 }
 

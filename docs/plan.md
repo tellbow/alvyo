@@ -63,6 +63,8 @@ A `v*` tag builds the images; Flux deploys them
 | 0.20.0 | 2026-10-02 | Journeys in tabs like routes (58): GPX, «Merken» and «Teilen» at the top, the rest in «⋯», the numbers and the progress, then «Etappen», «Übersicht», «Anreise», «Fotos» and the owner's «Teilen»; in the app the journey screen in the same tabs; the tab bar no longer scrolls up and down; the official trail network loaded on the cluster (it was missing: routes planned before show «Kein Wanderweg» until planned again) |
 | 0.20.1 | 2026-10-02 | Routes planned while the official trail network was missing on the cluster graded anew: `alvyo route retrail` matches stored lines against the network again (17 routes in production no longer «Kein Wanderweg» with a guessed SAC grade); line, times and version stay |
 | 0.21.0 | 2026-10-05 | Telemetry (59): OpenTelemetry traces of API and web by OTLP to the collector (dropped until there is a tracing backend), metrics for Prometheus through ServiceMonitors, `trace_id` in the API's logs; friends (60): requests both ways, a search for public profiles, invite links, private profiles for friends only, friends offered when sharing; hiked (61): «Gewandert» on routes and journeys, recorded hikes and finished journeys counted, «Geplant / Gewandert» in the lists, the map and the app |
+| 0.22.0 | 2026-10-05 | Statistics with Google Analytics (62): the Google tag on alvyo.tellbow.ch with Consent Mode and a banner (cookies only after «Akzeptieren», changeable under «Über»), page views without the secrets of addresses; the privacy text names it |
+| 0.22.1 | 2026-10-05 | Page views titled by their route (the title was empty behind the language prefix) |
 
 ## Requirements
 

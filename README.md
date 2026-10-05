@@ -8,7 +8,8 @@ map (Swiss hiking time, SAC grade, elevation profile, breakdowns), saving and
 editing routes, multi-week stage journeys (stops, huts, public transport
 connections), sharing by link and by invitation, collections, tags, GPX export,
 import from GPX, KML, TCX, FIT and Komoot, discovery of public hikes on the
-map, public or private profiles, friends (search, requests, invite links),
+map, how far one gets in 2, 4 and 8 hours from a point (isochrones timed by
+slope), public or private profiles, friends (search, requests, invite links),
 hiked marks on routes and journeys, likes, comments, following with a news
 feed, OpenTelemetry traces and metrics, reports
 and a moderation queue, photos (metadata removed, pinned along the route),

@@ -1060,5 +1060,41 @@
   "inviteAccept": "Freunde werden",
   "inviteDone": "Ihr seid jetzt Freunde.",
   "inviteInvalid": "Dieser Einladungslink gilt nicht mehr.",
-  "inviteSelf": "Das ist dein eigener Link."
+  "inviteSelf": "Das ist dein eigener Link.",
+  "reachTitle": "Wie weit komme ich?",
+  "reachAction": "Reichweite",
+  "reachIntro": "Tippe auf die Karte, suche einen Ort oder nimm deinen Standort: Die Flächen zeigen, wie weit du von dort in 2, 4 und 8 Stunden kommst, bei deinem Tempo und mit allen Auf- und Abstiegen.",
+  "reachSearch": "Start suchen",
+  "reachHere": "Mein Standort",
+  "reachNoPosition": "Dein Standort ist nicht bekannt. Erlaube den Standort in den Einstellungen oder tippe auf die Karte.",
+  "reachStart": "Start: {place}",
+  "@reachStart": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "reachMapPoint": "Punkt auf der Karte",
+  "reachBusy": "Berechne, wie weit du kommst …",
+  "reachWithin": "bis {hours} Stunden",
+  "@reachWithin": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "reachNote": "Ungefähr: Eine Fläche umfasst alles Erreichbare, auch Seen und weglose Hänge dazwischen. Die Zeiten folgen der Schweizer Wanderzeit nach Steigung, ohne Pausen.",
+  "reachPace": "Bei deinem Tempo: {pace}-mal die Zeit der Wegweiser.",
+  "@reachPace": {
+    "placeholders": {
+      "pace": {
+        "type": "String"
+      }
+    }
+  },
+  "reachErrorNoPath": "Kein Weg in der Nähe dieses Punkts. Wähle einen Punkt auf oder nahe bei einem Weg.",
+  "reachErrorBusy": "Zu viele Anfragen. Bitte kurz warten.",
+  "reachErrorOther": "Konnte nicht berechnet werden. Versuche es nochmals."
 }

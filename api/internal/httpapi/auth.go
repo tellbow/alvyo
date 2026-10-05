@@ -24,6 +24,7 @@ type Limits struct {
 	ResetIP      *ratelimit.Limiter // guesses at reset tokens
 	ResendUser   *ratelimit.Limiter
 	LegUser      *ratelimit.Limiter
+	ReachUser    *ratelimit.Limiter // «Wie weit komme ich?»: seconds of routing each
 	Invite       *ratelimit.Limiter // invitations send e-mail
 	// Connection searches: per user, and for everyone together under the
 	// OJP quota of 50 requests per minute.
@@ -56,6 +57,7 @@ func DefaultLimits() Limits {
 		ResetIP:         ratelimit.New(6*time.Second, 20),
 		ResendUser:      ratelimit.New(20*time.Minute, 3),
 		LegUser:         ratelimit.New(time.Second, 60), // planning bursts, 60/min sustained
+		ReachUser:       ratelimit.New(10*time.Second, 6),
 		Invite:          ratelimit.New(3*time.Minute, 20),
 		ConnectionsUser: ratelimit.New(3*time.Second, 10),
 		ConnectionsAll:  ratelimit.New(1500*time.Millisecond, 40), // 40/min

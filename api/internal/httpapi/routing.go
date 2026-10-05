@@ -47,6 +47,23 @@ type alternativesOutput struct {
 	}
 }
 
+type reachInput struct {
+	Body struct {
+		From    Point  `json:"from"`
+		Profile string `json:"profile,omitempty" enum:"hike,alpine" default:"hike"`
+	}
+}
+
+type reachOutput struct {
+	Body struct {
+		Areas []routing.ReachArea `json:"areas" doc:"Reached within 2, 4 and 8 hours at the user's pace, the smallest first"`
+	}
+}
+
+// reachSlots: isochrones search GraphHopper for seconds; two at a time
+// leave it free for planning.
+var reachSlots = make(chan struct{}, 2)
+
 type profile struct {
 	ID     string `json:"id"`
 	MaxSAC int    `json:"max_sac" doc:"Hardest SAC grade the profile routes over"`
@@ -95,6 +112,34 @@ func registerRouting(api huma.API, d Deps) {
 			return nil, err
 		}
 		return &legOutput{Body: leg}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "route-reach", Method: http.MethodPost, Path: "/routing/reach",
+		Summary:     "How far one gets from a point",
+		Description: "The areas reached on foot within 2, 4 and 8 hours at the user's pace, the ways timed by their slope like the Swiss hiking time. Approximate: an area is the outline around what is reached.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *reachInput) (*reachOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if !d.Limits.ReachUser.Allow(u.ID.String()) {
+			return nil, errTooMany
+		}
+		select {
+		case reachSlots <- struct{}{}:
+			defer func() { <-reachSlots }()
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+		areas, err := d.Router.GraphHopper.Reach(ctx, in.Body.From.geo(), in.Body.Profile, float64(u.SpeedFactor))
+		if err := legError(ctx, err); err != nil {
+			return nil, err
+		}
+		out := &reachOutput{}
+		out.Body.Areas = areas
+		return out, nil
 	})
 
 	huma.Register(api, huma.Operation{

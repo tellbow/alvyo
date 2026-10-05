@@ -37,6 +37,7 @@ services:
     volumes:
       - ./data/osm:/data/osm:ro
       - ./data/graph-cache:/data/graph-cache
+      - ./data/elevation-cache:/data/elevation-cache # terrain tiles for the slopes
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://127.0.0.1:8989/health"]
       interval: 10s

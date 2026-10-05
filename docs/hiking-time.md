@@ -153,6 +153,28 @@ that a few planning points do not force. Two outliers:
   planner offers the alpine way for a leg when it is at most two thirds as
   long (requirement 30).
 
+## Isochrones («Wie weit komme ich?»)
+
+The areas of requirement 65 come from GraphHopper alone: its isochrones add
+up its own time per way, not the formula on swissALTI3D. The profiles
+`hike_time` and `alpine_time` (`infra/graphhopper/custom_models/`) give each
+way a speed by its slope between its ends, in bands of 3 to 5 %: the
+formula's average over the band. The slope comes from the 30 m terrain
+tiles GraphHopper reads on import (skadi); GraphHopper stores at most 31 %.
+`TestTimeModels` (api/internal/routing) checks the bands against the formula.
+
+Along the official lines (a point every 2 km, both ways), against the
+official times, 2026-10-05:
+
+| Profile | Within ±10 % | Mean | Median |
+|---|---|---|---|
+| `hike_time` (by slope) | 49/56 | +0.2 % | -2.7 % |
+| `hike` (no slope, as GraphHopper routes) | – | -23.1 % | -28.2 % |
+
+The worst is 6.01 (St. Moritz – Chamanna Jenatsch, +59 % / +79 %): parts of
+it are harder than T3, so `hike_time` goes round. 5.01 is 14 % short, 6.02
+17 %. Without the slopes, eight hours on foot reached half again as far.
+
 ## Rerun
 
 ```sh
@@ -162,4 +184,5 @@ go run ./cmd/calibrate -graphhopper http://localhost:8989 > /tmp/report.md
 
 Elevations are cached (`-cache`, default in the system temp directory), so
 variants run offline after the first time. Without `-graphhopper` only the
-official lines are checked.
+official lines are checked; with it, also the time profiles of the
+isochrones.

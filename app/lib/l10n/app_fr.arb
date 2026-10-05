@@ -547,5 +547,20 @@
   "inviteAccept": "Devenir ami·e·s",
   "inviteDone": "Vous êtes maintenant ami·e·s.",
   "inviteInvalid": "Ce lien d'invitation n'est plus valable.",
-  "inviteSelf": "C'est ton propre lien."
+  "inviteSelf": "C'est ton propre lien.",
+  "reachTitle": "Jusqu’où puis-je aller ?",
+  "reachAction": "Portée",
+  "reachIntro": "Touche la carte, cherche un lieu ou prends ta position : les surfaces montrent jusqu’où tu vas depuis là en 2, 4 et 8 heures, à ton rythme et avec toutes les montées et descentes.",
+  "reachSearch": "Chercher un départ",
+  "reachHere": "Ma position",
+  "reachNoPosition": "Ta position est inconnue. Autorise la localisation dans les réglages ou touche la carte.",
+  "reachStart": "Départ : {place}",
+  "reachMapPoint": "Point sur la carte",
+  "reachBusy": "Calcul de la distance que tu peux parcourir …",
+  "reachWithin": "jusqu’à {hours} heures",
+  "reachNote": "Approximatif : une surface englobe tout ce qui est atteint, y compris les lacs et les pentes sans chemin entre eux. Les temps suivent le temps de marche suisse selon la pente, sans pauses.",
+  "reachPace": "À ton rythme : {pace} fois le temps des panneaux.",
+  "reachErrorNoPath": "Aucun chemin près de ce point. Choisis un point sur un chemin ou à proximité.",
+  "reachErrorBusy": "Trop de requêtes. Attends un instant.",
+  "reachErrorOther": "Le calcul a échoué. Réessaie."
 }

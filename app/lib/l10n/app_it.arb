@@ -547,5 +547,20 @@
   "inviteAccept": "Diventa amico",
   "inviteDone": "Ora siete amici.",
   "inviteInvalid": "Questo link di invito non è più valido.",
-  "inviteSelf": "Questo è il tuo link."
+  "inviteSelf": "Questo è il tuo link.",
+  "reachTitle": "Fin dove arrivo?",
+  "reachAction": "Portata",
+  "reachIntro": "Tocca la mappa, cerca un luogo o usa la tua posizione: le aree mostrano fin dove arrivi da lì in 2, 4 e 8 ore, al tuo ritmo e con tutte le salite e discese.",
+  "reachSearch": "Cerca una partenza",
+  "reachHere": "La mia posizione",
+  "reachNoPosition": "La tua posizione non è nota. Consenti la localizzazione nelle impostazioni o tocca la mappa.",
+  "reachStart": "Partenza: {place}",
+  "reachMapPoint": "Punto sulla mappa",
+  "reachBusy": "Calcolo fin dove arrivi …",
+  "reachWithin": "fino a {hours} ore",
+  "reachNote": "Approssimativo: un’area comprende tutto ciò che si raggiunge, anche laghi e pendii senza sentiero nel mezzo. I tempi seguono il tempo di marcia svizzero secondo la pendenza, senza pause.",
+  "reachPace": "Al tuo ritmo: {pace} volte il tempo dei cartelli.",
+  "reachErrorNoPath": "Nessun sentiero vicino a questo punto. Scegli un punto su un sentiero o nelle vicinanze.",
+  "reachErrorBusy": "Troppe richieste. Attendi un momento.",
+  "reachErrorOther": "Non è stato possibile calcolarlo. Riprova."
 }

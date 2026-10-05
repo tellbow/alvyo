@@ -1,0 +1,33 @@
+// The ways of swiss_hike.json (up to SAC T3), timed like the Swiss hiking time (swiss/hikingtime): for
+// isochrones only, never for routes. The speed per slope band is the
+// formula's average over the band (horizontal km/h); average_slope is the
+// slope between an edge's ends in per cent, at most 31 (GraphHopper's
+// limit), so steeper paths count as 31 %. No preference among the ways
+// (priority 1, distance_influence 0): the weight is the time.
+// TestTimeModels in api/internal/routing checks the bands against the formula.
+{
+  "distance_influence": 0,
+  "priority": [
+    { "if": "road_environment == FERRY", "multiply_by": "0" },
+    { "if": "!foot_access || hike_rating > 3", "multiply_by": "0" }
+  ],
+  "speed": [
+    { "if": "average_slope >= 30", "limit_to": "1.13" },
+    { "else_if": "average_slope >= 25", "limit_to": "1.38" },
+    { "else_if": "average_slope >= 20", "limit_to": "1.69" },
+    { "else_if": "average_slope >= 15", "limit_to": "2.15" },
+    { "else_if": "average_slope >= 12", "limit_to": "2.62" },
+    { "else_if": "average_slope >= 9", "limit_to": "3.0" },
+    { "else_if": "average_slope >= 6", "limit_to": "3.36" },
+    { "else_if": "average_slope >= 3", "limit_to": "3.73" },
+    { "else_if": "average_slope > -3", "limit_to": "4.19" },
+    { "else_if": "average_slope > -6", "limit_to": "4.5" },
+    { "else_if": "average_slope > -9", "limit_to": "4.47" },
+    { "else_if": "average_slope > -12", "limit_to": "4.22" },
+    { "else_if": "average_slope > -15", "limit_to": "3.85" },
+    { "else_if": "average_slope > -20", "limit_to": "3.35" },
+    { "else_if": "average_slope > -25", "limit_to": "2.82" },
+    { "else_if": "average_slope > -30", "limit_to": "2.39" },
+    { "else": "", "limit_to": "2.02" }
+  ]
+}

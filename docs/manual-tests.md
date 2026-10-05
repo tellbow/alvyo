@@ -352,6 +352,12 @@ Checked so far only in the simulator, with made-up or simulated positions
       this span» shows its lines in VictoriaLogs, «Related metrics» the
       request rate and p95; a VictoriaLogs line of the API has a «Trace»
       link that opens it.
+- [ ] **How far one gets on rk1** (65): after the new graph, «Reichweite»
+      from a few starts (a station in a valley, a hut): the areas follow the
+      valleys, 8 hours answer within about 10 s, the planner still routes.
+      In the app on the iPhone: «Mein Standort» asks for the location once
+      and starts there. Simulator 2026-10-05: from Sargans, filled areas,
+      the map on the 8-hour area.
 - [ ] **Invite link on the iPhone** (64): a friend's invite link opened in
       Safari offers «In der App öffnen»; the app shows who invites and
       «Freunde werden» makes friends. The app on the iPhone after the

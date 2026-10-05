@@ -10,13 +10,24 @@ graphhopper:
       custom_model_files: [swiss_hike.json]
     - name: alpine
       custom_model_files: [swiss_alpine.json]
+    # The same ways timed by slope like the Swiss formula, for isochrones
+    # («Wie weit komme ich?»); they search the graph without CH.
+    - name: hike_time
+      custom_model_files: [swiss_hike_time.json]
+    - name: alpine_time
+      custom_model_files: [swiss_alpine_time.json]
   profiles_ch:
     - profile: hike
     - profile: alpine
   profiles_lm: []
 
   # Also returned as path details (details=...) for SAC / surface breakdowns.
-  graph.encoded_values: foot_access, foot_priority, foot_average_speed, foot_road_access, foot_network, hike_rating, road_class, road_environment, surface, track_type
+  graph.encoded_values: foot_access, foot_priority, foot_average_speed, foot_road_access, foot_network, hike_rating, road_class, road_environment, surface, track_type, average_slope
+
+  # Elevation for average_slope: the 30 m tiles of AWS Terrain Tiles
+  # (skadi), downloaded on import into the cache next to the graph.
+  graph.elevation.provider: skadi
+  graph.elevation.cache_dir: /data/elevation-cache
 
   import.osm.ignored_highways: motorway,trunk
   prepare.min_network_size: 200

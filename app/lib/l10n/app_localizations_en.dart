@@ -1793,4 +1793,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inviteSelf => 'This is your own link.';
+
+  @override
+  String get reachTitle => 'How far can I get?';
+
+  @override
+  String get reachAction => 'Reach';
+
+  @override
+  String get reachIntro =>
+      'Tap the map, search for a place or use where you are: the areas show how far you get from there in 2, 4 and 8 hours, at your pace and with every climb and descent.';
+
+  @override
+  String get reachSearch => 'Search for a start';
+
+  @override
+  String get reachHere => 'Where I am';
+
+  @override
+  String get reachNoPosition => 'Your position is not known. Allow location in Settings or tap the map.';
+
+  @override
+  String reachStart(String place) {
+    return 'Start: $place';
+  }
+
+  @override
+  String get reachMapPoint => 'Point on the map';
+
+  @override
+  String get reachBusy => 'Working out how far you get …';
+
+  @override
+  String reachWithin(int hours) {
+    return 'within $hours hours';
+  }
+
+  @override
+  String get reachNote =>
+      'Approximate: an area takes in everything reached, lakes and slopes without paths between them too. The times follow the Swiss hiking time by slope, without breaks.';
+
+  @override
+  String reachPace(String pace) {
+    return 'At your pace: $pace times the signposts’ time.';
+  }
+
+  @override
+  String get reachErrorNoPath => 'No path near this point. Choose a point on or near a path.';
+
+  @override
+  String get reachErrorBusy => 'Too many requests. Please wait a moment.';
+
+  @override
+  String get reachErrorOther => 'Could not be worked out. Please try again.';
 }

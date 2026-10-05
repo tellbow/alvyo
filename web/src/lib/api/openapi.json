@@ -4180,6 +4180,72 @@
         ],
         "type": "object"
       },
+      "ReachArea": {
+        "additionalProperties": false,
+        "properties": {
+          "hours": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "outline": {
+            "description": "Polygon rings, the outer one first; [lon, lat] per point",
+            "items": {
+              "items": {
+                "items": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "hours",
+          "outline"
+        ],
+        "type": "object"
+      },
+      "ReachInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "profile": {
+            "default": "hike",
+            "enum": [
+              "hike",
+              "alpine"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "from"
+        ],
+        "type": "object"
+      },
+      "ReachOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "areas": {
+            "description": "Reached within 2, 4 and 8 hours at the user's pace, the smallest first",
+            "items": {
+              "$ref": "#/components/schemas/ReachArea"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "areas"
+        ],
+        "type": "object"
+      },
       "Relation": {
         "additionalProperties": false,
         "properties": {
@@ -15023,6 +15089,48 @@
           }
         },
         "summary": "Available routing profiles",
+        "tags": [
+          "routing"
+        ]
+      }
+    },
+    "/routing/reach": {
+      "post": {
+        "description": "The areas reached on foot within 2, 4 and 8 hours at the user's pace, the ways timed by their slope like the Swiss hiking time. Approximate: an area is the outline around what is reached.",
+        "operationId": "route-reach",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReachInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReachOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "How far one gets from a point",
         "tags": [
           "routing"
         ]

@@ -8,19 +8,24 @@
 //	go run ./cmd/calibrate -cache /tmp/alvyo-calibrate > report.md
 //
 // With -graphhopper, each stage is also planned as a person would: routed
-// through GraphHopper between points of the official line every -anchor-km.
+// through GraphHopper between points of the official line every -anchor-km;
+// and timed by GraphHopper's own profiles for isochrones (hike_time), which
+// time the ways by slope like the Swiss formula.
 package main
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"iter"
 	"math"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -191,6 +196,51 @@ func main() {
 	}
 	fmt.Printf("\nDistance within ±5 %%: %s (mean %s). Time within ±10 %%: %s (mean %s, worst %s). Ascent within ±10 %%: %s (mean %s).\n",
 		within(dr, 0.05), pct(mean(dr)), within(tr, 0.1), pct(mean(tr)), pct(worst(tr)), within(ar, 0.1), pct(mean(ar)))
+
+	// The time profiles of «Wie weit komme ich?» (requirement 65), along the
+	// official line both ways, against the official times.
+	fmt.Println("\nTimed by GraphHopper's hike_time (alpine_time where it finds no way), a point every 2 km:")
+	fmt.Println()
+	fmt.Println("| Stage | Time | Δ time | Δ way back |")
+	fmt.Println("|---|---|---|---|")
+	tr = nil
+	for _, p := range all {
+		anchors := anchorsEvery(decode(p.s.Line), 2000)
+		there, err1 := timed(*gh, slices.All(anchors))
+		back, err2 := timed(*gh, slices.Backward(anchors))
+		if err := errors.Join(err1, err2); err != nil {
+			fmt.Printf("| %d.%02d | %v | | |\n", p.s.Route, p.s.Stage, err)
+			continue
+		}
+		t, tb := there/p.s.Minutes, back/p.s.MinutesReverse
+		tr = append(tr, t, tb)
+		fmt.Printf("| %d.%02d | %s | %s | %s |\n", p.s.Route, p.s.Stage, hm(p.s.Minutes), pct(t), pct(tb))
+	}
+	fmt.Printf("\nTime within ±10 %%: %s (mean %s, median %s, worst %s).\n", within(tr, 0.1), pct(mean(tr)), pct(median(tr)), pct(worst(tr)))
+}
+
+// timed is GraphHopper's time in minutes from anchor to anchor by the time
+// profiles.
+func timed(url string, anchors iter.Seq2[int, geo.Point]) (float64, error) {
+	var prev *geo.Point
+	total := 0.0
+	for _, a := range anchors {
+		if prev != nil {
+			var ms float64
+			var err error
+			for _, profile := range []string{"hike_time", "alpine_time"} {
+				if _, ms, err = route(url, *prev, a, profile); err == nil {
+					break
+				}
+			}
+			if err != nil {
+				return 0, err
+			}
+			total += ms / 60000
+		}
+		prev = &a
+	}
+	return total, nil
 }
 
 // anchorsEvery picks points of line about every step metres, with both ends.
@@ -215,7 +265,7 @@ func plan(url string, anchors []geo.Point) ([]geo.Point, error) {
 		var leg []geo.Point
 		var err error
 		for _, profile := range []string{"hike", "alpine"} {
-			if leg, err = route(url, anchors[i-1], anchors[i], profile); err == nil {
+			if leg, _, err = route(url, anchors[i-1], anchors[i], profile); err == nil {
 				break
 			}
 		}
@@ -230,31 +280,34 @@ func plan(url string, anchors []geo.Point) ([]geo.Point, error) {
 	return line, nil
 }
 
-func route(url string, from, to geo.Point, profile string) ([]geo.Point, error) {
+// route returns GraphHopper's path and its time in milliseconds. The time
+// profiles have no CH: they are searched without it.
+func route(url string, from, to geo.Point, profile string) ([]geo.Point, float64, error) {
 	body, _ := json.Marshal(map[string]any{
 		"points": [][2]float64{{from.Lon, from.Lat}, {to.Lon, to.Lat}}, "profile": profile,
-		"points_encoded": false, "instructions": false,
+		"points_encoded": false, "instructions": false, "ch.disable": strings.HasSuffix(profile, "_time"),
 	})
 	resp, err := http.Post(strings.TrimSuffix(url, "/")+"/route", "application/json", bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 	var r struct {
 		Paths []struct {
+			Time   float64 `json:"time"`
 			Points struct {
 				Coordinates [][]float64 `json:"coordinates"`
 			} `json:"points"`
 		} `json:"paths"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil || resp.StatusCode != http.StatusOK || len(r.Paths) == 0 {
-		return nil, fmt.Errorf("graphhopper %s: HTTP %d", profile, resp.StatusCode)
+		return nil, 0, fmt.Errorf("graphhopper %s: HTTP %d", profile, resp.StatusCode)
 	}
 	pts := make([]geo.Point, len(r.Paths[0].Points.Coordinates))
 	for i, c := range r.Paths[0].Points.Coordinates {
 		pts[i] = geo.Point{Lon: c[0], Lat: c[1]}
 	}
-	return pts, nil
+	return pts, r.Paths[0].Time, nil
 }
 
 // cachedElevation samples pts once and keeps the result in dir.
@@ -284,6 +337,17 @@ func mean(xs []float64) float64 {
 		t += x
 	}
 	return t / float64(len(xs))
+}
+
+func median(xs []float64) float64 {
+	s := slices.Sorted(slices.Values(xs))
+	if len(s) == 0 {
+		return math.NaN()
+	}
+	if len(s)%2 == 1 {
+		return s[len(s)/2]
+	}
+	return (s[len(s)/2-1] + s[len(s)/2]) / 2
 }
 
 // worst is the ratio furthest from 1.

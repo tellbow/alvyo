@@ -667,6 +667,21 @@ class PackStatus {
 /// A point on the map.
 typedef LonLat = ({double lon, double lat});
 
+/// What one reaches within [hours]: an outline, the outer ring first,
+/// [lon, lat] per point.
+class ReachArea {
+  ReachArea.fromJson(Map<String, dynamic> j)
+    : hours = (j['hours'] as num).toInt(),
+      outline = [
+        for (final ring in j['outline'] as List)
+          [
+            for (final p in ring as List) [((p as List)[0] as num).toDouble(), (p[1] as num).toDouble()],
+          ],
+      ];
+  final int hours;
+  final List<List<List<double>>> outline;
+}
+
 /// A map view: west, south, east, north.
 typedef Bbox = ({double west, double south, double east, double north});
 
@@ -1505,6 +1520,18 @@ class Api {
             })
             as Map<String, dynamic>,
       );
+
+  /// What one reaches on foot from [from] within 2, 4 and 8 hours at one's
+  /// pace, the smallest first; [profile] hike or alpine.
+  Future<List<ReachArea>> reach(LonLat from, {String profile = 'hike'}) async {
+    final j =
+        await _send('POST', '/routing/reach', {
+              'from': {'lon': from.lon, 'lat': from.lat},
+              'profile': profile,
+            })
+            as Map<String, dynamic>;
+    return [for (final a in j['areas'] as List) ReachArea.fromJson(a as Map<String, dynamic>)];
+  }
 
   /// Saves a planned route: its [anchors] and the [legs] between them.
   Future<RouteDetail> createRoute({

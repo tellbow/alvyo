@@ -767,5 +767,18 @@
 	"analytics_title": "Statistics",
 	"analytics_granted": "You agreed to measurement with Google Analytics.",
 	"analytics_denied": "You declined measurement with Google Analytics; Google only gets page views without cookies.",
-	"analytics_undecided": "You have not decided yet whether we may measure with Google Analytics."
+	"analytics_undecided": "You have not decided yet whether we may measure with Google Analytics.",
+	"plan_tab_reach": "Reach",
+	"reach_title": "How far can I get?",
+	"reach_intro": "Tap the map or search for a place: the areas show how far you get from there in 2, 4 and 8 hours, at your pace and with every climb and descent.",
+	"reach_search": "Search for a start",
+	"reach_start": "Start",
+	"reach_busy": "Working out how far you get …",
+	"reach_within": "within {hours} hours",
+	"reach_note": "Approximate: an area takes in everything reached, lakes and slopes without paths between them too. The times follow the Swiss hiking time by slope, without breaks.",
+	"reach_pace": "At your pace: {pace} times the signposts’ time.",
+	"reach_pace_change": "Change",
+	"reach_hint_login": "Log in to see how far you get.",
+	"reach_error_422": "No path near this point. Choose a point on or near a path.",
+	"reach_error_other": "Could not be worked out. Please try again."
 }

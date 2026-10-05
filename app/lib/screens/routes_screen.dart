@@ -9,6 +9,7 @@ import '../offline/packs.dart';
 import '../settings.dart';
 import 'bottom_bar.dart';
 import 'discover_screen.dart';
+import 'reach_screen.dart';
 import 'done.dart';
 import 'feed_tab.dart';
 import 'journeys_list.dart';
@@ -141,6 +142,13 @@ class _RoutesScreenState extends State<RoutesScreen> {
               icon: const Icon(Icons.explore_outlined),
               onPressed: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => DiscoverScreen(api: widget.api))),
+            ),
+            IconButton(
+              key: const Key('reach'),
+              tooltip: t.reachTitle,
+              icon: const Icon(Icons.radar),
+              onPressed: () =>
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => ReachScreen(api: widget.api))),
             ),
             IconButton(
               key: const Key('watch'),

@@ -1801,4 +1801,58 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get inviteSelf => 'Das ist dein eigener Link.';
+
+  @override
+  String get reachTitle => 'Wie weit komme ich?';
+
+  @override
+  String get reachAction => 'Reichweite';
+
+  @override
+  String get reachIntro =>
+      'Tippe auf die Karte, suche einen Ort oder nimm deinen Standort: Die Flächen zeigen, wie weit du von dort in 2, 4 und 8 Stunden kommst, bei deinem Tempo und mit allen Auf- und Abstiegen.';
+
+  @override
+  String get reachSearch => 'Start suchen';
+
+  @override
+  String get reachHere => 'Mein Standort';
+
+  @override
+  String get reachNoPosition =>
+      'Dein Standort ist nicht bekannt. Erlaube den Standort in den Einstellungen oder tippe auf die Karte.';
+
+  @override
+  String reachStart(String place) {
+    return 'Start: $place';
+  }
+
+  @override
+  String get reachMapPoint => 'Punkt auf der Karte';
+
+  @override
+  String get reachBusy => 'Berechne, wie weit du kommst …';
+
+  @override
+  String reachWithin(int hours) {
+    return 'bis $hours Stunden';
+  }
+
+  @override
+  String get reachNote =>
+      'Ungefähr: Eine Fläche umfasst alles Erreichbare, auch Seen und weglose Hänge dazwischen. Die Zeiten folgen der Schweizer Wanderzeit nach Steigung, ohne Pausen.';
+
+  @override
+  String reachPace(String pace) {
+    return 'Bei deinem Tempo: $pace-mal die Zeit der Wegweiser.';
+  }
+
+  @override
+  String get reachErrorNoPath => 'Kein Weg in der Nähe dieses Punkts. Wähle einen Punkt auf oder nahe bei einem Weg.';
+
+  @override
+  String get reachErrorBusy => 'Zu viele Anfragen. Bitte kurz warten.';
+
+  @override
+  String get reachErrorOther => 'Konnte nicht berechnet werden. Versuche es nochmals.';
 }

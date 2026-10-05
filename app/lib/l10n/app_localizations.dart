@@ -3381,6 +3381,96 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Das ist dein eigener Link.'**
   String get inviteSelf;
+
+  /// No description provided for @reachTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wie weit komme ich?'**
+  String get reachTitle;
+
+  /// No description provided for @reachAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Reichweite'**
+  String get reachAction;
+
+  /// No description provided for @reachIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Tippe auf die Karte, suche einen Ort oder nimm deinen Standort: Die Flächen zeigen, wie weit du von dort in 2, 4 und 8 Stunden kommst, bei deinem Tempo und mit allen Auf- und Abstiegen.'**
+  String get reachIntro;
+
+  /// No description provided for @reachSearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Start suchen'**
+  String get reachSearch;
+
+  /// No description provided for @reachHere.
+  ///
+  /// In de, this message translates to:
+  /// **'Mein Standort'**
+  String get reachHere;
+
+  /// No description provided for @reachNoPosition.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Standort ist nicht bekannt. Erlaube den Standort in den Einstellungen oder tippe auf die Karte.'**
+  String get reachNoPosition;
+
+  /// No description provided for @reachStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start: {place}'**
+  String reachStart(String place);
+
+  /// No description provided for @reachMapPoint.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkt auf der Karte'**
+  String get reachMapPoint;
+
+  /// No description provided for @reachBusy.
+  ///
+  /// In de, this message translates to:
+  /// **'Berechne, wie weit du kommst …'**
+  String get reachBusy;
+
+  /// No description provided for @reachWithin.
+  ///
+  /// In de, this message translates to:
+  /// **'bis {hours} Stunden'**
+  String reachWithin(int hours);
+
+  /// No description provided for @reachNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Ungefähr: Eine Fläche umfasst alles Erreichbare, auch Seen und weglose Hänge dazwischen. Die Zeiten folgen der Schweizer Wanderzeit nach Steigung, ohne Pausen.'**
+  String get reachNote;
+
+  /// No description provided for @reachPace.
+  ///
+  /// In de, this message translates to:
+  /// **'Bei deinem Tempo: {pace}-mal die Zeit der Wegweiser.'**
+  String reachPace(String pace);
+
+  /// No description provided for @reachErrorNoPath.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Weg in der Nähe dieses Punkts. Wähle einen Punkt auf oder nahe bei einem Weg.'**
+  String get reachErrorNoPath;
+
+  /// No description provided for @reachErrorBusy.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu viele Anfragen. Bitte kurz warten.'**
+  String get reachErrorBusy;
+
+  /// No description provided for @reachErrorOther.
+  ///
+  /// In de, this message translates to:
+  /// **'Konnte nicht berechnet werden. Versuche es nochmals.'**
+  String get reachErrorOther;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

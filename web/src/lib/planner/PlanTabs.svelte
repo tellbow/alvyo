@@ -2,8 +2,8 @@
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages';
 
-	/** Which planner this is: one route, or a multi-day hike. */
-	let { current }: { current: 'route' | 'journey' } = $props();
+	/** Which planner this is: one route, a multi-day hike, or how far one gets. */
+	let { current }: { current: 'route' | 'journey' | 'reach' } = $props();
 
 	const tab = (on: boolean) =>
 		`flex-1 rounded-md px-3 py-1.5 text-center ${on ? 'bg-surface font-medium shadow ring-1 ring-stone-300' : 'text-stone-600 hover:text-accent-ink'}`;
@@ -23,5 +23,11 @@
 		href={resolve('/journeys/plan')}
 		class={tab(current === 'journey')}
 		aria-current={current === 'journey' ? 'page' : undefined}>{m.plan_tab_journey()}</a
+	>
+	<a
+		href={resolve('/plan/reach')}
+		class={tab(current === 'reach')}
+		aria-current={current === 'reach' ? 'page' : undefined}
+		data-testid="plan-tab-reach">{m.plan_tab_reach()}</a
 	>
 </nav>

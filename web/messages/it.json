@@ -767,5 +767,18 @@
 	"analytics_title": "Statistiche",
 	"analytics_granted": "Hai accettato la misurazione con Google Analytics.",
 	"analytics_denied": "Hai rifiutato la misurazione con Google Analytics; Google riceve solo visualizzazioni senza cookie.",
-	"analytics_undecided": "Non hai ancora deciso se possiamo misurare con Google Analytics."
+	"analytics_undecided": "Non hai ancora deciso se possiamo misurare con Google Analytics.",
+	"plan_tab_reach": "Portata",
+	"reach_title": "Fin dove arrivo?",
+	"reach_intro": "Tocca la mappa o cerca un luogo: le aree mostrano fin dove arrivi da lì in 2, 4 e 8 ore, al tuo ritmo e con tutte le salite e discese.",
+	"reach_search": "Cerca una partenza",
+	"reach_start": "Partenza",
+	"reach_busy": "Calcolo fin dove arrivi …",
+	"reach_within": "fino a {hours} ore",
+	"reach_note": "Approssimativo: un’area comprende tutto ciò che si raggiunge, anche laghi e pendii senza sentiero nel mezzo. I tempi seguono il tempo di marcia svizzero secondo la pendenza, senza pause.",
+	"reach_pace": "Al tuo ritmo: {pace} volte il tempo dei cartelli.",
+	"reach_pace_change": "Modifica",
+	"reach_hint_login": "Accedi per vedere fin dove arrivi.",
+	"reach_error_422": "Nessun sentiero vicino a questo punto. Scegli un punto su un sentiero o nelle vicinanze.",
+	"reach_error_other": "Non è stato possibile calcolarlo. Riprova."
 }

@@ -108,6 +108,15 @@ graph: GraphHopper does not start on a graph built with other profiles. Run
 the graph refresh (or empty the graph cache) right after the new
 `alvyo-graphhopper` image is deployed.
 
+The graph has elevation for the slopes of the isochrones' time profiles
+(requirement 65): on import GraphHopper downloads the 30 m terrain tiles of
+AWS Terrain Tiles (skadi) into `/data/elevation-cache` (about 210 MB, kept
+for later imports). With them the graph is 0.67 GB instead of 0.61 GB and
+the import needs about 2.9 GB of heap (local, 2026-10-05: 8 min reading the
+OSM data, 1 min per CH profile). Routes are found as before; the turns of
+map matching are as many as before on GPS tracks (54 against 55 on 20
+noisy tracks).
+
 The OSM data reaches 15 km beyond the border (requirement 31): `fetch-and-merge.sh`
 downloads about 3.4 GB of neighbouring extracts (kept, so later runs download
 only what changed) and cuts them with `osmium extract`, which needs up to

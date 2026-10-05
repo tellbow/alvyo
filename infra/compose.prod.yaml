@@ -102,6 +102,7 @@ services:
     volumes:
       - ./data/osm:/data/osm:ro
       - ./data/graph-cache:/data/graph-cache
+      - ./data/elevation-cache:/data/elevation-cache # terrain tiles for the slopes
 
   tilecache:
     logging: *logging

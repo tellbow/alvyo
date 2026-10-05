@@ -767,5 +767,18 @@
 	"analytics_title": "Statistiques",
 	"analytics_granted": "Tu as accepté la mesure avec Google Analytics.",
 	"analytics_denied": "Tu as refusé la mesure avec Google Analytics ; Google ne reçoit que des pages vues sans cookie.",
-	"analytics_undecided": "Tu n'as pas encore décidé si nous pouvons mesurer avec Google Analytics."
+	"analytics_undecided": "Tu n'as pas encore décidé si nous pouvons mesurer avec Google Analytics.",
+	"plan_tab_reach": "Portée",
+	"reach_title": "Jusqu’où puis-je aller ?",
+	"reach_intro": "Touche la carte ou cherche un lieu : les surfaces montrent jusqu’où tu vas depuis là en 2, 4 et 8 heures, à ton rythme et avec toutes les montées et descentes.",
+	"reach_search": "Chercher un départ",
+	"reach_start": "Départ",
+	"reach_busy": "Calcul de la distance que tu peux parcourir …",
+	"reach_within": "jusqu’à {hours} heures",
+	"reach_note": "Approximatif : une surface englobe tout ce qui est atteint, y compris les lacs et les pentes sans chemin entre eux. Les temps suivent le temps de marche suisse selon la pente, sans pauses.",
+	"reach_pace": "À ton rythme : {pace} fois le temps des panneaux.",
+	"reach_pace_change": "Modifier",
+	"reach_hint_login": "Connecte-toi pour voir jusqu’où tu vas.",
+	"reach_error_422": "Aucun chemin près de ce point. Choisis un point sur un chemin ou à proximité.",
+	"reach_error_other": "Le calcul a échoué. Réessaie."
 }

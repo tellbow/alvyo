@@ -547,5 +547,20 @@
   "inviteAccept": "Become friends",
   "inviteDone": "You are friends now.",
   "inviteInvalid": "This invite link is no longer valid.",
-  "inviteSelf": "This is your own link."
+  "inviteSelf": "This is your own link.",
+  "reachTitle": "How far can I get?",
+  "reachAction": "Reach",
+  "reachIntro": "Tap the map, search for a place or use where you are: the areas show how far you get from there in 2, 4 and 8 hours, at your pace and with every climb and descent.",
+  "reachSearch": "Search for a start",
+  "reachHere": "Where I am",
+  "reachNoPosition": "Your position is not known. Allow location in Settings or tap the map.",
+  "reachStart": "Start: {place}",
+  "reachMapPoint": "Point on the map",
+  "reachBusy": "Working out how far you get …",
+  "reachWithin": "within {hours} hours",
+  "reachNote": "Approximate: an area takes in everything reached, lakes and slopes without paths between them too. The times follow the Swiss hiking time by slope, without breaks.",
+  "reachPace": "At your pace: {pace} times the signposts’ time.",
+  "reachErrorNoPath": "No path near this point. Choose a point on or near a path.",
+  "reachErrorBusy": "Too many requests. Please wait a moment.",
+  "reachErrorOther": "Could not be worked out. Please try again."
 }

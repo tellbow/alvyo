@@ -1800,4 +1800,59 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get inviteSelf => 'Questo è il tuo link.';
+
+  @override
+  String get reachTitle => 'Fin dove arrivo?';
+
+  @override
+  String get reachAction => 'Portata';
+
+  @override
+  String get reachIntro =>
+      'Tocca la mappa, cerca un luogo o usa la tua posizione: le aree mostrano fin dove arrivi da lì in 2, 4 e 8 ore, al tuo ritmo e con tutte le salite e discese.';
+
+  @override
+  String get reachSearch => 'Cerca una partenza';
+
+  @override
+  String get reachHere => 'La mia posizione';
+
+  @override
+  String get reachNoPosition =>
+      'La tua posizione non è nota. Consenti la localizzazione nelle impostazioni o tocca la mappa.';
+
+  @override
+  String reachStart(String place) {
+    return 'Partenza: $place';
+  }
+
+  @override
+  String get reachMapPoint => 'Punto sulla mappa';
+
+  @override
+  String get reachBusy => 'Calcolo fin dove arrivi …';
+
+  @override
+  String reachWithin(int hours) {
+    return 'fino a $hours ore';
+  }
+
+  @override
+  String get reachNote =>
+      'Approssimativo: un’area comprende tutto ciò che si raggiunge, anche laghi e pendii senza sentiero nel mezzo. I tempi seguono il tempo di marcia svizzero secondo la pendenza, senza pause.';
+
+  @override
+  String reachPace(String pace) {
+    return 'Al tuo ritmo: $pace volte il tempo dei cartelli.';
+  }
+
+  @override
+  String get reachErrorNoPath =>
+      'Nessun sentiero vicino a questo punto. Scegli un punto su un sentiero o nelle vicinanze.';
+
+  @override
+  String get reachErrorBusy => 'Troppe richieste. Attendi un momento.';
+
+  @override
+  String get reachErrorOther => 'Non è stato possibile calcolarlo. Riprova.';
 }

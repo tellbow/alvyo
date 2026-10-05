@@ -2268,6 +2268,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/routing/reach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * How far one gets from a point
+         * @description The areas reached on foot within 2, 4 and 8 hours at the user's pace, the ways timed by their slope like the Swiss hiking time. Approximate: an area is the outline around what is reached.
+         */
+        post: operations["route-reach"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/shared": {
         parameters: {
             query?: never;
@@ -3774,6 +3794,24 @@ export interface components {
             /** Format: int64 */
             timeout?: number;
             userVerification?: string;
+        };
+        ReachArea: {
+            /** Format: int64 */
+            hours: number;
+            /** @description Polygon rings, the outer one first; [lon, lat] per point */
+            outline: number[][][];
+        };
+        ReachInputBody: {
+            from: components["schemas"]["Point"];
+            /**
+             * @default hike
+             * @enum {string}
+             */
+            profile: "hike" | "alpine";
+        };
+        ReachOutputBody: {
+            /** @description Reached within 2, 4 and 8 hours at the user's pace, the smallest first */
+            areas: components["schemas"]["ReachArea"][];
         };
         Relation: {
             /** @description The viewer blocked this user */
@@ -10072,6 +10110,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfilesOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "route-reach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReachInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReachOutputBody"];
                 };
             };
             /** @description Error */

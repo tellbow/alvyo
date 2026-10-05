@@ -1803,4 +1803,58 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get inviteSelf => 'C\'est ton propre lien.';
+
+  @override
+  String get reachTitle => 'Jusqu’où puis-je aller ?';
+
+  @override
+  String get reachAction => 'Portée';
+
+  @override
+  String get reachIntro =>
+      'Touche la carte, cherche un lieu ou prends ta position : les surfaces montrent jusqu’où tu vas depuis là en 2, 4 et 8 heures, à ton rythme et avec toutes les montées et descentes.';
+
+  @override
+  String get reachSearch => 'Chercher un départ';
+
+  @override
+  String get reachHere => 'Ma position';
+
+  @override
+  String get reachNoPosition =>
+      'Ta position est inconnue. Autorise la localisation dans les réglages ou touche la carte.';
+
+  @override
+  String reachStart(String place) {
+    return 'Départ : $place';
+  }
+
+  @override
+  String get reachMapPoint => 'Point sur la carte';
+
+  @override
+  String get reachBusy => 'Calcul de la distance que tu peux parcourir …';
+
+  @override
+  String reachWithin(int hours) {
+    return 'jusqu’à $hours heures';
+  }
+
+  @override
+  String get reachNote =>
+      'Approximatif : une surface englobe tout ce qui est atteint, y compris les lacs et les pentes sans chemin entre eux. Les temps suivent le temps de marche suisse selon la pente, sans pauses.';
+
+  @override
+  String reachPace(String pace) {
+    return 'À ton rythme : $pace fois le temps des panneaux.';
+  }
+
+  @override
+  String get reachErrorNoPath => 'Aucun chemin près de ce point. Choisis un point sur un chemin ou à proximité.';
+
+  @override
+  String get reachErrorBusy => 'Trop de requêtes. Attends un instant.';
+
+  @override
+  String get reachErrorOther => 'Le calcul a échoué. Réessaie.';
 }

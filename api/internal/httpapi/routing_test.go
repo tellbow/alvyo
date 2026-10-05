@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -173,5 +174,65 @@ func TestInternalErrorsHidden(t *testing.T) {
 	code, body := c.do("POST", "/api/v1/routing/leg", legBody(8.0535))
 	if code != http.StatusInternalServerError || strings.Contains(string(body), "secret") || strings.Contains(string(body), "graphhopper") {
 		t.Errorf("leg: %d %s", code, body)
+	}
+}
+
+func TestRouteReach(t *testing.T) {
+	var asked atomic.Value
+	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		asked.Store(r.URL.Query())
+		if r.URL.Query().Get("point") == "47.100000,9.200000" { // in a lake
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(`{"message":"Point not found","hints":[{"details":"com.graphhopper.util.exceptions.PointNotFoundException"}]}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"polygons":[
+			{"properties":{"bucket":0},"geometry":{"coordinates":[[[9.4,47],[9.5,47],[9.4,47.1],[9.4,47]]]}},
+			{"properties":{"bucket":1},"geometry":{"coordinates":[[[9.3,47],[9.6,47],[9.4,47.2],[9.3,47]]]}},
+			{"properties":{"bucket":2},"geometry":{"coordinates":[[[9.2,47],[9.7,47],[9.4,47.3],[9.2,47]]]}},
+			{"properties":{"bucket":3},"geometry":{"coordinates":[[[9.1,47],[9.8,47],[9.4,47.4],[9.1,47]]]}}]}`))
+	}))
+	t.Cleanup(gh.Close)
+	pool := testdb.New(t)
+	h, _ := New(Deps{
+		DB:        pool,
+		Auth:      &auth.Service{DB: pool, Mail: &mailer.Recorder{}, PublicURL: origin},
+		Router:    &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}},
+		PublicURL: origin,
+	})
+	srv := httptest.NewServer(h)
+	t.Cleanup(srv.Close)
+	c := (&testServer{Server: srv}).client(t)
+	from := func(lon, lat float64) map[string]any {
+		return map[string]any{"from": map[string]any{"lon": lon, "lat": lat}, "profile": "alpine"}
+	}
+
+	if code, _ := c.do("POST", "/api/v1/routing/reach", from(9.4466, 47.0446)); code != http.StatusUnauthorized {
+		t.Errorf("anonymous: %d, want 401", code)
+	}
+	c.do("POST", "/api/v1/auth/signup", signupBody("rea@example.ch", "rea"))
+	if _, err := pool.Exec(context.Background(), `UPDATE users SET speed_factor = 2 WHERE username = 'rea'`); err != nil {
+		t.Fatal(err)
+	}
+
+	code, body := c.do("POST", "/api/v1/routing/reach", from(9.4466, 47.0446))
+	if code != http.StatusOK {
+		t.Fatalf("reach: %d %s", code, body)
+	}
+	var out struct {
+		Areas []routing.ReachArea `json:"areas"`
+	}
+	_ = json.Unmarshal(body, &out)
+	if len(out.Areas) != 3 || out.Areas[0].Hours != 2 || out.Areas[2].Hours != 8 || out.Areas[2].Outline[0][0][0] != 9.1 {
+		t.Errorf("areas %s", body)
+	}
+	// The alpine ways, eight hours at half the signposts' pace: 4 h of Swiss time.
+	q := asked.Load().(url.Values)
+	if q["profile"][0] != "alpine_time" || q["time_limit"][0] != "14400" {
+		t.Errorf("asked GraphHopper %v", q)
+	}
+
+	if code, _ := c.do("POST", "/api/v1/routing/reach", from(9.2, 47.1)); code != http.StatusUnprocessableEntity {
+		t.Errorf("no path near the point: %d, want 422", code)
 	}
 }

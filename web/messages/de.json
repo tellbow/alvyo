@@ -767,5 +767,18 @@
 	"analytics_title": "Statistik",
 	"analytics_granted": "Du hast der Messung mit Google Analytics zugestimmt.",
 	"analytics_denied": "Du hast die Messung mit Google Analytics abgelehnt; Google erhält nur Aufrufe ohne Cookies.",
-	"analytics_undecided": "Du hast noch nicht entschieden, ob wir mit Google Analytics messen dürfen."
+	"analytics_undecided": "Du hast noch nicht entschieden, ob wir mit Google Analytics messen dürfen.",
+	"plan_tab_reach": "Reichweite",
+	"reach_title": "Wie weit komme ich?",
+	"reach_intro": "Tippe auf die Karte oder suche einen Ort: Die Flächen zeigen, wie weit du von dort in 2, 4 und 8 Stunden kommst, bei deinem Tempo und mit allen Auf- und Abstiegen.",
+	"reach_search": "Start suchen",
+	"reach_start": "Start",
+	"reach_busy": "Berechne, wie weit du kommst …",
+	"reach_within": "bis {hours} Stunden",
+	"reach_note": "Ungefähr: Eine Fläche umfasst alles Erreichbare, auch Seen und weglose Hänge dazwischen. Die Zeiten folgen der Schweizer Wanderzeit nach Steigung, ohne Pausen.",
+	"reach_pace": "Bei deinem Tempo: {pace}-mal die Zeit der Wegweiser.",
+	"reach_pace_change": "Ändern",
+	"reach_hint_login": "Melde dich an, um zu sehen, wie weit du kommst.",
+	"reach_error_422": "Kein Weg in der Nähe dieses Punkts. Wähle einen Punkt auf oder nahe bei einem Weg.",
+	"reach_error_other": "Konnte nicht berechnet werden. Versuche es nochmals."
 }

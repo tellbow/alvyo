@@ -35,8 +35,12 @@ List<PoiRow> groupPois(List<Poi> pois, {double withinM = 1000}) {
 /// come, a town's fountains and restaurants each on one line; chips above
 /// show one kind only. Nothing while loading or offline.
 class PoiList extends StatefulWidget {
-  const PoiList(this.pois, {super.key});
+  const PoiList(this.pois, {super.key, this.onTap});
   final Future<List<Poi>> pois;
+
+  /// Given the points of a line tapped (one, or those it groups), e.g. to
+  /// show them on the map.
+  final ValueChanged<List<Poi>>? onTap;
 
   @override
   State<PoiList> createState() => _PoiListState();
@@ -45,6 +49,9 @@ class PoiList extends StatefulWidget {
 class _PoiListState extends State<PoiList> {
   /// The kind shown alone; null for all.
   String? _only;
+
+  /// The line tapped last, by its first point.
+  Poi? _tapped;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +88,10 @@ class _PoiListState extends State<PoiList> {
                     ChoiceChip(
                       label: Text(t.poisFilterAll(pois.length)),
                       selected: _only == null,
-                      onSelected: (_) => setState(() => _only = null),
+                      onSelected: (_) => setState(() {
+                        _only = null;
+                        _tapped = null;
+                      }),
                       visualDensity: VisualDensity.compact,
                     ),
                     for (final MapEntry(key: kind, value: n) in counts.entries)
@@ -90,32 +100,48 @@ class _PoiListState extends State<PoiList> {
                         avatar: PoiIcon(kind, size: 16),
                         label: Text('${placeKindText(t, kind, '')} $n'),
                         selected: _only == kind,
-                        onSelected: (_) => setState(() => _only = kind),
+                        onSelected: (_) => setState(() {
+                          _only = kind;
+                          _tapped = null;
+                        }),
                         visualDensity: VisualDensity.compact,
                       ),
                   ],
                 ),
               ),
-            for (final (:first, :count, :toM) in rows)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child: Row(
-                  spacing: 6,
-                  children: [
-                    PoiIcon(first.kind, size: 16),
-                    Expanded(
-                      child: Text(
-                        count > 1
-                            ? '${formatRange(first.alongM, toM)} · ${placeKindText(t, first.kind, '')} ×$count'
-                            : [
-                                formatDistance(first.alongM),
-                                if (first.name.isNotEmpty) first.name,
-                                placeKindText(t, first.kind, first.ele?.toString() ?? ''),
-                              ].join(' · '),
-                        style: theme.textTheme.bodySmall,
+            for (final (i, (:first, :count, :toM)) in rows.indexed)
+              InkWell(
+                key: Key('poi-$i'),
+                onTap: widget.onTap == null
+                    ? null
+                    : () {
+                        setState(() => _tapped = first);
+                        widget.onTap!([
+                          for (final p in pois)
+                            if (p.kind == first.kind && p.alongM >= first.alongM && p.alongM <= toM) p,
+                        ]);
+                      },
+                child: Container(
+                  color: identical(_tapped, first) ? theme.colorScheme.secondaryContainer : null,
+                  padding: const EdgeInsets.symmetric(vertical: 1),
+                  child: Row(
+                    spacing: 6,
+                    children: [
+                      PoiIcon(first.kind, size: 16),
+                      Expanded(
+                        child: Text(
+                          count > 1
+                              ? '${formatRange(first.alongM, toM)} · ${placeKindText(t, first.kind, '')} ×$count'
+                              : [
+                                  formatDistance(first.alongM),
+                                  if (first.name.isNotEmpty) first.name,
+                                  placeKindText(t, first.kind, first.ele?.toString() ?? ''),
+                                ].join(' · '),
+                          style: theme.textTheme.bodySmall,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
           ],

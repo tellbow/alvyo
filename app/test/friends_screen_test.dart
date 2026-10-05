@@ -79,4 +79,41 @@ void main() {
     expect(find.text('Anfragen an dich'), findsNothing, reason: 'the lists load anew');
     expect(find.text('✓ Befreundet'), findsOneWidget);
   });
+
+  // A friend's invite link opened in the app: who sent it, then friends.
+  testWidgets('an invite link makes friends', (tester) async {
+    const token = 'AbCdEfGhIjKlMnOpQrStUv';
+    final calls = <String>[];
+    final client = MockClient((req) async {
+      calls.add('${req.method} ${req.url.path}');
+      return switch ((req.method, req.url.path)) {
+        ('GET', '/api/v1/me') => _json({'id': 'u1', 'username': 'carla', 'display_name': 'Carla'}),
+        ('GET', '/api/v1/friend-invites/$token') => _json({'username': 'beat', 'display_name': 'Beat Berg'}),
+        ('POST', '/api/v1/friend-invites/$token') => _json({'username': 'beat', 'display_name': 'Beat Berg'}),
+        _ => http.Response('', 404),
+      };
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: InviteScreen(
+          api: Api('http://test', token: 't', client: client),
+          token: token,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Beat Berg lädt dich ein'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('friend-invite-accept')));
+    await tester.pumpAndSettle();
+    expect(calls, contains('POST /api/v1/friend-invites/$token'));
+    expect(find.byKey(const Key('friend-invite-done')), findsOneWidget);
+  });
 }

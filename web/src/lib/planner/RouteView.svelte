@@ -87,6 +87,7 @@
 	let hoverIndex = $state<number>();
 	let travelTrips = $state<Trip[]>([]);
 	let routePois = $state<Poi[]>([]);
+	let poiHighlight = $state<number[][]>([]);
 	let confirmDelete = $state(false);
 	// Stage routes have their photos on the journey; an earlier version shows
 	// the line only.
@@ -164,7 +165,7 @@
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} editable={false} />
 			{#if gallery}<PhotoPins {map} {lib} {gallery} />{/if}
-			<PoiPins {map} {lib} pois={routePois} />
+			<PoiPins {map} {lib} pois={routePois} highlight={poiHighlight} />
 			<TravelLayers {map} {lib} trips={travelTrips} />
 		{/if}
 		<ProfileDock>
@@ -374,7 +375,12 @@
 				aria-labelledby="tab-along"
 				hidden={tab !== 'along'}
 			>
-				<Pois id={route.id} {token} onload={(p) => (routePois = p)} />
+				<Pois
+					id={route.id}
+					{token}
+					onload={(p) => (routePois = p)}
+					onhover={(at) => (poiHighlight = at)}
+				/>
 			</div>
 		{/if}
 		{#if travel}

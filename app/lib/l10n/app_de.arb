@@ -1019,5 +1019,46 @@
         "type": "String"
       }
     }
-  }
+  },
+  "breakdownTitle": "Wegbeschaffenheit",
+  "breakdownTrail": "Wanderwegnetz",
+  "breakdownSurface": "Belag",
+  "breakdownWay": "Wegtyp",
+  "breakdownOther": "Andere",
+  "breakdownDetails": "Details in km",
+  "trailWanderweg": "Wanderweg",
+  "trailBergwanderweg": "Bergwanderweg",
+  "trailAlpinwanderweg": "Alpinwanderweg",
+  "trailNone": "Kein Wanderweg",
+  "surfacePaved": "Asphalt, Pflaster",
+  "surfaceGravel": "Kies, Schotter",
+  "surfaceNatural": "Naturbelag",
+  "surfaceUnknown": "Unbekannt",
+  "wayRoad": "Strasse",
+  "wayTrack": "Fahrweg",
+  "wayPath": "Pfad",
+  "waySteps": "Treppe",
+  "wayUnknown": "Unbekannt",
+  "offTrailTitle": "Kein offizieller Wanderweg",
+  "offTrailAll": "Die ganze Route ({distance}) verläuft abseits markierter Wanderwege.",
+  "@offTrailAll": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTitle": "{name} lädt dich ein",
+  "@inviteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteText": "Werdet Freunde auf Alvyo: ihr seht eure Profile, auch private.",
+  "inviteAccept": "Freunde werden",
+  "inviteDone": "Ihr seid jetzt Freunde.",
+  "inviteInvalid": "Dieser Einladungslink gilt nicht mehr.",
+  "inviteSelf": "Das ist dein eigener Link."
 }

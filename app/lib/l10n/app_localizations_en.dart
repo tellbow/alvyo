@@ -1708,4 +1708,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String doneOn(String date) {
     return 'Hiked on $date';
   }
+
+  @override
+  String get breakdownTitle => 'Trail conditions';
+
+  @override
+  String get breakdownTrail => 'Trail network';
+
+  @override
+  String get breakdownSurface => 'Surface';
+
+  @override
+  String get breakdownWay => 'Way type';
+
+  @override
+  String get breakdownOther => 'Other';
+
+  @override
+  String get breakdownDetails => 'Details in km';
+
+  @override
+  String get trailWanderweg => 'Hiking trail';
+
+  @override
+  String get trailBergwanderweg => 'Mountain trail';
+
+  @override
+  String get trailAlpinwanderweg => 'Alpine trail';
+
+  @override
+  String get trailNone => 'No official trail';
+
+  @override
+  String get surfacePaved => 'Paved';
+
+  @override
+  String get surfaceGravel => 'Gravel';
+
+  @override
+  String get surfaceNatural => 'Natural';
+
+  @override
+  String get surfaceUnknown => 'Unknown';
+
+  @override
+  String get wayRoad => 'Road';
+
+  @override
+  String get wayTrack => 'Track';
+
+  @override
+  String get wayPath => 'Path';
+
+  @override
+  String get waySteps => 'Steps';
+
+  @override
+  String get wayUnknown => 'Unknown';
+
+  @override
+  String get offTrailTitle => 'No official trail';
+
+  @override
+  String offTrailAll(String distance) {
+    return 'The whole route ($distance) runs off marked hiking trails.';
+  }
+
+  @override
+  String inviteTitle(String name) {
+    return '$name invites you';
+  }
+
+  @override
+  String get inviteText => 'Become friends on Alvyo: you see each other\'s profiles, private ones too.';
+
+  @override
+  String get inviteAccept => 'Become friends';
+
+  @override
+  String get inviteDone => 'You are friends now.';
+
+  @override
+  String get inviteInvalid => 'This invite link is no longer valid.';
+
+  @override
+  String get inviteSelf => 'This is your own link.';
 }

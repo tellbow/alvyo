@@ -218,3 +218,108 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 }
+
+/// Someone's invite link, opened in the app: who sent it, and becoming
+/// friends with one tap (as the website's /friends/invite/{token}).
+class InviteScreen extends StatefulWidget {
+  const InviteScreen({super.key, required this.api, required this.token});
+  final Api api;
+  final String token;
+
+  @override
+  State<InviteScreen> createState() => _InviteScreenState();
+}
+
+class _InviteScreenState extends State<InviteScreen> {
+  late final Future<(({String username, String displayName})?, String)> _load = () async {
+    final me = await widget.api.me();
+    try {
+      return (await widget.api.friendInviter(widget.token), me.username);
+    } on ApiException catch (e) {
+      if (e.status == 404) return (null, me.username);
+      rethrow;
+    }
+  }();
+  bool _busy = false, _done = false, _failed = false;
+
+  Future<void> _accept() async {
+    setState(() {
+      _busy = true;
+      _failed = false;
+    });
+    var ok = true;
+    try {
+      await widget.api.acceptFriendInvite(widget.token);
+    } on Object {
+      ok = false;
+    }
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _done = ok;
+      _failed = !ok;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(t.friendsTitle)),
+      body: FutureBuilder(
+        future: _load,
+        builder: (context, snap) {
+          if (snap.hasError) return Center(child: Text(t.errorGeneric));
+          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+          final (inviter, me) = snap.data!;
+          return ListView(
+            key: const Key('friend-invite'),
+            padding: const EdgeInsets.all(24),
+            children: [
+              if (inviter == null)
+                Text(t.inviteInvalid)
+              else ...[
+                Text(t.inviteTitle(inviter.displayName), style: theme.textTheme.headlineSmall),
+                Text('@${inviter.username}', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 16),
+                Text(t.inviteText),
+                const SizedBox(height: 24),
+                if (inviter.username == me)
+                  Text(t.inviteSelf)
+                else if (_done) ...[
+                  Text(t.inviteDone, key: const Key('friend-invite-done'), style: theme.textTheme.titleMedium),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute<void>(
+                          builder: (_) => UserScreen(api: widget.api, username: inviter.username),
+                        ),
+                      ),
+                      child: Text('@${inviter.username}'),
+                    ),
+                  ),
+                ] else ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilledButton(
+                      key: const Key('friend-invite-accept'),
+                      onPressed: _busy ? null : _accept,
+                      child: Text(t.inviteAccept),
+                    ),
+                  ),
+                  if (_failed)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(t.errorGeneric, style: TextStyle(color: theme.colorScheme.error)),
+                    ),
+                ],
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}

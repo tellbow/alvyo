@@ -20,6 +20,11 @@ test('a route through a wildlife rest area says so, with its rules', async ({ pa
 	expect(res.status()).toBe(201);
 	const route = (await res.json()).id as string;
 
+	// Icons the map draws itself are there when first needed.
+	const missing: string[] = [];
+	page.on('console', (m) => {
+		if (m.type() === 'warning' && /could not be loaded/.test(m.text())) missing.push(m.text());
+	});
 	await page.goto(`/routes/${route}`);
 	// A line with how many, the list in a popup.
 	const areas = page.getByTestId('protected-areas');
@@ -43,7 +48,11 @@ test('a route through a wildlife rest area says so, with its rules', async ({ pa
 	await expect(page.getByTestId('poi').first()).toHaveText(/^\d+\sm\s*Reeti · Gipfel · 2757\sm$/);
 	// Also on the map, with their icons.
 	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /\broute-pois\b/);
+	// Pointing at a row rings its point on the map.
+	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /\broute-pois-highlight\b/);
+	await page.getByTestId('poi').first().hover();
 	await page.waitForTimeout(500);
+	expect(missing).toEqual([]);
 	await page.screenshot({ path: 'test-results/route-pois.png' });
 
 	// The weather: MeteoSwiss's symbol for today; a date beyond the forecast

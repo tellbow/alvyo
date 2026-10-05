@@ -1716,4 +1716,89 @@ class AppLocalizationsDe extends AppLocalizations {
   String doneOn(String date) {
     return 'Gewandert am $date';
   }
+
+  @override
+  String get breakdownTitle => 'Wegbeschaffenheit';
+
+  @override
+  String get breakdownTrail => 'Wanderwegnetz';
+
+  @override
+  String get breakdownSurface => 'Belag';
+
+  @override
+  String get breakdownWay => 'Wegtyp';
+
+  @override
+  String get breakdownOther => 'Andere';
+
+  @override
+  String get breakdownDetails => 'Details in km';
+
+  @override
+  String get trailWanderweg => 'Wanderweg';
+
+  @override
+  String get trailBergwanderweg => 'Bergwanderweg';
+
+  @override
+  String get trailAlpinwanderweg => 'Alpinwanderweg';
+
+  @override
+  String get trailNone => 'Kein Wanderweg';
+
+  @override
+  String get surfacePaved => 'Asphalt, Pflaster';
+
+  @override
+  String get surfaceGravel => 'Kies, Schotter';
+
+  @override
+  String get surfaceNatural => 'Naturbelag';
+
+  @override
+  String get surfaceUnknown => 'Unbekannt';
+
+  @override
+  String get wayRoad => 'Strasse';
+
+  @override
+  String get wayTrack => 'Fahrweg';
+
+  @override
+  String get wayPath => 'Pfad';
+
+  @override
+  String get waySteps => 'Treppe';
+
+  @override
+  String get wayUnknown => 'Unbekannt';
+
+  @override
+  String get offTrailTitle => 'Kein offizieller Wanderweg';
+
+  @override
+  String offTrailAll(String distance) {
+    return 'Die ganze Route ($distance) verläuft abseits markierter Wanderwege.';
+  }
+
+  @override
+  String inviteTitle(String name) {
+    return '$name lädt dich ein';
+  }
+
+  @override
+  String get inviteText => 'Werdet Freunde auf Alvyo: ihr seht eure Profile, auch private.';
+
+  @override
+  String get inviteAccept => 'Freunde werden';
+
+  @override
+  String get inviteDone => 'Ihr seid jetzt Freunde.';
+
+  @override
+  String get inviteInvalid => 'Dieser Einladungslink gilt nicht mehr.';
+
+  @override
+  String get inviteSelf => 'Das ist dein eigener Link.';
 }

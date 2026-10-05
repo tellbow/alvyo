@@ -348,7 +348,14 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **Telemetry on rk1** (59): after the release, Prometheus scrapes
       the api and web targets (up) with their request durations;
       VictoriaLogs lines of the API carry `trace_id`; the collector logs no
-      export errors.
+      export errors. In Grafana: a trace of alvyo-api in Tempo, «Logs for
+      this span» shows its lines in VictoriaLogs, «Related metrics» the
+      request rate and p95; a VictoriaLogs line of the API has a «Trace»
+      link that opens it.
+- [ ] **Invite link on the iPhone** (64): a friend's invite link opened in
+      Safari offers «In der App öffnen»; the app shows who invites and
+      «Freunde werden» makes friends. The app on the iPhone after the
+      release, as it talks to production.
 - [ ] **A route's page** (58) in Safari on the iPhone and the Mac and in
       Firefox: «Teilen» opens the share sheet on the iPhone and copies the
       link on the Mac; «Anderes Datum» opens the date picker; the «⋯» menu

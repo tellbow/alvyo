@@ -70,6 +70,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   String _kind = ''; // route, journey, or both
   int _sac = 0;
+  String _done = ''; // one's map: planned, done (hiked), or both
   var _hours = DiscoverHours.any;
 
   Bbox? _view;
@@ -103,13 +104,22 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _Status status;
     ({List<DiscoverItem> items, bool more})? found;
     try {
-      found = await (widget.mine ? widget.api.myMap : widget.api.discover)(
-        view,
-        kind: _kind.isEmpty ? null : _kind,
-        sacMax: _sac,
-        durationMin: seconds(_hours.from),
-        durationMax: seconds(_hours.to),
-      );
+      found = widget.mine
+          ? await widget.api.myMap(
+              view,
+              kind: _kind.isEmpty ? null : _kind,
+              sacMax: _sac,
+              durationMin: seconds(_hours.from),
+              durationMax: seconds(_hours.to),
+              done: _done.isEmpty ? null : _done,
+            )
+          : await widget.api.discover(
+              view,
+              kind: _kind.isEmpty ? null : _kind,
+              sacMax: _sac,
+              durationMin: seconds(_hours.from),
+              durationMax: seconds(_hours.to),
+            );
       status = _Status.done;
     } on ApiException {
       status = _Status.failed;
@@ -229,6 +239,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 (g) => _sac = g,
                 _sac > 0,
               ),
+              if (widget.mine)
+                menu(
+                  'done',
+                  _done,
+                  ['', 'planned', 'done'],
+                  (d) => switch (d) {
+                    'planned' => t.doneFilterPlanned,
+                    'done' => t.doneFilterDone,
+                    _ => t.doneFilterAll,
+                  },
+                  (d) => _done = d,
+                  _done.isNotEmpty,
+                ),
             ],
           ),
         ),

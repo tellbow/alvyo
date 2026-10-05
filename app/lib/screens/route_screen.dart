@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../api.dart';
+import '../breakdown.dart';
 import '../bug_report.dart';
 import '../camera.dart';
 import '../elevation_profile.dart';
@@ -62,6 +63,9 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
 
   /// When the user hiked it, as changed here; else as loaded.
   DoneState? _done;
+
+  /// How many photos there are, once loaded (the «Fotos» tab says so).
+  int? _photoCount;
   late final Future<RouteWeather?> _weather = widget.api
       .routeWeather(widget.id)
       .then<RouteWeather?>((w) => w, onError: (_) => null);
@@ -420,7 +424,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
             _Tab.overview => t.routeTabOverview,
             _Tab.along => '${t.poisTitle} $_poiCount',
             _Tab.travel => t.routeTabTravel,
-            _Tab.photos => t.photosTitle,
+            _Tab.photos => _photoCount == null ? t.photosTitle : '${t.photosTitle} $_photoCount',
           },
         ),
     ],
@@ -529,6 +533,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                                         Text(key: const Key('route-description'), r.description),
                                         const SizedBox(height: 8),
                                       ],
+                                      if (offTrail(r.json)) OffTrailWarning(distanceM: r.totals.distanceM),
                                       ElevationProfile.ofLine(r.line),
                                       ProtectedAreas(_areas),
                                       RouteWeatherView(
@@ -537,10 +542,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                                             .routeWeather(widget.id, date: date)
                                             .then<RouteWeather?>((w) => w, onError: (_) => null),
                                       ),
+                                      TrailConditions(route: r.json, distanceM: r.totals.distanceM),
                                     ],
                                   ),
                                 ),
-                                _pane(_Tab.along, PoiList(_pois)),
+                                _pane(_Tab.along, PoiList(_pois, onTap: _places.markAlong)),
                                 if (tabs.contains(_Tab.travel))
                                   _pane(
                                     _Tab.travel,
@@ -558,7 +564,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: [
-                                        PhotoStrip(api: widget.api, id: r.id),
+                                        PhotoStrip(
+                                          api: widget.api,
+                                          id: r.id,
+                                          onCount: (n) => setState(() => _photoCount = n),
+                                        ),
                                         SocialPanel(api: widget.api, id: r.id),
                                       ],
                                     ),

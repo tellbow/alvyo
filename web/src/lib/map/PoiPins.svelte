@@ -7,9 +7,21 @@
 
 	// What lies along the route, drawn with the kinds' icons (Map.svelte draws
 	// them) and named in a popup; the kinds switched off in the layer menu stay off.
-	let { map, lib, pois }: { map: MapLibreMap; lib: typeof MapLibre; pois: Poi[] } = $props();
+	let {
+		map,
+		lib,
+		pois,
+		highlight = []
+	}: {
+		map: MapLibreMap;
+		lib: typeof MapLibre;
+		pois: Poi[];
+		/** Points ringed, e.g. those of the list's row the pointer is on. */
+		highlight?: number[][];
+	} = $props();
 
 	const ID = ROUTE_PREFIX + 'pois';
+	const HIGHLIGHT = ROUTE_PREFIX + 'pois-highlight';
 
 	// The layer first, then its events.
 	$effect(() => {
@@ -28,6 +40,26 @@
 				'icon-allow-overlap': ['step', ['zoom'], false, 14, true]
 			}
 		});
+		// Under the icons: a ring around the points of the row pointed at.
+		map.addSource(HIGHLIGHT, {
+			type: 'geojson',
+			data: { type: 'FeatureCollection', features: [] }
+		});
+		map.addLayer(
+			{
+				id: HIGHLIGHT,
+				type: 'circle',
+				source: HIGHLIGHT,
+				paint: {
+					'circle-radius': 16,
+					'circle-color': '#f28a48',
+					'circle-opacity': 0.35,
+					'circle-stroke-color': '#f28a48',
+					'circle-stroke-width': 2
+				}
+			},
+			ID
+		);
 		const click = (e: MapLayerMouseEvent) => {
 			const f = e.features?.[0];
 			if (!f || f.geometry.type !== 'Point' || e.defaultPrevented) return;
@@ -59,8 +91,10 @@
 			map.off('click', ID, click);
 			map.off('mouseenter', ID, enter);
 			map.off('mouseleave', ID, leave);
-			if (map.getLayer(ID)) map.removeLayer(ID);
-			if (map.getSource(ID)) map.removeSource(ID);
+			for (const id of [HIGHLIGHT, ID]) {
+				if (map.getLayer(id)) map.removeLayer(id);
+				if (map.getSource(id)) map.removeSource(id);
+			}
 		};
 	});
 
@@ -76,5 +110,21 @@
 					properties: { kind: p.kind, name: p.name, ele: p.ele ?? 0 }
 				}))
 		});
+	});
+
+	// The ringed points; the map moves to them when none is in view.
+	$effect(() => {
+		(map.getSource(HIGHLIGHT) as GeoJSONSource | undefined)?.setData({
+			type: 'FeatureCollection',
+			features: highlight.map((at) => ({
+				type: 'Feature',
+				geometry: { type: 'Point', coordinates: at },
+				properties: {}
+			}))
+		});
+		const bounds = map.getBounds();
+		if (highlight.length > 0 && !highlight.some((at) => bounds.contains([at[0], at[1]]))) {
+			map.easeTo({ center: [highlight[0][0], highlight[0][1]] });
+		}
 	});
 </script>

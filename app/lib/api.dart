@@ -1982,6 +1982,16 @@ class Api {
     return j['token'] as String;
   }
 
+  /// Who sent the invite link with [token] (username, display name); an
+  /// ApiException with status 404 if the link no longer holds.
+  Future<({String username, String displayName})> friendInviter(String token) async {
+    final j = await _get('/friend-invites/$token') as Map<String, dynamic>;
+    return (username: j['username'] as String, displayName: j['display_name'] as String);
+  }
+
+  /// Become friends with whoever sent the invite link with [token].
+  Future<void> acceptFriendInvite(String token) => _send('POST', '/friend-invites/$token');
+
   /// Marks a route or journey as hiked on [day] (today if null), or takes
   /// one's mark back.
   Future<DoneState> setDone(String id, {required bool journey, required bool on, DateTime? day}) async {
@@ -2095,9 +2105,11 @@ class Api {
     int sacMax = 0,
     int? durationMin,
     int? durationMax,
+    String? done, // planned or done (hiked); both if null
   }) async {
     final j =
         await _get('/me/map', {
+              'done': ?done,
               'bbox': [view.west, view.south, view.east, view.north].map((v) => v.toStringAsFixed(4)).join(','),
               'kind': ?kind,
               if (sacMax > 0) 'sac_max': '$sacMax',

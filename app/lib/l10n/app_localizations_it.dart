@@ -1715,4 +1715,89 @@ class AppLocalizationsIt extends AppLocalizations {
   String doneOn(String date) {
     return 'Fatta il $date';
   }
+
+  @override
+  String get breakdownTitle => 'Fondo del sentiero';
+
+  @override
+  String get breakdownTrail => 'Rete escursionistica';
+
+  @override
+  String get breakdownSurface => 'Fondo';
+
+  @override
+  String get breakdownWay => 'Tipo di via';
+
+  @override
+  String get breakdownOther => 'Altro';
+
+  @override
+  String get breakdownDetails => 'Dettagli in km';
+
+  @override
+  String get trailWanderweg => 'Sentiero escursionistico';
+
+  @override
+  String get trailBergwanderweg => 'Sentiero escursionistico di montagna';
+
+  @override
+  String get trailAlpinwanderweg => 'Sentiero escursionistico alpino';
+
+  @override
+  String get trailNone => 'Non è un sentiero escursionistico';
+
+  @override
+  String get surfacePaved => 'Asfalto, selciato';
+
+  @override
+  String get surfaceGravel => 'Ghiaia';
+
+  @override
+  String get surfaceNatural => 'Fondo naturale';
+
+  @override
+  String get surfaceUnknown => 'Sconosciuto';
+
+  @override
+  String get wayRoad => 'Strada';
+
+  @override
+  String get wayTrack => 'Strada sterrata';
+
+  @override
+  String get wayPath => 'Sentiero';
+
+  @override
+  String get waySteps => 'Scalinata';
+
+  @override
+  String get wayUnknown => 'Sconosciuto';
+
+  @override
+  String get offTrailTitle => 'Nessun sentiero escursionistico ufficiale';
+
+  @override
+  String offTrailAll(String distance) {
+    return 'L\'intero percorso ($distance) si snoda fuori dai sentieri segnalati.';
+  }
+
+  @override
+  String inviteTitle(String name) {
+    return '$name ti invita';
+  }
+
+  @override
+  String get inviteText => 'Diventate amici su Alvyo: vedete i vostri profili, anche quelli privati.';
+
+  @override
+  String get inviteAccept => 'Diventa amico';
+
+  @override
+  String get inviteDone => 'Ora siete amici.';
+
+  @override
+  String get inviteInvalid => 'Questo link di invito non è più valido.';
+
+  @override
+  String get inviteSelf => 'Questo è il tuo link.';
 }

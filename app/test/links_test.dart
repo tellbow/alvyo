@@ -16,6 +16,18 @@ void main() {
     expect(parseItemLink('/'), isNull);
     expect(parseItemLink('https://alvyo.tellbow.ch/routes/map'), isNull);
     expect(parseItemLink('https://alvyo.tellbow.ch/u/wodan'), isNull);
+    // A friend's invite link: the token as id.
+    expect(parseItemLink('https://alvyo.tellbow.ch/friends/invite/AbCdEfGhIjKlMnOpQrStUv'), (
+      kind: 'invite',
+      id: 'AbCdEfGhIjKlMnOpQrStUv',
+      token: null,
+    ));
+    expect(parseItemLink('alvyo://open/friends/invite/AbCdEfGhIjKlMnOpQrStUv'), (
+      kind: 'invite',
+      id: 'AbCdEfGhIjKlMnOpQrStUv',
+      token: null,
+    ));
+    expect(parseItemLink('https://alvyo.tellbow.ch/friends/invite/x'), isNull);
   });
 
   test('an item opened from a link keeps its share token on every call', () async {

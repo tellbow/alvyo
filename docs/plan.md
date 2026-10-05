@@ -65,6 +65,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.21.0 | 2026-10-05 | Telemetry (59): OpenTelemetry traces of API and web by OTLP to the collector (dropped until there is a tracing backend), metrics for Prometheus through ServiceMonitors, `trace_id` in the API's logs; friends (60): requests both ways, a search for public profiles, invite links, private profiles for friends only, friends offered when sharing; hiked (61): «Gewandert» on routes and journeys, recorded hikes and finished journeys counted, «Geplant / Gewandert» in the lists, the map and the app |
 | 0.22.0 | 2026-10-05 | Statistics with Google Analytics (62): the Google tag on alvyo.tellbow.ch with Consent Mode and a banner (cookies only after «Akzeptieren», changeable under «Über»), page views without the secrets of addresses; the privacy text names it |
 | 0.22.1 | 2026-10-05 | Page views titled by their route (the title was empty behind the language prefix) |
+| next | | A point along the way on the map (63); the app catches up (64): trail conditions, photos counted, planned or hiked on one's map, invite links; the icons along the way load without warnings; the header's controls with more contrast |
 
 ## Requirements
 
@@ -549,8 +550,10 @@ on 2026-10-05, 62 on 2026-10-05.
     runtime metrics. Web: SvelteKit's spans (handle, load, actions), the
     trace continued into the API, request durations per route. Logs stay
     on stderr, where the collector already reads every container's into
-    VictoriaLogs, now with `trace_id` and `span_id`. The collector drops
-    traces (`nop`) until there is a tracing backend.
+    VictoriaLogs, now with `trace_id` and `span_id`. The collector sends
+    traces to Tempo on rk1 (a week kept, span metrics and the service graph
+    to Prometheus); Grafana links a trace to its log lines and metrics, and
+    a log line to its trace.
 60. **Friends.** Mutual: one asks (an e-mail with the «new follower»
     setting), the other accepts or declines, either ends it; blocking ends
     it too. «Freunde» (website header with the requests waiting, the app's
@@ -579,6 +582,17 @@ on 2026-10-05, 62 on 2026-10-05.
     tokens, password resets) and with the token of live location and
     invitation links masked, the route's pattern as title (not the titles
     of tours). The privacy text says so instead of «no tracking».
+63. **A point along the way on the map.** On the website, the pointer on a
+    line of «Unterwegs» rings its point (or the points it groups) on the
+    route's map, which moves there when none is in view; in the app a tap
+    on the line does the same.
+64. **The app catches up with the website.** «Wegbeschaffenheit» on a
+    route's «Übersicht» (trail network, surface and way type in per cent,
+    the kilometres under «Details») and «Kein offizieller Wanderweg» when
+    the whole route runs off marked trails; «Fotos» says how many there
+    are; «Alle / Geplant / Gewandert» on «Karte meiner Touren»; a friend's
+    invite link opens in the app («In der App öffnen» on the invite page,
+    `alvyo://open/friends/invite/{token}`) and makes friends there.
 
 ### Open
 

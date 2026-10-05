@@ -1718,4 +1718,89 @@ class AppLocalizationsFr extends AppLocalizations {
   String doneOn(String date) {
     return 'Faite le $date';
   }
+
+  @override
+  String get breakdownTitle => 'Nature du chemin';
+
+  @override
+  String get breakdownTrail => 'Réseau de randonnée';
+
+  @override
+  String get breakdownSurface => 'Revêtement';
+
+  @override
+  String get breakdownWay => 'Type de chemin';
+
+  @override
+  String get breakdownOther => 'Autres';
+
+  @override
+  String get breakdownDetails => 'Détails en km';
+
+  @override
+  String get trailWanderweg => 'Chemin de randonnée';
+
+  @override
+  String get trailBergwanderweg => 'Chemin de randonnée de montagne';
+
+  @override
+  String get trailAlpinwanderweg => 'Chemin de randonnée alpine';
+
+  @override
+  String get trailNone => 'Pas un chemin de randonnée';
+
+  @override
+  String get surfacePaved => 'Asphalte, pavés';
+
+  @override
+  String get surfaceGravel => 'Gravier';
+
+  @override
+  String get surfaceNatural => 'Terrain naturel';
+
+  @override
+  String get surfaceUnknown => 'Inconnu';
+
+  @override
+  String get wayRoad => 'Route';
+
+  @override
+  String get wayTrack => 'Chemin carrossable';
+
+  @override
+  String get wayPath => 'Sentier';
+
+  @override
+  String get waySteps => 'Escalier';
+
+  @override
+  String get wayUnknown => 'Inconnu';
+
+  @override
+  String get offTrailTitle => 'Pas un chemin de randonnée officiel';
+
+  @override
+  String offTrailAll(String distance) {
+    return 'Tout l\'itinéraire ($distance) passe hors des chemins de randonnée balisés.';
+  }
+
+  @override
+  String inviteTitle(String name) {
+    return '$name t\'invite';
+  }
+
+  @override
+  String get inviteText => 'Devenez ami·e·s sur Alvyo : vous voyez vos profils, même privés.';
+
+  @override
+  String get inviteAccept => 'Devenir ami·e·s';
+
+  @override
+  String get inviteDone => 'Vous êtes maintenant ami·e·s.';
+
+  @override
+  String get inviteInvalid => 'Ce lien d\'invitation n\'est plus valable.';
+
+  @override
+  String get inviteSelf => 'C\'est ton propre lien.';
 }

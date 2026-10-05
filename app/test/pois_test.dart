@@ -55,4 +55,31 @@ void main() {
     await tester.pump();
     expect(find.text('71–940 m · Trinkwasser ×3'), findsOneWidget);
   });
+
+  testWidgets('a tapped line gives its points, for the map', (tester) async {
+    List<Poi>? tapped;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: PoiList(
+            Future.value([_poi('water', 71), _poi('peak', 200, 'Gonzen'), _poi('water', 256), _poi('water', 1500)]),
+            onTap: (p) => tapped = p,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.textContaining('Trinkwasser ×2'));
+    expect([for (final p in tapped!) p.alongM], [71.0, 256.0]);
+    await tester.tap(find.textContaining('Gonzen'));
+    expect([for (final p in tapped!) p.name], ['Gonzen']);
+  });
 }

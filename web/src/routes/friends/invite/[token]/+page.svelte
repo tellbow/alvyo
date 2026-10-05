@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
+	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 
@@ -32,6 +33,9 @@
 		</h1>
 		<p class="mt-1 text-stone-500">@{data.inviter.username}</p>
 		<p class="mt-4">{m.friend_invite_text()}</p>
+		{#if !self}
+			<p class="mt-2"><OpenInApp kind="friends/invite" id={page.params.token!} /></p>
+		{/if}
 		{#if self}
 			<p class="mt-6 text-stone-600">{m.friend_invite_self()}</p>
 		{:else if !data.user}

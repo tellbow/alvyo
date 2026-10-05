@@ -16,11 +16,21 @@ Future<List<XFile>> _pick(ImageSource source) async => source == ImageSource.cam
 /// large. Those who may edit add photos from the camera or the library.
 /// Nothing shows offline, or when there are none and the user may not add.
 class PhotoStrip extends StatefulWidget {
-  const PhotoStrip({super.key, required this.api, required this.id, this.journey = false, this.pick = _pick});
+  const PhotoStrip({
+    super.key,
+    required this.api,
+    required this.id,
+    this.journey = false,
+    this.pick = _pick,
+    this.onCount,
+  });
   final Api api;
   final String id;
   final bool journey;
   final PhotoPicker pick;
+
+  /// Told how many photos there are, when loaded and after changes.
+  final ValueChanged<int>? onCount;
 
   @override
   State<PhotoStrip> createState() => _PhotoStripState();
@@ -45,6 +55,7 @@ class _PhotoStripState extends State<PhotoStrip> {
       _photos = p.photos;
       _canEdit = p.canEdit;
     });
+    widget.onCount?.call(p.photos.length);
   }
 
   String _problem(AppLocalizations t, Object e) => switch (e) {

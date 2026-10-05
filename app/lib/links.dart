@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'screens/collections_screen.dart';
+import 'screens/friends_screen.dart';
 import 'screens/journey_screen.dart';
 import 'screens/route_screen.dart';
 
 /// A route, journey or collection a link points to: the website's address
 /// (https://…/routes/{id}?t=…) or the app's (alvyo://open/routes/{id}?t=…),
-/// as the system hands it over, with or without scheme and host.
+/// as the system hands it over, with or without scheme and host. A friend's
+/// invite link (…/friends/invite/{token}) has the kind invite and the token
+/// as its id.
 typedef ItemLink = ({String kind, String id, String? token});
 
 ItemLink? parseItemLink(String link) {
@@ -18,6 +21,11 @@ ItemLink? parseItemLink(String link) {
   for (var i = 0; i + 1 < parts.length; i++) {
     final kind = parts[i];
     final id = parts[i + 1];
+    if (kind == 'friends' && id == 'invite' && i + 2 < parts.length) {
+      final token = parts[i + 2];
+      if (!RegExp(r'^[A-Za-z0-9_-]{16,64}$').hasMatch(token)) return null;
+      return (kind: 'invite', id: token, token: null);
+    }
     if ({'routes', 'journeys', 'collections'}.contains(kind) &&
         RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$').hasMatch(id)) {
       final t = uri.queryParameters['t'];
@@ -35,6 +43,7 @@ void openLink(NavigatorState nav, Api api, ItemLink link) {
       builder: (_) => switch (link.kind) {
         'journeys' => JourneyScreen(api: api, id: link.id, title: ''),
         'collections' => CollectionScreen(api: api, id: link.id, title: ''),
+        'invite' => InviteScreen(api: api, token: link.id),
         _ => RouteScreen(api: api, id: link.id, title: ''),
       },
     ),

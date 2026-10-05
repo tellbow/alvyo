@@ -3,14 +3,18 @@
 	import { page } from '$app/state';
 	import { m } from '$lib/paraglide/messages';
 
-	// On an iPhone or iPad, a link that opens this route, journey or collection
-	// in the app (its own scheme: universal links need a paid developer
-	// account); the share token rides along.
+	// On an iPhone or iPad, a link that opens this route, journey, collection
+	// or friend's invite (id: its token) in the app (its own scheme: universal
+	// links need a paid developer account); the share token rides along.
 	let {
 		kind,
 		id,
 		class: className = 'text-sm text-accent-ink underline'
-	}: { kind: 'routes' | 'journeys' | 'collections'; id: string; class?: string } = $props();
+	}: {
+		kind: 'routes' | 'journeys' | 'collections' | 'friends/invite';
+		id: string;
+		class?: string;
+	} = $props();
 
 	let ios = $state(false);
 	onMount(() => {

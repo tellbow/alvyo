@@ -141,6 +141,7 @@ class PlaceLayer {
   static const _id = 'places';
   static const _poisId = 'places-pois';
   static const _alongId = 'places-along';
+  static const _markId = 'places-along-mark';
   MapController? _map;
   StyleController? _style;
   Timer? _timer;
@@ -238,6 +239,21 @@ class PlaceLayer {
   /// switched off in the layer menu stay off.
   Future<void> addAlong(StyleController style, List<Poi> pois) async {
     _along = [for (final (i, p) in pois.indexed) p.toPin(i)];
+    // Under the icons: a ring around the points of the line tapped in the list.
+    await style.addSource(GeoJsonSource(id: _markId, data: _geojson(const [])));
+    await style.addLayer(
+      const CircleStyleLayer(
+        id: _markId,
+        sourceId: _markId,
+        paint: {
+          'circle-radius': 16,
+          'circle-color': '#f28a48',
+          'circle-opacity': 0.35,
+          'circle-stroke-color': '#f28a48',
+          'circle-stroke-width': 2,
+        },
+      ),
+    );
     await style.addSource(GeoJsonSource(id: _alongId, data: _alongJson(), attribution: '© OpenStreetMap contributors'));
     await style.addLayer(
       const SymbolStyleLayer(
@@ -258,6 +274,22 @@ class PlaceLayer {
         },
       ),
     );
+  }
+
+  /// Rings [points] (a line of the list along the route) and moves the map
+  /// to the first of them.
+  Future<void> markAlong(List<Poi> points) async {
+    await _style
+        ?.updateGeoJsonSource(id: _markId, data: _geojson([for (final (i, p) in points.indexed) p.toPin(i)]))
+        .catchError((_) {});
+    if (points.firstOrNull case final p?) {
+      await _map
+          ?.animateCamera(
+            center: Geographic(lon: p.lon, lat: p.lat),
+            nativeDuration: const Duration(milliseconds: 400),
+          )
+          .catchError((_) {});
+    }
   }
 
   String _alongJson() => _geojson(_along.where((p) => settings.pois.value.contains(p.kind)).toList());

@@ -4,7 +4,15 @@
 	import { m } from '$lib/paraglide/messages';
 	import { formatDistance, formatRange } from '$lib/planner/route';
 	import PoiIcon from './PoiIcon.svelte';
-	import { groupPois, POI_KINDS, poiLabel, poiText, type Poi, type PoiKind } from './places';
+	import {
+		groupPois,
+		POI_KINDS,
+		poiLabel,
+		poiText,
+		type Poi,
+		type PoiKind,
+		type PoiRow
+	} from './places';
 
 	// What lies along a saved route (summits, water, fire places …), in order,
 	// a town's fountains and restaurants each on one line; chips above show
@@ -12,12 +20,15 @@
 	let {
 		id,
 		token,
-		onload
+		onload,
+		onhover
 	}: {
 		id: string;
 		token?: string;
 		/** Given the points once loaded, e.g. for the map. */
 		onload?: (pois: Poi[]) => void;
+		/** The points of the row the pointer is on ([lon, lat]); none when it leaves. */
+		onhover?: (at: number[][]) => void;
 	} = $props();
 	let pois = $state<Poi[]>();
 	let only = $state<PoiKind>();
@@ -35,6 +46,14 @@
 		pois = data?.pois;
 		if (pois) onload?.(pois);
 	});
+
+	/** A row's points: one, or all of its kind it groups. */
+	const pointsOf = (r: PoiRow) =>
+		r.count === 1
+			? [r.at]
+			: (pois ?? [])
+					.filter((q) => q.kind === r.kind && q.along_m >= r.along_m && q.along_m <= r.to_m)
+					.map((q) => q.at);
 
 	const chip = (on: boolean) =>
 		`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs ring-1 ${on ? 'bg-stone-900 text-surface ring-stone-900' : 'ring-stone-300 hover:bg-stone-100'}`;
@@ -73,7 +92,12 @@
 			{#each rows as p, i (i)}
 				{@const [title, detail] =
 					p.count > 1 ? [`${poiLabel(p.kind)} ×${p.count}`, ''] : poiText(p)}
-				<li class="flex break-inside-avoid gap-2" data-testid="poi">
+				<li
+					class="flex break-inside-avoid gap-2 rounded hover:bg-stone-100"
+					data-testid="poi"
+					onmouseenter={() => onhover?.(pointsOf(p))}
+					onmouseleave={() => onhover?.([])}
+				>
 					<span
 						class="{ranges
 							? 'w-20'

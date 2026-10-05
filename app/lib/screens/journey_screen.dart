@@ -52,6 +52,9 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   /// When the user finished it, as changed here; else as loaded.
   DoneState? _done;
 
+  /// How many photos there are, once loaded (the «Fotos» tab says so).
+  int? _photoCount;
+
   late Future<JourneyDetail> _journey = _load();
   late final Future<Along> _areas = widget.api
       .areas(journeyId: widget.id)
@@ -347,7 +350,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
             (id: 'stages', label: '${t.journeyTabStages} ${j.stages.length}'),
             (id: 'overview', label: t.routeTabOverview),
             (id: 'travel', label: t.routeTabTravel),
-            (id: 'photos', label: t.photosTitle),
+            (id: 'photos', label: _photoCount == null ? t.photosTitle : '${t.photosTitle} $_photoCount'),
           ];
           return RefreshIndicator(
             onRefresh: () async {
@@ -561,7 +564,12 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                PhotoStrip(api: widget.api, id: j.id, journey: true),
+                                PhotoStrip(
+                                  api: widget.api,
+                                  id: j.id,
+                                  journey: true,
+                                  onCount: (n) => setState(() => _photoCount = n),
+                                ),
                                 SocialPanel(api: widget.api, id: j.id, journey: true),
                               ],
                             ),

@@ -3219,6 +3219,168 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Gewandert am {date}'**
   String doneOn(String date);
+
+  /// No description provided for @breakdownTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wegbeschaffenheit'**
+  String get breakdownTitle;
+
+  /// No description provided for @breakdownTrail.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderwegnetz'**
+  String get breakdownTrail;
+
+  /// No description provided for @breakdownSurface.
+  ///
+  /// In de, this message translates to:
+  /// **'Belag'**
+  String get breakdownSurface;
+
+  /// No description provided for @breakdownWay.
+  ///
+  /// In de, this message translates to:
+  /// **'Wegtyp'**
+  String get breakdownWay;
+
+  /// No description provided for @breakdownOther.
+  ///
+  /// In de, this message translates to:
+  /// **'Andere'**
+  String get breakdownOther;
+
+  /// No description provided for @breakdownDetails.
+  ///
+  /// In de, this message translates to:
+  /// **'Details in km'**
+  String get breakdownDetails;
+
+  /// No description provided for @trailWanderweg.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderweg'**
+  String get trailWanderweg;
+
+  /// No description provided for @trailBergwanderweg.
+  ///
+  /// In de, this message translates to:
+  /// **'Bergwanderweg'**
+  String get trailBergwanderweg;
+
+  /// No description provided for @trailAlpinwanderweg.
+  ///
+  /// In de, this message translates to:
+  /// **'Alpinwanderweg'**
+  String get trailAlpinwanderweg;
+
+  /// No description provided for @trailNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Wanderweg'**
+  String get trailNone;
+
+  /// No description provided for @surfacePaved.
+  ///
+  /// In de, this message translates to:
+  /// **'Asphalt, Pflaster'**
+  String get surfacePaved;
+
+  /// No description provided for @surfaceGravel.
+  ///
+  /// In de, this message translates to:
+  /// **'Kies, Schotter'**
+  String get surfaceGravel;
+
+  /// No description provided for @surfaceNatural.
+  ///
+  /// In de, this message translates to:
+  /// **'Naturbelag'**
+  String get surfaceNatural;
+
+  /// No description provided for @surfaceUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbekannt'**
+  String get surfaceUnknown;
+
+  /// No description provided for @wayRoad.
+  ///
+  /// In de, this message translates to:
+  /// **'Strasse'**
+  String get wayRoad;
+
+  /// No description provided for @wayTrack.
+  ///
+  /// In de, this message translates to:
+  /// **'Fahrweg'**
+  String get wayTrack;
+
+  /// No description provided for @wayPath.
+  ///
+  /// In de, this message translates to:
+  /// **'Pfad'**
+  String get wayPath;
+
+  /// No description provided for @waySteps.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppe'**
+  String get waySteps;
+
+  /// No description provided for @wayUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'Unbekannt'**
+  String get wayUnknown;
+
+  /// No description provided for @offTrailTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein offizieller Wanderweg'**
+  String get offTrailTitle;
+
+  /// No description provided for @offTrailAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Die ganze Route ({distance}) verläuft abseits markierter Wanderwege.'**
+  String offTrailAll(String distance);
+
+  /// No description provided for @inviteTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'{name} lädt dich ein'**
+  String inviteTitle(String name);
+
+  /// No description provided for @inviteText.
+  ///
+  /// In de, this message translates to:
+  /// **'Werdet Freunde auf Alvyo: ihr seht eure Profile, auch private.'**
+  String get inviteText;
+
+  /// No description provided for @inviteAccept.
+  ///
+  /// In de, this message translates to:
+  /// **'Freunde werden'**
+  String get inviteAccept;
+
+  /// No description provided for @inviteDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Ihr seid jetzt Freunde.'**
+  String get inviteDone;
+
+  /// No description provided for @inviteInvalid.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieser Einladungslink gilt nicht mehr.'**
+  String get inviteInvalid;
+
+  /// No description provided for @inviteSelf.
+  ///
+  /// In de, this message translates to:
+  /// **'Das ist dein eigener Link.'**
+  String get inviteSelf;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

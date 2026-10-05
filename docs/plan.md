@@ -65,7 +65,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.21.0 | 2026-10-05 | Telemetry (59): OpenTelemetry traces of API and web by OTLP to the collector (dropped until there is a tracing backend), metrics for Prometheus through ServiceMonitors, `trace_id` in the API's logs; friends (60): requests both ways, a search for public profiles, invite links, private profiles for friends only, friends offered when sharing; hiked (61): «Gewandert» on routes and journeys, recorded hikes and finished journeys counted, «Geplant / Gewandert» in the lists, the map and the app |
 | 0.22.0 | 2026-10-05 | Statistics with Google Analytics (62): the Google tag on alvyo.tellbow.ch with Consent Mode and a banner (cookies only after «Akzeptieren», changeable under «Über»), page views without the secrets of addresses; the privacy text names it |
 | 0.22.1 | 2026-10-05 | Page views titled by their route (the title was empty behind the language prefix) |
-| next | | How far one gets (65): «Reichweite» in «Planen» and «Wie weit komme ich?» in the app, areas reached within 2, 4 and 8 hours; GraphHopper's graph with elevation; no turns announced from GPS jitter |
+| 0.24.0 | 2026-10-05 | How far one gets (65): «Reichweite» in «Planen» and «Wie weit komme ich?» in the app, areas reached within 2, 4 and 8 hours; GraphHopper's graph with elevation; no turns announced from GPS jitter |
 | 0.23.0 | 2026-10-05 | A point along the way on the map (63); the app catches up (64): trail conditions, photos counted, planned or hiked on one's map, invite links; the icons along the way load without warnings; the header's controls with more contrast |
 
 ## Requirements
@@ -604,8 +604,8 @@ on 2026-10-05, 62 on 2026-10-05.
     short of the official times of 28 stages, docs/hiking-time.md); the
     graph has elevation for it (30 m terrain tiles, skadi). An area is the
     outline around what is reached, lakes and pathless slopes inside
-    included: the page says «ungefähr». About 2 s for 8 hours on the dev
-    machine. In the app: «Wie weit komme ich?» (the radar icon above «Meine
+    included: the page says «ungefähr». 8 hours take about 2 s on the dev
+    machine, 7 s on rk1. In the app: «Wie weit komme ich?» (the radar icon above «Meine
     Routen»), from a tap on the map, a place or where one is, the map fitted
     to the 8-hour area.
 

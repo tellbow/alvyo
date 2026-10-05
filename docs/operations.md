@@ -113,7 +113,8 @@ The graph has elevation for the slopes of the isochrones' time profiles
 AWS Terrain Tiles (skadi) into `/data/elevation-cache` (about 210 MB, kept
 for later imports). With them the graph is 0.67 GB instead of 0.61 GB and
 the import needs about 2.9 GB of heap (local, 2026-10-05: 8 min reading the
-OSM data, 1 min per CH profile). Routes are found as before; the turns of
+OSM data, 1 min per CH profile; on rk1 11 min with a 4 GB heap, 4.7 GiB of
+memory). Routes are found as before; the turns of
 map matching are as many as before on GPS tracks (54 against 55 on 20
 noisy tracks).
 

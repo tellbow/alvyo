@@ -65,7 +65,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.21.0 | 2026-10-05 | Telemetry (59): OpenTelemetry traces of API and web by OTLP to the collector (dropped until there is a tracing backend), metrics for Prometheus through ServiceMonitors, `trace_id` in the API's logs; friends (60): requests both ways, a search for public profiles, invite links, private profiles for friends only, friends offered when sharing; hiked (61): «Gewandert» on routes and journeys, recorded hikes and finished journeys counted, «Geplant / Gewandert» in the lists, the map and the app |
 | 0.22.0 | 2026-10-05 | Statistics with Google Analytics (62): the Google tag on alvyo.tellbow.ch with Consent Mode and a banner (cookies only after «Akzeptieren», changeable under «Über»), page views without the secrets of addresses; the privacy text names it |
 | 0.22.1 | 2026-10-05 | Page views titled by their route (the title was empty behind the language prefix) |
-| next | | A point along the way on the map (63); the app catches up (64): trail conditions, photos counted, planned or hiked on one's map, invite links; the icons along the way load without warnings; the header's controls with more contrast |
+| 0.23.0 | 2026-10-05 | A point along the way on the map (63); the app catches up (64): trail conditions, photos counted, planned or hiked on one's map, invite links; the icons along the way load without warnings; the header's controls with more contrast |
 
 ## Requirements
 

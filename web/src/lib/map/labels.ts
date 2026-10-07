@@ -15,6 +15,7 @@ export const overlayLabel: Record<OverlayId, () => string> = {
 	wildruhezonen: m.map_ovl_wildruhezonen,
 	jagdbanngebiete: m.map_ovl_jagdbanngebiete,
 	relief: m.map_ovl_relief,
+	precip: m.map_ovl_precip,
 	huts: m.map_ovl_huts,
 	lodging: m.map_ovl_lodging,
 	pois: m.map_ovl_pois

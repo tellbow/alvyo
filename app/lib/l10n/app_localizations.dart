@@ -2656,6 +2656,54 @@ abstract class AppLocalizations {
   /// **'Relief'**
   String get mapOverlayRelief;
 
+  /// No description provided for @mapOverlayPrecip.
+  ///
+  /// In de, this message translates to:
+  /// **'Regen (Radar und Prognose)'**
+  String get mapOverlayPrecip;
+
+  /// No description provided for @precipRadar.
+  ///
+  /// In de, this message translates to:
+  /// **'Radar, gemessen'**
+  String get precipRadar;
+
+  /// No description provided for @precipForecast.
+  ///
+  /// In de, this message translates to:
+  /// **'Modellprognose'**
+  String get precipForecast;
+
+  /// No description provided for @precipPlay.
+  ///
+  /// In de, this message translates to:
+  /// **'Abspielen'**
+  String get precipPlay;
+
+  /// No description provided for @precipPause.
+  ///
+  /// In de, this message translates to:
+  /// **'Anhalten'**
+  String get precipPause;
+
+  /// No description provided for @precipNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Gerade keine Regendaten.'**
+  String get precipNone;
+
+  /// No description provided for @precipLight.
+  ///
+  /// In de, this message translates to:
+  /// **'leicht'**
+  String get precipLight;
+
+  /// No description provided for @precipHeavy.
+  ///
+  /// In de, this message translates to:
+  /// **'stark'**
+  String get precipHeavy;
+
   /// No description provided for @poiFirepit.
   ///
   /// In de, this message translates to:

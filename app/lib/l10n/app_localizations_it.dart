@@ -1414,6 +1414,30 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mapOverlayRelief => 'Rilievo';
 
   @override
+  String get mapOverlayPrecip => 'Pioggia (radar e previsione)';
+
+  @override
+  String get precipRadar => 'Radar, misurato';
+
+  @override
+  String get precipForecast => 'Previsione del modello';
+
+  @override
+  String get precipPlay => 'Riproduci';
+
+  @override
+  String get precipPause => 'Pausa';
+
+  @override
+  String get precipNone => 'Al momento nessun dato sulla pioggia.';
+
+  @override
+  String get precipLight => 'debole';
+
+  @override
+  String get precipHeavy => 'forte';
+
+  @override
   String get poiFirepit => 'Focolare';
 
   @override

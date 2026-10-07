@@ -21,6 +21,7 @@ import '../navigation/turns.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
+import '../precip.dart';
 
 /// What was recorded, for the screen that started the hike to show.
 class HikeSummary {
@@ -323,6 +324,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
               child: Stack(
                 children: [
                   _mapView,
+                  Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
                   const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                   if (!_follow && _fix != null)
                     Positioned(

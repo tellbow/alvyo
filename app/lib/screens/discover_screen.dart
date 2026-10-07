@@ -11,6 +11,7 @@ import '../l10n/app_localizations.dart';
 import '../map_style.dart';
 import '../navigation/gps.dart';
 import '../place_layer.dart';
+import '../precip.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
 
@@ -475,6 +476,7 @@ class _DiscoverMapState extends State<_DiscoverMap> {
               );
             },
           ),
+          Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
           const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
         ],
       );

@@ -7,6 +7,7 @@
 	import { placeDetail } from '$lib/journeys/places';
 	import { m as msg } from '$lib/paraglide/messages';
 	import { PLACE_OVERLAYS, isPoi, placeFeatures, placeKinds, poiText, webLink } from './places';
+	import PrecipLayer from './PrecipLayer.svelte';
 	import { drawPoiIcon } from './poiIcons';
 	import { poiShown } from './poiKinds.svelte';
 	import { liveMaps } from './registry';
@@ -207,6 +208,7 @@
 		const below = (layers: string[]) =>
 			m.getStyle().layers.find((l) => l.id.startsWith(ROUTE_PREFIX) || layers.includes(l.id))?.id;
 		for (const id of OVERLAYS) {
+			if (id === 'precip') continue; // PrecipLayer
 			const layerId = OVERLAY_PREFIX + id;
 			const present = !!m.getLayer(layerId);
 			if (id in PLACE_OVERLAYS) {
@@ -375,4 +377,7 @@
      absolutely positioned wrapper instead of being positioned itself. -->
 <div class="absolute inset-0">
 	<div bind:this={container} class="h-full w-full" data-testid="map" data-layers={layerIds}></div>
+	{#if map && overlays.includes('precip')}
+		<PrecipLayer {map} />
+	{/if}
 </div>

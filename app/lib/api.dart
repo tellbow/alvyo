@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'format.dart';
+import 'precip.dart';
 
 /// A failed API call with its HTTP status.
 class ApiException implements Exception {
@@ -1472,6 +1473,10 @@ class Api {
   /// MeteoSwiss's forecast at a route's start, highest point and end.
   /// A [date] (YYYY-MM-DD) beyond the forecast brings the climate normals
   /// of its month.
+  /// The rain on the map: the radar's last hour and the forecast.
+  Future<PrecipTimeline> precip() async =>
+      PrecipTimeline.fromJson(await _get('/weather/precip') as Map<String, dynamic>);
+
   Future<RouteWeather> routeWeather(String routeId, {String? date}) async =>
       RouteWeather.fromJson(await _get('/routes/$routeId/weather', {'date': ?date}) as Map<String, dynamic>);
 

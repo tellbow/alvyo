@@ -345,6 +345,34 @@
         ],
         "type": "object"
       },
+      "Bounds": {
+        "additionalProperties": false,
+        "properties": {
+          "east": {
+            "format": "double",
+            "type": "number"
+          },
+          "north": {
+            "format": "double",
+            "type": "number"
+          },
+          "south": {
+            "format": "double",
+            "type": "number"
+          },
+          "west": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "west",
+          "south",
+          "east",
+          "north"
+        ],
+        "type": "object"
+      },
       "BugReportInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -2977,6 +3005,25 @@
         ],
         "type": "object"
       },
+      "Level": {
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "description": "#rrggbb",
+            "type": "string"
+          },
+          "from": {
+            "description": "Rain in mm/h",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "from",
+          "color"
+        ],
+        "type": "object"
+      },
       "LineAreasInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -3921,6 +3968,65 @@
           "lon",
           "lat",
           "at"
+        ],
+        "type": "object"
+      },
+      "PrecipFrame": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "description": "radar measured, forecast from the model",
+            "enum": [
+              "radar",
+              "forecast"
+            ],
+            "type": "string"
+          },
+          "time": {
+            "description": "radar: when measured; forecast: the end of the hour it shows",
+            "format": "date-time",
+            "type": "string"
+          },
+          "url": {
+            "description": "The picture (PNG, Web Mercator, transparent where dry)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "kind",
+          "time"
+        ],
+        "type": "object"
+      },
+      "PrecipOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution": {
+            "type": "string"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Bounds"
+          },
+          "frames": {
+            "description": "Oldest first: the radar's last hour, then the forecast; empty while there are none",
+            "items": {
+              "$ref": "#/components/schemas/PrecipFrame"
+            },
+            "type": "array"
+          },
+          "legend": {
+            "items": {
+              "$ref": "#/components/schemas/Level"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "bounds",
+          "frames",
+          "legend",
+          "attribution"
         ],
         "type": "object"
       },
@@ -15560,6 +15666,125 @@
         "summary": "Deployed version and source code location",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/weather/precip": {
+      "get": {
+        "description": "MeteoSwiss's radar every 5 minutes and the ICON-CH1 forecast hourly, as pictures over bounds.",
+        "operationId": "get-precipitation",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrecipOutputBody"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Rain on the map: the radar's last hour and the forecast",
+        "tags": [
+          "weather"
+        ]
+      }
+    },
+    "/weather/precip/{kind}/{time}/frame.png": {
+      "get": {
+        "operationId": "get-precipitation-image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "radar",
+                "forecast"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unix seconds of the frame's time",
+            "in": "path",
+            "name": "time",
+            "required": true,
+            "schema": {
+              "description": "Unix seconds of the frame's time",
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Version; changes when the picture does",
+            "explode": false,
+            "in": "query",
+            "name": "v",
+            "schema": {
+              "description": "Version; changes when the picture does",
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "contentEncoding": "base64",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "One picture of the rain on the map",
+        "tags": [
+          "weather"
         ]
       }
     }

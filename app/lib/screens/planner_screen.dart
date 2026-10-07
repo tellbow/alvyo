@@ -14,6 +14,7 @@ import '../map_style.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import '../planner.dart';
+import '../precip.dart';
 import 'route_screen.dart';
 
 /// Plans a route from A to B, as on the website: points by tapping the map
@@ -327,6 +328,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
       body: Stack(
         children: [
           Positioned.fill(child: _mapView),
+          Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
           const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
           DraggableScrollableSheet(
             initialChildSize: 0.4,

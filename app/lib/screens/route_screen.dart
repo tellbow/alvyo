@@ -18,6 +18,7 @@ import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
 import '../travel.dart';
+import '../precip.dart';
 import 'collections_screen.dart';
 import 'details.dart';
 import 'done.dart';
@@ -499,6 +500,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                               );
                             },
                           ),
+                      Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
                       const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                     ],
                   ),

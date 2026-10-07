@@ -89,6 +89,22 @@ services:
       - ./data-import:/scripts:ro
     command: ["sh", "/scripts/import-places.sh"]
 
+  # One-shot: make weather-precip (rain pictures for the map: radar and forecast).
+  weather-precip:
+    image: alvyo-data-import
+    build: ./data-import
+    profiles: [data]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: odysgeh
+      PGPASSWORD: odysgeh
+      PGDATABASE: odysgeh
+    volumes:
+      - ./data-import:/scripts:ro
+    command: ["python3", "/scripts/weather-precip.py"]
+
   mailpit:
     image: axllent/mailpit:latest
     ports:

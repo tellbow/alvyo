@@ -13,7 +13,9 @@ export type RasterOverlayId =
 	'wanderwege' | 'wanderland' | 'hangneigung' | 'wildruhezonen' | 'jagdbanngebiete' | 'relief';
 /** Huts and accommodation from our places, drawn as points. */
 export type PlaceOverlayId = 'huts' | 'lodging' | 'pois';
-export type OverlayId = RasterOverlayId | PlaceOverlayId;
+/** Rain: radar and forecast with a timeline (PrecipLayer). */
+export type WeatherOverlayId = 'precip';
+export type OverlayId = RasterOverlayId | PlaceOverlayId | WeatherOverlayId;
 
 export const BASE_MAPS: BaseMapId[] = ['landeskarte', 'landeskarte_grau', 'luftbild', 'basemap'];
 export const OVERLAYS: OverlayId[] = [
@@ -23,6 +25,7 @@ export const OVERLAYS: OverlayId[] = [
 	'wildruhezonen',
 	'jagdbanngebiete',
 	'relief',
+	'precip',
 	'huts',
 	'lodging',
 	'pois'

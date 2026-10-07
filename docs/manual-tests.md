@@ -362,6 +362,12 @@ Checked so far only in the simulator, with made-up or simulated positions
       Safari offers «In der App öffnen»; the app shows who invites and
       «Freunde werden» makes friends. The app on the iPhone after the
       release, as it talks to production.
+- [ ] **Rain on the map on the hike** (67): «Regen» on in the app, on a
+      day with showers: the radar matches what one sees in the sky, the
+      card refreshes every 5 minutes, play runs through the timeline and the
+      forecast hours follow on; without reception the last pictures stay.
+      On rk1 after the release: the `weather-precip` job runs every 5
+      minutes without errors, a new forecast run appears within 3 hours.
 - [ ] **A shared collection on the iPhone** (66): the link of an unlisted
       collection with private routes and a private journey, opened in
       Safari and with «In der App öffnen»: its items open, also a stage of

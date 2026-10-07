@@ -12,6 +12,7 @@ import '../l10n/app_localizations.dart';
 import '../map_style.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
+import '../precip.dart';
 import 'journey_screen.dart';
 import 'travel_screen.dart';
 
@@ -510,6 +511,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                 ? Stack(
                     children: [
                       _mapView,
+                      Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
                       const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                     ],
                   )

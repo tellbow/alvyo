@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../map_style.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
+import '../precip.dart';
 import 'route_screen.dart';
 
 /// All stages of a journey on one map, in their colours, with the layer
@@ -65,6 +66,7 @@ class _JourneyMapScreenState extends State<JourneyMapScreen> {
                         );
                       },
                     ),
+                Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
                 const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
               ],
             ),

@@ -124,3 +124,58 @@ test('summits and water on the map, with a popup', async ({ page }) => {
 	await expect(page.getByTestId('poi-kinds').getByLabel('Gipfel')).not.toBeChecked();
 	await expect(page.getByTestId('poi-kinds').getByLabel('Feuerstelle')).toBeChecked();
 });
+
+test('rain: the radar, then the forecast, on a timeline', async ({ page }) => {
+	const at = (min: number) => new Date(Date.now() + min * 60_000).toISOString();
+	const frame = (kind: string, time: string) => ({
+		kind,
+		time,
+		url: `/api/v1/weather/precip/${kind}/${Date.parse(time) / 1000}/frame.png?v=1`
+	});
+	await page.route('**/api/v1/weather/precip', (r) =>
+		r.fulfill({
+			json: {
+				bounds: { west: 2.689, south: 43.619, east: 12.462, north: 49.374 },
+				frames: [frame('radar', at(-10)), frame('radar', at(-5)), frame('forecast', at(60))],
+				legend: [
+					{ from: 0.1, color: '#a6dbf7' },
+					{ from: 40, color: '#96005a' }
+				],
+				attribution: 'MeteoSchweiz'
+			}
+		})
+	);
+	// A transparent pixel for every picture.
+	await page.route('**/api/v1/weather/precip/*/*/frame.png*', (r) =>
+		r.fulfill({
+			contentType: 'image/png',
+			body: Buffer.from(
+				'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+				'base64'
+			)
+		})
+	);
+
+	await page.goto('/plan');
+	const map = page.getByTestId('map');
+	await expect(map).toHaveAttribute('data-layers', /\bovl-wanderwege\b/);
+	await page.getByRole('button', { name: 'Karten' }).click();
+	await page.getByLabel('Regen (Radar und Prognose)').check();
+	await expect(map).toHaveAttribute('data-layers', /\bovl-precip\b/);
+	const card = page.getByTestId('precip');
+	// It starts at the newest radar picture.
+	await expect(card.getByTestId('precip-kind')).toHaveText('Radar, gemessen');
+	await expect(card.getByRole('slider')).toHaveValue('1');
+	await card.getByRole('slider').press('ArrowRight');
+	await expect(card.getByTestId('precip-kind')).toHaveText('Modellprognose');
+	await expect(card.getByTestId('precip-time')).toHaveText(/\d\d:\d\d–\d\d:\d\d$/);
+	await expect(card).toContainText('© MeteoSchweiz');
+
+	// It stays with another base map, and goes when switched off.
+	await page.getByLabel('Basiskarte').check();
+	await expect(map).not.toHaveAttribute('data-layers', /(^|\s)base(\s|$)/);
+	await expect(map).toHaveAttribute('data-layers', /\bovl-precip\b/);
+	await page.getByLabel('Regen (Radar und Prognose)').uncheck();
+	await expect(map).not.toHaveAttribute('data-layers', /\bovl-precip\b/);
+	await expect(card).toHaveCount(0);
+});

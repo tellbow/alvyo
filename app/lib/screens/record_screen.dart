@@ -13,6 +13,7 @@ import '../navigation/recording.dart';
 import '../navigation/tracker.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
+import '../precip.dart';
 import 'navigate_screen.dart';
 
 /// Recording a hike without a planned route (the record button): the
@@ -216,6 +217,7 @@ class _RecordScreenState extends State<RecordScreen> {
               child: Stack(
                 children: [
                   _mapView,
+                  Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
                   const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                   if (!_follow && _fix != null)
                     Positioned(

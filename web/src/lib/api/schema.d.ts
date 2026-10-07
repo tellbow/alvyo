@@ -2433,6 +2433,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/weather/precip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rain on the map: the radar's last hour and the forecast
+         * @description MeteoSwiss's radar every 5 minutes and the ICON-CH1 forecast hourly, as pictures over bounds.
+         */
+        get: operations["get-precipitation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weather/precip/{kind}/{time}/frame.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One picture of the rain on the map */
+        get: operations["get-precipitation-image"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2552,6 +2589,16 @@ export interface components {
         };
         BlockedOutputBody: {
             users: components["schemas"]["UserRef"][];
+        };
+        Bounds: {
+            /** Format: double */
+            east: number;
+            /** Format: double */
+            north: number;
+            /** Format: double */
+            south: number;
+            /** Format: double */
+            west: number;
         };
         BugReportInputBody: {
             description: string;
@@ -3426,6 +3473,15 @@ export interface components {
             through?: components["schemas"]["Point"];
             to: components["schemas"]["Point"];
         };
+        Level: {
+            /** @description #rrggbb */
+            color: string;
+            /**
+             * Format: double
+             * @description Rain in mm/h
+             */
+            from: number;
+        };
         LineAreasInputBody: {
             /** @description [lon, lat] per point */
             line: number[][];
@@ -3722,6 +3778,27 @@ export interface components {
             lat: number;
             /** Format: double */
             lon: number;
+        };
+        PrecipFrame: {
+            /**
+             * @description radar measured, forecast from the model
+             * @enum {string}
+             */
+            kind: "radar" | "forecast";
+            /**
+             * Format: date-time
+             * @description radar: when measured; forecast: the end of the hour it shows
+             */
+            time: string;
+            /** @description The picture (PNG, Web Mercator, transparent where dry) */
+            url: string;
+        };
+        PrecipOutputBody: {
+            attribution: string;
+            bounds: components["schemas"]["Bounds"];
+            /** @description Oldest first: the radar's last hour, then the forecast; empty while there are none */
+            frames: components["schemas"]["PrecipFrame"][];
+            legend: components["schemas"]["Level"][];
         };
         Profile: {
             id: string;
@@ -10484,6 +10561,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VersionOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-precipitation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrecipOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-precipitation-image": {
+        parameters: {
+            query?: {
+                /** @description Version; changes when the picture does */
+                v?: number;
+            };
+            header?: never;
+            path: {
+                kind: "radar" | "forecast";
+                /** @description Unix seconds of the frame's time */
+                time: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Content-Type"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
                 };
             };
             /** @description Error */

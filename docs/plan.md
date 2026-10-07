@@ -68,14 +68,15 @@ A `v*` tag builds the images; Flux deploys them
 | 0.24.0 | 2026-10-05 | How far one gets (65): «Reichweite» in «Planen» and «Wie weit komme ich?» in the app, areas reached within 2, 4 and 8 hours; GraphHopper's graph with elevation; no turns announced from GPS jitter |
 | 0.23.0 | 2026-10-05 | A point along the way on the map (63); the app catches up (64): trail conditions, photos counted, planned or hiked on one's map, invite links; the icons along the way load without warnings; the header's controls with more contrast |
 | 0.25.0 | 2026-10-07 | A shared collection shares its items (66, issue 17): by link or as public to view, with the people invited in their role (viewer or editor); how many items one cannot see instead of «Noch leer»; in the app a journey's stages keep the token it was opened with |
-| next | | Removing a route or journey from a collection asks first, on the website and in the app |
+| next | | Removing a route or journey from a collection asks first, on the website and in the app; rain radar and forecast on the map (67, issue 15) |
 
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
 21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02, 59–61
-on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17).
+on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
+2026-10-07 (from issue 15).
 
 ### Done
 
@@ -630,11 +631,43 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17).
     the viewer cannot see («Private Einträge, die du nicht sehen kannst:
     3»); «Noch leer» only when there are none.
 
+67. **Rain radar and forecast on the map** (issue 15). «Regen (Radar und
+    Prognose)» under «Karten», on the website and in the app, like SRF
+    Meteo's «Niederschlagsradar»: a card with play and a slider, from the
+    last hour measured by MeteoSwiss's radar (every 5 minutes, 1 km, about
+    10 minutes late; open data `ogd-radar-precip`, ODIM HDF5) to the next 12
+    hours of the ICON-CH1 forecast («Modellprognose», hourly, 1 km, a run
+    every 3 hours; `ogd-forecasting-icon-ch1`, GRIB2 on ICON's own grid,
+    precipitation summed since the run started); it starts at the newest
+    radar picture, shows the time (a forecast hour as «10:00–11:00») and a
+    legend from «leicht» to «stark», © MeteoSchweiz (CC-BY). The job
+    `weather-precip` (Python in the data-import image: h5py, GDAL, ecCodes,
+    SciPy; the API is built without cgo and cannot read HDF5) runs every 5
+    minutes, converts a forecast run once (the nearest model cell for each
+    pixel) and keeps paletted Web Mercator PNGs (about 15–20 KB) in
+    `precip_frames`; `GET /weather/precip` lists them, the pictures are
+    cached for a day under their version. The app keeps one image source a
+    picture and moves one layer between them (the iOS plugin cannot change
+    an image source); without reception the last pictures stay.
+
 ### Open
 
 14 was added on 2026-09-24 from a survey of Komoot, AllTrails,
 Outdooractive, SchweizMobil, the swisstopo app and others, and waits for
-Garmin. 44 is from the project owner on 2026-09-29.
+Garmin. 44 is from the project owner on 2026-09-29, 68 from issue 16 on
+2026-10-07.
+
+#### 68. Recognising mountains with the camera (iPhone, offline)
+
+Held up, the iPhone's camera picture names the summits in view with their
+heights (like PeakFinder), also without reception. The 11 634 named
+summits of the places import, and a terrain grid of Switzerland and about
+50 km around (100–200 m, 5–20 MB) as a download of its own, so only the
+summits not hidden behind a ridge are named; the skyline drawn from it.
+Native Swift (camera, compass and motion) in a view embedded like the
+method channels, no plugin. The compass is often 5–15° off: one drags the
+drawn skyline onto the real one. Tested only outdoors on the iPhone. Not
+on the website (Safari has no WebXR).
 
 #### 44. 3D in the app (blocked)
 

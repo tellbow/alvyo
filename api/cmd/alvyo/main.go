@@ -43,6 +43,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/packs"
 	"github.com/tellbow/alvyo/api/internal/photos"
 	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/precip"
 	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
@@ -179,6 +180,7 @@ func serve(ctx context.Context) error {
 		Weather:     forecast,
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},
+		Precip:      &precip.Store{DB: pool},
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Done:        &done.Store{DB: pool},

@@ -1408,6 +1408,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapOverlayRelief => 'Hillshade';
 
   @override
+  String get mapOverlayPrecip => 'Rain (radar and forecast)';
+
+  @override
+  String get precipRadar => 'Radar, measured';
+
+  @override
+  String get precipForecast => 'Model forecast';
+
+  @override
+  String get precipPlay => 'Play';
+
+  @override
+  String get precipPause => 'Pause';
+
+  @override
+  String get precipNone => 'No rain data at the moment.';
+
+  @override
+  String get precipLight => 'light';
+
+  @override
+  String get precipHeavy => 'heavy';
+
+  @override
   String get poiFirepit => 'Fire place';
 
   @override

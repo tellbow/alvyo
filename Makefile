@@ -1,7 +1,7 @@
 GO_MODULES := swiss api
 COMPOSE    := docker compose -f infra/compose.yaml
 
-.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import sqlc api-client
+.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import weather-precip sqlc api-client
 
 test: test-go test-web
 
@@ -33,6 +33,11 @@ tlm-import:
 # Load stops, huts and accommodation (needs osm-fetch and migrate first).
 places-import:
 	$(COMPOSE) run --rm places-import
+
+# Rain pictures for the map (radar and forecast; run `migrate` first). The
+# cluster runs it every 5 minutes.
+weather-precip:
+	$(COMPOSE) run --rm weather-precip
 
 # Regenerate api/internal/dbq from api/queries/*.sql and the migrations.
 sqlc:

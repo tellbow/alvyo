@@ -19,3 +19,8 @@ coverage.out
 # Claude Code: personal, not shared
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Skills installed with `npx skills add`: local only
+/.agents/
+/skills-lock.json
+/.claude/skills/web-design-guidelines

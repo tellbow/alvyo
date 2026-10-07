@@ -369,6 +369,7 @@ Checked so far only in the simulator, with made-up or simulated positions
       skyline, the named summits sit on the right tops, after dragging too;
       «Kompass ungenau» when it is; the pack downloads once and works in
       flight mode.
+      2026-10-07 on the iPhone (project owner): direction and labels right.
 - [ ] **Rain on the map on the hike** (67): «Regen» on in the app, on a
       day with showers: the radar matches what one sees in the sky, the
       card refreshes every 5 minutes, play runs through the timeline and the

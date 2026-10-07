@@ -72,6 +72,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.26.1 | 2026-10-07 | The rain job reaches MeteoSwiss over IPv4 (it hung on the cluster's missing IPv6 route) |
 | 0.26.2 | 2026-10-07 | The website's login answered 500 (the passkeys package was not bundled; since at least 0.17.1); search engines get the language start pages without a redirect (/fr, not /fr/) |
 | 0.27.0 | 2026-10-07 | Recognising mountains with the camera (68, issue 16): «Berge erkennen» in the app names the summits in sight, also without reception |
+| 0.28.0 | 2026-10-07 | «Berge erkennen» draws the nearer ridges as lines too, and the skyline no longer starts at the cells right next to one (on a summit they hid the view) |
 
 ## Requirements
 
@@ -668,9 +669,12 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     30 without overlaps; about 0.5 s a place. Native Swift (PeakCamera.swift):
     the camera as a platform view, CoreMotion's attitude to true north 30
     times a second with the camera's field of view; one drags the drawn
-    skyline onto the real one when the compass is off. Portrait only. Nearer
-    ridges are not drawn yet (PeakFinder draws them as lines too). Not on the
-    website (Safari has no WebXR).
+    skyline onto the real one when the compass is off. The nearer ridges as
+    fainter lines, like PeakFinder: along each ray a crest where visible
+    terrain drops out of sight for at least 300 m or 15 % of its distance,
+    joined to the next ray's crest at about the same distance and angle;
+    rays and ridges from 300 m on (the grid cannot show closer terrain).
+    Portrait only. Not on the website (Safari has no WebXR).
 
 ### Open
 

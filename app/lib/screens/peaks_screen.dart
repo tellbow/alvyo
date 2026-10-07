@@ -295,6 +295,7 @@ class PeaksPainter extends CustomPainter {
       prev = p;
     }
     canvas.drawPath(path, line);
+    _ridges(canvas, size);
 
     // Labels, highest summits first, where they do not overlap; kept on the
     // screen, their line to the summit. Lines first, so none crosses a box.
@@ -338,6 +339,42 @@ class PeaksPainter extends CustomPainter {
     for (final l in placed) {
       canvas.drawRRect(RRect.fromRectAndRadius(l.box, const Radius.circular(4)), shade);
       l.label.paint(canvas, Offset(l.box.left + 4, l.box.top + 2));
+    }
+  }
+
+  /// The nearer ridges: each edge joined to the one of the next ray at about
+  /// its distance and angle; fainter the farther away. Only the rays in the
+  /// picture.
+  void _ridges(Canvas canvas, Size size) {
+    final centre = pose.centre.azimuth - dAz;
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke;
+    final perBin = 360 / skylineBins;
+    final half = (pose.fov * 0.75 / perBin).ceil();
+    final first = (centre / perBin).round() - half;
+    for (var k = first; k < first + 2 * half; k++) {
+      final i = k % skylineBins, j = (k + 1) % skylineBins;
+      final here = view.ridges[i], next = view.ridges[j];
+      for (var a = 0; a < here.length; a += 2) {
+        final d = here[a], el = here[a + 1];
+        double? nearest, nearestEl;
+        for (var b = 0; b < next.length; b += 2) {
+          if ((next[b] - d).abs() < 150 + d * 0.1 &&
+              (next[b + 1] - el).abs() < 1 &&
+              (nearest == null || (next[b] - d).abs() < (nearest - d).abs())) {
+            nearest = next[b];
+            nearestEl = next[b + 1];
+          }
+        }
+        if (nearest == null) continue;
+        final p = _at(i * perBin, el, size), q = _at(j * perBin, nearestEl!, size);
+        if (p == null || q == null || (p - q).distance > size.width / 4) continue;
+        paint
+          ..strokeWidth = d < 10000 ? 1.4 : 1
+          ..color = Colors.white.withValues(alpha: (0.7 - d / maxDistance * 2).clamp(0.25, 0.7));
+        canvas.drawLine(p, q, paint);
+      }
     }
   }
 

@@ -42,6 +42,27 @@ void main() {
     expect(v.skyline[0], closeTo(elevationAngle(3000, 5230, 502), 0.3));
   });
 
+  test('a nearer ridge in front of a higher one is a line of its own; the higher one is the skyline', () {
+    // 500 m, a ridge of 1000 m at 3 km to the north, one of 2500 m at 8 km.
+    final p = PeakPack.decode(
+      peakPackBytes(500, 500, (lon, lat) {
+        final north = (lat - 46.95) * 111320;
+        if ((north - 3000).abs() < 150) return 1000;
+        if ((north - 8000).abs() < 150) return 2500;
+        return 500;
+      }, const []),
+    );
+    final v = computeView(p, 7.5, 46.95);
+    final north = v.ridges[0];
+    expect(north.length, 2); // one ridge: distance, angle
+    // Its crest: the near edge of the flat top (the angle falls behind it).
+    expect(north[0], closeTo(2950, 150));
+    expect(north[1], closeTo(elevationAngle(1000, north[0], 502), 0.5));
+    expect(v.skyline[0], closeTo(elevationAngle(2500, 7850, 502), 0.3));
+    // Flat ground to the south: nothing.
+    expect(v.ridges[skylineBins ~/ 2], isEmpty);
+  });
+
   group('projection', () {
     // Upright in portrait, the back camera to the north: the screen's right
     // is east (world −y), its top up (z), the user to the south (−x); the

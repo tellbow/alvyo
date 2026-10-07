@@ -28,7 +28,7 @@ class SeenSummit {
 /// What one sees from a point: the skyline and the summits not hidden
 /// behind terrain.
 class PeakView {
-  const PeakView({required this.eye, required this.skyline, required this.summits});
+  const PeakView({required this.eye, required this.skyline, required this.summits, this.ridges = const []});
 
   /// The eye's height in metres.
   final double eye;
@@ -38,6 +38,11 @@ class PeakView {
 
   /// The summits in sight, highest first.
   final List<SeenSummit> summits;
+
+  /// The nearer ridges per bin of the skyline: their distance in metres and
+  /// angle in degrees, in pairs, nearest first. A ridge is where visible
+  /// terrain drops out of sight behind it.
+  final List<Float32List> ridges;
 }
 
 /// The angle in degrees under which a point at height [h] and distance [d]
@@ -70,8 +75,33 @@ PeakView computeView(PeakPack pack, double lon, double lat, {double above = 2}) 
   }
 
   final skyline = Float32List(skylineBins);
+  final ridges = <Float32List>[];
   for (var i = 0; i < skylineBins; i++) {
-    skyline[i] = highest(i * 360 / skylineBins, 50, maxDistance);
+    final az = i * 360 / skylineBins;
+    final dn = cos(az * pi / 180) / _metresPerDegree, de = sin(az * pi / 180) / (_metresPerDegree * cosLat);
+    var best = -90.0;
+    final edges = <double>[];
+    // A crest is the last visible point before terrain drops out of sight:
+    // a ridge, if what follows stays hidden long enough (not every bump of a
+    // slope). The last crest of all is the skyline.
+    var crest = 0.0, hidden = false;
+    // From 300 m on, like the summits: the grid cannot show closer terrain
+    // (on a summit, its cells next to one can lie above the eye).
+    for (var d = 300.0; d < maxDistance; d += max(50, d * 0.01)) {
+      final h = pack.height(lon + d * de, lat + d * dn);
+      if (h == null) break;
+      final a = elevationAngle(h, d, eye);
+      if (a >= best) {
+        if (hidden && d - crest >= max(300, crest * 0.15)) edges.addAll([crest, best]);
+        hidden = false;
+        best = a;
+        crest = d;
+      } else {
+        hidden = true;
+      }
+    }
+    skyline[i] = best;
+    ridges.add(Float32List.fromList(edges));
   }
 
   final seen = <SeenSummit>[];
@@ -87,5 +117,5 @@ PeakView computeView(PeakPack pack, double lon, double lat, {double above = 2}) 
     seen.add(SeenSummit(s, az, el, d));
   }
   seen.sort((a, b) => b.summit.ele.compareTo(a.summit.ele));
-  return PeakView(eye: eye, skyline: skyline, summits: seen);
+  return PeakView(eye: eye, skyline: skyline, summits: seen, ridges: ridges);
 }

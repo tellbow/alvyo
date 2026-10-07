@@ -70,7 +70,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.25.0 | 2026-10-07 | A shared collection shares its items (66, issue 17): by link or as public to view, with the people invited in their role (viewer or editor); how many items one cannot see instead of «Noch leer»; in the app a journey's stages keep the token it was opened with |
 | 0.26.0 | 2026-10-07 | Rain radar and forecast on the map (67, issue 15): MeteoSwiss's radar of the last hour and the next 12 hours of ICON-CH1 on a timeline, on the website and in the app, from the new job weather-precip; removing a route or journey from a collection asks first |
 | 0.26.1 | 2026-10-07 | The rain job reaches MeteoSwiss over IPv4 (it hung on the cluster's missing IPv6 route) |
-| next | | The website's login answered 500 (the passkeys package was not bundled; since at least 0.17.1); search engines get the language start pages without a redirect (/fr, not /fr/) |
+| 0.26.2 | 2026-10-07 | The website's login answered 500 (the passkeys package was not bundled; since at least 0.17.1); search engines get the language start pages without a redirect (/fr, not /fr/) |
 
 ## Requirements
 

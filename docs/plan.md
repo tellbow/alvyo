@@ -74,7 +74,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.27.0 | 2026-10-07 | Recognising mountains with the camera (68, issue 16): «Berge erkennen» in the app names the summits in sight, also without reception |
 | 0.28.0 | 2026-10-07 | «Berge erkennen» draws the nearer ridges as lines too, and the skyline no longer starts at the cells right next to one (on a summit they hid the view) |
 | 0.29.0 | 2026-10-07 | The app's navigation tidied up (69): Entdecken, Planen, Touren and Profil; Rundtour and Zwischenziel, Reichweite back to the start (each way timed), importing files, Apple Watch hikes imported automatically, a tour to follow when recording; the app asks for notifications only when it schedules reminders |
-| next | | Reichweite: «Zurück zum Start» off by default, its areas without the holes and steps between the paths; the layer menu on its map |
+| 0.29.1 | 2026-10-07 | Reichweite: «Zurück zum Start» off by default, its areas without the holes and steps between the paths; the layer menu on its map |
 
 ## Requirements
 

@@ -4,9 +4,6 @@
   "workspaces": {
     "": {
       "name": "web",
-      "dependencies": {
-        "@simplewebauthn/browser": "^14.0.0",
-      },
       "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@fontsource-variable/bricolage-grotesque": "^5.3.0",
@@ -20,6 +17,7 @@
         "@opentelemetry/sdk-trace-node": "^2.11.0",
         "@opentelemetry/semantic-conventions": "^1.43.0",
         "@playwright/test": "^1.60.0",
+        "@simplewebauthn/browser": "^14.0.0",
         "@sveltejs/adapter-node": "^5.5.4",
         "@sveltejs/kit": "^2.63.0",
         "@sveltejs/vite-plugin-svelte": "^7.1.2",

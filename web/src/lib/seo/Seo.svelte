@@ -5,9 +5,9 @@
 		deLocalizeUrl,
 		getLocale,
 		locales,
-		localizeUrl,
 		type Locale
 	} from '$lib/paraglide/runtime';
+	import { pageAddress } from './address';
 
 	/**
 	 * Title, description and link-preview tags of a page. Pages that are not
@@ -24,7 +24,7 @@
 	// Share links (?t=) and filters never become the address search engines
 	// show: one address per page and language (German without prefix).
 	const path = $derived(deLocalizeUrl(new URL(page.url.pathname, page.url.origin)));
-	const inLocale = (locale: Locale) => localizeUrl(path, { locale }).href;
+	const inLocale = (locale: Locale) => pageAddress(path, locale);
 	const url = $derived(inLocale(getLocale()));
 	const OG_LOCALE: Record<Locale, string> = { de: 'de_CH', en: 'en_GB', fr: 'fr_CH', it: 'it_CH' };
 	const shown = $derived(index && !page.url.searchParams.has('t'));

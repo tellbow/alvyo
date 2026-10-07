@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { api } from '$lib/api/client';
-import { locales, localizeUrl } from '$lib/paraglide/runtime';
+import { locales } from '$lib/paraglide/runtime';
+import { pageAddress } from '$lib/seo/address';
 import type { RequestHandler } from './$types';
 
 const PATHS = {
@@ -20,7 +21,7 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
 	const pages: string[] = [];
 	const add = (path: string, lastmod?: string) => {
 		for (const locale of locales) {
-			const loc = escape(localizeUrl(new URL(path, url.origin), { locale }).href);
+			const loc = escape(pageAddress(new URL(path, url.origin), locale));
 			pages.push(`<url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`);
 		}
 	};

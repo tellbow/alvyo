@@ -4,7 +4,7 @@
 <dict>
 	<!-- Plain HTTP to a server on the local network (development); the public server uses HTTPS. -->
 	<key>NSCameraUsageDescription</key>
-	<string>Alvyo adds the photos you take to your routes and journeys.</string>
+	<string>Alvyo adds the photos you take to your routes and journeys, and names the mountains in the camera's view.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Alvyo adds photos from your library to your routes and journeys.</string>
 	<key>NSHealthShareUsageDescription</key>

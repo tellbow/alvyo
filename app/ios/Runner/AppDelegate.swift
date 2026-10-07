@@ -6,6 +6,7 @@ import UserNotifications
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private let speech = Speech()
+  private let peakMotion = PeakMotion()
 
   override func application(
     _ application: UIApplication,
@@ -36,6 +37,12 @@ import UserNotifications
           result(FlutterError(code: "backup", message: error.localizedDescription, details: nil))
         }
       }
+    }
+    // Recognising mountains: the camera's picture and the phone's attitude.
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoPeaks") {
+      registrar.register(PeakCameraFactory(), withId: "alvyo/peak-camera")
+      FlutterEventChannel(name: "alvyo/peak-motion", binaryMessenger: registrar.messenger())
+        .setStreamHandler(peakMotion)
     }
     // Turn-by-turn prompts.
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoSpeech") {

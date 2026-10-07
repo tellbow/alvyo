@@ -1842,6 +1842,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reachTitle => 'Jusqu’où puis-je aller ?';
 
   @override
+  String get peaksTitle => 'Reconnaître les sommets';
+
+  @override
+  String get peaksDownloadText =>
+      'Pour nommer les sommets dans l’image de la caméra, l’app a besoin une fois des altitudes de la Suisse et des alentours avec tous les sommets (environ 9 Mo). Ensuite, cela fonctionne aussi sans réseau.';
+
+  @override
+  String get peaksDownload => 'Télécharger';
+
+  @override
+  String get peaksDownloadFailed => 'Le téléchargement a échoué. Réessaie.';
+
+  @override
+  String get peaksPreparing => 'En préparation …';
+
+  @override
+  String get peaksComputing => 'Calcul de ce que tu vois d’ici …';
+
+  @override
+  String get peaksNoPosition => 'Ta position est inconnue : autorise la localisation.';
+
+  @override
+  String get peaksNoCompass => 'Cet appareil n’a pas de boussole.';
+
+  @override
+  String get peaksCompass => 'Boussole imprécise : décris quelques huit avec le téléphone.';
+
+  @override
+  String get peaksAlign => 'Si la ligne ne suit pas l’horizon, fais-la glisser du doigt.';
+
+  @override
+  String get peaksReset => 'Réinitialiser';
+
+  @override
+  String peaksDirection(int azimuth, int elevation) {
+    return 'Direction $azimuth° · inclinaison $elevation°';
+  }
+
+  @override
   String get reachAction => 'Portée';
 
   @override

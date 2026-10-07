@@ -1086,6 +1086,28 @@
   "inviteInvalid": "Dieser Einladungslink gilt nicht mehr.",
   "inviteSelf": "Das ist dein eigener Link.",
   "reachTitle": "Wie weit komme ich?",
+  "peaksTitle": "Berge erkennen",
+  "peaksDownloadText": "Damit die App die Gipfel in der Kamera benennen kann, braucht sie einmal die Höhendaten der Schweiz und rundherum mit allen Gipfeln (etwa 9 MB). Danach geht es auch ohne Empfang.",
+  "peaksDownload": "Herunterladen",
+  "peaksDownloadFailed": "Das Herunterladen ging nicht. Versuche es nochmals.",
+  "peaksPreparing": "Wird vorbereitet …",
+  "peaksComputing": "Berechne, was du von hier siehst …",
+  "peaksNoPosition": "Wo du stehst, ist nicht bekannt: erlaube den Standort.",
+  "peaksNoCompass": "Dieses Gerät hat keinen Kompass.",
+  "peaksCompass": "Kompass ungenau: bewege das Telefon ein paar Mal in einer Acht.",
+  "peaksAlign": "Passt die Linie nicht zum Horizont, zieh sie mit dem Finger dorthin.",
+  "peaksReset": "Zurücksetzen",
+  "peaksDirection": "Richtung {azimuth}° · Neigung {elevation}°",
+  "@peaksDirection": {
+    "placeholders": {
+      "azimuth": {
+        "type": "int"
+      },
+      "elevation": {
+        "type": "int"
+      }
+    }
+  },
   "reachAction": "Reichweite",
   "reachIntro": "Tippe auf die Karte, suche einen Ort oder nimm deinen Standort: Die Flächen zeigen, wie weit du von dort in 2, 4 und 8 Stunden kommst, bei deinem Tempo und mit allen Auf- und Abstiegen.",
   "reachSearch": "Start suchen",

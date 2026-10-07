@@ -1840,6 +1840,45 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reachTitle => 'Wie weit komme ich?';
 
   @override
+  String get peaksTitle => 'Berge erkennen';
+
+  @override
+  String get peaksDownloadText =>
+      'Damit die App die Gipfel in der Kamera benennen kann, braucht sie einmal die Höhendaten der Schweiz und rundherum mit allen Gipfeln (etwa 9 MB). Danach geht es auch ohne Empfang.';
+
+  @override
+  String get peaksDownload => 'Herunterladen';
+
+  @override
+  String get peaksDownloadFailed => 'Das Herunterladen ging nicht. Versuche es nochmals.';
+
+  @override
+  String get peaksPreparing => 'Wird vorbereitet …';
+
+  @override
+  String get peaksComputing => 'Berechne, was du von hier siehst …';
+
+  @override
+  String get peaksNoPosition => 'Wo du stehst, ist nicht bekannt: erlaube den Standort.';
+
+  @override
+  String get peaksNoCompass => 'Dieses Gerät hat keinen Kompass.';
+
+  @override
+  String get peaksCompass => 'Kompass ungenau: bewege das Telefon ein paar Mal in einer Acht.';
+
+  @override
+  String get peaksAlign => 'Passt die Linie nicht zum Horizont, zieh sie mit dem Finger dorthin.';
+
+  @override
+  String get peaksReset => 'Zurücksetzen';
+
+  @override
+  String peaksDirection(int azimuth, int elevation) {
+    return 'Richtung $azimuth° · Neigung $elevation°';
+  }
+
+  @override
   String get reachAction => 'Reichweite';
 
   @override

@@ -41,6 +41,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/mailer"
 	"github.com/tellbow/alvyo/api/internal/og"
 	"github.com/tellbow/alvyo/api/internal/packs"
+	"github.com/tellbow/alvyo/api/internal/peaks"
 	"github.com/tellbow/alvyo/api/internal/photos"
 	"github.com/tellbow/alvyo/api/internal/places"
 	"github.com/tellbow/alvyo/api/internal/precip"
@@ -144,6 +145,8 @@ func serve(ctx context.Context) error {
 		MaxAge: 7 * 24 * time.Hour, MaxBytes: 512 << 20,
 	}
 	go packService.PruneEvery(ctx, time.Hour)
+	peakService := &peaks.Service{DB: pool, TilesURL: cfg.TilesURL, Dir: filepath.Join(cfg.CacheDir, "peaks")}
+	_, _, _ = peakService.File() // built in the background unless there
 	photoStore := &photos.Store{DB: pool, Files: &photos.Files{Dir: cfg.PhotosDir}}
 	go photoStore.SweepEvery(ctx, time.Minute) // files of deleted photos
 	liveStore := &live.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
@@ -181,6 +184,7 @@ func serve(ctx context.Context) error {
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},
 		Precip:      &precip.Store{DB: pool},
+		Peaks:       peakService,
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Done:        &done.Store{DB: pool},

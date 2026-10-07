@@ -362,6 +362,13 @@ Checked so far only in the simulator, with made-up or simulated positions
       Safari offers «In der App öffnen»; the app shows who invites and
       «Freunde werden» makes friends. The app on the iPhone after the
       release, as it talks to production.
+- [ ] **Recognising mountains** (68) on the iPhone, outdoors with a view:
+      at home first: pointing north shows «Richtung» near 0°, tilting up
+      raises «Neigung» (the compass's direction is the one thing tests
+      cannot show); then on a summit or a view point: the line follows the
+      skyline, the named summits sit on the right tops, after dragging too;
+      «Kompass ungenau» when it is; the pack downloads once and works in
+      flight mode.
 - [ ] **Rain on the map on the hike** (67): «Regen» on in the app, on a
       day with showers: the radar matches what one sees in the sky, the
       card refreshes every 5 minutes, play runs through the timeline and the

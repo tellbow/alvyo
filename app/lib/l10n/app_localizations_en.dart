@@ -1832,6 +1832,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reachTitle => 'How far can I get?';
 
   @override
+  String get peaksTitle => 'Name the mountains';
+
+  @override
+  String get peaksDownloadText =>
+      'To name the summits in the camera view, the app needs the heights of Switzerland and around it with all summits once (about 9 MB). After that it also works without reception.';
+
+  @override
+  String get peaksDownload => 'Download';
+
+  @override
+  String get peaksDownloadFailed => 'The download failed. Please try again.';
+
+  @override
+  String get peaksPreparing => 'Being prepared …';
+
+  @override
+  String get peaksComputing => 'Working out what you see from here …';
+
+  @override
+  String get peaksNoPosition => 'Where you are is not known: allow the location.';
+
+  @override
+  String get peaksNoCompass => 'This device has no compass.';
+
+  @override
+  String get peaksCompass => 'Compass inaccurate: move the phone in a figure eight a few times.';
+
+  @override
+  String get peaksAlign => 'If the line does not match the horizon, drag it there with your finger.';
+
+  @override
+  String get peaksReset => 'Reset';
+
+  @override
+  String peaksDirection(int azimuth, int elevation) {
+    return 'Direction $azimuth° · tilt $elevation°';
+  }
+
+  @override
   String get reachAction => 'Reach';
 
   @override

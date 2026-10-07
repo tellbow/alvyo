@@ -1756,6 +1756,11 @@ class Api {
   Future<PackStatus> packStatus(String routeId) async =>
       PackStatus.fromJson(await _get('/routes/$routeId/pack') as Map<String, dynamic>);
 
+  /// Starts the download of the pack for recognising mountains; 503 while
+  /// the server still builds it.
+  Future<http.StreamedResponse> peaksPack() async =>
+      _http.send(http.Request('GET', _uri('/peaks/pack'))..headers.addAll(_headers));
+
   /// Starts the download of one layer of a route's offline map (PMTiles),
   /// [from] a byte offset to continue a broken off download (206 then).
   Future<http.StreamedResponse> packFile(String routeId, String layer, {int from = 0}) async {

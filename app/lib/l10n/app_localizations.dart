@@ -3448,6 +3448,78 @@ abstract class AppLocalizations {
   /// **'Wie weit komme ich?'**
   String get reachTitle;
 
+  /// No description provided for @peaksTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Berge erkennen'**
+  String get peaksTitle;
+
+  /// No description provided for @peaksDownloadText.
+  ///
+  /// In de, this message translates to:
+  /// **'Damit die App die Gipfel in der Kamera benennen kann, braucht sie einmal die Höhendaten der Schweiz und rundherum mit allen Gipfeln (etwa 9 MB). Danach geht es auch ohne Empfang.'**
+  String get peaksDownloadText;
+
+  /// No description provided for @peaksDownload.
+  ///
+  /// In de, this message translates to:
+  /// **'Herunterladen'**
+  String get peaksDownload;
+
+  /// No description provided for @peaksDownloadFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Herunterladen ging nicht. Versuche es nochmals.'**
+  String get peaksDownloadFailed;
+
+  /// No description provided for @peaksPreparing.
+  ///
+  /// In de, this message translates to:
+  /// **'Wird vorbereitet …'**
+  String get peaksPreparing;
+
+  /// No description provided for @peaksComputing.
+  ///
+  /// In de, this message translates to:
+  /// **'Berechne, was du von hier siehst …'**
+  String get peaksComputing;
+
+  /// No description provided for @peaksNoPosition.
+  ///
+  /// In de, this message translates to:
+  /// **'Wo du stehst, ist nicht bekannt: erlaube den Standort.'**
+  String get peaksNoPosition;
+
+  /// No description provided for @peaksNoCompass.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieses Gerät hat keinen Kompass.'**
+  String get peaksNoCompass;
+
+  /// No description provided for @peaksCompass.
+  ///
+  /// In de, this message translates to:
+  /// **'Kompass ungenau: bewege das Telefon ein paar Mal in einer Acht.'**
+  String get peaksCompass;
+
+  /// No description provided for @peaksAlign.
+  ///
+  /// In de, this message translates to:
+  /// **'Passt die Linie nicht zum Horizont, zieh sie mit dem Finger dorthin.'**
+  String get peaksAlign;
+
+  /// No description provided for @peaksReset.
+  ///
+  /// In de, this message translates to:
+  /// **'Zurücksetzen'**
+  String get peaksReset;
+
+  /// No description provided for @peaksDirection.
+  ///
+  /// In de, this message translates to:
+  /// **'Richtung {azimuth}° · Neigung {elevation}°'**
+  String peaksDirection(int azimuth, int elevation);
+
   /// No description provided for @reachAction.
   ///
   /// In de, this message translates to:

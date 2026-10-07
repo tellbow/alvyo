@@ -71,6 +71,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.26.0 | 2026-10-07 | Rain radar and forecast on the map (67, issue 15): MeteoSwiss's radar of the last hour and the next 12 hours of ICON-CH1 on a timeline, on the website and in the app, from the new job weather-precip; removing a route or journey from a collection asks first |
 | 0.26.1 | 2026-10-07 | The rain job reaches MeteoSwiss over IPv4 (it hung on the cluster's missing IPv6 route) |
 | 0.26.2 | 2026-10-07 | The website's login answered 500 (the passkeys package was not bundled; since at least 0.17.1); search engines get the language start pages without a redirect (/fr, not /fr/) |
+| next | | Recognising mountains with the camera (68, issue 16): «Berge erkennen» in the app names the summits in sight, also without reception |
 
 ## Requirements
 
@@ -78,7 +79,7 @@ From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
 21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02, 59–61
 on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
-2026-10-07 (from issue 15).
+2026-10-07 (from issue 15), 68 on 2026-10-07 (from issue 16).
 
 ### Done
 
@@ -652,24 +653,30 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     picture and moves one layer between them (the iOS plugin cannot change
     an image source); without reception the last pictures stay.
 
+68. **Recognising mountains with the camera** (issue 16; iPhone, also
+    offline). «Berge erkennen» (the mountain icon on «Meine Routen»): the
+    back camera's picture with the summits in sight named, their height and
+    distance, and the skyline as a line. The pack (`GET /peaks/pack`, logged
+    in, 8.6 MB): a height grid of Switzerland and about 50 km around it
+    (5.0–11.5°E, 45.2–48.4°N, about 150 m cells from Mapterhorn's terrain
+    tiles at zoom 9, rows as differences, gzipped) and the 11 183 named
+    summits with a height; the API builds it in the background (7 s, 31 MB)
+    and keeps it a week; the app downloads it once. On the phone: a summit is
+    named when no terrain between rises above it (earth curvature and
+    refraction counted; the first 300 m and the summit's own flanks left
+    out, as the grid smooths them), up to 200 km, the highest first, at most
+    30 without overlaps; about 0.5 s a place. Native Swift (PeakCamera.swift):
+    the camera as a platform view, CoreMotion's attitude to true north 30
+    times a second with the camera's field of view; one drags the drawn
+    skyline onto the real one when the compass is off. Portrait only. Nearer
+    ridges are not drawn yet (PeakFinder draws them as lines too). Not on the
+    website (Safari has no WebXR).
+
 ### Open
 
 14 was added on 2026-09-24 from a survey of Komoot, AllTrails,
 Outdooractive, SchweizMobil, the swisstopo app and others, and waits for
-Garmin. 44 is from the project owner on 2026-09-29, 68 from issue 16 on
-2026-10-07.
-
-#### 68. Recognising mountains with the camera (iPhone, offline)
-
-Held up, the iPhone's camera picture names the summits in view with their
-heights (like PeakFinder), also without reception. The 11 634 named
-summits of the places import, and a terrain grid of Switzerland and about
-50 km around (100–200 m, 5–20 MB) as a download of its own, so only the
-summits not hidden behind a ridge are named; the skyline drawn from it.
-Native Swift (camera, compass and motion) in a view embedded like the
-method channels, no plugin. The compass is often 5–15° off: one drags the
-drawn skyline onto the real one. Tested only outdoors on the iPhone. Not
-on the website (Safari has no WebXR).
+Garmin. 44 is from the project owner on 2026-09-29.
 
 #### 44. 3D in the app (blocked)
 

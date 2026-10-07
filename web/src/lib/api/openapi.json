@@ -12565,6 +12565,31 @@
         ]
       }
     },
+    "/peaks/pack": {
+      "get": {
+        "description": "A height grid of Switzerland and about 50 km around it and the named summits, gzipped (format: api/internal/peaks). 503 with Retry-After while it is being built. Supports Range requests.",
+        "operationId": "download-peaks-pack",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The pack for recognising mountains in the camera view",
+        "tags": [
+          "peaks"
+        ]
+      }
+    },
     "/photos/{photo}/{size}": {
       "get": {
         "description": "Stored without metadata. large: at most 2048 px, thumb: at most 480 px on the long edge.",

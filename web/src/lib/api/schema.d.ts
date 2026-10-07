@@ -1609,6 +1609,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/peaks/pack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The pack for recognising mountains in the camera view
+         * @description A height grid of Switzerland and about 50 km around it and the named summits, gzipped (format: api/internal/peaks). 503 with Retry-After while it is being built. Supports Range requests.
+         */
+        get: operations["download-peaks-pack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/photos/{photo}/{size}": {
         parameters: {
             query?: never;
@@ -8545,6 +8565,33 @@ export interface operations {
         responses: {
             /** @description No Content */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "download-peaks-pack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

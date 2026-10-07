@@ -67,7 +67,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.22.1 | 2026-10-05 | Page views titled by their route (the title was empty behind the language prefix) |
 | 0.24.0 | 2026-10-05 | How far one gets (65): «Reichweite» in «Planen» and «Wie weit komme ich?» in the app, areas reached within 2, 4 and 8 hours; GraphHopper's graph with elevation; no turns announced from GPS jitter |
 | 0.23.0 | 2026-10-05 | A point along the way on the map (63); the app catches up (64): trail conditions, photos counted, planned or hiked on one's map, invite links; the icons along the way load without warnings; the header's controls with more contrast |
-| next | | A shared collection shares its items (66, issue 17): by link or as public to view, with the people invited in their role (viewer or editor); how many items one cannot see instead of «Noch leer»; in the app a journey's stages keep the token it was opened with |
+| 0.25.0 | 2026-10-07 | A shared collection shares its items (66, issue 17): by link or as public to view, with the people invited in their role (viewer or editor); how many items one cannot see instead of «Noch leer»; in the app a journey's stages keep the token it was opened with |
 
 ## Requirements
 

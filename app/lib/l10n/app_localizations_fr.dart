@@ -1210,6 +1210,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get collectionRemoveItem => 'Retirer';
 
   @override
+  String collectionRemoveConfirm(String title) {
+    return 'Retirer « $title » de la collection ? L’itinéraire ou la randonnée par étapes reste.';
+  }
+
+  @override
   String get collectionDelete => 'Supprimer la collection';
 
   @override

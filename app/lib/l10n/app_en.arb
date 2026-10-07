@@ -363,6 +363,7 @@
   "collectionAdded": "Added to “{title}”",
   "collectionAlready": "Already in “{title}”",
   "collectionRemoveItem": "Remove",
+  "collectionRemoveConfirm": "Remove “{title}” from the collection? The route or journey itself stays.",
   "collectionDelete": "Delete collection",
   "collectionDeleteConfirm": "Delete the collection? Routes and journeys stay.",
   "collectionStages": "{n} stages",

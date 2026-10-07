@@ -1210,6 +1210,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get collectionRemoveItem => 'Entfernen';
 
   @override
+  String collectionRemoveConfirm(String title) {
+    return '«$title» aus der Sammlung entfernen? Die Route oder Etappentour selbst bleibt.';
+  }
+
+  @override
   String get collectionDelete => 'Sammlung löschen';
 
   @override

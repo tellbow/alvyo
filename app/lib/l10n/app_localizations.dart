@@ -2272,6 +2272,12 @@ abstract class AppLocalizations {
   /// **'Entfernen'**
   String get collectionRemoveItem;
 
+  /// No description provided for @collectionRemoveConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'«{title}» aus der Sammlung entfernen? Die Route oder Etappentour selbst bleibt.'**
+  String collectionRemoveConfirm(String title);
+
   /// No description provided for @collectionDelete.
   ///
   /// In de, this message translates to:

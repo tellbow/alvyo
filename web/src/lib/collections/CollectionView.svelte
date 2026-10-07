@@ -35,6 +35,7 @@
 	let map = $state<MapLibreMap>();
 	let highlight = $state<string>();
 	let confirming = $state(false);
+	let removing = $state<string>(); // the item asked about before removing
 	let error = $state('');
 
 	const shareUrl = $derived(
@@ -277,9 +278,30 @@
 								<button
 									type="button"
 									class="text-stone-500 underline"
-									onclick={() => removeItem(it)}>{m.collection_remove_item()}</button
+									onclick={() => (removing = it.id)}>{m.collection_remove_item()}</button
 								>
 							</div>
+							{#if removing === it.id}
+								<div
+									class="mt-2 flex flex-wrap items-center gap-2 text-xs"
+									data-testid="remove-confirm"
+								>
+									<span class="flex-1">{m.collection_remove_confirm({ title: it.title })}</span>
+									<button
+										type="button"
+										class="rounded bg-red-700 px-2 py-1 text-white"
+										onclick={() => {
+											removing = undefined;
+											removeItem(it);
+										}}>{m.collection_remove_item()}</button
+									>
+									<button
+										type="button"
+										class="text-stone-500 underline"
+										onclick={() => (removing = undefined)}>{m.collection_remove_cancel()}</button
+									>
+								</div>
+							{/if}
 						{:else if it.note}
 							<p class="mt-1 text-xs text-stone-600">{it.note}</p>
 						{/if}

@@ -1204,6 +1204,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectionRemoveItem => 'Remove';
 
   @override
+  String collectionRemoveConfirm(String title) {
+    return 'Remove “$title” from the collection? The route or journey itself stays.';
+  }
+
+  @override
   String get collectionDelete => 'Delete collection';
 
   @override

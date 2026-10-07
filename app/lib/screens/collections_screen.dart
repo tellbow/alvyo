@@ -119,6 +119,26 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
   Future<void> _remove(CollectionItem i) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(t.collectionRemoveConfirm(i.title)),
+        actions: [
+          TextButton(
+            key: const Key('remove-cancel'),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.cancel),
+          ),
+          FilledButton(
+            key: const Key('remove-confirm'),
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(t.collectionRemoveItem),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
     try {
       final c = await widget.api.removeFromCollection(widget.id, i.id);
       if (mounted) {

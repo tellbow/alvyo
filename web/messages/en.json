@@ -250,6 +250,8 @@
 	"collection_kind_journey": "Journey",
 	"collection_note_placeholder": "Note",
 	"collection_remove_item": "Remove",
+	"collection_remove_confirm": "Remove “{title}” from the collection? The route or journey itself stays.",
+	"collection_remove_cancel": "Cancel",
 	"collection_delete": "Delete collection",
 	"collection_delete_confirm": "Delete the collection? Routes and journeys stay.",
 	"collection_description_placeholder": "Description",

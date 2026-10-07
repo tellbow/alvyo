@@ -190,3 +190,34 @@ test('a collection shared by link opens its private routes', async ({ page, brow
 	expect(guest.url()).toContain(`?t=c.${collection.id}.${collection.share_token}`);
 	await guest.close();
 });
+
+test('removing from a collection asks first', async ({ page }) => {
+	const id = `crm${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Sammler',
+			password: 'sehr-geheim-123'
+		}
+	});
+	expect(signup.status()).toBe(201);
+	const route = await createRoute(page.request, 'Bachalpsee', 8.04);
+	const created = await page.request.post('/api/v1/collections', { data: { title: 'Herbst' } });
+	const collection = (await created.json()).id as string;
+	await page.request.post(`/api/v1/collections/${collection}/items`, { data: { route_id: route } });
+
+	await page.goto(`/collections/${collection}`);
+	const items = page.getByTestId('collection-item');
+	await expect(items).toHaveCount(1);
+	await items.getByRole('button', { name: 'Entfernen' }).click();
+	const confirm = page.getByTestId('remove-confirm');
+	await expect(confirm).toContainText('«Bachalpsee» aus der Sammlung entfernen?');
+	await confirm.getByRole('button', { name: 'Abbrechen' }).click();
+	await expect(confirm).toHaveCount(0);
+	await expect(items).toHaveCount(1);
+
+	await items.getByRole('button', { name: 'Entfernen' }).click();
+	await confirm.getByRole('button', { name: 'Entfernen' }).click();
+	await expect(items).toHaveCount(0);
+});

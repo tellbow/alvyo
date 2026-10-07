@@ -363,6 +363,7 @@
   "collectionAdded": "Ajouté à « {title} »",
   "collectionAlready": "Déjà dans « {title} »",
   "collectionRemoveItem": "Retirer",
+  "collectionRemoveConfirm": "Retirer « {title} » de la collection ? L’itinéraire ou la randonnée par étapes reste.",
   "collectionDelete": "Supprimer la collection",
   "collectionDeleteConfirm": "Supprimer la collection ? Les itinéraires et randonnées restent.",
   "collectionStages": "{n} étapes",

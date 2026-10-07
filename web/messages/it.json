@@ -250,6 +250,8 @@
 	"collection_kind_journey": "Trekking a tappe",
 	"collection_note_placeholder": "Nota",
 	"collection_remove_item": "Rimuovi",
+	"collection_remove_confirm": "Rimuovere «{title}» dalla raccolta? Il percorso o il trekking a tappe resta.",
+	"collection_remove_cancel": "Annulla",
 	"collection_delete": "Elimina raccolta",
 	"collection_delete_confirm": "Eliminare la raccolta? Percorsi e trekking restano.",
 	"collection_description_placeholder": "Descrizione",

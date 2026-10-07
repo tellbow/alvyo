@@ -116,4 +116,44 @@ void main() {
   testWidgets('nor does the owner', (tester) async {
     expect(await openRoute(tester, visibility: 'unlisted', role: 'owner', link: 'linktoken'), isNull);
   });
+
+  testWidgets('removing a tour asks first', (tester) async {
+    final deleted = <String>[];
+    final api = Api(
+      'https://alvyo.test',
+      client: MockClient((req) async {
+        if (req.method == 'DELETE') deleted.add(req.url.path);
+        return _json(_body(visibility: 'private', role: 'editor'));
+      }),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: CollectionScreen(api: api, id: _collection, title: ''),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('item-remove-i1')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('«Bachalpsee» aus der Sammlung entfernen? Die Route oder Etappentour selbst bleibt.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('remove-cancel')));
+    await tester.pumpAndSettle();
+    expect(deleted, isEmpty);
+
+    await tester.tap(find.byKey(const Key('item-remove-i1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('remove-confirm')));
+    await tester.pumpAndSettle();
+    expect(deleted, ['/api/v1/collections/$_collection/items/i1']);
+  });
 }

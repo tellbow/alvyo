@@ -250,6 +250,8 @@
 	"collection_kind_journey": "Etappentour",
 	"collection_note_placeholder": "Notiz",
 	"collection_remove_item": "Entfernen",
+	"collection_remove_confirm": "«{title}» aus der Sammlung entfernen? Die Route oder Etappentour selbst bleibt.",
+	"collection_remove_cancel": "Abbrechen",
 	"collection_delete": "Sammlung löschen",
 	"collection_delete_confirm": "Sammlung löschen? Routen und Etappentouren bleiben.",
 	"collection_description_placeholder": "Beschreibung",

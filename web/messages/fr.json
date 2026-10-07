@@ -250,6 +250,8 @@
 	"collection_kind_journey": "Randonnée par étapes",
 	"collection_note_placeholder": "Note",
 	"collection_remove_item": "Retirer",
+	"collection_remove_confirm": "Retirer « {title} » de la collection ? L’itinéraire ou la randonnée par étapes reste.",
+	"collection_remove_cancel": "Annuler",
 	"collection_delete": "Supprimer la collection",
 	"collection_delete_confirm": "Supprimer la collection ? Les itinéraires et randonnées restent.",
 	"collection_description_placeholder": "Description",

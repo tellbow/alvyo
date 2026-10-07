@@ -363,6 +363,7 @@
   "collectionAdded": "Aggiunto a «{title}»",
   "collectionAlready": "Già in «{title}»",
   "collectionRemoveItem": "Rimuovi",
+  "collectionRemoveConfirm": "Rimuovere «{title}» dalla raccolta? Il percorso o il trekking a tappe resta.",
   "collectionDelete": "Elimina raccolta",
   "collectionDeleteConfirm": "Eliminare la raccolta? Percorsi e trekking restano.",
   "collectionStages": "{n} tappe",

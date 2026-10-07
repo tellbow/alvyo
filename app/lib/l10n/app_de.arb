@@ -720,6 +720,14 @@
     }
   },
   "collectionRemoveItem": "Entfernen",
+  "collectionRemoveConfirm": "«{title}» aus der Sammlung entfernen? Die Route oder Etappentour selbst bleibt.",
+  "@collectionRemoveConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "collectionDelete": "Sammlung löschen",
   "collectionDeleteConfirm": "Sammlung löschen? Routen und Etappentouren bleiben.",
   "collectionStages": "{n} Etappen",

@@ -1832,6 +1832,185 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reachTitle => 'How far can I get?';
 
   @override
+  String get reachBackHint => 'There and back, uphill and downhill each with its own time';
+
+  @override
+  String get importFile => 'File (GPX, KML, TCX, FIT)';
+
+  @override
+  String get importFileHint => 'Becomes a private route';
+
+  @override
+  String get importNotTrack => 'This file contains no track Alvyo can read (GPX, KML, TCX or FIT).';
+
+  @override
+  String reachWithinBack(int hours) {
+    return 'up to $hours hours, there and back';
+  }
+
+  @override
+  String get plannerVia => 'Stop';
+
+  @override
+  String get plannerSearchVia => 'Search a stop …';
+
+  @override
+  String get plannerRoundTrip => 'Round trip';
+
+  @override
+  String get plannerReturn => 'Back to the start';
+
+  @override
+  String get recordFollow => 'Follow a tour (optional)';
+
+  @override
+  String get recordChooseTour => 'Choose a tour';
+
+  @override
+  String get recordWithoutTour => 'Without a tour';
+
+  @override
+  String get recordNoTours => 'No planned tours yet. Plan one under «Plan».';
+
+  @override
+  String get devicesTitle => 'Connected devices';
+
+  @override
+  String get devicesSubtitle => 'Apple Watch · import tours automatically';
+
+  @override
+  String get devicesWatch => 'Apple Watch';
+
+  @override
+  String get devicesWatchHint => 'Hikes from the Workout app, through Apple Health';
+
+  @override
+  String get devicesWatchAuto => 'Import new hikes automatically';
+
+  @override
+  String get devicesWatchAutoHint => 'When you open the app – hikes from now on';
+
+  @override
+  String get devicesWatchPick => 'Choose hikes and import them';
+
+  @override
+  String get profileAccount => 'Account';
+
+  @override
+  String get accountPaceShort => 'Hiking times relative to the signposts';
+
+  @override
+  String devicesWatchImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hikes imported from the Apple Watch',
+      one: '1 hike imported from the Apple Watch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importTitle => 'Import';
+
+  @override
+  String get importAction => 'Import';
+
+  @override
+  String get importWatchHint => 'Hikes you recorded with your watch';
+
+  @override
+  String get planDay => 'Day tour';
+
+  @override
+  String get planMulti => 'Several days';
+
+  @override
+  String get planReach => 'Reach';
+
+  @override
+  String get discoverSearchHint => 'Search a place or summit';
+
+  @override
+  String get discoverSearchNone => 'Nothing found. Try another name.';
+
+  @override
+  String get discoverReachHint => 'Reach from where you are';
+
+  @override
+  String get discoverPeaks => 'Look at summits';
+
+  @override
+  String get discoverPeaksHint => 'Camera on the horizon';
+
+  @override
+  String get discoverFollowing => 'From people you follow';
+
+  @override
+  String get discoverAll => 'All';
+
+  @override
+  String get discoverFollowingEmpty =>
+      'Nothing yet from people you follow. Follow friends to see their new tours here.';
+
+  @override
+  String get discoverNearby => 'Near you';
+
+  @override
+  String get discoverNearbyNoPosition => 'Allow the location to see tours near you.';
+
+  @override
+  String get discoverNearbyAllow => 'Allow location';
+
+  @override
+  String get discoverNearbyEmpty => 'No tour has been published around you yet. You find more on the map.';
+
+  @override
+  String get toursTitle => 'Tours';
+
+  @override
+  String get toursMap => 'Map';
+
+  @override
+  String get toursList => 'List';
+
+  @override
+  String get toursJourneys => 'Journeys';
+
+  @override
+  String get toursShared => 'Shared';
+
+  @override
+  String get toursEmptyPlanned => 'No planned tours yet. Plan a route or a journey – it then appears here.';
+
+  @override
+  String get toursEmptyHiked => 'Nothing hiked yet. Record your next hike – it then appears here.';
+
+  @override
+  String get toursPlanAction => 'Plan a tour';
+
+  @override
+  String get barDiscover => 'Discover';
+
+  @override
+  String get barPlan => 'Plan';
+
+  @override
+  String get barTours => 'Tours';
+
+  @override
+  String get tourRoute => 'Route';
+
+  @override
+  String get tourJourney => 'Journey';
+
+  @override
+  String get tourSharedBy => 'shared by';
+
+  @override
+  String get tourBy => 'by';
+
+  @override
   String get peaksTitle => 'Name the mountains';
 
   @override

@@ -86,10 +86,14 @@ void main() {
     final settings = AppSettings();
     await _pump(tester, ProfileTab(api: server.api, onLogout: () {}, settings: settings));
     await _settle(tester);
-    expect(find.text('@wodan · wodan@example.ch'), findsOneWidget);
+    expect(find.text('@wodan · Mein Profil'), findsOneWidget);
+    expect(find.textContaining('wodan@example.ch'), findsOneWidget);
 
+    // Each setting shows its value and is chosen in a sheet.
+    await tester.tap(find.byKey(const Key('theme')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Dunkel'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(settings.theme.value, ThemeMode.dark);
 
     await tester.tap(find.byKey(const Key('language')));
@@ -99,6 +103,8 @@ void main() {
     expect(settings.locale.value, const Locale('fr'));
     expect(server.calls, contains('PATCH /api/v1/me {"locale":"fr"}'));
 
+    await tester.tap(find.byKey(const Key('notifications')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('notify-comments')));
     await _settle(tester);
     expect(server.calls, contains('PATCH /api/v1/me {"notify_comments":true}'));

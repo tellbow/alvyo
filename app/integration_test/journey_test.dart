@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/main.dart';
+import 'package:alvyo/screens/journey_screen.dart';
 import 'package:alvyo/offline/packs.dart';
 
 import 'offline_test.dart' show OfflineSession;
@@ -46,11 +47,11 @@ void main() {
       await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
       await tester.tap(find.byKey(const Key('submit')));
     }
-    await waitFor(tester, find.byKey(const Key('tab-journeys')));
-    await tester.tap(find.byKey(const Key('tab-journeys')));
+    await waitFor(tester, find.byKey(const Key('tab-tours')));
+    await tester.tap(find.byKey(const Key('tab-tours')));
     await waitFor(tester, find.text('Via Alpina'));
     await tester.pump(const Duration(seconds: 1)); // the tabs slide
-    await tester.tap(find.text('Via Alpina'));
+    await tapAboveBar(tester, find.text('Via Alpina'));
 
     await waitFor(tester, find.text('Gaflei – Sargans'));
     expect(find.text('Sargans – Weisstannen'), findsOneWidget);
@@ -68,15 +69,34 @@ void main() {
 
     // Without a connection: the saved journey, and a stage on its offline map.
     await tester.pumpWidget(AlvyoApp(key: UniqueKey(), session: OfflineSession()));
-    await waitFor(tester, find.byKey(const Key('tab-journeys')));
-    await tester.tap(find.byKey(const Key('tab-journeys')));
-    await waitFor(tester, find.byKey(const Key('journeys-offline')));
+    await waitFor(tester, find.byKey(const Key('tab-tours')));
+    await tester.tap(find.byKey(const Key('tab-tours')));
+    await waitFor(tester, find.byKey(const Key('tours-offline')));
     await tester.pump(const Duration(seconds: 1));
-    await tester.tap(find.text('Via Alpina'));
-    await waitFor(tester, find.text('Sargans – Weisstannen'));
-    await tester.tap(find.text('Sargans – Weisstannen'));
+    await tapAboveBar(tester, find.text('Via Alpina'));
+    // The stage on the journey's page: Touren lists a route of that name too.
+    final stage = find.descendant(of: find.byType(JourneyScreen), matching: find.text('Sargans – Weisstannen'));
+    await waitFor(tester, stage);
+    await tester.pump(const Duration(seconds: 1)); // the page slides in
+    await tester.tap(stage);
     await waitFor(tester, find.byKey(const Key('offline-remove')));
     expect(find.byKey(const Key('nav-start')), findsOneWidget);
     await tester.pump(const Duration(seconds: 5)); // for a screenshot
   });
+}
+
+/// Taps [f] in a list that runs under the floating bar: scrolled only when
+/// it is not clear of the bar (a short list scrolled anyway bounces back).
+Future<void> tapAboveBar(WidgetTester tester, Finder f) async {
+  final view = tester.view;
+  final clear = view.physicalSize.height / view.devicePixelRatio - 160;
+  if (tester.getCenter(f).dy > clear) {
+    final list = find.ancestor(of: f, matching: find.byType(Scrollable)).first;
+    await tester.ensureVisible(f);
+    await tester.pump(const Duration(seconds: 1));
+    final y = tester.getCenter(f).dy;
+    if (y > clear) await tester.drag(list, Offset(0, clear - y));
+    await tester.pump(const Duration(seconds: 1));
+  }
+  await tester.tap(f);
 }

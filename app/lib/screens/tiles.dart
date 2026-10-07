@@ -4,10 +4,9 @@ import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import 'done.dart';
-import 'item_card.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
-import 'tag_chips.dart';
+import 'tour_card.dart';
 
 /// Opens a route or journey; done when back from it.
 Future<void> openItem(
@@ -34,29 +33,22 @@ class RouteTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final r = route;
-    return ItemCard(
-      child: ListTile(
-        title: Text(r.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        leading: r.hikedAt != null ? Icon(Icons.hiking, semanticLabel: t.routesHiked(formatDate(r.hikedAt!))) : null,
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 4,
-          children: [
-            Text(
-              '${owner != null ? '${t.ownerBy(owner!)} · ' : ''}'
-              '${r.hikedAt != null
-                  ? '${t.routesHiked(formatDate(r.hikedAt!))} · '
-                  : r.doneOn != null
-                  ? '✓ ${doneText(t, r.doneOn!)} · '
-                  : ''}'
-              '${formatDistance(r.totals.distanceM)} · ${formatHikingTime(r.totals.durationS)} · '
-              '↑\u00a0${formatHeight(r.totals.ascentM)} · ${formatSac(r.totals.sacGrade, r.totals.sacMax)}',
-            ),
-            if (r.tags.isNotEmpty) TagChips(r.tags),
-          ],
-        ),
-        onTap: onTap,
-      ),
+    return TourCard(
+      kind: owner != null ? '${t.tourRoute} · ${t.tourSharedBy}' : t.tourRoute,
+      owner: owner,
+      title: r.title,
+      distanceM: r.totals.distanceM,
+      durationS: r.totals.durationS,
+      ascentM: r.totals.ascentM,
+      sacGrade: r.totals.sacGrade,
+      sacMax: r.totals.sacMax,
+      note: r.hikedAt != null
+          ? t.routesHiked(formatDate(r.hikedAt!))
+          : r.doneOn != null
+          ? '✓ ${doneText(t, r.doneOn!)}'
+          : null,
+      tags: r.tags,
+      onTap: onTap,
     );
   }
 }
@@ -72,24 +64,19 @@ class JourneyTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final j = journey;
-    return ItemCard(
-      child: ListTile(
-        title: Text(j.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 4,
-          children: [
-            Text(
-              '${owner != null ? '${t.ownerBy(owner!)} · ' : ''}'
-              '${j.doneOn != null ? '✓ ${doneText(t, j.doneOn!)} · ' : ''}'
-              '${t.journeyStagesCount(j.stagesDone, j.stages)} · '
-              '${formatDistance(j.distanceM)} · ${formatHikingTime(j.durationS)} · ↑\u00a0${formatHeight(j.ascentM)}',
-            ),
-            if (j.tags.isNotEmpty) TagChips(j.tags),
-          ],
-        ),
-        onTap: onTap,
-      ),
+    return TourCard(
+      journey: true,
+      kind: [t.tourJourney, t.collectionStages(j.stages), if (owner != null) t.tourSharedBy].join(' · '),
+      owner: owner,
+      title: j.title,
+      distanceM: j.distanceM,
+      durationS: j.durationS,
+      ascentM: j.ascentM,
+      stages: j.stages,
+      stagesDone: j.stagesDone,
+      note: j.doneOn != null ? '✓ ${doneText(t, j.doneOn!)}' : null,
+      tags: j.tags,
+      onTap: onTap,
     );
   }
 }
@@ -118,33 +105,29 @@ class OtherTile extends StatelessWidget {
   final int durationS, sacGrade, sacMax, stages;
   final VoidCallback onTap;
 
-  /// Shown above the numbers, e.g. when it was published.
+  /// Shown under the numbers, e.g. when it was published.
   final String? extra;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return ItemCard(
-      child: ListTile(
-        leading: Icon(journey ? Icons.flag_outlined : Icons.route_outlined),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(
-          [
-            [t.ownerBy(owner), ?extra].join(' · '),
-            [
-              if (journey) t.collectionStages(stages),
-              formatDistance(distanceM),
-              formatHikingTime(durationS),
-              '↑\u00a0${formatHeight(ascentM)}',
-              formatSac(sacGrade, sacMax),
-            ].join(' · '),
-          ].join('\n'),
-        ),
-        isThreeLine: true,
-        trailing: trailing,
-        onTap: onTap,
-      ),
+    return TourCard(
+      journey: journey,
+      kind: [
+        if (journey) ...[t.tourJourney, t.collectionStages(stages)] else t.tourRoute,
+        t.tourBy,
+      ].join(' · '),
+      owner: owner,
+      title: title,
+      distanceM: distanceM,
+      durationS: durationS,
+      ascentM: ascentM,
+      sacGrade: sacGrade,
+      sacMax: sacMax,
+      note: extra,
+      trailing: trailing,
+      onTap: onTap,
     );
   }
 }

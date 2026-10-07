@@ -38,6 +38,7 @@ type Router struct {
 	GraphHopper *GraphHopper
 	Elevation   elevation.Sampler
 	Trails      *TrailMatcher
+	Outlines    *Outliner // the round trip's areas (ReachBack)
 }
 
 // LegRequest asks for the leg between two anchors.

@@ -4325,6 +4325,10 @@
       "ReachInputBody": {
         "additionalProperties": false,
         "properties": {
+          "back": {
+            "description": "Back at the start within the hours: out and back timed each in its own direction",
+            "type": "boolean"
+          },
           "from": {
             "$ref": "#/components/schemas/Point"
           },

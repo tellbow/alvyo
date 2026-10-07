@@ -28,8 +28,9 @@ void main() {
       await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
       await tester.tap(find.byKey(const Key('submit')));
     }
-    await waitFor(tester, find.byKey(const Key('reach')));
-    await tester.tap(find.byKey(const Key('reach')));
+    // Entdecken › Wie weit komme ich? opens Planen › Reichweite.
+    await waitFor(tester, find.byKey(const Key('tool-reach')));
+    await tester.tap(find.byKey(const Key('tool-reach')));
     await waitFor(tester, find.byKey(const Key('place-search-open')));
     await settle(tester);
 
@@ -38,7 +39,6 @@ void main() {
     await tester.enterText(find.byKey(const Key('place-search')), 'Sargans');
     await waitFor(tester, find.byKey(const Key('place-result-0')));
     await tester.tap(find.byKey(const Key('place-result-0')));
-    await waitFor(tester, find.byKey(const Key('reach-start')));
     // The answer is in once the notice has gone; the legend is below.
     await waitFor(tester, find.text('Working out how far you get …'), timeout: const Duration(seconds: 5));
     final end = DateTime.now().add(const Duration(seconds: 60));
@@ -51,7 +51,8 @@ void main() {
       100,
       scrollable: find.descendant(of: find.byKey(const Key('reach-panel')), matching: find.byType(Scrollable)).first,
     );
-    expect(find.byKey(const Key('reach-legend-2')), findsOneWidget);
+    expect(find.byKey(const Key('reach-legend-2')), findsOneWidget); // there and back, by default
+    expect(find.byKey(const Key('reach-start')), findsOneWidget); // in the panel, scrolled to
     debugPrint('READY');
     await tester.pump(const Duration(seconds: 6));
   });

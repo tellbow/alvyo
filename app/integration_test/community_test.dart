@@ -61,6 +61,8 @@ void main() {
     await start(tester);
     await tester.tap(find.byKey(const Key('tab-profile')));
     await waitFor(tester, find.byKey(const Key('theme')));
+    await tester.tap(find.byKey(const Key('theme'))); // a sheet with the choices
+    await settle(tester);
     await tester.tap(find.text('Dark')); // the simulator is in English
     await settle(tester);
     expect(Theme.of(tester.element(find.byKey(const Key('theme')))).brightness, Brightness.dark);
@@ -70,12 +72,15 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Italiano').last);
     await settle(tester);
-    expect(find.text('Impostazioni'), findsOneWidget);
+    expect(find.text('IMPOSTAZIONI'), findsOneWidget); // the settings' heading
     final api = await login();
     expect((await api.me()).locale, 'it', reason: 'e-mails in Italian too');
 
     // Back to the phone's: light or dark and the language of the simulator.
-    await tester.tap(find.text('Automatico'));
+    await tester.tap(find.byKey(const Key('theme')));
+    await settle(tester);
+    await tester.tap(find.text('Automatico').last);
+    await settle(tester);
     await tester.tap(find.byKey(const Key('language')));
     await settle(tester);
     await tester.tap(find.text('Automatico').last);
@@ -92,9 +97,11 @@ void main() {
     final note = 'Test ${DateTime.now().millisecondsSinceEpoch}';
 
     await start(tester);
+    await waitFor(tester, find.byKey(const Key('tab-tours')));
+    await tester.tap(find.byKey(const Key('tab-tours')));
     await waitFor(tester, find.text('Sargans–Weisstannen'));
     await settle(tester);
-    await tester.tap(find.text('Sargans–Weisstannen'));
+    await tapAboveBar(tester, find.text('Sargans–Weisstannen'));
     await waitFor(tester, find.byKey(const Key('item-menu')));
     await settle(tester);
 
@@ -165,10 +172,10 @@ void main() {
     final hut = 'Hütte ${DateTime.now().millisecondsSinceEpoch}';
 
     await start(tester);
-    await tester.tap(find.byKey(const Key('tab-journeys')));
+    await tester.tap(find.byKey(const Key('tab-tours')));
     await waitFor(tester, find.text('Via Alpina'));
     await settle(tester);
-    await tester.tap(find.text('Via Alpina'));
+    await tapAboveBar(tester, find.text('Via Alpina'));
     await waitFor(tester, find.byKey(const Key('stage-more-0')));
     await settle(tester);
     await tester.tap(find.byKey(const Key('stage-more-0')));
@@ -205,12 +212,33 @@ void main() {
 
   testWidgets('the feed and the map of one\'s tours open', (tester) async {
     await start(tester);
-    await tester.tap(find.byKey(const Key('tab-feed')));
+    // The feed on Entdecken; «Alle» for all of it.
+    await tester.tap(find.byKey(const Key('tab-discover')));
+    await waitFor(tester, find.byKey(const Key('feed-all')));
+    await tester.tap(find.byKey(const Key('feed-all')));
     await waitFor(tester, find.byType(RefreshIndicator));
     await settle(tester);
-    await tester.tap(find.byKey(const Key('tab-profile')));
-    await waitFor(tester, find.byKey(const Key('my-map')));
-    await tester.tap(find.byKey(const Key('my-map')));
+    await tester.pageBack();
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('tab-tours')));
+    await waitFor(tester, find.byKey(const Key('tours-map')));
+    await tester.tap(find.byKey(const Key('tours-map')));
     await waitFor(tester, find.byKey(const Key('discover-item-0')), timeout: const Duration(seconds: 30));
   });
+}
+
+/// Taps [f] in a list that runs under the floating bar: scrolled only when
+/// it is not clear of the bar (a short list scrolled anyway bounces back).
+Future<void> tapAboveBar(WidgetTester tester, Finder f) async {
+  final view = tester.view;
+  final clear = view.physicalSize.height / view.devicePixelRatio - 160;
+  if (tester.getCenter(f).dy > clear) {
+    final list = find.ancestor(of: f, matching: find.byType(Scrollable)).first;
+    await tester.ensureVisible(f);
+    await tester.pump(const Duration(seconds: 1));
+    final y = tester.getCenter(f).dy;
+    if (y > clear) await tester.drag(list, Offset(0, clear - y));
+    await tester.pump(const Duration(seconds: 1));
+  }
+  await tester.tap(f);
 }

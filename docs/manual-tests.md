@@ -362,6 +362,12 @@ Checked so far only in the simulator, with made-up or simulated positions
       Safari offers «In der App öffnen»; the app shows who invites and
       «Freunde werden» makes friends. The app on the iPhone after the
       release, as it talks to production.
+- [ ] **The new navigation** (69) on the iPhone: the four tabs and the
+      record button; «In deiner Nähe» where one is; a GPX file from the
+      Files app or a mail imported under Planen › Importieren; a planned
+      «Rundtour» hiked; «Einer Tour folgen» on Aufzeichnen starts following
+      at once; with «Neue Wanderungen automatisch importieren» on, a hike
+      recorded on the Apple Watch becomes a route when the app opens.
 - [ ] **Recognising mountains** (68) on the iPhone, outdoors with a view:
       at home first: pointing north shows «Richtung» near 0°, tilting up
       raises «Neigung» (the compass's direction is the one thing tests

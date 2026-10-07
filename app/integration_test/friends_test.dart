@@ -110,9 +110,11 @@ void main() {
     }
 
     await start(tester);
+    await waitFor(tester, find.byKey(const Key('tab-tours')));
+    await tester.tap(find.byKey(const Key('tab-tours')));
     await waitFor(tester, find.text('Sargans–Weisstannen'));
     await settle(tester);
-    await tester.tap(find.text('Sargans–Weisstannen'));
+    await tapAboveBar(tester, find.text('Sargans–Weisstannen'));
     await waitFor(tester, find.byKey(const Key('item-menu')));
     await settle(tester);
     try {
@@ -143,10 +145,10 @@ void main() {
       // My map, hiked only: the route is there.
       await tester.pageBack();
       await settle(tester);
-      await tester.tap(find.byKey(const Key('tab-profile')));
+      // Touren › Karte (once Profil › Karte meiner Touren).
+      await tester.tap(find.byKey(const Key('tab-tours')));
       await settle(tester);
-      await tester.scrollUntilVisible(find.byKey(const Key('my-map')), 200, scrollable: find.byType(Scrollable).last);
-      await tester.tap(find.byKey(const Key('my-map')));
+      await tester.tap(find.byKey(const Key('tours-map')));
       await waitFor(tester, find.byKey(const Key('discover-done')));
       await tester.ensureVisible(find.byKey(const Key('discover-done')));
       await settle(tester);
@@ -158,4 +160,20 @@ void main() {
       await api.setDone(route.id, journey: false, on: false);
     }
   });
+}
+
+/// Taps [f] in a list that runs under the floating bar: scrolled only when
+/// it is not clear of the bar (a short list scrolled anyway bounces back).
+Future<void> tapAboveBar(WidgetTester tester, Finder f) async {
+  final view = tester.view;
+  final clear = view.physicalSize.height / view.devicePixelRatio - 160;
+  if (tester.getCenter(f).dy > clear) {
+    final list = find.ancestor(of: f, matching: find.byType(Scrollable)).first;
+    await tester.ensureVisible(f);
+    await tester.pump(const Duration(seconds: 1));
+    final y = tester.getCenter(f).dy;
+    if (y > clear) await tester.drag(list, Offset(0, clear - y));
+    await tester.pump(const Duration(seconds: 1));
+  }
+  await tester.tap(f);
 }

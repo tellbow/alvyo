@@ -51,6 +51,7 @@ type reachInput struct {
 	Body struct {
 		From    Point  `json:"from"`
 		Profile string `json:"profile,omitempty" enum:"hike,alpine" default:"hike"`
+		Back    bool   `json:"back,omitempty" doc:"Back at the start within the hours: out and back timed each in its own direction"`
 	}
 }
 
@@ -133,7 +134,12 @@ func registerRouting(api huma.API, d Deps) {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		}
-		areas, err := d.Router.GraphHopper.Reach(ctx, in.Body.From.geo(), in.Body.Profile, float64(u.SpeedFactor))
+		var areas []routing.ReachArea
+		if in.Body.Back {
+			areas, err = d.Router.ReachBack(ctx, in.Body.From.geo(), in.Body.Profile, float64(u.SpeedFactor))
+		} else {
+			areas, err = d.Router.GraphHopper.Reach(ctx, in.Body.From.geo(), in.Body.Profile, float64(u.SpeedFactor))
+		}
 		if err := legError(ctx, err); err != nil {
 			return nil, err
 		}

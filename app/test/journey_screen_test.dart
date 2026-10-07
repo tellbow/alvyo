@@ -226,7 +226,9 @@ void main() {
     final server = FakeServer();
     final api = Api('https://alvyo.test', token: 't', client: server.client);
     await pumpList(tester, api, find.text('Via Alpina'));
-    expect(find.text('0 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
+    // The tour card: the kind above, the figures, the stages as a bar.
+    expect(find.text('32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
+    expect(find.text('0 / 3'), findsOneWidget);
 
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Gaflei – Sargans'));
@@ -282,7 +284,9 @@ void main() {
     server.offline = true;
     await pumpList(tester, api, find.byKey(const Key('journeys-offline')));
     expect(find.byKey(const Key('journeys-offline')), findsOneWidget);
-    expect(find.text('0 von 3 Etappen · 32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
+    // The tour card: the kind above, the figures, the stages as a bar.
+    expect(find.text('32.6\u00a0km · 9\u00a0h 35\u00a0min · ↑\u00a01118\u00a0m'), findsOneWidget);
+    expect(find.text('0 / 3'), findsOneWidget);
     await tester.tap(find.text('Via Alpina'));
     await until(tester, find.text('Sargans – Weisstannen'));
     expect(find.text('Sargans – Weisstannen'), findsOneWidget);

@@ -13,7 +13,7 @@ import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/navigation/tracker.dart';
 import 'package:alvyo/screens/record_screen.dart';
 import 'package:alvyo/screens/route_screen.dart';
-import 'package:alvyo/screens/routes_screen.dart';
+import 'package:alvyo/screens/home_screen.dart';
 import 'package:alvyo/theme.dart';
 
 void main() {
@@ -70,39 +70,57 @@ void main() {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
-        home: RoutesScreen(api: api, onLogout: onLogout, record: record == null ? null : () => record(api)),
+        home: HomeScreen(
+          api: api,
+          onLogout: onLogout,
+          record: record == null ? null : () => record(api),
+          planModes: (mode, saved) => Text('plan ${mode.name}'),
+        ),
       ),
     );
-    await until(tester, find.text('Noch keine Routen. Plane sie auf der Website.'));
+    await until(tester, find.byKey(const Key('feed-empty')));
   }
 
   for (final brightness in Brightness.values) {
-    testWidgets('the bar: journeys, the feed and the profile ($brightness)', (tester) async {
+    testWidgets('the bar: Entdecken, Planen, Touren and Profil, each with its question ($brightness)', (tester) async {
       var loggedOut = false;
       await pump(tester, brightness, () => loggedOut = true);
-      expect(find.text('Meine Routen'), findsOneWidget);
-      // Named under their icons, shorter than the titles.
-      for (final name in ['Routen', 'Etappen', 'Neuigkeiten', 'Profil']) {
+      // Named under their icons.
+      for (final name in ['Planen', 'Touren', 'Profil']) {
         expect(find.text(name), findsOneWidget);
       }
+      expect(find.text('Entdecken'), findsNWidgets(2)); // the title and the bar
+      // Entdecken: the search, the two tools with a word each, the empty
+      // feed naming the next step, nearby without a position.
+      expect(find.byKey(const Key('discover-search')), findsOneWidget);
+      expect(find.text('Wie weit komme ich?'), findsOneWidget);
+      expect(find.text('Gipfel anschauen'), findsOneWidget);
+      expect(find.byKey(const Key('nearby-no-position')), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('tab-journeys')));
-      await until(tester, find.text('Etappentouren'));
-      expect(find.text('Etappentouren'), findsOneWidget);
+      // Touren: nothing planned yet, the next step goes to Planen.
+      await tester.tap(find.byKey(const Key('tab-tours')));
+      await until(tester, find.byKey(const Key('tours-empty')));
+      expect(find.text('Tour planen'), findsOneWidget);
+      await tester.tap(find.text('Tour planen'));
+      await until(tester, find.text('plan day'));
+      expect(find.text('plan day'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('tab-feed')));
-      await until(tester, find.byKey(const Key('feed-empty')));
-      expect(find.byKey(const Key('feed-empty')), findsOneWidget);
+      // «Wie weit komme ich?» opens Planen › Reichweite.
+      await tester.tap(find.byKey(const Key('tab-discover')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('tool-reach')));
+      await until(tester, find.text('plan reach'));
+      expect(find.text('plan reach'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('tab-profile')));
       await until(tester, find.text('@wodan'));
       expect(find.text('Wodan'), findsOneWidget);
-      expect(find.text('Server: alvyo.test'), findsOneWidget);
       // Clear of the floating bar.
       final list = find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first;
       await tester.scrollUntilVisible(find.byKey(const Key('logout')), 200, scrollable: list);
       await tester.drag(list, const Offset(0, -300));
       await tester.pumpAndSettle();
+      expect(find.text('Server: alvyo.test'), findsOneWidget);
       await tester.tap(find.byKey(const Key('logout')));
       expect(loggedOut, isTrue);
     });

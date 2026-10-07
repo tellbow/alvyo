@@ -3904,6 +3904,8 @@ export interface components {
             outline: number[][][];
         };
         ReachInputBody: {
+            /** @description Back at the start within the hours: out and back timed each in its own direction */
+            back?: boolean;
             from: components["schemas"]["Point"];
             /**
              * @default hike

@@ -15,13 +15,28 @@ import '../place_layer.dart';
 import '../place_search.dart';
 import '../planner.dart';
 import '../precip.dart';
+import 'plan_sheet.dart';
 import 'route_screen.dart';
 
 /// Plans a route from A to B, as on the website: points by tapping the map
 /// or by search, the legs between them computed, then saved and opened.
 class PlannerScreen extends StatefulWidget {
-  const PlannerScreen({super.key, required this.api, this.map, this.stage, this.start, this.edit});
+  const PlannerScreen({
+    super.key,
+    required this.api,
+    this.map,
+    this.stage,
+    this.start,
+    this.edit,
+    this.embedded = false,
+    this.onSaved,
+  });
   final Api api;
+
+  /// Inside Planen (requirement 69): without its app bar; a saved route is
+  /// opened on top and [onSaved] called (the tab then starts a new plan).
+  final bool embedded;
+  final VoidCallback? onSaved;
 
   /// Plans the route of this stage (without one yet); pops with the journey.
   final ({String journeyId, String stageId, String title})? stage;
@@ -55,6 +70,9 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
   StyleController? _style;
   double _pace = 1;
   bool _saving = false;
+
+  /// The search for a stop before the destination is open.
+  bool _via = false;
 
   // Built once: the screen rebuilds with every leg.
   late final Widget _mapView = widget.map ?? _buildMap();
@@ -96,7 +114,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     ];
     final view = points.isEmpty
         ? (lon: 8.23, lat: 46.8, zoom: 7.0)
-        : fitLine(points, size.maxWidth, size.maxHeight * 0.6, maxZoom: 13);
+        : fitLine(points, size.maxWidth, size.maxHeight * (1 - PlanSheet.initial), maxZoom: 13);
     return _mapLibre(view);
   }
 
@@ -270,11 +288,15 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
       );
       if (!mounted) return;
       // Opened like any saved route: to keep offline and to hike.
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => RouteScreen(api: widget.api, id: route.id, title: route.title),
-        ),
+      final open = MaterialPageRoute<void>(
+        builder: (_) => RouteScreen(api: widget.api, id: route.id, title: route.title),
       );
+      if (widget.embedded) {
+        await Navigator.of(context).push(open);
+        widget.onSaved?.call();
+      } else {
+        await Navigator.of(context).pushReplacement(open);
+      }
     } on Object {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -318,34 +340,21 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(switch ((widget.edit, widget.stage)) {
-          (final r?, _) => r.title,
-          (_, final st?) => st.title,
-          _ => t.plannerTitle,
-        }),
-      ),
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: Text(switch ((widget.edit, widget.stage)) {
+                (final r?, _) => r.title,
+                (_, final st?) => st.title,
+                _ => t.plannerTitle,
+              }),
+            ),
       body: Stack(
         children: [
           Positioned.fill(child: _mapView),
           Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
           const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
-          DraggableScrollableSheet(
-            initialChildSize: 0.4,
-            minChildSize: 0.15,
-            maxChildSize: 0.9,
-            builder: (context, scroll) => Material(
-              elevation: 8,
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: ListView(
-                key: const Key('planner-panel'),
-                controller: scroll,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                children: _panel(t),
-              ),
-            ),
-          ),
+          PlanSheet(panelKey: const Key('planner-panel'), children: _panel(t)),
         ],
       ),
     );
@@ -358,14 +367,6 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     final line = _planner.line;
     final totals = _planner.totals;
     return [
-      Center(
-        child: Container(
-          width: 36,
-          height: 4,
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2)),
-        ),
-      ),
       SegmentedButton<String>(
         segments: [
           ButtonSegment(
@@ -422,6 +423,14 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
         ),
         if (i < legs.length) _leg(t, i, legs[i]),
       ],
+      if (_planner.roundTrip && points.length > 1)
+        ListTile(
+          key: const Key('planner-return'),
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.u_turn_left),
+          title: Text(t.plannerReturn),
+        ),
       PlaceSearch(
         api: widget.api,
         onPick: _pick,
@@ -431,6 +440,44 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
           1 => t.plannerSearchEnd,
           _ => t.plannerSearchMore,
         },
+      ),
+      if (_via)
+        PlaceSearch(
+          key: const Key('planner-via-search'),
+          api: widget.api,
+          near: _near,
+          label: t.plannerSearchVia,
+          onPick: (p) {
+            setState(() => _via = false);
+            _planner.insertBeforeLast(p.lon, p.lat, name: p.name);
+          },
+        ),
+      // On a narrow screen the round trip goes below.
+      Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          TextButton(
+            key: const Key('planner-via'),
+            onPressed: points.length < 2 ? null : () => setState(() => _via = !_via),
+            child: Text('+ ${t.plannerVia}'),
+          ),
+          InkWell(
+            onTap: () => _planner.setRoundTrip(!_planner.roundTrip),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(
+                  key: const Key('planner-round'),
+                  value: _planner.roundTrip,
+                  onChanged: (v) => _planner.setRoundTrip(v ?? false),
+                ),
+                Text(t.plannerRoundTrip),
+                const SizedBox(width: 8),
+              ],
+            ),
+          ),
+        ],
       ),
       if (line.length > 1) ...[
         const SizedBox(height: 16),

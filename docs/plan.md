@@ -73,6 +73,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.26.2 | 2026-10-07 | The website's login answered 500 (the passkeys package was not bundled; since at least 0.17.1); search engines get the language start pages without a redirect (/fr, not /fr/) |
 | 0.27.0 | 2026-10-07 | Recognising mountains with the camera (68, issue 16): «Berge erkennen» in the app names the summits in sight, also without reception |
 | 0.28.0 | 2026-10-07 | «Berge erkennen» draws the nearer ridges as lines too, and the skyline no longer starts at the cells right next to one (on a summit they hid the view) |
+| next | | The app's navigation tidied up (69): Entdecken, Planen, Touren and Profil; Rundtour and Zwischenziel, Reichweite back to the start (each way timed), importing files, Apple Watch hikes imported automatically, a tour to follow when recording; the app asks for notifications only when it schedules reminders |
 
 ## Requirements
 
@@ -80,7 +81,8 @@ From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
 21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02, 59–61
 on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
-2026-10-07 (from issue 15), 68 on 2026-10-07 (from issue 16).
+2026-10-07 (from issue 15), 68 on 2026-10-07 (from issue 16), 69 on
+2026-10-07 (a concept of the project owner).
 
 ### Done
 
@@ -675,6 +677,45 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     joined to the next ray's crest at about the same distance and angle;
     rays and ridges from 300 m on (the grid cannot show closer terrain).
     Portrait only. Not on the website (Safari has no WebXR).
+
+69. **The app's navigation tidied up** (the concept «Alvyo – UI aufräumen»
+    from the project owner). Each tab answers one question: **Entdecken**
+    (where to?), **Planen** (how?), the record button (go!), **Touren**
+    (what do I have?), **Profil**; tabs are built when first shown. Every
+    tab has a large title and at most one action with a word; one tour card
+    for routes, journeys and others' items, the kind above the title
+    («ETAPPENTOUR · 6 ETAPPEN» in the accent colour, «ROUTE · GETEILT VON
+    …»), the figures as distance · time · ascent · difficulty, a journey's
+    stages as a bar «2 / 6»; empty lists name the next step («Tour
+    planen», «Aufzeichnen», «Freunde»). Entdecken: a search for places and
+    summits (opens the discover map there), «Wie weit komme ich?» (to
+    Planen › Reichweite) and «Gipfel anschauen» (68), three of «Von Leuten,
+    denen du folgst» («Alle» for the feed; the tab «Neuigkeiten» is gone),
+    three public tours «In deiner Nähe» (about 15 km around), «Karte» for
+    the discover map. Planen: «Tagestour» (the route planner with «+
+    Zwischenziel» before the destination and «Rundtour» back to the start,
+    saved with the way back), «Mehrtägig» (the journey planner), «Reichweite»
+    (the areas of 2, 4 and 8 hours as before; «Zurück zum Start», on by
+    default: the areas from which one is back within them, out and back
+    timed each in its own direction, uphill slower than down: `POST
+    /routing/reach` with `back` asks GraphHopper for its shortest path
+    trees from and to the start, keeps the paths to the nodes whose two
+    times fit, rasterises them in cells of about 230 m and has PostGIS
+    outline the cells; from Sargans about a third of the area one way,
+    0.6 s on the dev machine; the website keeps one way); the three share
+    one panel over the map, pulled up and down alike; «Importieren»: a GPX, KML, TCX or FIT
+    file (file_selector, any file: iOS knows no GPX type) becomes a private
+    route, opened at once, or hikes from the Apple Watch. Touren: «Geplant»,
+    «Gewandert», «Sammlungen»; «Alle», «Routen», «Etappentouren», «Geteilt»;
+    «Karte» for the map of one's tours. Aufzeichnen: a close button, «Einer
+    Tour folgen (optional)» among one's tours not hiked and those shared
+    (followed on the route's page, as «Los»), «Aufzeichnung starten».
+    Profil: one's card, «Freunde», «Verbundene Geräte» (the Apple Watch:
+    «Neue Wanderungen automatisch importieren» when the app opens or comes
+    back, at most every 10 minutes, those since switched on; «Wanderungen
+    auswählen und importieren»), «Einstellungen» (each with its value, chosen
+    in a sheet; the e-mails under «Benachrichtigungen»), «Konto». The
+    session is checked when the app opens (it was with the routes list).
 
 ### Open
 

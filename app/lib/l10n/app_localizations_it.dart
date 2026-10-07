@@ -1839,6 +1839,186 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reachTitle => 'Fin dove arrivo?';
 
   @override
+  String get reachBackHint => 'Andata e ritorno, salita e discesa ciascuna con il suo tempo';
+
+  @override
+  String get importFile => 'File (GPX, KML, TCX, FIT)';
+
+  @override
+  String get importFileHint => 'Diventa un percorso privato';
+
+  @override
+  String get importNotTrack => 'Questo file non contiene una traccia leggibile da Alvyo (GPX, KML, TCX o FIT).';
+
+  @override
+  String reachWithinBack(int hours) {
+    return 'fino a $hours ore, andata e ritorno';
+  }
+
+  @override
+  String get plannerVia => 'Tappa intermedia';
+
+  @override
+  String get plannerSearchVia => 'Cerca una tappa …';
+
+  @override
+  String get plannerRoundTrip => 'Giro ad anello';
+
+  @override
+  String get plannerReturn => 'Ritorno alla partenza';
+
+  @override
+  String get recordFollow => 'Seguire un’escursione (facoltativo)';
+
+  @override
+  String get recordChooseTour => 'Scegli un’escursione';
+
+  @override
+  String get recordWithoutTour => 'Senza escursione';
+
+  @override
+  String get recordNoTours => 'Ancora nessuna escursione pianificata. Pianificane una in «Pianifica».';
+
+  @override
+  String get devicesTitle => 'Dispositivi collegati';
+
+  @override
+  String get devicesSubtitle => 'Apple Watch · importare le escursioni automaticamente';
+
+  @override
+  String get devicesWatch => 'Apple Watch';
+
+  @override
+  String get devicesWatchHint => 'Escursioni dall’app Allenamento, tramite Apple Salute';
+
+  @override
+  String get devicesWatchAuto => 'Importare automaticamente le nuove escursioni';
+
+  @override
+  String get devicesWatchAutoHint => 'Quando apri l’app – le escursioni da adesso in poi';
+
+  @override
+  String get devicesWatchPick => 'Scegliere escursioni e importarle';
+
+  @override
+  String get profileAccount => 'Account';
+
+  @override
+  String get accountPaceShort => 'Tempi di marcia rispetto ai segnavia';
+
+  @override
+  String devicesWatchImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count escursioni importate dall’Apple Watch',
+      one: '1 escursione importata dall’Apple Watch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importTitle => 'Importa';
+
+  @override
+  String get importAction => 'Importa';
+
+  @override
+  String get importWatchHint => 'Escursioni registrate con l’orologio';
+
+  @override
+  String get planDay => 'Giornata';
+
+  @override
+  String get planMulti => 'Più giorni';
+
+  @override
+  String get planReach => 'Portata';
+
+  @override
+  String get discoverSearchHint => 'Cerca un luogo o una cima';
+
+  @override
+  String get discoverSearchNone => 'Nessun risultato. Prova un altro nome.';
+
+  @override
+  String get discoverReachHint => 'Portata dalla tua posizione';
+
+  @override
+  String get discoverPeaks => 'Guardare le cime';
+
+  @override
+  String get discoverPeaksHint => 'Fotocamera sull’orizzonte';
+
+  @override
+  String get discoverFollowing => 'Dalle persone che segui';
+
+  @override
+  String get discoverAll => 'Tutto';
+
+  @override
+  String get discoverFollowingEmpty =>
+      'Ancora niente dalle persone che segui. Segui degli amici per vedere qui le loro nuove escursioni.';
+
+  @override
+  String get discoverNearby => 'Vicino a te';
+
+  @override
+  String get discoverNearbyNoPosition => 'Consenti la posizione per vedere le escursioni vicino a te.';
+
+  @override
+  String get discoverNearbyAllow => 'Consenti la posizione';
+
+  @override
+  String get discoverNearbyEmpty => 'Nessuna escursione pubblicata intorno a te. Ne trovi altre sulla mappa.';
+
+  @override
+  String get toursTitle => 'Escursioni';
+
+  @override
+  String get toursMap => 'Mappa';
+
+  @override
+  String get toursList => 'Elenco';
+
+  @override
+  String get toursJourneys => 'A tappe';
+
+  @override
+  String get toursShared => 'Condivise';
+
+  @override
+  String get toursEmptyPlanned =>
+      'Ancora nessuna escursione pianificata. Pianifica un percorso o un trekking a tappe – apparirà qui.';
+
+  @override
+  String get toursEmptyHiked => 'Ancora nessuna escursione fatta. Registra la prossima – apparirà qui.';
+
+  @override
+  String get toursPlanAction => 'Pianifica un’escursione';
+
+  @override
+  String get barDiscover => 'Scopri';
+
+  @override
+  String get barPlan => 'Pianifica';
+
+  @override
+  String get barTours => 'Escursioni';
+
+  @override
+  String get tourRoute => 'Percorso';
+
+  @override
+  String get tourJourney => 'Trekking a tappe';
+
+  @override
+  String get tourSharedBy => 'condiviso da';
+
+  @override
+  String get tourBy => 'di';
+
+  @override
   String get peaksTitle => 'Riconoscere le montagne';
 
   @override

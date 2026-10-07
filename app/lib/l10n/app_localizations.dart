@@ -3448,6 +3448,342 @@ abstract class AppLocalizations {
   /// **'Wie weit komme ich?'**
   String get reachTitle;
 
+  /// No description provided for @reachBackHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Hin und zurück, bergauf und bergab je mit ihrer Zeit'**
+  String get reachBackHint;
+
+  /// No description provided for @importFile.
+  ///
+  /// In de, this message translates to:
+  /// **'Datei (GPX, KML, TCX, FIT)'**
+  String get importFile;
+
+  /// No description provided for @importFileHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wird eine private Route'**
+  String get importFileHint;
+
+  /// No description provided for @importNotTrack.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Datei enthält keine Spur, die Alvyo lesen kann (GPX, KML, TCX oder FIT).'**
+  String get importNotTrack;
+
+  /// No description provided for @reachWithinBack.
+  ///
+  /// In de, this message translates to:
+  /// **'bis {hours} Stunden, hin und zurück'**
+  String reachWithinBack(int hours);
+
+  /// No description provided for @plannerVia.
+  ///
+  /// In de, this message translates to:
+  /// **'Zwischenziel'**
+  String get plannerVia;
+
+  /// No description provided for @plannerSearchVia.
+  ///
+  /// In de, this message translates to:
+  /// **'Zwischenziel suchen …'**
+  String get plannerSearchVia;
+
+  /// No description provided for @plannerRoundTrip.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundtour'**
+  String get plannerRoundTrip;
+
+  /// No description provided for @plannerReturn.
+  ///
+  /// In de, this message translates to:
+  /// **'Zurück zum Start'**
+  String get plannerReturn;
+
+  /// No description provided for @recordFollow.
+  ///
+  /// In de, this message translates to:
+  /// **'Einer Tour folgen (optional)'**
+  String get recordFollow;
+
+  /// No description provided for @recordChooseTour.
+  ///
+  /// In de, this message translates to:
+  /// **'Tour wählen'**
+  String get recordChooseTour;
+
+  /// No description provided for @recordWithoutTour.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Tour'**
+  String get recordWithoutTour;
+
+  /// No description provided for @recordNoTours.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine geplanten Touren. Plane eine unter «Planen».'**
+  String get recordNoTours;
+
+  /// No description provided for @devicesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Verbundene Geräte'**
+  String get devicesTitle;
+
+  /// No description provided for @devicesSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Apple Watch · Touren automatisch importieren'**
+  String get devicesSubtitle;
+
+  /// No description provided for @devicesWatch.
+  ///
+  /// In de, this message translates to:
+  /// **'Apple Watch'**
+  String get devicesWatch;
+
+  /// No description provided for @devicesWatchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderungen aus der Trainings-App, über Apple Health'**
+  String get devicesWatchHint;
+
+  /// No description provided for @devicesWatchAuto.
+  ///
+  /// In de, this message translates to:
+  /// **'Neue Wanderungen automatisch importieren'**
+  String get devicesWatchAuto;
+
+  /// No description provided for @devicesWatchAutoHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wenn du die App öffnest – Wanderungen ab jetzt'**
+  String get devicesWatchAutoHint;
+
+  /// No description provided for @devicesWatchPick.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderungen auswählen und importieren'**
+  String get devicesWatchPick;
+
+  /// No description provided for @profileAccount.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto'**
+  String get profileAccount;
+
+  /// No description provided for @accountPaceShort.
+  ///
+  /// In de, this message translates to:
+  /// **'Gehzeiten relativ zu den Wegweisern'**
+  String get accountPaceShort;
+
+  /// No description provided for @devicesWatchImported.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Wanderung von der Apple Watch importiert} other{{count} Wanderungen von der Apple Watch importiert}}'**
+  String devicesWatchImported(int count);
+
+  /// No description provided for @importTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Importieren'**
+  String get importTitle;
+
+  /// No description provided for @importAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Importieren'**
+  String get importAction;
+
+  /// No description provided for @importWatchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderungen, die du mit der Uhr aufgezeichnet hast'**
+  String get importWatchHint;
+
+  /// No description provided for @planDay.
+  ///
+  /// In de, this message translates to:
+  /// **'Tagestour'**
+  String get planDay;
+
+  /// No description provided for @planMulti.
+  ///
+  /// In de, this message translates to:
+  /// **'Mehrtägig'**
+  String get planMulti;
+
+  /// No description provided for @planReach.
+  ///
+  /// In de, this message translates to:
+  /// **'Reichweite'**
+  String get planReach;
+
+  /// No description provided for @discoverSearchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Ort oder Gipfel suchen'**
+  String get discoverSearchHint;
+
+  /// No description provided for @discoverSearchNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Nichts gefunden. Versuche einen anderen Namen.'**
+  String get discoverSearchNone;
+
+  /// No description provided for @discoverReachHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Reichweite ab Standort'**
+  String get discoverReachHint;
+
+  /// No description provided for @discoverPeaks.
+  ///
+  /// In de, this message translates to:
+  /// **'Gipfel anschauen'**
+  String get discoverPeaks;
+
+  /// No description provided for @discoverPeaksHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Kamera auf den Horizont'**
+  String get discoverPeaksHint;
+
+  /// No description provided for @discoverFollowing.
+  ///
+  /// In de, this message translates to:
+  /// **'Von Leuten, denen du folgst'**
+  String get discoverFollowing;
+
+  /// No description provided for @discoverAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle'**
+  String get discoverAll;
+
+  /// No description provided for @discoverFollowingEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nichts von Leuten, denen du folgst. Folge Freunden, um ihre neuen Touren hier zu sehen.'**
+  String get discoverFollowingEmpty;
+
+  /// No description provided for @discoverNearby.
+  ///
+  /// In de, this message translates to:
+  /// **'In deiner Nähe'**
+  String get discoverNearby;
+
+  /// No description provided for @discoverNearbyNoPosition.
+  ///
+  /// In de, this message translates to:
+  /// **'Erlaube den Standort, um Touren in deiner Nähe zu sehen.'**
+  String get discoverNearbyNoPosition;
+
+  /// No description provided for @discoverNearbyAllow.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort erlauben'**
+  String get discoverNearbyAllow;
+
+  /// No description provided for @discoverNearbyEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Rund um dich ist noch keine Tour veröffentlicht. Auf der Karte findest du weitere.'**
+  String get discoverNearbyEmpty;
+
+  /// No description provided for @toursTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Touren'**
+  String get toursTitle;
+
+  /// No description provided for @toursMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Karte'**
+  String get toursMap;
+
+  /// No description provided for @toursList.
+  ///
+  /// In de, this message translates to:
+  /// **'Liste'**
+  String get toursList;
+
+  /// No description provided for @toursJourneys.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentouren'**
+  String get toursJourneys;
+
+  /// No description provided for @toursShared.
+  ///
+  /// In de, this message translates to:
+  /// **'Geteilt'**
+  String get toursShared;
+
+  /// No description provided for @toursEmptyPlanned.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine geplanten Touren. Plane eine Route oder eine Etappentour – sie erscheint dann hier.'**
+  String get toursEmptyPlanned;
+
+  /// No description provided for @toursEmptyHiked.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nichts gewandert. Zeichne deine nächste Wanderung auf – sie erscheint dann hier.'**
+  String get toursEmptyHiked;
+
+  /// No description provided for @toursPlanAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Tour planen'**
+  String get toursPlanAction;
+
+  /// No description provided for @barDiscover.
+  ///
+  /// In de, this message translates to:
+  /// **'Entdecken'**
+  String get barDiscover;
+
+  /// No description provided for @barPlan.
+  ///
+  /// In de, this message translates to:
+  /// **'Planen'**
+  String get barPlan;
+
+  /// No description provided for @barTours.
+  ///
+  /// In de, this message translates to:
+  /// **'Touren'**
+  String get barTours;
+
+  /// No description provided for @tourRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'Route'**
+  String get tourRoute;
+
+  /// No description provided for @tourJourney.
+  ///
+  /// In de, this message translates to:
+  /// **'Etappentour'**
+  String get tourJourney;
+
+  /// No description provided for @tourSharedBy.
+  ///
+  /// In de, this message translates to:
+  /// **'geteilt von'**
+  String get tourSharedBy;
+
+  /// No description provided for @tourBy.
+  ///
+  /// In de, this message translates to:
+  /// **'von'**
+  String get tourBy;
+
   /// No description provided for @peaksTitle.
   ///
   /// In de, this message translates to:

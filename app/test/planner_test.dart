@@ -45,6 +45,44 @@ String _asked(http.Request req) {
 
 void main() {
   group('RoutePlanner', () {
+    test('a round trip goes back to the start; a stop goes before the destination', () async {
+      final asked = <String>[];
+      final planner = RoutePlanner(
+        Api(
+          'https://alvyo.test',
+          client: MockClient((req) async {
+            asked.add(_asked(req));
+            return _json(_leg(jsonDecode(req.body) as Map<String, dynamic>));
+          }),
+        ),
+      );
+      planner.add(8.0, 46.0, name: 'A');
+      planner.add(8.2, 46.0, name: 'B');
+      await planner.idle();
+      planner.insertBeforeLast(8.1, 46.0, name: 'Via');
+      await planner.idle();
+      expect(planner.points.map((p) => p.name), ['A', 'Via', 'B']);
+      expect(asked, ['8.0>8.2', '8.0>8.1', '8.1>8.2']);
+
+      asked.clear();
+      planner.setRoundTrip(true);
+      await planner.idle();
+      expect(asked, ['8.2>8.0']); // only the way back is new
+      expect(planner.legs, hasLength(3));
+      expect(planner.complete, isTrue);
+      expect(planner.totals.distanceM, 3000);
+      // Saved with the way back: the start again at the end.
+      expect(planner.anchors.map((a) => a.name), ['A', 'Via', 'B', 'A']);
+      // Points added later come before the way back.
+      planner.add(8.3, 46.0, name: 'C');
+      await planner.idle();
+      expect(planner.anchors.map((a) => a.name), ['A', 'Via', 'B', 'C', 'A']);
+
+      planner.setRoundTrip(false);
+      expect(planner.legs, hasLength(3));
+      expect(planner.anchors.last.name, 'C');
+    });
+
     test('only the legs a change affects are computed again', () async {
       final asked = <String>[];
       final planner = RoutePlanner(

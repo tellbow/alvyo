@@ -47,10 +47,18 @@ class PhoneReminders {
   final _plugin = FlutterLocalNotificationsPlugin();
   Future<void>? _init;
 
+  // Without asking: opening a journey removes its old reminders, which
+  // needs no permission. It is asked when reminders are scheduled.
   Future<void> _ready() => _init ??= () async {
     tzdata.initializeTimeZones();
     await _plugin.initialize(
-      settings: const InitializationSettings(iOS: DarwinInitializationSettings(requestBadgePermission: false)),
+      settings: const InitializationSettings(
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestSoundPermission: false,
+          requestBadgePermission: false,
+        ),
+      ),
     );
   }();
 
@@ -63,7 +71,13 @@ class PhoneReminders {
         await _plugin.cancel(id: r.id);
       }
       if (!on || start == null) return;
-      for (final r in journeyReminders(j.id, start, unbooked: hasUnbooked(j), now: DateTime.now())) {
+      final due = journeyReminders(j.id, start, unbooked: hasUnbooked(j), now: DateTime.now());
+      if (due.isEmpty) return;
+      await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+        alert: true,
+        sound: true,
+      );
+      for (final r in due) {
         await _plugin.zonedSchedule(
           id: r.id,
           title: j.title,

@@ -1840,6 +1840,187 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reachTitle => 'Wie weit komme ich?';
 
   @override
+  String get reachBackHint => 'Hin und zurück, bergauf und bergab je mit ihrer Zeit';
+
+  @override
+  String get importFile => 'Datei (GPX, KML, TCX, FIT)';
+
+  @override
+  String get importFileHint => 'Wird eine private Route';
+
+  @override
+  String get importNotTrack => 'Diese Datei enthält keine Spur, die Alvyo lesen kann (GPX, KML, TCX oder FIT).';
+
+  @override
+  String reachWithinBack(int hours) {
+    return 'bis $hours Stunden, hin und zurück';
+  }
+
+  @override
+  String get plannerVia => 'Zwischenziel';
+
+  @override
+  String get plannerSearchVia => 'Zwischenziel suchen …';
+
+  @override
+  String get plannerRoundTrip => 'Rundtour';
+
+  @override
+  String get plannerReturn => 'Zurück zum Start';
+
+  @override
+  String get recordFollow => 'Einer Tour folgen (optional)';
+
+  @override
+  String get recordChooseTour => 'Tour wählen';
+
+  @override
+  String get recordWithoutTour => 'Ohne Tour';
+
+  @override
+  String get recordNoTours => 'Noch keine geplanten Touren. Plane eine unter «Planen».';
+
+  @override
+  String get devicesTitle => 'Verbundene Geräte';
+
+  @override
+  String get devicesSubtitle => 'Apple Watch · Touren automatisch importieren';
+
+  @override
+  String get devicesWatch => 'Apple Watch';
+
+  @override
+  String get devicesWatchHint => 'Wanderungen aus der Trainings-App, über Apple Health';
+
+  @override
+  String get devicesWatchAuto => 'Neue Wanderungen automatisch importieren';
+
+  @override
+  String get devicesWatchAutoHint => 'Wenn du die App öffnest – Wanderungen ab jetzt';
+
+  @override
+  String get devicesWatchPick => 'Wanderungen auswählen und importieren';
+
+  @override
+  String get profileAccount => 'Konto';
+
+  @override
+  String get accountPaceShort => 'Gehzeiten relativ zu den Wegweisern';
+
+  @override
+  String devicesWatchImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wanderungen von der Apple Watch importiert',
+      one: '1 Wanderung von der Apple Watch importiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importTitle => 'Importieren';
+
+  @override
+  String get importAction => 'Importieren';
+
+  @override
+  String get importWatchHint => 'Wanderungen, die du mit der Uhr aufgezeichnet hast';
+
+  @override
+  String get planDay => 'Tagestour';
+
+  @override
+  String get planMulti => 'Mehrtägig';
+
+  @override
+  String get planReach => 'Reichweite';
+
+  @override
+  String get discoverSearchHint => 'Ort oder Gipfel suchen';
+
+  @override
+  String get discoverSearchNone => 'Nichts gefunden. Versuche einen anderen Namen.';
+
+  @override
+  String get discoverReachHint => 'Reichweite ab Standort';
+
+  @override
+  String get discoverPeaks => 'Gipfel anschauen';
+
+  @override
+  String get discoverPeaksHint => 'Kamera auf den Horizont';
+
+  @override
+  String get discoverFollowing => 'Von Leuten, denen du folgst';
+
+  @override
+  String get discoverAll => 'Alle';
+
+  @override
+  String get discoverFollowingEmpty =>
+      'Noch nichts von Leuten, denen du folgst. Folge Freunden, um ihre neuen Touren hier zu sehen.';
+
+  @override
+  String get discoverNearby => 'In deiner Nähe';
+
+  @override
+  String get discoverNearbyNoPosition => 'Erlaube den Standort, um Touren in deiner Nähe zu sehen.';
+
+  @override
+  String get discoverNearbyAllow => 'Standort erlauben';
+
+  @override
+  String get discoverNearbyEmpty =>
+      'Rund um dich ist noch keine Tour veröffentlicht. Auf der Karte findest du weitere.';
+
+  @override
+  String get toursTitle => 'Touren';
+
+  @override
+  String get toursMap => 'Karte';
+
+  @override
+  String get toursList => 'Liste';
+
+  @override
+  String get toursJourneys => 'Etappentouren';
+
+  @override
+  String get toursShared => 'Geteilt';
+
+  @override
+  String get toursEmptyPlanned =>
+      'Noch keine geplanten Touren. Plane eine Route oder eine Etappentour – sie erscheint dann hier.';
+
+  @override
+  String get toursEmptyHiked => 'Noch nichts gewandert. Zeichne deine nächste Wanderung auf – sie erscheint dann hier.';
+
+  @override
+  String get toursPlanAction => 'Tour planen';
+
+  @override
+  String get barDiscover => 'Entdecken';
+
+  @override
+  String get barPlan => 'Planen';
+
+  @override
+  String get barTours => 'Touren';
+
+  @override
+  String get tourRoute => 'Route';
+
+  @override
+  String get tourJourney => 'Etappentour';
+
+  @override
+  String get tourSharedBy => 'geteilt von';
+
+  @override
+  String get tourBy => 'von';
+
+  @override
   String get peaksTitle => 'Berge erkennen';
 
   @override

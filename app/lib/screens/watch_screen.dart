@@ -1,13 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
-import '../navigation/uploads.dart';
+import '../watch/importer.dart';
 import '../watch/workouts.dart';
 
 /// Hikes recorded with the Apple Watch's Workout app, from Apple Health: each
@@ -25,56 +23,35 @@ class WatchScreen extends StatefulWidget {
 }
 
 class _WatchScreenState extends State<WatchScreen> {
-  late final WorkoutSource _source = widget.source ?? HealthWorkouts();
+  late final _importer = WatchImporter(widget.api, source: widget.source, importedFile: widget.importedFile);
   late final Future<List<Workout>?> _workouts = _load();
   Set<String> _imported = {};
   String? _busy;
 
-  Future<File> _importedFile() async =>
-      widget.importedFile ?? File('${(await getApplicationSupportDirectory()).path}/watch-imported.json');
-
   /// null: Apple Health is not available.
   Future<List<Workout>?> _load() async {
-    final file = await _importedFile();
-    if (await file.exists()) {
-      try {
-        _imported = {...(jsonDecode(await file.readAsString()) as List).cast<String>()};
-      } on FormatException {
-        // cut off: importing one again is fine (the same id)
-      }
-    }
-    if (!await _source.authorize()) return null;
-    return _source.recent();
+    _imported = await _importer.imported();
+    if (!await _importer.source.authorize()) return null;
+    return _importer.source.recent();
   }
-
-  String _title(AppLocalizations t, Workout w) => '${w.hiking ? t.watchHike : t.watchWalk}, ${formatDate(w.start)}';
 
   Future<void> _import(Workout w) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = w.uuid);
     try {
-      final points = uploadPoints(await _source.track(w));
-      if (points.length < 2) {
-        messenger.showSnackBar(SnackBar(content: Text(t.watchNoTrack)));
-        return;
-      }
-      await widget.api.uploadHike(id: 'watch-${w.uuid}', title: _title(t, w), points: points);
-      _imported.add(w.uuid);
-      final file = await _importedFile();
-      final tmp = File('${file.path}.tmp');
-      await tmp.writeAsString(jsonEncode(_imported.toList()));
-      await tmp.rename(file.path);
-      messenger.showSnackBar(SnackBar(content: Text(t.watchImported)));
-    } on ApiException catch (e) {
-      // The server's reasons are in English (hikeapi.go).
-      final reason = switch (e.message) {
-        _ when e.status != 422 => null,
-        'the hike is too short' => t.watchReasonShort,
-        final m when m.startsWith('the hike leaves') => t.watchReasonOutside,
-        _ => null,
-      };
-      messenger.showSnackBar(SnackBar(content: Text(reason != null ? t.watchOutside(reason) : t.errorServer)));
+      final failure = await _importer.import(w, watchTitle(t, w));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(switch (failure) {
+            null => t.watchImported,
+            WatchFailure.noTrack => t.watchNoTrack,
+            WatchFailure.tooShort => t.watchOutside(t.watchReasonShort),
+            WatchFailure.outside => t.watchOutside(t.watchReasonOutside),
+            WatchFailure.other => t.errorServer,
+          }),
+        ),
+      );
     } on Exception {
       messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
     } finally {
@@ -108,7 +85,7 @@ class _WatchScreenState extends State<WatchScreen> {
               final done = _imported.contains(w.uuid);
               return ListTile(
                 key: Key('workout-${w.uuid}'),
-                title: Text(_title(t, w)),
+                title: Text(watchTitle(t, w)),
                 subtitle: Text(
                   [
                     if (w.distanceM != null) formatDistance(w.distanceM!),
@@ -129,3 +106,6 @@ class _WatchScreenState extends State<WatchScreen> {
     );
   }
 }
+
+/// «Wanderung, 07.10.2026».
+String watchTitle(AppLocalizations t, Workout w) => '${w.hiking ? t.watchHike : t.watchWalk}, ${formatDate(w.start)}';

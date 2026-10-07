@@ -40,17 +40,30 @@ class RoutePlanner extends ChangeNotifier {
 
   List<PlanPoint> get points => _points;
 
+  /// A round trip: after the last point back to the start (requirement 69).
+  bool get roundTrip => _roundTrip;
+  bool _roundTrip = false;
+
+  /// The points the route runs through: with a round trip, the start again
+  /// at the end.
+  List<PlanPoint> get _route => _roundTrip && _points.length > 1
+      ? [..._points, PlanPoint(-1, _points.first.lon, _points.first.lat, _points.first.name)]
+      : _points;
+
   /// hike (up to T3) or alpine (up to T6).
   String get profile => _profile;
 
-  List<LegSlot> get legs => [
-    for (var i = 1; i < _points.length; i++) _cache[_key(_points[i - 1], _points[i])] ?? LegSlot._(),
-  ];
+  /// The legs between the route's points (with a round trip, the last one
+  /// back to the start).
+  List<LegSlot> get legs {
+    final route = _route;
+    return [for (var i = 1; i < route.length; i++) _cache[_key(route[i - 1], route[i])] ?? LegSlot._()];
+  }
 
   List<Leg> get readyLegs => [for (final l in legs) ?l.leg];
 
   /// Every leg computed: the route can be saved.
-  bool get complete => _points.length > 1 && legs.every((l) => l.leg != null);
+  bool get complete => _route.length > 1 && legs.every((l) => l.leg != null);
 
   PlanTotals get totals {
     double distance = 0, ascent = 0, descent = 0;
@@ -79,21 +92,24 @@ class RoutePlanner extends ChangeNotifier {
   /// «Start – Ziel» from the names of the first and last point, as far as known.
   String get suggestedTitle => [?_points.firstOrNull?.name, if (_points.length > 1) ?_points.last.name].join(' – ');
 
-  List<Anchor> get anchors => [
-    for (final (i, p) in _points.indexed)
-      // A leg kept from the route being changed keeps how it was made.
-      switch (i > 0 ? _kept[_key(_points[i - 1], p)] : null) {
-        final k? when identical(_cache[_key(_points[i - 1], p)], k.slot) => Anchor(
-          p.lon,
-          p.lat,
-          name: p.name,
-          alpine: p.alpine,
-          straight: k.anchor.straight,
-          through: k.anchor.through,
-        ),
-        _ => Anchor(p.lon, p.lat, name: p.name, alpine: p.alpine),
-      },
-  ];
+  List<Anchor> get anchors {
+    final route = _route;
+    return [
+      for (final (i, p) in route.indexed)
+        // A leg kept from the route being changed keeps how it was made.
+        switch (i > 0 ? _kept[_key(route[i - 1], p)] : null) {
+          final k? when identical(_cache[_key(route[i - 1], p)], k.slot) => Anchor(
+            p.lon,
+            p.lat,
+            name: p.name,
+            alpine: p.alpine,
+            straight: k.anchor.straight,
+            through: k.anchor.through,
+          ),
+          _ => Anchor(p.lon, p.lat, name: p.name, alpine: p.alpine),
+        },
+    ];
+  }
 
   /// The legs of a saved route, by their key: kept while their points are.
   final _kept = <String, ({LegSlot slot, Anchor anchor})>{};
@@ -115,6 +131,20 @@ class RoutePlanner extends ChangeNotifier {
 
   /// A new point becomes the destination.
   void add(double lon, double lat, {String? name}) => _change([..._points, PlanPoint(_nextId++, lon, lat, name)]);
+
+  /// «+ Zwischenziel»: a point before the destination; the destination
+  /// stays (without one yet, it is added at the end).
+  void insertBeforeLast(double lon, double lat, {String? name}) {
+    final p = PlanPoint(_nextId++, lon, lat, name);
+    _change(_points.length < 2 ? [..._points, p] : [..._points.take(_points.length - 1), p, _points.last]);
+  }
+
+  /// Back to the start after the last point, or not.
+  void setRoundTrip(bool on) {
+    if (on == _roundTrip) return;
+    _roundTrip = on;
+    _sync();
+  }
 
   void remove(int id) => _change([
     for (final p in _points)
@@ -177,10 +207,11 @@ class RoutePlanner extends ChangeNotifier {
 
   /// Requests the legs not computed yet; forgets requests no longer needed.
   void _sync() {
-    final needed = {for (var i = 1; i < _points.length; i++) _key(_points[i - 1], _points[i])};
+    final route = _route;
+    final needed = {for (var i = 1; i < route.length; i++) _key(route[i - 1], route[i])};
     _cache.removeWhere((key, slot) => slot.loading && !needed.contains(key));
-    for (var i = 1; i < _points.length; i++) {
-      final from = _points[i - 1], to = _points[i];
+    for (var i = 1; i < route.length; i++) {
+      final from = route[i - 1], to = route[i];
       final key = _key(from, to);
       final cached = _cache[key];
       // Kept, except failures that may pass (no path nearby will not).

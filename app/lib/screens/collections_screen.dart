@@ -9,15 +9,28 @@ import 'item_card.dart';
 import 'tiles.dart';
 
 /// The user's collections and those shared with them.
-class CollectionsScreen extends StatefulWidget {
+class CollectionsScreen extends StatelessWidget {
   const CollectionsScreen({super.key, required this.api});
   final Api api;
 
   @override
-  State<CollectionsScreen> createState() => _CollectionsScreenState();
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(AppLocalizations.of(context).collectionsTitle)),
+    body: CollectionsList(api: api),
+  );
 }
 
-class _CollectionsScreenState extends State<CollectionsScreen> {
+/// One's collections and those shared, with «Neue Sammlung» on top: in
+/// Touren › Sammlungen.
+class CollectionsList extends StatefulWidget {
+  const CollectionsList({super.key, required this.api});
+  final Api api;
+
+  @override
+  State<CollectionsList> createState() => _CollectionsListState();
+}
+
+class _CollectionsListState extends State<CollectionsList> {
   late Future<(List<CollectionSummary>, List<CollectionSummary>)> _lists = _load();
 
   Future<(List<CollectionSummary>, List<CollectionSummary>)> _load() async {
@@ -54,47 +67,43 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.collectionsTitle),
-        actions: [
-          IconButton(
-            key: const Key('collection-new'),
-            tooltip: t.collectionNew,
-            icon: const Icon(Icons.add),
-            onPressed: _create,
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async => _reload(),
-        child: FutureBuilder(
-          future: _lists,
-          builder: (context, snap) {
-            if (snap.hasError) return ListView(children: [ListTile(title: Text(t.errorServer))]);
-            if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-            final (mine, shared) = snap.data!;
-            Widget tile(CollectionSummary c, {bool others = false}) => ItemCard(
-              child: ListTile(
-                key: Key('collection-${c.id}'),
-                leading: const Icon(Icons.collections_bookmark_outlined),
-                title: Text(c.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text([if (others) t.ownerBy(c.owner), t.collectionItemsCount(c.items)].join(' · ')),
-                onTap: () => _open(c.id, c.title),
+    return RefreshIndicator(
+      onRefresh: () async => _reload(),
+      child: FutureBuilder(
+        future: _lists,
+        builder: (context, snap) {
+          if (snap.hasError) return ListView(children: [ListTile(title: Text(t.errorServer))]);
+          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+          final (mine, shared) = snap.data!;
+          Widget tile(CollectionSummary c, {bool others = false}) => ItemCard(
+            child: ListTile(
+              key: Key('collection-${c.id}'),
+              leading: const Icon(Icons.collections_bookmark_outlined),
+              title: Text(c.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text([if (others) t.ownerBy(c.owner), t.collectionItemsCount(c.items)].join(' · ')),
+              onTap: () => _open(c.id, c.title),
+            ),
+          );
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 120),
+            children: [
+              Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: Text(t.collectionsIntro)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: FilledButton.tonalIcon(
+                  key: const Key('collection-new'),
+                  icon: const Icon(Icons.add),
+                  label: Text(t.collectionNew),
+                  onPressed: _create,
+                ),
               ),
-            );
-            return ListView(
-              padding: const EdgeInsets.only(bottom: 24),
-              children: [
-                Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: Text(t.collectionsIntro)),
-                if (mine.isEmpty) ListTile(title: Text(t.collectionsEmpty)),
-                for (final c in mine) tile(c),
-                if (shared.isNotEmpty) ListHeading(t.sharedTitle),
-                for (final c in shared) tile(c, others: true),
-              ],
-            );
-          },
-        ),
+              if (mine.isEmpty) ListTile(title: Text(t.collectionsEmpty)),
+              for (final c in mine) tile(c),
+              if (shared.isNotEmpty) ListHeading(t.sharedTitle),
+              for (final c in shared) tile(c, others: true),
+            ],
+          );
+        },
       ),
     );
   }

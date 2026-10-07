@@ -130,6 +130,7 @@ func serve(ctx context.Context) error {
 		GraphHopper: &routing.GraphHopper{URL: cfg.GraphHopper},
 		Elevation:   &elevation.GeoAdmin{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"},
 		Trails:      &routing.TrailMatcher{DB: pool},
+		Outlines:    &routing.Outliner{DB: pool},
 	}
 	webAuthn, err := auth.NewWebAuthn(cfg.PublicURL)
 	if err != nil {

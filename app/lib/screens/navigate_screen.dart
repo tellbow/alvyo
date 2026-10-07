@@ -223,10 +223,12 @@ class _NavigateScreenState extends State<NavigateScreen> {
   }
 
   Future<void> _onStyle(StyleController style) async {
-    _style = style;
     await _places.addTo(style);
     await addRouteLine(style, widget.route.line);
     await addPositionDot(style, _fix?.lon, _fix?.lat);
+    // Only now: a position coming in meanwhile would update the dot's
+    // source before it exists (the iOS plugin fails on that).
+    _style = style;
   }
 
   Future<void> _finish() async {

@@ -181,6 +181,10 @@ func TestRouteReach(t *testing.T) {
 	var asked atomic.Value
 	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		asked.Store(r.URL.Query())
+		if r.URL.Path == "/spt" { // there and back: the shortest path trees
+			_, _ = w.Write([]byte("node_id,prev_longitude,prev_latitude,longitude,latitude,time\n0,null,null,9.4466,47.0446,0\n1,9.4466,47.0446,9.46,47.05,600000\n"))
+			return
+		}
 		if r.URL.Query().Get("point") == "47.100000,9.200000" { // in a lake
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(`{"message":"Point not found","hints":[{"details":"com.graphhopper.util.exceptions.PointNotFoundException"}]}`))
@@ -197,7 +201,7 @@ func TestRouteReach(t *testing.T) {
 	h, _ := New(Deps{
 		DB:        pool,
 		Auth:      &auth.Service{DB: pool, Mail: &mailer.Recorder{}, PublicURL: origin},
-		Router:    &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}},
+		Router:    &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}, Outlines: &routing.Outliner{DB: pool}},
 		PublicURL: origin,
 	})
 	srv := httptest.NewServer(h)
@@ -230,6 +234,18 @@ func TestRouteReach(t *testing.T) {
 	q := asked.Load().(url.Values)
 	if q["profile"][0] != "alpine_time" || q["time_limit"][0] != "14400" {
 		t.Errorf("asked GraphHopper %v", q)
+	}
+
+	// Back at the start: from the shortest path trees, each way timed.
+	back := from(9.4466, 47.0446)
+	back["back"] = true
+	code, body = c.do("POST", "/api/v1/routing/reach", back)
+	_ = json.Unmarshal(body, &out)
+	if code != http.StatusOK || len(out.Areas) != 3 || out.Areas[0].Hours != 2 {
+		t.Errorf("there and back: %d %s", code, body)
+	}
+	if q := asked.Load().(url.Values); q["reverse_flow"] == nil {
+		t.Errorf("there and back asked GraphHopper %v", q)
 	}
 
 	if code, _ := c.do("POST", "/api/v1/routing/reach", from(9.2, 47.1)); code != http.StatusUnprocessableEntity {

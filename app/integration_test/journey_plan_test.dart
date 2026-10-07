@@ -35,16 +35,20 @@ void main() {
       await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
       await tester.tap(find.byKey(const Key('submit')));
     }
-    await waitFor(tester, find.byKey(const Key('tab-journeys')));
-    await tester.tap(find.byKey(const Key('tab-journeys')));
-    await waitFor(tester, find.byKey(const Key('journey-plan')));
-    await tester.pump(const Duration(seconds: 1)); // the tabs slide
-    await tester.tap(find.byKey(const Key('journey-plan')));
+    await waitFor(tester, find.byKey(const Key('tab-plan')));
+    await tester.tap(find.byKey(const Key('tab-plan')));
+    await waitFor(tester, find.byKey(const Key('plan-mode-multi')));
+    await tester.tap(find.byKey(const Key('plan-mode-multi')));
     await waitFor(tester, find.byKey(const Key('jplan-panel')));
     await tester.pump(const Duration(seconds: 2)); // the map loads
 
     final panel = find.descendant(of: find.byKey(const Key('jplan-panel')), matching: find.byType(Scrollable)).first;
-    Future<void> show(Finder f) => tester.scrollUntilVisible(f, 200, scrollable: panel);
+    // Built is not yet in sight: then wholly into the panel.
+    Future<void> show(Finder f) async {
+      await tester.scrollUntilVisible(f, 200, scrollable: panel);
+      await tester.ensureVisible(f);
+      await tester.pump(const Duration(milliseconds: 300));
+    }
 
     Future<void> pick(String q) async {
       await show(find.byKey(const Key('place-search-open')));
@@ -75,16 +79,19 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
     expect(tester.widget<ButtonStyleButton>(find.byKey(const Key('jplan-suggest'))).onPressed, isNotNull);
-    await show(find.byKey(const Key('jplan-way-1')));
-    // In the simulator's language.
+    await show(find.byKey(const Key('jplan-way-0')));
+    // In the simulator's language; «direct» or «via …», as the server's
+    // first way goes.
     final t = AppLocalizations.of(tester.element(find.byKey(const Key('jplan-panel'))));
-    expect(find.text(t.jplanWayDirect(1)), findsOneWidget);
+    expect(find.textContaining(t.jplanWay(1)), findsWidgets);
 
     // The second way.
     await show(find.byKey(const Key('jplan-way-1')));
     await tester.tap(find.byKey(const Key('jplan-way-1')));
     await tester.pump(const Duration(seconds: 1));
     await show(find.byKey(const Key('jplan-stage-0')));
+    // Above the first day: in the smaller panel of Planen, scrolled up to.
+    await tester.scrollUntilVisible(find.byKey(const Key('jplan-summary')), -200, scrollable: panel);
     expect(find.byKey(const Key('jplan-summary')), findsOneWidget);
 
     // Where it shares a night with another way, go on along that one. The

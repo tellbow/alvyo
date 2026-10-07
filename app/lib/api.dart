@@ -1538,11 +1538,14 @@ class Api {
 
   /// What one reaches on foot from [from] within 2, 4 and 8 hours at one's
   /// pace, the smallest first; [profile] hike or alpine.
-  Future<List<ReachArea>> reach(LonLat from, {String profile = 'hike'}) async {
+  /// The areas reached from [from] within 2, 4 and 8 hours; [back]: back
+  /// at the start within them, each way timed as it goes.
+  Future<List<ReachArea>> reach(LonLat from, {String profile = 'hike', bool back = false}) async {
     final j =
         await _send('POST', '/routing/reach', {
               'from': {'lon': from.lon, 'lat': from.lat},
               'profile': profile,
+              if (back) 'back': true,
             })
             as Map<String, dynamic>;
     return [for (final a in j['areas'] as List) ReachArea.fromJson(a as Map<String, dynamic>)];
@@ -1878,6 +1881,28 @@ class Api {
 
   /// Adds a photo (JPEG, PNG, WebP or HEIC). Fails with 413 when too big,
   /// 415 in another format, 422 when there are too many.
+  /// Imports a GPX, KML, TCX or FIT file as a private route (its tracks
+  /// joined); the routes made and the tracks skipped with why.
+  Future<({List<({String id, String title})> routes, List<({String name, String reason})> skipped})> importFile(
+    List<int> bytes,
+    String filename,
+  ) async {
+    final req = http.MultipartRequest('POST', _uri('/imports'))
+      ..headers.addAll(_headers)
+      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    final j = _decode(await http.Response.fromStream(await _http.send(req))) as Map<String, dynamic>;
+    return (
+      routes: [
+        for (final r in j['routes'] as List? ?? const [])
+          (id: (r as Map<String, dynamic>)['id'] as String, title: r['title'] as String),
+      ],
+      skipped: [
+        for (final s in j['skipped'] as List? ?? const [])
+          (name: (s as Map<String, dynamic>)['name'] as String, reason: s['reason'] as String),
+      ],
+    );
+  }
+
   Future<({List<Photo> photos, bool canEdit})> addPhoto(
     String id,
     List<int> bytes,

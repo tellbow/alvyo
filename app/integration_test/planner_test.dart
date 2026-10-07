@@ -29,8 +29,8 @@ void main() {
       await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
       await tester.tap(find.byKey(const Key('submit')));
     }
-    await waitFor(tester, find.byKey(const Key('plan-route')));
-    await tester.tap(find.byKey(const Key('plan-route')));
+    await waitFor(tester, find.byKey(const Key('tab-plan')));
+    await tester.tap(find.byKey(const Key('tab-plan'))); // Tagestour first
     await waitFor(tester, find.byKey(const Key('place-search-open')));
 
     for (final q in ['Sargans', 'Weisstannen']) {

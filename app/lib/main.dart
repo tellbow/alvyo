@@ -8,7 +8,7 @@ import 'format.dart';
 import 'l10n/app_localizations.dart';
 import 'links.dart';
 import 'screens/login_screen.dart';
-import 'screens/routes_screen.dart';
+import 'screens/home_screen.dart';
 import 'session.dart';
 import 'settings.dart';
 import 'theme.dart';
@@ -141,7 +141,7 @@ class _AlvyoAppState extends State<AlvyoApp> with WidgetsBindingObserver {
             return LoginScreen(session: _session, onLoggedIn: (a) => setState(() => _api = a));
           }
           if (_pending != null) WidgetsBinding.instance.addPostFrameCallback((_) => _openPending());
-          return RoutesScreen(api: api, onLogout: _logout, settings: _settings);
+          return HomeScreen(api: api, onLogout: _logout, settings: _settings);
         },
       ),
     );

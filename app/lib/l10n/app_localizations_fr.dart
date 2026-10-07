@@ -1842,6 +1842,187 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reachTitle => 'Jusqu’où puis-je aller ?';
 
   @override
+  String get reachBackHint => 'Aller-retour, montée et descente chacune avec son temps';
+
+  @override
+  String get importFile => 'Fichier (GPX, KML, TCX, FIT)';
+
+  @override
+  String get importFileHint => 'Devient un itinéraire privé';
+
+  @override
+  String get importNotTrack => 'Ce fichier ne contient aucune trace qu’Alvyo sait lire (GPX, KML, TCX ou FIT).';
+
+  @override
+  String reachWithinBack(int hours) {
+    return 'jusqu’à $hours heures, aller-retour';
+  }
+
+  @override
+  String get plannerVia => 'Étape intermédiaire';
+
+  @override
+  String get plannerSearchVia => 'Chercher une étape …';
+
+  @override
+  String get plannerRoundTrip => 'Boucle';
+
+  @override
+  String get plannerReturn => 'Retour au départ';
+
+  @override
+  String get recordFollow => 'Suivre une randonnée (facultatif)';
+
+  @override
+  String get recordChooseTour => 'Choisir une randonnée';
+
+  @override
+  String get recordWithoutTour => 'Sans randonnée';
+
+  @override
+  String get recordNoTours => 'Pas encore de randonnée prévue. Planifie-en une sous « Planifier ».';
+
+  @override
+  String get devicesTitle => 'Appareils connectés';
+
+  @override
+  String get devicesSubtitle => 'Apple Watch · importer les randonnées automatiquement';
+
+  @override
+  String get devicesWatch => 'Apple Watch';
+
+  @override
+  String get devicesWatchHint => 'Randonnées de l’app Exercice, via Apple Santé';
+
+  @override
+  String get devicesWatchAuto => 'Importer automatiquement les nouvelles randonnées';
+
+  @override
+  String get devicesWatchAutoHint => 'À l’ouverture de l’app – les randonnées à partir de maintenant';
+
+  @override
+  String get devicesWatchPick => 'Choisir des randonnées et les importer';
+
+  @override
+  String get profileAccount => 'Compte';
+
+  @override
+  String get accountPaceShort => 'Temps de marche par rapport aux indicateurs';
+
+  @override
+  String devicesWatchImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count randonnées importées de l’Apple Watch',
+      one: '1 randonnée importée de l’Apple Watch',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importTitle => 'Importer';
+
+  @override
+  String get importAction => 'Importer';
+
+  @override
+  String get importWatchHint => 'Randonnées enregistrées avec ta montre';
+
+  @override
+  String get planDay => 'Journée';
+
+  @override
+  String get planMulti => 'Plusieurs jours';
+
+  @override
+  String get planReach => 'Portée';
+
+  @override
+  String get discoverSearchHint => 'Chercher un lieu ou un sommet';
+
+  @override
+  String get discoverSearchNone => 'Rien trouvé. Essaie un autre nom.';
+
+  @override
+  String get discoverReachHint => 'Portée depuis ta position';
+
+  @override
+  String get discoverPeaks => 'Regarder les sommets';
+
+  @override
+  String get discoverPeaksHint => 'Caméra vers l’horizon';
+
+  @override
+  String get discoverFollowing => 'Des personnes que tu suis';
+
+  @override
+  String get discoverAll => 'Tout';
+
+  @override
+  String get discoverFollowingEmpty =>
+      'Rien encore des personnes que tu suis. Suis des amis pour voir leurs nouvelles randonnées ici.';
+
+  @override
+  String get discoverNearby => 'Près de toi';
+
+  @override
+  String get discoverNearbyNoPosition => 'Autorise la localisation pour voir les randonnées près de toi.';
+
+  @override
+  String get discoverNearbyAllow => 'Autoriser la localisation';
+
+  @override
+  String get discoverNearbyEmpty =>
+      'Aucune randonnée publiée autour de toi pour l’instant. Tu en trouves d’autres sur la carte.';
+
+  @override
+  String get toursTitle => 'Randonnées';
+
+  @override
+  String get toursMap => 'Carte';
+
+  @override
+  String get toursList => 'Liste';
+
+  @override
+  String get toursJourneys => 'Par étapes';
+
+  @override
+  String get toursShared => 'Partagées';
+
+  @override
+  String get toursEmptyPlanned =>
+      'Pas encore de randonnées prévues. Planifie un itinéraire ou une randonnée par étapes – elle apparaîtra ici.';
+
+  @override
+  String get toursEmptyHiked => 'Encore rien randonné. Enregistre ta prochaine randonnée – elle apparaîtra ici.';
+
+  @override
+  String get toursPlanAction => 'Planifier une randonnée';
+
+  @override
+  String get barDiscover => 'Découvrir';
+
+  @override
+  String get barPlan => 'Planifier';
+
+  @override
+  String get barTours => 'Randonnées';
+
+  @override
+  String get tourRoute => 'Itinéraire';
+
+  @override
+  String get tourJourney => 'Randonnée par étapes';
+
+  @override
+  String get tourSharedBy => 'partagé par';
+
+  @override
+  String get tourBy => 'de';
+
+  @override
   String get peaksTitle => 'Reconnaître les sommets';
 
   @override

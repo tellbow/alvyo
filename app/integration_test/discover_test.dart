@@ -49,8 +49,9 @@ void main() {
       await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
       await tester.tap(find.byKey(const Key('submit')));
     }
-    await waitFor(tester, find.byKey(const Key('discover')));
-    await tester.tap(find.byKey(const Key('discover')));
+    // Entdecken › In deiner Nähe › Karte.
+    await waitFor(tester, find.byKey(const Key('nearby-map')));
+    await tester.tap(find.byKey(const Key('nearby-map')));
 
     // Routes only, so the test route is among the first shown.
     await waitFor(tester, find.byKey(const Key('discover-kind')));

@@ -31,8 +31,10 @@ void main() {
       await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
       await tester.tap(find.byKey(const Key('submit')));
     }
+    await waitFor(tester, find.byKey(const Key('tab-tours')));
+    await tester.tap(find.byKey(const Key('tab-tours')));
     await waitFor(tester, find.text('Sargans–Weisstannen'));
-    await tester.tap(find.text('Sargans–Weisstannen'));
+    await tapAboveBar(tester, find.text('Sargans–Weisstannen'));
     await waitFor(tester, find.byKey(const Key('nav-start')));
     await tester.tap(find.byKey(const Key('nav-start')));
     // With contacts (live_test.dart adds one), the hike can be shared first.
@@ -77,4 +79,20 @@ void main() {
       }
     }
   });
+}
+
+/// Taps [f] in a list that runs under the floating bar: scrolled only when
+/// it is not clear of the bar (a short list scrolled anyway bounces back).
+Future<void> tapAboveBar(WidgetTester tester, Finder f) async {
+  final view = tester.view;
+  final clear = view.physicalSize.height / view.devicePixelRatio - 160;
+  if (tester.getCenter(f).dy > clear) {
+    final list = find.ancestor(of: f, matching: find.byType(Scrollable)).first;
+    await tester.ensureVisible(f);
+    await tester.pump(const Duration(seconds: 1));
+    final y = tester.getCenter(f).dy;
+    if (y > clear) await tester.drag(list, Offset(0, clear - y));
+    await tester.pump(const Duration(seconds: 1));
+  }
+  await tester.tap(f);
 }

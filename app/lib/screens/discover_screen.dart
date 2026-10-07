@@ -51,9 +51,23 @@ enum _Status { loading, done, failed, offline }
 /// lines on the map and a list, with filters. [mine]: the user's own routes,
 /// journeys and hikes instead, as the website's map of one's tours.
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key, required this.api, this.mine = false, @visibleForTesting this.map});
+  const DiscoverScreen({
+    super.key,
+    required this.api,
+    this.mine = false,
+    this.embedded = false,
+    this.start,
+    @visibleForTesting this.map,
+  });
   final Api api;
   final bool mine;
+
+  /// Where the map starts (a place searched on Entdecken); else where the
+  /// phone is.
+  final LonLat? start;
+
+  /// Without its app bar, inside a tab (Touren › Karte).
+  final bool embedded;
   final DiscoverMapBuilder? map;
 
   @override
@@ -156,25 +170,28 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     final t = AppLocalizations.of(context);
     final map =
         widget.map ??
-        (items, onView, onOpen) => _DiscoverMap(api: widget.api, items: items, onView: onView, onOpen: onOpen);
+        (items, onView, onOpen) =>
+            _DiscoverMap(api: widget.api, items: items, onView: onView, onOpen: onOpen, start: widget.start);
+    final body = Column(
+      children: [
+        Expanded(flex: 5, child: map(_items, _viewed, _open)),
+        if (_status == _Status.loading) const LinearProgressIndicator(minHeight: 2) else const SizedBox(height: 2),
+        Expanded(
+          flex: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _filters(t),
+              Expanded(child: _results(t)),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (widget.embedded) return body;
     return Scaffold(
       appBar: AppBar(title: Text(widget.mine ? t.myMapTitle : t.discoverTitle)),
-      body: Column(
-        children: [
-          Expanded(flex: 5, child: map(_items, _viewed, _open)),
-          if (_status == _Status.loading) const LinearProgressIndicator(minHeight: 2) else const SizedBox(height: 2),
-          Expanded(
-            flex: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _filters(t),
-                Expanded(child: _results(t)),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: body,
     );
   }
 
@@ -335,8 +352,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 /// The national map with huts, starting where the phone is (if the app may
 /// know) or on all of Switzerland, and the results as coloured lines.
 class _DiscoverMap extends StatefulWidget {
-  const _DiscoverMap({required this.api, required this.items, required this.onView, required this.onOpen});
+  const _DiscoverMap({required this.api, required this.items, required this.onView, required this.onOpen, this.start});
   final Api api;
+  final LonLat? start;
   final List<DiscoverItem> items;
   final ValueChanged<Bbox> onView;
   final ValueChanged<DiscoverItem> onOpen;
@@ -346,7 +364,7 @@ class _DiscoverMap extends StatefulWidget {
 }
 
 class _DiscoverMapState extends State<_DiscoverMap> {
-  late final Future<LonLat?> _here = knownPosition();
+  late final Future<LonLat?> _here = widget.start != null ? Future.value(widget.start) : knownPosition();
   late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
   MapController? _map;
   StyleController? _style;

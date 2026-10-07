@@ -15,6 +15,10 @@ class AppSettings {
 
   /// null: the phone's language.
   final locale = ValueNotifier<Locale?>(null);
+
+  /// Apple Watch hikes are imported when the app opens: those since then;
+  /// null: off.
+  final watchAutoSince = ValueNotifier<DateTime?>(null);
   late final Future<void> loaded = _load();
 
   Future<void> _load() async {
@@ -23,6 +27,7 @@ class AppSettings {
       theme.value = ThemeMode.values.firstWhere((m) => m.name == t, orElse: () => ThemeMode.system);
       final l = await _storage.read(key: 'locale');
       locale.value = AppLocalizations.supportedLocales.where((s) => s.languageCode == l).firstOrNull;
+      watchAutoSince.value = DateTime.tryParse(await _storage.read(key: 'watch-auto') ?? '');
     } on Object {
       // no Keychain (tests): the phone's
     }
@@ -36,6 +41,12 @@ class AppSettings {
   Future<void> setLocale(Locale? l) async {
     locale.value = l;
     await _write('locale', l?.languageCode);
+  }
+
+  /// Switches the import of new Apple Watch hikes on (from now) or off.
+  Future<void> setWatchAuto(bool on) async {
+    watchAutoSince.value = on ? DateTime.now() : null;
+    await _write('watch-auto', watchAutoSince.value?.toIso8601String());
   }
 
   Future<void> _write(String key, String? value) async {

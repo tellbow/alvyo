@@ -22,8 +22,8 @@ List<List<List<double>>> _square(double r) => [
 ];
 
 void main() {
-  // A start found by name: the areas of 2, 4 and 8 hours; then alpine ways;
-  // a point without a path says so.
+  // A start found by name: the areas of 2, 4 and 8 hours there and back;
+  // one way; then alpine ways; a point without a path says so.
   testWidgets('how far one gets from a place', (tester) async {
     // A tall phone: the panel shows all it holds.
     tester.view.physicalSize = const Size(1200, 3600);
@@ -46,7 +46,7 @@ void main() {
         ('POST', '/api/v1/routing/reach') => () {
           final body = jsonDecode(req.body) as Map<String, dynamic>;
           asked.add(body);
-          if (body['profile'] == 'alpine' && asked.length > 2) {
+          if (body['profile'] == 'alpine' && asked.length > 3) {
             return http.Response('{"detail":"no path near this point"}', 422);
           }
           return _json({
@@ -89,10 +89,17 @@ void main() {
     expect(asked.single, {
       'from': {'lon': 9.4466, 'lat': 47.0446},
       'profile': 'hike',
+      'back': true,
     });
     expect(find.text('Start: Sargans'), findsOneWidget);
+    expect(find.text('bis 2 Stunden, hin und zurück'), findsOneWidget);
+    expect(find.text('bis 8 Stunden, hin und zurück'), findsOneWidget);
+
+    // One way.
+    await tester.tap(find.byKey(const Key('reach-back')));
+    await tester.pumpAndSettle();
+    expect(asked.last.containsKey('back'), isFalse);
     expect(find.text('bis 2 Stunden'), findsOneWidget);
-    expect(find.text('bis 8 Stunden'), findsOneWidget);
     expect(find.text('Bei deinem Tempo: 1.5-mal die Zeit der Wegweiser.'), findsOneWidget);
 
     await tester.tap(find.text('Alpinwandern (bis T6)'));

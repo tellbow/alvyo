@@ -11,10 +11,13 @@ import '../map_style.dart';
 import '../navigation/gps.dart';
 import '../navigation/recording.dart';
 import '../navigation/tracker.dart';
+import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
 import '../precip.dart';
 import 'navigate_screen.dart';
+import 'route_screen.dart';
+import 'tiles.dart';
 
 /// Recording a hike without a planned route (the record button): the
 /// position and the track so far on the map, how far and how long. Once
@@ -50,6 +53,65 @@ class _RecordScreenState extends State<RecordScreen> {
   static const _followZoom = 15.0;
   Timer? _clock;
   late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
+
+  /// The tour to follow (requirement 69): started on its page, as «Los».
+  RouteSummary? _tour;
+
+  /// One's routes not hiked yet and those shared, to follow; the saved ones
+  /// without a connection.
+  Future<void> _chooseTour() async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    // With the owner for shared ones.
+    List<(RouteSummary, String?)> routes;
+    try {
+      final own = await widget.api.routes();
+      final shared = await widget.api.shared().then((s) => s.routes, onError: (Object _) => <RouteSummary>[]);
+      routes = [
+        for (final r in own)
+          if (r.doneOn == null) (r, null),
+        for (final r in shared) (r, r.owner),
+      ];
+    } on Object {
+      final saved = await (await PackStore.open()).savedRoutes().catchError((_) => <RouteDetail>[]);
+      routes = [for (final r in saved) (r, null)];
+    }
+    if (!mounted) return;
+    if (routes.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(t.recordNoTours)));
+      return;
+    }
+    final picked = await showModalBottomSheet<RouteSummary>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        builder: (context, scroll) => ListView(
+          controller: scroll,
+          children: [
+            ListTile(title: Text(t.recordFollow, style: Theme.of(context).textTheme.titleMedium)),
+            for (final (r, owner) in routes)
+              RouteTile(
+                key: Key('record-tour-${r.id}'),
+                route: r,
+                owner: owner,
+                onTap: () => Navigator.pop(context, r),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && mounted) setState(() => _tour = picked);
+  }
+
+  /// Follows the chosen tour on its page, recording there.
+  void _startTour(RouteSummary r) => Navigator.of(context).pushReplacement(
+    MaterialPageRoute<HikeSummary>(
+      builder: (_) => RouteScreen(api: widget.api, id: r.id, title: r.title, startHike: true),
+    ),
+  );
 
   late final Widget _mapView =
       widget.map ??
@@ -147,10 +209,12 @@ class _RecordScreenState extends State<RecordScreen> {
   ];
 
   Future<void> _onStyle(StyleController style) async {
-    _style = style;
     await _places.addTo(style);
     await addRouteLine(style, _track());
     await addPositionDot(style, _fix?.lon, _fix?.lat);
+    // Only now: a position coming in meanwhile would update the sources
+    // before they exist (the iOS plugin fails on that).
+    _style = style;
   }
 
   Future<void> _finish() async {
@@ -206,6 +270,10 @@ class _RecordScreenState extends State<RecordScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: rec == null
+              ? CloseButton(key: const Key('record-close'), onPressed: () => Navigator.of(context).maybePop())
+              : null,
+          centerTitle: true,
           title: Text(t.navRecord),
           actions: [
             if (rec != null) TextButton(key: const Key('nav-finish'), onPressed: _finish, child: Text(t.navFinish)),
@@ -259,10 +327,34 @@ class _RecordScreenState extends State<RecordScreen> {
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (_fix == null) ...[Text(t.navWaiting), const SizedBox(height: 8)],
+                          Text(t.recordFollow, style: Theme.of(context).textTheme.labelLarge),
+                          const SizedBox(height: 6),
+                          if (_tour case final r?)
+                            RouteTile(key: const Key('record-tour'), route: r, onTap: _chooseTour)
+                          else
+                            OutlinedButton.icon(
+                              key: const Key('record-tour'),
+                              onPressed: _chooseTour,
+                              icon: const Icon(Icons.route_outlined),
+                              label: Text(t.recordChooseTour),
+                            ),
+                          if (_tour != null)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                key: const Key('record-tour-clear'),
+                                onPressed: () => setState(() => _tour = null),
+                                child: Text(t.recordWithoutTour),
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                          if (_fix == null && _tour == null) ...[Text(t.navWaiting), const SizedBox(height: 8)],
                           FilledButton.icon(
                             key: const Key('record-start'),
-                            onPressed: _start,
+                            onPressed: switch (_tour) {
+                              final r? => () => _startTour(r),
+                              null => _start,
+                            },
                             icon: const Icon(Icons.fiber_manual_record),
                             label: Text(t.recordStart),
                           ),

@@ -6,13 +6,14 @@ import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../settings.dart';
 import 'account_screens.dart';
-import 'collections_screen.dart';
-import 'discover_screen.dart';
+import 'devices_screen.dart';
 import 'friends_screen.dart';
+import 'tab_header.dart';
 import 'user_screen.dart';
 
-/// The account: who is logged in, the profile, collections and map of
-/// one's tours, the settings, logging out and deleting the account.
+/// Profil (requirement 69): who one is, friends and connected devices, the
+/// settings, the account (homes, contacts, blocked), logging out and
+/// deleting it.
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key, required this.api, required this.onLogout, required this.settings});
   final Api api;
@@ -63,195 +64,310 @@ class _ProfileTabState extends State<ProfileTab> {
 
   void _push(Widget screen) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
 
+  /// A choice of a setting in a sheet: the options, the current ticked.
+  Future<T?> _pick<T>(String title, List<(T, String)> options, T current) => showModalBottomSheet<T>(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(title: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+            for (final (value, label) in options)
+              ListTile(
+                title: Text(label),
+                trailing: value == current ? const Icon(Icons.check) : null,
+                onTap: () => Navigator.pop(context, value),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  String _paceText(AppLocalizations t, double p) => p == 1 ? t.accountPaceSignposts : '${(p * 100).round()}\u00a0%';
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final muted = TextStyle(color: theme.colorScheme.onSurfaceVariant);
+    Widget group(List<Widget> rows) => Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (final (i, r) in rows.indexed) ...[if (i > 0) const Divider(height: 1, indent: 16), r],
+        ],
+      ),
+    );
+    Widget heading(String text) => Padding(
+      padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
+      child: Text(
+        text.toUpperCase(),
+        style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 1, color: muted.color),
+      ),
+    );
+    Widget value(String text) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(text, style: muted),
+        const Icon(Icons.chevron_right),
+      ],
+    );
     return FutureBuilder(
       future: _me,
       builder: (context, snap) {
         final me = snap.data;
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+        final initials = (me?.displayName ?? '')
+            .split(RegExp(r'\s+'))
+            .where((w) => w.isNotEmpty)
+            .take(2)
+            .map((w) => w[0].toUpperCase())
+            .join();
+        // The header stays, as on the other tabs.
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    if (me != null) Text(me.displayName, style: theme.textTheme.headlineSmall),
-                    if (me != null) Text('@${me.username}${me.email.isEmpty ? '' : ' · ${me.email}'}'),
-                    Text('${t.server}: ${Uri.parse(widget.api.server).host}', style: muted),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (me != null)
-              ListTile(
-                key: const Key('profile-mine'),
-                leading: const Icon(Icons.person_outline),
-                title: Text(t.profileMine),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(UserScreen(api: widget.api, username: me.username)),
-              ),
-            if (me != null)
-              ListTile(
-                key: const Key('friends'),
-                leading: const Icon(Icons.people_outline),
-                title: Text(t.friendsTitle),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (me.friendRequests > 0) Badge.count(count: me.friendRequests),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
-                onTap: () async {
-                  await Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute<void>(builder: (_) => FriendsScreen(api: widget.api)));
-                  // Requests answered there.
-                  if (mounted) {
-                    setState(() {
-                      _me = widget.api.me();
-                    });
-                  }
-                },
-              ),
-            ListTile(
-              key: const Key('collections'),
-              leading: const Icon(Icons.collections_bookmark_outlined),
-              title: Text(t.collectionsTitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _push(CollectionsScreen(api: widget.api)),
-            ),
-            ListTile(
-              key: const Key('my-map'),
-              leading: const Icon(Icons.map_outlined),
-              title: Text(t.myMapTitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _push(DiscoverScreen(api: widget.api, mine: true)),
-            ),
-            const Divider(height: 24),
-            Text(t.settingsTitle, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Text(t.themeTitle, style: muted),
-            const SizedBox(height: 6),
-            ValueListenableBuilder(
-              valueListenable: widget.settings.theme,
-              builder: (context, mode, _) => SegmentedButton<ThemeMode>(
-                key: const Key('theme'),
-                showSelectedIcon: false,
-                segments: [
-                  ButtonSegment(value: ThemeMode.system, label: Text(t.themeSystem)),
-                  ButtonSegment(value: ThemeMode.light, label: Text(t.themeLight)),
-                  ButtonSegment(value: ThemeMode.dark, label: Text(t.themeDark)),
+            TabHeader(t.navProfile),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                children: [
+                  Card(
+                    margin: EdgeInsets.zero,
+                    clipBehavior: Clip.antiAlias,
+                    child: ListTile(
+                      key: const Key('profile-mine'),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      leading: CircleAvatar(radius: 26, child: Text(initials)),
+                      title: Text(
+                        me?.displayName ?? '',
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: me == null ? null : Text('@${me.username} · ${t.profileMine}'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: me == null ? null : () => _push(UserScreen(api: widget.api, username: me.username)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  group([
+                    ListTile(
+                      key: const Key('friends'),
+                      leading: const Icon(Icons.people_outline),
+                      title: Text(t.friendsTitle),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if ((me?.friendRequests ?? 0) > 0) Badge.count(count: me!.friendRequests),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
+                      onTap: () async {
+                        await Navigator.of(
+                          context,
+                        ).push(MaterialPageRoute<void>(builder: (_) => FriendsScreen(api: widget.api)));
+                        // Requests answered there.
+                        if (mounted) {
+                          setState(() {
+                            _me = widget.api.me();
+                          });
+                        }
+                      },
+                    ),
+                    ListTile(
+                      key: const Key('devices'),
+                      leading: const Icon(Icons.watch_outlined),
+                      title: Text(t.devicesTitle),
+                      subtitle: Text(t.devicesSubtitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _push(DevicesScreen(api: widget.api, settings: widget.settings)),
+                    ),
+                  ]),
+                  heading(t.settingsTitle),
+                  group([
+                    ValueListenableBuilder(
+                      valueListenable: widget.settings.theme,
+                      builder: (context, mode, _) {
+                        final names = {
+                          ThemeMode.system: t.themeSystem,
+                          ThemeMode.light: t.themeLight,
+                          ThemeMode.dark: t.themeDark,
+                        };
+                        return ListTile(
+                          key: const Key('theme'),
+                          title: Text(t.themeTitle),
+                          trailing: value(names[mode]!),
+                          onTap: () async {
+                            final m = await _pick(t.themeTitle, [
+                              for (final e in names.entries) (e.key, e.value),
+                            ], mode);
+                            if (m != null) await widget.settings.setTheme(m);
+                          },
+                        );
+                      },
+                    ),
+                    ValueListenableBuilder(
+                      valueListenable: widget.settings.locale,
+                      builder: (context, locale, _) => ListTile(
+                        key: const Key('language'),
+                        title: Text(t.languageTitle),
+                        trailing: value(_languages[locale?.languageCode] ?? t.themeSystem),
+                        onTap: () async {
+                          const auto = '';
+                          final code = await _pick(t.languageTitle, [
+                            (auto, t.themeSystem),
+                            for (final e in _languages.entries) (e.key, e.value),
+                          ], locale?.languageCode ?? auto);
+                          if (code != null) await _language(code == auto ? null : code);
+                        },
+                      ),
+                    ),
+                    if (me != null)
+                      ListTile(
+                        key: const Key('pace'),
+                        title: Text(t.accountPace),
+                        subtitle: Text(t.accountPaceShort),
+                        trailing: value('${(me.speedFactor * 100).round()}\u00a0%'),
+                        onTap: () async {
+                          final p = await _pick(t.accountPace, [
+                            for (final p in {..._paces, me.speedFactor}.toList()..sort()) (p, _paceText(t, p)),
+                          ], me.speedFactor);
+                          if (p != null) _update(() => widget.api.updateMe(speedFactor: p));
+                        },
+                      ),
+                    SwitchListTile(
+                      key: const Key('profile-public'),
+                      title: Text(t.profilePublic),
+                      subtitle: Text(t.profilePublicHint),
+                      value: me?.profilePublic ?? true,
+                      onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(profilePublic: v)),
+                    ),
+                    ListTile(
+                      key: const Key('notifications'),
+                      title: Text(t.accountNotifications),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: me == null
+                          ? null
+                          : () => _push(
+                              _NotificationsScreen(
+                                api: widget.api,
+                                me: me,
+                                onChanged: (m) => setState(() {
+                                  _me = Future.value(m);
+                                }),
+                              ),
+                            ),
+                    ),
+                  ]),
+                  heading(t.profileAccount),
+                  group([
+                    ListTile(
+                      key: const Key('homes'),
+                      leading: const Icon(Icons.home_outlined),
+                      title: Text(t.homesTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _push(HomesScreen(api: widget.api)),
+                    ),
+                    ListTile(
+                      key: const Key('contacts'),
+                      leading: const Icon(Icons.contact_mail_outlined),
+                      title: Text(t.contactsTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _push(ContactsScreen(api: widget.api)),
+                    ),
+                    ListTile(
+                      key: const Key('blocked'),
+                      leading: const Icon(Icons.block),
+                      title: Text(t.blockedTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _push(BlockedScreen(api: widget.api)),
+                    ),
+                  ]),
+                  const SizedBox(height: 20),
+                  OutlinedButton.icon(
+                    key: const Key('logout'),
+                    onPressed: widget.onLogout,
+                    icon: const Icon(Icons.logout),
+                    label: Text(t.logout),
+                  ),
+                  const SizedBox(height: 8),
+                  if (me != null)
+                    TextButton(
+                      key: const Key('account-delete'),
+                      style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
+                      onPressed: () => deleteAccount(context, widget.api, me, onDeleted: widget.onLogout),
+                      child: Text(t.accountDeleteTitle),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      [
+                        if (me != null && me.email.isNotEmpty) me.email,
+                        '${t.server}: ${Uri.parse(widget.api.server).host}',
+                      ].join(' · '),
+                      textAlign: TextAlign.center,
+                      style: muted.copyWith(fontSize: 12),
+                    ),
+                  ),
                 ],
-                selected: {mode},
-                onSelectionChanged: (s) => widget.settings.setTheme(s.first),
               ),
             ),
-            const SizedBox(height: 16),
-            ValueListenableBuilder(
-              valueListenable: widget.settings.locale,
-              builder: (context, locale, _) => DropdownMenu<String?>(
-                key: const Key('language'),
-                label: Text(t.languageTitle),
-                expandedInsets: EdgeInsets.zero,
-                initialSelection: locale?.languageCode,
-                onSelected: _language,
-                dropdownMenuEntries: [
-                  DropdownMenuEntry(value: null, label: t.themeSystem),
-                  for (final e in _languages.entries) DropdownMenuEntry(value: e.key, label: e.value),
-                ],
-              ),
-            ),
-            if (me != null) ...[
-              const SizedBox(height: 16),
-              DropdownMenu<double>(
-                key: const Key('pace'),
-                label: Text(t.accountPace),
-                helperText: t.accountPaceHint,
-                expandedInsets: EdgeInsets.zero,
-                initialSelection: me.speedFactor,
-                onSelected: (v) => v == null ? null : _update(() => widget.api.updateMe(speedFactor: v)),
-                dropdownMenuEntries: [
-                  for (final p in {..._paces, me.speedFactor}.toList()..sort())
-                    DropdownMenuEntry(value: p, label: p == 1 ? t.accountPaceSignposts : '${(p * 100).round()}\u00a0%'),
-                ],
-              ),
-            ],
-            const SizedBox(height: 16),
-            Text(t.accountNotifications, style: muted),
-            SwitchListTile(
-              key: const Key('profile-public'),
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.profilePublic),
-              subtitle: Text(t.profilePublicHint),
-              value: me?.profilePublic ?? true,
-              onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(profilePublic: v)),
-            ),
-            SwitchListTile(
-              key: const Key('notify-comments'),
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.accountNotifyComments),
-              value: me?.notifyComments ?? false,
-              onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(notifyComments: v)),
-            ),
-            SwitchListTile(
-              key: const Key('notify-follows'),
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.accountNotifyFollows),
-              value: me?.notifyFollows ?? false,
-              onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(notifyFollows: v)),
-            ),
-            ListTile(
-              key: const Key('homes'),
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.home_outlined),
-              title: Text(t.homesTitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _push(HomesScreen(api: widget.api)),
-            ),
-            ListTile(
-              key: const Key('contacts'),
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.contact_mail_outlined),
-              title: Text(t.contactsTitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _push(ContactsScreen(api: widget.api)),
-            ),
-            ListTile(
-              key: const Key('blocked'),
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.block),
-              title: Text(t.blockedTitle),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _push(BlockedScreen(api: widget.api)),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              key: const Key('logout'),
-              onPressed: widget.onLogout,
-              icon: const Icon(Icons.logout),
-              label: Text(t.logout),
-            ),
-            const SizedBox(height: 8),
-            if (me != null)
-              TextButton(
-                key: const Key('account-delete'),
-                style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
-                onPressed: () => deleteAccount(context, widget.api, me, onDeleted: widget.onLogout),
-                child: Text(t.accountDeleteTitle),
-              ),
           ],
         );
       },
+    );
+  }
+}
+
+/// The e-mails one gets: about comments and new followers.
+class _NotificationsScreen extends StatefulWidget {
+  const _NotificationsScreen({required this.api, required this.me, required this.onChanged});
+  final Api api;
+  final Me me;
+  final ValueChanged<Me> onChanged;
+
+  @override
+  State<_NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<_NotificationsScreen> {
+  late Me _me = widget.me;
+
+  Future<void> _update(Future<Me> call) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final me = await call;
+      widget.onChanged(me);
+      if (mounted) setState(() => _me = me);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(t.accountNotifications)),
+      body: ListView(
+        children: [
+          SwitchListTile(
+            key: const Key('notify-comments'),
+            title: Text(t.accountNotifyComments),
+            value: _me.notifyComments,
+            onChanged: (v) => _update(widget.api.updateMe(notifyComments: v)),
+          ),
+          SwitchListTile(
+            key: const Key('notify-follows'),
+            title: Text(t.accountNotifyFollows),
+            value: _me.notifyFollows,
+            onChanged: (v) => _update(widget.api.updateMe(notifyFollows: v)),
+          ),
+        ],
+      ),
     );
   }
 }

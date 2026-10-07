@@ -36,10 +36,21 @@ import 'travel_screen.dart';
 /// A route on the national map, with offline saving; its description,
 /// photos and comments, and a menu to change, share or export it.
 class RouteScreen extends StatefulWidget {
-  const RouteScreen({super.key, required this.api, required this.id, required this.title, this.map});
+  const RouteScreen({
+    super.key,
+    required this.api,
+    required this.id,
+    required this.title,
+    this.map,
+    this.startHike = false,
+  });
   final Api api;
   final String id;
   final String title;
+
+  /// Starts following the route once loaded, as «Los» does (a tour chosen
+  /// on Aufzeichnen).
+  final bool startHike;
 
   /// Stands in for the map in widget tests.
   @visibleForTesting
@@ -89,6 +100,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     _pois.then((p) {
       if (mounted) setState(() => _poiCount = p.length);
     });
+    if (widget.startHike) {
+      _route.then((r) {
+        if (mounted) _hike(r);
+      }, onError: (Object _) {});
+    }
   }
 
   @override

@@ -1,6 +1,7 @@
 import type { APIRequestContext } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
+import { linkFromMail } from './mailpit';
 
 /** A saved route near First, created through the API. */
 async function createRoute(request: APIRequestContext, title: string, lon0: number) {
@@ -156,4 +157,36 @@ test('add to a collection from the collection itself', async ({ page }) => {
 	await search.fill('');
 	await expect(found).toHaveCount(1);
 	await expect(found).toContainText('Bachalpsee');
+});
+
+test('a collection shared by link opens its private routes', async ({ page, browser }) => {
+	const id = `cshare${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	const email = `${id}@example.ch`;
+	const signup = await page.request.post('/api/v1/auth/signup', {
+		data: { email, username: id, display_name: 'Sammlerin', password: 'sehr-geheim-123' }
+	});
+	expect(signup.status()).toBe(201);
+	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
+	expect((await page.request.post('/api/v1/auth/verify-email', { data: { token } })).status()).toBe(
+		204
+	);
+	const route = await createRoute(page.request, 'Bachalpsee', 8.04);
+	const created = await page.request.post('/api/v1/collections', {
+		data: { title: 'Mit Freunden', visibility: 'unlisted' }
+	});
+	const collection = (await created.json()) as { id: string; share_token: string };
+	await page.request.post(`/api/v1/collections/${collection.id}/items`, {
+		data: { route_id: route }
+	});
+
+	// Someone without an account opens the link and, from it, the route.
+	const guest = await (await browser.newContext()).newPage();
+	await guest.goto(`/collections/${collection.id}?t=${collection.share_token}`);
+	const items = guest.getByTestId('collection-item');
+	await expect(items).toHaveCount(1);
+	await expect(guest.getByTestId('collection-hidden')).toHaveCount(0);
+	await items.getByRole('link', { name: 'Bachalpsee' }).click();
+	await expect(guest.getByTestId('route-title')).toHaveText('Bachalpsee');
+	expect(guest.url()).toContain(`?t=c.${collection.id}.${collection.share_token}`);
+	await guest.close();
 });

@@ -113,6 +113,14 @@
 		if (response.ok) await goto(resolve('/collections'));
 	}
 
+	// Who sees the collection without an invitation opens its items through
+	// it: `c.{id}`, with the link's token when it is unlisted.
+	const pass = $derived.by(() => {
+		if (collection.visibility === 'private' || collection.role !== 'viewer') return '';
+		const t = page.url.searchParams.get('t');
+		return `?t=${encodeURIComponent(`c.${collection.id}${t ? `.${t}` : ''}`)}`;
+	});
+
 	function href(it: CollectionItem) {
 		return it.kind === 'route'
 			? resolve('/routes/[id]', { id: it.target_id })
@@ -190,8 +198,15 @@
 			/>
 		{/if}
 
+		{#if collection.hidden > 0}
+			<p class="text-sm text-stone-600" data-testid="collection-hidden">
+				{m.collection_hidden({ n: collection.hidden })}
+			</p>
+		{/if}
 		{#if collection.item_list.length === 0}
-			<p class="text-sm text-stone-600">{m.collection_empty()}</p>
+			{#if collection.hidden === 0}
+				<p class="text-sm text-stone-600">{m.collection_empty()}</p>
+			{/if}
 		{:else}
 			<ol class="flex flex-col gap-2" data-testid="collection-items">
 				{#each collection.item_list as it, i (it.id)}
@@ -204,7 +219,7 @@
 						<div class="flex items-center gap-2">
 							<span class="inline-block size-3 rounded-full" style:background={stageColor(i)}
 							></span>
-							<a href={href(it)} class="flex-1 font-medium hover:underline">{it.title}</a>
+							<a href="{href(it)}{pass}" class="flex-1 font-medium hover:underline">{it.title}</a>
 							<span class="text-xs text-stone-500"
 								>{it.kind === 'route'
 									? m.collection_kind_route()

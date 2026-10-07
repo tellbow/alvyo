@@ -1,6 +1,7 @@
 // Package collections stores ordered lists of routes and journeys. A
-// collection never grants access to its items: every viewer sees only the
-// items they may open anyway (their own, public ones, or shared with them).
+// collection shares the items their owners added with whoever sees the
+// collection; items others added stay visible only to those who may open
+// them anyway (their own, public ones, or shared with them).
 package collections
 
 import (
@@ -83,6 +84,7 @@ type Collection struct {
 	OwnerID    string `json:"-"`
 	ShareToken string `json:"-"`
 	ItemList   []Item `json:"item_list"`
+	Hidden     int    `json:"hidden" doc:"Number of items the viewer may not see"`
 }
 
 // Viewer is who reads a collection; the zero value is anonymous.
@@ -171,9 +173,11 @@ func (s *Store) Access(ctx context.Context, id uuid.UUID) (access.Resource, erro
 }
 
 // visibleSQL is true for an item the viewer ($2 user, $3 verified e-mail)
-// may open without a share token.
+// of the collection may open: one its owner added, or one they may open
+// anyway without a share token.
 const visibleSQL = `(
-	(ci.route_id IS NOT NULL AND (r.owner_id = $2 OR r.visibility = 'public' OR EXISTS (
+	ci.added_by = coalesce(r.owner_id, j.owner_id)
+	OR (ci.route_id IS NOT NULL AND (r.owner_id = $2 OR r.visibility = 'public' OR EXISTS (
 		SELECT 1 FROM grants g WHERE g.route_id = r.id AND (g.user_id = $2 OR (g.email = $3 AND $3 <> '')))))
 	OR (ci.journey_id IS NOT NULL AND (j.owner_id = $2 OR j.visibility = 'public' OR EXISTS (
 		SELECT 1 FROM grants g WHERE g.journey_id = j.id AND (g.user_id = $2 OR (g.email = $3 AND $3 <> ''))))))`
@@ -238,7 +242,42 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID, v Viewer) (Collection, er
 		}
 		c.ItemList = append(c.ItemList, it)
 	}
+	c.Hidden = c.Items - len(c.ItemList)
 	return c, rows.Err()
+}
+
+// sharedSQL joins the items holding a route or journey added by its owner
+// (ci, the item as t, its collection as c); %[1]s is the table, %[2]s the
+// kind.
+const sharedSQL = `FROM collection_items ci
+	JOIN %[1]s t ON t.id = ci.%[2]s_id AND ci.added_by = t.owner_id
+	JOIN collections c ON c.id = ci.collection_id`
+
+// RoleOf returns the best role the viewer holds on the route or journey
+// (kind "route" or "journey") through collections they own or were invited
+// to that share it: their role there, an owner's as editor.
+func (s *Store) RoleOf(ctx context.Context, kind string, target uuid.UUID, v Viewer) (access.Role, error) {
+	var role *string
+	err := s.DB.QueryRow(ctx, `SELECT max(CASE WHEN c.owner_id = $1 THEN 'editor' ELSE g.role END)::text
+		`+fmt.Sprintf(sharedSQL, kind+"s", kind)+`
+		LEFT JOIN grants g ON g.collection_id = c.id AND (g.user_id = $1 OR (g.email = $3 AND $3 <> ''))
+		WHERE t.id = $2 AND (c.owner_id = $1 OR g.id IS NOT NULL)`, v.UserID, target, v.VerifiedEmail).Scan(&role)
+	if err != nil || role == nil {
+		return access.None, err
+	}
+	return access.ParseGrant(*role), nil
+}
+
+// Shares reports whether the collection shares the route or journey (kind
+// "route" or "journey"): it holds it, added by its owner.
+func (s *Store) Shares(ctx context.Context, id uuid.UUID, kind string, target uuid.UUID) (bool, error) {
+	var ok bool
+	err := s.DB.QueryRow(ctx, `SELECT EXISTS (SELECT 1 `+fmt.Sprintf(sharedSQL, kind+"s", kind)+`
+		WHERE c.id = $1 AND t.id = $2)`, id, target).Scan(&ok)
+	if err != nil {
+		return false, fmt.Errorf("collections: shares: %w", err)
+	}
+	return ok, nil
 }
 
 // decodeLines reads a GeoJSON LineString or MultiLineString.

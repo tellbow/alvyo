@@ -358,6 +358,7 @@
   "collectionNew": "Nuova raccolta",
   "collectionItemsCount": "{n} elementi",
   "collectionEmpty": "Ancora vuota. Aggiungi percorsi e trekking a tappe dal loro menu: «Aggiungi a una raccolta …».",
+  "collectionHidden": "Elementi privati che non puoi vedere: {n}",
   "collectionAddTo": "Aggiungi a una raccolta …",
   "collectionAdded": "Aggiunto a «{title}»",
   "collectionAlready": "Già in «{title}»",

@@ -242,6 +242,7 @@
 	"collection_new": "Nouvelle collection",
 	"collection_items_count": "{n} éléments",
 	"collection_empty": "Encore vide. Ajoute tes itinéraires et randonnées par étapes ci-dessus – ou sur leur page avec « Ajouter à une collection … ».",
+	"collection_hidden": "Éléments privés que tu ne peux pas voir : {n}",
 	"collection_add_to": "Ajouter à une collection …",
 	"collection_added": "Ajouté à « {title} »",
 	"collection_already": "Déjà dans « {title} »",

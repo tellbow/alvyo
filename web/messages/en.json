@@ -242,6 +242,7 @@
 	"collection_new": "New collection",
 	"collection_items_count": "{n} items",
 	"collection_empty": "Still empty. Add your routes and journeys above – or on their page with «Add to collection …».",
+	"collection_hidden": "Private items you cannot see: {n}",
 	"collection_add_to": "Add to collection …",
 	"collection_added": "Added to “{title}”",
 	"collection_already": "Already in “{title}”",

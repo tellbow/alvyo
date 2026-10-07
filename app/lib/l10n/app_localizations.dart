@@ -2242,6 +2242,12 @@ abstract class AppLocalizations {
   /// **'Noch leer. Füge Routen und Etappentouren über ihr Menü hinzu: «Zur Sammlung hinzufügen …».'**
   String get collectionEmpty;
 
+  /// No description provided for @collectionHidden.
+  ///
+  /// In de, this message translates to:
+  /// **'Private Einträge, die du nicht sehen kannst: {n}'**
+  String collectionHidden(int n);
+
   /// No description provided for @collectionAddTo.
   ///
   /// In de, this message translates to:

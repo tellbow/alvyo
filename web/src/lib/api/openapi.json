@@ -466,6 +466,11 @@
           "description": {
             "type": "string"
           },
+          "hidden": {
+            "description": "Number of items the viewer may not see",
+            "format": "int64",
+            "type": "integer"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -526,6 +531,7 @@
           "role",
           "can_edit",
           "item_list",
+          "hidden",
           "id",
           "owner_username",
           "items",

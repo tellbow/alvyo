@@ -1189,6 +1189,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Noch leer. Füge Routen und Etappentouren über ihr Menü hinzu: «Zur Sammlung hinzufügen …».';
 
   @override
+  String collectionHidden(int n) {
+    return 'Private Einträge, die du nicht sehen kannst: $n';
+  }
+
+  @override
   String get collectionAddTo => 'Zur Sammlung hinzufügen …';
 
   @override

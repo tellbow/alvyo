@@ -1183,6 +1183,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectionEmpty => 'Still empty. Add routes and journeys from their menu: «Add to collection …».';
 
   @override
+  String collectionHidden(int n) {
+    return 'Private items you cannot see: $n';
+  }
+
+  @override
   String get collectionAddTo => 'Add to collection …';
 
   @override

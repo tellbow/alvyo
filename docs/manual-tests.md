@@ -362,6 +362,12 @@ Checked so far only in the simulator, with made-up or simulated positions
       Safari offers «In der App öffnen»; the app shows who invites and
       «Freunde werden» makes friends. The app on the iPhone after the
       release, as it talks to production.
+- [ ] **A shared collection on the iPhone** (66): the link of an unlisted
+      collection with private routes and a private journey, opened in
+      Safari and with «In der App öffnen»: its items open, also a stage of
+      the journey with its weather and photos. Invited as editor, a route
+      in it can be changed. After the release, as the app talks to
+      production.
 - [ ] **A route's page** (58) in Safari on the iPhone and the Mac and in
       Firefox: «Teilen» opens the share sheet on the iPhone and copies the
       link on the Mac; «Anderes Datum» opens the date picker; the «⋯» menu

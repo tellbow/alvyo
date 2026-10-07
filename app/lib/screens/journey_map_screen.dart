@@ -87,15 +87,18 @@ class _JourneyMapScreenState extends State<JourneyMapScreen> {
                       _ => Text(t.journeyNoRoute),
                     },
                     onTap: switch (s.routeId) {
-                      final id? => () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => RouteScreen(
-                            api: widget.api,
-                            id: id,
-                            title: s.title.isEmpty ? t.journeyStage(i + 1) : s.title,
+                      final id? => () {
+                        widget.api.shareTokenFor(id, widget.api.shareTokens[widget.journey.id]);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => RouteScreen(
+                              api: widget.api,
+                              id: id,
+                              title: s.title.isEmpty ? t.journeyStage(i + 1) : s.title,
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                       _ => null,
                     },
                   ),

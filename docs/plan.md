@@ -67,13 +67,14 @@ A `v*` tag builds the images; Flux deploys them
 | 0.22.1 | 2026-10-05 | Page views titled by their route (the title was empty behind the language prefix) |
 | 0.24.0 | 2026-10-05 | How far one gets (65): «Reichweite» in «Planen» and «Wie weit komme ich?» in the app, areas reached within 2, 4 and 8 hours; GraphHopper's graph with elevation; no turns announced from GPS jitter |
 | 0.23.0 | 2026-10-05 | A point along the way on the map (63); the app catches up (64): trail conditions, photos counted, planned or hiked on one's map, invite links; the icons along the way load without warnings; the header's controls with more contrast |
+| next | | A shared collection shares its items (66, issue 17): by link or as public to view, with the people invited in their role (viewer or editor); how many items one cannot see instead of «Noch leer»; in the app a journey's stages keep the token it was opened with |
 
 ## Requirements
 
 From the project owner, numbered in the order given: 1–5 added on
 2026-09-23, 6–11 on 2026-09-24, 15–18 on 2026-09-26, 19–20 on 2026-09-27,
 21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02, 59–61
-on 2026-10-05, 62 on 2026-10-05.
+on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17).
 
 ### Done
 
@@ -608,6 +609,25 @@ on 2026-10-05, 62 on 2026-10-05.
     machine, 7 s on rk1. In the app: «Wie weit komme ich?» (the radar icon above «Meine
     Routen»), from a tap on the map, a place or where one is, the map fitted
     to the 8-hour area.
+
+66. **A shared collection shares its items.** A collection shared by link
+    or invitation showed «Noch leer»: its routes and journeys were private,
+    and a collection never granted access to its items (issue 17). Now an
+    item its owner added is shared with whoever sees the collection, in
+    their role there (viewer or editor; the collection's owner as editor;
+    by link or as public always viewer). Owner rights (visibility, share
+    link, invitations, deleting) stay with the item's owner, and the higher
+    of a direct invitation and the collection's role counts. Items someone
+    added who does not own them stay as they are, so an editor cannot pass
+    on a route only shared with them. Stage routes follow their journey.
+    Invited people need nothing more; whoever sees a public or unlisted
+    collection without an invitation opens its items with the collection
+    as share token (`?t=c.{id}`, `.{token}` added when unlisted), on the
+    website and in the app (where a journey's stages now also carry the
+    token the journey was opened with). Taking an item out of the
+    collection takes the access away. The collection says how many items
+    the viewer cannot see («Private Einträge, die du nicht sehen kannst:
+    3»); «Noch leer» only when there are none.
 
 ### Open
 

@@ -242,6 +242,7 @@
 	"collection_new": "Neue Sammlung",
 	"collection_items_count": "{n} Einträge",
 	"collection_empty": "Noch leer. Füge oben deine Routen und Etappentouren hinzu – oder auf ihrer Seite über «Zur Sammlung hinzufügen …».",
+	"collection_hidden": "Private Einträge, die du nicht sehen kannst: {n}",
 	"collection_add_to": "Zur Sammlung hinzufügen …",
 	"collection_added": "Hinzugefügt zu «{title}»",
 	"collection_already": "Schon in «{title}»",

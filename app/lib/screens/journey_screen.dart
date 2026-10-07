@@ -462,6 +462,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                                   onMore: () => _stage(j, i),
                                   onTap: switch (s.routeId) {
                                     final id? => () async {
+                                      widget.api.shareTokenFor(id, widget.api.shareTokens[j.id]);
                                       await Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (_) => RouteScreen(

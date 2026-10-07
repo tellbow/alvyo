@@ -1187,6 +1187,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ancora vuota. Aggiungi percorsi e trekking a tappe dal loro menu: «Aggiungi a una raccolta …».';
 
   @override
+  String collectionHidden(int n) {
+    return 'Elementi privati che non puoi vedere: $n';
+  }
+
+  @override
   String get collectionAddTo => 'Aggiungi a una raccolta …';
 
   @override

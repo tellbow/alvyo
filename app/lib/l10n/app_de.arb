@@ -694,6 +694,14 @@
     }
   },
   "collectionEmpty": "Noch leer. Füge Routen und Etappentouren über ihr Menü hinzu: «Zur Sammlung hinzufügen …».",
+  "collectionHidden": "Private Einträge, die du nicht sehen kannst: {n}",
+  "@collectionHidden": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "collectionAddTo": "Zur Sammlung hinzufügen …",
   "collectionAdded": "Hinzugefügt zu «{title}»",
   "@collectionAdded": {

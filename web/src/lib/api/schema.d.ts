@@ -2605,6 +2605,11 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             description: string;
+            /**
+             * Format: int64
+             * @description Number of items the viewer may not see
+             */
+            hidden: number;
             /** Format: uuid */
             id: string;
             item_list: components["schemas"]["CollectionItem"][];

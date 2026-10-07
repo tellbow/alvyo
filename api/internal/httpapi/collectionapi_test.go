@@ -12,6 +12,7 @@ type collectionResp struct {
 	Version  int    `json:"version"`
 	Role     string `json:"role"`
 	Items    int    `json:"items"`
+	Hidden   int    `json:"hidden"`
 	ItemList []struct {
 		ID       string         `json:"id"`
 		Kind     string         `json:"kind"`
@@ -95,8 +96,8 @@ func TestCollections(t *testing.T) {
 		}
 	}
 
-	// The public collection does not open Anna's private route to others.
-	titles := func(cl *client) []string {
+	// The public collection shares Anna's private route: she added it.
+	titles := func(cl *client) ([]string, int) {
 		t.Helper()
 		code, body := cl.do("GET", base, nil)
 		col := decodeCollection(t, code, body)
@@ -104,28 +105,37 @@ func TestCollections(t *testing.T) {
 		for _, it := range col.ItemList {
 			out = append(out, it.Title)
 		}
-		return out
+		return out, col.Hidden
 	}
-	if got := titles(s.client(t)); len(got) != 2 || got[0] != "Anna public" {
-		t.Errorf("anonymous sees %v", got)
+	if got, hidden := titles(s.client(t)); len(got) != 3 || got[0] != "Anna private" || hidden != 0 {
+		t.Errorf("anonymous sees %v, %d hidden", got, hidden)
 	}
 
-	// Bea as editor adds her private route: only she (and nobody else) sees it.
+	// Bea as editor adds her private route: everyone sees it. Carl's route,
+	// only shared with Bea, she cannot pass on.
 	if code, body := anna.do("POST", base+"/grants", map[string]any{"username": "bea", "role": "editor"}); code != http.StatusOK {
 		t.Fatalf("invite bea: %d %s", code, body)
+	}
+	carlPrivate := newRoute(carl, "Carl private", "private")
+	if code, body := carl.do("POST", "/api/v1/routes/"+carlPrivate+"/grants", map[string]any{"username": "bea", "role": "viewer"}); code != http.StatusOK {
+		t.Fatalf("carl invites bea: %d %s", code, body)
 	}
 	c = dc(bea.do("POST", base+"/items", map[string]any{"route_id": beaPrivate}))
 	if c.Role != "editor" {
 		t.Errorf("bea's role %q", c.Role)
 	}
-	if got := titles(bea); len(got) != 3 || got[2] != "Bea private" {
-		t.Errorf("bea sees %v", got)
+	dc(bea.do("POST", base+"/items", map[string]any{"route_id": carlPrivate}))
+	if got, hidden := titles(bea); len(got) != 5 || got[3] != "Bea private" || hidden != 0 {
+		t.Errorf("bea sees %v, %d hidden", got, hidden)
 	}
-	if got := titles(anna); len(got) != 3 || got[0] != "Anna private" {
-		t.Errorf("anna sees %v", got)
+	if got, hidden := titles(anna); len(got) != 4 || got[0] != "Anna private" || hidden != 1 {
+		t.Errorf("anna sees %v, %d hidden", got, hidden)
 	}
-	if got := titles(carl); len(got) != 2 {
+	if got, _ := titles(carl); len(got) != 5 {
 		t.Errorf("carl sees %v", got)
+	}
+	if code, _ := anna.do("GET", "/api/v1/routes/"+carlPrivate+"?t=c."+c.ID, nil); code != http.StatusNotFound {
+		t.Errorf("anna opens carl's route through the collection: %d", code)
 	}
 
 	// Moving and removing keep positions dense.
@@ -138,7 +148,7 @@ func TestCollections(t *testing.T) {
 	c = dc(anna.do("DELETE", base+"/items/"+c.ItemList[1].ID, nil))
 	var positions []int
 	if err := s.db.QueryRow(ctx, `SELECT array_agg(position ORDER BY position) FROM collection_items WHERE collection_id = $1`,
-		c.ID).Scan(&positions); err != nil || len(positions) != 3 || positions[2] != 2 {
+		c.ID).Scan(&positions); err != nil || len(positions) != 4 || positions[3] != 3 {
 		t.Errorf("positions %v %v", positions, err)
 	}
 
@@ -214,5 +224,121 @@ func TestCollectionLink(t *testing.T) {
 	}
 	if code, _ := anon.do("GET", base+"?t="+rot.ShareToken, nil); code != http.StatusOK {
 		t.Errorf("with the new link: %d", code)
+	}
+}
+
+// TestCollectionShares checks the routes and journeys a collection shares:
+// with its invited people in their role, by link as viewer.
+func TestCollectionShares(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	signup := func(name string) *client {
+		c := s.client(t)
+		c.do("POST", "/api/v1/auth/signup", signupBody(name+"@example.ch", name))
+		if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now() WHERE username = $1`, name); err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	anna, bea, carl, anon := signup("anna"), signup("bea"), signup("carl"), s.client(t)
+	dc := func(code int, body []byte) collectionResp { t.Helper(); return decodeCollection(t, code, body) }
+	code, body := anna.do("POST", "/api/v1/routes", newRouteBody("Anna private", "private"))
+	var route struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(body, &route); err != nil || code != http.StatusCreated {
+		t.Fatalf("route: %d %s", code, body)
+	}
+	_, body = anna.do("POST", "/api/v1/journeys", map[string]any{"title": "Anna journey", "visibility": "private"})
+	journey := decodeJourney(t, body)
+	_, body = anna.do("POST", "/api/v1/journeys/"+journey.ID+"/stages", map[string]any{})
+	journey = decodeJourney(t, body)
+	_, body = anna.do("POST", "/api/v1/journeys/"+journey.ID+"/stages/"+journey.StageList[0].ID+"/route", stageRouteBody(8.0))
+	journey = decodeJourney(t, body)
+
+	code, body = anna.do("POST", "/api/v1/collections", map[string]any{"title": "Herbst", "visibility": "unlisted"})
+	var col struct {
+		ID         string `json:"id"`
+		ShareToken string `json:"share_token"`
+	}
+	if err := json.Unmarshal(body, &col); err != nil || code != http.StatusCreated {
+		t.Fatalf("collection: %d %s", code, body)
+	}
+	base := "/api/v1/collections/" + col.ID
+	c := dc(anna.do("POST", base+"/items", map[string]any{"route_id": route.ID}))
+	routeItem := c.ItemList[0].ID
+	dc(anna.do("POST", base+"/items", map[string]any{"journey_id": journey.ID}))
+	for _, invite := range []map[string]any{{"username": "bea", "role": "viewer"}, {"username": "carl", "role": "editor"}} {
+		if code, body := anna.do("POST", base+"/grants", invite); code != http.StatusOK {
+			t.Fatalf("invite: %d %s", code, body)
+		}
+	}
+
+	// role opens path as cl; "" when it is not found.
+	role := func(cl *client, path string) string {
+		t.Helper()
+		code, body := cl.do("GET", path, nil)
+		if code == http.StatusNotFound {
+			return ""
+		}
+		var r struct {
+			Role string `json:"role"`
+		}
+		if err := json.Unmarshal(body, &r); err != nil || code != http.StatusOK {
+			t.Fatalf("GET %s: %d %s", path, code, body)
+		}
+		return r.Role
+	}
+	routePath, journeyPath := "/api/v1/routes/"+route.ID, "/api/v1/journeys/"+journey.ID
+	stagePath := "/api/v1/routes/" + journey.StageList[0].Route.ID
+	pass := "?t=c." + col.ID + "." + col.ShareToken
+	for _, tc := range []struct {
+		name string
+		cl   *client
+		path string
+		want string
+	}{
+		{"anonymous without the link", anon, routePath, ""},
+		{"anonymous with the collection only", anon, routePath + "?t=c." + col.ID, ""},
+		{"anonymous with a wrong token", anon, routePath + "?t=c." + col.ID + ".wrong", ""},
+		{"anonymous with the link", anon, routePath + pass, "viewer"},
+		{"anonymous, the journey", anon, journeyPath + pass, "viewer"},
+		{"anonymous, a stage", anon, stagePath + pass, "viewer"},
+		{"invited viewer", bea, routePath, "viewer"},
+		{"invited editor", carl, routePath, "editor"},
+		{"invited editor with the link", carl, routePath + pass, "editor"},
+		{"invited editor, the journey", carl, journeyPath, "editor"},
+		{"invited editor, a stage", carl, stagePath, "editor"},
+	} {
+		if got := role(tc.cl, tc.path); got != tc.want {
+			t.Errorf("%s: role %q, want %q", tc.name, got, tc.want)
+		}
+	}
+
+	// Editors change the route, not its visibility; viewers nothing.
+	match := func() []string {
+		_, body := anna.do("GET", routePath, nil)
+		var r struct {
+			Version int `json:"version"`
+		}
+		_ = json.Unmarshal(body, &r)
+		return []string{"If-Match", `"` + itoa(r.Version) + `"`}
+	}
+	if code, _ := bea.do("PATCH", routePath, map[string]any{"title": "Bea's"}, match()...); code != http.StatusForbidden {
+		t.Errorf("viewer changes the route: %d", code)
+	}
+	if code, body := carl.do("PATCH", routePath, map[string]any{"title": "Carl's"}, match()...); code != http.StatusOK {
+		t.Errorf("editor changes the route: %d %s", code, body)
+	}
+	if code, _ := carl.do("PATCH", routePath, map[string]any{"visibility": "public"}, match()...); code != http.StatusForbidden {
+		t.Errorf("editor changes the visibility: %d", code)
+	}
+
+	// Taken out of the collection, the route is Anna's alone again.
+	dc(anna.do("DELETE", base+"/items/"+routeItem, nil))
+	if got := role(carl, routePath); got != "" {
+		t.Errorf("editor after removing: %q", got)
+	}
+	if got := role(anon, routePath+pass); got != "" {
+		t.Errorf("link after removing: %q", got)
 	}
 }

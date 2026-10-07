@@ -193,7 +193,10 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                 children: [
                   if (c.description.isNotEmpty)
                     Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: Text(c.description)),
-                  if (c.items.isEmpty) ListTile(title: Text(t.collectionEmpty)),
+                  if (c.hidden > 0)
+                    ListTile(key: const Key('collection-hidden'), title: Text(t.collectionHidden(c.hidden)))
+                  else if (c.items.isEmpty)
+                    ListTile(title: Text(t.collectionEmpty)),
                   for (final i in c.items)
                     OtherTile(
                       key: Key('item-${i.id}'),
@@ -216,6 +219,12 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                             )
                           : null,
                       onTap: () async {
+                        // Who sees the collection without an invitation opens
+                        // its items through it, with the link's token.
+                        if (c.visibility != 'private' && !c.canEdit && !c.isOwner) {
+                          final link = widget.api.shareTokens[c.id];
+                          widget.api.shareTokenFor(i.targetId, 'c.${c.id}${link == null ? '' : '.$link'}');
+                        }
                         await openItem(
                           context,
                           widget.api,

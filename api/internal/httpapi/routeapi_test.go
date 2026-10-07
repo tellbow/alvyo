@@ -339,6 +339,9 @@ func TestJourneyAndCollectionImages(t *testing.T) {
 	_, body = owner.do("POST", "/api/v1/collections", map[string]any{"title": "Gipfel", "visibility": "public"})
 	var c struct{ ID string }
 	_ = json.Unmarshal(body, &c)
+	if code, _, _ := image(anon, "collections/"+c.ID); code != http.StatusNotFound {
+		t.Errorf("empty collection: %d", code)
+	}
 	_, body = owner.do("POST", "/api/v1/routes", newRouteBody("Geheim", "private"))
 	var r savedRoute
 	_ = json.Unmarshal(body, &r)
@@ -346,11 +349,7 @@ func TestJourneyAndCollectionImages(t *testing.T) {
 	if code, _, cache := image(owner, "collections/"+c.ID); code != http.StatusOK || !strings.HasPrefix(cache, "private,") {
 		t.Errorf("collection to its owner: %d %q", code, cache)
 	}
-	if code, _, _ := image(anon, "collections/"+c.ID); code != http.StatusNotFound {
-		t.Errorf("collection of a private route to someone else: %d", code)
-	}
-	owner.do("POST", "/api/v1/collections/"+c.ID+"/items", map[string]any{"journey_id": j.ID})
-	if code, _, _ := image(anon, "collections/"+c.ID); code != http.StatusOK {
-		t.Errorf("collection with a public journey: %d", code)
+	if code, _, cache := image(anon, "collections/"+c.ID); code != http.StatusOK || !strings.HasPrefix(cache, "private,") {
+		t.Errorf("collection sharing its owner's private route: %d %q", code, cache)
 	}
 }

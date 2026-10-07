@@ -358,6 +358,7 @@
   "collectionNew": "New collection",
   "collectionItemsCount": "{n} items",
   "collectionEmpty": "Still empty. Add routes and journeys from their menu: «Add to collection …».",
+  "collectionHidden": "Private items you cannot see: {n}",
   "collectionAddTo": "Add to collection …",
   "collectionAdded": "Added to “{title}”",
   "collectionAlready": "Already in “{title}”",

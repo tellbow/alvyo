@@ -1124,7 +1124,8 @@ class Collection {
       isOwner = j['role'] == 'owner',
       visibility = j['visibility'] as String? ?? 'private',
       shareToken = j['share_token'] as String?,
-      items = [for (final i in j['item_list'] as List) CollectionItem.fromJson(i as Map<String, dynamic>)];
+      items = [for (final i in j['item_list'] as List) CollectionItem.fromJson(i as Map<String, dynamic>)],
+      hidden = (j['hidden'] as num?)?.toInt() ?? 0;
   final String id, title, description, owner;
   final bool canEdit, isOwner;
 
@@ -1132,6 +1133,9 @@ class Collection {
   final String visibility;
   final String? shareToken;
   final List<CollectionItem> items;
+
+  /// How many items the user may not see.
+  final int hidden;
 }
 
 /// What others shared with the user.
@@ -1273,6 +1277,12 @@ class Api {
 
   /// The share tokens of unlisted items opened from links, by item id.
   final shareTokens = <String, String>{};
+
+  /// Calls for [id] carry [token] unless it has one already: a journey's
+  /// stage routes its token, a collection's items the collection's pass.
+  void shareTokenFor(String id, String? token) {
+    if (token != null) shareTokens.putIfAbsent(id, () => token);
+  }
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',

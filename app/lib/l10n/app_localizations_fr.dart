@@ -1189,6 +1189,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Encore vide. Ajoute des itinéraires et des randonnées par étapes depuis leur menu : «Ajouter à une collection …».';
 
   @override
+  String collectionHidden(int n) {
+    return 'Éléments privés que tu ne peux pas voir : $n';
+  }
+
+  @override
   String get collectionAddTo => 'Ajouter à une collection …';
 
   @override

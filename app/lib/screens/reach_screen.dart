@@ -9,7 +9,9 @@ import '../camera.dart';
 import '../l10n/app_localizations.dart';
 import '../map_style.dart';
 import '../navigation/gps.dart';
+import '../place_layer.dart';
 import '../place_search.dart';
+import '../precip.dart';
 
 import 'plan_sheet.dart';
 
@@ -37,12 +39,14 @@ const reachColors = {2: Color(0xff16a34a), 4: Color(0xffeab308), 8: Color(0xffdc
 String _hex(Color c) => '#${(c.toARGB32() & 0xffffff).toRadixString(16).padLeft(6, '0')}';
 
 class _ReachScreenState extends State<ReachScreen> {
+  late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
   MapController? _map;
   StyleController? _style;
   String _profile = 'hike';
 
-  /// Back at the start within the hours (requirement 69).
-  bool _back = true;
+  /// Back at the start within the hours (requirement 69); one way unless
+  /// chosen.
+  bool _back = false;
   ({LonLat at, String name})? _start;
   List<ReachArea> _areas = const [];
   bool _busy = false;
@@ -193,7 +197,14 @@ class _ReachScreenState extends State<ReachScreen> {
     style.updateGeoJsonSource(id: 'reach-start', data: _startJson()).catchError((_) {});
   }
 
+  @override
+  void dispose() {
+    _places.dispose();
+    super.dispose();
+  }
+
   Future<void> _addLayers(StyleController style) async {
+    await _places.addTo(style);
     // The largest underneath; a white edge under each outline, as the
     // trails are yellow and red too.
     for (final h in [8, 4, 2]) {
@@ -232,11 +243,16 @@ class _ReachScreenState extends State<ReachScreen> {
       initZoom: 7,
     ),
     onEvent: (e) {
+      _places.onEvent(e);
       switch (e) {
         case MapEventMapCreated(:final mapController):
           _map = mapController;
-        case MapEventClick(:final point) when _style != null:
-          _startAt((lon: point.lon, lat: point.lat), AppLocalizations.of(context).reachMapPoint);
+        case MapEventClick(:final point, :final screenPoint) when _style != null:
+          // A tap on a hut opens its sheet instead.
+          final hut = _map?.featuresInRect(Rect.fromCircle(center: screenPoint, radius: 16), layerIds: ['places']);
+          if (hut == null || hut.isEmpty) {
+            _startAt((lon: point.lon, lat: point.lat), AppLocalizations.of(context).reachMapPoint);
+          }
         default:
       }
     },
@@ -255,9 +271,12 @@ class _ReachScreenState extends State<ReachScreen> {
       body: Stack(
         children: [
           Positioned.fill(child: _mapView),
+          Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
+          const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
           if (_busy)
             Positioned(
-              top: 12,
+              // Below the rain's bar.
+              top: 64,
               left: 12,
               right: 12,
               child: Center(

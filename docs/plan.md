@@ -74,6 +74,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.27.0 | 2026-10-07 | Recognising mountains with the camera (68, issue 16): «Berge erkennen» in the app names the summits in sight, also without reception |
 | 0.28.0 | 2026-10-07 | «Berge erkennen» draws the nearer ridges as lines too, and the skyline no longer starts at the cells right next to one (on a summit they hid the view) |
 | 0.29.0 | 2026-10-07 | The app's navigation tidied up (69): Entdecken, Planen, Touren and Profil; Rundtour and Zwischenziel, Reichweite back to the start (each way timed), importing files, Apple Watch hikes imported automatically, a tour to follow when recording; the app asks for notifications only when it schedules reminders |
+| next | | Reichweite: «Zurück zum Start» off by default, its areas without the holes and steps between the paths; the layer menu on its map |
 
 ## Requirements
 
@@ -695,13 +696,14 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     the discover map. Planen: «Tagestour» (the route planner with «+
     Zwischenziel» before the destination and «Rundtour» back to the start,
     saved with the way back), «Mehrtägig» (the journey planner), «Reichweite»
-    (the areas of 2, 4 and 8 hours as before; «Zurück zum Start», on by
-    default: the areas from which one is back within them, out and back
+    (the areas of 2, 4 and 8 hours as before, with the layer menu of the
+    other maps; «Zurück zum Start», off by default: the areas from which one is back within them, out and back
     timed each in its own direction, uphill slower than down: `POST
     /routing/reach` with `back` asks GraphHopper for its shortest path
     trees from and to the start, keeps the paths to the nodes whose two
     times fit, rasterises them in cells of about 230 m and has PostGIS
-    outline the cells; from Sargans about a third of the area one way,
+    outline the cells, gaps up to 600 m between paths closed and holes
+    under 1 km² filled (a lake stays out); from Sargans about a third of the area one way,
     0.6 s on the dev machine; the website keeps one way); the three share
     one panel over the map, pulled up and down alike; «Importieren»: a GPX, KML, TCX or FIT
     file (file_selector, any file: iOS knows no GPX type) becomes a private

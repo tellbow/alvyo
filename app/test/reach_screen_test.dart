@@ -22,8 +22,8 @@ List<List<List<double>>> _square(double r) => [
 ];
 
 void main() {
-  // A start found by name: the areas of 2, 4 and 8 hours there and back;
-  // one way; then alpine ways; a point without a path says so.
+  // A start found by name: the areas of 2, 4 and 8 hours one way; there
+  // and back; then alpine ways; a point without a path says so.
   testWidgets('how far one gets from a place', (tester) async {
     // A tall phone: the panel shows all it holds.
     tester.view.physicalSize = const Size(1200, 3600);
@@ -89,17 +89,16 @@ void main() {
     expect(asked.single, {
       'from': {'lon': 9.4466, 'lat': 47.0446},
       'profile': 'hike',
-      'back': true,
     });
     expect(find.text('Start: Sargans'), findsOneWidget);
-    expect(find.text('bis 2 Stunden, hin und zurück'), findsOneWidget);
-    expect(find.text('bis 8 Stunden, hin und zurück'), findsOneWidget);
+    expect(find.text('bis 2 Stunden'), findsOneWidget);
 
-    // One way.
+    // Back to the start.
     await tester.tap(find.byKey(const Key('reach-back')));
     await tester.pumpAndSettle();
-    expect(asked.last.containsKey('back'), isFalse);
-    expect(find.text('bis 2 Stunden'), findsOneWidget);
+    expect(asked.last['back'], isTrue);
+    expect(find.text('bis 2 Stunden, hin und zurück'), findsOneWidget);
+    expect(find.text('bis 8 Stunden, hin und zurück'), findsOneWidget);
     expect(find.text('Bei deinem Tempo: 1.5-mal die Zeit der Wegweiser.'), findsOneWidget);
 
     await tester.tap(find.text('Alpinwandern (bis T6)'));

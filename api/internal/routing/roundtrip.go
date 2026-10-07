@@ -26,6 +26,16 @@ const (
 	cellLat = 0.002
 )
 
+// The outline around the cells, in metres (LV95): gaps narrower than
+// twice closeM between paths are closed, holes smaller than minHoleM2 (the
+// land between paths) filled, larger ones such as lakes kept, and the cells'
+// steps smoothed to about simplifyM.
+const (
+	closeM    = 300
+	minHoleM2 = 1_000_000
+	simplifyM = 60
+)
+
 // sptNode is a node of GraphHopper's shortest path tree: where it is, the
 // node before it and the time to it (or from it, flowing back), in ms.
 type sptNode struct {
@@ -100,8 +110,8 @@ type Outliner struct {
 	DB *pgxpool.Pool
 }
 
-// Outline returns the largest polygon the cells (column, row of cellLon ×
-// cellLat) make, simplified to about half a cell: its rings, the outer one
+// Outline returns the largest area the cells (column, row of cellLon ×
+// cellLat) make, closed and smoothed (closeM): its rings, the outer one
 // first. None for no cells.
 func (o *Outliner) Outline(ctx context.Context, cells [][2]int) ([][][2]float64, error) {
 	if len(cells) == 0 {
@@ -115,12 +125,18 @@ func (o *Outliner) Outline(ctx context.Context, cells [][2]int) ([][][2]float64,
 	err := o.DB.QueryRow(ctx, `
 		WITH cell AS (SELECT unnest($1::int[]) AS i, unnest($2::int[]) AS j),
 		size AS (SELECT $3::float8 AS w, $4::float8 AS h),
-		part AS (
-			SELECT (ST_Dump(ST_Union(ST_MakeEnvelope(i * w, j * h, (i + 1) * w, (j + 1) * h, 4326)))).geom AS g
+		cells AS (
+			SELECT ST_Transform(ST_Union(ST_MakeEnvelope(i * w, j * h, (i + 1) * w, (j + 1) * h, 4326)), 2056) AS g
 			FROM cell, size
-		)
-		SELECT ST_AsGeoJSON(ST_SimplifyPreserveTopology(g, $3::float8 / 2), 5) FROM part ORDER BY ST_Area(g) DESC LIMIT 1`,
-		cols, rows, cellLon, cellLat).Scan(&raw)
+		),
+		part AS (SELECT (ST_Dump(ST_Buffer(ST_Buffer(g, $5::float8), -$5::float8))).geom AS g FROM cells),
+		big AS (SELECT g FROM part ORDER BY ST_Area(g) DESC LIMIT 1),
+		ring AS (SELECT r.path[1] AS n, ST_ExteriorRing(r.geom) AS l, ST_Area(r.geom) AS a FROM big, ST_DumpRings(big.g) r)
+		SELECT ST_AsGeoJSON(ST_Transform(ST_SimplifyPreserveTopology(ST_MakePolygon(
+			(SELECT l FROM ring WHERE n = 0),
+			ARRAY(SELECT l FROM ring WHERE n > 0 AND a >= $6::float8 ORDER BY n)
+		), $7::float8), 4326), 5)`,
+		cols, rows, cellLon, cellLat, closeM, minHoleM2, simplifyM).Scan(&raw)
 	if err != nil {
 		return nil, fmt.Errorf("routing: outline: %w", err)
 	}

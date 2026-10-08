@@ -32,7 +32,8 @@
 		<dd class="order-first font-semibold whitespace-nowrap tabular-nums" data-testid="stat-time">
 			{formatDuration(totals.durationS, pace)}
 		</dd>
-		<dd class="hidden text-xs text-stone-500 print:block">
+		<!-- For screen readers too, not only in the tooltip. -->
+		<dd class="sr-only text-xs text-stone-500 print:not-sr-only">
 			{m.stat_time_reverse({ time: formatDuration(totals.durationReverseS, pace) })}
 		</dd>
 	</div>
@@ -53,7 +54,12 @@
 	>
 		<dt class="text-xs text-stone-500">{m.stat_heights()}</dt>
 		<dd class="order-first text-sm leading-6 font-semibold whitespace-nowrap tabular-nums">
-			↑{Math.round(totals.ascentM)} ↓{Math.round(totals.descentM)}
+			<span aria-hidden="true">↑{Math.round(totals.ascentM)} ↓{Math.round(totals.descentM)}</span>
+			<span class="sr-only"
+				>{m.stat_ascent()}
+				{formatHeight(totals.ascentM)}, {m.stat_descent()}
+				{formatHeight(totals.descentM)}</span
+			>
 		</dd>
 	</div>
 	<div class="flex flex-col">

@@ -38,7 +38,7 @@
 	import type { Trip } from '$lib/api/client';
 	import type { Notice, ProtectedArea } from '$lib/api/client';
 	import { onMount } from 'svelte';
-	import { actionButton, mainAction, menuItem } from '$lib/components/actions';
+	import { actionButton, mainAction, menuItem, primaryButtonSmall } from '$lib/components/actions';
 	import MoreMenu from '$lib/components/MoreMenu.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
@@ -191,14 +191,16 @@
 					<div class="mt-2 flex flex-wrap items-center gap-3">
 						<button
 							type="button"
-							class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
+							class={primaryButtonSmall}
 							onclick={() => restore(revision.version)}>{m.revision_restore()}</button
 						>
 						<a href={resolve('/routes/[id]', { id: route.id })} class="text-accent-ink underline"
 							>{m.revision_current()}</a
 						>
 					</div>
-					{#if changed}<p class="mt-2 text-red-700" role="alert">{m.revision_changed()}</p>{/if}
+					{#if changed}<p class="mt-2 text-red-700 dark:text-red-400" role="alert">
+							{m.revision_changed()}
+						</p>{/if}
 				</div>
 			{/if}
 			<div class="flex items-start justify-between gap-2">
@@ -355,14 +357,14 @@
 			{#if !revision}<RouteWeather id={route.id} {token} />{/if}
 			{#if route.legs.length > 0}
 				<section class="rounded-xl border border-stone-200 p-3" data-testid="breakdowns">
-					<h3
+					<h2
 						class="mb-2 flex items-baseline justify-between text-xs font-medium tracking-wide text-stone-500 uppercase"
 					>
 						{m.breakdown_title()}
 						<span class="font-normal tracking-normal normal-case"
 							>{formatDistance(planner.totals.distanceM)}</span
 						>
-					</h3>
+					</h2>
 					<Breakdowns totals={planner.totals} />
 				</section>
 			{/if}

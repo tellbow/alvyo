@@ -100,7 +100,7 @@
 			source: START,
 			paint: {
 				'circle-radius': 7,
-				'circle-color': '#1c1917',
+				'circle-color': '#14201a',
 				'circle-stroke-color': '#ffffff',
 				'circle-stroke-width': 2
 			}
@@ -123,7 +123,7 @@
 				.map((a) => ({
 					type: 'Feature',
 					geometry: { type: 'Polygon', coordinates: a.outline },
-					properties: { hours: a.hours, color: COLORS[a.hours] ?? '#78716c' }
+					properties: { hours: a.hours, color: COLORS[a.hours] ?? '#5d6a62' }
 				}))
 		});
 		(map.getSource(START) as GeoJSONSource | undefined)?.setData({
@@ -160,7 +160,7 @@
 		data-testid="reach-panel"
 	>
 		<PlanTabs current="reach" />
-		<h1 class="text-lg font-semibold">{m.reach_title()}</h1>
+		<h1 class="text-xl font-semibold">{m.reach_title()}</h1>
 		{#if !user}
 			<p class="rounded-md bg-stone-100 p-3 text-sm">
 				{m.reach_hint_login()}
@@ -174,7 +174,7 @@
 			<label class="flex flex-col gap-1 text-sm">
 				<span class="font-medium">{m.plan_profile()}</span>
 				<select
-					class="rounded-md border border-stone-300 px-2 py-1.5"
+					class="rounded-md border border-stone-400 px-2 py-1.5"
 					bind:value={profile}
 					use:choose={() => void reach()}
 					data-testid="reach-profile"

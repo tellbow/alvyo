@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButton } from '$lib/components/actions';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -45,11 +46,7 @@
 			{#if status === 'failed'}<p role="alert" class="text-sm text-red-700 dark:text-red-400">
 					{m.reset_failed()}
 				</p>{/if}
-			<button
-				disabled={!hydrated.value}
-				class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
-				>{m.reset_submit()}</button
-			>
+			<button disabled={!hydrated.value} class={primaryButton}>{m.reset_submit()}</button>
 		</form>
 	{/if}
 </AuthCard>

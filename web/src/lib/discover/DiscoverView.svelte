@@ -149,7 +149,7 @@
 			<select
 				bind:value={kind}
 				aria-label={m.discover_kind()}
-				class="rounded-md border border-stone-300 px-2 py-1.5"
+				class="rounded-md border border-stone-400 px-2 py-1.5"
 			>
 				<option value="">{m.discover_kind_all()}</option>
 				<option value="route">{m.discover_kind_route()}</option>
@@ -159,7 +159,7 @@
 				<select
 					bind:value={sac}
 					aria-label={m.discover_sac()}
-					class="flex-1 rounded-md border border-stone-300 px-2 py-1.5"
+					class="flex-1 rounded-md border border-stone-400 px-2 py-1.5"
 				>
 					<option value={0}>{m.discover_sac_any()}</option>
 					{#each [1, 2, 3, 4, 5, 6] as g (g)}
@@ -169,7 +169,7 @@
 				<select
 					bind:value={duration}
 					aria-label={m.discover_duration()}
-					class="flex-1 rounded-md border border-stone-300 px-2 py-1.5"
+					class="flex-1 rounded-md border border-stone-400 px-2 py-1.5"
 				>
 					<option value="">{m.discover_duration_any()}</option>
 					<option value="short">{m.discover_duration_short()}</option>

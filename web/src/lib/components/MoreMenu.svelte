@@ -29,6 +29,7 @@
 	const hydrated = new Hydrated();
 	let open = $state(false);
 	let box = $state<HTMLElement>();
+	let trigger = $state<HTMLButtonElement>();
 
 	function close() {
 		open = false;
@@ -42,12 +43,16 @@
 		if (open && box && !e.composedPath().includes(box)) close();
 	}}
 	onkeydown={(e) => {
-		if (e.key === 'Escape' && open) close();
+		if (e.key === 'Escape' && open) {
+			close();
+			trigger?.focus(); // back where the keyboard was
+		}
 	}}
 />
 
 <div class="relative shrink-0" bind:this={box}>
 	<button
+		bind:this={trigger}
 		type="button"
 		class={buttonClass}
 		aria-label={ariaLabel}

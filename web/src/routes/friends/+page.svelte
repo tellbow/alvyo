@@ -81,7 +81,7 @@
 			bind:value={q}
 			oninput={search}
 			autocomplete="off"
-			class="mt-1 w-full rounded-md border border-stone-300 bg-surface px-3 py-2"
+			class="mt-1 w-full rounded-md border border-stone-400 bg-surface px-3 py-2"
 			data-testid="friends-search"
 		/>
 	</label>
@@ -133,8 +133,9 @@
 		<div class="mt-2 flex gap-2" data-testid="friend-link">
 			<input
 				readonly
+				aria-label={m.share_link()}
 				value={link}
-				class="min-w-0 flex-1 rounded-md border border-stone-300 px-2 py-1.5 text-sm"
+				class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1.5 text-sm"
 			/>
 			<button type="button" class="rounded-md px-3 text-sm ring-1 ring-stone-300" onclick={copy}
 				>{copied ? m.share_copied() : m.share_copy()}</button

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButton } from '$lib/components/actions';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { api } from '$lib/api/client';
 	import AuthCard from '$lib/components/AuthCard.svelte';
@@ -37,11 +38,7 @@
 				bind:value={email}
 			/>
 			{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
-			<button
-				disabled={!hydrated.value}
-				class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
-				>{m.forgot_submit()}</button
-			>
+			<button disabled={!hydrated.value} class={primaryButton}>{m.forgot_submit()}</button>
 		</form>
 	{/if}
 </AuthCard>

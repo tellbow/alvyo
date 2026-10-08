@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ROUTE_COLOR } from '$lib/planner/colors';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import { goto, replaceState } from '$app/navigation';
@@ -21,7 +22,7 @@
 	const pace = $derived(user.speed_factor ?? 1);
 
 	const KIND_COLOR: Record<Kind, string> = {
-		route: '#a21caf',
+		route: ROUTE_COLOR,
 		journey: '#2563eb',
 		hike: '#0f766e'
 	};
@@ -58,9 +59,9 @@
 
 	const color = $derived((i: number) => {
 		const it = items[i];
-		if (!it) return '#a8a29e';
+		if (!it) return '#8a978f';
 		return filters.color === 'sac'
-			? (SAC_COLOR[`T${it.sac_grade}`] ?? '#a8a29e')
+			? (SAC_COLOR[`T${it.sac_grade}`] ?? '#8a978f')
 			: KIND_COLOR[it.kind as Kind];
 	});
 
@@ -232,7 +233,7 @@
 							min="0"
 							step={r.step}
 							inputmode="decimal"
-							class="w-20 rounded-md border border-stone-300 px-2 py-1"
+							class="w-20 rounded-md border border-stone-400 px-2 py-1"
 							aria-label="{r.label} {end === 0 ? m.mymap_from() : m.mymap_to()}"
 							placeholder={end === 0 ? m.mymap_from() : m.mymap_to()}
 							value={filters[r.key][end] ?? ''}
@@ -251,7 +252,7 @@
 				<legend class="mb-1 font-medium">{m.mymap_sac()}</legend>
 				{#each [0, 1] as end (end)}
 					<select
-						class="rounded-md border border-stone-300 px-2 py-1"
+						class="rounded-md border border-stone-400 px-2 py-1"
 						aria-label="{m.mymap_sac()} {end === 0 ? m.mymap_from() : m.mymap_to()}"
 						value={filters.sac[end]}
 						onchange={(e) => {
@@ -282,7 +283,7 @@
 			<div class="flex items-center justify-between gap-2">
 				<label class="flex items-center gap-2">
 					{m.mymap_color()}
-					<select class="rounded-md border border-stone-300 px-2 py-1" bind:value={filters.color}>
+					<select class="rounded-md border border-stone-400 px-2 py-1" bind:value={filters.color}>
 						<option value="kind">{m.mymap_color_kind()}</option>
 						<option value="sac">{m.mymap_color_sac()}</option>
 					</select>

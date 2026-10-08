@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { onMount } from 'svelte';
 	import { api, type FoundPlace, type Home } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
@@ -58,7 +59,7 @@
 			maxlength="60"
 			placeholder={m.homes_name_placeholder()}
 			aria-label={m.homes_name()}
-			class="rounded-md border border-stone-300 px-2 py-1"
+			class="rounded-md border border-stone-400 px-2 py-1"
 			data-testid="home-name"
 		/>
 		{#if found}
@@ -78,7 +79,7 @@
 		{/if}
 		<button
 			disabled={!hydrated.value || !found || !name.trim()}
-			class="self-start rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
+			class="{primaryButtonSmall} self-start"
 			data-testid="home-add">{m.homes_add()}</button
 		>
 	</form>

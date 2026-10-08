@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -108,13 +109,9 @@
 					maxlength="2000"
 					rows="3"
 					aria-label={m.community_edit()}
-					class="rounded-md border border-stone-300 px-2 py-1"></textarea>
+					class="rounded-md border border-stone-400 px-2 py-1"></textarea>
 				<div class="flex gap-2">
-					<button
-						disabled={busy || !draft.trim()}
-						class="rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
-						>{m.save()}</button
-					>
+					<button disabled={busy || !draft.trim()} class={primaryButtonSmall}>{m.save()}</button>
 					<button type="button" class="underline" onclick={() => (editing = undefined)}
 						>{m.report_cancel()}</button
 					>
@@ -151,8 +148,10 @@
 		<div class="flex flex-wrap items-center gap-3">
 			<button
 				type="button"
-				class="rounded-full px-2.5 py-0.5 ring-1 ring-stone-300 enabled:hover:bg-rose-50 disabled:opacity-60"
-				class:text-rose-700={social.liked}
+				class={[
+					'rounded-full px-2.5 py-0.5 ring-1 ring-stone-300 enabled:hover:bg-rose-50 disabled:opacity-60 dark:enabled:hover:bg-rose-950/40',
+					social.liked && 'text-rose-700 dark:text-rose-400'
+				]}
 				aria-pressed={social.liked}
 				disabled={!user || busy}
 				title={user ? undefined : m.community_login_to_like()}
@@ -207,11 +206,9 @@
 									rows="2"
 									placeholder={m.community_reply_placeholder()}
 									aria-label={m.community_reply_placeholder()}
-									class="rounded-md border border-stone-300 px-2 py-1"></textarea>
+									class="rounded-md border border-stone-400 px-2 py-1"></textarea>
 								<div class="flex gap-2">
-									<button
-										disabled={busy || !draft.trim()}
-										class="rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
+									<button disabled={busy || !draft.trim()} class={primaryButtonSmall}
 										>{m.community_reply()}</button
 									>
 									<button type="button" class="underline" onclick={() => (replyTo = undefined)}
@@ -234,11 +231,10 @@
 					rows="3"
 					placeholder={m.community_comment_placeholder()}
 					aria-label={m.community_comment_placeholder()}
-					class="rounded-md border border-stone-300 px-2 py-1"></textarea>
+					class="rounded-md border border-stone-400 px-2 py-1"></textarea>
 				<button
 					disabled={!hydrated.value || busy || !text.trim()}
-					class="self-start rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
-					>{m.community_comment_send()}</button
+					class="{primaryButtonSmall} self-start">{m.community_comment_send()}</button
 				>
 			</form>
 		{:else if !user && social.comments_enabled}

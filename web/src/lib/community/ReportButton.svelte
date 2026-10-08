@@ -40,7 +40,7 @@
 		<select
 			bind:value={reason}
 			aria-label={m.report_reason()}
-			class="rounded border border-stone-300 px-1 py-0.5"
+			class="rounded-md border border-stone-400 px-1 py-0.5"
 		>
 			<option value="spam">{m.report_reason_spam()}</option>
 			<option value="offensive">{m.report_reason_offensive()}</option>
@@ -53,7 +53,7 @@
 			rows="2"
 			placeholder={m.report_note()}
 			aria-label={m.report_note()}
-			class="rounded border border-stone-300 px-1 py-0.5"></textarea>
+			class="rounded-md border border-stone-400 px-1 py-0.5"></textarea>
 		{#if error}<p role="alert" class="text-red-700 dark:text-red-400">{error}</p>{/if}
 		<div class="flex gap-2">
 			<button class="rounded bg-stone-800 px-2 py-0.5 text-stone-50">{m.report_send()}</button>

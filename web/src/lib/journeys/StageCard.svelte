@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
+	import { focused } from '$lib/util/focus';
 	import { choose } from '$lib/util/choose';
 	import { resolve } from '$app/paths';
 	import type { JourneyStage, StagePatch } from '$lib/api/client';
@@ -131,7 +133,7 @@
 
 	{#if canEdit}
 		<input
-			class="mt-2 w-full rounded border border-stone-300 px-2 py-1"
+			class="mt-2 w-full rounded-md border border-stone-400 px-2 py-1"
 			value={s.title}
 			placeholder={placesTitle || m.journey_stage_title_placeholder()}
 			aria-label={m.field_title()}
@@ -140,13 +142,13 @@
 		<div class="mt-2 flex gap-2">
 			<input
 				type="date"
-				class="rounded border border-stone-300 px-1 py-0.5"
+				class="rounded-md border border-stone-400 px-1 py-0.5"
 				value={s.planned_date ?? ''}
 				aria-label={m.journey_date()}
 				onchange={(e) => onpatch({ planned_date: e.currentTarget.value })}
 			/>
 			<select
-				class="rounded border border-stone-300 px-1 py-0.5"
+				class="rounded-md border border-stone-400 px-1 py-0.5"
 				value={s.status}
 				aria-label={m.journey_status()}
 				use:choose={(v) => onpatch({ status: v as JourneyStage['status'] })}
@@ -224,7 +226,7 @@
 			<div class="mt-2 flex flex-col gap-2">
 				<div class="flex items-center gap-2">
 					<input
-						class="min-w-0 flex-1 rounded border border-stone-300 px-2 py-1"
+						class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1"
 						value={s.accommodation}
 						placeholder={m.stage_accommodation_placeholder()}
 						aria-label={m.stage_accommodation()}
@@ -241,7 +243,7 @@
 					</label>
 				</div>
 				<textarea
-					class="rounded border border-stone-300 px-2 py-1"
+					class="rounded-md border border-stone-400 px-2 py-1"
 					rows="3"
 					value={s.notes}
 					aria-label={m.stage_notes()}
@@ -267,7 +269,7 @@
 		<div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
 			<a
 				href={resolve('/journeys/[id]/stages/[stage]', { id: journeyId, stage: s.id })}
-				class="rounded bg-accent px-2 py-1 text-on-accent hover:bg-accent-hover"
+				class={primaryButtonSmall}
 			>
 				{s.route ? m.journey_edit_stage() : m.journey_plan_stage()}
 			</a>
@@ -308,6 +310,7 @@
 				<button
 					type="button"
 					class="ml-auto rounded bg-red-700 px-2 py-1 text-white"
+					use:focused
 					onclick={() => {
 						confirming = false;
 						onremove();

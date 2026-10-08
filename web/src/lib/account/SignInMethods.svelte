@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { onMount } from 'svelte';
 	import { api, type Me } from '$lib/api/client';
 	import type { components } from '$lib/api/schema';
@@ -123,7 +124,7 @@
 						maxlength="60"
 						placeholder={m.passkey_name()}
 						aria-label={m.passkey_name()}
-						class="rounded-md border border-stone-300 px-3 py-1.5"
+						class="rounded-md border border-stone-400 px-3 py-1.5"
 					/>
 					{#if user.has_password}
 						<input
@@ -133,12 +134,10 @@
 							autocomplete="current-password"
 							placeholder={m.field_password()}
 							aria-label={m.field_password()}
-							class="rounded-md border border-stone-300 px-3 py-1.5"
+							class="rounded-md border border-stone-400 px-3 py-1.5"
 						/>
 					{/if}
-					<button
-						disabled={busy}
-						class="self-start rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-60"
+					<button disabled={busy} class="{primaryButtonSmall} self-start"
 						>{m.passkey_create()}</button
 					>
 				</form>

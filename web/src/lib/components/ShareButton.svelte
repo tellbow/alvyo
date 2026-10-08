@@ -24,7 +24,7 @@
 <button
 	type="button"
 	class={actionButton}
-	aria-label={m.route_share()}
+	aria-label={copied ? m.share_copied() : m.route_share()}
 	title={copied ? m.share_copied() : m.route_share()}
 	onclick={share}
 	data-testid={testid}
@@ -44,3 +44,4 @@
 		>
 	{/if}
 </button>
+<span class="sr-only" aria-live="polite">{copied ? m.share_copied() : ''}</span>

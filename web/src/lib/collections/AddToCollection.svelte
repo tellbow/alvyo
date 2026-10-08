@@ -29,7 +29,7 @@
 
 <div class="flex flex-col gap-1 text-sm">
 	<select
-		class="rounded-md border border-stone-300 px-2 py-1.5"
+		class="rounded-md border border-stone-400 px-2 py-1.5"
 		aria-label={m.collection_add_to()}
 		data-testid="add-to-collection"
 		disabled={!mine}

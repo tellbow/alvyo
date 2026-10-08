@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ROUTE_COLOR } from './colors';
 	import type {
 		FilterSpecification,
 		GeoJSONSource,
@@ -52,7 +53,7 @@
 	const REACH_PX = 40;
 	/** Layers that count as "the route" for clicks. */
 	export const LINE_LAYERS = [`${ROUTE_PREFIX}line`, `${ROUTE_PREFIX}line-straight`];
-	const COLOR = '#a21caf';
+	const COLOR = ROUTE_COLOR;
 	/** How long a finger rests on the line before it takes the line. */
 	const HOLD_MS = 400;
 
@@ -110,7 +111,7 @@
 			source: LEGS,
 			filter: ['!=', ['get', 'state'], 'ok'],
 			paint: {
-				'line-color': ['match', ['get', 'state'], 'error', '#dc2626', '#78716c'],
+				'line-color': ['match', ['get', 'state'], 'error', '#dc2626', '#5d6a62'],
 				'line-width': 3,
 				'line-dasharray': [1, 1.5]
 			}
@@ -475,7 +476,7 @@
 		width: 18px;
 		height: 18px;
 		border-radius: 9999px;
-		border: 3px solid #a21caf;
+		border: 3px solid var(--alvyo-route);
 		background: #fff;
 		box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
 		cursor: grab;
@@ -489,15 +490,15 @@
 		width: 14px;
 		height: 14px;
 		border-radius: 9999px;
-		border: 3px solid #78716c;
-		background: #e7e5e4;
+		border: 3px solid #5d6a62;
+		background: #dce3dc;
 		opacity: 0.9;
 	}
 	:global(.through) {
 		width: 10px;
 		height: 10px;
 		border-radius: 9999px;
-		border: 2px solid #a21caf;
+		border: 2px solid var(--alvyo-route);
 		background: #fff;
 		cursor: default;
 	}
@@ -506,7 +507,7 @@
 		border-color: #fff;
 	}
 	:global(.anchor-end) {
-		background: #a21caf;
+		background: var(--alvyo-route);
 		border-color: #fff;
 	}
 </style>

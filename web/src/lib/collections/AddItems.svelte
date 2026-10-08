@@ -58,7 +58,7 @@
 		bind:value={query}
 		onfocus={load}
 		type="search"
-		class="rounded-md border border-stone-300 px-2 py-1.5"
+		class="rounded-md border border-stone-400 px-2 py-1.5"
 		placeholder={m.collection_add_search()}
 		aria-label={m.collection_add_search()}
 	/>

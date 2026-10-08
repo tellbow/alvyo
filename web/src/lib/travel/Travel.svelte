@@ -161,7 +161,7 @@
 				{m.travel_day()}
 				<input
 					type="date"
-					class="rounded border border-stone-300 px-1 py-0.5"
+					class="rounded-md border border-stone-400 px-1 py-0.5"
 					value={day}
 					onchange={(e) => changeDay(e.currentTarget.value)}
 					data-testid="travel-day"
@@ -185,7 +185,7 @@
 					<label class="flex items-center gap-1">
 						{d === 'to' ? m.travel_from() : m.travel_to_home()}
 						<select
-							class="rounded border border-stone-300 px-1 py-0.5"
+							class="rounded-md border border-stone-400 px-1 py-0.5"
 							value={searching[d] || way?.place ? ELSEWHERE : (way?.home_id ?? '')}
 							disabled={!hydrated.value}
 							use:pick={(v) => choose(d, v)}
@@ -208,7 +208,7 @@
 					{/if}
 					{#if way}
 						<select
-							class="rounded border border-stone-300 px-1 py-0.5"
+							class="rounded-md border border-stone-400 px-1 py-0.5"
 							value={way.arrive}
 							aria-label={m.connections_mode()}
 							use:pick={(v) => edit(d, { arrive: v === 'true' })}
@@ -219,7 +219,7 @@
 						</select>
 						<input
 							type="time"
-							class="rounded border border-stone-300 px-1 py-0.5"
+							class="rounded-md border border-stone-400 px-1 py-0.5"
 							value={way.time}
 							aria-label={m.connections_time()}
 							onchange={(e) => e.currentTarget.value && edit(d, { time: e.currentTarget.value })}

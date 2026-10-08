@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focused } from '$lib/util/focus';
 	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
@@ -154,7 +155,7 @@
 		<div>
 			{#if canEdit}
 				<input
-					class="w-full rounded border border-transparent px-1 text-xl font-semibold hover:border-stone-300"
+					class="w-full rounded border border-transparent px-1 text-xl font-semibold hover:border-stone-400"
 					value={collection.title}
 					maxlength="120"
 					aria-label={m.field_title()}
@@ -172,7 +173,7 @@
 			</p>
 			{#if canEdit}
 				<textarea
-					class="mt-2 w-full rounded border border-stone-300 px-2 py-1 text-sm"
+					class="mt-2 w-full rounded-md border border-stone-400 px-2 py-1 text-sm"
 					rows="2"
 					value={collection.description}
 					placeholder={m.collection_description_placeholder()}
@@ -252,7 +253,7 @@
 						{#if canEdit}
 							<div class="mt-2 flex items-center gap-2 text-xs">
 								<input
-									class="min-w-0 flex-1 rounded border border-stone-300 px-2 py-1"
+									class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1"
 									value={it.note}
 									maxlength="1000"
 									placeholder={m.collection_note_placeholder()}
@@ -290,6 +291,7 @@
 									<button
 										type="button"
 										class="rounded bg-red-700 px-2 py-1 text-white"
+										use:focused
 										onclick={() => {
 											removing = undefined;
 											removeItem(it);
@@ -316,7 +318,7 @@
 				<label class="flex flex-col gap-1">
 					<span>{m.field_visibility()}</span>
 					<select
-						class="rounded-md border border-stone-300 px-2 py-1.5"
+						class="rounded-md border border-stone-400 px-2 py-1.5"
 						value={collection.visibility}
 						use:choose={(v) => patch({ visibility: v as 'private' | 'unlisted' | 'public' })}
 					>
@@ -330,8 +332,9 @@
 				{#if shareUrl && collection.visibility === 'unlisted'}
 					<input
 						readonly
+						aria-label={m.share_link()}
 						value={shareUrl}
-						class="rounded border border-stone-300 px-1.5 py-1 text-xs"
+						class="rounded-md border border-stone-400 px-1.5 py-1 text-xs"
 						data-testid="collection-share-link"
 					/>
 				{/if}
@@ -339,6 +342,7 @@
 					<button
 						type="button"
 						class="self-start rounded bg-red-700 px-2 py-1 text-white"
+						use:focused
 						onclick={remove}>{m.collection_delete_confirm()}</button
 					>
 				{:else}

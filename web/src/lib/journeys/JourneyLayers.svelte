@@ -70,7 +70,7 @@
 			type: 'line',
 			source: SRC,
 			filter: ['get', 'gap'],
-			paint: { 'line-color': '#57534e', 'line-width': 2.5, 'line-dasharray': [1, 2] }
+			paint: { 'line-color': '#56645c', 'line-width': 2.5, 'line-dasharray': [1, 2] }
 		});
 		map.addLayer({
 			id: `${ROUTE_PREFIX}journey-hover`,
@@ -78,7 +78,7 @@
 			source: HOVER,
 			paint: {
 				'circle-radius': 6,
-				'circle-color': '#1c1917',
+				'circle-color': '#14201a',
 				'circle-stroke-color': '#ffffff',
 				'circle-stroke-width': 2
 			}

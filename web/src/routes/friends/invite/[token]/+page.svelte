@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButton } from '$lib/components/actions';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
@@ -43,8 +44,7 @@
 			<!-- eslint-disable svelte/no-navigation-without-resolve -->
 			<a
 				href={`${resolve('/login')}?redirect=${encodeURIComponent(page.url.pathname)}`}
-				class="mt-6 inline-block rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
-				>{m.friend_invite_login()}</a
+				class="{primaryButton} mt-6 inline-block">{m.friend_invite_login()}</a
 			>
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		{:else if status === 'done'}
@@ -56,7 +56,7 @@
 		{:else}
 			<button
 				type="button"
-				class="mt-6 rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover disabled:opacity-60"
+				class="{primaryButton} mt-6"
 				disabled={!hydrated.value || status === 'busy'}
 				onclick={accept}
 				data-testid="friend-invite-accept">{m.friend_invite_accept()}</button

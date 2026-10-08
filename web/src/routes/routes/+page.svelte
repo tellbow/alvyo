@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
+	import { focused } from '$lib/util/focus';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
@@ -49,10 +51,7 @@
 		<div class="flex items-center gap-4">
 			<a href={resolve('/routes/map')} class="text-sm hover:text-accent-ink">{m.mymap_link()}</a>
 			<a href={resolve('/import')} class="text-sm hover:text-accent-ink">{m.import_link()}</a>
-			<a
-				href={resolve('/plan')}
-				class="rounded-md bg-accent px-3 py-1.5 text-sm text-on-accent hover:bg-accent-hover"
-			>
+			<a href={resolve('/plan')} class={primaryButtonSmall}>
 				{m.route_new()}
 			</a>
 		</div>
@@ -117,13 +116,14 @@
 						<button
 							type="button"
 							class="relative ml-auto rounded bg-red-700 px-2 py-1 text-xs text-white sm:ml-0"
+							use:focused
 							data-testid="route-list-delete-confirm"
 							onclick={() => remove(r.id)}>{m.route_delete_confirm()}</button
 						>
 					{:else}
 						<button
 							type="button"
-							class="relative ml-auto text-xs text-stone-500 underline hover:text-red-700 sm:ml-0"
+							class="relative ml-auto text-xs text-stone-500 underline hover:text-red-700 sm:ml-0 dark:hover:text-red-400 pointer-coarse:py-2"
 							data-testid="route-list-delete"
 							onclick={() => (confirming = r.id)}>{m.route_delete()}</button
 						>

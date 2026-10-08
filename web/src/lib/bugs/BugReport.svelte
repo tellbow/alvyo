@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
@@ -117,8 +118,12 @@
 				</label>
 			{/if}
 			<p class="text-xs text-stone-500">{m.bug_privacy({ place: place() })}</p>
-			{#if status === 'failed'}<p class="text-red-700" role="alert">{m.bug_failed()}</p>{/if}
-			{#if status === 'busy'}<p class="text-red-700" role="alert">{m.bug_busy()}</p>{/if}
+			{#if status === 'failed'}<p class="text-red-700 dark:text-red-400" role="alert">
+					{m.bug_failed()}
+				</p>{/if}
+			{#if status === 'busy'}<p class="text-red-700 dark:text-red-400" role="alert">
+					{m.bug_busy()}
+				</p>{/if}
 			<div class="flex justify-end gap-2">
 				<button
 					type="button"
@@ -127,7 +132,7 @@
 				>
 				<button
 					type="submit"
-					class="rounded-md bg-accent px-3 py-1.5 font-medium text-on-accent disabled:opacity-60"
+					class={primaryButtonSmall}
 					disabled={status === 'sending' || !text.trim()}
 					data-testid="bug-send">{m.bug_send()}</button
 				>

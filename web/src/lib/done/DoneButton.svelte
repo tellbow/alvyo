@@ -72,7 +72,7 @@
 				type="date"
 				max={today}
 				bind:value={day}
-				class="min-w-0 flex-1 rounded border border-stone-300 px-1.5 py-1"
+				class="min-w-0 flex-1 rounded-md border border-stone-400 px-1.5 py-1"
 				data-testid="done-day"
 			/>
 		</label>
@@ -95,7 +95,7 @@
 				{by === 'hike' ? m.done_by_hike() : m.done_by_stages()}
 			</p>
 		{/if}
-		{#if failed}<p class="px-2.5 py-1 text-xs text-red-700" role="alert">
+		{#if failed}<p class="px-2.5 py-1 text-xs text-red-700 dark:text-red-400" role="alert">
 				{m.error_generic()}
 			</p>{/if}
 	{/snippet}

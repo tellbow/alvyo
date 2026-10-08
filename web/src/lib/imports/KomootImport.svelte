@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButton } from '$lib/components/actions';
 	import { resolve } from '$app/paths';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { api } from '$lib/api/client';
@@ -133,7 +134,7 @@
 				autocomplete="off"
 				placeholder={m.komoot_email()}
 				aria-label={m.komoot_email()}
-				class="rounded-md border border-stone-300 px-3 py-2 text-sm"
+				class="rounded-md border border-stone-400 px-3 py-2 text-sm"
 			/>
 			<input
 				type="password"
@@ -142,12 +143,9 @@
 				autocomplete="off"
 				placeholder={m.komoot_password()}
 				aria-label={m.komoot_password()}
-				class="rounded-md border border-stone-300 px-3 py-2 text-sm"
+				class="rounded-md border border-stone-400 px-3 py-2 text-sm"
 			/>
-			<button
-				disabled={!hydrated.value || busy}
-				class="self-start rounded-md bg-accent px-4 py-2 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
-			>
+			<button disabled={!hydrated.value || busy} class="{primaryButton} self-start">
 				{m.komoot_login()}
 			</button>
 			<p class="text-xs text-stone-500">{m.komoot_no_password()}</p>
@@ -162,7 +160,7 @@
 				type="button"
 				onclick={run}
 				disabled={busy || selected.size === 0}
-				class="ml-auto rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover disabled:opacity-50"
+				class="{primaryButton} ml-auto"
 			>
 				{importing ? m.komoot_importing(importing) : m.import_submit()}
 			</button>

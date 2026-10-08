@@ -58,7 +58,7 @@
 	<form method="post" onsubmit={search} class="flex flex-wrap items-center gap-1">
 		<select
 			bind:value={arrive}
-			class="rounded border border-stone-300 px-1 py-0.5"
+			class="rounded-md border border-stone-400 px-1 py-0.5"
 			aria-label={m.connections_mode()}
 		>
 			<option value={false}>{m.connections_depart()}</option>
@@ -67,7 +67,7 @@
 		<input
 			type="time"
 			bind:value={time}
-			class="rounded border border-stone-300 px-1 py-0.5"
+			class="rounded-md border border-stone-400 px-1 py-0.5"
 			aria-label={m.connections_time()}
 		/>
 		<button class="rounded px-2 py-0.5 ring-1 ring-stone-300" disabled={busy}

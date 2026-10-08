@@ -111,7 +111,7 @@
 					label={m.home_search()}
 					near={() => undefined}
 					onpick={(p) => around(p.at)}
-					inputClass="h-14 w-full rounded-2xl border border-stone-300 bg-ground px-4 text-base focus:border-accent focus:ring-2 focus:ring-accent/25 focus:outline-none"
+					inputClass="h-14 w-full rounded-2xl border border-stone-400 bg-ground px-4 text-base"
 				/>
 			{/if}
 			<div class="flex gap-3">

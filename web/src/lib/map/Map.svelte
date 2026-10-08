@@ -99,7 +99,19 @@
 					[12.0, 48.6]
 				],
 				attributionControl: false,
+				// MapLibre's own labels in the page's language (screen readers).
 				locale: {
+					'Map.Title': msg.map_ui_title(),
+					'Marker.Title': msg.map_ui_marker(),
+					'Popup.Close': msg.map_ui_close(),
+					'NavigationControl.ZoomIn': msg.map_ui_zoom_in(),
+					'NavigationControl.ZoomOut': msg.map_ui_zoom_out(),
+					'NavigationControl.ResetBearing': msg.map_ui_north(),
+					'GeolocateControl.FindMyLocation': msg.map_ui_locate(),
+					'GeolocateControl.LocationNotAvailable': msg.map_ui_no_location(),
+					'AttributionControl.ToggleAttribution': msg.map_ui_attribution(),
+					'FullscreenControl.Enter': msg.map_ui_fullscreen(),
+					'FullscreenControl.Exit': msg.map_ui_fullscreen_exit(),
 					'TerrainControl.Enable': msg.map_3d_on(),
 					'TerrainControl.Disable': msg.map_3d_off()
 				}

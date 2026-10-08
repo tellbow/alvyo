@@ -37,6 +37,21 @@
 		return { lo, hi };
 	});
 
+	// What the picture shows, for screen readers.
+	const summary = $derived.by(() => {
+		let low = Infinity;
+		let high = -Infinity;
+		for (const c of line.coordinates) {
+			low = Math.min(low, c[2]);
+			high = Math.max(high, c[2]);
+		}
+		return m.profile_summary({
+			length: formatDistance(total),
+			low: formatHeight(low),
+			high: formatHeight(high)
+		});
+	});
+
 	const x = (d: number) => pad.l + (total ? (d / total) * (width - pad.l - pad.r) : 0);
 	const y = (e: number) =>
 		pad.t + ((range.hi - e) / (range.hi - range.lo)) * (height - pad.t - pad.b);
@@ -48,7 +63,7 @@
 			for (let i = run.from; i <= run.to; i++)
 				d += `L${x(line.distance[i])},${y(line.coordinates[i][2])}`;
 			d += `L${x(line.distance[run.to])},${y(range.lo)}Z`;
-			return { d, color: colors[run.value] ?? '#a8a29e' };
+			return { d, color: colors[run.value] ?? '#8a978f' };
 		})
 	);
 	const outline = $derived(
@@ -77,6 +92,7 @@
 			{width}
 			{height}
 			role="img"
+			aria-label={summary}
 			class="block touch-none select-none"
 			onpointermove={onmove}
 			onpointerleave={() => (hover = undefined)}

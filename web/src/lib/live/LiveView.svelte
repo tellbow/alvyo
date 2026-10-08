@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ROUTE_COLOR } from '$lib/planner/colors';
 	import type { Map as MapLibreMap, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { onDestroy } from 'svelte';
@@ -92,7 +93,7 @@
 			<Map bind:base bind:overlays {onready} />
 			<LayerSwitcher bind:base bind:overlays />
 			{#if map}
-				<CollectionLayers {map} items={lines} color={(i) => (i === 0 ? '#a21caf' : '#2563eb')} />
+				<CollectionLayers {map} items={lines} color={(i) => (i === 0 ? ROUTE_COLOR : '#2563eb')} />
 			{/if}
 		</section>
 		<aside

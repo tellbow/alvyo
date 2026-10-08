@@ -37,7 +37,7 @@
 			<div class="flex flex-wrap items-center gap-1">
 				<span class="w-20">{d === 'to' ? m.travel_to() : m.travel_back()}</span>
 				<select
-					class="rounded border border-stone-300 px-1 py-0.5"
+					class="rounded-md border border-stone-400 px-1 py-0.5"
 					aria-label={d === 'to' ? m.travel_from() : m.travel_to_home()}
 					value={travel[d]?.home_id ?? ''}
 					onchange={(e) => set(d, { home_id: e.currentTarget.value })}
@@ -50,7 +50,7 @@
 				</select>
 				{#if travel[d]}
 					<select
-						class="rounded border border-stone-300 px-1 py-0.5"
+						class="rounded-md border border-stone-400 px-1 py-0.5"
 						aria-label={m.connections_mode()}
 						value={travel[d]!.arrive}
 						onchange={(e) => set(d, { arrive: e.currentTarget.value === 'true' })}
@@ -60,7 +60,7 @@
 					</select>
 					<input
 						type="time"
-						class="rounded border border-stone-300 px-1 py-0.5"
+						class="rounded-md border border-stone-400 px-1 py-0.5"
 						aria-label={m.connections_time()}
 						value={travel[d]!.time}
 						onchange={(e) => e.currentTarget.value && set(d, { time: e.currentTarget.value })}

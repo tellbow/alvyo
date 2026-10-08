@@ -50,9 +50,20 @@
 
 	// The page's section in the navigation, whatever the language prefix.
 	const here = $derived(deLocalizeUrl(page.url).pathname);
+	const isHere = (section: string) => here === section || here.startsWith(section + '/');
+	const current = (section: string) => (isHere(section) ? 'page' : undefined);
 	function tab(section: string) {
-		const on = here === section || here.startsWith(section + '/');
+		const on = isHere(section);
 		return `rounded-full px-3.5 py-1.5 ${on ? 'bg-stone-900 text-stone-50 dark:bg-stone-200 dark:text-stone-900' : 'hover:text-accent-ink'}`;
+	}
+
+	// Past the navigation to the page's own content (its main part or panel).
+	function skip(e: MouseEvent) {
+		const target = document.querySelector<HTMLElement>('main, aside');
+		if (!target) return;
+		e.preventDefault();
+		target.tabIndex = -1;
+		target.focus();
 	}
 
 	// Below xl the links and settings go into a menu.
@@ -79,23 +90,41 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && (menu = false)} />
 
 {#snippet links()}
-	<a href={resolve('/discover')} class={tab('/discover')}>{m.nav_discover()}</a>
-	<a href={resolve('/plan')} class={tab('/plan')}>{m.nav_plan()}</a>
+	<a href={resolve('/discover')} class={tab('/discover')} aria-current={current('/discover')}
+		>{m.nav_discover()}</a
+	>
+	<a href={resolve('/plan')} class={tab('/plan')} aria-current={current('/plan')}>{m.nav_plan()}</a>
 	{#if data.user}
-		<a href={resolve('/feed')} class={tab('/feed')}>{m.nav_feed()}</a>
-		<a href={resolve('/routes')} class={tab('/routes')}>{m.nav_routes()}</a>
-		<a href={resolve('/journeys')} class={tab('/journeys')}>{m.nav_journeys()}</a>
-		<a href={resolve('/collections')} class={tab('/collections')}>{m.nav_collections()}</a>
+		<a href={resolve('/feed')} class={tab('/feed')} aria-current={current('/feed')}
+			>{m.nav_feed()}</a
+		>
+		<a href={resolve('/routes')} class={tab('/routes')} aria-current={current('/routes')}
+			>{m.nav_routes()}</a
+		>
+		<a href={resolve('/journeys')} class={tab('/journeys')} aria-current={current('/journeys')}
+			>{m.nav_journeys()}</a
+		>
+		<a
+			href={resolve('/collections')}
+			class={tab('/collections')}
+			aria-current={current('/collections')}>{m.nav_collections()}</a
+		>
 		{#if data.user.role !== 'user'}
-			<a href={resolve('/moderation')} class={tab('/moderation')}>{m.nav_moderation()}</a>
+			<a
+				href={resolve('/moderation')}
+				class={tab('/moderation')}
+				aria-current={current('/moderation')}>{m.nav_moderation()}</a
+			>
 		{/if}
 	{/if}
-	<a href={resolve('/about')} class={tab('/about')}>{m.nav_about()}</a>
+	<a href={resolve('/about')} class={tab('/about')} aria-current={current('/about')}
+		>{m.nav_about()}</a
+	>
 {/snippet}
 
 {#snippet settings()}
 	<select
-		class="rounded-full border border-stone-300 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
+		class="rounded-full border border-stone-400 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
 		aria-label={m.nav_language()}
 		value={getLocale()}
 		disabled={!hydrated.value}
@@ -107,7 +136,7 @@
 		{/each}
 	</select>
 	<select
-		class="rounded-full border border-stone-300 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
+		class="rounded-full border border-stone-400 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
 		aria-label={m.nav_theme()}
 		value={data.theme}
 		disabled={!hydrated.value}
@@ -155,6 +184,11 @@
 {/snippet}
 
 <div class="flex h-dvh flex-col bg-ground text-stone-900 print:h-auto">
+	<a
+		href="#content"
+		class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2"
+		onclick={skip}>{m.skip_to_content()}</a
+	>
 	<header
 		class="relative flex items-center gap-6 border-b border-stone-200 px-4 py-2.5 xl:px-5 print:hidden"
 	>

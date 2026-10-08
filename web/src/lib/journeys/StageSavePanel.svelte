@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api, type Journey, type Route } from '$lib/api/client';
@@ -52,10 +53,7 @@
 		<a href={back} class="text-xs text-accent-ink underline">{m.journey_back()}</a>
 	</div>
 	<div class="save-bar">
-		<button
-			disabled={!hydrated.value || !canSave}
-			class="w-full rounded-md bg-accent px-3 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-50"
-		>
+		<button disabled={!hydrated.value || !canSave} class="{primaryButtonSmall} w-full">
 			{status === 'saving' ? m.saving() : m.stage_save()}
 		</button>
 		{#if status === 'conflict'}

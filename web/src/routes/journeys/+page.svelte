@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { primaryButton, primaryButtonSmall } from '$lib/components/actions';
+	import { focused } from '$lib/util/focus';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -64,7 +66,7 @@
 	</p>
 	<a
 		href={resolve('/journeys/plan')}
-		class="mt-4 inline-block rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
+		class="{primaryButtonSmall} mt-4 inline-block"
 		data-testid="journey-plan-link">{m.jplan_link()}</a
 	>
 
@@ -75,12 +77,9 @@
 			maxlength="120"
 			placeholder={m.journey_new()}
 			aria-label={m.field_title()}
-			class="flex-1 rounded-md border border-stone-300 px-3 py-2"
+			class="flex-1 rounded-md border border-stone-400 px-3 py-2"
 		/>
-		<button
-			disabled={!hydrated.value}
-			class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
-		>
+		<button disabled={!hydrated.value} class={primaryButton}>
 			{m.journey_create()}
 		</button>
 	</form>
@@ -127,6 +126,7 @@
 						<button
 							type="button"
 							class="relative ml-auto rounded bg-red-700 px-2 py-1 text-xs text-white sm:ml-0"
+							use:focused
 							data-testid="journey-list-delete-confirm"
 							onclick={() => remove(j.id)}>{m.journey_delete_confirm()}</button
 						>
@@ -134,7 +134,7 @@
 						<button
 							type="button"
 							disabled={!hydrated.value}
-							class="relative ml-auto text-xs text-stone-500 underline hover:text-red-700 sm:ml-0"
+							class="relative ml-auto text-xs text-stone-500 underline hover:text-red-700 sm:ml-0 dark:hover:text-red-400 pointer-coarse:py-2"
 							data-testid="journey-list-delete"
 							onclick={() => (confirming = j.id)}>{m.route_delete()}</button
 						>

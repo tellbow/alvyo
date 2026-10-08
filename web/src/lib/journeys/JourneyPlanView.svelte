@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import type { Map as MapLibreMap, MapMouseEvent, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
@@ -99,7 +100,7 @@
 					]
 		)
 	);
-	const lineColor = (i: number) => (i < others.length ? '#a8a29e' : stageColor(i - others.length));
+	const lineColor = (i: number) => (i < others.length ? '#8a978f' : stageColor(i - others.length));
 	const total = $derived(
 		(proposal?.stages ?? []).reduce((sum, st) => sum + st.totals.distance_m, 0)
 	);
@@ -343,7 +344,14 @@
 									? 'start'
 									: i === points.length - 1
 										? 'end'
-										: 'via'}">{i > 0 && i < points.length - 1 ? i : ''}</span
+										: 'via'}"
+								>{i > 0 && i < points.length - 1 ? i : ''}<span class="sr-only"
+									>{i === 0
+										? m.plan_point_start()
+										: i === points.length - 1
+											? m.plan_point_end()
+											: ''}</span
+								></span
 							>
 							<span class="min-w-0 flex-1 truncate" class:text-stone-500={!p.name}
 								>{p.name ?? m.plan_point_map()}</span
@@ -351,7 +359,10 @@
 							<button
 								type="button"
 								class="icon-button"
-								aria-label={m.plan_point_remove()}
+								aria-label={m.plan_point_action({
+									point: p.name ?? m.plan_point_map(),
+									action: m.plan_point_remove()
+								})}
 								title={m.plan_point_remove()}
 								onclick={() => removePoint(i)}>×</button
 							>
@@ -380,7 +391,7 @@
 						type="number"
 						min="1"
 						max="60"
-						class="w-16 rounded-md border border-stone-300 px-2 py-1"
+						class="w-16 rounded-md border border-stone-400 px-2 py-1"
 						aria-label={m.jplan_days()}
 						bind:value={days}
 						onfocus={() => (by = 'days')}
@@ -396,7 +407,7 @@
 						min="1"
 						max="16"
 						step="0.5"
-						class="w-16 rounded-md border border-stone-300 px-2 py-1"
+						class="w-16 rounded-md border border-stone-400 px-2 py-1"
 						aria-label={m.jplan_hours_min()}
 						bind:value={minHours}
 						onfocus={() => (by = 'hours')}
@@ -407,7 +418,7 @@
 						min="1"
 						max="16"
 						step="0.5"
-						class="w-16 rounded-md border border-stone-300 px-2 py-1"
+						class="w-16 rounded-md border border-stone-400 px-2 py-1"
 						aria-label={m.jplan_hours_max()}
 						bind:value={maxPerDay}
 						onfocus={() => (by = 'hours')}
@@ -421,7 +432,7 @@
 							min="1"
 							max="20"
 							step="0.5"
-							class="w-16 rounded-md border border-stone-300 px-2 py-1"
+							class="w-16 rounded-md border border-stone-400 px-2 py-1"
 							bind:value={maxHours}
 						/>
 					</label>
@@ -442,7 +453,7 @@
 
 			<label class="flex flex-col gap-1">
 				<span class="font-medium">{m.plan_profile()}</span>
-				<select bind:value={profile} class="rounded-md border border-stone-300 px-2 py-1.5">
+				<select bind:value={profile} class="rounded-md border border-stone-400 px-2 py-1.5">
 					<option value="hike">{m.plan_profile_hike()}</option>
 					<option value="alpine">{m.plan_profile_alpine()}</option>
 				</select>
@@ -450,7 +461,7 @@
 
 			<button
 				disabled={!hydrated.value || busy || points.length < 2 || !asksOk}
-				class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-50"
+				class={primaryButtonSmall}
 			>
 				{busy ? m.jplan_running() : m.jplan_submit()}
 			</button>
@@ -612,14 +623,11 @@
 						bind:value={title}
 						required
 						maxlength="120"
-						class="rounded-md border border-stone-300 px-2 py-1.5"
+						class="rounded-md border border-stone-400 px-2 py-1.5"
 					/>
 				</label>
 				<TravelChoice onchange={(t) => (travel = t)} />
-				<button
-					disabled={!hydrated.value || busy || !title.trim()}
-					class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover disabled:opacity-50"
-				>
+				<button disabled={!hydrated.value || busy || !title.trim()} class={primaryButtonSmall}>
 					{m.jplan_create()}
 				</button>
 			</form>
@@ -633,7 +641,7 @@
 		width: 18px;
 		height: 18px;
 		border-radius: 9999px;
-		border: 3px solid #a21caf;
+		border: 3px solid var(--alvyo-route);
 		background: #fff;
 		box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
 		font:
@@ -647,7 +655,7 @@
 		border-color: #fff;
 	}
 	:global(.plan-point-end) {
-		background: #a21caf;
+		background: var(--alvyo-route);
 		border-color: #fff;
 	}
 </style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { onMount, type Snippet } from 'svelte';
 	import type { Me, Route } from '$lib/api/client';
 	import Pois from '$lib/map/Pois.svelte';
@@ -73,15 +74,13 @@
 				{m.sheet_day()}
 				<input
 					type="date"
-					class="rounded border border-stone-300 px-1 py-0.5"
+					class="rounded-md border border-stone-400 px-1 py-0.5"
 					bind:value={date}
 					required
 				/>
 			</label>
-			<button
-				type="button"
-				class="ml-auto rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
-				onclick={() => print()}>{m.sheet_print()}</button
+			<button type="button" class="{primaryButtonSmall} ml-auto" onclick={() => print()}
+				>{m.sheet_print()}</button
 			>
 		</div>
 

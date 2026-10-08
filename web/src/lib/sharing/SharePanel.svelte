@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { onMount } from 'svelte';
 	import FriendOptions from '$lib/community/FriendOptions.svelte';
 	import { api, type Grant } from '$lib/api/client';
@@ -112,7 +113,7 @@
 						{/if}
 					</span>
 					<select
-						class="rounded border border-stone-300 px-1 py-0.5 text-xs"
+						class="rounded-md border border-stone-400 px-1 py-0.5 text-xs"
 						value={g.role}
 						aria-label={m.share_role()}
 						use:choose={(v) => setRole(g, v as Role)}
@@ -140,22 +141,19 @@
 				placeholder={m.share_who()}
 				aria-label={m.share_who()}
 				list="share-friends-{id}"
-				class="min-w-0 flex-1 rounded border border-stone-300 px-2 py-1"
+				class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1"
 			/>
 			<FriendOptions id="share-friends-{id}" />
 			<select
 				bind:value={role}
 				disabled={!hydrated.value}
-				class="rounded border border-stone-300 px-1"
+				class="rounded-md border border-stone-400 px-1"
 				aria-label={m.share_role()}
 			>
 				<option value="viewer">{m.role_viewer()}</option>
 				<option value="editor">{m.role_editor()}</option>
 			</select>
-			<button
-				disabled={busy || !hydrated.value}
-				class="rounded bg-accent px-2 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
-			>
+			<button disabled={busy || !hydrated.value} class={primaryButtonSmall}>
 				{m.share_invite()}
 			</button>
 		</form>

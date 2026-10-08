@@ -69,7 +69,7 @@ describe('colours', () => {
 
 	it('writes every grade badge readably', () => {
 		for (const grade of [0, 1, 2, 3, 4, 5, 6]) {
-			const background = SAC_COLOR[`T${grade}`] ?? '#a8a29e';
+			const background = SAC_COLOR[`T${grade}`] ?? '#8a978f';
 			expect(contrast(sacInk(grade), background), `T${grade}`).toBeGreaterThanOrEqual(4.5);
 		}
 	});

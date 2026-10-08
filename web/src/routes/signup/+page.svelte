@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButton } from '$lib/components/actions';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -97,10 +98,7 @@
 		{#if errors.form}<p role="alert" class="text-sm text-red-700 dark:text-red-400">
 				{errors.form}
 			</p>{/if}
-		<button
-			disabled={!hydrated.value || busy}
-			class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover disabled:opacity-60"
-		>
+		<button disabled={!hydrated.value || busy} class={primaryButton}>
 			{m.signup_submit()}
 		</button>
 	</form>

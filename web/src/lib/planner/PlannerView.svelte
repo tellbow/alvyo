@@ -115,6 +115,20 @@
 		return c ? [c[0], c[1]] : undefined;
 	});
 
+	// Announced when the route is computing and when it is done.
+	const routeStatus = $derived(
+		planner.legs.length === 0
+			? ''
+			: planner.complete
+				? m.plan_computed({
+						distance: formatDistance(planner.totals.distanceM),
+						time: formatDuration(planner.totals.durationS, pace)
+					})
+				: planner.legs.some((l) => l.state === 'loading')
+					? m.plan_computing()
+					: ''
+	);
+
 	const ROUTE_LINES = ['route-line', 'route-line-straight'];
 
 	// The protected areas the planned line crosses, asked for once the line
@@ -249,15 +263,18 @@
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} {ghosts} {dragPath} onnotice={notify} />
 		{/if}
-		{#if notice}
-			<p
-				role="status"
-				class="pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-md bg-stone-900/85 px-3 py-2 text-sm text-white shadow"
-				data-testid="map-notice"
-			>
-				{notice}
-			</p>
-		{/if}
+		<!-- Always there, so screen readers announce what is written into it. -->
+		<p
+			role="status"
+			class={[
+				'pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-md bg-stone-900/85 px-3 py-2 text-sm text-white shadow',
+				!notice && 'sr-only'
+			]}
+			data-testid={notice ? 'map-notice' : undefined}
+		>
+			{notice}
+		</p>
+		<p class="sr-only" aria-live="polite">{routeStatus}</p>
 		{#if planner.line.coordinates.length > 1}
 			<ProfileDock>
 				<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
@@ -269,6 +286,7 @@
 		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-80 md:flex-none md:border-t-0 md:border-l"
 		data-testid="planner-panel"
 	>
+		<h1 class="sr-only">{route?.title ?? m.nav_plan()}</h1>
 		<PlanTabs current="route" />
 		{#if !user}
 			<p class="rounded-md bg-stone-100 p-3 text-sm">
@@ -281,7 +299,7 @@
 			<label class="flex flex-col gap-1 text-sm">
 				<span class="font-medium">{m.plan_profile()}</span>
 				<select
-					class="rounded-md border border-stone-300 px-2 py-1.5"
+					class="rounded-md border border-stone-400 px-2 py-1.5"
 					value={planner.profile}
 					use:choose={(v) => planner.setProfile(v as Profile)}
 				>
@@ -316,17 +334,24 @@
 			</fieldset>
 
 			<section data-testid="points">
-				<h3 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
+				<h2 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
 					{m.plan_points()}
-				</h3>
+				</h2>
 				{#if planner.anchors.length > 0}
 					<ol class="mb-2 flex flex-col gap-1 text-sm">
 						{#each planner.anchors as a, i (a.id)}
 							{@const kind = i === 0 ? 'start' : i === planner.anchors.length - 1 ? 'end' : 'via'}
 							{@const height = planner.height(i)}
+							{@const point = a.name ?? m.plan_point_map()}
 							<li class="flex items-center gap-1" data-testid="point">
 								<span class="anchor anchor-{kind} shrink-0" style="cursor: default"
-									>{kind === 'via' ? i : ''}</span
+									>{kind === 'via' ? i : ''}<span class="sr-only"
+										>{kind === 'start'
+											? m.plan_point_start()
+											: kind === 'end'
+												? m.plan_point_end()
+												: ''}</span
+									></span
 								>
 								<span class="min-w-0 flex-1 truncate" class:text-stone-500={!a.name}
 									>{a.name ?? m.plan_point_map()}</span
@@ -339,7 +364,7 @@
 								<button
 									type="button"
 									class="icon-button"
-									aria-label={m.plan_point_up()}
+									aria-label={m.plan_point_action({ point, action: m.plan_point_up() })}
 									title={m.plan_point_up()}
 									disabled={i === 0}
 									onclick={() => planner.reorder(i, i - 1)}>↑</button
@@ -347,7 +372,7 @@
 								<button
 									type="button"
 									class="icon-button"
-									aria-label={m.plan_point_down()}
+									aria-label={m.plan_point_action({ point, action: m.plan_point_down() })}
 									title={m.plan_point_down()}
 									disabled={i === planner.anchors.length - 1}
 									onclick={() => planner.reorder(i, i + 1)}>↓</button
@@ -355,7 +380,7 @@
 								<button
 									type="button"
 									class="icon-button"
-									aria-label={m.plan_point_remove()}
+									aria-label={m.plan_point_action({ point, action: m.plan_point_remove() })}
 									title={m.plan_point_remove()}
 									onclick={() => planner.remove(a.id)}>×</button
 								>
@@ -411,9 +436,9 @@
 				<ProtectedAreas {areas} failed={areasFailed} />
 
 				<section>
-					<h3 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
+					<h2 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">
 						{m.plan_legs()}
-					</h3>
+					</h2>
 					<ol class="flex flex-col gap-2 text-sm">
 						{#each planner.legs as slot, i (planner.anchors[i + 1]?.id ?? slot.key)}
 							<li
@@ -456,7 +481,7 @@
 										{/if}
 										<button
 											type="button"
-											class="ml-1 underline"
+											class="ml-1 underline pointer-coarse:py-2"
 											onclick={() => planner.setAlpine(i, true)}>{m.leg_alpine_use()}</button
 										>
 									</p>

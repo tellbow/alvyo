@@ -12,8 +12,11 @@ export const SAC_COLOR: Record<string, string> = {
 	T6: '#1e3a8a'
 };
 
+/** The line of the route being planned or shown (also var(--alvyo-route) in CSS). */
+export const ROUTE_COLOR = '#a21caf';
+
 /** A route without a grade. */
-const SAC_NONE = '#a8a29e';
+const SAC_NONE = '#8a978f';
 
 /** The badge of a grade (0: none). */
 export const sacBackground = (grade: number) => SAC_COLOR[`T${grade}`] ?? SAC_NONE;
@@ -42,20 +45,20 @@ export const TRAIL_COLOR: Record<string, string> = {
 	Wanderweg: '#eab308',
 	Bergwanderweg: '#dc2626',
 	Alpinwanderweg: '#2563eb',
-	none: '#a8a29e'
+	none: '#8a978f'
 };
 
 export const SURFACE_COLOR: Record<string, string> = {
-	paved: '#57534e',
-	gravel: '#a8a29e',
+	paved: '#56645c',
+	gravel: '#8a978f',
 	natural: '#65a30d',
-	unknown: '#e7e5e4'
+	unknown: '#dce3dc'
 };
 
 export const WAY_COLOR: Record<string, string> = {
-	road: '#57534e',
+	road: '#56645c',
 	track: '#a16207',
 	path: '#65a30d',
 	steps: '#7c3aed',
-	unknown: '#e7e5e4'
+	unknown: '#dce3dc'
 };

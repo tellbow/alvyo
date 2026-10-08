@@ -25,10 +25,12 @@
 	--alvyo-stone-800: #26322b;
 	--alvyo-stone-900: #14201a;
 	--alvyo-stone-950: #0b120e;
+	--alvyo-route: #a21caf; /* ROUTE_COLOR in planner/colors.ts */
 	--alvyo-accent: #f28a48;
 	--alvyo-accent-hover: #e57a36;
-	--alvyo-accent-ink: #b4531d;
+	--alvyo-accent-ink: #a94c18;
 	--alvyo-accent-soft: #fdeee3;
+	--alvyo-map-icons: none;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,6 +53,8 @@
 		--alvyo-accent-hover: #ffb885;
 		--alvyo-accent-ink: #ffa66b;
 		--alvyo-accent-soft: #2b1f16;
+		--alvyo-map-icons: invert(1);
+		--alvyo-map-icons: invert(1);
 	}
 }
 
@@ -115,8 +119,11 @@
 	--color-accent-soft: var(--alvyo-accent-soft);
 	--color-on-accent: #1a0f08;
 
+	/* Rounder than Tailwind's, and in order: sm < md < lg < xl < 2xl. */
 	--radius-md: 0.75rem;
 	--radius-lg: 1rem;
+	--radius-xl: 1.25rem;
+	--radius-2xl: 1.5rem;
 }
 
 @layer base {
@@ -128,6 +135,11 @@
 	}
 	h1 {
 		letter-spacing: -0.02em;
+	}
+	/* One focus ring everywhere, visible on both grounds. */
+	:focus-visible {
+		outline: 2px solid var(--color-accent-ink);
+		outline-offset: 2px;
 	}
 }
 
@@ -186,4 +198,16 @@
 	textarea {
 		font-size: max(16px, 1em);
 	}
+}
+
+/* MapLibre's buttons (zoom, compass, location, 3D) in the page's light or
+   dark; its icons are black pictures. */
+:root .maplibregl-ctrl-group {
+	background: var(--alvyo-surface);
+}
+:root .maplibregl-ctrl-group button + button {
+	border-top-color: var(--alvyo-stone-200);
+}
+:root .maplibregl-ctrl-icon {
+	filter: var(--alvyo-map-icons);
 }

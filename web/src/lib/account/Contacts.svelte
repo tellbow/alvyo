@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { components } from '$lib/api/schema';
@@ -69,7 +70,7 @@
 				required
 				maxlength="80"
 				autocomplete="off"
-				class="rounded-md border border-stone-300 px-2 py-1"
+				class="rounded-md border border-stone-400 px-2 py-1"
 			/>
 		</label>
 		<label class="flex min-w-32 flex-1 flex-col gap-1">
@@ -81,14 +82,10 @@
 				maxlength="254"
 				autocomplete="off"
 				spellcheck="false"
-				class="rounded-md border border-stone-300 px-2 py-1"
+				class="rounded-md border border-stone-400 px-2 py-1"
 			/>
 		</label>
-		<button
-			disabled={!hydrated.value}
-			class="rounded-md bg-accent px-3 py-1 text-on-accent hover:bg-accent-hover disabled:opacity-50"
-			>{m.contacts_add()}</button
-		>
+		<button disabled={!hydrated.value} class={primaryButtonSmall}>{m.contacts_add()}</button>
 	</form>
 {/if}
 {#if problem}<p role="alert" class="mt-1 text-sm text-red-700 dark:text-red-400">{problem}</p>{/if}

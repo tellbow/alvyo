@@ -53,13 +53,13 @@
 >
 	<div class="flex gap-2">
 		<input
-			class="min-w-0 flex-1 rounded border border-stone-300 px-2 py-1"
+			class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1"
 			placeholder={m.place_search()}
 			aria-label={m.place_search()}
 			bind:value={q}
 		/>
 		<select
-			class="rounded border border-stone-300 px-1"
+			class="rounded-md border border-stone-400 px-1"
 			bind:value={kind}
 			aria-label={m.place_kind()}
 		>

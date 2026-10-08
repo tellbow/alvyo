@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ROUTE_COLOR } from '$lib/planner/colors';
 	import { onMount } from 'svelte';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import { m } from '$lib/paraglide/messages';
@@ -73,7 +74,7 @@
 					type: 'line',
 					source: 'line',
 					layout: { 'line-join': 'round', 'line-cap': 'round' },
-					paint: { 'line-color': '#a21caf', 'line-width': px(4) }
+					paint: { 'line-color': ROUTE_COLOR, 'line-width': px(4) }
 				});
 				map.addLayer({
 					id: 'ends',
@@ -101,7 +102,7 @@
 </script>
 
 <figure
-	class="relative aspect-[8/3] w-full break-inside-avoid overflow-hidden rounded border border-stone-300"
+	class="relative aspect-[8/3] w-full break-inside-avoid overflow-hidden rounded-md border border-stone-300"
 >
 	<div
 		bind:this={container}

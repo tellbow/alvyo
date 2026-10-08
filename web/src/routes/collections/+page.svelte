@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButton } from '$lib/components/actions';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -48,12 +49,9 @@
 			maxlength="120"
 			placeholder={m.collection_new()}
 			aria-label={m.field_title()}
-			class="flex-1 rounded-md border border-stone-300 px-3 py-2"
+			class="flex-1 rounded-md border border-stone-400 px-3 py-2"
 		/>
-		<button
-			disabled={!hydrated.value}
-			class="rounded-md bg-accent px-4 py-2 text-on-accent hover:bg-accent-hover"
-		>
+		<button disabled={!hydrated.value} class={primaryButton}>
 			{m.journey_create()}
 		</button>
 	</form>

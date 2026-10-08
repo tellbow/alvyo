@@ -72,7 +72,7 @@
 	<h2 class="mt-8 text-lg font-semibold">{m.account_pace()}</h2>
 	<p class="mt-1 text-sm text-stone-600">{m.account_pace_hint()}</p>
 	<select
-		class="mt-2 rounded-md border border-stone-300 bg-surface px-2 py-1.5 text-sm"
+		class="mt-2 rounded-md border border-stone-400 bg-surface px-2 py-1.5 text-sm"
 		aria-label={m.account_pace()}
 		data-testid="pace"
 		value={pace}

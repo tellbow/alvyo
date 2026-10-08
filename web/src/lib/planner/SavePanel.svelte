@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButtonSmall } from '$lib/components/actions';
 	import { Hydrated } from '$lib/util/hydrated.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -123,7 +124,7 @@
 				bind:value={title}
 				required
 				maxlength="120"
-				class="rounded-md border border-stone-300 px-2 py-1.5"
+				class="rounded-md border border-stone-400 px-2 py-1.5"
 			/>
 		</label>
 		<div class="flex flex-col gap-1 text-sm">
@@ -133,7 +134,7 @@
 		{#if isOwner}
 			<label class="flex flex-col gap-1 text-sm">
 				<span class="font-medium">{m.field_visibility()}</span>
-				<select bind:value={visibility} class="rounded-md border border-stone-300 px-2 py-1.5">
+				<select bind:value={visibility} class="rounded-md border border-stone-400 px-2 py-1.5">
 					<option value="private">{m.visibility_private()}</option>
 					<option value="unlisted" disabled={!user.email_verified}>{m.visibility_unlisted()}</option
 					>
@@ -152,8 +153,9 @@
 				<div class="flex gap-1">
 					<input
 						readonly
+						aria-label={m.share_link()}
 						value={shareUrl}
-						class="min-w-0 flex-1 rounded border border-stone-300 px-1.5 py-1"
+						class="min-w-0 flex-1 rounded-md border border-stone-400 px-1.5 py-1"
 					/>
 					<button type="button" class="rounded px-2 ring-1 ring-stone-300" onclick={copy}>
 						{copied ? m.share_copied() : m.share_copy()}
@@ -181,7 +183,7 @@
 		<button
 			form={formId}
 			disabled={!hydrated.value || !canSave}
-			class="w-full rounded-md bg-accent px-3 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-50"
+			class="{primaryButtonSmall} w-full"
 		>
 			{status === 'saving' ? m.saving() : m.save()}
 		</button>

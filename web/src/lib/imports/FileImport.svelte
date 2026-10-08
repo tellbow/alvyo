@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { primaryButton } from '$lib/components/actions';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api, type Proposal } from '$lib/api/client';
@@ -138,7 +139,7 @@
 			type="number"
 			min="2"
 			max="60"
-			class="w-16 rounded-md border border-stone-300 px-2 py-1"
+			class="w-16 rounded-md border border-stone-400 px-2 py-1"
 			aria-label={m.import_mode_stages_unit()}
 			bind:value={stageCount}
 			onfocus={() => (mode = 'stages')}
@@ -216,14 +217,11 @@
 						maxlength="120"
 						placeholder={preview.tracks[0].name}
 						aria-label={m.field_title()}
-						class="rounded-md border border-stone-300 px-3 py-2 text-sm"
+						class="rounded-md border border-stone-400 px-3 py-2 text-sm"
 					/>
 				{/if}
 				{#if !stages}
-					<button
-						disabled={!mode || busy}
-						class="self-start rounded-md bg-accent px-4 py-2 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
-					>
+					<button disabled={!mode || busy} class="{primaryButton} self-start">
 						{busy ? m.import_running() : mode === 'stages' ? m.jplan_submit() : m.import_submit()}
 					</button>
 				{/if}
@@ -245,10 +243,7 @@
 				{/each}
 			</ol>
 			<form method="post" onsubmit={createJourney} class="mt-3">
-				<button
-					disabled={busy}
-					class="rounded-md bg-accent px-4 py-2 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-50"
-				>
+				<button disabled={busy} class={primaryButton}>
 					{busy ? m.import_running() : m.jplan_create()}
 				</button>
 			</form>

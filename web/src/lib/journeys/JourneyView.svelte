@@ -48,7 +48,7 @@
 	import PhotoPins from '$lib/photos/PhotoPins.svelte';
 	import Photos from '$lib/photos/Photos.svelte';
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
-	import { actionButton, menuItem } from '$lib/components/actions';
+	import { actionButton, menuItem, primaryButtonSmall } from '$lib/components/actions';
 	import MoreMenu from '$lib/components/MoreMenu.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
@@ -532,7 +532,7 @@
 									<label class="mt-1 flex items-center gap-1">
 										{m.gap_transfer()}
 										<select
-											class="rounded border border-stone-300 px-1 py-0.5"
+											class="rounded-md border border-stone-400 px-1 py-0.5"
 											value={s.transfer_before ?? ''}
 											use:choose={(v) =>
 												patchStage(s.id, {
@@ -597,15 +597,11 @@
 
 			{#if canEdit}
 				<div class="flex flex-col gap-2 text-sm">
-					<button
-						type="button"
-						class="rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover"
-						onclick={() => addStage()}
-					>
+					<button type="button" class={primaryButtonSmall} onclick={() => addStage()}>
 						{m.journey_add_stage()}
 					</button>
 					<select
-						class="rounded-md border border-stone-300 px-2 py-1.5"
+						class="rounded-md border border-stone-400 px-2 py-1.5"
 						onfocus={loadMyRoutes}
 						use:choose={(id, select) => {
 							select.value = '';
@@ -686,7 +682,7 @@
 					<label class="flex flex-col gap-1">
 						<span>{m.field_visibility()}</span>
 						<select
-							class="rounded-md border border-stone-300 px-2 py-1.5"
+							class="rounded-md border border-stone-400 px-2 py-1.5"
 							value={journey.visibility}
 							use:choose={(v) => setVisibility(v as 'private' | 'unlisted' | 'public')}
 						>
@@ -702,8 +698,9 @@
 					{#if shareUrl && journey.visibility === 'unlisted'}
 						<input
 							readonly
+							aria-label={m.share_link()}
 							value={shareUrl}
-							class="rounded border border-stone-300 px-1.5 py-1 text-xs"
+							class="rounded-md border border-stone-400 px-1.5 py-1 text-xs"
 							data-testid="journey-share-link"
 						/>
 					{/if}

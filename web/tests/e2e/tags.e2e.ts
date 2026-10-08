@@ -40,7 +40,7 @@ test('tag two routes and filter the list by a tag', async ({ page }) => {
 		}
 		await expect(page.getByTestId('save-panel').getByTestId('tag')).toHaveCount(tags.length);
 		await page.getByRole('button', { name: 'Speichern' }).click();
-		await expect(page.getByRole('status')).toHaveText('Gespeichert');
+		await expect(page.getByTestId('planner-panel').getByRole('status')).toHaveText('Gespeichert');
 	}
 
 	await page.goto('/routes');

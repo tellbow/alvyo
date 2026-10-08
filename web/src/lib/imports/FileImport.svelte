@@ -86,7 +86,7 @@
 		busy = true;
 		const { data } = await api().POST('/journeys', {
 			body: {
-				title: title.trim() || preview?.tracks[0].name || 'Import',
+				title: title.trim() || preview?.tracks[0].name || m.import_fallback_title(),
 				visibility: 'private',
 				stages: stages.stages.map((st) => ({
 					profile: st.profile as 'hike' | 'alpine',

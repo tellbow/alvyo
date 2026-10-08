@@ -16,7 +16,7 @@ export async function loadCollection(
 		params: { path: { id }, query: t ? { t } : {} }
 	});
 	if (response.status === 404 && !loggedIn && !t) {
-		redirect(303, `/login?redirect=${encodeURIComponent(url.pathname)}`);
+		redirect(303, `/login?redirect=${encodeURIComponent(url.pathname + url.search)}`);
 	}
 	if (!data) error(response.status === 404 ? 404 : 500);
 	return { collection: data, token: t };

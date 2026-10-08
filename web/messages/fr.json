@@ -82,6 +82,7 @@
 	"plan_redo": "Rétablir",
 	"plan_reverse": "Inverser",
 	"plan_clear": "Effacer",
+	"plan_leave_unsaved": "L’itinéraire n’est pas enregistré. Quitter quand même ?",
 	"plan_legs": "Tronçons",
 	"plan_straight": "Ligne droite",
 	"stat_distance": "Distance",
@@ -131,17 +132,16 @@
 	"route_delete": "Supprimer",
 	"route_delete_confirm": "Vraiment supprimer ?",
 	"route_by": "de {user}",
-	"route_updated": "Modifié le {date}",
 	"route_new": "Nouvel itinéraire",
 	"route_gpx": "Télécharger le GPX",
 	"visibility_unlisted": "Partager par lien",
+	"visibility_by_link": "Par lien",
 	"share_link": "Lien de partage",
 	"share_copy": "Copier",
 	"share_copied": "Copié",
 	"share_rotate": "Créer un nouveau lien",
 	"share_rotate_hint": "L'ancien lien ne fonctionnera plus.",
 	"nav_about": "À propos",
-	"nav_account": "Compte",
 	"about_title": "À propos d'Alvyo",
 	"about_intro": "Alvyo est une plateforme ouverte pour planifier et partager des randonnées en Suisse.",
 	"about_source_title": "Code source",
@@ -249,7 +249,13 @@
 	"collections_intro": "Réunir des itinéraires et des randonnées par étapes – comme liste d'envies, recueil d'idées ou pour les partager. Une collection ne donne aucun accès : chacun ne voit que ce qu'il peut déjà ouvrir.",
 	"collections_empty": "Pas encore de collections.",
 	"collection_new": "Nouvelle collection",
-	"collection_items_count": "{n} éléments",
+	"collection_items_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} élément", "nPlural=other": "{n} éléments" }
+		}
+	],
 	"collection_empty": "Encore vide. Ajoute tes itinéraires et randonnées par étapes ci-dessus – ou sur leur page avec « Ajouter à une collection … ».",
 	"collection_hidden": "Éléments privés que tu ne peux pas voir : {n}",
 	"collection_add_to": "Ajouter à une collection …",
@@ -264,7 +270,13 @@
 	"collection_delete": "Supprimer la collection",
 	"collection_delete_confirm": "Supprimer la collection ? Les itinéraires et randonnées restent.",
 	"collection_description_placeholder": "Description",
-	"collection_stages": "{n} étapes",
+	"collection_stages": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} étape", "nPlural=other": "{n} étapes" }
+		}
+	],
 	"connections_show": "Afficher les correspondances",
 	"connections_hide": "Masquer les correspondances",
 	"connections_mode": "Départ ou arrivée",
@@ -283,6 +295,7 @@
 	"import_link": "Importer",
 	"import_journey_hint": "Importer un fichier GPX de plusieurs jours",
 	"import_file_title": "Téléverser un fichier",
+	"import_fallback_title": "Import",
 	"import_file_intro": "GPX, KML, TCX ou FIT, jusqu'à 20 Mo. Seules les traces en Suisse, au Liechtenstein et jusqu'à 15 km au-delà sont reprises.",
 	"import_too_big": "Le fichier dépasse 20 Mo.",
 	"import_unreadable": "Nous ne pouvons pas lire ce fichier, ou il ne contient aucune trace.",
@@ -346,7 +359,13 @@
 	"nav_feed": "Actualités",
 	"nav_moderation": "Modération",
 	"community_likes": "{n} j'aime",
-	"community_comments": "{n} commentaires",
+	"community_comments": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} commentaire", "nPlural=other": "{n} commentaires" }
+		}
+	],
 	"community_comments_allowed": "Autoriser les commentaires",
 	"community_comments_off": "Les commentaires sont désactivés.",
 	"community_comment_placeholder": "Écrire un commentaire …",
@@ -366,7 +385,13 @@
 	"report_send": "Signaler",
 	"report_cancel": "Annuler",
 	"report_thanks": "Merci, nous allons regarder.",
-	"profile_followers": "{n} abonnés",
+	"profile_followers": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} abonné", "nPlural=other": "{n} abonnés" }
+		}
+	],
 	"profile_following": "suit {n}",
 	"profile_follow": "Suivre",
 	"profile_unfollow": "Ne plus suivre",
@@ -390,7 +415,13 @@
 	"moderation_kind_comment": "Commentaire",
 	"moderation_kind_user": "Personne",
 	"moderation_by": "signalé par {user}",
-	"moderation_count": "{n} signalements",
+	"moderation_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} signalement", "nPlural=other": "{n} signalements" }
+		}
+	],
 	"moderation_gone": "Supprimé depuis",
 	"moderation_open": "Voir",
 	"moderation_dismiss": "Rejeter",

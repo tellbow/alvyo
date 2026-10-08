@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { choose } from '$lib/util/choose';
 	import { resolve } from '$app/paths';
 	import type { JourneyStage, StagePatch } from '$lib/api/client';
 	import { m } from '$lib/paraglide/messages';
@@ -148,7 +149,7 @@
 				class="rounded border border-stone-300 px-1 py-0.5"
 				value={s.status}
 				aria-label={m.journey_status()}
-				onchange={(e) => onpatch({ status: e.currentTarget.value as JourneyStage['status'] })}
+				use:choose={(v) => onpatch({ status: v as JourneyStage['status'] })}
 			>
 				<option value="planned">{m.status_planned()}</option>
 				<option value="done">{m.status_done()}</option>

@@ -106,7 +106,11 @@
 						{formatSAC(r.totals.sac_grade, r.totals.sac_max)}
 					</span>
 					<span class="text-xs text-stone-500 sm:w-20 sm:text-right">
-						{r.visibility === 'public' ? m.visibility_public() : m.visibility_private()}
+						{r.visibility === 'public'
+							? m.visibility_public()
+							: r.visibility === 'unlisted'
+								? m.visibility_by_link()
+								: m.visibility_private()}
 					</span>
 					<!-- Above the title's link. -->
 					{#if confirming === r.id}

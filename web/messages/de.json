@@ -82,6 +82,7 @@
 	"plan_redo": "Wiederholen",
 	"plan_reverse": "Umkehren",
 	"plan_clear": "Löschen",
+	"plan_leave_unsaved": "Die Route ist nicht gespeichert. Trotzdem verlassen?",
 	"plan_legs": "Abschnitte",
 	"plan_straight": "Gerade Linie",
 	"stat_distance": "Distanz",
@@ -131,17 +132,16 @@
 	"route_delete": "Löschen",
 	"route_delete_confirm": "Wirklich löschen?",
 	"route_by": "von {user}",
-	"route_updated": "Geändert {date}",
 	"route_new": "Neue Route",
 	"route_gpx": "GPX herunterladen",
 	"visibility_unlisted": "Mit Link teilen",
+	"visibility_by_link": "Mit Link",
 	"share_link": "Link zum Teilen",
 	"share_copy": "Kopieren",
 	"share_copied": "Kopiert",
 	"share_rotate": "Neuen Link erzeugen",
 	"share_rotate_hint": "Der bisherige Link funktioniert danach nicht mehr.",
 	"nav_about": "Über",
-	"nav_account": "Konto",
 	"about_title": "Über Alvyo",
 	"about_intro": "Alvyo ist eine offene Plattform, um Wanderungen in der Schweiz zu planen und zu teilen.",
 	"about_source_title": "Quellcode",
@@ -249,7 +249,13 @@
 	"collections_intro": "Routen und Etappentouren zusammenstellen – als Wunschliste, Ideensammlung oder zum Teilen. Eine Sammlung gibt keinen Zugriff: Jede Person sieht nur, was sie ohnehin öffnen darf.",
 	"collections_empty": "Noch keine Sammlungen.",
 	"collection_new": "Neue Sammlung",
-	"collection_items_count": "{n} Einträge",
+	"collection_items_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} Eintrag", "nPlural=other": "{n} Einträge" }
+		}
+	],
 	"collection_empty": "Noch leer. Füge oben deine Routen und Etappentouren hinzu – oder auf ihrer Seite über «Zur Sammlung hinzufügen …».",
 	"collection_hidden": "Private Einträge, die du nicht sehen kannst: {n}",
 	"collection_add_to": "Zur Sammlung hinzufügen …",
@@ -264,7 +270,13 @@
 	"collection_delete": "Sammlung löschen",
 	"collection_delete_confirm": "Sammlung löschen? Routen und Etappentouren bleiben.",
 	"collection_description_placeholder": "Beschreibung",
-	"collection_stages": "{n} Etappen",
+	"collection_stages": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} Etappe", "nPlural=other": "{n} Etappen" }
+		}
+	],
 	"connections_show": "Verbindungen anzeigen",
 	"connections_hide": "Verbindungen ausblenden",
 	"connections_mode": "Abfahrt oder Ankunft",
@@ -283,6 +295,7 @@
 	"import_link": "Importieren",
 	"import_journey_hint": "Mehrtägige GPX-Datei importieren",
 	"import_file_title": "Datei hochladen",
+	"import_fallback_title": "Import",
 	"import_file_intro": "GPX, KML, TCX oder FIT, bis 20 MB. Nur Tracks in der Schweiz, in Liechtenstein und bis 15 km über die Grenze werden übernommen.",
 	"import_too_big": "Die Datei ist grösser als 20 MB.",
 	"import_unreadable": "Diese Datei können wir nicht lesen, oder sie enthält keinen Track.",
@@ -346,7 +359,13 @@
 	"nav_feed": "Neuigkeiten",
 	"nav_moderation": "Moderation",
 	"community_likes": "{n} Mal gemerkt",
-	"community_comments": "{n} Kommentare",
+	"community_comments": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} Kommentar", "nPlural=other": "{n} Kommentare" }
+		}
+	],
 	"community_comments_allowed": "Kommentare erlauben",
 	"community_comments_off": "Kommentare sind ausgeschaltet.",
 	"community_comment_placeholder": "Kommentar schreiben …",
@@ -390,7 +409,13 @@
 	"moderation_kind_comment": "Kommentar",
 	"moderation_kind_user": "Person",
 	"moderation_by": "gemeldet von {user}",
-	"moderation_count": "{n} Meldungen",
+	"moderation_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} Meldung", "nPlural=other": "{n} Meldungen" }
+		}
+	],
 	"moderation_gone": "Inzwischen gelöscht",
 	"moderation_open": "Ansehen",
 	"moderation_dismiss": "Verwerfen",

@@ -71,6 +71,9 @@ const handleHeaders: Handle = async ({ event, resolve }) => {
 	response.headers.set('X-Content-Type-Options', 'nosniff');
 	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 	response.headers.set('Permissions-Policy', 'geolocation=(self), camera=(), microphone=()');
+	// No other site shows these pages in a frame (clickjacking).
+	response.headers.set('Content-Security-Policy', "frame-ancestors 'none'");
+	response.headers.set('X-Frame-Options', 'DENY');
 	return response;
 };
 

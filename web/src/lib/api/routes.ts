@@ -12,7 +12,7 @@ export async function loadRoute(fetchFn: typeof fetch, url: URL, id: string, log
 		params: { path: { id }, query: t ? { t } : {} }
 	});
 	if (response.status === 404 && !loggedIn && !t) {
-		redirect(303, `/login?redirect=${encodeURIComponent(url.pathname)}`);
+		redirect(303, `/login?redirect=${encodeURIComponent(url.pathname + url.search)}`);
 	}
 	if (!data) error(response.status === 404 ? 404 : 500);
 	return { route: data, token: t, revision: undefined };

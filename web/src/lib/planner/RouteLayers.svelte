@@ -229,8 +229,11 @@
 						planner.insert(leg + 1, at[0], at[1]);
 						return;
 					}
+					const [from, to] = [planner.anchors[leg], planner.anchors[leg + 1]];
 					const w = await fetch();
 					showWays();
+					// Points added, moved or undone meanwhile: the leg is another.
+					if (planner.anchors[leg] !== from || planner.anchors[leg + 1] !== to) return;
 					if (!w) return onnotice?.(m.plan_drag_failed());
 					if (w.others.length === 0) return onnotice?.(m.plan_drag_none());
 					const near = nearestWay(w.others, map.project(at), (p) => map.project(p));

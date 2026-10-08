@@ -82,6 +82,7 @@
 	"plan_redo": "Redo",
 	"plan_reverse": "Reverse",
 	"plan_clear": "Clear",
+	"plan_leave_unsaved": "The route is not saved. Leave anyway?",
 	"plan_legs": "Legs",
 	"plan_straight": "Straight line",
 	"stat_distance": "Distance",
@@ -131,17 +132,16 @@
 	"route_delete": "Delete",
 	"route_delete_confirm": "Really delete?",
 	"route_by": "by {user}",
-	"route_updated": "Changed {date}",
 	"route_new": "New route",
 	"route_gpx": "Download GPX",
 	"visibility_unlisted": "Anyone with the link",
+	"visibility_by_link": "By link",
 	"share_link": "Share link",
 	"share_copy": "Copy",
 	"share_copied": "Copied",
 	"share_rotate": "Create a new link",
 	"share_rotate_hint": "The previous link stops working.",
 	"nav_about": "About",
-	"nav_account": "Account",
 	"about_title": "About Alvyo",
 	"about_intro": "Alvyo is an open platform for planning and sharing hikes in Switzerland.",
 	"about_source_title": "Source code",
@@ -249,7 +249,13 @@
 	"collections_intro": "Gather routes and journeys – as a wish list, for ideas, or to share. A collection grants no access: everyone sees only what they may open anyway.",
 	"collections_empty": "No collections yet.",
 	"collection_new": "New collection",
-	"collection_items_count": "{n} items",
+	"collection_items_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} item", "nPlural=other": "{n} items" }
+		}
+	],
 	"collection_empty": "Still empty. Add your routes and journeys above – or on their page with «Add to collection …».",
 	"collection_hidden": "Private items you cannot see: {n}",
 	"collection_add_to": "Add to collection …",
@@ -264,7 +270,13 @@
 	"collection_delete": "Delete collection",
 	"collection_delete_confirm": "Delete the collection? Routes and journeys stay.",
 	"collection_description_placeholder": "Description",
-	"collection_stages": "{n} stages",
+	"collection_stages": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} stage", "nPlural=other": "{n} stages" }
+		}
+	],
 	"connections_show": "Show connections",
 	"connections_hide": "Hide connections",
 	"connections_mode": "Departure or arrival",
@@ -283,6 +295,7 @@
 	"import_link": "Import",
 	"import_journey_hint": "Import a multi-day GPX file",
 	"import_file_title": "Upload a file",
+	"import_fallback_title": "Import",
 	"import_file_intro": "GPX, KML, TCX or FIT, up to 20 MB. Only tracks in Switzerland, Liechtenstein and up to 15 km beyond are imported.",
 	"import_too_big": "The file is larger than 20 MB.",
 	"import_unreadable": "We cannot read this file, or it contains no track.",
@@ -345,8 +358,20 @@
 	"profile_routes": "Routes",
 	"nav_feed": "News",
 	"nav_moderation": "Moderation",
-	"community_likes": "liked {n} times",
-	"community_comments": "{n} comments",
+	"community_likes": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "liked once", "nPlural=other": "liked {n} times" }
+		}
+	],
+	"community_comments": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} comment", "nPlural=other": "{n} comments" }
+		}
+	],
 	"community_comments_allowed": "Allow comments",
 	"community_comments_off": "Comments are switched off.",
 	"community_comment_placeholder": "Write a comment …",
@@ -366,7 +391,13 @@
 	"report_send": "Report",
 	"report_cancel": "Cancel",
 	"report_thanks": "Thank you, we will look into it.",
-	"profile_followers": "{n} followers",
+	"profile_followers": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} follower", "nPlural=other": "{n} followers" }
+		}
+	],
 	"profile_following": "follows {n}",
 	"profile_follow": "Follow",
 	"profile_unfollow": "Unfollow",
@@ -390,7 +421,13 @@
 	"moderation_kind_comment": "Comment",
 	"moderation_kind_user": "Person",
 	"moderation_by": "reported by {user}",
-	"moderation_count": "{n} reports",
+	"moderation_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} report", "nPlural=other": "{n} reports" }
+		}
+	],
 	"moderation_gone": "Deleted since",
 	"moderation_open": "View",
 	"moderation_dismiss": "Dismiss",

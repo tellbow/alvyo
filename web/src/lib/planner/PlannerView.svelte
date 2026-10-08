@@ -1,7 +1,10 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { choose } from '$lib/util/choose';
 	import PlanTabs from './PlanTabs.svelte';
 	import type { Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
+	import { beforeNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
 	import Map from '$lib/map/Map.svelte';
@@ -75,6 +78,13 @@
 	if (route)
 		planner.load({ profile: route.profile as Profile, anchors: route.anchors, legs: route.legs });
 
+	// Leaving unsaved points asks first; closing the tab gets the browser's
+	// own question (cancel on «leave»).
+	beforeNavigate(({ cancel, willUnload }) => {
+		if (!planner.dirty || planner.anchors.length === 0) return;
+		if (willUnload || !confirm(m.plan_leave_unsaved())) cancel();
+	});
+
 	/** The routed stages before and after this one, for continuity. */
 	// svelte-ignore state_referenced_locally
 	const neighbours = stage ? stageNeighbours(stage.journey, stage.index) : {};
@@ -117,6 +127,7 @@
 		if (line.length < 2) {
 			areas = undefined;
 			notices = undefined;
+			areasFailed = false;
 			return;
 		}
 		let stale = false;
@@ -214,6 +225,10 @@
 		if (slot.status === 429) return m.leg_error_429();
 		return m.leg_error_other();
 	}
+	// Back here after logging in.
+	const loginHref = $derived(
+		`${resolve('/login')}?redirect=${encodeURIComponent(page.url.pathname + page.url.search)}`
+	);
 </script>
 
 <Seo title={route?.title ?? m.nav_plan()} index={false} />
@@ -258,7 +273,9 @@
 		{#if !user}
 			<p class="rounded-md bg-stone-100 p-3 text-sm">
 				{m.plan_hint_login()}
-				<a href={resolve('/login')} class="text-accent-ink underline">{m.nav_login()}</a>
+				<!-- resolve() gives the path; only the query is added -->
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href={loginHref} class="text-accent-ink underline">{m.nav_login()}</a>
 			</p>
 		{:else}
 			<label class="flex flex-col gap-1 text-sm">
@@ -266,7 +283,7 @@
 				<select
 					class="rounded-md border border-stone-300 px-2 py-1.5"
 					value={planner.profile}
-					onchange={(e) => planner.setProfile(e.currentTarget.value as Profile)}
+					use:choose={(v) => planner.setProfile(v as Profile)}
 				>
 					<option value="hike">{m.plan_profile_hike()}</option>
 					<option value="alpine">{m.plan_profile_alpine()}</option>

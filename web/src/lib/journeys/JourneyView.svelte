@@ -534,9 +534,9 @@
 										<select
 											class="rounded border border-stone-300 px-1 py-0.5"
 											value={s.transfer_before ?? ''}
-											onchange={(e) =>
+											use:choose={(v) =>
 												patchStage(s.id, {
-													transfer_before: e.currentTarget.value as StagePatch['transfer_before']
+													transfer_before: v as StagePatch['transfer_before']
 												})}
 										>
 											<option value="">{m.transfer_none()}</option>

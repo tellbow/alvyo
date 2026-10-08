@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { intlLocale } from '$lib/util/locale';
+	import { page } from '$app/state';
+	import { choose } from '$lib/util/choose';
 	import type { GeoJSONSource, Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
 	import { resolve } from '$app/paths';
 	import { api, type FoundPlace, type Me } from '$lib/api/client';
@@ -130,6 +133,10 @@
 				: []
 		});
 	});
+	// Back here after logging in.
+	const loginHref = $derived(
+		`${resolve('/login')}?redirect=${encodeURIComponent(page.url.pathname + page.url.search)}`
+	);
 </script>
 
 <Seo title={m.reach_title()} index={false} />
@@ -157,7 +164,9 @@
 		{#if !user}
 			<p class="rounded-md bg-stone-100 p-3 text-sm">
 				{m.reach_hint_login()}
-				<a href={resolve('/login')} class="text-accent-ink underline">{m.nav_login()}</a>
+				<!-- resolve() gives the path; only the query is added -->
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href={loginHref} class="text-accent-ink underline">{m.nav_login()}</a>
 			</p>
 		{:else}
 			<p class="text-sm text-stone-600">{m.reach_intro()}</p>
@@ -167,7 +176,7 @@
 				<select
 					class="rounded-md border border-stone-300 px-2 py-1.5"
 					bind:value={profile}
-					onchange={() => void reach()}
+					use:choose={() => void reach()}
 					data-testid="reach-profile"
 				>
 					<option value="hike">{m.plan_profile_hike()}</option>
@@ -198,7 +207,7 @@
 				<p class="text-xs text-stone-500">{m.reach_note()}</p>
 				{#if (user.speed_factor ?? 1) !== 1}
 					<p class="text-xs text-stone-500">
-						{m.reach_pace({ pace: (user.speed_factor ?? 1).toLocaleString() })}
+						{m.reach_pace({ pace: (user.speed_factor ?? 1).toLocaleString(intlLocale()) })}
 						<a href={resolve('/account')} class="text-accent-ink underline"
 							>{m.reach_pace_change()}</a
 						>

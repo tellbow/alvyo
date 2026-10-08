@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { choose as pick } from '$lib/util/choose';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { api, type Home, type Travel, type TravelWay, type Trip } from '$lib/api/client';
@@ -64,7 +65,13 @@
 		void search('back');
 	});
 
+	// The latest search and change per direction: answers to earlier ones
+	// that arrive late are dropped.
+	const asked: Record<Direction, number> = { to: 0, back: 0 };
+	const changed: Record<Direction, number> = { to: 0, back: 0 };
+
 	async function search(d: Direction) {
+		const n = ++asked[d];
 		const way = travel[d];
 		const spot = waySpot(way, homes ?? []);
 		const at = d === 'to' ? ends.start : ends.end;
@@ -75,6 +82,7 @@
 		const { data, response } = await api().GET('/connections', {
 			params: { query: travelQuery(d, spot, { ...at, date: at.date ?? day }, way) }
 		});
+		if (n !== asked[d]) return;
 		busy[d] = false;
 		// Arriving by a time: the latest that fits first.
 		trips[d] = way.arrive ? data?.trips.toReversed() : data?.trips;
@@ -85,6 +93,7 @@
 	}
 
 	async function change(d: Direction, way: TravelWay | undefined) {
+		const n = ++changed[d];
 		const next = { ...travel, [d]: way };
 		if (!way) delete next[d];
 		const body = { ...params, body: next };
@@ -92,7 +101,7 @@
 			kind === 'routes'
 				? await api().PUT('/routes/{id}/travel', body)
 				: await api().PUT('/journeys/{id}/travel', body);
-		if (data) {
+		if (data && n === changed[d]) {
 			travel = data;
 			void search(d);
 		}
@@ -179,7 +188,7 @@
 							class="rounded border border-stone-300 px-1 py-0.5"
 							value={searching[d] || way?.place ? ELSEWHERE : (way?.home_id ?? '')}
 							disabled={!hydrated.value}
-							onchange={(e) => choose(d, e.currentTarget.value)}
+							use:pick={(v) => choose(d, v)}
 							data-testid="travel-{d}-home"
 						>
 							<option value="">{m.travel_none()}</option>
@@ -202,7 +211,7 @@
 							class="rounded border border-stone-300 px-1 py-0.5"
 							value={way.arrive}
 							aria-label={m.connections_mode()}
-							onchange={(e) => edit(d, { arrive: e.currentTarget.value === 'true' })}
+							use:pick={(v) => edit(d, { arrive: v === 'true' })}
 							data-testid="travel-{d}-mode"
 						>
 							<option value={false}>{m.connections_depart()}</option>

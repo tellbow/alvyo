@@ -67,6 +67,13 @@
 		const { response } = await api().POST('/auth/verify-email/resend');
 		resent = response.ok;
 	}
+
+	// Back to the page after logging in, but not to the pages of logging in.
+	const loginHref = $derived(
+		/\/(login|signup|forgot-password|reset-password|verify-email)$/.test(page.url.pathname)
+			? resolve('/login')
+			: `${resolve('/login')}?redirect=${encodeURIComponent(page.url.pathname + page.url.search)}`
+	);
 </script>
 
 <svelte:window onkeydown={(e) => e.key === 'Escape' && (menu = false)} />
@@ -132,7 +139,9 @@
 			>{m.nav_logout()}</button
 		>
 	{:else}
-		<a href={resolve('/login')} class="hover:text-accent-ink">{m.nav_login()}</a>
+		<!-- resolve() gives the path; only the query is added -->
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+		<a href={loginHref} class="hover:text-accent-ink">{m.nav_login()}</a>
 	{/if}
 {/snippet}
 

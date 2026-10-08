@@ -4,7 +4,7 @@ import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, url, parent }) => {
 	const { user } = await parent();
-	if (!user) redirect(303, `/login?redirect=${encodeURIComponent(url.pathname)}`);
+	if (!user) redirect(303, `/login?redirect=${encodeURIComponent(url.pathname + url.search)}`);
 	const client = api(fetch, url.origin);
 	const [{ data: lists }, { data: link }] = await Promise.all([
 		client.GET('/me/friends'),

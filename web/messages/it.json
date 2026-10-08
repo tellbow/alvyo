@@ -82,6 +82,7 @@
 	"plan_redo": "Ripristina",
 	"plan_reverse": "Inverti",
 	"plan_clear": "Cancella",
+	"plan_leave_unsaved": "Il percorso non è salvato. Uscire comunque?",
 	"plan_legs": "Tratti",
 	"plan_straight": "Linea retta",
 	"stat_distance": "Distanza",
@@ -131,17 +132,16 @@
 	"route_delete": "Elimina",
 	"route_delete_confirm": "Eliminare davvero?",
 	"route_by": "di {user}",
-	"route_updated": "Modificato il {date}",
 	"route_new": "Nuovo percorso",
 	"route_gpx": "Scarica GPX",
 	"visibility_unlisted": "Condividi con link",
+	"visibility_by_link": "Con link",
 	"share_link": "Link da condividere",
 	"share_copy": "Copia",
 	"share_copied": "Copiato",
 	"share_rotate": "Crea un nuovo link",
 	"share_rotate_hint": "Il link precedente non funzionerà più.",
 	"nav_about": "Informazioni",
-	"nav_account": "Account",
 	"about_title": "Informazioni su Alvyo",
 	"about_intro": "Alvyo è una piattaforma aperta per pianificare e condividere escursioni in Svizzera.",
 	"about_source_title": "Codice sorgente",
@@ -249,7 +249,13 @@
 	"collections_intro": "Raccogli percorsi e trekking a tappe – come lista dei desideri, raccolta di idee o per condividerli. Una raccolta non dà accesso: ognuno vede solo ciò che può già aprire.",
 	"collections_empty": "Ancora nessuna raccolta.",
 	"collection_new": "Nuova raccolta",
-	"collection_items_count": "{n} elementi",
+	"collection_items_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} elemento", "nPlural=other": "{n} elementi" }
+		}
+	],
 	"collection_empty": "Ancora vuota. Aggiungi sopra i tuoi percorsi e trekking a tappe – oppure sulla loro pagina con «Aggiungi a una raccolta …».",
 	"collection_hidden": "Elementi privati che non puoi vedere: {n}",
 	"collection_add_to": "Aggiungi a una raccolta …",
@@ -264,7 +270,13 @@
 	"collection_delete": "Elimina raccolta",
 	"collection_delete_confirm": "Eliminare la raccolta? Percorsi e trekking restano.",
 	"collection_description_placeholder": "Descrizione",
-	"collection_stages": "{n} tappe",
+	"collection_stages": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} tappa", "nPlural=other": "{n} tappe" }
+		}
+	],
 	"connections_show": "Mostra collegamenti",
 	"connections_hide": "Nascondi collegamenti",
 	"connections_mode": "Partenza o arrivo",
@@ -283,6 +295,7 @@
 	"import_link": "Importa",
 	"import_journey_hint": "Importa un file GPX di più giorni",
 	"import_file_title": "Carica un file",
+	"import_fallback_title": "Importazione",
 	"import_file_intro": "GPX, KML, TCX o FIT, fino a 20 MB. Vengono ripresi solo i tracciati in Svizzera, nel Liechtenstein e fino a 15 km oltre.",
 	"import_too_big": "Il file supera i 20 MB.",
 	"import_unreadable": "Non riusciamo a leggere questo file, oppure non contiene alcun tracciato.",
@@ -346,7 +359,13 @@
 	"nav_feed": "Novità",
 	"nav_moderation": "Moderazione",
 	"community_likes": "{n} mi piace",
-	"community_comments": "{n} commenti",
+	"community_comments": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} commento", "nPlural=other": "{n} commenti" }
+		}
+	],
 	"community_comments_allowed": "Consenti commenti",
 	"community_comments_off": "I commenti sono disattivati.",
 	"community_comment_placeholder": "Scrivi un commento …",
@@ -390,7 +409,13 @@
 	"moderation_kind_comment": "Commento",
 	"moderation_kind_user": "Persona",
 	"moderation_by": "segnalato da {user}",
-	"moderation_count": "{n} segnalazioni",
+	"moderation_count": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} segnalazione", "nPlural=other": "{n} segnalazioni" }
+		}
+	],
 	"moderation_gone": "Eliminato nel frattempo",
 	"moderation_open": "Vedi",
 	"moderation_dismiss": "Respingi",

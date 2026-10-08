@@ -173,7 +173,7 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 				if pl.offM <= onLineM {
 					continue
 				}
-				l, err := p.detour(ctx, ways, point(tr.Coords[pl.index]), at(pl.At), req.Profile)
+				l, err := p.detour(ctx, ways, point(tr.Coords[pl.index]), at(pl.At), true, req.Profile)
 				if err != nil {
 					return Proposal{}, err
 				}
@@ -300,7 +300,7 @@ func (p *Planner) ByDay(ctx context.Context, days [][]routing.Leg, profile strin
 func (p *Planner) stage(ctx context.Context, ways detours, tr Track, a, b int, from, to *place, profile string) (Stage, error) {
 	var legs []routing.Leg
 	if from != nil && from.offM > onLineM {
-		l, err := p.detour(ctx, ways, at(from.At), point(tr.Coords[a]), profile)
+		l, err := p.detour(ctx, ways, at(from.At), point(tr.Coords[a]), false, profile)
 		if err != nil {
 			return Stage{}, err
 		}
@@ -308,7 +308,7 @@ func (p *Planner) stage(ctx context.Context, ways detours, tr Track, a, b int, f
 	}
 	legs = append(legs, tr.Legs(a, b, legM)...)
 	if to != nil && to.offM > onLineM {
-		l, err := p.detour(ctx, ways, point(tr.Coords[b]), at(to.At), profile)
+		l, err := p.detour(ctx, ways, point(tr.Coords[b]), at(to.At), true, profile)
 		if err != nil {
 			return Stage{}, err
 		}
@@ -344,15 +344,21 @@ func (p *Planner) stage(ctx context.Context, ways detours, tr Track, a, b int, f
 }
 
 // detour is the leg between the line and a place off it: along paths, or
-// straight where there are none. Its end on the line is a vertex of it, to
-// be taken as it is (the line may be in a tunnel there).
-func (p *Planner) detour(ctx context.Context, ways detours, from, to geo.Point, profile string) (routing.Leg, error) {
+// straight where there are none. Its end on the line (from when lineFirst)
+// is a vertex of it, to be taken as it is (the line may be in a tunnel
+// there); where the line leaves the paths (a track over a glacier), the
+// paths would start elsewhere, and the leg goes straight.
+func (p *Planner) detour(ctx context.Context, ways detours, from, to geo.Point, lineFirst bool, profile string) (routing.Leg, error) {
 	if l, ok := ways[[2]geo.Point{from, to}]; ok {
 		return l, nil
 	}
 	req := routing.LegRequest{From: from, To: to, Profile: profile, OnPath: true}
 	l, err := p.Router.Leg(ctx, req)
-	if errors.Is(err, routing.ErrPointNotFound) || errors.Is(err, routing.ErrNoConnection) {
+	offLine := l.Snap.ToM
+	if lineFirst {
+		offLine = l.Snap.FromM
+	}
+	if errors.Is(err, routing.ErrPointNotFound) || errors.Is(err, routing.ErrNoConnection) || (err == nil && offLine > onPathM) {
 		req.Straight = true
 		l, err = p.Router.Leg(ctx, req)
 	}
@@ -361,6 +367,10 @@ func (p *Planner) detour(ctx context.Context, ways detours, from, to geo.Point, 
 	}
 	return l, err
 }
+
+// onPathM (metres): a vertex of the line this far from the paths is off
+// them; legs meet within half a metre (routes.Check).
+const onPathM = 0.5
 
 // detours are the ways between the line and places already computed.
 type detours map[[2]geo.Point]routing.Leg

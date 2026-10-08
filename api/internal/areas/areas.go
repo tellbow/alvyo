@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"math"
 	"net/http"
 	"net/url"
@@ -95,6 +96,29 @@ type Finder struct {
 	URL       string       // defaults to IdentifyURL
 	Client    *http.Client // defaults to a 10 s timeout
 	UserAgent string
+}
+
+// Prune deletes answers older than cacheFor: every line drawn in the
+// planner leaves one.
+func (f *Finder) Prune(ctx context.Context) error {
+	_, err := f.DB.Exec(ctx, `DELETE FROM area_cache WHERE fetched_at < now() - make_interval(secs => $1)`, cacheFor.Seconds())
+	return err
+}
+
+// PruneEvery runs Prune until ctx ends.
+func (f *Finder) PruneEvery(ctx context.Context, every time.Duration) {
+	t := time.NewTicker(every)
+	defer t.Stop()
+	for {
+		if err := f.Prune(ctx); err != nil && ctx.Err() == nil {
+			slog.ErrorContext(ctx, "area cache prune", "err", err)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+		}
+	}
 }
 
 // Crossed returns the areas line crosses, rest areas first, by name.

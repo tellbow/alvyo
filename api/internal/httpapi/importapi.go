@@ -340,11 +340,8 @@ func registerImports(api huma.API, d Deps) {
 				Days: stageplan.Days{N: form.Days, TargetS: form.HoursPerDay * 3600, MaxS: form.MaxHours * 3600},
 			})
 		}
-		switch {
-		case errors.Is(err, stageplan.ErrUnknownEnd):
-			return nil, huma.Error422UnprocessableEntity(err.Error())
-		case err != nil:
-			return nil, err
+		if err != nil {
+			return nil, planError(ctx, err)
 		}
 		out := &stagesImportOutput{}
 		out.Body.Proposal, out.Body.Title = proposal, track.Name

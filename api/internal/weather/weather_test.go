@@ -47,3 +47,17 @@ func TestForecast(t *testing.T) {
 		t.Errorf("reloaded: %v, %d files", err, *files-n)
 	}
 }
+
+// A day missing from the file of minimums is left out, not shown at 0 °C.
+func TestForecastWithoutAValue(t *testing.T) {
+	srv, _ := weathertest.Server(t, []weathertest.Point{
+		{Type: "2", ID: "1", Name: "Grindelwald", Height: 1034, Lon: 8.0414, Lat: 46.6242},
+	}, []string{"2026-09-28", "2026-09-29"}, "tre200pn/2026-09-29")
+	f := &Forecast{URL: srv.URL + "/c"}
+	if err := f.Refresh(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if _, days, err := f.At(8.04, 46.62, 1050); err != nil || len(days) != 1 || days[0].Date != "2026-09-28" {
+		t.Errorf("days: %+v %v", days, err)
+	}
+}

@@ -154,6 +154,8 @@ func serve(ctx context.Context) error {
 	go liveStore.CheckEvery(ctx, time.Minute) // overdue hikes, old positions
 	reminderStore := &reminders.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
 	go reminderStore.CheckEvery(ctx, 15*time.Minute) // before journeys start
+	areaFinder := &areas.Finder{DB: pool, UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
+	go areaFinder.PruneEvery(ctx, 24*time.Hour) // old answers from geo.admin
 	forecast := &weather.Forecast{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
 	go forecast.Keep(ctx, time.Hour) // MeteoSwiss updates hourly
 	var planner httpapi.Planner
@@ -180,7 +182,7 @@ func serve(ctx context.Context) error {
 		Places:      &places.Store{DB: pool, Names: &places.GeoAdmin{}},
 		Live:        liveStore,
 		Travel:      &travel.Store{DB: pool},
-		Areas:       &areas.Finder{DB: pool, UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"},
+		Areas:       areaFinder,
 		Weather:     forecast,
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},

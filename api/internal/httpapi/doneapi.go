@@ -73,13 +73,19 @@ func registerDone(api huma.API, d Deps) {
 	target := func(ctx context.Context, k done.Kind, id, token string) (uuid.UUID, error) {
 		if k == done.Journey {
 			j, _, err := loadJourney(ctx, d, id, token)
-			return uuid.MustParse(j.ID), err
+			if err != nil {
+				return uuid.Nil, err
+			}
+			return uuid.MustParse(j.ID), nil
 		}
 		r, _, err := loadRoute(ctx, d, id, token)
-		if err == nil && r.JourneyID != "" {
+		if err != nil {
+			return uuid.Nil, err
+		}
+		if r.JourneyID != "" {
 			return uuid.Nil, huma.Error422UnprocessableEntity("a stage is ticked off on its journey")
 		}
-		return uuid.MustParse(r.ID), err
+		return uuid.MustParse(r.ID), nil
 	}
 	state := func(ctx context.Context, user uuid.UUID, k done.Kind, id uuid.UUID) (*doneOutput, error) {
 		st, err := d.Done.Of(ctx, user, k, id)

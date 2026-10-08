@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -26,8 +27,9 @@ var Params = map[string]string{
 
 // Server serves the collection at /c (with the point list), its items (one,
 // with a complete run at 18:00 and an incomplete one at 19:00) and the
-// files for days; files counts the downloads of daily values.
-func Server(t *testing.T, points []Point, days []string) (srv *httptest.Server, files *int) {
+// files for days; files counts the downloads of daily values. skip leaves
+// out days of a parameter ("tre200pn/2026-09-29").
+func Server(t *testing.T, points []Point, days []string, skip ...string) (srv *httptest.Server, files *int) {
 	files = new(int)
 	mux := http.NewServeMux()
 	srv = httptest.NewServer(mux)
@@ -61,6 +63,9 @@ func Server(t *testing.T, points []Point, days []string) (srv *httptest.Server, 
 			_, _ = fmt.Fprintf(w, "point_id;point_type_id;Date;%s\r\n", p)
 			for _, pt := range points {
 				for _, d := range days {
+					if slices.Contains(skip, p+"/"+d) {
+						continue
+					}
 					_, _ = fmt.Fprintf(w, "%s;%s;%s0000;%s\r\n", pt.ID, pt.Type, strings.ReplaceAll(d, "-", ""), v)
 				}
 			}

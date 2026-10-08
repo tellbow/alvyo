@@ -97,6 +97,16 @@ func TestReminders(t *testing.T) {
 		t.Errorf("start: %+v", got)
 	}
 
+	// The first stage ticked off on its day: the journey has started, the
+	// second stage is no start «tomorrow».
+	if _, err := pool.Exec(ctx, `UPDATE stages SET status = 'done' WHERE journey_id = $1 AND position = 0`, journey); err != nil {
+		t.Fatal(err)
+	}
+	now = time.Date(2027, 7, 1, 20, 0, 0, 0, zurich)
+	if got := check(); len(got) != 0 {
+		t.Errorf("under way: %+v", got)
+	}
+
 	// All booked: no reminder to book for another start.
 	if _, err := pool.Exec(ctx, `UPDATE stages SET accommodation_booked = true, planned_date = planned_date + 30 WHERE journey_id = $1`,
 		journey); err != nil {

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/tellbow/alvyo/api/internal/areas"
 	"github.com/tellbow/alvyo/swiss/geo"
@@ -101,18 +101,29 @@ func registerAreas(api huma.API, d Deps) {
 		var order []string
 		noticeByID := map[string]*areas.Notice{}
 		var noticeOrder []string
+		// Each stage asks geo.admin; a few at a time, not one after another.
+		type result struct {
+			found   []areas.Area
+			notices []areas.Notice
+		}
+		results := make([]result, len(j.StageList))
+		g, gctx := errgroup.WithContext(ctx)
+		g.SetLimit(4)
 		for i, st := range j.StageList {
 			if st.Route == nil {
 				continue
 			}
-			r, err := d.Routes.Get(ctx, uuid.MustParse(st.Route.ID))
-			if err != nil {
-				return nil, routeError(err)
-			}
-			found, notices, err := crossed(ctx, points(r.Line()))
-			if err != nil {
-				return nil, err
-			}
+			g.Go(func() error {
+				found, notices, err := crossed(gctx, points(st.FullLine()))
+				results[i] = result{found, notices}
+				return err
+			})
+		}
+		if err := g.Wait(); err != nil {
+			return nil, err
+		}
+		for i, res := range results {
+			found, notices := res.found, res.notices
 			for _, n := range notices {
 				key := n.Kind + "/" + n.ID
 				if noticeByID[key] == nil {

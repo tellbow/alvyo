@@ -118,7 +118,8 @@ func (im *Importer) Journey(ctx context.Context, owner uuid.UUID, name string, t
 	jid := uuid.MustParse(j.ID)
 	var skipped []Skipped
 	for _, t := range tracks {
-		if err := im.Journeys.AddStage(ctx, jid, owner, journeys.NewStage{Title: title(t.Name)}); err != nil {
+		stage, err := im.Journeys.AddStageID(ctx, jid, owner, journeys.NewStage{Title: title(t.Name)})
+		if err != nil {
 			return j, skipped, err
 		}
 		c, err := im.Content(ctx, t)
@@ -126,11 +127,6 @@ func (im *Importer) Journey(ctx context.Context, owner uuid.UUID, name string, t
 			skipped = append(skipped, Skipped{Name: t.Name, Reason: Reason(err)})
 			continue
 		}
-		j, err = im.Journeys.Get(ctx, jid)
-		if err != nil {
-			return j, skipped, err
-		}
-		stage := uuid.MustParse(j.StageList[len(j.StageList)-1].ID)
 		if _, err := im.Journeys.SetStageRoute(ctx, jid, stage, owner, title(t.Name), c); err != nil {
 			return j, skipped, err
 		}

@@ -58,6 +58,11 @@ func TestDone(t *testing.T) {
 	if code, _ := hiker.do("PUT", "/api/v1/routes/"+hiked+"/done", map[string]any{"done_on": "2999-01-01"}); code != http.StatusUnprocessableEntity {
 		t.Errorf("future day: %d", code)
 	}
+	for _, kind := range []string{"routes", "journeys"} {
+		if code, _ := hiker.do("PUT", "/api/v1/"+kind+"/00000000-0000-0000-0000-000000000001/done", nil); code != http.StatusNotFound {
+			t.Errorf("unknown %s: %d", kind, code)
+		}
+	}
 	if code, _ := s.client(t).do("PUT", "/api/v1/routes/"+hiked+"/done", nil); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d", code)
 	}

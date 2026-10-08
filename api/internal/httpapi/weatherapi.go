@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/google/uuid"
 
-	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/weather"
 )
 
@@ -65,8 +63,7 @@ func registerWeather(api huma.API, d Deps) {
 	}
 	today := func() string { return time.Now().In(zurich).Format(time.DateOnly) }
 	// ends returns start, highest point and end of a line.
-	ends := func(r routes.Route) [][3]float64 {
-		line := r.Line()
+	ends := func(line [][3]float64) [][3]float64 {
 		if len(line) == 0 {
 			return nil
 		}
@@ -108,7 +105,7 @@ func registerWeather(api huma.API, d Deps) {
 		out.Body.Run = d.Weather.Run()
 		out.Body.Places = []weatherPlace{}
 		day := today()
-		for i, c := range ends(r) {
+		for i, c := range ends(r.Line()) {
 			p, days, err := d.Weather.At(c[0], c[1], c[2])
 			if errors.Is(err, weather.ErrNoForecast) {
 				continue // across the border, beyond the forecast points
@@ -147,11 +144,7 @@ func registerWeather(api huma.API, d Deps) {
 			if st.Route == nil {
 				continue
 			}
-			r, err := d.Routes.Get(ctx, uuid.MustParse(st.Route.ID))
-			if err != nil {
-				return nil, routeError(err)
-			}
-			e := ends(r)
+			e := ends(st.FullLine())
 			if e == nil {
 				continue
 			}

@@ -167,6 +167,12 @@ func (f *Forecast) Refresh(ctx context.Context) error {
 		}
 		sort.Strings(dates)
 		for _, d := range dates {
+			// Without its minimum or rain the day would show 0 °C and 0 mm.
+			_, okMin := values[paramMin][key][d]
+			_, okRain := values[paramRain][key][d]
+			if !okMin || !okRain {
+				continue
+			}
 			days[key] = append(days[key], ForecastDay{
 				Date: d, MinC: values[paramMin][key][d], MaxC: byDate[d],
 				RainMM: values[paramRain][key][d], RainLoMM: values[paramRain10][key][d], RainHiMM: values[paramRain90][key][d],

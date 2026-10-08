@@ -85,12 +85,13 @@ func (s *Store) Check(ctx context.Context) error {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	for _, k := range Kinds {
 		start := today.AddDate(0, 0, k.Before)
-		// The journeys starting then (their first planned stage), their owner
+		// The journeys starting then (their first stage not skipped: one ticked
+		// off has started the journey, it does not move the start), their owner
 		// and the people along with an account, who did not turn reminders off.
 		rows, err := s.DB.Query(ctx, `
 			WITH starts AS (
 				SELECT journey_id, min(planned_date) AS start_on
-				FROM stages WHERE status = 'planned' AND planned_date IS NOT NULL
+				FROM stages WHERE status <> 'skipped' AND planned_date IS NOT NULL
 				GROUP BY journey_id
 			), people AS (
 				SELECT j.id AS journey_id, j.owner_id AS user_id FROM journeys j

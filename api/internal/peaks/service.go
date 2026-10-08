@@ -130,7 +130,8 @@ func (s *Service) peaks(ctx context.Context) ([]Peak, error) {
 func (s *Service) fetch(ctx context.Context, x, y int) (image.Image, error) {
 	client := s.Client
 	if client == nil {
-		client = http.DefaultClient
+		// One hung tile would hold up the whole build.
+		client = &http.Client{Timeout: 30 * time.Second}
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/tiles/terrain/%d/%d/%d.webp", s.TilesURL, zoom, x, y), nil)
 	if err != nil {

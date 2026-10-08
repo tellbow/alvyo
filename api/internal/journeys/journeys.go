@@ -92,6 +92,9 @@ type Stage struct {
 	line [][3]float64 // full stage line (lon, lat, ele) for the profile
 }
 
+// FullLine is the stage's whole line (lon, lat, ele); nil without a route.
+func (s Stage) FullLine() [][3]float64 { return s.line }
+
 // Progress counts done stages (skipped stages do not count as remaining).
 type Progress struct {
 	StagesDone     int     `json:"stages_done"`

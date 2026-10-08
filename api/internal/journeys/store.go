@@ -384,7 +384,13 @@ type NewStage struct {
 
 // AddStage inserts a stage, shifting later stages back.
 func (s *Store) AddStage(ctx context.Context, journeyID, ownerID uuid.UUID, n NewStage) error {
-	return s.tx(ctx, journeyID, func(tx pgx.Tx) error {
+	_, err := s.AddStageID(ctx, journeyID, ownerID, n)
+	return err
+}
+
+// AddStageID is AddStage, giving the new stage's id.
+func (s *Store) AddStageID(ctx context.Context, journeyID, ownerID uuid.UUID, n NewStage) (id uuid.UUID, err error) {
+	return id, s.tx(ctx, journeyID, func(tx pgx.Tx) error {
 		var count int
 		if err := tx.QueryRow(ctx, `SELECT count(*) FROM stages WHERE journey_id = $1`, journeyID).Scan(&count); err != nil {
 			return err
@@ -408,9 +414,8 @@ func (s *Store) AddStage(ctx context.Context, journeyID, ownerID uuid.UUID, n Ne
 			}
 			routeID = &id
 		}
-		_, err := tx.Exec(ctx, `INSERT INTO stages (journey_id, position, title, route_id) VALUES ($1, $2, $3, $4)`,
-			journeyID, pos, n.Title, routeID)
-		return err
+		return tx.QueryRow(ctx, `INSERT INTO stages (journey_id, position, title, route_id) VALUES ($1, $2, $3, $4) RETURNING id`,
+			journeyID, pos, n.Title, routeID).Scan(&id)
 	})
 }
 

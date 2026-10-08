@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -64,6 +65,43 @@ func TestStageToPlaceFromATunnel(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(got.Stages) != 2 || got.Stages[0].EndPlace == nil || got.Stages[0].EndPlace.Name != "Gasthaus" {
+		t.Fatalf("stages: %+v", got.Stages)
+	}
+}
+
+// A track off the paths (over a glacier): the paths start 110 m from its
+// vertex, so the way to a place goes straight, and the stage holds together.
+func TestStageToPlaceFromATrackOffThePaths(t *testing.T) {
+	pool := testdb.New(t)
+	ctx := context.Background()
+	if _, err := pool.Exec(ctx, `INSERT INTO places (kind, name, source, source_id, geom)
+		VALUES ('hut', 'Hütte', 'osm', 'n1', ST_SetSRID(ST_MakePoint(8.01, 46.505), 4326))`); err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct{ Points [][2]float64 }
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		coords := [][]float64{}
+		for _, p := range req.Points {
+			coords = append(coords, []float64{p[0], p[1]})
+		}
+		coords[0][1] += 0.001 // the nearest path
+		_ = json.NewEncoder(w).Encode(map[string]any{"paths": []any{map[string]any{
+			"points":            map[string]any{"coordinates": coords},
+			"snapped_waypoints": map[string]any{"coordinates": coords},
+		}}})
+	}))
+	t.Cleanup(srv.Close)
+	p := &Planner{DB: pool, Router: &routing.Router{
+		GraphHopper: &routing.GraphHopper{URL: srv.URL},
+		Elevation:   flatSampler{}, Trails: &routing.TrailMatcher{DB: pool},
+	}}
+	legs := []routing.Leg{testLeg(8.0, 1000, 51, "T2"), testLeg(8.01, 1100, 51, "T3")}
+	got, err := p.Split(ctx, legs, Request{Profile: "hike", Days: Days{N: 2}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Stages) != 2 || got.Stages[0].EndPlace == nil || got.Stages[0].EndPlace.Name != "Hütte" {
 		t.Fatalf("stages: %+v", got.Stages)
 	}
 }
@@ -142,5 +180,38 @@ func TestSplitAvoidsPlacesFarByPath(t *testing.T) {
 	}
 	if got.Stages[0].Totals.DistanceM > 3000 {
 		t.Errorf("day 1: %.0f m", got.Stages[0].Totals.DistanceM)
+	}
+}
+
+// Each recorded day is a stage from its first to its last vertex, whether
+// it starts where the day before ended or elsewhere (a bus in between), and
+// ends at the place where the hiker slept.
+func TestByDay(t *testing.T) {
+	pool := testdb.New(t)
+	ctx := context.Background()
+	if _, err := pool.Exec(ctx, `INSERT INTO places (kind, name, source, source_id, geom)
+		VALUES ('hut', 'Hütte', 'osm', 'n1', ST_SetSRID(ST_MakePoint(8.0101, 46.5005), 4326))`); err != nil {
+		t.Fatal(err)
+	}
+	p := &Planner{DB: pool}
+	for name, start2 := range map[string]float64{"joined": 8.01, "apart": 8.0113} {
+		days := [][]routing.Leg{{testLeg(8.0, 1000, 51, "T2")}, {testLeg(start2, 1100, 51, "T3")}}
+		got, err := p.ByDay(ctx, days, "hike")
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		if len(got.Stages) != 2 {
+			t.Fatalf("%s: %d stages", name, len(got.Stages))
+		}
+		for i, want := range [][2]float64{{8.0, 8.01}, {start2, start2 + 0.01}} {
+			legs := got.Stages[i].Legs
+			first, last := legs[0].Coordinates[0], legs[len(legs)-1].Coordinates
+			if math.Abs(first[0]-want[0]) > 1e-9 || math.Abs(last[len(last)-1][0]-want[1]) > 1e-9 {
+				t.Errorf("%s: stage %d from %v to %v, want %v", name, i+1, first[0], last[len(last)-1][0], want)
+			}
+		}
+		if e := got.Stages[0].EndPlace; e == nil || e.Name != "Hütte" || got.Stages[1].StartPlace == nil {
+			t.Errorf("%s: night at %+v", name, e)
+		}
 	}
 }

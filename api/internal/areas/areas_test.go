@@ -125,3 +125,25 @@ func TestPeriod(t *testing.T) {
 		}
 	}
 }
+
+func TestPrune(t *testing.T) {
+	ctx := context.Background()
+	f := &Finder{DB: testdb.New(t)}
+	if _, err := f.DB.Exec(ctx, `INSERT INTO area_cache (line_key, areas, fetched_at) VALUES
+		('old', '[]', now() - interval '31 days'), ('new', '[]', now())`); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Prune(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var keys []string
+	rows, _ := f.DB.Query(ctx, `SELECT line_key FROM area_cache`)
+	for rows.Next() {
+		var k string
+		_ = rows.Scan(&k)
+		keys = append(keys, k)
+	}
+	if len(keys) != 1 || keys[0] != "new" {
+		t.Errorf("left: %v", keys)
+	}
+}

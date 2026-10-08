@@ -10,6 +10,9 @@ RUN apt-get update \
 COPY config.yml /opt/graphhopper/config.yml
 COPY custom_models /opt/graphhopper/custom_models
 WORKDIR /opt/graphhopper
+# Not root: GraphHopper writes only below /data (graph, elevation cache);
+# uid 1000 (the base image's «ubuntu») owns that volume, as for data-import.
+USER 1000:1000
 EXPOSE 8989 8990
 # `server` imports the OSM file on first start when no graph exists yet.
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /opt/graphhopper.jar server /opt/graphhopper/config.yml"]

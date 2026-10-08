@@ -117,6 +117,23 @@ cd infra && docker compose -f compose.prod.yaml up -d --build
 Migrations run automatically (`migrate` service) before the API starts. Take a
 backup first when the release notes mention migrations.
 
+Since 2026-10-08 the GraphHopper and data-import images run as uid 1000,
+not root: on a server that ran them before, hand their data over once
+before the update, `sudo chown -R 1000:1000 infra/data`.
+
+### Hardening (Kubernetes)
+
+Every pod in the cluster runs as a fixed uid that is not root (API 65532,
+web 1000, PostgreSQL and its backup 999, tile cache and redirect 101 as
+nginx, GraphHopper and the data-import jobs 1000), with no Linux
+capabilities, no privilege escalation, seccomp `RuntimeDefault` and a
+read-only root filesystem; what they write besides their volumes goes to
+an emptyDir (`/tmp`, PostgreSQL's socket directory). Only `graph-refresh`
+gets a service account token (it restarts GraphHopper). The `geodata`
+volume belongs to uid 1000; Longhorn does not apply `fsGroup` to
+ReadWriteMany volumes, so a pod writing to it must run as 1000. The nginx
+configurations keep their pid file and temp files in `/tmp`.
+
 ## Releases (container images)
 
 Write the version's row of the release table in [plan.md](plan.md) first

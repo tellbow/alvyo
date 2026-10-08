@@ -15,9 +15,11 @@ paths:
 - No `{@html}`; map markers are built with `textContent`.
 - Unit tests: `*.spec.ts` next to the code (vitest).
 - End-to-end tests: `tests/e2e/*.e2e.ts` with `./fixtures` (they fail on any
-  console error). Sign up users with a unique name (time plus a random
-  suffix: tests run in parallel). Before mouse gestures on the map, wait for
-  its state (e.g. the canvas cursor turning to `pointer` over the line).
-  E-mails come from Mailpit (`tests/e2e/mailpit.ts`); `/verify-email` verifies
-  after the page has loaded, so wait for its `verify-status`.
+  console error). Sign up users with `signUp(page.request, { data })`
+  (`./accounts`: signing up alone does not log in) and a unique name (time
+  plus a random suffix: tests run in parallel). Before mouse gestures on the
+  map, wait for its state (e.g. the canvas cursor turning to `pointer` over
+  the line). E-mails come from Mailpit (`tests/e2e/mailpit.ts`);
+  `/verify-email` names the account and confirms on `verify-confirm`, then
+  shows `verify-status`.
 - `bun run lint` (prettier with tabs, eslint) and `bun run check`.

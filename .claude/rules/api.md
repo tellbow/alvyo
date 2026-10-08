@@ -25,8 +25,9 @@ paths:
 - Tests: `testdb.New(t)` gives PostGIS with the real migrations
   (testcontainers). GraphHopper, geo.admin and OJP are `httptest` servers
   with recorded answers in `testdata/`. HTTP tests use the `client` helper in
-  `httpapi/auth_test.go` (cookie jar, Origin header). Real services only in
-  `//go:build live` tests.
+  `httpapi/auth_test.go` (cookie jar, Origin header) and sign up with
+  `s.signup(c, email, username)`: logged in, the address not confirmed.
+  Real services only in `//go:build live` tests.
 - `swiss/` is domain logic without database. Hiking times match the official
   figures: a change there needs `go run ./swiss/cmd/calibrate` and the tables
   in `docs/hiking-time.md`.

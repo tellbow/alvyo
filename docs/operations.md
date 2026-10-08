@@ -27,6 +27,10 @@ The API calls these services; allow them if egress is restricted:
 | `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for `tellbow/alvyo` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write». Without it reports are only kept in the database. |
 | `api.komoot.de` | Komoot import. This is Komoot's unofficial API: when Komoot changes it, the import fails with 502, while GPX, KML, TCX and FIT upload keep working. |
 
+The tile cache fetches from `wmts.geo.admin.ch` and `tiles.mapterhorn.com`
+and checks their certificates (`proxy_ssl_verify`; the cluster has its own
+copy of the configuration in the gitops repo, `cluster/alvyo/tilecache-nginx.conf`).
+
 Reverse proxies in front of `/api` must accept request bodies of 22 MB
 (file imports: 20 MB plus form overhead).
 
@@ -45,6 +49,26 @@ Other providers (Microsoft, an own Keycloak or Authentik …) work the same with
 their issuer URL; add their variables to `compose.prod.yaml` like Google's.
 A provider login with the e-mail of an existing account does not enter that
 account: its owner connects the provider on the account page first.
+
+### Accounts
+
+Signing up needs working e-mail (SMTP): an account logs in only once its
+address is confirmed.
+
+- Signing up answers the same for every address, so that it does not show
+  who has an account; an address with one gets an e-mail how to log in
+  instead (or a new link while it is not confirmed). Only a taken username
+  is refused.
+- The link names the account («Konto «x» bestätigen?») and logs in on the
+  button. Logging in with an unconfirmed address sends a new link.
+  Accounts from before 2026-10-08 that never confirmed are asked to on
+  their next login; their sessions keep working until then.
+- A password reset ends all sessions and removes passkeys and provider
+  sign-ins: whoever resets takes the account over, also from someone who
+  signed up with another person's address.
+- A session ends after 30 days without use and 180 days after the login at
+  the latest. «Auf allen anderen Geräten abmelden» (account page, the app's
+  profile) ends all others.
 
 ## First deployment
 
@@ -95,13 +119,21 @@ backup first when the release notes mention migrations.
 
 ## Releases (container images)
 
-Pushing a version tag builds all images for amd64 and arm64 and publishes them
-to GHCR (`.github/workflows/release.yml`):
+Write the version's row of the release table in [plan.md](plan.md) first
+(the «next» row gets the number and date), commit, then tag that commit
+(the `release` skill has all steps). The tag builds all images for amd64
+and arm64, each with an SBOM and its provenance, publishes them to GHCR and
+creates a GitHub Release whose notes are that row
+(`.github/workflows/release.yml`):
 
 ```sh
-git tag v0.1.0 && git push origin v0.1.0
+git tag -a v0.1.0 -m "Alvyo 0.1.0: …" && git push origin v0.1.0
 # → ghcr.io/tellbow/alvyo-{api,web,postgis,graphhopper,data-import}:0.1.0
+docker buildx imagetools inspect ghcr.io/tellbow/alvyo-api:0.1.0 --format '{{json .SBOM}}'   # what is in it
 ```
+
+Releases are immutable (repository setting): a release and its tag cannot
+be changed afterwards; a mistake is fixed with the next patch version.
 
 A change of `infra/graphhopper/config.yml` or its custom models needs a new
 graph: GraphHopper does not start on a graph built with other profiles. Run

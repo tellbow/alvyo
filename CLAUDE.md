@@ -34,6 +34,7 @@ the same commit when a requirement is done or changes. Layout: `README.md`.
 | Web end-to-end | `cd web && bunx playwright test` (starts its own API and web; needs the dev stack) |
 | App | `cd app && dart format --output=none --set-exit-if-changed lib test integration_test && flutter analyze && flutter test` |
 | App on the simulator / iPhone | the `app-simulator-tests` and `iphone-install` skills |
+| Supply chain (CI runs them too) | govulncheck, osv-scanner, zizmor, gitleaks: `docs/development.md`, «Supply chain» |
 
 Live tests against GraphHopper and geo.admin: `go test -tags live
 ./swiss/elevation/ ./api/internal/routing/`. Locally, run Go tests without

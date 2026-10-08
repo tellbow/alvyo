@@ -27,7 +27,9 @@ Checked so far only in the simulator, with made-up or simulated positions
       3.1 km and a 1.2 km loop: nothing said or shown about arriving at the
       start, the walked distance only grows, «Ziel erreicht» once at the end.
 - [ ] **Location switched off mid-hike** (Control Centre or Settings): the
-      banner says «Warte auf GPS …» until positions come again.
+      banner says «Der Standort ist ausgeschaltet: schalte ihn in den
+      Einstellungen ein.» (since 2026-10-08; before, «Warte auf GPS …»)
+      until positions come again.
       Simulator 2026-09-28 (iPhone 17 Pro, iOS 26.5): the banner shows on the
       error geolocator reports and goes with the next position; still to see
       on a phone: that switching it off in Control Centre gives that error.
@@ -337,6 +339,12 @@ Checked so far only in the simulator, with made-up or simulated positions
       private profile switch as on the website.
 - [ ] **Hiked in the app** (61): «Als gewandert markieren» with the date
       picker; the lists' «Geplant / Gewandert»; a recorded hike counts.
+
+- [ ] **Accounts since 2026-10-08**: logging in with an account whose
+      address is not confirmed says «Bestätige zuerst deine E-Mail-Adresse
+      …» and the link arrives; «Auf allen anderen Geräten abmelden» in the
+      profile logs out the website in another browser (after the API and
+      app releases).
 
 ## Web
 

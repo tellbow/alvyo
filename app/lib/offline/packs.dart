@@ -25,12 +25,16 @@ class SavedPack {
 /// and hiking trails within 1 km, zoom 10–16); they are kept in
 /// `<root>/route-<id>/` with a manifest holding the key and the route.
 class PackStore {
-  PackStore(this.root, {this.poll = const Duration(seconds: 1)});
+  PackStore(this.root, {this.poll = const Duration(seconds: 1), this.maxPolls = 600});
 
   final Directory root;
 
   /// How often to ask the server while it builds.
   final Duration poll;
+
+  /// How often the build is asked after (10 minutes at one a second): a
+  /// build stuck on the server does not keep the app asking forever.
+  final int maxPolls;
 
   static Future<PackStore> open() async =>
       PackStore(Directory('${(await getApplicationSupportDirectory()).path}/packs'));
@@ -124,8 +128,10 @@ class PackStore {
       // saved without; navigating asks again when online
     }
     var st = await api.buildPack(routeId);
+    var polls = 0;
     while (st.state != 'ready') {
       if (st.state == 'failed') throw ApiException(500, 'the offline map could not be built');
+      if (++polls > maxPolls) throw ApiException(504, 'the offline map took too long to build');
       progress(false, st.total == 0 ? 0 : st.done / st.total);
       await Future<void>.delayed(poll);
       st = await api.packStatus(routeId);

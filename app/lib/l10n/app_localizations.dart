@@ -142,6 +142,12 @@ abstract class AppLocalizations {
   /// **'Etwas ist schiefgelaufen. Bitte versuche es nochmals.'**
   String get errorGeneric;
 
+  /// No description provided for @errorNotFound.
+  ///
+  /// In de, this message translates to:
+  /// **'Das gibt es nicht (mehr): vielleicht gelöscht oder privat.'**
+  String get errorNotFound;
+
   /// No description provided for @errorServer.
   ///
   /// In de, this message translates to:
@@ -285,6 +291,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Dafür braucht die App deinen Standort. Erlaube ihn in den Einstellungen.'**
   String get navNoPermission;
+
+  /// No description provided for @gpsOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Standort ist ausgeschaltet: schalte ihn in den Einstellungen ein.'**
+  String get gpsOff;
+
+  /// No description provided for @recordSaveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Aufzeichnung kann nicht gespeichert werden. Ist der Speicher des iPhones voll?'**
+  String get recordSaveFailed;
 
   /// No description provided for @navSaved.
   ///
@@ -573,6 +591,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Abbrechen'**
   String get cancel;
+
+  /// A label and its value; French puts a space before the colon
+  ///
+  /// In de, this message translates to:
+  /// **'{label}: {value}'**
+  String labelled(String label, String value);
+
+  /// No description provided for @elevationSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenprofil: {length}, von {low} bis {high}'**
+  String elevationSummary(String length, String low, String high);
 
   /// No description provided for @stageMarkDone.
   ///
@@ -3577,7 +3607,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountPaceShort.
   ///
   /// In de, this message translates to:
-  /// **'Gehzeiten relativ zu den Wegweisern'**
+  /// **'Wanderzeiten relativ zu den Wegweisern'**
   String get accountPaceShort;
 
   /// No description provided for @devicesWatchImported.
@@ -3825,6 +3855,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Wo du stehst, ist nicht bekannt: erlaube den Standort.'**
   String get peaksNoPosition;
+
+  /// No description provided for @peaksNoCamera.
+  ///
+  /// In de, this message translates to:
+  /// **'Alvyo darf die Kamera nicht benutzen: erlaube sie in den Einstellungen.'**
+  String get peaksNoCamera;
 
   /// No description provided for @peaksNoCompass.
   ///

@@ -48,7 +48,8 @@ class _RecordScreenState extends State<RecordScreen> {
   Fix? _fix;
   bool _follow = true;
   bool _denied = false;
-  bool _gpsLost = false;
+  GpsProblem? _gps;
+  bool _saveWarned = false; // said once that fixes cannot be saved
   bool _starting = false;
   static const _followZoom = 15.0;
   Timer? _clock;
@@ -155,8 +156,8 @@ class _RecordScreenState extends State<RecordScreen> {
     setState(() {});
     _sub = (widget.positions ?? gpsFixes)().listen(
       _onFix,
-      onError: (Object _) {
-        if (mounted) setState(() => _gpsLost = true);
+      onError: (Object e) {
+        if (mounted) setState(() => _gps = gpsProblem(e));
       },
     );
   }
@@ -165,12 +166,21 @@ class _RecordScreenState extends State<RecordScreen> {
     if (_starting) return; // a double tap would start twice
     _starting = true;
     final t = AppLocalizations.of(context);
-    final root = widget.recordings ?? await Recording.defaultRoot();
-    // A route's hike or another account's: kept for uploading, this one
-    // starts (the record button opens a route's hike instead).
-    await (await Recording.active(root))?.finish();
-    final rec = await Recording.start(root, title: t.recordTitle, owner: widget.api.userId);
-    if (_fix case final f?) await rec.add(f); // where it starts
+    final messenger = ScaffoldMessenger.of(context);
+    final Recording rec;
+    try {
+      final root = widget.recordings ?? await Recording.defaultRoot();
+      // A route's hike or another account's: kept for uploading, this one
+      // starts (the record button opens a route's hike instead).
+      await (await Recording.active(root))?.finish();
+      rec = await Recording.start(root, title: t.recordTitle, owner: widget.api.userId);
+      if (_fix case final f?) await rec.add(f); // where it starts
+    } on Object {
+      // e.g. the phone's storage full: say so, and the button works again
+      _starting = false;
+      messenger.showSnackBar(SnackBar(content: Text(t.errorGeneric)));
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _recording = rec;
@@ -180,16 +190,30 @@ class _RecordScreenState extends State<RecordScreen> {
     });
   }
 
+  /// Saving a fix failed (the phone's storage full): said once, the hike
+  /// goes on.
+  void _saveFailed() {
+    if (_saveWarned || !mounted) return;
+    _saveWarned = true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).recordSaveFailed), duration: const Duration(seconds: 10)),
+    );
+  }
+
   Future<void> _onFix(Fix fix) async {
     final rec = _recording;
     if (rec != null) {
-      await rec.add(fix);
+      try {
+        await rec.add(fix);
+      } on Object {
+        _saveFailed();
+      }
       _fixes.add(fix);
     }
     if (!mounted) return;
     setState(() {
       _fix = fix;
-      _gpsLost = false;
+      _gps = null;
     });
     await _style?.updateGeoJsonSource(id: 'me', data: positionJson(fix.lon, fix.lat));
     if (rec != null) await _style?.updateGeoJsonSource(id: 'route', data: lineJson(_track()));
@@ -309,13 +333,13 @@ class _RecordScreenState extends State<RecordScreen> {
                 ],
               ),
             ),
-            if (_gpsLost)
+            if (_gps case final problem?)
               Container(
                 key: const Key('nav-gps-lost'),
                 width: double.infinity,
                 color: Theme.of(context).colorScheme.errorContainer,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Text(t.navWaiting, style: Theme.of(context).textTheme.titleSmall),
+                child: Text(gpsText(t, problem), style: Theme.of(context).textTheme.titleSmall),
               ),
             SafeArea(
               top: false,

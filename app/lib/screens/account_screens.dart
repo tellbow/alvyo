@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../errors.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../place_search.dart';
@@ -87,7 +88,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
           FutureBuilder(
             future: _contacts,
             builder: (context, snap) {
-              if (snap.hasError) return Text(t.errorServer);
+              if (snap.hasError) return Text(errorText(t, snap.error));
               if (!snap.hasData) return const Center(child: CircularProgressIndicator());
               return Column(
                 children: [
@@ -171,7 +172,7 @@ class _BlockedScreenState extends State<BlockedScreen> {
       body: FutureBuilder(
         future: _blocked,
         builder: (context, snap) {
-          if (snap.hasError) return ListView(children: [ListTile(title: Text(t.errorServer))]);
+          if (snap.hasError) return ListView(children: [ListTile(title: Text(errorText(t, snap.error)))]);
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final users = snap.data!;
           if (users.isEmpty) return ListView(children: [ListTile(title: Text(t.blockedEmpty))]);
@@ -360,7 +361,7 @@ class _HomesScreenState extends State<HomesScreen> {
             children: [
               Text(t.homesIntro),
               const SizedBox(height: 8),
-              if (snap.hasError) Text(t.errorServer),
+              if (snap.hasError) Text(errorText(t, snap.error)),
               if (homes == null && !snap.hasError) const Center(child: CircularProgressIndicator()),
               for (final h in homes ?? const <Home>[])
                 ListTile(
@@ -390,7 +391,11 @@ class _HomesScreenState extends State<HomesScreen> {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.place_outlined),
                     title: Text(f.name),
-                    trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _found = null)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: t.cancel,
+                      onPressed: () => setState(() => _found = null),
+                    ),
                   )
                 else
                   PlaceSearch(api: widget.api, label: t.homesAddress, onPick: (p) => setState(() => _found = p)),

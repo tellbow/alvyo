@@ -154,7 +154,7 @@ class _StageSheetState extends State<_StageSheet> {
               if (_editing)
                 ..._form(t)
               else ...[
-                if (s.plannedDate case final d?) Text('${t.stageDate}: ${formatDate(d)}'),
+                if (s.plannedDate case final d?) Text(t.labelled(t.stageDate, formatDate(d))),
                 if (s.accommodation.isNotEmpty)
                   Text('${t.stageAccommodation(s.accommodation)}${s.booked ? ' · ${t.stageBooked}' : ''}'),
                 if (s.notes.isNotEmpty) Text(key: const Key('stage-notes'), s.notes),
@@ -219,7 +219,7 @@ class _StageSheetState extends State<_StageSheet> {
     const SizedBox(height: 8),
     Row(
       children: [
-        Expanded(child: Text('${t.stageDate}: ${_date == null ? t.stageDateNone : formatDate(_date!)}')),
+        Expanded(child: Text(t.labelled(t.stageDate, _date == null ? t.stageDateNone : formatDate(_date!)))),
         TextButton(
           key: const Key('stage-date'),
           onPressed: () async {

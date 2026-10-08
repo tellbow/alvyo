@@ -30,18 +30,35 @@ Stream<Fix> gpsFixes() {
 
 /// Where the phone is, when the app may already use the location; never
 /// asks. Null without permission or without a fix within a few seconds.
-Future<({double lon, double lat})?> knownPosition() async {
+/// With [maxAge], a last known position older than that is not taken (it
+/// may be where the train left from).
+Future<({double lon, double lat})?> knownPosition({Duration? maxAge}) async {
   try {
     if (!await Geolocator.isLocationServiceEnabled()) return null;
     final p = await Geolocator.checkPermission();
     if (p != LocationPermission.whileInUse && p != LocationPermission.always) return null;
-    final at =
-        await Geolocator.getLastKnownPosition() ??
-        await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(accuracy: LocationAccuracy.low, timeLimit: Duration(seconds: 5)),
-        );
+    final last = await Geolocator.getLastKnownPosition();
+    final fresh = last != null && (maxAge == null || DateTime.now().difference(last.timestamp) <= maxAge);
+    final at = fresh
+        ? last
+        : await Geolocator.getCurrentPosition(
+            locationSettings: LocationSettings(
+              accuracy: maxAge == null ? LocationAccuracy.low : LocationAccuracy.high,
+              timeLimit: Duration(seconds: maxAge == null ? 5 : 15),
+            ),
+          );
     return (lon: at.longitude, lat: at.latitude);
   } on Object {
     return null; // no fix in time, or no plugin (tests)
   }
 }
+
+/// Why fixes stopped coming: waiting for the sky, the location taken away,
+/// or switched off.
+enum GpsProblem { lost, denied, off }
+
+GpsProblem gpsProblem(Object error) => switch (error) {
+  PermissionDeniedException() => GpsProblem.denied,
+  LocationServiceDisabledException() => GpsProblem.off,
+  _ => GpsProblem.lost,
+};

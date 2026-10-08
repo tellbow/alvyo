@@ -53,7 +53,7 @@ class _PeaksScreenState extends State<PeaksScreen> {
   PeakView? _view;
   CameraPose? _pose;
   StreamSubscription<CameraPose>? _motion;
-  bool _noPosition = false, _noCompass = false, _failed = false;
+  bool _noPosition = false, _noCompass = false, _noCamera = false, _failed = false;
   double? _progress; // while downloading: 0…1, or 0 while the server builds it
 
   /// The alignment by dragging, in degrees.
@@ -64,6 +64,7 @@ class _PeaksScreenState extends State<PeaksScreen> {
     super.initState();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _open();
+    if (widget.camera == null && defaultTargetPlatform == TargetPlatform.iOS) _askCamera();
     _motion = (widget.motion ?? peakMotion()).listen(
       (p) {
         if (mounted) setState(() => _pose = p);
@@ -88,11 +89,19 @@ class _PeaksScreenState extends State<PeaksScreen> {
     if (store.saved) await _load();
   }
 
+  /// Without access the picture stays black: say why.
+  Future<void> _askCamera() async {
+    final granted = await const MethodChannel('alvyo/camera').invokeMethod<bool>('access') ?? true;
+    if (mounted && !granted) setState(() => _noCamera = true);
+  }
+
   Future<void> _load() async {
     final pack = await _store!.load();
     if (!mounted) return;
     setState(() => _pack = pack);
-    final at = await (widget.position ?? () async => await locationAllowed() ? await knownPosition() : null)();
+    final at =
+        await (widget.position ??
+            () async => await locationAllowed() ? await knownPosition(maxAge: const Duration(minutes: 2)) : null)();
     if (!mounted) return;
     if (at == null) {
       setState(() => _noPosition = true);
@@ -172,6 +181,7 @@ class _PeaksScreenState extends State<PeaksScreen> {
     final pose = _pose, view = _view;
     final centre = pose?.centre;
     final message = switch (null) {
+      _ when _noCamera => t.peaksNoCamera,
       _ when _noCompass => t.peaksNoCompass,
       _ when _noPosition => t.peaksNoPosition,
       _ when _pack == null || view == null => t.peaksComputing,

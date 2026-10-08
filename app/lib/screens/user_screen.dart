@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../errors.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import 'friends_screen.dart';
@@ -73,7 +74,7 @@ class _UserScreenState extends State<UserScreen> {
             ],
           ),
           body: switch (snap) {
-            _ when snap.hasError => Center(child: Text(t.errorServer)),
+            _ when snap.hasError => Center(child: Text(errorText(t, snap.error))),
             _ when p == null => const Center(child: CircularProgressIndicator()),
             _ => ListView(
               padding: const EdgeInsets.only(bottom: 24),

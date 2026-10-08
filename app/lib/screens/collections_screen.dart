@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../errors.dart';
 import '../api.dart';
 import '../bug_report.dart';
 import '../l10n/app_localizations.dart';
@@ -72,7 +73,7 @@ class _CollectionsListState extends State<CollectionsList> {
       child: FutureBuilder(
         future: _lists,
         builder: (context, snap) {
-          if (snap.hasError) return ListView(children: [ListTile(title: Text(t.errorServer))]);
+          if (snap.hasError) return ListView(children: [ListTile(title: Text(errorText(t, snap.error)))]);
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final (mine, shared) = snap.data!;
           Widget tile(CollectionSummary c, {bool others = false}) => ItemCard(
@@ -207,7 +208,7 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
             ],
           ),
           body: switch (snap) {
-            _ when snap.hasError => Center(child: Text(t.errorServer)),
+            _ when snap.hasError => Center(child: Text(errorText(t, snap.error))),
             _ when c == null => const Center(child: CircularProgressIndicator()),
             _ => RefreshIndicator(
               onRefresh: () async {

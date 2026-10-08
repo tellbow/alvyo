@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../errors.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../offline/packs.dart';
@@ -68,7 +69,7 @@ class _JourneysListState extends State<JourneysList> {
       child: FutureBuilder(
         future: _journeys,
         builder: (context, snap) {
-          if (snap.hasError) return ListView(children: [ListTile(title: Text(t.errorServer))]);
+          if (snap.hasError) return ListView(children: [ListTile(title: Text(errorText(t, snap.error)))]);
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final (journeys, offline) = snap.data!;
           return FutureBuilder(

@@ -41,6 +41,17 @@ import UserNotifications
     // Recognising mountains: the camera's picture and the phone's attitude.
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoPeaks") {
       registrar.register(PeakCameraFactory(), withId: "alvyo/peak-camera")
+      // Whether the camera may be used (asks the first time).
+      FlutterMethodChannel(name: "alvyo/camera", binaryMessenger: registrar.messenger())
+        .setMethodCallHandler { call, result in
+          guard call.method == "access" else {
+            result(FlutterMethodNotImplemented)
+            return
+          }
+          AVCaptureDevice.requestAccess(for: .video) { granted in
+            DispatchQueue.main.async { result(granted) }
+          }
+        }
       FlutterEventChannel(name: "alvyo/peak-motion", binaryMessenger: registrar.messenger())
         .setStreamHandler(peakMotion)
     }

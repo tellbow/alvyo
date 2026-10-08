@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -1250,9 +1251,9 @@ class Travel {
 /// Client of the Alvyo API. Logging in yields the session token, which
 /// authenticates later calls as a Bearer token.
 class Api {
-  Api(String server, {this.token, this.userId, http.Client? client})
+  Api(String server, {this.token, this.userId, http.Client? client, Duration timeout = const Duration(seconds: 20)})
     : server = _normalized(server),
-      _http = client ?? http.Client();
+      _http = _Timeout(client ?? http.Client(), timeout);
 
   /// Without trailing slashes, and https when typed without a scheme.
   static String _normalized(String server) {
@@ -2194,4 +2195,20 @@ class Api {
       more: j['more'] as bool? ?? false,
     );
   }
+}
+
+/// Gives up on an answer that does not start within [timeout]: with weak
+/// reception at a trailhead a request could hang for minutes before the
+/// app falls back to what it has offline. Downloads may take longer once
+/// they have started.
+class _Timeout extends http.BaseClient {
+  _Timeout(this._inner, this.timeout);
+  final http.Client _inner;
+  final Duration timeout;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) => _inner.send(request).timeout(timeout);
+
+  @override
+  void close() => _inner.close();
 }

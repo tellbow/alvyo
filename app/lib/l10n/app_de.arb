@@ -8,6 +8,7 @@
   "loginSubmit": "Anmelden",
   "loginInvalid": "E-Mail/Benutzername oder Passwort ist falsch.",
   "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuche es nochmals.",
+  "errorNotFound": "Das gibt es nicht (mehr): vielleicht gelöscht oder privat.",
   "errorServer": "Der Server ist nicht erreichbar.",
   "routesTitle": "Meine Routen",
   "routesEmpty": "Noch keine Routen. Plane sie auf der Website.",
@@ -39,6 +40,8 @@
   "navFinishQuestion": "Wanderung beenden und die Aufzeichnung speichern?",
   "navContinue": "Weitergehen",
   "navNoPermission": "Dafür braucht die App deinen Standort. Erlaube ihn in den Einstellungen.",
+  "gpsOff": "Der Standort ist ausgeschaltet: schalte ihn in den Einstellungen ein.",
+  "recordSaveFailed": "Die Aufzeichnung kann nicht gespeichert werden. Ist der Speicher des iPhones voll?",
   "navSaved": "Aufgezeichnet: {distance} in {duration}. Wird hochgeladen, sobald du online bist.",
   "@navSaved": {
     "placeholders": {
@@ -188,6 +191,10 @@
     }
   },
   "cancel": "Abbrechen",
+  "labelled": "{label}: {value}",
+  "@labelled": {"description": "A label and its value; French puts a space before the colon", "placeholders": {"label": {"type": "String"}, "value": {"type": "String"}}},
+  "elevationSummary": "Höhenprofil: {length}, von {low} bis {high}",
+  "@elevationSummary": {"placeholders": {"length": {"type": "String"}, "low": {"type": "String"}, "high": {"type": "String"}}},
   "stageMarkDone": "Als gewandert markieren",
   "stageMarkPlanned": "Wieder als geplant markieren",
   "navMarkStageDone": "Etappe als gewandert markieren",
@@ -1114,7 +1121,7 @@
   "devicesWatchAutoHint": "Wenn du die App öffnest – Wanderungen ab jetzt",
   "devicesWatchPick": "Wanderungen auswählen und importieren",
   "profileAccount": "Konto",
-  "accountPaceShort": "Gehzeiten relativ zu den Wegweisern",
+  "accountPaceShort": "Wanderzeiten relativ zu den Wegweisern",
   "devicesWatchImported": "{count, plural, =1{1 Wanderung von der Apple Watch importiert} other{{count} Wanderungen von der Apple Watch importiert}}",
   "@devicesWatchImported": {
     "placeholders": {
@@ -1163,6 +1170,7 @@
   "peaksPreparing": "Wird vorbereitet …",
   "peaksComputing": "Berechne, was du von hier siehst …",
   "peaksNoPosition": "Wo du stehst, ist nicht bekannt: erlaube den Standort.",
+  "peaksNoCamera": "Alvyo darf die Kamera nicht benutzen: erlaube sie in den Einstellungen.",
   "peaksNoCompass": "Dieses Gerät hat keinen Kompass.",
   "peaksCompass": "Kompass ungenau: bewege das Telefon ein paar Mal in einer Acht.",
   "peaksAlign": "Passt die Linie nicht zum Horizont, zieh sie mit dem Finger dorthin.",

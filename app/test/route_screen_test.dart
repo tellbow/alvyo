@@ -218,8 +218,11 @@ void main() {
     await tester.pump(); // ensureVisible only scrolls
     await tester.tap(find.textContaining('2 anzeigen'));
     await tester.pumpAndSettle();
-    expect(find.text('Seewäldli (Wanderweg gesperrt)\nForstarbeiten · 31.8.–30.10.'), findsOneWidget);
-    expect(find.text('Geissalp (Schiessen der Armee)\n29.9. 08:00–17:00, 30.9. · +41 58 467 19 90'), findsOneWidget);
+    expect(find.textContaining('Seewäldli (Wanderweg gesperrt)\nForstarbeiten · 31.8.–30.10.'), findsOneWidget);
+    expect(
+      find.textContaining('Geissalp (Schiessen der Armee)\n29.9. 08:00–17:00, 30.9. · +41 58 467 19 90'),
+      findsOneWidget,
+    );
     await tester.tapAt(const Offset(200, 20)); // beside the sheet
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('8 anzeigen'));

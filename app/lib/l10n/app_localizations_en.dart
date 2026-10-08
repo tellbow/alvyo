@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorGeneric => 'Something went wrong. Please try again.';
 
   @override
+  String get errorNotFound => 'This doesn’t exist (any more): it may have been deleted or made private.';
+
+  @override
   String get errorServer => 'The server cannot be reached.';
 
   @override
@@ -105,6 +108,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navNoPermission => 'This needs your location. Allow it in Settings.';
+
+  @override
+  String get gpsOff => 'Location is switched off: turn it on in Settings.';
+
+  @override
+  String get recordSaveFailed => 'The recording cannot be saved. Is the iPhone’s storage full?';
 
   @override
   String navSaved(String distance, String duration) {
@@ -274,6 +283,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancel => 'Cancel';
+
+  @override
+  String labelled(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String elevationSummary(String length, String low, String high) {
+    return 'Elevation profile: $length, from $low to $high';
+  }
 
   @override
   String get stageMarkDone => 'Mark as hiked';
@@ -2031,6 +2050,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get peaksNoPosition => 'Where you are is not known: allow the location.';
+
+  @override
+  String get peaksNoCamera => 'Alvyo may not use the camera: allow it in Settings.';
 
   @override
   String get peaksNoCompass => 'This device has no compass.';

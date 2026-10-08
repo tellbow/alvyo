@@ -45,6 +45,12 @@ class HikeSummary {
 /// the next turn, spoken too, a warning when leaving the route, and a
 /// recording of the hike.
 class NavigateScreen extends StatefulWidget {
+  /// The route's name on the navigator, to go back to a hike running.
+  static const routeName = 'navigate';
+
+  /// A hike is being navigated and recorded: there is one at a time.
+  static bool running = false;
+
   const NavigateScreen({
     super.key,
     required this.api,
@@ -102,7 +108,8 @@ class _NavigateScreenState extends State<NavigateScreen> {
 
   /// The GPS reported a problem (e.g. location switched off) since the last
   /// position.
-  bool _gpsLost = false;
+  GpsProblem? _gps;
+  bool _saveWarned = false; // said once that fixes cannot be saved
 
   /// While following the position; panning or zooming stops following.
   static const _followZoom = 15.0;
@@ -138,6 +145,8 @@ class _NavigateScreenState extends State<NavigateScreen> {
   @override
   void initState() {
     super.initState();
+    NavigateScreen.running = true;
+    _tracker.speedFactor = hikerPace.value; // as last known, also offline
     widget.api
         .me()
         .then((m) {
@@ -181,15 +190,29 @@ class _NavigateScreenState extends State<NavigateScreen> {
     setState(() => _recording = rec);
     _sub = (widget.positions ?? gpsFixes)().listen(
       _onFix,
-      onError: (Object _) {
-        if (mounted) setState(() => _gpsLost = true);
+      onError: (Object e) {
+        if (mounted) setState(() => _gps = gpsProblem(e));
       },
     );
     unawaited(_alerts.init()); // asks for notifications without holding up the GPS
   }
 
+  /// Saving a fix failed (the phone's storage full): said once, the hike
+  /// goes on.
+  void _saveFailed() {
+    if (_saveWarned || !mounted) return;
+    _saveWarned = true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).recordSaveFailed), duration: const Duration(seconds: 10)),
+    );
+  }
+
   Future<void> _onFix(Fix fix) async {
-    await _recording?.add(fix);
+    try {
+      await _recording?.add(fix);
+    } on Object {
+      _saveFailed();
+    }
     unawaited(_live?.add(fix));
     final wasOff = _progress?.offRoute ?? false;
     final p = _tracker.update(fix);
@@ -197,7 +220,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
     setState(() {
       _fix = fix;
       _progress = p ?? _progress;
-      _gpsLost = false;
+      _gps = null;
     });
     await _style?.updateGeoJsonSource(id: 'me', data: positionJson(fix.lon, fix.lat));
     if (_follow) {
@@ -291,6 +314,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
 
   @override
   void dispose() {
+    NavigateScreen.running = false;
     _sub?.cancel();
     _clock?.cancel();
     _places.dispose();
@@ -368,11 +392,11 @@ class _NavigateScreenState extends State<NavigateScreen> {
                   ),
                 ),
               ),
-            if (_gpsLost)
+            if (_gps case final problem?)
               _Banner(
                 key: const Key('nav-gps-lost'),
                 color: Theme.of(context).colorScheme.errorContainer,
-                text: t.navWaiting,
+                text: gpsText(t, problem),
               )
             else if (p != null && p.offRoute)
               _Banner(
@@ -406,6 +430,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
                           Row(
                             key: const Key('nav-progress'),
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            spacing: 8,
                             children: [
                               _Stat(t.navDone, '${formatDistance(p.doneM)} · ↑\u00a0${formatHeight(p.ascentDoneM)}'),
                               _Stat(
@@ -438,12 +463,15 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: theme.labelMedium),
-        Text(value, style: theme.titleMedium),
-      ],
+    // Flexible: with large text the three wrap instead of running off.
+    return Flexible(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: theme.labelMedium),
+          Text(value, style: theme.titleMedium),
+        ],
+      ),
     );
   }
 }
@@ -501,4 +529,11 @@ const _turnIcons = {
   'right': Icons.turn_right,
   'sharp_right': Icons.turn_sharp_right,
   'keep_right': Icons.fork_right,
+};
+
+/// What the banner says when fixes stopped coming.
+String gpsText(AppLocalizations t, GpsProblem problem) => switch (problem) {
+  GpsProblem.lost => t.navWaiting,
+  GpsProblem.denied => t.navNoPermission,
+  GpsProblem.off => t.gpsOff,
 };

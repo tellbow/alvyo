@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
+import '../errors.dart';
 import '../api.dart';
 import '../breakdown.dart';
 import '../bug_report.dart';
@@ -124,6 +125,12 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
 
   Future<void> _hike(RouteDetail r) async {
     if (_hiking) return; // a double tap would record twice
+    if (NavigateScreen.running) {
+      // Opened from a link during a hike: back to it, not a second one
+      // writing into the same recording.
+      Navigator.of(context).popUntil(ModalRoute.withName(NavigateScreen.routeName));
+      return;
+    }
     _hiking = true;
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -169,6 +176,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     }
     final summary = await Navigator.of(context).push<HikeSummary>(
       MaterialPageRoute(
+        settings: const RouteSettings(name: NavigateScreen.routeName),
         builder: (_) => NavigateScreen(api: widget.api, route: r, pack: _pack, turns: _pack?.turns, live: live),
       ),
     );
@@ -473,7 +481,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
       body: FutureBuilder(
         future: _route,
         builder: (context, snap) {
-          if (snap.hasError) return Center(child: Text(t.errorServer));
+          if (snap.hasError) return Center(child: Text(errorText(t, snap.error)));
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final r = snap.data!;
           final pack = _pack;

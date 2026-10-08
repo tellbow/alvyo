@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../errors.dart';
 import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
@@ -195,7 +196,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
         FutureBuilder(
           future: _feed,
           builder: (context, snap) {
-            if (snap.hasError) return ListTile(title: Text(t.errorServer));
+            if (snap.hasError) return ListTile(title: Text(errorText(t, snap.error)));
             if (!snap.hasData) return const Center(child: CircularProgressIndicator());
             if (snap.data!.isEmpty) {
               return EmptyHint(
@@ -237,7 +238,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
         FutureBuilder(
           future: _nearby,
           builder: (context, snap) {
-            if (snap.hasError) return ListTile(title: Text(t.errorServer));
+            if (snap.hasError) return ListTile(title: Text(errorText(t, snap.error)));
             if (!snap.hasData) return const Center(child: CircularProgressIndicator());
             final (:at, :items) = snap.data!;
             if (at == null) {

@@ -31,22 +31,26 @@ class ProtectedAreas extends StatelessWidget {
 
         String date(String iso) => day(iso.substring(5));
         String hour(String hhmm) => '${hhmm.substring(0, 2)}:${hhmm.substring(2)}';
-        Widget box(Key? key, bool now, String text) => Container(
+        // What applies now, else on a planned day, is said beside the count.
+        String? note(bool Function(DateTime) on) =>
+            on(DateTime.now()) ? t.areasNow : (days.any(on) ? t.areasOnDate : null);
+        // When it applies in words too, not only by the box's colour.
+        Widget box(Key? key, String? when, String text) => Container(
           key: key,
           margin: const EdgeInsets.only(top: 4),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: now ? theme.colorScheme.tertiaryContainer : theme.colorScheme.surfaceContainerLow,
+            color: when != null ? theme.colorScheme.tertiaryContainer : theme.colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(6),
           ),
-          child: Text(text, style: theme.textTheme.bodySmall),
+          child: Text(when == null ? text : '$text\n$when', style: theme.textTheme.bodySmall),
         );
 
         final noticeBoxes = [
           for (final n in notices)
             box(
               null,
-              n.on(DateTime.now()) || days.any(n.on),
+              note(n.on),
               [
                 '${n.titleIn(lang)} (${n.kind == 'closure' ? t.noticesClosure : t.noticesShooting})',
                 [
@@ -70,7 +74,7 @@ class ProtectedAreas extends StatelessWidget {
           for (final a in list)
             box(
               null,
-              a.appliesOn(DateTime.now()) || days.any(a.appliesOn),
+              note(a.appliesOn),
               [
                 '${a.name} (${a.kind == 'wildlife_rest' ? t.areasWildlifeRest : t.areasHuntingReserve}, '
                     '${a.binding ? t.areasBinding : t.areasRecommended})',
@@ -82,10 +86,6 @@ class ProtectedAreas extends StatelessWidget {
               ].join('\n'),
             ),
         ];
-        // What applies now, else on a planned day, is said beside the count.
-        String? note(bool Function(DateTime) on) =>
-            on(DateTime.now()) ? t.areasNow : (days.any(on) ? t.areasOnDate : null);
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

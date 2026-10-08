@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'format.dart';
+import 'l10n/app_localizations.dart';
 
 const _mPerDeg = 111320.0;
 
@@ -98,6 +99,14 @@ class _ElevationProfileState extends State<ElevationProfile> {
 
   double _eleAt(double m) => heightAt(widget.distances, widget.elevations, m);
 
+  /// What the picture shows, for VoiceOver.
+  String? _summary(BuildContext context) =>
+      Localizations.of<AppLocalizations>(context, AppLocalizations)?.elevationSummary(
+        formatDistance(widget.distances.last),
+        formatHeight(widget.elevations.reduce(min)),
+        formatHeight(widget.elevations.reduce(max)),
+      );
+
   @override
   Widget build(BuildContext context) {
     if (widget.distances.length < 2) return const SizedBox.shrink();
@@ -115,19 +124,23 @@ class _ElevationProfileState extends State<ElevationProfile> {
         onTapUp: (_) => setState(() => _touchM = null),
         child: Stack(
           children: [
-            CustomPaint(
-              size: Size(size.maxWidth, widget.height),
-              painter: _ProfilePainter(
-                distances: widget.distances,
-                elevations: widget.elevations,
-                breaks: widget.breaks,
-                markerM: widget.markerM,
-                touchM: touchM,
-                line: scheme.primary,
-                fill: scheme.primary.withValues(alpha: 0.15),
-                grid: scheme.outlineVariant,
-                marker: const Color(0xFF2563EB),
-                label: text.copyWith(color: scheme.onSurfaceVariant),
+            Semantics(
+              image: true,
+              label: _summary(context),
+              child: CustomPaint(
+                size: Size(size.maxWidth, widget.height),
+                painter: _ProfilePainter(
+                  distances: widget.distances,
+                  elevations: widget.elevations,
+                  breaks: widget.breaks,
+                  markerM: widget.markerM,
+                  touchM: touchM,
+                  line: scheme.primary,
+                  fill: scheme.primary.withValues(alpha: 0.15),
+                  grid: scheme.outlineVariant,
+                  marker: const Color(0xFF2563EB),
+                  label: text.copyWith(color: scheme.onSurfaceVariant),
+                ),
               ),
             ),
             if (touchM != null)

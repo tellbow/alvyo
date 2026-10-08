@@ -603,7 +603,7 @@ Future<void> showPlace(BuildContext context, Pin pin, {List<Widget> actions = co
             Text(pin.name.isNotEmpty ? pin.name : placeKindText(t, pin.kind, ''), style: theme.textTheme.titleMedium),
             Text(placeKindText(t, pin.kind, pin.detail), style: theme.textTheme.bodyMedium),
             // No launcher plugin in the app: the address to copy.
-            if (link != null) SelectableText('${t.placeWebsite}: $link', style: theme.textTheme.bodySmall),
+            if (link != null) SelectableText(t.labelled(t.placeWebsite, link), style: theme.textTheme.bodySmall),
             ...actions,
           ],
         ),

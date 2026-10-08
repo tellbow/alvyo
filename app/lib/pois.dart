@@ -124,6 +124,9 @@ class _PoiListState extends State<PoiList> {
                 child: Container(
                   color: identical(_tapped, first) ? theme.colorScheme.secondaryContainer : null,
                   padding: const EdgeInsets.symmetric(vertical: 1),
+                  // Rows to tap while walking: as tall as a finger needs.
+                  constraints: BoxConstraints(minHeight: widget.onTap == null ? 0 : 44),
+                  alignment: Alignment.centerLeft,
                   child: Row(
                     spacing: 6,
                     children: [

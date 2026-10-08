@@ -96,7 +96,7 @@ class _BugReportFrameState extends State<BugReportFrame> {
                   button: true,
                   label: AppLocalizations.of(context).bugOpen,
                   child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                    padding: EdgeInsets.all(12), // 44 pt to tap
                     child: Icon(Icons.bug_report_outlined, size: 20),
                   ),
                 ),

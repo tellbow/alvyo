@@ -33,6 +33,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get errorGeneric => 'Qualcosa è andato storto. Riprova.';
 
   @override
+  String get errorNotFound => 'Non esiste (più): forse è stato eliminato o reso privato.';
+
+  @override
   String get errorServer => 'Il server non è raggiungibile.';
 
   @override
@@ -105,6 +108,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get navNoPermission => 'L\'app ha bisogno della tua posizione. Consentila nelle impostazioni.';
+
+  @override
+  String get gpsOff => 'La localizzazione è disattivata: attivala nelle impostazioni.';
+
+  @override
+  String get recordSaveFailed => 'La registrazione non può essere salvata. La memoria dell’iPhone è piena?';
 
   @override
   String navSaved(String distance, String duration) {
@@ -274,6 +283,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get cancel => 'Annulla';
+
+  @override
+  String labelled(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String elevationSummary(String length, String low, String high) {
+    return 'Profilo altimetrico: $length, da $low a $high';
+  }
 
   @override
   String get stageMarkDone => 'Segna come fatta';
@@ -2039,6 +2058,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get peaksNoPosition => 'La tua posizione non è nota: consenti la localizzazione.';
+
+  @override
+  String get peaksNoCamera => 'Alvyo non può usare la fotocamera: consentila nelle impostazioni.';
 
   @override
   String get peaksNoCompass => 'Questo dispositivo non ha una bussola.';

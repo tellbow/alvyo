@@ -250,6 +250,8 @@ class PrecipBar extends StatelessWidget {
                           value: controller.index.value.clamp(0, tl.frames.length - 1).toDouble(),
                           max: (tl.frames.length - 1).toDouble(),
                           divisions: tl.frames.length > 1 ? tl.frames.length - 1 : null,
+                          // VoiceOver reads the time, not a percentage.
+                          semanticFormatterCallback: (v) => precipTime(tl.frames[v.round()], locale),
                           onChanged: (v) {
                             controller.play(false);
                             controller.index.value = v.round();

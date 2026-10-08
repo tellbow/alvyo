@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../errors.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import 'tiles.dart';
@@ -163,7 +164,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               ),
               if (_found case final found?)
                 if (found.isEmpty) ListTile(title: Text(t.friendsNoneFound)) else for (final f in found) _person(f),
-              if (snap.hasError) ListTile(title: Text(t.errorServer)),
+              if (snap.hasError) ListTile(title: Text(errorText(t, snap.error))),
               if (lists != null) ...[
                 if (lists.incoming.isNotEmpty) ...[
                   ListHeading(t.friendsIncoming),

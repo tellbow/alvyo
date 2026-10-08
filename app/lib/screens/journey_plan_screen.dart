@@ -741,7 +741,10 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   List<Widget> _dayList(AppLocalizations t, List<PlannedStage> stages) {
     final theme = Theme.of(context);
     final small = theme.textTheme.bodySmall;
-    final warn = small?.copyWith(color: Colors.amber.shade900);
+    // A dark amber on light cards (4.5:1), a light one on dark.
+    final warn = small?.copyWith(
+      color: Theme.of(context).brightness == Brightness.dark ? Colors.amber.shade300 : const Color(0xFF8A4B00),
+    );
     final mixed = _mixed;
     return [
       const SizedBox(height: 16),

@@ -27,8 +27,14 @@ class FakeServer {
   var portal = false;
   final files = {'landeskarte': utf8.encode('PMTiles-lk'), 'wanderwege': utf8.encode('PMTiles-ww')};
 
+  /// The state the server answers instead (building, failed).
+  String? state;
+
+  /// The next poll finds no pack (the server restarted).
+  var gone = false;
+
   Map<String, dynamic> status() => {
-    'state': polls < 1 ? 'building' : 'ready',
+    'state': state ?? (polls < 1 ? 'building' : 'ready'),
     'key': key,
     'done': polls < 1 ? 3 : 6,
     'total': 6,
@@ -81,6 +87,10 @@ class FakeServer {
         return http.Response(jsonEncode(status()), 200);
       case ('GET', '/api/v1/routes/r1/pack'):
         polls++;
+        if (gone) {
+          gone = false;
+          return http.Response(jsonEncode({...status(), 'state': 'missing'}), 200);
+        }
         return http.Response(jsonEncode(status()), 200);
       case ('GET', final p) when p.startsWith('/api/v1/routes/r1/pack/'):
         downloads++;
@@ -163,6 +173,24 @@ void main() {
     expect((await store.savedJourney('j1'))!.title, 'Via Alpina, neu');
     expect(await store.savedJourney('nope'), isNull);
     expect(await store.savedRoutes(), isEmpty);
+  });
+
+  test('a build that fails or never ends is given up', () async {
+    final server = FakeServer()..state = 'failed';
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
+    final store = PackStore(root, poll: Duration.zero, maxPolls: 5);
+    await expectLater(store.save(api, 'r1', progress: (_, _) {}), throwsA(isA<ApiException>()));
+    server.state = 'building';
+    await expectLater(store.save(api, 'r1', progress: (_, _) {}), throwsA(isA<ApiException>()));
+    expect(server.polls, 5);
+  });
+
+  test('a pack gone on the server is built again', () async {
+    final server = FakeServer()..gone = true;
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
+    final pack = await PackStore(root, poll: Duration.zero).save(api, 'r1', progress: (_, _) {});
+    expect(server.builds, 2);
+    expect(pack.key, 'route-r1-aaaaaa');
   });
 
   test('a Wi-Fi login page instead of the map is not kept', () async {

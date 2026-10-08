@@ -33,6 +33,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get errorGeneric => 'Etwas ist schiefgelaufen. Bitte versuche es nochmals.';
 
   @override
+  String get errorNotFound => 'Das gibt es nicht (mehr): vielleicht gelöscht oder privat.';
+
+  @override
   String get errorServer => 'Der Server ist nicht erreichbar.';
 
   @override
@@ -105,6 +108,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get navNoPermission => 'Dafür braucht die App deinen Standort. Erlaube ihn in den Einstellungen.';
+
+  @override
+  String get gpsOff => 'Der Standort ist ausgeschaltet: schalte ihn in den Einstellungen ein.';
+
+  @override
+  String get recordSaveFailed => 'Die Aufzeichnung kann nicht gespeichert werden. Ist der Speicher des iPhones voll?';
 
   @override
   String navSaved(String distance, String duration) {
@@ -274,6 +283,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get cancel => 'Abbrechen';
+
+  @override
+  String labelled(String label, String value) {
+    return '$label: $value';
+  }
+
+  @override
+  String elevationSummary(String length, String low, String high) {
+    return 'Höhenprofil: $length, von $low bis $high';
+  }
 
   @override
   String get stageMarkDone => 'Als gewandert markieren';
@@ -1905,7 +1924,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileAccount => 'Konto';
 
   @override
-  String get accountPaceShort => 'Gehzeiten relativ zu den Wegweisern';
+  String get accountPaceShort => 'Wanderzeiten relativ zu den Wegweisern';
 
   @override
   String devicesWatchImported(int count) {
@@ -2041,6 +2060,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get peaksNoPosition => 'Wo du stehst, ist nicht bekannt: erlaube den Standort.';
+
+  @override
+  String get peaksNoCamera => 'Alvyo darf die Kamera nicht benutzen: erlaube sie in den Einstellungen.';
 
   @override
   String get peaksNoCompass => 'Dieses Gerät hat keinen Kompass.';

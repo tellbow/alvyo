@@ -14,8 +14,9 @@ class TabHeader extends StatelessWidget {
     bottom: false,
     child: Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
-      child: SizedBox(
-        height: 48,
+      // At least 48 high; more with large text, not over what follows.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
         child: Row(
           children: [
             Expanded(

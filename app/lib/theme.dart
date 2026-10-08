@@ -45,7 +45,7 @@ ThemeData alvyoTheme(Brightness brightness) {
           outlineVariant: Color(0xFF24312A),
         )
       : const ColorScheme.light(
-          primary: Color(0xFFB4531D),
+          primary: Color(0xFFA94C18), // 4.5:1 also on surfaceContainerHigh, as accent-ink on the web
           onPrimary: Colors.white,
           primaryContainer: Color(0xFFFDEEE3),
           onPrimaryContainer: Color(0xFF6B2E0C),

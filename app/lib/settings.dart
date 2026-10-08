@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'format.dart';
 import 'l10n/app_localizations.dart';
 
 /// Light or dark and the language: the phone's unless chosen in the
-/// profile, remembered in the Keychain like the session.
+/// profile, remembered in the Keychain like the session; and the pace.
 class AppSettings {
   AppSettings({FlutterSecureStorage? storage}) : _storage = storage ?? const FlutterSecureStorage();
 
@@ -28,9 +29,12 @@ class AppSettings {
       final l = await _storage.read(key: 'locale');
       locale.value = AppLocalizations.supportedLocales.where((s) => s.languageCode == l).firstOrNull;
       watchAutoSince.value = DateTime.tryParse(await _storage.read(key: 'watch-auto') ?? '');
+      // The account's pace as last known, for hikes started offline.
+      if (double.tryParse(await _storage.read(key: 'pace') ?? '') case final pace?) hikerPace.value = pace;
     } on Object {
       // no Keychain (tests): the phone's
     }
+    hikerPace.addListener(() => _write('pace', hikerPace.value == 1 ? null : '${hikerPace.value}'));
   }
 
   Future<void> setTheme(ThemeMode m) async {

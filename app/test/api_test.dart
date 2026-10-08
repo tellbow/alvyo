@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +7,12 @@ import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 
 void main() {
+  test('a request without an answer gives up instead of hanging', () async {
+    final never = MockClient((_) => Completer<http.Response>().future);
+    final api = Api('https://alvyo.test', client: never, timeout: const Duration(milliseconds: 50));
+    await expectLater(api.routes(), throwsA(isA<TimeoutException>()));
+  });
+
   const totals = {
     'distance_m': 1500.0,
     'ascent_m': 120.0,

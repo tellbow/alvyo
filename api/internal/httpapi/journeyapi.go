@@ -441,10 +441,6 @@ func registerJourneys(api huma.API, d Deps) {
 			if st.Route == nil {
 				continue
 			}
-			r, err := d.Routes.Get(ctx, uuid.MustParse(st.Route.ID))
-			if err != nil {
-				return nil, err
-			}
 			name := stageTitle(j, i)
 			f, err := zw.Create(fmt.Sprintf("%02d-%s", i+1, gpx.Filename(name)))
 			if err != nil {
@@ -452,7 +448,7 @@ func registerJourneys(api huma.API, d Deps) {
 			}
 			if err := gpx.Write(f, gpx.Track{
 				Name: name, Author: j.OwnerUsername, Link: d.PublicURL + "/journeys/" + j.ID,
-				Points: r.Line(), Time: r.UpdatedAt,
+				Points: st.FullLine(), Time: j.UpdatedAt, // the lines the journey has loaded already
 			}); err != nil {
 				return nil, err
 			}

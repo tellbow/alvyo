@@ -26,7 +26,9 @@ test('suggest several ways, change ways at a shared night, create the journey', 
 		.click();
 	await expect(page.getByTestId('plan-point')).toHaveCount(2);
 
-	await panel.getByLabel('Tage', { exact: true }).fill('5');
+	// Eight days: the ways share nights (with five they no longer did on the
+	// places and graph of October 2026).
+	await panel.getByLabel('Tage', { exact: true }).fill('8');
 	await panel.getByRole('button', { name: 'Mehrere Wege vorschlagen' }).click();
 	const ways = page.getByTestId('plan-way');
 	await expect(ways.nth(1)).toBeVisible({ timeout: 60_000 });

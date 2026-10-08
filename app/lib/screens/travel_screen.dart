@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
-import '../errors.dart';
+import 'error_state.dart';
 import '../api.dart';
 import '../camera.dart';
 import '../format.dart';
@@ -353,7 +353,9 @@ class _TravelScreenState extends State<TravelScreen> {
               child: FutureBuilder(
                 future: _homes,
                 builder: (context, snap) {
-                  if (snap.hasError) return Center(child: Text(errorText(t, snap.error)));
+                  if (snap.hasError) {
+                    return ErrorState(error: snap.error, onRetry: () => setState(() => _homes = widget.api.homes()));
+                  }
                   final homes = snap.data;
                   if (homes == null) return const Center(child: CircularProgressIndicator());
                   return ListView(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
-import '../errors.dart';
+import 'error_state.dart';
 import '../api.dart';
 import '../breakdown.dart';
 import '../bug_report.dart';
@@ -481,7 +481,9 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
       body: FutureBuilder(
         future: _route,
         builder: (context, snap) {
-          if (snap.hasError) return Center(child: Text(errorText(t, snap.error)));
+          if (snap.hasError) {
+            return ErrorState(error: snap.error, onRetry: () => setState(() => _route = _load()));
+          }
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final r = snap.data!;
           final pack = _pack;

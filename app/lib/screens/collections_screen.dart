@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../errors.dart';
+import 'error_state.dart';
 import '../api.dart';
 import '../bug_report.dart';
 import '../l10n/app_localizations.dart';
@@ -208,7 +209,10 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
             ],
           ),
           body: switch (snap) {
-            _ when snap.hasError => Center(child: Text(errorText(t, snap.error))),
+            _ when snap.hasError => ErrorState(
+              error: snap.error,
+              onRetry: () => setState(() => _collection = widget.api.collection(widget.id)),
+            ),
             _ when c == null => const Center(child: CircularProgressIndicator()),
             _ => RefreshIndicator(
               onRefresh: () async {

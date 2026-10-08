@@ -124,3 +124,36 @@ test('the planners are one switch apart', async ({ page }) => {
 	await page.getByTestId('plan-tabs').getByRole('link', { name: 'Route' }).click();
 	await expect(page).toHaveURL(/\/plan$/);
 });
+
+test('the points of a journey move up and down, as in the route planner', async ({ page }) => {
+	const id = `jmov${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	await signUp(page.request, {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Ordnerin',
+			password: 'sehr-geheim-123'
+		}
+	});
+	await page.goto('/journeys/plan');
+	const panel = page.getByTestId('journey-plan-panel');
+	await panel.getByLabel('Start suchen …').fill('Thun');
+	await panel.getByRole('option', { name: /^Thun/ }).first().click();
+	await panel.getByLabel('Ziel suchen …').fill('Zermatt');
+	await panel
+		.getByRole('option', { name: /^Zermatt/ })
+		.first()
+		.click();
+	const rows = page.getByTestId('plan-points').getByRole('listitem');
+	await expect(rows.first()).toContainText('Thun');
+	await expect(rows.first().getByRole('button', { name: /Nach oben/ })).toBeDisabled();
+
+	await rows.nth(1).getByRole('button', { name: 'Zermatt: Nach oben' }).click();
+	await expect(rows.first()).toContainText('Zermatt');
+	await expect(rows.nth(1)).toContainText('Thun');
+	await rows
+		.first()
+		.getByRole('button', { name: /Nach unten/ })
+		.click();
+	await expect(rows.first()).toContainText('Thun');
+});

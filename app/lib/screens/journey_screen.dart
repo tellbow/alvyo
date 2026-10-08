@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../errors.dart';
+import 'error_state.dart';
 import '../api.dart';
 import '../bug_report.dart';
 import '../elevation_profile.dart';
@@ -342,7 +342,9 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
       body: FutureBuilder(
         future: _journey,
         builder: (context, snap) {
-          if (snap.hasError) return Center(child: Text(errorText(t, snap.error)));
+          if (snap.hasError) {
+            return ErrorState(error: snap.error, onRetry: () => setState(() => _journey = _load()));
+          }
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final j = snap.data!;
           final routed = [for (final s in j.stages) ?s.routeId];

@@ -145,6 +145,14 @@
 		reset();
 	}
 
+	/** Point i one place up or down, as in the route planner. */
+	function movePoint(i: number, to: number) {
+		const next = [...points];
+		[next[i], next[to]] = [next[to], next[i]];
+		points = next;
+		reset();
+	}
+
 	// Point markers, drawn anew when the points change.
 	$effect(() => {
 		if (!map || !lib) return;
@@ -355,6 +363,28 @@
 							>
 							<span class="min-w-0 flex-1 truncate" class:text-stone-500={!p.name}
 								>{p.name ?? m.plan_point_map()}</span
+							>
+							<button
+								type="button"
+								class="icon-button"
+								aria-label={m.plan_point_action({
+									point: p.name ?? m.plan_point_map(),
+									action: m.plan_point_up()
+								})}
+								title={m.plan_point_up()}
+								disabled={i === 0}
+								onclick={() => movePoint(i, i - 1)}>↑</button
+							>
+							<button
+								type="button"
+								class="icon-button"
+								aria-label={m.plan_point_action({
+									point: p.name ?? m.plan_point_map(),
+									action: m.plan_point_down()
+								})}
+								title={m.plan_point_down()}
+								disabled={i === points.length - 1}
+								onclick={() => movePoint(i, i + 1)}>↓</button
 							>
 							<button
 								type="button"

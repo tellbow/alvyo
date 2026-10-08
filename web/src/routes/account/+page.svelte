@@ -4,7 +4,6 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
-	import AuthCard from '$lib/components/AuthCard.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import { m } from '$lib/paraglide/messages';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -70,7 +69,9 @@
 
 <Seo title={m.account_title()} index={false} />
 
-<AuthCard title={m.account_title()}>
+<!-- A content page like the others, wider than the login's card. -->
+<main class="mx-auto w-full max-w-2xl overflow-y-auto px-4 py-8">
+	<h1 class="mb-6 text-2xl font-semibold text-stone-900">{m.account_title()}</h1>
 	<OidcNotice />
 	<p class="text-stone-600">{data.user?.username} · {data.user?.email}</p>
 
@@ -184,4 +185,4 @@
 			>{m.account_delete_submit()}</button
 		>
 	</form>
-</AuthCard>
+</main>

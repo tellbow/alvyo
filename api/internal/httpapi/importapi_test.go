@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/tellbow/alvyo/api/internal/imports"
 	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/geo"
 )
 
 // upload posts a multipart form with a file.
@@ -430,5 +432,38 @@ func TestImportStages(t *testing.T) {
 	}
 	if code, _ := c.upload("/api/v1/imports/stages", "weg.gpx", planned, "days", "2", "ends", "nope"); code != http.StatusUnprocessableEntity {
 		t.Errorf("bad end: %d", code)
+	}
+}
+
+// offLineSampler has no elevations north of the line: the way to a place
+// beside it fails, the line itself does not.
+type offLineSampler struct{}
+
+func (offLineSampler) Sample(_ context.Context, pts []geo.Point) ([]float64, error) {
+	for _, p := range pts {
+		if p.Lat > 46.6602 {
+			return nil, errors.New("geo.admin down")
+		}
+	}
+	return make([]float64, len(pts)), nil
+}
+
+// The way to a night's place failing for elevations is a 503 to retry, as
+// in the planner, not an internal error.
+func TestImportStagesElevationDown(t *testing.T) {
+	gh := straightGraphHopper(t)
+	s := newTestServerWith(t, func(d *Deps) {
+		router := &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh}, Elevation: offLineSampler{}, Trails: &routing.TrailMatcher{DB: d.DB}}
+		d.Importer = &imports.Importer{Router: router, Routes: d.Routes, Journeys: d.Journeys}
+	})
+	if _, err := s.db.Exec(context.Background(), `INSERT INTO places (kind, name, source, source_id, geom)
+		VALUES ('hotel', 'Gasthaus', 'osm', 'g', ST_SetSRID(ST_MakePoint(8.045, 46.6605), 4326))`); err != nil {
+		t.Fatal(err)
+	}
+	c := s.client(t)
+	s.signup(c, "down@example.ch", "down")
+	planned := gpxDoc(line("Weg", 8.0, 46.66, 91))
+	if code, body := c.upload("/api/v1/imports/stages", "weg.gpx", planned, "days", "2"); code != http.StatusServiceUnavailable {
+		t.Errorf("elevations down: %d %s", code, body)
 	}
 }

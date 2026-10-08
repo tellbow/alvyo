@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../api.dart';
@@ -7,9 +8,12 @@ import '../session.dart';
 
 /// Log in to an Alvyo server; signing up and a forgotten password on its website.
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.session, required this.onLoggedIn});
+  const LoginScreen({super.key, required this.session, required this.onLoggedIn, this.client});
   final Session session;
   final void Function(Api api) onLoggedIn;
+
+  /// For tests: the server's answers.
+  final http.Client? client;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -42,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _busy = true;
       _error = null;
     });
-    final api = Api(_server.text.trim());
+    final api = Api(_server.text.trim(), client: widget.client);
     try {
       await api.login(_login.text.trim(), _password.text);
       await widget.session.save(api);

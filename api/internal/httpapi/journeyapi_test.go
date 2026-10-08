@@ -6,7 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -194,7 +196,12 @@ func TestJourneyAPI(t *testing.T) {
 	}
 	zr, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
 	if err != nil || len(zr.File) != 2 || zr.File[0].Name != "01-etappe-1.gpx" {
-		t.Errorf("zip: %v %d files", err, len(zr.File))
+		t.Fatalf("zip: %v %d files", err, len(zr.File))
+	}
+	if f, err := zr.File[0].Open(); err != nil {
+		t.Error(err)
+	} else if b, _ := io.ReadAll(f); strings.Count(string(b), "<trkpt") < 2 {
+		t.Errorf("stage GPX without its line: %.300s", b)
 	}
 
 	// A new link: the old one opens neither the journey nor its stages.

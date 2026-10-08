@@ -40,10 +40,14 @@ test('a leg much longer by hiking offers the alpine way', async ({ page }) => {
 	await expect(hint).toContainText('Der kürzere Weg führt über T4.');
 	await hint.getByRole('button', { name: 'Diesen Abschnitt alpin planen' }).click();
 
-	// Routed with the alpine profile, along the trail.
+	// Routed with the alpine profile, along the trail. (The leg was «ok»
+	// before the click too: wait for the new state, routing can be slow
+	// while the other tests run.)
 	const leg0 = page.getByTestId('leg').first();
+	await expect(page.getByTestId('leg-alpine-used')).toHaveText(/Mit «Alpinwandern» geplant\./, {
+		timeout: 30_000
+	});
 	await expect(leg0).toHaveAttribute('data-state', 'ok', { timeout: 30_000 });
-	await expect(page.getByTestId('leg-alpine-used')).toHaveText(/Mit «Alpinwandern» geplant\./);
 	await expect(leg0).toContainText(/^1\s+1\.1\skm/);
 	await page
 		.getByTestId('leg-alpine-used')

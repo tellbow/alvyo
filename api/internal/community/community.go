@@ -24,6 +24,7 @@ var (
 	ErrForbidden   = errors.New("community: not allowed")
 	ErrCommentsOff = errors.New("community: comments are switched off")
 	ErrBlocked     = errors.New("community: blocked")
+	ErrStaff       = errors.New("community: moderators and admins are not banned from a report")
 )
 
 // MaxComments is how many comments an item shows (the oldest).

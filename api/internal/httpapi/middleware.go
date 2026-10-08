@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"time"
 
@@ -26,6 +27,17 @@ const (
 // clientIP returns the caller's IP as determined by withClientIP.
 func clientIP(ctx context.Context) string {
 	ip, _ := ctx.Value(ipKey).(string)
+	return ip
+}
+
+// limitKey is the caller's address for per-address limits: an IPv6
+// address by its /64, which one connection usually has all of.
+func limitKey(ctx context.Context) string {
+	ip := clientIP(ctx)
+	if a, err := netip.ParseAddr(ip); err == nil && a.Is6() && !a.Is4In6() {
+		p, _ := a.Prefix(64)
+		return p.String()
+	}
 	return ip
 }
 

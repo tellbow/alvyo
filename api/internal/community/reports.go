@@ -143,7 +143,15 @@ func (s *Store) Resolve(ctx context.Context, id, moderator uuid.UUID, resolution
 			_, err = tx.Exec(ctx, `UPDATE `+kind+`s SET visibility = 'private', version = version + 1, updated_at = now()
 				WHERE id = $1`, target)
 		case "user":
-			err = admin.BanUser(ctx, tx, target)
+			// A moderator banning an admin (or another moderator) would
+			// leave only the CLI to undo it.
+			var role string
+			if err = tx.QueryRow(ctx, `SELECT role FROM users WHERE id = $1`, target).Scan(&role); err == nil {
+				if role != "user" {
+					return ErrStaff
+				}
+				err = admin.BanUser(ctx, tx, target)
+			}
 		}
 		if err != nil {
 			return err

@@ -173,7 +173,7 @@ func registerOIDC(api huma.API, d Deps) {
 		if locale != "de" && locale != "en" && locale != "fr" && locale != "it" {
 			locale = "de"
 		}
-		allowNew := func() bool { return d.Limits.SignupIP.Allow(clientIP(ctx)) }
+		allowNew := func() bool { return d.Limits.SignupIP.Allow(limitKey(ctx)) }
 		u, s, err := d.Auth.IdentityLogin(ctx, id, locale, in.UserAgent, allowNew)
 		switch {
 		case errors.Is(err, auth.ErrSignupLimit):

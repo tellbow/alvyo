@@ -168,7 +168,7 @@ func registerPasskeys(api huma.API, d Deps) {
 		if err := off(); err != nil {
 			return nil, err
 		}
-		if !d.Limits.LoginIP.Allow(clientIP(ctx)) {
+		if !d.Limits.LoginIP.Allow(limitKey(ctx)) {
 			return nil, errTooMany
 		}
 		out := &passkeyLoginBeginOutput{}

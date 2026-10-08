@@ -283,6 +283,15 @@ func TestCommunity(t *testing.T) {
 		t.Errorf("follow after being unblocked: %d", code)
 	}
 
+	// A moderator is not banned from a report.
+	report(fan, map[string]any{"kind": "user", "username": "mod", "reason": "spam"})
+	_, body = mod.do("GET", "/api/v1/moderation/reports", nil)
+	_ = json.Unmarshal(body, &queue)
+	if code, _ := mod.do("POST", "/api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "removed"}); code != http.StatusUnprocessableEntity {
+		t.Errorf("banning a moderator: %d", code)
+	}
+	mod.do("POST", "/api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "dismissed"})
+
 	// Reporting a user and removing bans them.
 	report(fan, map[string]any{"kind": "user", "username": "troll", "reason": "spam"})
 	_, body = mod.do("GET", "/api/v1/moderation/reports", nil)

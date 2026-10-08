@@ -154,7 +154,8 @@ func registerLive(api huma.API, d Deps) {
 		if u.EmailVerifiedAt == nil {
 			return nil, huma.Error403Forbidden("confirm your e-mail address first")
 		}
-		if !d.Limits.Invite.Allow(u.ID.String()) {
+		// Each contact gets an e-mail.
+		if !d.Limits.Invite.AllowN(u.ID.String(), max(1, len(in.Body.ContactIDs))) {
 			return nil, errTooMany
 		}
 		st := live.Start{Title: strings.TrimSpace(in.Body.Title), ExpectedEnd: in.Body.ExpectedEnd, RouteID: optionalID(in.Body.RouteID)}

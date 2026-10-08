@@ -252,6 +252,11 @@ func TestLoginRateLimit(t *testing.T) {
 	if last != http.StatusTooManyRequests {
 		t.Errorf("5th attempt: %d, want 429", last)
 	}
+	// Someone else guessing dora's password does not lock dora out.
+	ctx := context.WithValue(context.Background(), ipKey, "198.51.100.9")
+	if !lim.LoginAccount.Allow("dora " + limitKey(ctx)) {
+		t.Error("dora locked out from her own address")
+	}
 }
 
 func TestPasswordResetFlow(t *testing.T) {

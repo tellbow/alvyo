@@ -149,6 +149,8 @@ func communityError(err error) error {
 		return huma.Error403Forbidden("comments are switched off here")
 	case errors.Is(err, community.ErrBlocked):
 		return huma.Error403Forbidden("the owner blocked you")
+	case errors.Is(err, community.ErrStaff):
+		return huma.Error422UnprocessableEntity("moderators and admins are not banned from a report")
 	}
 	return err
 }

@@ -50,7 +50,7 @@ type Limits struct {
 func DefaultLimits() Limits {
 	return Limits{
 		LoginIP:         ratelimit.New(6*time.Second, 20), // 10/min sustained
-		LoginAccount:    ratelimit.New(30*time.Second, 5), // 2/min per account
+		LoginAccount:    ratelimit.New(30*time.Second, 5), // 2/min per account and address: others cannot lock one out
 		SignupIP:        ratelimit.New(10*time.Minute, 5),
 		ForgotIP:        ratelimit.New(10*time.Minute, 5),
 		ForgotEmail:     ratelimit.New(20*time.Minute, 3),
@@ -202,7 +202,7 @@ func registerAuth(api huma.API, d Deps) {
 		if in.Body.Website != "" {
 			return nil, huma.Error400BadRequest("invalid request")
 		}
-		if !lim.SignupIP.Allow(clientIP(ctx)) {
+		if !lim.SignupIP.Allow(limitKey(ctx)) {
 			return nil, errTooMany
 		}
 		u, sess, err := svc.Signup(ctx, auth.SignupInput{
@@ -230,7 +230,7 @@ func registerAuth(api huma.API, d Deps) {
 		Summary: "Log in with e-mail or username", Tags: tags,
 	}, func(ctx context.Context, in *loginInput) (*sessionOutput, error) {
 		login := strings.ToLower(strings.TrimSpace(in.Body.Login))
-		if !lim.LoginIP.Allow(clientIP(ctx)) || !lim.LoginAccount.Allow(login) {
+		if !lim.LoginIP.Allow(limitKey(ctx)) || !lim.LoginAccount.Allow(login+" "+limitKey(ctx)) {
 			return nil, errTooMany
 		}
 		u, sess, err := svc.Login(ctx, login, in.Body.Password, in.UserAgent)
@@ -293,7 +293,7 @@ func registerAuth(api huma.API, d Deps) {
 		Tags: tags, DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *forgotInput) (*struct{}, error) {
 		email := strings.ToLower(strings.TrimSpace(in.Body.Email))
-		if !lim.ForgotIP.Allow(clientIP(ctx)) || !lim.ForgotEmail.Allow(email) {
+		if !lim.ForgotIP.Allow(limitKey(ctx)) || !lim.ForgotEmail.Allow(email) {
 			return nil, errTooMany
 		}
 		return nil, svc.ForgotPassword(ctx, email)
@@ -304,7 +304,7 @@ func registerAuth(api huma.API, d Deps) {
 		Summary: "Set a new password with a reset token; ends all sessions", Tags: tags,
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *resetInput) (*struct{}, error) {
-		if !lim.ResetIP.Allow(clientIP(ctx)) {
+		if !lim.ResetIP.Allow(limitKey(ctx)) {
 			return nil, errTooMany
 		}
 		if err := svc.ResetPassword(ctx, in.Body.Token, in.Body.Password); errors.Is(err, auth.ErrInvalidToken) {

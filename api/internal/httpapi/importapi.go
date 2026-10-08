@@ -193,8 +193,13 @@ func registerImports(api huma.API, d Deps) {
 		Summary: "The tracks in a GPX, KML, TCX or FIT file", Tags: tags,
 		MaxBodyBytes: imports.MaxFileBytes + 1<<20,
 	}, func(ctx context.Context, in *importPreviewInput) (*importPreviewOutput, error) {
-		if _, err := requireUser(ctx); err != nil {
+		u, err := requireUser(ctx)
+		if err != nil {
 			return nil, err
+		}
+		// Reading a file of up to 20 MB is not free either.
+		if !d.Limits.Search.Allow(u.ID.String()) {
+			return nil, errTooMany
 		}
 		format, tracks, err := parse(in.RawBody.Data().File)
 		if err != nil {

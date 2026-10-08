@@ -1,0 +1,24 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"config:recommended",
+		"helpers:pinGitHubActionDigests",
+		"docker:pinDigests"
+	],
+	"timezone": "Europe/Zurich",
+	"schedule": ["before 6am on monday"],
+	"minimumReleaseAge": "7 days",
+	"postUpdateOptions": ["gomodTidy"],
+	"packageRules": [
+		{ "matchManagers": ["gomod"], "groupName": "go modules" },
+		{ "matchManagers": ["bun", "npm"], "groupName": "web dependencies" },
+		{ "matchManagers": ["pub"], "groupName": "app dependencies" },
+		{ "matchManagers": ["github-actions"], "groupName": "github actions" },
+		{ "matchManagers": ["dockerfile", "docker-compose"], "groupName": "images" },
+		{
+			"description": "Small updates merge themselves once CI is green",
+			"matchUpdateTypes": ["patch", "digest", "pinDigest"],
+			"automerge": true
+		}
+	]
+}

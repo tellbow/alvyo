@@ -1,18 +1,21 @@
 name: release
 
 # A version tag (v0.1.0) publishes all images to GHCR for amd64 and arm64,
-# tagged 0.1.0 and sha-<commit>.
+# tagged 0.1.0 and sha-<commit>, each with an SBOM and its provenance; then a
+# GitHub Release with the version's row of docs/plan.md as its notes.
 on:
   push:
     tags: ['v*']
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -23,23 +26,25 @@ jobs:
           - { name: graphhopper, context: infra/graphhopper, file: infra/graphhopper/Dockerfile }
           - { name: data-import, context: infra/data-import, file: infra/data-import/Dockerfile }
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # api and web cross-compile; the others run apt/curl under emulation.
-      - uses: docker/setup-qemu-action@v4
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ghcr.io/${{ github.repository_owner }}/alvyo-${{ matrix.name }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.file }}
@@ -51,3 +56,38 @@ jobs:
           build-args: VERSION=${{ steps.meta.outputs.version }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+          # What is in the image and how it was built, pushed with it
+          # (docker buildx imagetools inspect … --format '{{json .SBOM}}').
+          sbom: true
+          provenance: mode=max
+
+  release:
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Notes from docs/plan.md
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          # The version's row (| 0.29.1 | date | what |), else the tag's message.
+          what=$(awk -F ' [|] ' -v v="$v" '$1 == "| " v { sub(/ [|]$/, "", $3); print $3 }' docs/plan.md)
+          [ -n "$what" ] || what=$(git for-each-ref "refs/tags/$GITHUB_REF_NAME" --format='%(contents)')
+          prev=$(git describe --tags --abbrev=0 "$GITHUB_REF_NAME^" 2>/dev/null || true)
+          {
+            echo "$what"
+            echo
+            echo "Images: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/alvyo-{api,web,data-import,postgis,graphhopper}:$v\`"
+            if [ -n "$prev" ]; then
+              echo
+              echo "Changes: https://github.com/${GITHUB_REPOSITORY}/compare/$prev...$GITHUB_REF_NAME"
+            fi
+          } > notes.md
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --title "Alvyo ${GITHUB_REF_NAME#v}" --notes-file notes.md

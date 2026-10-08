@@ -1,5 +1,6 @@
 name: alvyo
 
+# Ports on this machine only: not reachable from a shared network.
 services:
   db:
     build: ./postgis
@@ -8,7 +9,7 @@ services:
       POSTGRES_USER: odysgeh
       POSTGRES_PASSWORD: odysgeh
       POSTGRES_DB: odysgeh
-    ports: ["5432:5432"]
+    ports: ["127.0.0.1:5432:5432"]
     volumes: [pgdata:/var/lib/postgresql]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U odysgeh -d odysgeh"]
@@ -18,7 +19,7 @@ services:
 
   tilecache:
     image: nginx:1.30-alpine
-    ports: ["8081:8080"]
+    ports: ["127.0.0.1:8081:8080"]
     volumes:
       - ./tilecache/nginx.conf:/etc/nginx/nginx.conf:ro
       - tilecache:/var/cache/nginx
@@ -33,7 +34,7 @@ services:
     image: alvyo-graphhopper:11.0
     environment:
       JAVA_OPTS: "-Xms1g -Xmx6g"
-    ports: ["8989:8989"]
+    ports: ["127.0.0.1:8989:8989"]
     volumes:
       - ./data/osm:/data/osm:ro
       - ./data/graph-cache:/data/graph-cache
@@ -108,8 +109,8 @@ services:
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "8025:8025" # web UI + API
-      - "1025:1025" # SMTP
+      - "127.0.0.1:8025:8025" # web UI + API
+      - "127.0.0.1:1025:1025" # SMTP
 
 # Named from before the rename to alvyo, so the data stays; the database
 # itself is still called odysgeh.

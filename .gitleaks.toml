@@ -1,0 +1,8 @@
+# gitleaks (CI job «secrets»): the default rules, without the throwaway
+# passwords of tests.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Passwords and tokens made up for tests"
+paths = ['''_test\.go$''', '''^web/tests/''', '''\.spec\.ts$''', '''^app/(test|integration_test)/''']

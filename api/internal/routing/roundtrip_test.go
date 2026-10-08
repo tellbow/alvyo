@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/tellbow/alvyo/api/internal/testdb"
@@ -15,10 +16,13 @@ import (
 // Out uphill, back down: a path due east, a node every 0.005° (about
 // 380 m), 10 minutes a node out and 5 back.
 func TestReachBack(t *testing.T) {
+	var mu sync.Mutex // both ways are asked for at once
 	var asked []string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
+		mu.Lock()
 		asked = append(asked, r.URL.Path+" reverse="+q.Get("reverse_flow")+" limit="+q.Get("time_limit"))
+		mu.Unlock()
 		minutes := 10.0
 		if q.Get("reverse_flow") == "true" {
 			minutes = 5

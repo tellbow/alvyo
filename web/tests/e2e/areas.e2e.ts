@@ -1,9 +1,10 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
 test('a route through a wildlife rest area says so, with its rules', async ({ page }) => {
 	const id = `wrz${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -11,7 +12,7 @@ test('a route through a wildlife rest area says so, with its rules', async ({ pa
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	// 8.01 to 8.04 at 46.665: through the Grindelwald rest area Spilmatten-Reetihorn
 	// (geo.admin's identify service, as in production).
 	const res = await page.request.post('/api/v1/routes', {

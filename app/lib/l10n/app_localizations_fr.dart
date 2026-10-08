@@ -48,6 +48,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get logout => 'Se déconnecter';
 
   @override
+  String get loginUnverified => 'Confirme d’abord ton adresse e-mail. Nous t’avons envoyé un nouveau lien.';
+
+  @override
+  String get logoutOthers => 'Se déconnecter sur tous les autres appareils';
+
+  @override
+  String get logoutOthersDone => 'Les autres appareils sont déconnectés.';
+
+  @override
   String get offlineSave => 'Enregistrer hors ligne';
 
   @override

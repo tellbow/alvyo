@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('huts overlay: a hut popup adds the hut to the planned route', async ({ page, context }) => {
@@ -28,7 +29,7 @@ test('huts overlay: a hut popup adds the hut to the planned route', async ({ pag
 		});
 	});
 	const id = `huts${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -36,7 +37,7 @@ test('huts overlay: a hut popup adds the hut to the planned route', async ({ pag
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/plan');
 	const map = page.getByTestId('map');

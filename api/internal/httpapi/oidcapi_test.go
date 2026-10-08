@@ -171,7 +171,7 @@ func TestOIDC(t *testing.T) {
 
 	// An existing e-mail address is not taken over.
 	owner := s.browser(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("alt@example.ch", "alt"))
+	s.signup(owner, "alt@example.ch", "alt")
 	existing := map[string]any{"sub": "u-2", "email": "alt@example.ch", "email_verified": true}
 	stranger := s.browser(t)
 	if to := signIn(stranger, "/api/v1/auth/oidc/test/start", existing); to != origin+"/login?oidc=exists" {

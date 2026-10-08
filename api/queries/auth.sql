@@ -29,7 +29,8 @@ FROM sessions JOIN users ON users.id = sessions.user_id
 WHERE sessions.token_hash = $1 AND sessions.expires_at > now();
 
 -- name: ExtendSession :exec
-UPDATE sessions SET expires_at = $2, last_seen_at = now() WHERE token_hash = $1;
+-- Never past SessionMaxAge (180 days) after the login.
+UPDATE sessions SET expires_at = least($2, created_at + interval '180 days'), last_seen_at = now() WHERE token_hash = $1;
 
 -- name: DeleteSession :exec
 DELETE FROM sessions WHERE token_hash = $1;

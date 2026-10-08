@@ -11,8 +11,8 @@ import (
 func TestTravel(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	anna, bea := s.client(t), s.client(t)
-	anna.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna"))
-	bea.do("POST", "/api/v1/auth/signup", signupBody("bea@example.ch", "bea"))
+	s.signup(anna, "anna@example.ch", "anna")
+	s.signup(bea, "bea@example.ch", "bea")
 	if _, err := s.db.Exec(t.Context(), `UPDATE users SET email_verified_at = now()`); err != nil {
 		t.Fatal(err)
 	}

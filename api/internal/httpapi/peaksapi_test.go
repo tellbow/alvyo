@@ -32,7 +32,7 @@ func TestPeaksPack(t *testing.T) {
 		t.Errorf("anonymous: %d", code)
 	}
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna"))
+	s.signup(c, "anna@example.ch", "anna")
 	code, body := c.do("GET", "/api/v1/peaks/pack", nil)
 	for end := time.Now().Add(time.Minute); code == http.StatusServiceUnavailable && time.Now().Before(end); {
 		time.Sleep(200 * time.Millisecond)

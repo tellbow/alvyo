@@ -59,6 +59,13 @@
 			error = m.error_generic();
 		}
 	}
+
+	// A lost phone or a browser elsewhere: all sessions but this one end.
+	let loggedOut = $state(false);
+	async function logoutOthers() {
+		const { response } = await api().POST('/auth/logout-others');
+		loggedOut = response.ok;
+	}
 </script>
 
 <Seo title={m.account_title()} index={false} />
@@ -68,6 +75,20 @@
 	<p class="text-stone-600">{data.user?.username} · {data.user?.email}</p>
 
 	{#if data.user}<SignInMethods user={data.user} />{/if}
+
+	<h2 class="mt-8 text-lg font-semibold">{m.account_sessions_title()}</h2>
+	<p class="mt-1 text-sm text-stone-600">{m.account_sessions_hint()}</p>
+	<div class="mt-2 flex flex-wrap items-center gap-3">
+		<button
+			type="button"
+			class="rounded-md border border-stone-400 px-3 py-1.5 text-sm hover:bg-stone-100"
+			onclick={logoutOthers}
+			data-testid="logout-others">{m.account_logout_others()}</button
+		>
+		<p role="status" class="text-sm text-accent-ink">
+			{loggedOut ? m.account_logout_others_done() : ''}
+		</p>
+	</div>
 
 	<h2 class="mt-8 text-lg font-semibold">{m.account_pace()}</h2>
 	<p class="mt-1 text-sm text-stone-600">{m.account_pace_hint()}</p>

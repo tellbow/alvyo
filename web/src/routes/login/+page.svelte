@@ -4,7 +4,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
+	import { api, errorLocations } from '$lib/api/client';
 	import AuthCard from '$lib/components/AuthCard.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import { m } from '$lib/paraglide/messages';
@@ -42,7 +42,7 @@
 	async function submit(e: SubmitEvent) {
 		e.preventDefault();
 		busy = true;
-		const { response } = await api().POST('/auth/login', { body: { login, password } });
+		const { response, error: err } = await api().POST('/auth/login', { body: { login, password } });
 		busy = false;
 		if (response.ok) {
 			await invalidateAll();
@@ -51,6 +51,8 @@
 			await goto(safeRedirect(page.url.searchParams.get('redirect')));
 		} else if (response.status === 401) {
 			error = m.login_invalid();
+		} else if (response.status === 403 && errorLocations(err).includes('body.login')) {
+			error = m.login_unverified(); // and a new link is on its way
 		} else if (response.status === 429) {
 			error = m.error_too_many();
 		} else {

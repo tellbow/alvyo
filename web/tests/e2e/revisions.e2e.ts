@@ -1,9 +1,10 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
 test('an earlier version of a route is shown and restored', async ({ page }) => {
 	const id = `rev${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -11,7 +12,7 @@ test('an earlier version of a route is shown and restored', async ({ page }) => 
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	// 150 m, then saved again as 300 m.
 	const created = await page.request.post('/api/v1/routes', {
 		data: { title: 'Gratweg', visibility: 'private', ...routeContent(8.04, 46.665, 4) }

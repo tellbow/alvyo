@@ -40,7 +40,7 @@ func TestConnections(t *testing.T) {
 	if code, _ := c.do("GET", q, nil); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("pt@example.ch", "pendler"))
+	s.signup(c, "pt@example.ch", "pendler")
 	if code, _ := c.do("GET", q, nil); code != http.StatusServiceUnavailable {
 		t.Errorf("not configured: %d", code)
 	}
@@ -48,7 +48,7 @@ func TestConnections(t *testing.T) {
 	fake := &fakePlanner{}
 	s2 := newTestServerWith(t, func(d *Deps) { d.Planner = fake })
 	c2 := s2.client(t)
-	c2.do("POST", "/api/v1/auth/signup", signupBody("pt@example.ch", "pendler"))
+	s2.signup(c2, "pt@example.ch", "pendler")
 	code, body := c2.do("GET", q, nil)
 	var out struct {
 		Trips []struct {
@@ -95,7 +95,7 @@ func TestConnectionsFromAPosition(t *testing.T) {
 	fake := &fakePlanner{}
 	s := newTestServerWith(t, func(d *Deps) { d.Planner = fake })
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("pt@example.ch", "pendler"))
+	s.signup(c, "pt@example.ch", "pendler")
 	q := "/api/v1/connections?from=7.6197,46.764&from_name=Zuhause&to=8507483&date=2026-07-04&time=06:00&lines=true"
 	if code, body := c.do("GET", q, nil); code != http.StatusOK {
 		t.Fatalf("%d %s", code, body)

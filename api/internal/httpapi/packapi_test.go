@@ -50,8 +50,8 @@ func TestPacks(t *testing.T) {
 		d.Packs = &packs.Service{Builder: &packs.Builder{TilesURL: tiles.URL, Dir: t.TempDir()}}
 	})
 	owner, stranger, anon := s.client(t), s.client(t), s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
-	stranger.do("POST", "/api/v1/auth/signup", signupBody("str@example.ch", "str"))
+	s.signup(owner, "owner@example.ch", "owner")
+	s.signup(stranger, "str@example.ch", "str")
 	_, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "private"))
 	var route savedRoute
 	_ = json.Unmarshal(body, &route)

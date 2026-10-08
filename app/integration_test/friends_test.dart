@@ -63,7 +63,21 @@ void main() {
         'locale': 'de',
       }),
     );
-    expect(signup.statusCode, 201, reason: signup.body);
+    expect(signup.statusCode, 202, reason: signup.body);
+    // Logging in needs the address confirmed: the link from Mailpit.
+    final found = jsonDecode(
+      (await http.get(Uri.parse('http://localhost:8025/api/v1/search?query=to:$name@example.com'))).body,
+    );
+    final mail = jsonDecode(
+      (await http.get(Uri.parse('http://localhost:8025/api/v1/message/${found['messages'][0]['ID']}'))).body,
+    );
+    final verify = RegExp(r'token=([\w-]+)').firstMatch(mail['Text'] as String)![1];
+    final confirmed = await http.post(
+      Uri.parse('$server/api/v1/auth/verify-email'),
+      headers: {'Content-Type': 'application/json', 'Origin': server},
+      body: jsonEncode({'token': verify}),
+    );
+    expect(confirmed.statusCode, 200, reason: confirmed.body);
     final beat = Api(server);
     await beat.login(name, password);
     try {

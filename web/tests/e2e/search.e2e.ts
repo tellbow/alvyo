@@ -1,8 +1,9 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('find start and destination by name, then order and remove points', async ({ page }) => {
 	const id = `find${Date.now().toString(36)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -10,7 +11,7 @@ test('find start and destination by name, then order and remove points', async (
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/plan');
 	const points = page.getByTestId('points');

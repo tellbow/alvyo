@@ -40,7 +40,7 @@ func TestHikePrivacy(t *testing.T) {
 	})
 	ctx := context.Background()
 	owner := s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("hiker@example.ch", "hiker"))
+	s.signup(owner, "hiker@example.ch", "hiker")
 	if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now()`); err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestHikePrivacy(t *testing.T) {
 	}
 
 	other := s.client(t)
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	s.signup(other, "other@example.ch", "other")
 	_, body = other.do("POST", "/api/v1/collections", map[string]any{"title": "Ideen", "visibility": "private"})
 	var col struct{ ID string }
 	_ = json.Unmarshal(body, &col)

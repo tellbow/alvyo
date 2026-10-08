@@ -59,7 +59,7 @@ func newRoutingServer(t *testing.T) *testServer {
 	})
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
-	return &testServer{Server: srv, mail: rec}
+	return &testServer{Server: srv, mail: rec, db: pool}
 }
 
 func legBody(fromLon float64) map[string]any {
@@ -76,8 +76,7 @@ func TestRouteLeg(t *testing.T) {
 	if code, _ := c.do("POST", "/api/v1/routing/leg", legBody(8.0535)); code != http.StatusUnauthorized {
 		t.Errorf("anonymous leg: %d, want 401", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("fiona@example.ch", "fiona"))
-
+	s.signup(c, "fiona@example.ch", "fiona")
 	code, body := c.do("POST", "/api/v1/routing/leg", legBody(8.0535))
 	if code != http.StatusOK {
 		t.Fatalf("leg: %d %s", code, body)
@@ -131,8 +130,8 @@ func TestRouteTurns(t *testing.T) {
 		d.Router = &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}}
 	})
 	owner, other, anon := s.client(t), s.client(t), s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	s.signup(owner, "owner@example.ch", "owner")
+	s.signup(other, "other@example.ch", "other")
 	_, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "private"))
 	var r savedRoute
 	_ = json.Unmarshal(body, &r)
@@ -170,7 +169,7 @@ func TestInternalErrorsHidden(t *testing.T) {
 		d.Router = &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}, Elevation: flatSampler{}}
 	})
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("fiona@example.ch", "fiona"))
+	s.signup(c, "fiona@example.ch", "fiona")
 	code, body := c.do("POST", "/api/v1/routing/leg", legBody(8.0535))
 	if code != http.StatusInternalServerError || strings.Contains(string(body), "secret") || strings.Contains(string(body), "graphhopper") {
 		t.Errorf("leg: %d %s", code, body)
@@ -198,15 +197,17 @@ func TestRouteReach(t *testing.T) {
 	}))
 	t.Cleanup(gh.Close)
 	pool := testdb.New(t)
+	rec := &mailer.Recorder{}
 	h, _ := New(Deps{
 		DB:        pool,
-		Auth:      &auth.Service{DB: pool, Mail: &mailer.Recorder{}, PublicURL: origin},
+		Auth:      &auth.Service{DB: pool, Mail: rec, PublicURL: origin},
 		Router:    &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}, Outlines: &routing.Outliner{DB: pool}},
 		PublicURL: origin,
 	})
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
-	c := (&testServer{Server: srv}).client(t)
+	s := &testServer{Server: srv, mail: rec, db: pool}
+	c := s.client(t)
 	from := func(lon, lat float64) map[string]any {
 		return map[string]any{"from": map[string]any{"lon": lon, "lat": lat}, "profile": "alpine"}
 	}
@@ -214,7 +215,7 @@ func TestRouteReach(t *testing.T) {
 	if code, _ := c.do("POST", "/api/v1/routing/reach", from(9.4466, 47.0446)); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d, want 401", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("rea@example.ch", "rea"))
+	s.signup(c, "rea@example.ch", "rea")
 	if _, err := pool.Exec(context.Background(), `UPDATE users SET speed_factor = 2 WHERE username = 'rea'`); err != nil {
 		t.Fatal(err)
 	}

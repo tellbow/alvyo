@@ -39,7 +39,7 @@ func TestCollections(t *testing.T) {
 	ctx := context.Background()
 	signup := func(name string) *client {
 		c := s.client(t)
-		c.do("POST", "/api/v1/auth/signup", signupBody(name+"@example.ch", name))
+		s.signup(c, name+"@example.ch", name)
 		if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now() WHERE username = $1`, name); err != nil {
 			t.Fatal(err)
 		}
@@ -190,7 +190,7 @@ func TestCollections(t *testing.T) {
 func TestCollectionLink(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	anna, anon := s.client(t), s.client(t)
-	anna.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna"))
+	s.signup(anna, "anna@example.ch", "anna")
 	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
 		t.Fatal(err)
 	}
@@ -233,7 +233,7 @@ func TestCollectionShares(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	signup := func(name string) *client {
 		c := s.client(t)
-		c.do("POST", "/api/v1/auth/signup", signupBody(name+"@example.ch", name))
+		s.signup(c, name+"@example.ch", name)
 		if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now() WHERE username = $1`, name); err != nil {
 			t.Fatal(err)
 		}

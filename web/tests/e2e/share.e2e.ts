@@ -1,5 +1,5 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
-import { linkFromMail } from './mailpit';
 
 test('share a route by link with someone without an account', async ({
 	page,
@@ -19,14 +19,10 @@ test('share a route by link with someone without an account', async ({
 	});
 	const id = `share${Date.now().toString(36)}`;
 	const email = `${id}@example.ch`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: { email, username: id, display_name: 'Sharer', password: 'sehr-geheim-123' }
 	});
-	expect(signup.status()).toBe(201);
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	expect((await page.request.post('/api/v1/auth/verify-email', { data: { token } })).status()).toBe(
-		204
-	);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/plan');
 	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /ovl-wanderwege/);

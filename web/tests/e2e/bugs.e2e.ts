@@ -1,9 +1,10 @@
 import { writeFileSync } from 'node:fs';
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('a bug reported from the planner, with what is open and a screenshot', async ({ page }) => {
 	const id = `bug${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	await page.request.post('/api/v1/auth/signup', {
+	await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,

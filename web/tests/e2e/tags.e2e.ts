@@ -1,9 +1,10 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
 test('tag two routes and filter the list by a tag', async ({ page }) => {
 	const id = `tags${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -11,7 +12,7 @@ test('tag two routes and filter the list by a tag', async ({ page }) => {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const ids: string[] = [];
 	for (const [title, lon] of [
 		['Gratweg', 8.04],

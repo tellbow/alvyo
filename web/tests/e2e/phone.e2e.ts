@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
@@ -5,7 +6,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 test('on a phone no page is wider than the screen, and the menu leads on', async ({ page }) => {
 	const id = `phone${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -13,7 +14,7 @@ test('on a phone no page is wider than the screen, and the menu leads on', async
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const res = await page.request.post('/api/v1/routes', {
 		data: { title: `Handyweg ${id}`, visibility: 'private', ...routeContent(8.3, 46.9) }
 	});

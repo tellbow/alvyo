@@ -27,9 +27,8 @@ func TestProtectedAreas(t *testing.T) {
 	t.Cleanup(geoadmin.Close)
 	s := newTestServerWith(t, func(d *Deps) { d.Areas = &areas.Finder{DB: d.DB, URL: geoadmin.URL} })
 	owner, other := s.client(t), s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
-
+	s.signup(owner, "owner@example.ch", "owner")
+	s.signup(other, "other@example.ch", "other")
 	type resp struct {
 		Areas []areas.Area `json:"areas"`
 	}

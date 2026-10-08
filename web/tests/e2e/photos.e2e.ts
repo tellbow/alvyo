@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
-import { linkFromMail } from './mailpit';
 
 // 800×600 JPEG with EXIF: taken ~20 m from the route below, 4 July 2026.
 const alongTheRoute = readFileSync(new URL('files/along-the-route.jpg', import.meta.url));
@@ -15,11 +15,9 @@ test('photos: upload, pin along the route, caption and view', async ({ page, bro
 	await page.setViewportSize({ width: 1400, height: 900 });
 	const id = `pho${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 	const email = `${id}@example.ch`;
-	await page.request.post('/api/v1/auth/signup', {
+	await signUp(page.request, {
 		data: { email, username: id, display_name: 'Paula Photo', password: 'sehr-geheim-123' }
 	});
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
 	const created = await page.request.post('/api/v1/routes', {
 		data: { title: `Fotoweg ${id}`, visibility: 'public', ...routeContent(8.04, 46.665) }
 	});
@@ -75,11 +73,9 @@ test('photos: upload, pin along the route, caption and view', async ({ page, bro
 test('an iPhone photo in HEIC is taken as a JPEG', async ({ page }) => {
 	const id = `heic${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 	const email = `${id}@example.ch`;
-	await page.request.post('/api/v1/auth/signup', {
+	await signUp(page.request, {
 		data: { email, username: id, display_name: 'Hanna Heic', password: 'sehr-geheim-123' }
 	});
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
 	const created = await page.request.post('/api/v1/routes', {
 		data: { title: `Heicweg ${id}`, ...routeContent(8.04, 46.665) }
 	});

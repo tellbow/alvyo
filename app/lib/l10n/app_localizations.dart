@@ -172,6 +172,24 @@ abstract class AppLocalizations {
   /// **'Abmelden'**
   String get logout;
 
+  /// No description provided for @loginUnverified.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen neuen Link geschickt.'**
+  String get loginUnverified;
+
+  /// No description provided for @logoutOthers.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf allen anderen Geräten abmelden'**
+  String get logoutOthers;
+
+  /// No description provided for @logoutOthersDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Die anderen Geräte sind abgemeldet.'**
+  String get logoutOthersDone;
+
   /// No description provided for @offlineSave.
   ///
   /// In de, this message translates to:

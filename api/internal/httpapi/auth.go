@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -144,8 +145,7 @@ type cookieOutput struct {
 }
 
 type signupInput struct {
-	UserAgent string `header:"User-Agent"`
-	Body      struct {
+	Body struct {
 		Email       string `json:"email" format:"email" maxLength:"254"`
 		Username    string `json:"username" pattern:"^[a-z0-9_]{3,30}$" doc:"Lowercase letters, digits and underscore"`
 		DisplayName string `json:"display_name" minLength:"1" maxLength:"60"`
@@ -164,8 +164,20 @@ type loginInput struct {
 }
 
 type tokenInput struct {
-	Body struct {
+	UserAgent string `header:"User-Agent"`
+	Body      struct {
 		Token string `json:"token" minLength:"20" maxLength:"100"`
+	}
+}
+
+type verificationInput struct {
+	Token string `query:"token" minLength:"20" maxLength:"100"`
+}
+
+type verificationOutput struct {
+	Body struct {
+		Username    string `json:"username"`
+		DisplayName string `json:"display_name"`
 	}
 }
 
@@ -197,32 +209,28 @@ func registerAuth(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "signup", Method: http.MethodPost, Path: "/auth/signup",
-		Summary: "Create an account and log in", Tags: tags, DefaultStatus: http.StatusCreated,
-	}, func(ctx context.Context, in *signupInput) (*sessionOutput, error) {
+		Summary:     "Create an account; it logs in once the address is confirmed",
+		Description: "202 for a new address and for one with an account alike (that one gets an e-mail saying so), so that signing up does not reveal which addresses have accounts. 409 only for a username that is taken.",
+		Tags:        tags, DefaultStatus: http.StatusAccepted,
+	}, func(ctx context.Context, in *signupInput) (*struct{}, error) {
 		if in.Body.Website != "" {
 			return nil, huma.Error400BadRequest("invalid request")
 		}
 		if !lim.SignupIP.Allow(limitKey(ctx)) {
 			return nil, errTooMany
 		}
-		u, sess, err := svc.Signup(ctx, auth.SignupInput{
+		err := svc.Signup(ctx, auth.SignupInput{
 			Email:       strings.TrimSpace(in.Body.Email),
 			Username:    in.Body.Username,
 			DisplayName: strings.TrimSpace(in.Body.DisplayName),
 			Password:    in.Body.Password,
 			Locale:      in.Body.Locale,
-		}, in.UserAgent)
-		switch {
-		case errors.Is(err, auth.ErrEmailTaken):
-			return nil, huma.Error409Conflict("email already registered",
-				&huma.ErrorDetail{Location: "body.email", Message: "already registered"})
-		case errors.Is(err, auth.ErrUsernameTaken):
+		})
+		if errors.Is(err, auth.ErrUsernameTaken) {
 			return nil, huma.Error409Conflict("username already taken",
 				&huma.ErrorDetail{Location: "body.username", Message: "already taken"})
-		case err != nil:
-			return nil, err
 		}
-		return d.sessionResponse(u, sess), nil
+		return nil, err
 	})
 
 	huma.Register(api, huma.Operation{
@@ -239,10 +247,31 @@ func registerAuth(api huma.API, d Deps) {
 			return nil, huma.Error401Unauthorized("invalid login or password")
 		case errors.Is(err, auth.ErrBanned):
 			return nil, huma.Error403Forbidden("account banned")
+		case errors.Is(err, auth.ErrUnverified):
+			// The link may be lost or expired: a new one, now and then.
+			if lim.ResendUser.Allow(u.ID.String()) {
+				if err := svc.SendVerification(ctx, u); err != nil {
+					slog.ErrorContext(ctx, "verification e-mail at login", "user", u.ID, "err", err)
+				}
+			}
+			return nil, huma.Error403Forbidden("e-mail address not confirmed; a link is in your inbox",
+				&huma.ErrorDetail{Location: "body.login", Message: "unverified"})
 		case err != nil:
 			return nil, err
 		}
 		return d.sessionResponse(u, sess), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "logout-others", Method: http.MethodPost, Path: "/auth/logout-others",
+		Summary: "End all other sessions of the account (other browsers and phones)", Tags: tags,
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, _ *struct{}) (*struct{}, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return nil, svc.LogoutOthers(ctx, u.ID, sessionToken(ctx))
 	})
 
 	huma.Register(api, huma.Operation{
@@ -258,16 +287,37 @@ func registerAuth(api huma.API, d Deps) {
 	})
 
 	huma.Register(api, huma.Operation{
-		OperationID: "verify-email", Method: http.MethodPost, Path: "/auth/verify-email",
-		Summary: "Confirm the e-mail address with the token from the e-mail", Tags: tags,
-		DefaultStatus: http.StatusNoContent,
-	}, func(ctx context.Context, in *tokenInput) (*struct{}, error) {
-		if err := svc.VerifyEmail(ctx, in.Body.Token); errors.Is(err, auth.ErrInvalidToken) {
+		OperationID: "verification", Method: http.MethodGet, Path: "/auth/verify-email",
+		Summary: "The account a verification token is for, without using the token", Tags: tags,
+	}, func(ctx context.Context, in *verificationInput) (*verificationOutput, error) {
+		if !lim.ResetIP.Allow(limitKey(ctx)) {
+			return nil, errTooMany
+		}
+		u, err := svc.VerificationFor(ctx, in.Token)
+		if errors.Is(err, auth.ErrInvalidToken) {
 			return nil, huma.Error400BadRequest("invalid or expired token")
 		} else if err != nil {
 			return nil, err
 		}
-		return nil, nil
+		out := &verificationOutput{}
+		out.Body.Username, out.Body.DisplayName = u.Username, u.DisplayName
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "verify-email", Method: http.MethodPost, Path: "/auth/verify-email",
+		Summary: "Confirm the e-mail address with the token from the e-mail, and log in", Tags: tags,
+	}, func(ctx context.Context, in *tokenInput) (*sessionOutput, error) {
+		u, sess, err := svc.VerifyEmail(ctx, in.Body.Token, in.UserAgent)
+		switch {
+		case errors.Is(err, auth.ErrInvalidToken):
+			return nil, huma.Error400BadRequest("invalid or expired token")
+		case errors.Is(err, auth.ErrBanned):
+			return nil, huma.Error403Forbidden("account banned")
+		case err != nil:
+			return nil, err
+		}
+		return d.sessionResponse(u, sess), nil
 	})
 
 	huma.Register(api, huma.Operation{

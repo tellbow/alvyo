@@ -1,18 +1,17 @@
 import type { APIRequestContext } from '@playwright/test';
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
-import { linkFromMail, mailMatching } from './mailpit';
+import { mailMatching } from './mailpit';
 
 const suffix = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
 /** Signs up and verifies an account in request's cookie jar. */
 async function member(request: APIRequestContext, name: string, displayName: string) {
 	const email = `${name}@example.ch`;
-	const res = await request.post('/api/v1/auth/signup', {
+	const res = await signUp(request, {
 		data: { email, username: name, display_name: displayName, password: 'sehr-geheim-123' }
 	});
-	expect(res.status()).toBe(201);
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	expect((await request.post('/api/v1/auth/verify-email', { data: { token } })).status()).toBe(204);
+	expect(res.status()).toBe(200);
 }
 
 test('find someone, ask, be accepted; a private profile through its invite link', async ({

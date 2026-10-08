@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { leg, routeContent } from './legs';
 
@@ -10,7 +11,7 @@ const sargansWeisstannen: number[][] = JSON.parse(
 
 async function signup(page: import('@playwright/test').Page, prefix: string) {
 	const id = `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const res = await page.request.post('/api/v1/auth/signup', {
+	const res = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -18,7 +19,7 @@ async function signup(page: import('@playwright/test').Page, prefix: string) {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(res.status()).toBe(201);
+	expect(res.status()).toBe(200);
 }
 
 test('a route on a sheet to print: map, profile and numbers, light on paper', async ({

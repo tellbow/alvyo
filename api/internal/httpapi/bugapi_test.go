@@ -46,7 +46,7 @@ func TestBugReports(t *testing.T) {
 		t.Errorf("anonymous: %d", code)
 	}
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("hiker@example.ch", "hiker"))
+	s.signup(c, "hiker@example.ch", "hiker")
 	code, body := c.do("POST", "/api/v1/bug-reports", report)
 	var out struct {
 		ID       string `json:"id"`
@@ -69,7 +69,7 @@ func TestBugReports(t *testing.T) {
 		t.Errorf("the reporter: %d", code)
 	}
 	mod := s.client(t)
-	mod.do("POST", "/api/v1/auth/signup", signupBody("mod@example.ch", "mod"))
+	s.signup(mod, "mod@example.ch", "mod")
 	if _, err := s.db.Exec(context.Background(), `UPDATE users SET role = 'moderator' WHERE username = 'mod'`); err != nil {
 		t.Fatal(err)
 	}

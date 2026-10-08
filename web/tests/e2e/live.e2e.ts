@@ -1,15 +1,14 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
-import { linkFromMail, mailMatching } from './mailpit';
+import { mailMatching } from './mailpit';
 
 test('share a hike with a contact, who follows it by the link', async ({ page, browser }) => {
 	const id = `live${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 	const email = `${id}@example.ch`;
-	await page.request.post('/api/v1/auth/signup', {
+	await signUp(page.request, {
 		data: { email, username: id, display_name: 'Lena Live', password: 'sehr-geheim-123' }
 	});
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
 
 	// The contact is added in the account.
 	const friend = `friend-${id}@example.ch`;

@@ -1,6 +1,6 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
-import { linkFromMail } from './mailpit';
 
 test('search engines: titles, one address per page, private pages left out, sitemap', async ({
 	page,
@@ -8,11 +8,9 @@ test('search engines: titles, one address per page, private pages left out, site
 }) => {
 	const id = `seo${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 	const email = `${id}@example.ch`;
-	await page.request.post('/api/v1/auth/signup', {
+	await signUp(page.request, {
 		data: { email, username: id, display_name: 'Sina Search', password: 'sehr-geheim-123' }
 	});
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
 	const create = async (path: string, data: object) =>
 		(await (await page.request.post(path, { data })).json()) as {
 			id: string;

@@ -55,9 +55,9 @@ type savedRoute struct {
 func TestRouteLifecycle(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	owner := s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
+	s.signup(owner, "owner@example.ch", "owner")
 	other := s.client(t)
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	s.signup(other, "other@example.ch", "other")
 	anon := s.client(t)
 
 	code, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "private"))
@@ -158,8 +158,7 @@ func TestRouteLifecycle(t *testing.T) {
 func TestCreateRouteValidation(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("val@example.ch", "validator"))
-
+	s.signup(c, "val@example.ch", "validator")
 	body := newRouteBody("Too far apart", "private")
 	body["legs"] = []map[string]any{routeLeg(8.0), routeLeg(8.1)} // second leg starts ~7 km away
 	if code, resp := c.do("POST", "/api/v1/routes", body); code != http.StatusUnprocessableEntity {
@@ -176,7 +175,7 @@ func TestCreateRouteValidation(t *testing.T) {
 func TestShareLink(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	owner := s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("linker@example.ch", "linker"))
+	s.signup(owner, "linker@example.ch", "linker")
 	anon := s.client(t)
 
 	if code, _ := owner.do("POST", "/api/v1/routes", newRouteBody("Too early", "unlisted")); code != http.StatusForbidden {
@@ -237,8 +236,8 @@ func TestEditorKeepsVisibility(t *testing.T) {
 	// with the unchanged visibility, as the web app sends it.
 	s := newTestServer(t, Limits{})
 	owner, editor := s.client(t), s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
-	editor.do("POST", "/api/v1/auth/signup", signupBody("editor@example.ch", "editor"))
+	s.signup(owner, "owner@example.ch", "owner")
+	s.signup(editor, "editor@example.ch", "editor")
 	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now() WHERE username = 'owner'`); err != nil {
 		t.Fatal(err)
 	}
@@ -277,7 +276,7 @@ func imageServer(t *testing.T) (*testServer, *client, func(c *client, path strin
 	t.Cleanup(tiles.Close)
 	s := newTestServerWith(t, func(d *Deps) { d.Images = &og.Renderer{TilesURL: tiles.URL, CacheDir: t.TempDir()} })
 	owner := s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("owner@example.ch", "owner"))
+	s.signup(owner, "owner@example.ch", "owner")
 	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
 		t.Fatal(err)
 	}

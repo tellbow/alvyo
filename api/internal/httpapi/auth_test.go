@@ -9,6 +9,7 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -115,6 +116,30 @@ func (c *client) do(method, path string, body any, headers ...string) (int, []by
 
 var mailToken = regexp.MustCompile(`token=([A-Za-z0-9_-]+)`)
 
+// signup signs c up and logs it in with the e-mailed link, as a person
+// would; the address then counts as not confirmed again, as for accounts
+// from before confirming was needed, so that tests set what they check.
+func (s *testServer) signup(c *client, email, username string) {
+	c.t.Helper()
+	if code, body := c.do("POST", "/api/v1/auth/signup", signupBody(email, username)); code != http.StatusAccepted {
+		c.t.Fatalf("signup %s: %d %s", username, code, body)
+	}
+	msgs := s.mail.Sent()
+	for i := len(msgs) - 1; i >= 0; i-- {
+		if msgs[i].To == email && strings.Contains(msgs[i].Text, "/verify-email?token=") {
+			token := mailToken.FindStringSubmatch(msgs[i].Text)[1]
+			if code, body := c.do("POST", "/api/v1/auth/verify-email", map[string]any{"token": token}); code != http.StatusOK {
+				c.t.Fatalf("verify %s: %d %s", username, code, body)
+			}
+			if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = NULL WHERE username = $1`, username); err != nil {
+				c.t.Fatal(err)
+			}
+			return
+		}
+	}
+	c.t.Fatalf("no verification e-mail to %s", email)
+}
+
 func signupBody(email, username string) map[string]any {
 	return map[string]any{"email": email, "username": username, "display_name": "Test User", "password": "sehr-geheim-123", "locale": "de"}
 }
@@ -123,33 +148,30 @@ func TestAuthFlow(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	c := s.client(t)
 
-	code, body := c.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna"))
-	if code != http.StatusCreated {
+	if code, body := c.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna")); code != http.StatusAccepted {
 		t.Fatalf("signup: %d %s", code, body)
 	}
-	var me struct {
-		User Me `json:"user"`
+	// Not logged in, and no login until the address is confirmed.
+	if code, _ := c.do("GET", "/api/v1/me", nil); code != http.StatusUnauthorized {
+		t.Fatalf("me after signup: %d", code)
 	}
-	_ = json.Unmarshal(body, &me)
-	if me.User.Username != "anna" || me.User.EmailVerified {
-		t.Errorf("signup user: %+v", me.User)
-	}
-
-	// Signed up = logged in.
-	if code, body := c.do("GET", "/api/v1/me", nil); code != http.StatusOK {
-		t.Fatalf("me after signup: %d %s", code, body)
+	if code, body := c.do("POST", "/api/v1/auth/login", map[string]any{"login": "anna", "password": "sehr-geheim-123"}); code != http.StatusForbidden {
+		t.Fatalf("login before confirming: %d %s", code, body)
 	}
 
-	// Verification e-mail → verify.
+	// The link names the account, then confirms and logs in.
 	msgs := s.mail.Sent()
-	if len(msgs) != 1 || msgs[0].To != "anna@example.ch" {
+	if len(msgs) != 2 || msgs[0].To != "anna@example.ch" { // signup, and a new link at the login
 		t.Fatalf("mails: %+v", msgs)
 	}
 	token := mailToken.FindStringSubmatch(msgs[0].Text)[1]
-	if code, body := c.do("POST", "/api/v1/auth/verify-email", map[string]any{"token": token}); code != http.StatusNoContent {
+	if code, body := c.do("GET", "/api/v1/auth/verify-email?token="+token, nil); code != http.StatusOK || !strings.Contains(string(body), `"username":"anna"`) {
+		t.Fatalf("whose link: %d %s", code, body)
+	}
+	if code, body := c.do("POST", "/api/v1/auth/verify-email", map[string]any{"token": token}); code != http.StatusOK {
 		t.Fatalf("verify: %d %s", code, body)
 	}
-	_, body = c.do("GET", "/api/v1/me", nil)
+	_, body := c.do("GET", "/api/v1/me", nil)
 	var m Me
 	_ = json.Unmarshal(body, &m)
 	if !m.EmailVerified {
@@ -179,7 +201,7 @@ func TestAuthFlow(t *testing.T) {
 func TestDeleteAccount(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("gone@example.ch", "gone"))
+	s.signup(c, "gone@example.ch", "gone")
 	c.do("POST", "/api/v1/routes", newRouteBody("Mine", "private"))
 
 	if code, _ := c.do("DELETE", "/api/v1/me", map[string]any{"password": "wrong-password"}); code != http.StatusForbidden {
@@ -201,11 +223,17 @@ func TestDeleteAccount(t *testing.T) {
 func TestSignupConflicts(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	c := s.client(t)
-	if code, _ := c.do("POST", "/api/v1/auth/signup", signupBody("beat@example.ch", "beat")); code != http.StatusCreated {
-		t.Fatal("first signup failed")
+	s.signup(c, "beat@example.ch", "beat")
+	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
+		t.Fatal(err)
 	}
-	if code, body := c.do("POST", "/api/v1/auth/signup", signupBody("BEAT@example.ch", "beat2")); code != http.StatusConflict {
+	// A taken address is answered like a new one (no hint that it has an
+	// account); its owner gets an e-mail.
+	if code, body := c.do("POST", "/api/v1/auth/signup", signupBody("BEAT@example.ch", "beat2")); code != http.StatusAccepted {
 		t.Errorf("duplicate email: %d %s", code, body)
+	}
+	if last := s.mail.Sent()[len(s.mail.Sent())-1]; last.Subject != "Alvyo: Du hast schon ein Konto" {
+		t.Errorf("e-mail to the owner: %+v", last)
 	}
 	if code, body := c.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "beat")); code != http.StatusConflict {
 		t.Errorf("duplicate username: %d %s", code, body)
@@ -215,7 +243,7 @@ func TestSignupConflicts(t *testing.T) {
 	}
 	noLocale := signupBody("d@example.ch", "dario")
 	delete(noLocale, "locale")
-	if code, body := c.do("POST", "/api/v1/auth/signup", noLocale); code != http.StatusCreated {
+	if code, body := c.do("POST", "/api/v1/auth/signup", noLocale); code != http.StatusAccepted {
 		t.Errorf("locale should default to de: %d %s", code, body)
 	}
 	bot := signupBody("bot@example.ch", "robot")
@@ -262,8 +290,7 @@ func TestLoginRateLimit(t *testing.T) {
 func TestPasswordResetFlow(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("eva@example.ch", "eva"))
-
+	s.signup(c, "eva@example.ch", "eva")
 	if code, _ := c.do("POST", "/api/v1/auth/password/forgot", map[string]any{"email": "nobody@example.ch"}); code != http.StatusNoContent {
 		t.Errorf("forgot unknown: %d", code)
 	}
@@ -295,5 +322,31 @@ func TestPasswordResetFlow(t *testing.T) {
 	}
 	if last != http.StatusTooManyRequests {
 		t.Errorf("25th guess: %d, want 429", last)
+	}
+}
+
+// «Überall sonst abmelden»: the other browsers and phones are logged out,
+// this one stays.
+func TestLogoutOthers(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	here, phone := s.client(t), s.client(t)
+	s.signup(here, "lea@example.ch", "lea")
+	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
+		t.Fatal(err)
+	}
+	if code, body := phone.do("POST", "/api/v1/auth/login", map[string]any{"login": "lea", "password": "sehr-geheim-123"}); code != http.StatusOK {
+		t.Fatalf("login: %d %s", code, body)
+	}
+	if code, _ := s.client(t).do("POST", "/api/v1/auth/logout-others", nil); code != http.StatusUnauthorized {
+		t.Errorf("anonymous: %d", code)
+	}
+	if code, body := here.do("POST", "/api/v1/auth/logout-others", nil); code != http.StatusNoContent {
+		t.Fatalf("logout others: %d %s", code, body)
+	}
+	if code, _ := phone.do("GET", "/api/v1/me", nil); code != http.StatusUnauthorized {
+		t.Errorf("the phone: %d", code)
+	}
+	if code, _ := here.do("GET", "/api/v1/me", nil); code != http.StatusOK {
+		t.Errorf("this browser: %d", code)
 	}
 }

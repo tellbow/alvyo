@@ -52,9 +52,7 @@ func TestDiscover(t *testing.T) {
 	ctx := context.Background()
 	signup := func(name string) *client {
 		c := s.client(t)
-		if code, body := c.do("POST", "/api/v1/auth/signup", signupBody(name+"@example.ch", name)); code != http.StatusCreated {
-			t.Fatalf("signup %s: %d %s", name, code, body)
-		}
+		s.signup(c, name+"@example.ch", name)
 		if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now() WHERE username = $1`, name); err != nil {
 			t.Fatal(err)
 		}

@@ -77,8 +77,7 @@ func TestPlanJourney(t *testing.T) {
 	if code, _ := c.do("POST", "/api/v1/journeys/plan", body); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("planner@example.ch", "planner"))
-
+	s.signup(c, "planner@example.ch", "planner")
 	plan := func(body map[string]any) proposal {
 		t.Helper()
 		code, b := c.do("POST", "/api/v1/journeys/plan", body)
@@ -259,7 +258,7 @@ func TestSuggestJourneys(t *testing.T) {
 	if code, _ := c.do("POST", "/api/v1/journeys/suggest", body); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("suggest@example.ch", "suggest"))
+	s.signup(c, "suggest@example.ch", "suggest")
 	if code, _ := c.do("POST", "/api/v1/journeys/suggest", map[string]any{"points": body["points"]}); code != http.StatusUnprocessableEntity {
 		t.Errorf("neither days nor hours: %d", code)
 	}

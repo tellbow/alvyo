@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('plan a three-day hike, pick another night, create the journey', async ({ page, context }) => {
@@ -10,7 +11,7 @@ test('plan a three-day hike, pick another night, create the journey', async ({ p
 		);
 	}, center);
 	const id = `jplan${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -18,7 +19,7 @@ test('plan a three-day hike, pick another night, create the journey', async ({ p
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/journeys');
 	await page.getByRole('link', { name: 'Etappentour planen' }).click();
@@ -63,7 +64,7 @@ test('plan a three-day hike, pick another night, create the journey', async ({ p
 
 test('a point added while planning drops the plan for the old points', async ({ page }) => {
 	const id = `jstale${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -71,7 +72,7 @@ test('a point added while planning drops the plan for the old points', async ({ 
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	// The plan's answer is held back until the third point is placed.
 	let release = () => {};
@@ -105,7 +106,7 @@ test('a point added while planning drops the plan for the old points', async ({ 
 
 test('the planners are one switch apart', async ({ page }) => {
 	const id = `tabs${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -113,7 +114,7 @@ test('the planners are one switch apart', async ({ page }) => {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	await page.goto('/plan');
 	const tabs = page.getByTestId('plan-tabs');
 	await expect(tabs.getByRole('link', { name: 'Route' })).toHaveAttribute('aria-current', 'page');

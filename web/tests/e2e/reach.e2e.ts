@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('how far one gets: from a place, then from the map, on alpine ways', async ({
@@ -16,7 +17,7 @@ test('how far one gets: from a place, then from the map, on alpine ways', async 
 		);
 	});
 	const id = `reach${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -24,7 +25,7 @@ test('how far one gets: from a place, then from the map, on alpine ways', async 
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	// From the planner's tabs.
 	await page.goto('/plan');

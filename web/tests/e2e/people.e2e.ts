@@ -1,5 +1,5 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
-import { linkFromMail } from './mailpit';
 
 test('who comes along, on which stages, and reminders before the start', async ({
 	page,
@@ -9,7 +9,7 @@ test('who comes along, on which stages, and reminders before the start', async (
 	const owner = `own${suffix}`;
 	const friend = `fri${suffix}`;
 	const signup = async (request: typeof page.request, name: string) => {
-		const res = await request.post('/api/v1/auth/signup', {
+		const res = await signUp(request, {
 			data: {
 				email: `${name}@example.ch`,
 				username: name,
@@ -17,15 +17,11 @@ test('who comes along, on which stages, and reminders before the start', async (
 				password: 'sehr-geheim-123'
 			}
 		});
-		expect(res.status()).toBe(201);
+		expect(res.status()).toBe(200);
 	};
 
 	// The owner (verified) with a journey of two stages, starting in 40 days.
 	await signup(page.request, owner);
-	const token = new URL(
-		await linkFromMail(`${owner}@example.ch`, '/verify-email')
-	).searchParams.get('token');
-	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
 	const { id } = await (
 		await page.request.post('/api/v1/journeys', {
 			data: { title: 'Zu zweit', visibility: 'public' }

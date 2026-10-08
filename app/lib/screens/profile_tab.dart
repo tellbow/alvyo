@@ -286,6 +286,20 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                   ]),
                   const SizedBox(height: 20),
+                  // A lost phone: all other sessions end, this one stays.
+                  TextButton(
+                    key: const Key('logout-others'),
+                    onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        await widget.api.logoutOthers();
+                        messenger.showSnackBar(SnackBar(content: Text(t.logoutOthersDone)));
+                      } on Object {
+                        messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+                      }
+                    },
+                    child: Text(t.logoutOthers),
+                  ),
                   OutlinedButton.icon(
                     key: const Key('logout'),
                     onPressed: widget.onLogout,

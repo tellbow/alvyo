@@ -1,5 +1,6 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
-import { linkFromMail, mailMatching } from './mailpit';
+import { mailMatching } from './mailpit';
 
 test('invite a friend to plan a journey along, and a newcomer by e-mail', async ({
 	page,
@@ -9,7 +10,7 @@ test('invite a friend to plan a journey along, and a newcomer by e-mail', async 
 	const owner = `own${suffix}`;
 	const friend = `fri${suffix}`;
 	const signup = async (request: typeof page.request, name: string) => {
-		const res = await request.post('/api/v1/auth/signup', {
+		const res = await signUp(request, {
 			data: {
 				email: `${name}@example.ch`,
 				username: name,
@@ -17,17 +18,11 @@ test('invite a friend to plan a journey along, and a newcomer by e-mail', async 
 				password: 'sehr-geheim-123'
 			}
 		});
-		expect(res.status()).toBe(201);
+		expect(res.status()).toBe(200);
 	};
 
 	// The owner (verified) with a journey of one stage.
 	await signup(page.request, owner);
-	const token = new URL(
-		await linkFromMail(`${owner}@example.ch`, '/verify-email')
-	).searchParams.get('token');
-	expect((await page.request.post('/api/v1/auth/verify-email', { data: { token } })).status()).toBe(
-		204
-	);
 	const created = await page.request.post('/api/v1/journeys', {
 		data: { title: 'Gemeinsam', visibility: 'private' }
 	});

@@ -1,5 +1,5 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
-import { linkFromMail } from './mailpit';
 
 const suffix = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
@@ -19,7 +19,7 @@ test('add a passkey, then log in with it without a password', async ({ page }) =
 	});
 
 	const name = `pk${suffix()}`;
-	const res = await page.request.post('/api/v1/auth/signup', {
+	const res = await signUp(page.request, {
 		data: {
 			email: `${name}@example.ch`,
 			username: name,
@@ -27,10 +27,7 @@ test('add a passkey, then log in with it without a password', async ({ page }) =
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(res.status()).toBe(201);
-	// Passkeys only with the address confirmed: they outlast a password reset.
-	await page.goto(await linkFromMail(`${name}@example.ch`, '/verify-email'));
-	await expect(page.getByTestId('verify-status')).toHaveText('Deine E-Mail-Adresse ist bestätigt.');
+	expect(res.status()).toBe(200);
 
 	await page.goto('/account');
 	const methods = page.getByTestId('signin-methods');
@@ -40,7 +37,7 @@ test('add a passkey, then log in with it without a password', async ({ page }) =
 	await methods.getByRole('button', { name: 'Passkey erstellen' }).click();
 	await expect(methods.getByTestId('passkeys')).toContainText('Testgerät');
 
-	await page.getByRole('button', { name: 'Abmelden' }).click();
+	await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
 	await page.goto('/login?redirect=/routes');
 	await page.getByRole('button', { name: 'Mit Passkey anmelden' }).click();
 	await expect(page).toHaveURL(/\/routes$/);
@@ -72,7 +69,7 @@ test('sign up with a provider; an existing account connects it after logging in'
 	const owner = `ow${suffix()}`;
 	const context = await browser.newContext();
 	const tab = await context.newPage();
-	const signup = await tab.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(tab.request, {
 		data: {
 			email: `${owner}@example.ch`,
 			username: owner,
@@ -80,7 +77,7 @@ test('sign up with a provider; an existing account connects it after logging in'
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	await tab.request.post('/api/v1/auth/logout');
 	await tab.goto('/login');
 	await tab.getByRole('link', { name: 'Mit Test-ID anmelden' }).click();
@@ -94,14 +91,7 @@ test('sign up with a provider; an existing account connects it after logging in'
 	await tab.getByLabel('Passwort').fill('sehr-geheim-123');
 	await tab.getByRole('button', { name: 'Anmelden', exact: true }).click();
 	await expect(tab.getByTestId('current-user')).toHaveText(owner);
-	// Connecting needs the address confirmed first.
-	await tab.goto('/account');
-	await tab.getByRole('link', { name: 'Test-ID verbinden' }).click();
-	await expect(tab.getByTestId('oidc-notice')).toContainText(
-		'Bestätige zuerst deine E-Mail-Adresse'
-	);
-	await tab.goto(await linkFromMail(`${owner}@example.ch`, '/verify-email'));
-	await expect(tab.getByTestId('verify-status')).toHaveText('Deine E-Mail-Adresse ist bestätigt.');
+	// (Its address is confirmed: an account logs in only then.)
 	await tab.goto('/account');
 	await tab.getByRole('link', { name: 'Test-ID verbinden' }).click();
 	await tab.getByLabel('E-Mail').fill(`${owner}@example.ch`);

@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
@@ -15,7 +16,7 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 		);
 	});
 	const id = `plan${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -23,7 +24,7 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	const legRequests: string[] = [];
 	page.on('request', (r) => r.url().includes('/api/v1/routing/leg') && legRequests.push(r.url()));
@@ -95,7 +96,7 @@ test('drag the line to a different path', async ({ page, context }) => {
 		);
 	});
 	const id = `drag${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -103,7 +104,7 @@ test('drag the line to a different path', async ({ page, context }) => {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	type LegBody = { to: { lon: number; lat: number } };
 	const legRequests: LegBody[] = [];
 	page.on('request', (r) => {
@@ -172,7 +173,7 @@ test('drag the line onto another path without a new point', async ({ page, conte
 		);
 	});
 	const id = `path${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -180,7 +181,7 @@ test('drag the line onto another path without a new point', async ({ page, conte
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	type LonLat = { lon: number; lat: number };
 	const requests: { through?: LonLat }[] = [];
 	const legs: { coordinates: number[][] }[] = [];
@@ -314,7 +315,7 @@ test('on a touch screen, hold the line to drag it; a quick swipe pans the map', 
 		);
 	});
 	const id = `touch${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -322,7 +323,7 @@ test('on a touch screen, hold the line to drag it; a quick swipe pans the map', 
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/plan');
 	const canvas = page.locator('canvas.maplibregl-canvas');
@@ -389,7 +390,7 @@ test('a saved route opens in the planner zoomed to it', async ({ page, context }
 		);
 	});
 	const id = `open${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	await page.request.post('/api/v1/auth/signup', {
+	await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,

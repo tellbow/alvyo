@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
@@ -5,7 +6,7 @@ test('from home to the start of a journey by public transport, chosen once and k
 	page
 }) => {
 	const id = `home${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -13,7 +14,7 @@ test('from home to the start of a journey by public transport, chosen once and k
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	// A home, found by the place search in the account.
 	await page.goto('/account');
@@ -109,7 +110,7 @@ test('from home to the start of a journey by public transport, chosen once and k
 
 test('to a route and back from anywhere, on a day chosen, and on its sheet', async ({ page }) => {
 	const id = `anyw${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -117,7 +118,7 @@ test('to a route and back from anywhere, on a day chosen, and on its sheet', asy
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const res = await page.request.post('/api/v1/routes', {
 		data: { title: 'Weisstannental', ...routeContent(9.34116, 46.9892) }
 	});

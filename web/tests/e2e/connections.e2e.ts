@@ -1,9 +1,10 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
 test('connections for a public transport transfer between stages', async ({ page }) => {
 	const id = `pt${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -11,7 +12,7 @@ test('connections for a public transport transfer between stages', async ({ page
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	// Stage 1 ends at Weisstannen, Oberdorf; stage 2 starts at Elm, Station.
 	const created = await page.request.post('/api/v1/journeys', {

@@ -95,8 +95,7 @@ func TestImportFile(t *testing.T) {
 	if code, _ := c.upload("/api/v1/imports/preview", "tour.gpx", file); code != http.StatusUnauthorized {
 		t.Errorf("anonymous preview: %d, want 401", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("importer@example.ch", "importer"))
-
+	s.signup(c, "importer@example.ch", "importer")
 	code, body := c.upload("/api/v1/imports/preview", "tour.gpx", file)
 	var preview struct {
 		Format string         `json:"format"`
@@ -154,7 +153,7 @@ func TestImportFile(t *testing.T) {
 
 	// Only the importer sees them.
 	other := s.client(t)
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	s.signup(other, "other@example.ch", "other")
 	if code, _ := other.do("GET", "/api/v1/journeys/"+r.JourneyID, nil); code != http.StatusNotFound {
 		t.Errorf("other user sees the imported journey: %d", code)
 	}
@@ -209,8 +208,7 @@ func fakeKomoot(t *testing.T) string {
 func TestImportKomoot(t *testing.T) {
 	s := newImportServer(t, fakeKomoot(t))
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("komoot@example.ch", "komooter"))
-
+	s.signup(c, "komoot@example.ch", "komooter")
 	if code, body := c.do("POST", "/api/v1/imports/komoot/login", map[string]any{"email": "k@example.ch", "password": "wrong"}); code != http.StatusUnprocessableEntity {
 		t.Errorf("wrong password: %d %s", code, body)
 	}
@@ -246,7 +244,7 @@ func TestImportKomoot(t *testing.T) {
 
 	// The session is bound to the user.
 	other := s.client(t)
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	s.signup(other, "other@example.ch", "other")
 	if code, _ := other.do("GET", "/api/v1/imports/komoot/tours?session="+tours.Session, nil); code != http.StatusUnauthorized {
 		t.Errorf("another user's session: %d, want 401", code)
 	}
@@ -263,9 +261,9 @@ func TestImportIntoStage(t *testing.T) {
 		t.Fatal(err)
 	}
 	owner, viewer, stranger := s.client(t), s.client(t), s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("stages@example.ch", "stages"))
-	viewer.do("POST", "/api/v1/auth/signup", signupBody("vie@example.ch", "vie"))
-	stranger.do("POST", "/api/v1/auth/signup", signupBody("str@example.ch", "str"))
+	s.signup(owner, "stages@example.ch", "stages")
+	s.signup(viewer, "vie@example.ch", "vie")
+	s.signup(stranger, "str@example.ch", "str")
 	if _, err := s.db.Exec(context.Background(), `UPDATE users SET email_verified_at = now()`); err != nil {
 		t.Fatal(err)
 	}
@@ -378,8 +376,7 @@ func TestImportStages(t *testing.T) {
 	if code, _ := c.upload("/api/v1/imports/stages", "drei.gpx", recording); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("stager@example.ch", "stager"))
-
+	s.signup(c, "stager@example.ch", "stager")
 	code, body := c.upload("/api/v1/imports/preview", "drei.gpx", recording)
 	var preview struct{ Tracks []trackSummary }
 	_ = json.Unmarshal(body, &preview)

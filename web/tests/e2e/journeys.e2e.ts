@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('plan a two-stage journey that continues where the previous stage ended', async ({
@@ -16,7 +17,7 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 		);
 	});
 	const id = `trip${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -24,7 +25,7 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/journeys');
 	await page.getByLabel('Titel').fill('Rund um First');
@@ -114,7 +115,7 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 
 test('a stage changed by someone else meanwhile is not overwritten', async ({ page }) => {
 	const id = `conf${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -122,7 +123,7 @@ test('a stage changed by someone else meanwhile is not overwritten', async ({ pa
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const created = await page.request.post('/api/v1/journeys', { data: { title: 'Zu zweit' } });
 	const journeyId = (await created.json()).id as string;
 	const added = await page.request.post(`/api/v1/journeys/${journeyId}/stages`, {
@@ -151,7 +152,7 @@ test('a stage changed by someone else meanwhile is not overwritten', async ({ pa
 
 test('changing a journey does not ask for its protected areas again', async ({ page }) => {
 	const id = `jarea${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -159,7 +160,7 @@ test('changing a journey does not ask for its protected areas again', async ({ p
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const created = await page.request.post('/api/v1/journeys', { data: { title: 'Ruhig' } });
 	const journeyId = (await created.json()).id as string;
 	await page.request.post(`/api/v1/journeys/${journeyId}/stages`, { data: { title: 'Tag 1' } });

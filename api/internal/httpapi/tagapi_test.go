@@ -13,8 +13,8 @@ import (
 func TestTags(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	owner, other := s.client(t), s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("tagger@example.ch", "tagger"))
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	s.signup(owner, "tagger@example.ch", "tagger")
+	s.signup(other, "other@example.ch", "other")
 	if code, _ := s.client(t).do("GET", "/api/v1/me/tags", nil); code != http.StatusUnauthorized {
 		t.Errorf("anonymous tag list: %d", code)
 	}

@@ -1,10 +1,11 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('suggest several ways, change ways at a shared night, create the journey', async ({
 	page
 }) => {
 	const id = `jsug${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -12,7 +13,7 @@ test('suggest several ways, change ways at a shared night, create the journey', 
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/journeys/plan');
 	const panel = page.getByTestId('journey-plan-panel');
@@ -57,7 +58,7 @@ test('suggest several ways, change ways at a shared night, create the journey', 
 
 test('plan with hours per day from … to: the days follow', async ({ page }) => {
 	const id = `jrng${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -65,7 +66,7 @@ test('plan with hours per day from … to: the days follow', async ({ page }) =>
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 
 	await page.goto('/journeys/plan');
 	const panel = page.getByTestId('journey-plan-panel');

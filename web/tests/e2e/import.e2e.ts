@@ -1,9 +1,10 @@
 import type { Page } from '@playwright/test';
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 async function signup(page: Page, name: string) {
 	const id = `${name}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const res = await page.request.post('/api/v1/auth/signup', {
+	const res = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -11,7 +12,7 @@ async function signup(page: Page, name: string) {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(res.status()).toBe(201);
+	expect(res.status()).toBe(200);
 }
 
 /** A GPX track of about 2.2 km (n points 76 m apart) heading east from lon/lat. */

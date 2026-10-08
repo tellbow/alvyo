@@ -23,7 +23,7 @@ func TestWeather(t *testing.T) {
 	forecast := &weather.Forecast{URL: srv.URL + "/c"}
 	s := newTestServerWith(t, func(d *Deps) { d.Weather = forecast })
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("hiker@example.ch", "hiker"))
+	s.signup(c, "hiker@example.ch", "hiker")
 	_, body := c.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "private"))
 	var r savedRoute
 	_ = json.Unmarshal(body, &r)
@@ -101,7 +101,7 @@ func TestJourneyWeather(t *testing.T) {
 	}
 	s := newTestServerWith(t, func(d *Deps) { d.Weather = forecast })
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("hiker@example.ch", "hiker"))
+	s.signup(c, "hiker@example.ch", "hiker")
 	_, body := c.do("POST", "/api/v1/journeys", map[string]any{"title": "Weit voraus"})
 	base := "/api/v1/journeys/" + decodeJourney(t, body).ID
 	for range 2 {

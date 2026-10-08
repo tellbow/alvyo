@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 
 test('save a planned route, reopen and edit it, then delete it', async ({ page, context }) => {
@@ -13,7 +14,7 @@ test('save a planned route, reopen and edit it, then delete it', async ({ page, 
 		);
 	});
 	const id = `save${Date.now().toString(36)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -21,7 +22,7 @@ test('save a planned route, reopen and edit it, then delete it', async ({ page, 
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const legRequests: string[] = [];
 	page.on('request', (r) => r.url().includes('/api/v1/routing/leg') && legRequests.push(r.url()));
 

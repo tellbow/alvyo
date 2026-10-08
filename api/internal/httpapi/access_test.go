@@ -21,9 +21,7 @@ func TestAccessMatrix(t *testing.T) {
 	}
 	signup := func(name string) *client {
 		c := s.client(t)
-		if code, body := c.do("POST", "/api/v1/auth/signup", signupBody(name+"@example.ch", name)); code != http.StatusCreated {
-			t.Fatalf("signup %s: %d %s", name, code, body)
-		}
+		s.signup(c, name+"@example.ch", name)
 		return c
 	}
 	owner, editor, viewer, pending, stranger := signup("owner"), signup("edi"), signup("vie"), signup("pen"), signup("str")

@@ -16,7 +16,7 @@ func TestPasskeys(t *testing.T) {
 	ctx := context.Background()
 	rp := virtualwebauthn.RelyingParty{ID: "alvyo.test", Name: "alvyo", Origin: origin}
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("hiker@example.ch", "hiker"))
+	s.signup(c, "hiker@example.ch", "hiker")
 	var id uuid.UUID
 	if err := s.db.QueryRow(ctx, `SELECT id FROM users WHERE username = 'hiker'`).Scan(&id); err != nil {
 		t.Fatal(err)

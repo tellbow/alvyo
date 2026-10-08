@@ -1,7 +1,7 @@
 import type { APIRequestContext } from '@playwright/test';
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
-import { linkFromMail } from './mailpit';
 
 /** A saved route near First, created through the API. */
 async function createRoute(request: APIRequestContext, title: string, lon0: number) {
@@ -14,7 +14,7 @@ async function createRoute(request: APIRequestContext, title: string, lon0: numb
 
 test('collect routes and a journey, reorder and annotate them', async ({ page }) => {
 	const id = `col${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -22,7 +22,7 @@ test('collect routes and a journey, reorder and annotate them', async ({ page })
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const first = await createRoute(page.request, 'Bachalpsee', 8.04);
 	await createRoute(page.request, 'Faulhorn', 8.05);
 	const journey = await page.request.post('/api/v1/journeys', {
@@ -81,7 +81,7 @@ test('collect routes and a journey, reorder and annotate them', async ({ page })
 
 test('browsing a drop-down with the arrow keys acts only on Enter', async ({ page }) => {
 	const id = `keys${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -89,7 +89,7 @@ test('browsing a drop-down with the arrow keys acts only on Enter', async ({ pag
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const route = await createRoute(page.request, 'Bachalpsee', 8.04);
 	for (const title of ['Erste', 'Zweite']) {
 		await page.request.post('/api/v1/collections', { data: { title } });
@@ -127,7 +127,7 @@ test('browsing a drop-down with the arrow keys acts only on Enter', async ({ pag
 
 test('add to a collection from the collection itself', async ({ page }) => {
 	const id = `cadd${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -135,7 +135,7 @@ test('add to a collection from the collection itself', async ({ page }) => {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	await createRoute(page.request, 'Bachalpsee', 8.04);
 	await createRoute(page.request, 'Faulhorn', 8.05);
 
@@ -162,14 +162,10 @@ test('add to a collection from the collection itself', async ({ page }) => {
 test('a collection shared by link opens its private routes', async ({ page, browser }) => {
 	const id = `cshare${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 	const email = `${id}@example.ch`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: { email, username: id, display_name: 'Sammlerin', password: 'sehr-geheim-123' }
 	});
-	expect(signup.status()).toBe(201);
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	expect((await page.request.post('/api/v1/auth/verify-email', { data: { token } })).status()).toBe(
-		204
-	);
+	expect(signup.status()).toBe(200);
 	const route = await createRoute(page.request, 'Bachalpsee', 8.04);
 	const created = await page.request.post('/api/v1/collections', {
 		data: { title: 'Mit Freunden', visibility: 'unlisted' }
@@ -193,7 +189,7 @@ test('a collection shared by link opens its private routes', async ({ page, brow
 
 test('removing from a collection asks first', async ({ page }) => {
 	const id = `crm${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -201,7 +197,7 @@ test('removing from a collection asks first', async ({ page }) => {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const route = await createRoute(page.request, 'Bachalpsee', 8.04);
 	const created = await page.request.post('/api/v1/collections', { data: { title: 'Herbst' } });
 	const collection = (await created.json()).id as string;

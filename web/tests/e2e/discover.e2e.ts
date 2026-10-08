@@ -1,16 +1,14 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
-import { linkFromMail } from './mailpit';
 
 test('find a public route on the map, then its author', async ({ page }) => {
 	const id = `disc${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 	const email = `${id}@example.ch`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: { email, username: id, display_name: 'Entdeckerin', password: 'sehr-geheim-123' }
 	});
-	expect(signup.status()).toBe(201);
-	const token = new URL(await linkFromMail(email, '/verify-email')).searchParams.get('token');
-	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
+	expect(signup.status()).toBe(200);
 
 	// A spot of its own, away from the routes of other tests.
 	const lon = 7.2 + Math.random() * 2;

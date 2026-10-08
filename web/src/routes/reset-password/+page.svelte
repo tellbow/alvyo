@@ -46,6 +46,7 @@
 			{#if status === 'failed'}<p role="alert" class="text-sm text-red-700 dark:text-red-400">
 					{m.reset_failed()}
 				</p>{/if}
+			<p class="text-sm text-stone-600">{m.reset_note()}</p>
 			<button disabled={!hydrated.value} class={primaryButton}>{m.reset_submit()}</button>
 		</form>
 	{/if}

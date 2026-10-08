@@ -14,9 +14,8 @@ import (
 func TestLiveAPI(t *testing.T) {
 	s := newTestServerWith(t, func(d *Deps) { d.Live = &live.Store{DB: d.DB, Mail: d.Auth.Mail, PublicURL: origin} })
 	hiker, other, anon := s.client(t), s.client(t), s.client(t)
-	hiker.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna"))
-	other.do("POST", "/api/v1/auth/signup", signupBody("otto@example.ch", "otto"))
-
+	s.signup(hiker, "anna@example.ch", "anna")
+	s.signup(other, "otto@example.ch", "otto")
 	code, raw := hiker.do("POST", "/api/v1/me/contacts", map[string]any{"name": "Bea", "email": "bea@example.ch"})
 	if code != http.StatusCreated {
 		t.Fatalf("add contact: %d %s", code, raw)

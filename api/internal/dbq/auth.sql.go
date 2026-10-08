@@ -128,7 +128,7 @@ func (q *Queries) DeleteUserSessions(ctx context.Context, userID uuid.UUID) erro
 }
 
 const extendSession = `-- name: ExtendSession :exec
-UPDATE sessions SET expires_at = $2, last_seen_at = now() WHERE token_hash = $1
+UPDATE sessions SET expires_at = least($2, created_at + interval '180 days'), last_seen_at = now() WHERE token_hash = $1
 `
 
 type ExtendSessionParams struct {
@@ -136,6 +136,7 @@ type ExtendSessionParams struct {
 	ExpiresAt time.Time
 }
 
+// Never past SessionMaxAge (180 days) after the login.
 func (q *Queries) ExtendSession(ctx context.Context, arg ExtendSessionParams) error {
 	_, err := q.db.Exec(ctx, extendSession, arg.TokenHash, arg.ExpiresAt)
 	return err

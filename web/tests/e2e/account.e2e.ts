@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
@@ -12,7 +13,7 @@ test('about page links to the source of this version', async ({ page }) => {
 
 test('delete the account', async ({ page }) => {
 	const id = `del${Date.now().toString(36)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -20,7 +21,7 @@ test('delete the account', async ({ page }) => {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	await page.goto('/');
 	await page.getByTestId('current-user').click();
 	await expect(page).toHaveURL('/account');
@@ -41,7 +42,7 @@ test('delete the account', async ({ page }) => {
 
 test("one's pace: chosen in the account, hiking times follow it", async ({ page }) => {
 	const id = `pace${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	await page.request.post('/api/v1/auth/signup', {
+	await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,

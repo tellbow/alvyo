@@ -22,13 +22,62 @@ func newService(t *testing.T) (*Service, *mailer.Recorder, *time.Time) {
 	}, rec, &now
 }
 
-func TestSessionSlides(t *testing.T) {
+// signedUp signs up and confirms the address with the e-mailed link, which
+// logs in.
+func signedUp(t *testing.T, svc *Service, rec *mailer.Recorder, in SignupInput) Session {
+	t.Helper()
 	ctx := context.Background()
-	svc, _, now := newService(t)
-	_, sess, err := svc.Signup(ctx, SignupInput{Email: "a@example.ch", Username: "anna", DisplayName: "Anna", Password: "0123456789", Locale: "de"}, "test")
+	if err := svc.Signup(ctx, in); err != nil {
+		t.Fatal(err)
+	}
+	msgs := rec.Sent()
+	_, sess, err := svc.VerifyEmail(ctx, tokenRe.FindStringSubmatch(msgs[len(msgs)-1].Text)[1], "test")
 	if err != nil {
 		t.Fatal(err)
 	}
+	return sess
+}
+
+func TestSignupLogsInOnceConfirmed(t *testing.T) {
+	ctx := context.Background()
+	svc, rec, _ := newService(t)
+	in := SignupInput{Email: "e@example.ch", Username: "eva", DisplayName: "Eva", Password: "0123456789", Locale: "de"}
+	if err := svc.Signup(ctx, in); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := svc.Login(ctx, "eva", "0123456789", ""); !errors.Is(err, ErrUnverified) {
+		t.Errorf("login before confirming: %v", err)
+	}
+	token := tokenRe.FindStringSubmatch(rec.Sent()[0].Text)[1]
+	if u, err := svc.VerificationFor(ctx, token); err != nil || u.Username != "eva" {
+		t.Errorf("whose link: %v %v", u.Username, err)
+	}
+	if _, _, err := svc.VerifyEmail(ctx, token, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := svc.Login(ctx, "eva", "0123456789", ""); err != nil {
+		t.Errorf("login once confirmed: %v", err)
+	}
+
+	// The same address again: no error, no account, an e-mail to its owner.
+	if err := svc.Signup(ctx, SignupInput{Email: "e@example.ch", Username: "mallory", DisplayName: "M", Password: "0123456789", Locale: "en"}); err != nil {
+		t.Errorf("signup with a taken address: %v", err)
+	}
+	if last := rec.Sent()[len(rec.Sent())-1]; last.To != "e@example.ch" || last.Subject != "Alvyo: Du hast schon ein Konto" {
+		t.Errorf("e-mail to the owner: %+v", last)
+	}
+	if _, err := svc.q().GetUserByLogin(ctx, "mallory"); err == nil {
+		t.Error("an account for the taken address")
+	}
+	if err := svc.Signup(ctx, SignupInput{Email: "f@example.ch", Username: "eva", DisplayName: "F", Password: "0123456789", Locale: "de"}); !errors.Is(err, ErrUsernameTaken) {
+		t.Errorf("taken username: %v", err)
+	}
+}
+
+func TestSessionSlides(t *testing.T) {
+	ctx := context.Background()
+	svc, rec, now := newService(t)
+	sess := signedUp(t, svc, rec, SignupInput{Email: "a@example.ch", Username: "anna", DisplayName: "Anna", Password: "0123456789", Locale: "de"})
 
 	// Same day: no extension.
 	if _, ext, err := svc.SessionUser(ctx, sess.Token); err != nil || ext != nil {
@@ -40,15 +89,22 @@ func TestSessionSlides(t *testing.T) {
 	if err != nil || ext == nil || ext.Sub(*now) != SessionTTL {
 		t.Fatalf("after 2 days: ext=%v err=%v", ext, err)
 	}
+	// Used every day, it still ends 180 days after the login.
+	for range 200 {
+		*now = now.Add(24 * time.Hour)
+		if _, _, err := svc.SessionUser(ctx, sess.Token); err != nil {
+			break
+		}
+	}
+	if _, _, err := svc.SessionUser(ctx, sess.Token); !errors.Is(err, ErrNoSession) {
+		t.Errorf("after 200 days of use: %v", err)
+	}
 }
 
 func TestResetPasswordEndsSessions(t *testing.T) {
 	ctx := context.Background()
 	svc, rec, _ := newService(t)
-	_, sess, err := svc.Signup(ctx, SignupInput{Email: "b@example.ch", Username: "beat", DisplayName: "Beat", Password: "0123456789", Locale: "en"}, "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	sess := signedUp(t, svc, rec, SignupInput{Email: "b@example.ch", Username: "beat", DisplayName: "Beat", Password: "0123456789", Locale: "en"})
 	if err := svc.ForgotPassword(ctx, "b@example.ch"); err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +132,7 @@ func TestResetPasswordEndsSessions(t *testing.T) {
 // Someone signs up through a provider with another person's address, which
 // the provider does not vouch for. When the address's owner resets the
 // password, the provider must no longer log in.
-func TestResetPasswordDropsUnprovenIdentities(t *testing.T) {
+func TestResetPasswordDropsPasskeysAndIdentities(t *testing.T) {
 	ctx := context.Background()
 	svc, rec, _ := newService(t)
 	stranger := Identity{Provider: "test", Subject: "s-1", Email: "c@example.ch"}
@@ -96,9 +152,15 @@ func TestResetPasswordDropsUnprovenIdentities(t *testing.T) {
 		t.Errorf("the stranger's provider login after the reset: %v, want ErrEmailTaken", err)
 	}
 
-	// A provider connected to a verified address stays.
+	// Also once the address was confirmed: a reset takes the account over,
+	// passkeys and providers go (they may have been added by whoever
+	// confirmed a stranger's address by mistake).
 	owner := Identity{Provider: "test", Subject: "o-1", Email: "d@example.ch", EmailVerified: true}
-	if _, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow); err != nil {
+	u, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.DB.Exec(ctx, `INSERT INTO passkeys (id, user_id, name, credential) VALUES ('\x01', $1, 'iPhone', '{}')`, u.ID); err != nil {
 		t.Fatal(err)
 	}
 	if err := svc.ForgotPassword(ctx, "d@example.ch"); err != nil {
@@ -109,8 +171,12 @@ func TestResetPasswordDropsUnprovenIdentities(t *testing.T) {
 	if err := svc.ResetPassword(ctx, reset, "owner-password-2"); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow); err != nil {
-		t.Errorf("verified provider login after the reset: %v", err)
+	if _, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow); !errors.Is(err, ErrEmailTaken) {
+		t.Errorf("provider login after the reset: %v, want ErrEmailTaken", err)
+	}
+	var passkeys int
+	if err := svc.DB.QueryRow(ctx, `SELECT count(*) FROM passkeys WHERE user_id = $1`, u.ID).Scan(&passkeys); err != nil || passkeys != 0 {
+		t.Errorf("passkeys after the reset: %d %v", passkeys, err)
 	}
 }
 

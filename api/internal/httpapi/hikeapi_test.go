@@ -39,7 +39,7 @@ func TestUploadHike(t *testing.T) {
 	if code, _ := c.do("POST", "/api/v1/hikes", hikeBody("rec-1", "", 8.0, start)); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("hiker@example.ch", "hiker"))
+	s.signup(c, "hiker@example.ch", "hiker")
 	_, body := c.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "private"))
 	var planned savedRoute
 	_ = json.Unmarshal(body, &planned)
@@ -104,7 +104,7 @@ func TestUploadHike(t *testing.T) {
 
 	// Someone else's private route is not linked.
 	other := s.client(t)
-	other.do("POST", "/api/v1/auth/signup", signupBody("other@example.ch", "other"))
+	s.signup(other, "other@example.ch", "other")
 	code, body = other.do("POST", "/api/v1/hikes", hikeBody("rec-1", planned.ID, 8.0, start))
 	_ = json.Unmarshal(body, &up)
 	_, body = other.do("GET", "/api/v1/routes/"+up.ID, nil)

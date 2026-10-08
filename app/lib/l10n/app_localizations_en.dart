@@ -48,6 +48,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Log out';
 
   @override
+  String get loginUnverified => 'Confirm your e-mail address first. We sent you a new link.';
+
+  @override
+  String get logoutOthers => 'Log out on all other devices';
+
+  @override
+  String get logoutOthersDone => 'The other devices are logged out.';
+
+  @override
   String get offlineSave => 'Save offline';
 
   @override

@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/logout-others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End all other sessions of the account (other browsers and phones) */
+        post: operations["logout-others"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/oidc/{provider}/callback": {
         parameters: {
             query?: never;
@@ -175,7 +192,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create an account and log in */
+        /**
+         * Create an account; it logs in once the address is confirmed
+         * @description 202 for a new address and for one with an account alike (that one gets an e-mail saying so), so that signing up does not reveal which addresses have accounts. 409 only for a username that is taken.
+         */
         post: operations["signup"];
         delete?: never;
         options?: never;
@@ -190,9 +210,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** The account a verification token is for, without using the token */
+        get: operations["verification"];
         put?: never;
-        /** Confirm the e-mail address with the token from the e-mail */
+        /** Confirm the e-mail address with the token from the e-mail, and log in */
         post: operations["verify-email"];
         delete?: never;
         options?: never;
@@ -4584,6 +4605,10 @@ export interface components {
         UserSearchOutputBody: {
             users: components["schemas"]["FriendRef"][];
         };
+        VerificationOutputBody: {
+            display_name: string;
+            username: string;
+        };
         VersionOutputBody: {
             /** @description Source code of this deployment (AGPL-3.0) */
             source: string;
@@ -4686,6 +4711,33 @@ export interface operations {
             204: {
                 headers: {
                     "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "logout-others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
@@ -4936,9 +4988,7 @@ export interface operations {
     signup: {
         parameters: {
             query?: never;
-            header?: {
-                "User-Agent"?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -4948,14 +4998,42 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created */
-            201: {
+            /** @description Accepted */
+            202: {
                 headers: {
-                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SessionOutputBody"];
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    verification: {
+        parameters: {
+            query?: {
+                token?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOutputBody"];
                 };
             };
             /** @description Error */
@@ -4972,7 +5050,9 @@ export interface operations {
     "verify-email": {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "User-Agent"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -4982,12 +5062,15 @@ export interface operations {
             };
         };
         responses: {
-            /** @description No Content */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
+                    "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SessionOutputBody"];
+                };
             };
             /** @description Error */
             default: {

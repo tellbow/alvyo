@@ -1,9 +1,10 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
 test('mark a route as hiked; the list and the map tell planned from hiked', async ({ page }) => {
 	const s = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `done${s}@example.ch`,
 			username: `done${s}`,
@@ -11,7 +12,7 @@ test('mark a route as hiked; the list and the map tell planned from hiked', asyn
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const create = async (title: string, lon: number) =>
 		(
 			await (

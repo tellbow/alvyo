@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { leg } from './legs';
 
@@ -5,7 +6,7 @@ import { leg } from './legs';
 // 250 m of T4 (16.7 km), «Alpinwandern» takes them (1.1 km).
 test('a leg much longer by hiking offers the alpine way', async ({ page }) => {
 	const id = `alp${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -13,7 +14,7 @@ test('a leg much longer by hiking offers the alpine way', async ({ page }) => {
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	// As saved after planning with «Wandern»: the leg knows the alpine way.
 	const from = [9.76087, 46.50887, 2640];
 	const to = [9.7498, 46.50993, 2690];

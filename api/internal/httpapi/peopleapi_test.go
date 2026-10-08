@@ -11,13 +11,13 @@ func TestJourneyPeople(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	ctx := context.Background()
 	owner := s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("walker@example.ch", "walker"))
+	s.signup(owner, "walker@example.ch", "walker")
 	anna := s.client(t)
-	anna.do("POST", "/api/v1/auth/signup", signupBody("anna@example.ch", "anna"))
+	s.signup(anna, "anna@example.ch", "anna")
 	editor := s.client(t)
-	editor.do("POST", "/api/v1/auth/signup", signupBody("beat@example.ch", "beat"))
+	s.signup(editor, "beat@example.ch", "beat")
 	stranger := s.client(t)
-	stranger.do("POST", "/api/v1/auth/signup", signupBody("nosy@example.ch", "nosy"))
+	s.signup(stranger, "nosy@example.ch", "nosy")
 	if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now()`); err != nil {
 		t.Fatal(err)
 	}

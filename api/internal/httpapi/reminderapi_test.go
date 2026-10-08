@@ -10,7 +10,7 @@ import (
 func TestJourneyReminders(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("walker@example.ch", "walker"))
+	s.signup(c, "walker@example.ch", "walker")
 	_, body := c.do("POST", "/api/v1/journeys", map[string]any{"title": "Via Alpina"})
 	base := "/api/v1/journeys/" + decodeJourney(t, body).ID
 	c.do("POST", base+"/stages", map[string]any{})
@@ -50,7 +50,7 @@ func TestJourneyReminders(t *testing.T) {
 		t.Errorf("anonymous: %d", code)
 	}
 	other := s.client(t)
-	other.do("POST", "/api/v1/auth/signup", signupBody("nosy@example.ch", "nosy"))
+	s.signup(other, "nosy@example.ch", "nosy")
 	if code, _ := other.do("PUT", base+"/reminders", map[string]any{"on": false}); code != http.StatusNotFound {
 		t.Errorf("someone else's private journey: %d", code)
 	}

@@ -77,9 +77,9 @@ func stageRouteBody(lon0 float64) map[string]any {
 func TestJourneyAPI(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	owner := s.client(t)
-	owner.do("POST", "/api/v1/auth/signup", signupBody("walker@example.ch", "walker"))
+	s.signup(owner, "walker@example.ch", "walker")
 	other := s.client(t)
-	other.do("POST", "/api/v1/auth/signup", signupBody("nosy@example.ch", "nosy"))
+	s.signup(other, "nosy@example.ch", "nosy")
 	anon := s.client(t)
 
 	code, body := owner.do("POST", "/api/v1/journeys", map[string]any{"title": "Quer durch die Schweiz"})

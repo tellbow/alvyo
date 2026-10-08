@@ -1,12 +1,12 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
-import { linkFromMail } from './mailpit';
 
 test('a hike recorded with the app shows when it was hiked and its planned route', async ({
 	page
 }) => {
 	const id = `hike${Date.now().toString(36)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -14,7 +14,7 @@ test('a hike recorded with the app shows when it was hiked and its planned route
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
+	expect(signup.status()).toBe(200);
 	const planned = await page.request.post('/api/v1/routes', {
 		data: { title: 'Bachalpsee', visibility: 'private', ...routeContent(8.04, 46.665) }
 	});
@@ -48,7 +48,7 @@ test('a hike recorded with the app shows when it was hiked and its planned route
 
 test('others see a recorded hike without its start and end', async ({ page, browser }) => {
 	const id = `priv${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await page.request.post('/api/v1/auth/signup', {
+	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
@@ -56,11 +56,7 @@ test('others see a recorded hike without its start and end', async ({ page, brow
 			password: 'sehr-geheim-123'
 		}
 	});
-	expect(signup.status()).toBe(201);
-	const token = new URL(await linkFromMail(`${id}@example.ch`, '/verify-email')).searchParams.get(
-		'token'
-	);
-	await page.request.post('/api/v1/auth/verify-email', { data: { token } });
+	expect(signup.status()).toBe(200);
 	// A public hike east from 8.04, a position every 20 m: 2 km, and 600 m.
 	const start = Date.UTC(2026, 8, 20, 8, 0);
 	const upload = async (rec: string, n: number) => {

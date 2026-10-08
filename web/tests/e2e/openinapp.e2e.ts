@@ -1,3 +1,4 @@
+import { signUp } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 
@@ -9,7 +10,7 @@ test.describe('on an iPhone', () => {
 
 	test("a route opens in the app, with the link's token", async ({ page }) => {
 		const id = `app${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-		await page.request.post('/api/v1/auth/signup', {
+		await signUp(page.request, {
 			data: {
 				email: `${id}@example.ch`,
 				username: id,

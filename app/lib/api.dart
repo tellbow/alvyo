@@ -1335,6 +1335,9 @@ class Api {
     return me;
   }
 
+  /// Ends the account's other sessions (other phones and browsers).
+  Future<void> logoutOthers() => _send('POST', '/auth/logout-others');
+
   Future<void> logout() async {
     await _http.post(_uri('/auth/logout'), headers: _headers);
     token = null;

@@ -17,8 +17,7 @@ func TestPlacesAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	c := s.client(t)
-	c.do("POST", "/api/v1/auth/signup", signupBody("stops@example.ch", "stops"))
-
+	s.signup(c, "stops@example.ch", "stops")
 	code, body := c.do("GET", "/api/v1/places/nearby?lon=8.002&lat=46.5&kind=pt_stop,hut", nil)
 	var res struct {
 		Places []struct {
@@ -119,8 +118,7 @@ func TestSearchPlacesAPI(t *testing.T) {
 	if code, _ := c.do("GET", "/api/v1/places/search?q=weiss", nil); code != http.StatusUnauthorized {
 		t.Errorf("anonymous: %d", code)
 	}
-	c.do("POST", "/api/v1/auth/signup", signupBody("search@example.ch", "search"))
-
+	s.signup(c, "search@example.ch", "search")
 	code, body := c.do("GET", "/api/v1/places/search?q=weisstannen&lon=9.3&lat=47", nil)
 	var res struct {
 		Places []struct {

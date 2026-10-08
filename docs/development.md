@@ -115,6 +115,7 @@ tests; the same locally:
 (cd api && go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...)   # and in swiss/
 go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.6.0 scan source -L web/bun.lock -L app/pubspec.lock
 uvx zizmor .github/workflows                                          # workflow risks
+uvx semgrep scan --config p/default --metrics=off                     # static analysis; the rules CI leaves out and why: ci.yml
 docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.0 git /repo --redact -c /repo/.gitleaks.toml
 ```
 
@@ -124,6 +125,9 @@ at least 7 days old; patches and digests merge themselves once CI passes.
 `web/package.json` overrides `cookie` and `source-map-js` for fixes their
 dependents do not take up yet; drop an override once they do.
 Vulnerabilities are reported privately ([SECURITY.md](../SECURITY.md)).
+`make scorecard` runs the OpenSSF Scorecard as a checklist (2026-10-08:
+5.8; low where a private solo project cannot score: reviews, branch
+protection, fuzzing, its age).
 
 ## Production-like, locally
 

@@ -1,0 +1,13 @@
+# semgrep (CI job «semgrep»): tests and their fake servers, generated code,
+# lockfiles. (A .semgrepignore replaces semgrep's own list, which left out
+# tests.)
+*_test.go
+*.spec.ts
+web/tests/
+app/test/
+app/integration_test/
+api/internal/testdb/
+api/internal/weather/weathertest/
+web/src/lib/paraglide/
+app/lib/l10n/
+*.lock

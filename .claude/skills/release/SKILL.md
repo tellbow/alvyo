@@ -14,10 +14,16 @@ features the minor one.
    `gh run list -L 1 --branch main`. `docs/plan.md` describes what is in it
    (the «next» row of the release table).
 2. **Record first:** in `docs/plan.md`, the «next» row becomes the X.Y.Z
-   row with today's date; commit and push, and tag that commit. The
-   `release` workflow takes the row as the GitHub Release's notes.
+   row with today's date, and «Was ist neu» gets a line for the people
+   using Alvyo: `web/src/lib/news/releases.ts` and `news_X_Y_Z` in all four
+   `web/messages/*.json` (what changed for them, in their words; skip
+   releases with nothing they notice). Commit and push, and tag that
+   commit. The `release` workflow takes the row as the GitHub Release's
+   notes.
 3. **Tag:**
-   `git tag -a vX.Y.Z -m "Alvyo X.Y.Z: <what, in a few words>" <sha> && git push origin vX.Y.Z`
+   `git tag -s vX.Y.Z -m "Alvyo X.Y.Z: <what, in a few words>" <sha> && git push origin vX.Y.Z`
+   (signed with the GPG key that signs the commits; the `release` workflow
+   refuses a tag it cannot verify against `.github/release-signers.asc`)
 4. **Images:** the `release` workflow builds `ghcr.io/tellbow/alvyo-{api,web,data-import,postgis,graphhopper}`.
    `gh run list -L 2` for its id, then `gh run watch <id> --exit-status`;
    its last job creates the GitHub Release (`gh release view vX.Y.Z`).

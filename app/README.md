@@ -40,6 +40,17 @@ needs the developer to be trusted on the phone (Settings → General → VPN &
 Device Management), and a free Apple ID's apps stop after 7 days: run the
 command again.
 
+For TestFlight or the App Store (needs a paid Apple developer account), the
+version comes from the last release tag and the build number grows with
+every commit (`pubspec.yaml`'s `0.1.0+1` is only the fallback; `flutter
+run` cannot set them):
+
+```sh
+flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') \
+  --build-number=$(git rev-list --count HEAD) \
+  --dart-define=ALVYO_VERSION=$(git describe --tags --always)
+```
+
 ## Tests
 
 ```sh

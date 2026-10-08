@@ -1,7 +1,7 @@
 GO_MODULES := swiss api
 COMPOSE    := docker compose -f infra/compose.yaml
 
-.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import weather-precip sqlc api-client
+.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import weather-precip sqlc api-client scorecard
 
 test: test-go test-web
 
@@ -61,3 +61,8 @@ infra-down:
 # infra/data/graph-cache afterwards to force a re-import.
 osm-fetch:
 	$(COMPOSE) run --rm osm-fetch
+
+# OpenSSF Scorecard of the repository, as a checklist (with the GitHub CLI's
+# login; a private repository cannot publish its score).
+scorecard:
+	GITHUB_AUTH_TOKEN=$$(gh auth token) go run github.com/ossf/scorecard/v5@v5.5.0 --repo=github.com/tellbow/alvyo --show-details

@@ -111,3 +111,28 @@ jobs:
           persist-credentials: false
       - run: docker build -f api/Dockerfile .
       - run: docker build web
+
+  # Static analysis with semgrep's default rules. Excluded after a look at
+  # each finding (2026-10-08):
+  #   cookie-missing-secure: Secure follows ALVYO_PUBLIC_URL (off only on
+  #     plain-HTTP localhost);
+  #   iterate-over-empty-map: the maps are filled in the loops it means;
+  #   dynamic-urllib-use-detected: the URLs are MeteoSwiss's catalogue's;
+  #   missing-internal: the tile cache's locations are public on purpose;
+  #   npm-missing-minimum-release-age: Renovate waits 7 days (bun, not npm);
+  #   missing-user-entrypoint: GraphHopper runs as root, its volumes on rk1
+  #     are root's (open: a non-root user needs a chown of them first).
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - run: >-
+          pipx run semgrep==1.180.0 scan --config p/default --metrics=off --error
+          --exclude-rule go.lang.security.audit.net.cookie-missing-secure.cookie-missing-secure
+          --exclude-rule trailofbits.go.iterate-over-empty-map.iterate-over-empty-map
+          --exclude-rule python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+          --exclude-rule generic.nginx.security.missing-internal.missing-internal
+          --exclude-rule package_managers.npm.npm-missing-minimum-release-age.npm-missing-minimum-release-age
+          --exclude-rule dockerfile.security.missing-user-entrypoint.missing-user-entrypoint

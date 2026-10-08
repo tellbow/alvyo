@@ -24,3 +24,6 @@ CLAUDE.local.md
 /.agents/
 /skills-lock.json
 /.claude/skills/web-design-guidelines
+
+# Python caches (the screenshot skill)
+__pycache__/

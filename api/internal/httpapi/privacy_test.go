@@ -136,8 +136,18 @@ func TestHikePrivacy(t *testing.T) {
 	if l := lines[long]; len(l) != 1 || geo.Distance(geo.Point{Lon: l[0][0][0], Lat: l[0][0][1]}, hikeStart) <= 500 {
 		t.Errorf("discover: %v", l)
 	}
-	if l, ok := lines[short]; !ok || len(l) != 0 {
-		t.Errorf("discover, 600 m: listed without a line, got %v %v", ok, l)
+	if _, ok := lines[short]; ok {
+		t.Errorf("discover, 600 m: nothing to show, but listed")
+	}
+	// A view of the hidden start alone finds nothing: else views could
+	// narrow down where it lies.
+	_, body = anon.do("GET", "/api/v1/discover?bbox=7.999,46.499,8.002,46.501", nil)
+	found = discoverResp{}
+	_ = json.Unmarshal(body, &found)
+	for _, it := range found.Items {
+		if it.ID == long {
+			t.Errorf("discover: found by its hidden start")
+		}
 	}
 
 	other := s.client(t)

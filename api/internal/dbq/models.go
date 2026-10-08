@@ -209,6 +209,14 @@ type Contact struct {
 	CreatedAt time.Time
 }
 
+type DoneMark struct {
+	UserID    uuid.UUID
+	RouteID   *uuid.UUID
+	JourneyID *uuid.UUID
+	DoneOn    pgtype.Date
+	CreatedAt time.Time
+}
+
 type EmailToken struct {
 	TokenHash []byte
 	Purpose   string
@@ -392,6 +400,18 @@ type Poi struct {
 	Geom     interface{}
 }
 
+type PrecipFrame struct {
+	Kind      string
+	ValidAt   time.Time
+	RunAt     *time.Time
+	Png       []byte
+	West      float64
+	South     float64
+	East      float64
+	North     float64
+	CreatedAt time.Time
+}
+
 type Report struct {
 	ID         uuid.UUID
 	ReporterID *uuid.UUID
@@ -446,6 +466,7 @@ type Route struct {
 	Tags             []string
 	ContentAt        time.Time
 	ContentBy        *uuid.UUID
+	ShownGeom        interface{}
 }
 
 type RouteRevision struct {

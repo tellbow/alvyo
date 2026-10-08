@@ -12,12 +12,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/propagation"
@@ -73,13 +75,36 @@ func Start(ctx context.Context, service, version string, traces bool) (*Telemetr
 		if err != nil {
 			return nil, err
 		}
-		t.traces = sdktrace.NewTracerProvider(sdktrace.WithBatcher(exp), sdktrace.WithResource(res))
+		t.traces = sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(redact{}), sdktrace.WithBatcher(exp), sdktrace.WithResource(res))
 		otel.SetTracerProvider(t.traces)
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 		http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)
 	}
 	return t, nil
 }
+
+// tokenPath matches the tokens in addresses: a live location's link and a
+// friend invite let whoever has them in.
+var tokenPath = regexp.MustCompile(`/(live/view|friend-invites)/[^/?#]+`)
+
+// redact masks the tokens in the addresses of spans as they start, before
+// any exporter sees them.
+type redact struct{}
+
+func (redact) OnStart(_ context.Context, s sdktrace.ReadWriteSpan) {
+	for _, kv := range s.Attributes() {
+		switch kv.Key {
+		case semconv.URLPathKey, semconv.URLFullKey, "http.target", "http.url":
+			if v := tokenPath.ReplaceAllString(kv.Value.AsString(), "/$1/-"); v != kv.Value.AsString() {
+				s.SetAttributes(attribute.String(string(kv.Key), v))
+			}
+		}
+	}
+}
+
+func (redact) OnEnd(sdktrace.ReadOnlySpan)      {}
+func (redact) Shutdown(context.Context) error   { return nil }
+func (redact) ForceFlush(context.Context) error { return nil }
 
 // Shutdown sends what is buffered and stops the providers.
 func (t *Telemetry) Shutdown(ctx context.Context) error {

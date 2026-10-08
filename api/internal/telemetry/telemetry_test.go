@@ -85,3 +85,25 @@ func TestMetrics(t *testing.T) {
 		}
 	}
 }
+
+// Tokens in the path never reach a span.
+func TestRedact(t *testing.T) {
+	spans := tracetest.NewSpanRecorder()
+	prev := otel.GetTracerProvider()
+	otel.SetTracerProvider(sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(redact{}), sdktrace.WithSpanProcessor(spans)))
+	t.Cleanup(func() { otel.SetTracerProvider(prev) })
+
+	h := Handler(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/api/v1/live/view/geheim", nil))
+	h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, "/api/v1/friend-invites/geheim", nil))
+	for _, sp := range spans.Ended() {
+		for _, kv := range sp.Attributes() {
+			if strings.Contains(kv.Value.String(), "geheim") {
+				t.Errorf("%s: %s = %s", sp.Name(), kv.Key, kv.Value.String())
+			}
+		}
+	}
+	if len(spans.Ended()) != 2 {
+		t.Errorf("%d spans", len(spans.Ended()))
+	}
+}

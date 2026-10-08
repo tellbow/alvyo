@@ -171,3 +171,108 @@ func TestOneShareAtATime(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestPublicHidesTheEndsOfOthersHikes(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	s := &Store{DB: pool, Mail: &mailer.Recorder{}, PublicURL: "https://alvyo.test"}
+	var anna, bob uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('a@example.ch', 'anna', 'A') RETURNING id`).Scan(&anna); err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('b@example.ch', 'bob', 'B') RETURNING id`).Scan(&bob); err != nil {
+		t.Fatal(err)
+	}
+	// Points 230 m apart: the first and last 500 m are someone's home.
+	hike := func(owner uuid.UUID) uuid.UUID {
+		var id uuid.UUID
+		if err := pool.QueryRow(ctx, `INSERT INTO routes (owner_id, title, visibility, anchors, legs, geom, distance_m, ascent_m, descent_m,
+			duration_s, duration_reverse_s, ele_min_m, ele_max_m, sac_grade, sac_max, hiked_at)
+			VALUES ($1, 'Heimweg', 'public', '[]', '[]', ST_GeomFromText('LINESTRING Z (8 46 1, 8.003 46 1, 8.006 46 1, 8.009 46 1,
+				8.012 46 1, 8.015 46 1, 8.018 46 1, 8.021 46 1)', 4326), 0, 0, 0, 0, 0, 0, 0, 1, 1, now())
+			RETURNING id`, owner).Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		return id
+	}
+	c, err := s.AddContact(ctx, anna, "C", "c@example.ch")
+	if err != nil {
+		t.Fatal(err)
+	}
+	route := func(rid uuid.UUID) [][2]float64 {
+		sh, err := s.Start(ctx, Hiker{ID: anna, DisplayName: "A", Email: "a@example.ch"},
+			Start{Title: "T", ExpectedEnd: time.Now().Add(time.Hour), RouteID: &rid, ContactIDs: []uuid.UUID{uuid.MustParse(c.ID)}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		v, err := s.Public(ctx, sh.Token)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return v.Route
+	}
+	if r := route(hike(anna)); len(r) == 0 || r[0][0] != 8 {
+		t.Errorf("one's own hike in full: %v", r)
+	}
+	if r := route(hike(bob)); len(r) == 0 || r[0][0] < 8.006 || r[len(r)-1][0] > 8.015 {
+		t.Errorf("someone else's hike without its ends: %v", r)
+	}
+}
+
+// failingMail fails while down.
+type failingMail struct {
+	mailer.Recorder
+	down bool
+}
+
+func (f *failingMail) Send(ctx context.Context, m mailer.Message) error {
+	if f.down {
+		return errors.New("smtp: connection refused")
+	}
+	return f.Recorder.Send(ctx, m)
+}
+
+func TestOverdueAlertSentAgainAfterAFailure(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	mail := &failingMail{}
+	now := time.Date(2026, 9, 26, 8, 0, 0, 0, time.UTC)
+	s := &Store{DB: pool, Mail: mail, PublicURL: "https://alvyo.test", Now: func() time.Time { return now }}
+	var uid uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('a@example.ch', 'anna', 'A') RETURNING id`).Scan(&uid); err != nil {
+		t.Fatal(err)
+	}
+	h := Hiker{ID: uid, DisplayName: "A", Email: "a@example.ch"}
+	var ids []uuid.UUID
+	for _, addr := range []string{"b@example.ch", "c@example.ch"} {
+		c, err := s.AddContact(ctx, uid, addr, addr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, uuid.MustParse(c.ID))
+	}
+	if _, err := s.Start(ctx, h, Start{Title: "Gratweg", ExpectedEnd: now.Add(time.Hour), ContactIDs: ids}); err != nil {
+		t.Fatal(err)
+	}
+	sent := len(mail.Sent())
+	now = now.Add(time.Hour + Grace)
+
+	mail.down = true
+	if err := s.Check(ctx); err != nil {
+		t.Fatal(err)
+	}
+	mail.down = false
+	if err := s.Check(ctx); err != nil {
+		t.Fatal(err)
+	}
+	// Two contacts and the hiker.
+	if got := len(mail.Sent()) - sent; got != 3 {
+		t.Errorf("after the mail server is back: %d mails, want 3", got)
+	}
+	if err := s.Check(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(mail.Sent()) - sent; got != 3 {
+		t.Errorf("once sent, not again: %d mails", got)
+	}
+}

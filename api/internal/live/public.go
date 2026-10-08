@@ -43,7 +43,9 @@ func (s *Store) Public(ctx context.Context, token string) (View, error) {
 	var lastAt *time.Time
 	var route *string
 	err := s.DB.QueryRow(ctx, `SELECT l.id, l.title, u.display_name, l.started_at, l.expected_end, l.ended_at,
-			l.last_lon, l.last_lat, l.last_at, ST_AsGeoJSON(ST_Simplify(ST_Force2D(r.geom), 0.0001), 5)
+			l.last_lon, l.last_lat, l.last_at, ST_AsGeoJSON(ST_Simplify(ST_Force2D(
+				-- someone else's recorded hike without its first and last 500 m
+				CASE WHEN r.hiked_at IS NULL OR r.owner_id = l.owner_id THEN r.geom ELSE shown_line(r.geom) END), 0.0001), 5)
 		FROM live_shares l JOIN users u ON u.id = l.owner_id LEFT JOIN routes r ON r.id = l.route_id
 		WHERE l.token = $1 AND (l.ended_at IS NULL OR l.ended_at > $2)`, token, s.now().Add(-LinkFor)).
 		Scan(&id, &v.Title, &v.Hiker, &v.StartedAt, &v.ExpectedEnd, &v.EndedAt, &lon, &lat, &lastAt, &route)
@@ -78,8 +80,9 @@ func (s *Store) Public(ctx context.Context, token string) (View, error) {
 	return v, err
 }
 
-// Check alerts the contacts of hikes overdue by Grace (once each) and
-// deletes shares KeepFor after their end.
+// Check alerts the contacts of hikes overdue by Grace (once each; again on
+// the next check when a mail could not be sent) and deletes shares KeepFor
+// after their end.
 func (s *Store) Check(ctx context.Context) error {
 	now := s.now()
 	rows, err := s.DB.Query(ctx, `UPDATE live_shares l SET alerted_at = $1
@@ -113,11 +116,19 @@ func (s *Store) Check(ctx context.Context) error {
 			last = &Position{Lon: *o.lon, Lat: *o.lat, At: *o.lastAt}
 		}
 		rs, err := s.recipients(ctx, o.id)
-		if err != nil {
-			return err
-		}
 		for _, c := range rs {
-			s.send(ctx, overdueMail(o.h, c.Name, o.title, o.end, last, s.link(o.token), c.Email))
+			if e := s.Mail.Send(ctx, overdueMail(o.h, c.Name, o.title, o.end, last, s.link(o.token), c.Email)); e != nil {
+				err = e
+			}
+		}
+		if err != nil {
+			// A contact twice is better than none: the alert may be all
+			// that tells them someone needs help.
+			slog.ErrorContext(ctx, "live: overdue alert, again on the next check", "share", o.id, "err", err)
+			if _, err := s.DB.Exec(ctx, `UPDATE live_shares SET alerted_at = NULL WHERE id = $1`, o.id); err != nil {
+				return fmt.Errorf("live: overdue again: %w", err)
+			}
+			continue
 		}
 		s.send(ctx, overdueSelfMail(o.h, o.title, o.end, s.link(o.token)))
 		slog.InfoContext(ctx, "live: overdue alert", "share", o.id, "recipients", len(rs))

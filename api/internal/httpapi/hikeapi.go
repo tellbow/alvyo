@@ -51,9 +51,27 @@ func registerHikes(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
+		// hike marks the route as hiked, also on an upload again: the first
+		// may have saved the route and failed after it.
+		hike := func(id string) error {
+			b := in.Body
+			// The planned route, if the hiker may (still) see it.
+			var planned *uuid.UUID
+			if b.RouteID != "" {
+				if p, _, err := loadRoute(ctx, d, b.RouteID, ""); err == nil {
+					id := uuid.MustParse(p.ID)
+					planned = &id
+				}
+			}
+			first, last := b.Points[0].Time, b.Points[len(b.Points)-1].Time
+			return d.Routes.SetHike(ctx, uuid.MustParse(id), first, max(0, int(last.Sub(first).Seconds())), planned)
+		}
 		existing := func() (*uploadHikeOutput, error) {
 			refs, err := d.Routes.ImportedRefs(ctx, u.ID, recorded)
 			if err != nil || refs[in.Body.ID] == "" {
+				return nil, err
+			}
+			if err := hike(refs[in.Body.ID]); err != nil {
 				return nil, err
 			}
 			out := &uploadHikeOutput{Status: http.StatusOK}
@@ -90,16 +108,7 @@ func registerHikes(api huma.API, d Deps) {
 			return nil, huma.Error500InternalServerError("the hike could not be saved")
 		}
 
-		// The planned route, if the hiker may (still) see it.
-		var planned *uuid.UUID
-		if b.RouteID != "" {
-			if p, _, err := loadRoute(ctx, d, b.RouteID, ""); err == nil {
-				id := uuid.MustParse(p.ID)
-				planned = &id
-			}
-		}
-		first, last := b.Points[0].Time, b.Points[len(b.Points)-1].Time
-		if err := d.Routes.SetHike(ctx, uuid.MustParse(r.ID), first, max(0, int(last.Sub(first).Seconds())), planned); err != nil {
+		if err := hike(r.ID); err != nil {
 			return nil, err
 		}
 		out := &uploadHikeOutput{Status: http.StatusCreated}

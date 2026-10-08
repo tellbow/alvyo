@@ -66,17 +66,18 @@ WITH granted AS (
 	SELECT CASE WHEN r.hiked_at IS NULL THEN 'route' ELSE 'hike' END AS kind, r.id, r.title, r.owner_id, r.tags,
 		r.distance_m::float8 AS distance_m, r.ascent_m::float8 AS ascent_m, r.duration_s,
 		r.distance_m::float8 AS longest_m, r.duration_s AS longest_s, r.sac_grade, r.sac_max, 0 AS stages,
-		route_done_on(r, $1) AS done_on, r.geom,
+		route_done_on(r, $1) AS done_on,
 		-- others' recorded hikes without their start and end
-		CASE WHEN r.hiked_at IS NULL OR r.owner_id = $1 THEN r.geom ELSE shown_line(r.geom) END AS shown
+		-- (also found and sorted by it: the whole line would give their ends away)
+		CASE WHEN r.owner_id = $1 THEN r.geom ELSE r.shown_geom END AS shown
 	FROM routes r
 	WHERE r.journey_id IS NULL
 		AND (r.owner_id = $1 OR r.id IN (SELECT route_id FROM granted))
-		AND ST_Intersects(r.geom, ST_MakeEnvelope($4, $5, $6, $7, 4326))
+		AND ST_Intersects(CASE WHEN r.owner_id = $1 THEN r.geom ELSE r.shown_geom END, ST_MakeEnvelope($4, $5, $6, $7, 4326))
 	UNION ALL
 	SELECT 'journey', j.id, j.title, j.owner_id, j.tags,
 		js.distance_m, js.ascent_m, js.duration_s, js.longest_m, js.longest_s, js.sac_grade, js.sac_max, js.stages,
-		journey_done_on(j.id, $1), js.geom,
+		journey_done_on(j.id, $1),
 		js.geom
 	FROM journeys j
 	CROSS JOIN LATERAL (
@@ -99,7 +100,7 @@ WHERE (cardinality($8::text[]) = 0 OR i.kind = ANY($8))
 	AND CASE WHEN $10 AND i.kind = 'journey' THEN i.longest_s ELSE i.duration_s END BETWEEN $16 AND $17
 	AND i.sac_grade BETWEEN $18 AND $19
 	AND ($21 = '' OR ($21 = 'done') = (i.done_on IS NOT NULL))
-ORDER BY i.geom <-> ST_Point($12, $13, 4326), i.id
+ORDER BY i.shown <-> ST_Point($12, $13, 4326), i.id
 LIMIT $20`
 
 // Mine returns the user's items in the view that pass the filters, nearest

@@ -75,6 +75,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.28.0 | 2026-10-07 | «Berge erkennen» draws the nearer ridges as lines too, and the skyline no longer starts at the cells right next to one (on a summit they hid the view) |
 | 0.29.0 | 2026-10-07 | The app's navigation tidied up (69): Entdecken, Planen, Touren and Profil; Rundtour and Zwischenziel, Reichweite back to the start (each way timed), importing files, Apple Watch hikes imported automatically, a tour to follow when recording; the app asks for notifications only when it schedules reminders |
 | 0.29.1 | 2026-10-07 | Reichweite: «Zurück zum Start» off by default, its areas without the holes and steps between the paths; the layer menu on its map |
+| next | | Fixes from a review of all parts: privacy — a live location of someone else's recorded hike, discovery and one's map no longer give away a hike's hidden start and end (the shown line is kept with the route), bug reports drop tokens from the address before the public issue, traces no longer hold the Komoot address and link tokens, a hike uploaded again is marked as hiked; overdue alerts are sent again when the mail server failed |
 
 ## Requirements
 

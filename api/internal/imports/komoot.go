@@ -53,11 +53,16 @@ type KomootTour struct {
 	DistanceM float64 `json:"distance"`
 }
 
+// komootTransport is not traced: Komoot's addresses hold the account's
+// e-mail address, which is never stored or logged.
+var komootTransport = &http.Transport{Proxy: http.ProxyFromEnvironment, ForceAttemptHTTP2: true,
+	TLSHandshakeTimeout: 10 * time.Second, IdleConnTimeout: 90 * time.Second}
+
 func (k *Komoot) client() *http.Client {
 	if k.HTTP != nil {
 		return k.HTTP
 	}
-	return &http.Client{Timeout: 20 * time.Second}
+	return &http.Client{Timeout: 20 * time.Second, Transport: komootTransport}
 }
 
 func basic(user, secret string) string {

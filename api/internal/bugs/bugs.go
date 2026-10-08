@@ -12,6 +12,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -51,6 +53,7 @@ type Store struct {
 // Create keeps a report and opens its issue; the issue's address, empty
 // when GitHub is not configured or did not answer (the report is kept).
 func (s *Store) Create(ctx context.Context, r Report) (id uuid.UUID, issueURL string, err error) {
+	r.Place, r.Version = Place(r.Place), oneLine(r.Version)
 	var kind *string
 	if len(r.Screenshot) > 0 {
 		t := http.DetectContentType(r.Screenshot)
@@ -99,6 +102,38 @@ func (s *Store) Screenshot(ctx context.Context, id uuid.UUID) ([]byte, string, e
 		return nil, "", fmt.Errorf("bugs: screenshot: %w", err)
 	}
 	return b, *t, nil
+}
+
+// secretPath matches the part of an address that is a token: live
+// locations and friend invites carry it in the path.
+var secretPath = regexp.MustCompile(`/(live|friends/invite|friend-invites)/[^/?#]+`)
+
+// Place is the reported address without what would let a reader of the
+// public issue in: path tokens masked, share and reset tokens dropped, and
+// on one line, so it cannot add markdown to the issue.
+func Place(place string) string {
+	place = oneLine(place)
+	path, query, _ := strings.Cut(place, "?")
+	path = secretPath.ReplaceAllString(path, "/$1/-")
+	if q, err := url.ParseQuery(query); err == nil && query != "" {
+		q.Del("t")
+		q.Del("token")
+		if query = q.Encode(); query != "" {
+			return path + "?" + query
+		}
+		return path
+	}
+	return path
+}
+
+// oneLine replaces control characters (line breaks among them) by spaces.
+func oneLine(s string) string {
+	return strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return ' '
+		}
+		return r
+	}, s)
 }
 
 // Title is the description's first line, at most 80 characters.

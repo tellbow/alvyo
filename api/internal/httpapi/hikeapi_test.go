@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -58,12 +59,24 @@ func TestUploadHike(t *testing.T) {
 		t.Errorf("route: %s", body)
 	}
 
+	// The first upload saved the route but not that it was hiked: the
+	// upload again does (else it would be shown without privacy zones).
+	if _, err := s.db.Exec(context.Background(), `UPDATE routes SET hiked_at = NULL WHERE id = $1`, up.ID); err != nil {
+		t.Fatal(err)
+	}
+
 	// The app uploads again (no answer the first time): the same route.
 	code, body = c.do("POST", "/api/v1/hikes", hikeBody("rec-1", planned.ID, 8.0, start))
 	var again struct{ ID string }
 	_ = json.Unmarshal(body, &again)
 	if code != http.StatusOK || again.ID != up.ID {
 		t.Errorf("again: %d %s", code, body)
+	}
+	_, body = c.do("GET", "/api/v1/routes/"+up.ID, nil)
+	r = hikeResp{}
+	_ = json.Unmarshal(body, &r)
+	if r.Hike == nil || !r.Hike.At.Equal(start) {
+		t.Errorf("again: not marked as hiked: %s", body)
 	}
 	_, body = c.do("GET", "/api/v1/routes", nil)
 	var list struct {

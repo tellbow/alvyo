@@ -11,8 +11,7 @@ make osm-fetch      # OSM extracts: CH, LI and 15 km beyond (~4 GB download) →
 make infra-up       # PostGIS, GraphHopper, tile cache, Mailpit (docker compose),
                     # their ports on 127.0.0.1 only
                     # GraphHopper builds its routing graph on first start (~2 min)
-# the database is still called odysgeh, from before the rename (operations.md)
-export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+export ALVYO_DATABASE_URL='postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'
 go run ./api/cmd/alvyo migrate
 make tlm-import     # official hiking trails into PostGIS (~200 MB download), needed for SAC grades
 make places-import  # stops (BAV) and huts/accommodation (OSM) for stage start and end (~5 s)
@@ -26,7 +25,7 @@ terminals:
 
 ```sh
 # terminal 1 — API on :8080
-export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+export ALVYO_DATABASE_URL='postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'
 go run ./api/cmd/alvyo migrate     # after pulling new migrations
 go run ./api/cmd/alvyo serve
 

@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 mkdir -p backups
 stamp=$(date +%Y-%m-%dT%H%M)
 file="backups/alvyo-$stamp.dump"
-docker compose -f compose.prod.yaml exec -T db pg_dump -U odysgeh -Fc odysgeh > "$file.tmp"
+docker compose -f compose.prod.yaml exec -T db pg_dump -U alvyo -Fc alvyo > "$file.tmp"
 mv "$file.tmp" "$file"
 find backups -name 'alvyo-*.dump' -mtime +14 -delete
 echo "backup: $file ($(du -h "$file" | cut -f1))"

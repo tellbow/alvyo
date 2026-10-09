@@ -49,7 +49,7 @@ production-like local run: [docs/development.md](docs/development.md).
 
 ```sh
 make osm-fetch && make infra-up          # once: map data + containers
-export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+export ALVYO_DATABASE_URL='postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'
 go run ./api/cmd/alvyo migrate && go run ./api/cmd/alvyo serve
 cd web && bun run dev                    # → http://localhost:5173
 ```

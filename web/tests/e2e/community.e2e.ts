@@ -99,7 +99,7 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 			...process.env,
 			ALVYO_DATABASE_URL:
 				process.env.ALVYO_DATABASE_URL ??
-				'postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'
+				'postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'
 		}
 	});
 	await modPage.goto('/');

@@ -21,7 +21,7 @@ import (
 func TestPlanLive(t *testing.T) {
 	url := os.Getenv("ALVYO_DATABASE_URL")
 	if url == "" {
-		url = "postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable"
+		url = "postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable"
 	}
 	pool, err := pgxpool.New(context.Background(), url)
 	if err != nil {
@@ -73,7 +73,7 @@ func TestPlanLive(t *testing.T) {
 func TestSuggestLive(t *testing.T) {
 	url := os.Getenv("ALVYO_DATABASE_URL")
 	if url == "" {
-		url = "postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable"
+		url = "postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable"
 	}
 	pool, err := pgxpool.New(context.Background(), url)
 	if err != nil {

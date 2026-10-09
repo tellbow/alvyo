@@ -23,7 +23,7 @@ export default defineConfig({
 			env: {
 				ALVYO_DATABASE_URL:
 					process.env.ALVYO_DATABASE_URL ??
-					'postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable',
+					'postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable',
 				ALVYO_LISTEN: `:${API_PORT}`,
 				ALVYO_PUBLIC_URL: `http://localhost:${WEB_PORT}`,
 				// every test signs up its own account from 127.0.0.1

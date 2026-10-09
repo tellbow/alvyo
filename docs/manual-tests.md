@@ -480,12 +480,6 @@ Checked so far only in the simulator, with made-up or simulated positions
       of it, the address bar as a viewport 80 px taller and back. The
       elevation profile 616 px wide for a moment while a route page loaded:
       fixed 2026-10-02 (`phone.e2e.ts`).
-- [x] **Old address**: links to `odysgeh.tellbow.ch` (shared routes, live
-      shares, e-mails sent before) end on the same page at
-      `alvyo.tellbow.ch`. Passkeys made on the old address do not work on the
-      new one: log in with the password and add a passkey again.
-      2026-10-01: 308 to the same path and query at alvyo.tellbow.ch.
-
 - [ ] **Screenshots of bug reports** (41) in Safari, Chrome and Firefox: the
       page with its map, in dark mode too; the issue on GitHub links to the
       screenshot, which opens for moderators only.

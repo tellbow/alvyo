@@ -35,8 +35,7 @@ official figures: [hiking-time.md](hiking-time.md).
 ## Releases
 
 A `v*` tag builds the images; Flux deploys them
-([operations.md](operations.md)). Production: https://alvyo.tellbow.ch
-(https://odysgeh.tellbow.ch redirects there).
+([operations.md](operations.md)). Production: https://alvyo.tellbow.ch.
 
 | Version | Date | What |
 |---|---|---|

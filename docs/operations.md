@@ -1,8 +1,17 @@
 # Operations
 
-Alvyo was called odysgeh before 0.8.0. The database, its user and the
-cluster's secret kept that name; the Kubernetes namespace is alvyo since
-2026-09-27 (the volumes moved along).
+Alvyo was called odysgeh before 0.8.0. Since 2026-10-09 the database and
+its user are called alvyo as well. An installation from before renames them
+once, with the api stopped (a role cannot rename itself, hence the helper):
+
+```sh
+docker compose -f compose.prod.yaml stop api
+dc="docker compose -f compose.prod.yaml exec -T db"
+$dc psql -U odysgeh -d postgres -c 'CREATE ROLE rename_admin SUPERUSER LOGIN'
+$dc psql -U rename_admin -d postgres -c 'ALTER ROLE odysgeh RENAME TO alvyo' -c 'ALTER DATABASE odysgeh RENAME TO alvyo'
+$dc psql -U alvyo -d postgres -c 'DROP ROLE rename_admin'
+docker compose -f compose.prod.yaml up -d
+```
 
 ## Server
 
@@ -45,7 +54,7 @@ providers you configure, e.g. Google:
 2. In `infra/.env`: `OIDC_PROVIDERS=google`, `OIDC_GOOGLE_CLIENT_ID=…`,
    `OIDC_GOOGLE_CLIENT_SECRET=…` (compose.prod.yaml passes them on).
    On the cluster: `ALVYO_OIDC_GOOGLE_CLIENT_ID` and
-   `ALVYO_OIDC_GOOGLE_CLIENT_SECRET` in `odysgeh-secret` (`sops
+   `ALVYO_OIDC_GOOGLE_CLIENT_SECRET` in `alvyo-secret` (`sops
    cluster/alvyo/secret.yaml` in the gitops repo), the provider list, name
    and issuer in `configmap.yaml`. A provider listed without its secret
    stops the API from starting: the keys go in first.

@@ -20,7 +20,7 @@ import (
 func TestLegLive(t *testing.T) {
 	url := os.Getenv("ALVYO_DATABASE_URL")
 	if url == "" {
-		url = "postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable"
+		url = "postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable"
 	}
 	pool, err := pgxpool.New(context.Background(), url)
 	if err != nil {
@@ -53,7 +53,7 @@ func TestLegLive(t *testing.T) {
 // heights from geo.admin (needs the graph of `make osm-fetch` since
 // requirement 31).
 func TestAcrossTheBorderLive(t *testing.T) {
-	pool, err := pgxpool.New(context.Background(), "postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable")
+	pool, err := pgxpool.New(context.Background(), "postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable")
 	if err != nil {
 		t.Fatal(err)
 	}

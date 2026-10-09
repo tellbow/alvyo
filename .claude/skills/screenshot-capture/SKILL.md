@@ -30,7 +30,7 @@ started.
   `until curl -sf localhost:8989/health; do sleep 3; done` (GraphHopper takes
   about 2 minutes after a fresh start).
 - API, in the background:
-  `export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'`,
+  `export ALVYO_DATABASE_URL='postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'`,
   `go run ./api/cmd/alvyo migrate`, then `go run ./api/cmd/alvyo serve`.
 - Web, in the background: `cd web && bun run dev`. Ready when
   `curl -sf localhost:5173/api/v1/auth/providers` answers.

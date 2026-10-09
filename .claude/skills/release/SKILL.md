@@ -31,7 +31,7 @@ features the minor one.
    in the gitops repo (`cluster/alvyo`). Never edit them by hand: a manual
    bump was once reverted by the automation. With
    `KUBECONFIG=~/.kube/k3s.yaml` and `--context rk1`:
-   - `flux reconcile image repository odysgeh-api` (and `odysgeh-web`, `odysgeh-data-import`: the Flux objects kept the old name)
+   - `flux reconcile image repository alvyo-api` (and `alvyo-web`, `alvyo-data-import`)
    - `flux reconcile image update flux-system`
    - `flux reconcile kustomization flux-system --with-source`
 

@@ -26,7 +26,7 @@ the same commit when a requirement is done or changes. Layout: `README.md`.
 | What | Command |
 |---|---|
 | Dev stack (PostGIS, GraphHopper, tile cache, Mailpit) | `make infra-up`; GraphHopper needs ~2 min to load |
-| API | `export ALVYO_DATABASE_URL='postgres://odysgeh:odysgeh@localhost:5432/odysgeh?sslmode=disable'`, then `go run ./api/cmd/alvyo migrate && go run ./api/cmd/alvyo serve` |
+| API | `export ALVYO_DATABASE_URL='postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'`, then `go run ./api/cmd/alvyo migrate && go run ./api/cmd/alvyo serve` |
 | Web | `cd web && bun run dev` (http://localhost:5173) |
 | Go tests | `go test ./swiss/... ./api/...` (testcontainers; needs Docker) |
 | Go lint | `make lint-go` (golangci-lint in `api/` and `swiss/`) |

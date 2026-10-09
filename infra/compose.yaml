@@ -6,13 +6,13 @@ services:
     build: ./postgis
     image: alvyo-postgis:18
     environment:
-      POSTGRES_USER: odysgeh
-      POSTGRES_PASSWORD: odysgeh
-      POSTGRES_DB: odysgeh
+      POSTGRES_USER: alvyo
+      POSTGRES_PASSWORD: alvyo
+      POSTGRES_DB: alvyo
     ports: ["127.0.0.1:5432:5432"]
     volumes: [pgdata:/var/lib/postgresql]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U odysgeh -d odysgeh"]
+      test: ["CMD-SHELL", "pg_isready -U alvyo -d alvyo"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -65,9 +65,9 @@ services:
       db: { condition: service_healthy }
     environment:
       PGHOST: db
-      PGUSER: odysgeh
-      PGPASSWORD: odysgeh
-      PGDATABASE: odysgeh
+      PGUSER: alvyo
+      PGPASSWORD: alvyo
+      PGDATABASE: alvyo
     volumes:
       - ./data:/data
       - ./data-import:/scripts:ro
@@ -82,9 +82,9 @@ services:
       db: { condition: service_healthy }
     environment:
       PGHOST: db
-      PGUSER: odysgeh
-      PGPASSWORD: odysgeh
-      PGDATABASE: odysgeh
+      PGUSER: alvyo
+      PGPASSWORD: alvyo
+      PGDATABASE: alvyo
     volumes:
       - ./data:/data
       - ./data-import:/scripts:ro
@@ -100,9 +100,9 @@ services:
       db: { condition: service_healthy }
     environment:
       PGHOST: db
-      PGUSER: odysgeh
-      PGPASSWORD: odysgeh
-      PGDATABASE: odysgeh
+      PGUSER: alvyo
+      PGPASSWORD: alvyo
+      PGDATABASE: alvyo
     volumes:
       - ./data:/data
       - ./data-import:/scripts:ro
@@ -117,9 +117,9 @@ services:
       db: { condition: service_healthy }
     environment:
       PGHOST: db
-      PGUSER: odysgeh
-      PGPASSWORD: odysgeh
-      PGDATABASE: odysgeh
+      PGUSER: alvyo
+      PGPASSWORD: alvyo
+      PGDATABASE: alvyo
     volumes:
       - ./data-import:/scripts:ro
     command: ["python3", "/scripts/weather-precip.py"]
@@ -130,8 +130,6 @@ services:
       - "127.0.0.1:8025:8025" # web UI + API
       - "127.0.0.1:1025:1025" # SMTP
 
-# Named from before the rename to alvyo, so the data stays; the database
-# itself is still called odysgeh.
 volumes:
-  pgdata: { name: odysgeh_pgdata }
-  tilecache: { name: odysgeh_tilecache }
+  pgdata:
+  tilecache:

@@ -44,6 +44,13 @@ providers you configure, e.g. Google:
    `https://<DOMAIN>/api/v1/auth/oidc/google/callback`.
 2. In `infra/.env`: `OIDC_PROVIDERS=google`, `OIDC_GOOGLE_CLIENT_ID=…`,
    `OIDC_GOOGLE_CLIENT_SECRET=…` (compose.prod.yaml passes them on).
+   On the cluster: `ALVYO_OIDC_GOOGLE_CLIENT_ID` and
+   `ALVYO_OIDC_GOOGLE_CLIENT_SECRET` in `odysgeh-secret` (`sops
+   cluster/alvyo/secret.yaml` in the gitops repo), the provider list, name
+   and issuer in `configmap.yaml`. A provider listed without its secret
+   stops the API from starting: the keys go in first.
+3. Check: `GET /api/v1/auth/providers` lists it, the login page shows
+   «Mit Google anmelden».
 
 Other providers (Microsoft, an own Keycloak or Authentik …) work the same with
 their issuer URL; add their variables to `compose.prod.yaml` like Google's.

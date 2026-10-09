@@ -84,7 +84,8 @@ From the project owner, numbered in the order given: 1–5 added on
 21–37 on 2026-09-28, 38–56 on 2026-09-29, 57–58 on 2026-10-02, 59–61
 on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
 2026-10-07 (from issue 15), 68 on 2026-10-07 (from issue 16), 69 on
-2026-10-07 (a concept of the project owner).
+2026-10-07 (a concept of the project owner), 70 on 2026-10-09 (from issue
+14).
 
 ### Done
 
@@ -721,6 +722,36 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     auswählen und importieren»), «Einstellungen» (each with its value, chosen
     in a sheet; the e-mails under «Benachrichtigungen»), «Konto». The
     session is checked when the app opens (it was with the routes list).
+
+70. **The official routes** (issue 14). The hiking routes of Wanderland
+    Schweiz (ASTRA and SchweizMobil, `ch.astra.wanderland`, open data that
+    names its source): 7 national, 70 regional, 274 local and 89 barrier-free
+    routes, public in «Entdecken» as routes (one stage) and journeys (several)
+    of the account «wanderland» («Wanderland Schweiz», which cannot log in).
+    The job `wanderland-import` (monthly) loads the GeoPackage into
+    `wanderland_routes`, `wanderland_stages` and `wanderland_transport` in
+    one transaction; the API syncs within 6 hours of a newer import
+    (`internal/official`): new routes are created, changed ones updated in
+    place (likes, collections and hiked marks stay), gone ones deleted, and
+    an import of fewer than 100 routes is refused. Wanderland keeps a stage
+    as pieces; without loops round a station (under 500 m) and branches off
+    a junction (under 300 m) the line walks every piece once, or else is the
+    longest path between two ends; all 976 stages within 20 % of the
+    official length (median 98.5 %) and time (99.6 %). Where a stage rides a
+    boat, a bus or a cable car (12 stages, e.g. Luzern – Altdorf across the
+    lake), the parts walked become stages of their own with «Umsteigen
+    davor». Times, SAC grades and heights are computed as for every route.
+    A route's or journey's page names it («Nationale Route 1 · auf
+    SchweizMobil ↗», the link in the page's language) and the source
+    instead of the owner, on the website and in the app; «Entdecken» filters
+    «Herkunft» (official, people's, both) and names official routes in its
+    list. «Als eigene Route bearbeiten» / «Als eigene Etappentour
+    bearbeiten» (`POST /routes/{id}/copy`, `/journeys/{id}/copy`) gives
+    whoever is logged in a private copy of any route or journey they can see
+    (not of others' recorded hikes, whose ends are hidden), opened in the
+    planner; a journey's copy keeps its stages, routes and transfers, not
+    dates, marks, notes or places to stay. On the website it is the main
+    action for those who may not change the item, in the app in its «⋯» menu.
 
 ### Open
 

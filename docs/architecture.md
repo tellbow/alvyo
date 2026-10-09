@@ -30,6 +30,7 @@ flowchart TB
     backup["db-backup<br/>nightly"]
     refresh["graph-refresh<br/>weekly"]
     imports["tlm-import, places-import<br/>by hand"]
+    wanderland["wanderland-import<br/>monthly"]
     precip["weather-precip<br/>every 5 min"]
   end
 
@@ -52,6 +53,7 @@ flowchart TB
   imports -- "OSM extract" --> geodata
   imports --> db
   precip -- "rain pictures" --> db
+  wanderland -- "official routes" --> db
   backup --> db
 
   api & web -- "traces, metrics, logs" --> monitoring
@@ -84,6 +86,9 @@ What each part does, and why it is there:
 - **tlm-import** and **places-import** are suspended CronJobs, started by
   hand: swisstopo's trail network once a year, BAV stops and huts from the
   OSM extract (places-import also runs at the end of every graph refresh).
+- **wanderland-import** loads the official routes of Wanderland Schweiz
+  every month into tables of their own; the API makes public routes and
+  journeys of them (`api/internal/official`).
 - **weather-precip** turns MeteoSwiss's radar of the last hour and the
   ICON-CH1 forecast into pictures every five minutes, so the API only
   serves them from the database.
@@ -107,6 +112,7 @@ flowchart LR
   tiles["tilecache"]
   refresh["graph-refresh,<br/>graphhopper's first start"]
   imports["tlm-import,<br/>places-import"]
+  wanderland["wanderland-import"]
   precip["weather-precip"]
 
   subgraph swisstopo["swisstopo and geo.admin.ch"]
@@ -114,6 +120,7 @@ flowchart LR
     wmts["WMTS tiles<br/>wmts.geo.admin.ch"]
     api3["geo.admin API<br/>api3.geo.admin.ch"]
     tlm["swissTLM3D hiking trails<br/>data.geo.admin.ch"]
+    wl["Wanderland routes (ASTRA)<br/>data.geo.admin.ch"]
   end
 
   subgraph meteo["MeteoSwiss open data, data.geo.admin.ch"]
@@ -155,6 +162,7 @@ flowchart LR
   refresh -- "graph heights" --> skadi
   imports --> tlm
   imports --> bav
+  wanderland --> wl
   precip --> radar
 ```
 
@@ -166,6 +174,7 @@ In more detail:
 | `vectortiles.geo.admin.ch` | browser | The vector base map and the map's fonts (website only) |
 | `api3.geo.admin.ch` | API | Heights of every planned or imported leg (profile service), place search, protected areas (BAFU) and current notices (ASTRA trail closures, VBS shooting) along a line (identify service) |
 | `data.geo.admin.ch` | tlm-import, places-import | swissTLM3D hiking trails, BAV stops |
+| `data.geo.admin.ch` (ASTRA) | wanderland-import | The official routes of Wanderland Schweiz, monthly |
 | `data.geo.admin.ch` (MeteoSwiss) | API, weather-precip | Local forecast (API, hourly), radar and ICON-CH1 (job). The climate normals are a file in the API, updated once a decade. |
 | `api.opentransportdata.swiss` | API | Public transport connections (OJP), only with `ALVYO_OJP_TOKEN` |
 | `download.geofabrik.de` | graph-refresh, graphhopper's first start | OSM extracts for the graph and the places |

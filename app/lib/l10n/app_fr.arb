@@ -650,5 +650,17 @@
   "reachPace": "À ton rythme : {pace} fois le temps des panneaux.",
   "reachErrorNoPath": "Aucun chemin près de ce point. Choisis un point sur un chemin ou à proximité.",
   "reachErrorBusy": "Trop de requêtes. Attends un instant.",
-  "reachErrorOther": "Le calcul a échoué. Réessaie."
+  "reachErrorOther": "Le calcul a échoué. Réessaie.",
+  "officialNational": "Itinéraire national {number}",
+  "officialRegional": "Itinéraire régional {number}",
+  "officialLocal": "Itinéraire local {number}",
+  "officialHandicap": "Itinéraire sans obstacles {number}",
+  "officialLink": "sur SuisseMobile",
+  "officialSource": "Itinéraire officiel de La Suisse à pied – données : OFROU et SuisseMobile",
+  "discoverOriginAll": "Itinéraires officiels et des gens",
+  "discoverOriginOnly": "Itinéraires officiels seulement",
+  "discoverOriginNone": "Des gens seulement",
+  "routeCopy": "Modifier comme ton itinéraire",
+  "journeyCopy": "Modifier comme ta randonnée par étapes",
+  "copyFailed": "La copie n'a pas fonctionné. Réessaie."
 }

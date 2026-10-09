@@ -49,6 +49,7 @@ type PlannedStage struct {
 	Content                  routes.Content
 	StartPlaceID, EndPlaceID *uuid.UUID
 	Accommodation            string
+	TransferBefore           string // "" for none
 }
 
 // CreatePlanned stores a new journey with its stages, all or nothing.
@@ -75,8 +76,8 @@ func (s *Store) CreatePlanned(ctx context.Context, ownerID uuid.UUID, m Meta, st
 				return fmt.Errorf("stage %d: %w", i+1, err)
 			}
 			if _, err := tx.Exec(ctx, `INSERT INTO stages (journey_id, position, title, route_id,
-				start_place_id, end_place_id, accommodation) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-				id, i, st.Title, route, st.StartPlaceID, st.EndPlaceID, st.Accommodation); err != nil {
+				start_place_id, end_place_id, accommodation, transfer_before) VALUES ($1, $2, $3, $4, $5, $6, $7, nullif($8, ''))`,
+				id, i, st.Title, route, st.StartPlaceID, st.EndPlaceID, st.Accommodation, st.TransferBefore); err != nil {
 				var pg *pgconn.PgError
 				if errors.As(err, &pg) && pg.Code == "23503" {
 					return fmt.Errorf("%w: stage %d: no such place", routes.ErrInvalid, i+1)
@@ -377,9 +378,10 @@ func (s *Store) RotateShareToken(ctx context.Context, id uuid.UUID) (string, err
 
 // NewStage describes a stage to add.
 type NewStage struct {
-	Title    string
-	Position *int       // 0-based; nil appends
-	CopyFrom *uuid.UUID // an existing route of the owner to copy into the stage
+	Title          string
+	Position       *int       // 0-based; nil appends
+	CopyFrom       *uuid.UUID // an existing route of the owner to copy into the stage
+	TransferBefore string     // "" for none
 }
 
 // AddStage inserts a stage, shifting later stages back.
@@ -414,8 +416,9 @@ func (s *Store) AddStageID(ctx context.Context, journeyID, ownerID uuid.UUID, n 
 			}
 			routeID = &id
 		}
-		return tx.QueryRow(ctx, `INSERT INTO stages (journey_id, position, title, route_id) VALUES ($1, $2, $3, $4) RETURNING id`,
-			journeyID, pos, n.Title, routeID).Scan(&id)
+		return tx.QueryRow(ctx, `INSERT INTO stages (journey_id, position, title, route_id, transfer_before)
+			VALUES ($1, $2, $3, $4, nullif($5, '')) RETURNING id`,
+			journeyID, pos, n.Title, routeID, n.TransferBefore).Scan(&id)
 	})
 }
 

@@ -1,7 +1,7 @@
 GO_MODULES := swiss api
 COMPOSE    := docker compose -f infra/compose.yaml
 
-.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import weather-precip sqlc api-client scorecard
+.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import wanderland-import weather-precip sqlc api-client scorecard
 
 test: test-go test-web
 
@@ -33,6 +33,11 @@ tlm-import:
 # Load stops, huts and accommodation (needs osm-fetch and migrate first).
 places-import:
 	$(COMPOSE) run --rm places-import
+
+# The official routes of Wanderland Schweiz (run `migrate` first); the API
+# makes them public routes and journeys of the account wanderland.
+wanderland-import:
+	$(COMPOSE) run --rm wanderland-import
 
 # Rain pictures for the map (radar and forecast; run `migrate` first). The
 # cluster runs it every 5 minutes.

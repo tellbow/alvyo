@@ -203,6 +203,30 @@ void main() {
     expect(server.asked.last.queryParameters.containsKey('kind'), isFalse);
   });
 
+  testWidgets('official routes: filtered by origin, named instead of their owner', (tester) async {
+    final server = _Server()
+      ..items = [
+        {
+          ..._item('journey', 'j1', 'Via Alpina', stages: 20),
+          'owner_username': 'wanderland',
+          'official': {'number': '1', 'kind': 'national'},
+        },
+        _item('route', 'r1', 'Über den Hohtürli'),
+      ];
+    await _pump(tester, server);
+    expect(find.textContaining('Etappentour · Nationale Route 1\n'), findsOneWidget);
+    expect(find.textContaining('wanderland'), findsNothing);
+    expect(find.textContaining('anna'), findsOneWidget);
+
+    await tester.ensureVisible(find.byKey(const Key('discover-origin')));
+    await tester.tap(find.byKey(const Key('discover-origin')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('discover-origin-only')).last);
+    await tester.pumpAndSettle();
+    expect(find.text('Nur offizielle Routen'), findsOneWidget);
+    expect(server.asked.last.queryParameters['official'], 'only');
+  });
+
   testWidgets('an answer overtaken by a newer search is dropped', (tester) async {
     final server = _Server();
     await _pump(tester, server);

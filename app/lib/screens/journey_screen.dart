@@ -262,6 +262,25 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
 
   /// Deletes the journey on the server and what is saved of it, then
   /// leaves.
+  /// «Als eigene Etappentour bearbeiten»: the user's private copy takes
+  /// this journey's place, to be changed there.
+  Future<void> _copy(JourneyDetail j) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    try {
+      final copy = await widget.api.copyJourney(j.id);
+      if (!mounted) return;
+      nav.pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => JourneyScreen(api: widget.api, id: copy.id, title: copy.title),
+        ),
+      );
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.copyFailed)));
+    }
+  }
+
   Future<void> _delete(JourneyDetail j) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -289,6 +308,8 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
               final j? => ItemMenu(
                 actions: [
                   if (j.canEdit) MenuAction('edit', Icons.edit_outlined, t.editAction, () => _edit(j)),
+                  if (!j.canEdit && j.stages.any((s) => s.routeId != null))
+                    MenuAction('copy', Icons.edit_outlined, t.journeyCopy, () => _copy(j)),
                   if (j.isOwner)
                     MenuAction(
                       'share',
@@ -392,7 +413,10 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
-                        if (!j.isOwner && j.owner.isNotEmpty) OwnerLine(api: widget.api, owner: j.owner, open: true),
+                        if (j.official case final o?)
+                          OfficialLine(o)
+                        else if (!j.isOwner && j.owner.isNotEmpty)
+                          OwnerLine(api: widget.api, owner: j.owner, open: true),
                         if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
                         if (j.stageLines.isNotEmpty)
                           Align(

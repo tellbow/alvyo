@@ -23,6 +23,7 @@ type discoverInput struct {
 	SACMax      int    `query:"sac_max" minimum:"0" maximum:"6" doc:"Hardest SAC grade allowed; 0 for any"`
 	DurationMin int    `query:"duration_min" minimum:"0" doc:"Minimum hiking time (s); for journeys of the longest stage"`
 	DurationMax int    `query:"duration_max" minimum:"0" doc:"Maximum hiking time (s); for journeys of the longest stage"`
+	Official    string `query:"official" enum:"only,none" doc:"only: the official Wanderland routes; none: those of people; both if left out"`
 }
 
 type discoverOutput struct {
@@ -92,7 +93,7 @@ func registerDiscover(api huma.API, d Deps) {
 		}
 		items, more, err := d.Discover.Search(ctx, discover.Query{
 			West: w, South: s, East: e, North: n, Kind: in.Kind, SACMax: in.SACMax,
-			MinDurationS: in.DurationMin, MaxDurationS: in.DurationMax,
+			MinDurationS: in.DurationMin, MaxDurationS: in.DurationMax, Official: in.Official,
 		})
 		if err != nil {
 			return nil, err

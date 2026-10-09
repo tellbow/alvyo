@@ -50,6 +50,8 @@
 	import SharePanel from '$lib/sharing/SharePanel.svelte';
 	import { actionButton, menuItem, primaryButtonSmall } from '$lib/components/actions';
 	import MoreMenu from '$lib/components/MoreMenu.svelte';
+	import CopyButton from '$lib/official/CopyButton.svelte';
+	import OfficialCredit from '$lib/official/OfficialCredit.svelte';
 	import ShareButton from '$lib/components/ShareButton.svelte';
 	import TabBar from '$lib/components/TabBar.svelte';
 	import LikeButton from '$lib/community/LikeButton.svelte';
@@ -400,18 +402,23 @@
 			<div class="flex items-start justify-between gap-2">
 				<div class="min-w-0">
 					<h1 class="text-xl font-semibold" data-testid="journey-title">{journey.title}</h1>
-					<p class="text-sm text-stone-500">
-						{#if journey.role === 'editor'}
-							{m.shared_editor_note({ user: journey.owner_username })}
-						{:else if journey.visibility === 'public'}
-							<a
-								href={resolve('/u/[username]', { username: journey.owner_username })}
-								class="hover:underline">{m.route_by({ user: journey.owner_username })}</a
-							>
-						{:else}
-							{m.route_by({ user: journey.owner_username })}
-						{/if}
-					</p>
+					<!-- Changes answer without it: as loaded. -->
+					{#if initial.official}
+						<OfficialCredit official={initial.official} />
+					{:else}
+						<p class="text-sm text-stone-500">
+							{#if journey.role === 'editor'}
+								{m.shared_editor_note({ user: journey.owner_username })}
+							{:else if journey.visibility === 'public'}
+								<a
+									href={resolve('/u/[username]', { username: journey.owner_username })}
+									class="hover:underline">{m.route_by({ user: journey.owner_username })}</a
+								>
+							{:else}
+								{m.route_by({ user: journey.owner_username })}
+							{/if}
+						</p>
+					{/if}
 				</div>
 				{#if user}
 					<!-- What is done now and then: collections, the app, deleting. -->
@@ -448,8 +455,12 @@
 					<TagChips tags={journey.tags} />
 				{/if}
 			</div>
-			<!-- The stages are changed in place: no main action, the small ones only. -->
+			<!-- The stages are changed in place: no main action for those who may,
+			     one's own copy for the others. -->
 			<div class="flex flex-wrap gap-2 text-sm">
+				{#if !canEdit && journey.stage_list.some((s) => s.route)}
+					<CopyButton kind="journeys" id={journey.id} {token} {user} />
+				{/if}
 				{#if journey.stage_list.some((s) => s.route)}
 					<!-- API download, not a page: resolve() does not apply. -->
 					<!-- eslint-disable svelte/no-navigation-without-resolve -->

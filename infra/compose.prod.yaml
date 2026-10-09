@@ -146,6 +146,24 @@ services:
       - ./data-import:/scripts:ro
     command: ["sh", "/scripts/import-places.sh"]
 
+  # One-shot: the official routes of Wanderland Schweiz (a few updates a
+  # year); the API makes them routes and journeys after its next check.
+  wanderland-import:
+    image: alvyo-data-import
+    build: ./data-import
+    profiles: [data]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: odysgeh
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: odysgeh
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    command: ["sh", "/scripts/import-wanderland.sh"]
+
 volumes:
   caddy_data:
   caddy_config:

@@ -1224,5 +1224,45 @@
   },
   "reachErrorNoPath": "Kein Weg in der Nähe dieses Punkts. Wähle einen Punkt auf oder nahe bei einem Weg.",
   "reachErrorBusy": "Zu viele Anfragen. Bitte kurz warten.",
-  "reachErrorOther": "Konnte nicht berechnet werden. Versuche es nochmals."
+  "reachErrorOther": "Konnte nicht berechnet werden. Versuche es nochmals.",
+  "officialNational": "Nationale Route {number}",
+  "@officialNational": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "officialRegional": "Regionale Route {number}",
+  "@officialRegional": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "officialLocal": "Lokale Route {number}",
+  "@officialLocal": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "officialHandicap": "Hindernisfreie Route {number}",
+  "@officialHandicap": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "officialLink": "auf SchweizMobil",
+  "officialSource": "Offizielle Route von Wanderland Schweiz – Daten: ASTRA und SchweizMobil",
+  "discoverOriginAll": "Offizielle Routen und von Leuten",
+  "discoverOriginOnly": "Nur offizielle Routen",
+  "discoverOriginNone": "Nur von Leuten",
+  "routeCopy": "Als eigene Route bearbeiten",
+  "journeyCopy": "Als eigene Etappentour bearbeiten",
+  "copyFailed": "Das Kopieren hat nicht geklappt. Versuche es nochmals."
 }

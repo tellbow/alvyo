@@ -295,6 +295,34 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     );
   }
 
+  /// «Als eigene Route bearbeiten»: the user's private copy, opened in the
+  /// planner; afterwards the copy's page takes this one's place.
+  Future<void> _copy(RouteDetail r) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    final RouteDetail copy;
+    try {
+      copy = await widget.api.copyRoute(r.id);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.copyFailed)));
+      return;
+    }
+    if (!mounted) return;
+    final saved = await nav.push<Object>(
+      MaterialPageRoute(
+        builder: (_) => PlannerScreen(api: widget.api, edit: copy),
+      ),
+    );
+    if (!mounted) return;
+    nav.pushReplacement(
+      MaterialPageRoute(
+        builder: (_) =>
+            RouteScreen(api: widget.api, id: copy.id, title: saved is RouteDetail ? saved.title : copy.title),
+      ),
+    );
+  }
+
   /// Deletes the route on the server and its offline map, then leaves.
   Future<void> _delete() async {
     final t = AppLocalizations.of(context);
@@ -318,6 +346,9 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
         if (r.canEdit) MenuAction('edit', Icons.edit_outlined, t.editAction, () => _edit(r)),
         if (r.canEdit && r.anchors.length > 1)
           MenuAction('edit-line', Icons.alt_route, t.routeEditLine, () => _editLine(r)),
+        // Someone else's planned route (others' hikes lack their ends).
+        if (!r.canEdit && r.hikedAt == null && r.line.length >= 2)
+          MenuAction('copy', Icons.edit_outlined, t.routeCopy, () => _copy(r)),
         if (r.isOwner && !stage)
           MenuAction(
             'share',
@@ -378,7 +409,10 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
             style: theme.textTheme.bodySmall,
           ),
         ],
-        if (!r.isOwner) OwnerLine(api: widget.api, owner: r.owner, open: true),
+        if (r.official case final o?)
+          OfficialLine(o)
+        else if (!r.isOwner)
+          OwnerLine(api: widget.api, owner: r.owner, open: true),
         if (r.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(r.tags)],
         if (r.hikedAt != null) ...[
           const SizedBox(height: 4),

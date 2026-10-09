@@ -3999,6 +3999,78 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Konnte nicht berechnet werden. Versuche es nochmals.'**
   String get reachErrorOther;
+
+  /// No description provided for @officialNational.
+  ///
+  /// In de, this message translates to:
+  /// **'Nationale Route {number}'**
+  String officialNational(String number);
+
+  /// No description provided for @officialRegional.
+  ///
+  /// In de, this message translates to:
+  /// **'Regionale Route {number}'**
+  String officialRegional(String number);
+
+  /// No description provided for @officialLocal.
+  ///
+  /// In de, this message translates to:
+  /// **'Lokale Route {number}'**
+  String officialLocal(String number);
+
+  /// No description provided for @officialHandicap.
+  ///
+  /// In de, this message translates to:
+  /// **'Hindernisfreie Route {number}'**
+  String officialHandicap(String number);
+
+  /// No description provided for @officialLink.
+  ///
+  /// In de, this message translates to:
+  /// **'auf SchweizMobil'**
+  String get officialLink;
+
+  /// No description provided for @officialSource.
+  ///
+  /// In de, this message translates to:
+  /// **'Offizielle Route von Wanderland Schweiz – Daten: ASTRA und SchweizMobil'**
+  String get officialSource;
+
+  /// No description provided for @discoverOriginAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Offizielle Routen und von Leuten'**
+  String get discoverOriginAll;
+
+  /// No description provided for @discoverOriginOnly.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur offizielle Routen'**
+  String get discoverOriginOnly;
+
+  /// No description provided for @discoverOriginNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur von Leuten'**
+  String get discoverOriginNone;
+
+  /// No description provided for @routeCopy.
+  ///
+  /// In de, this message translates to:
+  /// **'Als eigene Route bearbeiten'**
+  String get routeCopy;
+
+  /// No description provided for @journeyCopy.
+  ///
+  /// In de, this message translates to:
+  /// **'Als eigene Etappentour bearbeiten'**
+  String get journeyCopy;
+
+  /// No description provided for @copyFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Kopieren hat nicht geklappt. Versuche es nochmals.'**
+  String get copyFailed;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -650,5 +650,17 @@
   "reachPace": "At your pace: {pace} times the signposts’ time.",
   "reachErrorNoPath": "No path near this point. Choose a point on or near a path.",
   "reachErrorBusy": "Too many requests. Please wait a moment.",
-  "reachErrorOther": "Could not be worked out. Please try again."
+  "reachErrorOther": "Could not be worked out. Please try again.",
+  "officialNational": "National route {number}",
+  "officialRegional": "Regional route {number}",
+  "officialLocal": "Local route {number}",
+  "officialHandicap": "Barrier-free route {number}",
+  "officialLink": "on SwitzerlandMobility",
+  "officialSource": "Official route of Hiking in Switzerland – data: FEDRO and SwitzerlandMobility",
+  "discoverOriginAll": "Official routes and from people",
+  "discoverOriginOnly": "Official routes only",
+  "discoverOriginNone": "From people only",
+  "routeCopy": "Edit as your own route",
+  "journeyCopy": "Edit as your own journey",
+  "copyFailed": "Copying did not work. Try again."
 }

@@ -8,6 +8,9 @@ Data sources (attribution required when displaying or distributing):
 - Routing network, huts and accommodation: © OpenStreetMap contributors (ODbL)
 - Public transport stops: Federal Office of Transport BAV (list of stops, OGD)
 - Public transport: opentransportdata.swiss
+- The official hiking routes (national, regional, local, barrier-free):
+  Wanderland Schweiz, ASTRA / SchweizMobil (ch.astra.wanderland,
+  opendata.swiss, open use, source required); named on every route's page
 - Reference stages for calibration (swiss/testdata/reference_stages.json):
   Wanderland Schweiz, ASTRA / SchweizMobil (opendata.swiss, open use, source
   required)

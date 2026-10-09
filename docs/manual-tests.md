@@ -396,6 +396,14 @@ Checked so far only in the simulator, with made-up or simulated positions
       the journey with its weather and photos. Invited as editor, a route
       in it can be changed. After the release, as the app talks to
       production.
+- [ ] **Official routes on the iPhone** (70, issue 14): an official route
+      and journey (e.g. from «Entdecken» › Karte with «Nur offizielle
+      Routen») name «Nationale Route 1 · auf SchweizMobil ↗» and the source
+      instead of the owner; the link opens SchweizMobil in Safari in the
+      app's language; «⋯» › «Als eigene Route bearbeiten» opens the copy in
+      the planner and afterwards the copy's page, «Als eigene Etappentour
+      bearbeiten» the copied journey. After the release, as the app talks
+      to production.
 - [ ] **A collection's map on the iPhone** (23, issue 19): «Karte der
       Sammlung» in a collection with routes and a journey: all lines in
       view, each item in its colour like its dot in the list below, a

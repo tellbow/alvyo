@@ -2142,4 +2142,48 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get reachErrorOther => 'Non è stato possibile calcolarlo. Riprova.';
+
+  @override
+  String officialNational(String number) {
+    return 'Percorso nazionale $number';
+  }
+
+  @override
+  String officialRegional(String number) {
+    return 'Percorso regionale $number';
+  }
+
+  @override
+  String officialLocal(String number) {
+    return 'Percorso locale $number';
+  }
+
+  @override
+  String officialHandicap(String number) {
+    return 'Percorso senza barriere $number';
+  }
+
+  @override
+  String get officialLink => 'su SvizzeraMobile';
+
+  @override
+  String get officialSource => 'Percorso ufficiale della Svizzera a piedi – dati: USTRA e SvizzeraMobile';
+
+  @override
+  String get discoverOriginAll => 'Percorsi ufficiali e delle persone';
+
+  @override
+  String get discoverOriginOnly => 'Solo percorsi ufficiali';
+
+  @override
+  String get discoverOriginNone => 'Solo delle persone';
+
+  @override
+  String get routeCopy => 'Modifica come tuo percorso';
+
+  @override
+  String get journeyCopy => 'Modifica come tuo trekking a tappe';
+
+  @override
+  String get copyFailed => 'La copia non è riuscita. Riprova.';
 }

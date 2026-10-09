@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { officialLabel } from '$lib/official/official';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import { onDestroy, untrack } from 'svelte';
 	import { goto, replaceState } from '$app/navigation';
@@ -33,6 +34,8 @@
 	const pick = <T extends string>(v: string | null, allowed: readonly T[]) =>
 		allowed.find((a) => a === v) ?? allowed[0];
 	let kind = $state<Kind>(pick(params.get('kind'), ['', 'route', 'journey'] as const));
+	// The official Wanderland routes, those of people, or both.
+	let origin = $state(pick(params.get('origin'), ['', 'only', 'none'] as const));
 	let sac = $state(Math.min(Math.max(Number(params.get('sac')) || 0, 0), 6));
 	let duration = $state<Duration>(
 		pick(params.get('dur'), Object.keys(DURATIONS) as (keyof typeof DURATIONS)[])
@@ -89,6 +92,7 @@
 				query: {
 					bbox,
 					kind: kind || undefined,
+					official: origin || undefined,
 					sac_max: sac || undefined,
 					duration_min: toSeconds(lo),
 					duration_max: toSeconds(hi)
@@ -103,7 +107,7 @@
 
 		// The address describes the view, to share it or come back to it.
 		const q = new URLSearchParams(
-			Object.entries({ bbox, kind, sac: sac ? String(sac) : '', dur: duration }).filter(
+			Object.entries({ bbox, kind, origin, sac: sac ? String(sac) : '', dur: duration }).filter(
 				([, v]) => v
 			)
 		);
@@ -112,7 +116,7 @@
 	}
 
 	$effect(() => {
-		void [kind, sac, duration, map];
+		void [kind, origin, sac, duration, map];
 		untrack(() => void search());
 	});
 
@@ -154,6 +158,16 @@
 				<option value="">{m.discover_kind_all()}</option>
 				<option value="route">{m.discover_kind_route()}</option>
 				<option value="journey">{m.discover_kind_journey()}</option>
+			</select>
+			<select
+				bind:value={origin}
+				aria-label={m.discover_origin()}
+				class="rounded-md border border-stone-400 px-2 py-1.5"
+				data-testid="discover-origin"
+			>
+				<option value="">{m.discover_origin_all()}</option>
+				<option value="only">{m.discover_origin_only()}</option>
+				<option value="none">{m.discover_origin_none()}</option>
 			</select>
 			<div class="flex gap-2">
 				<select
@@ -206,10 +220,16 @@
 						>
 					</div>
 					<div class="mt-1 flex items-center gap-2 text-xs text-stone-600 tabular-nums">
-						<a
-							href={resolve('/u/[username]', { username: it.owner_username })}
-							class="hover:underline">{m.shared_by({ user: it.owner_username })}</a
-						>
+						{#if it.official}
+							<span class="whitespace-nowrap" data-testid="discover-official"
+								>{officialLabel(it.official)}</span
+							>
+						{:else}
+							<a
+								href={resolve('/u/[username]', { username: it.owner_username })}
+								class="hover:underline">{m.shared_by({ user: it.owner_username })}</a
+							>
+						{/if}
 						<span class="ml-auto"
 							>{formatDistance(it.distance_m)} · {formatDuration(it.duration_s, pace)} · ↑&nbsp;{formatHeight(
 								it.ascent_m
@@ -217,7 +237,7 @@
 						>
 						{#if it.sac_grade > 0}
 							<span
-								class="rounded px-1 font-semibold"
+								class="rounded px-1 font-semibold whitespace-nowrap"
 								style:background={sacBackground(it.sac_grade)}
 								style:color={sacInk(it.sac_grade)}>{formatSAC(it.sac_grade, it.sac_max)}</span
 							>

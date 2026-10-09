@@ -801,6 +801,26 @@ export interface paths {
         patch: operations["edit-journey-comment"];
         trace?: never;
     };
+    "/journeys/{id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy a journey as one's own private journey
+         * @description The stages with their titles, routes and transfers; not their dates, marks, notes or places to stay.
+         */
+        post: operations["copy-journey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys/{id}/done": {
         parameters: {
             query?: never;
@@ -1854,6 +1874,23 @@ export interface paths {
         head?: never;
         /** Change the text of one's own comment */
         patch: operations["edit-route-comment"];
+        trace?: never;
+    };
+    "/routes/{id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copy a route as one's own private route */
+        post: operations["copy-route"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/routes/{id}/done": {
@@ -2927,6 +2964,7 @@ export interface components {
              * @description Journeys: the longest stage; routes: as duration_s
              */
             longest_s: number;
+            official?: components["schemas"]["Info"];
             owner_username: string;
             /** Format: int64 */
             sac_grade: number;
@@ -3249,6 +3287,12 @@ export interface components {
             ref?: string;
             title: string;
         };
+        Info: {
+            /** @enum {string} */
+            kind: "national" | "regional" | "local" | "handicap";
+            /** @description The route's number at SchweizMobil (schweizmobil.ch/de/wanderland/route-{number}) */
+            number: string;
+        };
         InviteInputBody: {
             /**
              * Format: email
@@ -3277,6 +3321,7 @@ export interface components {
             duration_s: number;
             /** Format: uuid */
             id: string;
+            official?: components["schemas"]["Info"];
             owner_username: string;
             profile: components["schemas"]["JourneyProfile"];
             progress: components["schemas"]["JourneyProgress"];
@@ -4074,6 +4119,7 @@ export interface components {
             id: string;
             journey_id?: string;
             legs: components["schemas"]["Leg"][];
+            official?: components["schemas"]["Info"];
             owner_username: string;
             profile: string;
             /** @enum {string} */
@@ -5742,6 +5788,8 @@ export interface operations {
                 duration_min?: number;
                 /** @description Maximum hiking time (s); for journeys of the longest stage */
                 duration_max?: number;
+                /** @description only: the official Wanderland routes; none: those of people; both if left out */
+                official?: "only" | "none";
             };
             header?: never;
             path?: never;
@@ -6516,6 +6564,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "copy-journey": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JourneyBody"];
                 };
             };
             /** @description Error */
@@ -9193,6 +9276,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "copy-route": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RouteBody"];
                 };
             };
             /** @description Error */

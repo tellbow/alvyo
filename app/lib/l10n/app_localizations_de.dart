@@ -2143,4 +2143,48 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get reachErrorOther => 'Konnte nicht berechnet werden. Versuche es nochmals.';
+
+  @override
+  String officialNational(String number) {
+    return 'Nationale Route $number';
+  }
+
+  @override
+  String officialRegional(String number) {
+    return 'Regionale Route $number';
+  }
+
+  @override
+  String officialLocal(String number) {
+    return 'Lokale Route $number';
+  }
+
+  @override
+  String officialHandicap(String number) {
+    return 'Hindernisfreie Route $number';
+  }
+
+  @override
+  String get officialLink => 'auf SchweizMobil';
+
+  @override
+  String get officialSource => 'Offizielle Route von Wanderland Schweiz – Daten: ASTRA und SchweizMobil';
+
+  @override
+  String get discoverOriginAll => 'Offizielle Routen und von Leuten';
+
+  @override
+  String get discoverOriginOnly => 'Nur offizielle Routen';
+
+  @override
+  String get discoverOriginNone => 'Nur von Leuten';
+
+  @override
+  String get routeCopy => 'Als eigene Route bearbeiten';
+
+  @override
+  String get journeyCopy => 'Als eigene Etappentour bearbeiten';
+
+  @override
+  String get copyFailed => 'Das Kopieren hat nicht geklappt. Versuche es nochmals.';
 }

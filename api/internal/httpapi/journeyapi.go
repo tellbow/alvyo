@@ -20,6 +20,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/gpx"
 	"github.com/tellbow/alvyo/api/internal/journeys"
+	"github.com/tellbow/alvyo/api/internal/official"
 	"github.com/tellbow/alvyo/api/internal/og"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
@@ -31,6 +32,8 @@ type journeyBody struct {
 	CanEdit    bool   `json:"can_edit"`
 	ShareToken string `json:"share_token,omitempty" doc:"Owner only; the link is /journeys/{id}?t=token"`
 	DoneMarked bool   `json:"done_marked" doc:"done_on is the viewer's own mark, which can be taken back (on GET)"`
+	// Official is set for the official Wanderland routes (on GET).
+	Official *official.Info `json:"official,omitempty"`
 }
 
 type journeyOutput struct {
@@ -222,7 +225,11 @@ func registerJourneys(api huma.API, d Deps) {
 		}
 		out := journeyResponse(j, role)
 		st, err := d.Done.Of(ctx, viewerID(ctx), done.Journey, uuid.MustParse(j.ID))
+		if err != nil {
+			return nil, err
+		}
 		out.Body.DoneOn, out.Body.DoneMarked = day(st.On), st.Marked
+		out.Body.Official, err = official.ForJourney(ctx, d.DB, uuid.MustParse(j.ID))
 		return out, err
 	})
 

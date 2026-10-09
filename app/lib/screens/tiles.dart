@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
+import 'details.dart';
 import 'done.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
@@ -98,9 +99,13 @@ class OtherTile extends StatelessWidget {
     required this.onTap,
     this.extra,
     this.trailing,
+    this.official,
   });
   final bool journey;
   final String title, owner;
+
+  /// An official Wanderland route: named instead of its owner.
+  final Official? official;
   final double distanceM, ascentM;
   final int durationS, sacGrade, sacMax, stages;
   final VoidCallback onTap;
@@ -116,9 +121,9 @@ class OtherTile extends StatelessWidget {
       journey: journey,
       kind: [
         if (journey) ...[t.tourJourney, t.collectionStages(stages)] else t.tourRoute,
-        t.tourBy,
+        if (official case final o?) officialLabel(t, o) else t.tourBy,
       ].join(' · '),
-      owner: owner,
+      owner: official == null ? owner : null,
       title: title,
       distanceM: distanceM,
       durationS: durationS,

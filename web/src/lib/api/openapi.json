@@ -1231,6 +1231,9 @@
             "format": "int64",
             "type": "integer"
           },
+          "official": {
+            "$ref": "#/components/schemas/Info"
+          },
           "owner_username": {
             "type": "string"
           },
@@ -2142,6 +2145,29 @@
         ],
         "type": "object"
       },
+      "Info": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "national",
+              "regional",
+              "local",
+              "handicap"
+            ],
+            "type": "string"
+          },
+          "number": {
+            "description": "The route's number at SchweizMobil (schweizmobil.ch/de/wanderland/route-{number})",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "kind"
+        ],
+        "type": "object"
+      },
       "InviteInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -2205,6 +2231,9 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "official": {
+            "$ref": "#/components/schemas/Info"
           },
           "owner_username": {
             "type": "string"
@@ -4778,6 +4807,9 @@
               "$ref": "#/components/schemas/Leg"
             },
             "type": "array"
+          },
+          "official": {
+            "$ref": "#/components/schemas/Info"
           },
           "owner_username": {
             "type": "string"
@@ -8295,6 +8327,20 @@
               "minimum": 0,
               "type": "integer"
             }
+          },
+          {
+            "description": "only: the official Wanderland routes; none: those of people; both if left out",
+            "explode": false,
+            "in": "query",
+            "name": "official",
+            "schema": {
+              "description": "only: the official Wanderland routes; none: those of people; both if left out",
+              "enum": [
+                "only",
+                "none"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -9453,6 +9499,66 @@
         "summary": "Change the text of one's own comment",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/journeys/{id}/copy": {
+      "post": {
+        "description": "The stages with their titles, routes and transfers; not their dates, marks, notes or places to stay.",
+        "operationId": "copy-journey",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneyBody"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Copy a journey as one's own private journey",
+        "tags": [
+          "journeys"
         ]
       }
     },
@@ -13552,6 +13658,65 @@
         "summary": "Change the text of one's own comment",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/routes/{id}/copy": {
+      "post": {
+        "operationId": "copy-route",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteBody"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Copy a route as one's own private route",
+        "tags": [
+          "routes"
         ]
       }
     },

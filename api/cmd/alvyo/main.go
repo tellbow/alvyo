@@ -39,6 +39,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/journeys"
 	"github.com/tellbow/alvyo/api/internal/live"
 	"github.com/tellbow/alvyo/api/internal/mailer"
+	"github.com/tellbow/alvyo/api/internal/official"
 	"github.com/tellbow/alvyo/api/internal/og"
 	"github.com/tellbow/alvyo/api/internal/packs"
 	"github.com/tellbow/alvyo/api/internal/peaks"
@@ -158,6 +159,9 @@ func serve(ctx context.Context) error {
 	go areaFinder.PruneEvery(ctx, 24*time.Hour) // old answers from geo.admin
 	forecast := &weather.Forecast{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
 	go forecast.Keep(ctx, time.Hour) // MeteoSwiss updates hourly
+	importer := &imports.Importer{Router: router, Routes: routeStore, Journeys: journeyStore}
+	// The official routes after each wanderland-import (a few a year).
+	go (&official.Syncer{DB: pool, Importer: importer}).SyncEvery(ctx, 6*time.Hour)
 	var planner httpapi.Planner
 	if cfg.OJPToken != "" {
 		planner = &ojp.Client{URL: cfg.OJPURL, Token: cfg.OJPToken, RequestorRef: "alvyo/" + version}
@@ -177,7 +181,7 @@ func serve(ctx context.Context) error {
 		Router:      router,
 		Routes:      routeStore,
 		Journeys:    journeyStore,
-		Importer:    &imports.Importer{Router: router, Routes: routeStore, Journeys: journeyStore},
+		Importer:    importer,
 		Komoot:      &imports.Komoot{API: imports.KomootAPI},
 		Places:      &places.Store{DB: pool, Names: &places.GeoAdmin{}},
 		Live:        liveStore,

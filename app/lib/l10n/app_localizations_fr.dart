@@ -2146,4 +2146,48 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reachErrorOther => 'Le calcul a échoué. Réessaie.';
+
+  @override
+  String officialNational(String number) {
+    return 'Itinéraire national $number';
+  }
+
+  @override
+  String officialRegional(String number) {
+    return 'Itinéraire régional $number';
+  }
+
+  @override
+  String officialLocal(String number) {
+    return 'Itinéraire local $number';
+  }
+
+  @override
+  String officialHandicap(String number) {
+    return 'Itinéraire sans obstacles $number';
+  }
+
+  @override
+  String get officialLink => 'sur SuisseMobile';
+
+  @override
+  String get officialSource => 'Itinéraire officiel de La Suisse à pied – données : OFROU et SuisseMobile';
+
+  @override
+  String get discoverOriginAll => 'Itinéraires officiels et des gens';
+
+  @override
+  String get discoverOriginOnly => 'Itinéraires officiels seulement';
+
+  @override
+  String get discoverOriginNone => 'Des gens seulement';
+
+  @override
+  String get routeCopy => 'Modifier comme ton itinéraire';
+
+  @override
+  String get journeyCopy => 'Modifier comme ta randonnée par étapes';
+
+  @override
+  String get copyFailed => 'La copie n\'a pas fonctionné. Réessaie.';
 }

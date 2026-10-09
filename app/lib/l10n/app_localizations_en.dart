@@ -2132,4 +2132,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reachErrorOther => 'Could not be worked out. Please try again.';
+
+  @override
+  String officialNational(String number) {
+    return 'National route $number';
+  }
+
+  @override
+  String officialRegional(String number) {
+    return 'Regional route $number';
+  }
+
+  @override
+  String officialLocal(String number) {
+    return 'Local route $number';
+  }
+
+  @override
+  String officialHandicap(String number) {
+    return 'Barrier-free route $number';
+  }
+
+  @override
+  String get officialLink => 'on SwitzerlandMobility';
+
+  @override
+  String get officialSource => 'Official route of Hiking in Switzerland – data: FEDRO and SwitzerlandMobility';
+
+  @override
+  String get discoverOriginAll => 'Official routes and from people';
+
+  @override
+  String get discoverOriginOnly => 'Official routes only';
+
+  @override
+  String get discoverOriginNone => 'From people only';
+
+  @override
+  String get routeCopy => 'Edit as your own route';
+
+  @override
+  String get journeyCopy => 'Edit as your own journey';
+
+  @override
+  String get copyFailed => 'Copying did not work. Try again.';
 }

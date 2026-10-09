@@ -214,7 +214,9 @@ func TestDeleteAccount(t *testing.T) {
 		t.Errorf("me after delete: %d", code)
 	}
 	var n int
-	_ = s.db.QueryRow(context.Background(), `SELECT (SELECT count(*) FROM users) + (SELECT count(*) FROM routes)`).Scan(&n)
+	// (Only the account of the official routes is left.)
+	_ = s.db.QueryRow(context.Background(), `SELECT (SELECT count(*) FROM users WHERE username <> 'wanderland')
+		+ (SELECT count(*) FROM routes)`).Scan(&n)
 	if n != 0 {
 		t.Errorf("%d users/routes left", n)
 	}

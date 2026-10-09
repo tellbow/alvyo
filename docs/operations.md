@@ -81,6 +81,7 @@ cd infra
 docker compose -f compose.prod.yaml up -d --build   # first start: GraphHopper imports ~2 min
 docker compose -f compose.prod.yaml run --rm tlm-import   # official trail network, once a year
 docker compose -f compose.prod.yaml run --rm places-import   # stops, huts, accommodation
+docker compose -f compose.prod.yaml run --rm wanderland-import   # the official routes
 ```
 
 Caddy obtains the TLS certificate on the first request to `https://$DOMAIN`.
@@ -96,6 +97,7 @@ expected tile volume: the WMTS terms allow restricting "excessive use".
 15 2 * * *  /srv/alvyo/infra/ops/backup.sh           # nightly pg_dump (14 days kept) and photos tar (3 kept)
 0  4 * * 1  /srv/alvyo/infra/ops/refresh-graph.sh    # weekly OSM refresh, graph swap, places
 0  5 1 * *  /srv/alvyo/infra/ops/restore-check.sh    # monthly restore test
+0  4 3 * *  cd /srv/alvyo/infra && docker compose -f compose.prod.yaml run --rm wanderland-import   # official routes
 ```
 
 Copy `infra/backups/` off the machine as well (e.g. `rclone sync` to object
@@ -196,6 +198,21 @@ Wanderweg» with a guessed SAC grade. After loading or updating the network,
 `alvyo route retrail` (in the api container: `kubectl exec deploy/api --
 /alvyo route retrail`) matches every stored route against it again and grades
 it anew; line, times and version stay. Running it again changes nothing.
+
+## Official routes
+
+The routes of Wanderland Schweiz (ASTRA and SchweizMobil) are public routes
+and journeys of the account `wanderland`, made by the API from what
+`wanderland-import` loaded (on the cluster a CronJob on the 3rd of each
+month; the GeoPackage is downloaded only when it is newer). The API checks
+at start and every 6 hours whether an import is newer than its last sync
+(`wanderland_import`), then creates, updates and deletes the routes; about
+1.5 minutes for all 440, with a height profile from geo.admin per stage.
+Routes that fail (geo.admin not answering) are tried again at the next
+check; an import of fewer than 100 routes is refused and changes nothing.
+The log line `official routes synced` counts what it did. To sync again
+without a new import: `UPDATE wanderland_import SET synced_at = NULL`, then
+wait for the next check or restart the API.
 
 ## Telemetry
 

@@ -267,6 +267,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
                     journey: it.kind == 'journey',
                     title: it.title,
                     owner: it.owner,
+                    official: it.official,
                     distanceM: it.distanceM,
                     durationS: it.durationS,
                     ascentM: it.ascentM,

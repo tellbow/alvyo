@@ -12,6 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/tellbow/alvyo/api/internal/official"
 )
 
 // MaxLimit is the most items one search returns.
@@ -30,7 +32,10 @@ type Query struct {
 	// Hiking time bounds in seconds (0: none). For journeys they apply to
 	// the longest stage.
 	MinDurationS, MaxDurationS int
-	Limit                      int
+	// Official is "only" for the official Wanderland routes, "none" for
+	// those of people, "" for both.
+	Official string
+	Limit    int
 }
 
 // Item is a public route or journey found.
@@ -46,6 +51,8 @@ type Item struct {
 	SACGrade      int     `json:"sac_grade"`
 	SACMax        int     `json:"sac_max"`
 	Stages        int     `json:"stages" doc:"Journeys only"`
+	// Official is set for the official Wanderland routes.
+	Official *official.Info `json:"official,omitempty"`
 	// Lines are simplified (lon, lat) lines for the map.
 	Lines [][][2]float64 `json:"lines"`
 }
@@ -61,6 +68,7 @@ WITH found AS (
 	WHERE $5::text IN ('', 'route') AND r.visibility = 'public' AND r.journey_id IS NULL
 		AND ST_Intersects(r.shown_geom, ST_MakeEnvelope($1, $2, $3, $4, 4326))
 		AND ($6::int = 0 OR r.sac_grade <= $6::int) AND r.duration_s BETWEEN $7 AND $8
+		AND ($13::text = '' OR EXISTS (SELECT 1 FROM official o WHERE o.route_id = r.id) = ($13 = 'only'))
 	ORDER BY r.shown_geom <-> ST_Point($11, $12, 4326) LIMIT $9)
 	UNION ALL
 	(SELECT 'journey', near.journey_id, near.d
@@ -73,6 +81,7 @@ WITH found AS (
 			JOIN users u ON u.id = j.owner_id AND u.banned_at IS NULL
 			WHERE $5::text IN ('', 'journey') AND sr.journey_id IS NOT NULL
 				AND ST_Intersects(sr.geom, ST_MakeEnvelope($1, $2, $3, $4, 4326))
+				AND ($13::text = '' OR EXISTS (SELECT 1 FROM official o WHERE o.journey_id = j.id) = ($13 = 'only'))
 			ORDER BY sr.geom <-> ST_Point($11, $12, 4326) LIMIT 1000
 		) stage
 		GROUP BY journey_id
@@ -91,11 +100,13 @@ SELECT top.kind, top.id, coalesce(r.title, j.title), u.username,
 	coalesce(r.distance_m, js.distance_m, 0)::float8, coalesce(r.ascent_m, js.ascent_m, 0)::float8,
 	coalesce(r.duration_s, js.duration_s, 0)::int, coalesce(r.duration_s, js.longest_s, 0)::int,
 	coalesce(r.sac_grade, js.sac_grade, 0)::int, coalesce(r.sac_max, js.sac_max, 0)::int, coalesce(js.stages, 0)::int,
-	ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(coalesce(r.shown_geom, js.geom)), $10::float8)), 5)
+	ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(coalesce(r.shown_geom, js.geom)), $10::float8)), 5),
+	o.nr, o.kind
 FROM top
 LEFT JOIN routes r ON top.kind = 'route' AND r.id = top.id
 LEFT JOIN journeys j ON top.kind = 'journey' AND j.id = top.id
 JOIN users u ON u.id = coalesce(r.owner_id, j.owner_id)
+LEFT JOIN official o ON o.route_id = r.id OR o.journey_id = j.id
 LEFT JOIN LATERAL (
 	SELECT count(st.id) AS stages, sum(sr.distance_m) AS distance_m, sum(sr.ascent_m) AS ascent_m,
 		sum(sr.duration_s) AS duration_s, max(sr.duration_s) AS longest_s, max(sr.sac_grade) AS sac_grade,
@@ -119,7 +130,7 @@ func (s *Store) Search(ctx context.Context, q Query) (items []Item, more bool, e
 	// Simplify to about a pixel of a 1000 px wide map.
 	tolerance := math.Min(math.Max((q.East-q.West)/1000, 0.00005), 0.002)
 	rows, err := s.DB.Query(ctx, searchSQL, q.West, q.South, q.East, q.North, q.Kind, q.SACMax,
-		q.MinDurationS, maxS, limit+1, tolerance, (q.West+q.East)/2, (q.South+q.North)/2)
+		q.MinDurationS, maxS, limit+1, tolerance, (q.West+q.East)/2, (q.South+q.North)/2, q.Official)
 	if err != nil {
 		return nil, false, fmt.Errorf("discover: search: %w", err)
 	}
@@ -128,10 +139,13 @@ func (s *Store) Search(ctx context.Context, q Query) (items []Item, more bool, e
 	for rows.Next() {
 		var it Item
 		var id uuid.UUID
-		var line *string
+		var line, nr, kind *string
 		if err := rows.Scan(&it.Kind, &id, &it.Title, &it.OwnerUsername, &it.DistanceM, &it.AscentM, &it.DurationS,
-			&it.LongestS, &it.SACGrade, &it.SACMax, &it.Stages, &line); err != nil {
+			&it.LongestS, &it.SACGrade, &it.SACMax, &it.Stages, &line, &nr, &kind); err != nil {
 			return nil, false, err
+		}
+		if nr != nil && kind != nil {
+			it.Official = &official.Info{Number: *nr, Kind: *kind}
 		}
 		it.ID = id.String()
 		it.Lines = [][][2]float64{}

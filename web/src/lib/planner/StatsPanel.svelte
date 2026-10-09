@@ -18,10 +18,11 @@
 	} = $props();
 </script>
 
-<!-- One strip of the four numbers, the value above its name; the way back
-     in the time's tooltip (on paper below it). -->
+<!-- One strip of the four numbers, the value above its name (in two rows
+     when a long journey's do not fit); the way back in the time's tooltip
+     (on paper below it). -->
 <dl
-	class="grid grid-cols-[repeat(4,auto)] justify-between gap-x-2 rounded-xl bg-stone-100 px-3 py-2.5 text-center"
+	class="flex flex-wrap justify-between gap-x-2 gap-y-2 rounded-xl bg-stone-100 px-3 py-2.5 text-center"
 	data-testid="route-stats"
 >
 	<div

@@ -650,5 +650,17 @@
   "reachPace": "Al tuo ritmo: {pace} volte il tempo dei cartelli.",
   "reachErrorNoPath": "Nessun sentiero vicino a questo punto. Scegli un punto su un sentiero o nelle vicinanze.",
   "reachErrorBusy": "Troppe richieste. Attendi un momento.",
-  "reachErrorOther": "Non è stato possibile calcolarlo. Riprova."
+  "reachErrorOther": "Non è stato possibile calcolarlo. Riprova.",
+  "officialNational": "Percorso nazionale {number}",
+  "officialRegional": "Percorso regionale {number}",
+  "officialLocal": "Percorso locale {number}",
+  "officialHandicap": "Percorso senza barriere {number}",
+  "officialLink": "su SvizzeraMobile",
+  "officialSource": "Percorso ufficiale della Svizzera a piedi – dati: USTRA e SvizzeraMobile",
+  "discoverOriginAll": "Percorsi ufficiali e delle persone",
+  "discoverOriginOnly": "Solo percorsi ufficiali",
+  "discoverOriginNone": "Solo delle persone",
+  "routeCopy": "Modifica come tuo percorso",
+  "journeyCopy": "Modifica come tuo trekking a tappe",
+  "copyFailed": "La copia non è riuscita. Riprova."
 }

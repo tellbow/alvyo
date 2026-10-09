@@ -20,6 +20,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/dbq"
 	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/gpx"
+	"github.com/tellbow/alvyo/api/internal/official"
 	"github.com/tellbow/alvyo/api/internal/og"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
@@ -47,6 +48,9 @@ type routeBody struct {
 	// ShareToken is shown to the owner only; the link is /routes/{id}?t=token.
 	ShareToken string `json:"share_token,omitempty"`
 	DoneMarked bool   `json:"done_marked" doc:"done_on is the viewer's own mark, which can be taken back (on GET)"`
+	// Official is set for the official Wanderland routes and their stages
+	// (on GET).
+	Official *official.Info `json:"official,omitempty"`
 }
 
 type createRouteInput struct {
@@ -160,7 +164,11 @@ func registerRoutes(api huma.API, d Deps) {
 		}
 		out := routeResponse(r, role)
 		st, err := d.Done.Of(ctx, viewerID(ctx), done.Route, uuid.MustParse(r.ID))
+		if err != nil {
+			return nil, err
+		}
 		out.Body.DoneOn, out.Body.DoneMarked = day(st.On), st.Marked
+		out.Body.Official, err = official.ForRoute(ctx, d.DB, uuid.MustParse(r.ID))
 		return out, err
 	})
 

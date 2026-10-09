@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api.dart';
 import '../l10n/app_localizations.dart';
@@ -208,6 +209,66 @@ class OwnerLine extends StatelessWidget {
         ),
       ),
       child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: text),
+    );
+  }
+}
+
+/// «Nationale Route 1», «Lokale Route 104» …
+String officialLabel(AppLocalizations t, Official o) => switch (o.kind) {
+  'national' => t.officialNational(o.number),
+  'regional' => t.officialRegional(o.number),
+  'handicap' => t.officialHandicap(o.number),
+  _ => t.officialLocal(o.number),
+};
+
+/// The route's page on SchweizMobil, in the app's language (SchweizMobil
+/// has its own path per language).
+Uri schweizMobilUrl(String number, String language) => Uri.https('schweizmobil.ch', switch (language) {
+  'en' => '/en/hiking-in-switzerland/route-$number',
+  'fr' => '/fr/suisse-a-pied/itineraire-$number',
+  'it' => '/it/svizzera-a-piedi/percorso-$number',
+  _ => '/de/wanderland/route-$number',
+});
+
+/// Instead of the owner: which official route it is, a link to it on
+/// SchweizMobil, and whose data it is (open data that names its source).
+class OfficialLine extends StatelessWidget {
+  const OfficialLine(this.official, {super.key});
+  final Official official;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final muted = TextStyle(color: theme.colorScheme.onSurfaceVariant);
+    return Column(
+      key: const Key('official'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          key: const Key('official-link'),
+          onTap: () => launchUrl(
+            schweizMobilUrl(official.number, Localizations.localeOf(context).languageCode),
+            mode: LaunchMode.externalApplication,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text.rich(
+              TextSpan(
+                text: '${officialLabel(t, official)} · ',
+                style: muted,
+                children: [
+                  TextSpan(
+                    text: '${t.officialLink} ↗',
+                    style: TextStyle(color: theme.colorScheme.primary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Text(t.officialSource, style: theme.textTheme.bodySmall?.merge(muted)),
+      ],
     );
   }
 }

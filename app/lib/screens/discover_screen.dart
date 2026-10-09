@@ -12,6 +12,7 @@ import '../map_style.dart';
 import '../navigation/gps.dart';
 import '../place_layer.dart';
 import '../precip.dart';
+import 'details.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
 
@@ -84,6 +85,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   double _pace = 1;
 
   String _kind = ''; // route, journey, or both
+  String _origin = ''; // the official routes (only), people's (none), or both
   int _sac = 0;
   String _done = ''; // one's map: planned, done (hiked), or both
   var _hours = DiscoverHours.any;
@@ -131,6 +133,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           : await widget.api.discover(
               view,
               kind: _kind.isEmpty ? null : _kind,
+              official: _origin.isEmpty ? null : _origin,
               sacMax: _sac,
               durationMin: seconds(_hours.from),
               durationMax: seconds(_hours.to),
@@ -235,6 +238,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 (k) => _kind = k,
                 _kind.isNotEmpty,
               ),
+              if (!widget.mine)
+                menu(
+                  'origin',
+                  _origin,
+                  ['', 'only', 'none'],
+                  (o) => switch (o) {
+                    'only' => t.discoverOriginOnly,
+                    'none' => t.discoverOriginNone,
+                    _ => t.discoverOriginAll,
+                  },
+                  (o) => _origin = o,
+                  _origin.isNotEmpty,
+                ),
               menu(
                 'hours',
                 _hours,
@@ -335,7 +351,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           title: Text(it.title, style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: Text(
             [
-              [journey ? t.discoverJourney : t.discoverRoute, if (!widget.mine) t.discoverBy(it.owner)].join(' · '),
+              [
+                journey ? t.discoverJourney : t.discoverRoute,
+                if (it.official case final o?) officialLabel(t, o) else if (!widget.mine) t.discoverBy(it.owner),
+              ].join(' · '),
               '${formatDistance(it.distanceM)} · ${formatDuration(it.durationS, _pace)} · ↑\u00a0${formatHeight(it.ascentM)}'
                   '${it.sacGrade > 0 ? ' · ${formatSac(it.sacGrade, it.sacMax)}' : ''}',
               if (journey) '${t.discoverStages(it.stages)} · ${t.discoverLongest(formatDuration(it.longestS, _pace))}',

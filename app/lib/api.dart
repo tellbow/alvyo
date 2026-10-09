@@ -146,6 +146,20 @@ class Person {
 }
 
 /// A route with its line (lon, lat, elevation per point).
+/// An official Wanderland route (ASTRA / SchweizMobil): its number at
+/// SchweizMobil and its kind (national, regional, local, handicap).
+class Official {
+  const Official(this.number, this.kind);
+
+  /// Null unless [j] is one.
+  static Official? of(Object? j) => switch (j) {
+    {'number': final String number, 'kind': final String kind} => Official(number, kind),
+    _ => null,
+  };
+
+  final String number, kind;
+}
+
 class RouteDetail extends RouteSummary {
   RouteDetail.fromJson(super.j)
     : json = j,
@@ -166,6 +180,9 @@ class RouteDetail extends RouteSummary {
 
   /// The journey this route is a stage of, if it is one.
   String? get journeyId => json['journey_id'] as String?;
+
+  /// Set for the official Wanderland routes and their stages.
+  Official? get official => Official.of(json['official']);
 
   /// The user may change it: not so for others' public routes (e.g. from
   /// discovering). Copies saved before the server sent it are the user's.
@@ -389,6 +406,9 @@ class JourneyDetail {
 
   String get owner => json['owner_username'] as String? ?? '';
   String get description => json['description'] as String? ?? '';
+
+  /// Set for the official Wanderland routes.
+  Official? get official => Official.of(json['official']);
 
   /// private, unlisted or public.
   String get visibility => json['visibility'] as String? ?? 'private';
@@ -913,10 +933,14 @@ class DiscoverItem {
       sacGrade = (j['sac_grade'] as num).toInt(),
       sacMax = (j['sac_max'] as num).toInt(),
       stages = (j['stages'] as num?)?.toInt() ?? 0,
+      official = Official.of(j['official']),
       lines = [for (final l in j['lines'] as List? ?? const []) _line(l)];
 
   /// route or journey.
   final String kind, id, title, owner;
+
+  /// Set for the official Wanderland routes.
+  final Official? official;
   final double distanceM, ascentM;
 
   /// Journeys: all stages together, and the longest stage; routes: both the
@@ -1743,11 +1767,13 @@ class Api {
     int sacMax = 0,
     int? durationMin,
     int? durationMax,
+    String? official,
   }) async {
     final j =
         await _get('/discover', {
               'bbox': [view.west, view.south, view.east, view.north].map((v) => v.toStringAsFixed(4)).join(','),
               'kind': ?kind,
+              'official': ?official,
               if (sacMax > 0) 'sac_max': '$sacMax',
               if (durationMin != null) 'duration_min': '$durationMin',
               if (durationMax != null) 'duration_max': '$durationMax',
@@ -1758,6 +1784,14 @@ class Api {
       more: j['more'] as bool? ?? false,
     );
   }
+
+  /// The user's own private copy of a route they can see, to change.
+  Future<RouteDetail> copyRoute(String id) async =>
+      RouteDetail.fromJson(await _send('POST', '/routes/$id/copy') as Map<String, dynamic>);
+
+  /// The user's own private copy of a journey: its stages with their routes.
+  Future<JourneyDetail> copyJourney(String id) async =>
+      JourneyDetail.fromJson(await _send('POST', '/journeys/$id/copy') as Map<String, dynamic>);
 
   /// Has the server build the offline map of a route, unless it is built.
   Future<PackStatus> buildPack(String routeId) async => PackStatus.fromJson(

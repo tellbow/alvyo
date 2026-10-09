@@ -142,6 +142,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerRevisions(api, d)
 	registerJourneys(api, d)
 	registerJourneyPlan(api, d)
+	registerCopies(api, d)
 	registerPlaces(api, d)
 	registerGrants(api, d)
 	registerPeople(api, d)

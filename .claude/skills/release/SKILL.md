@@ -1,6 +1,6 @@
 ---
 name: release
-description: Release Alvyo to production - tag vX.Y.Z on main, wait for the image build, let Flux deploy it and check it. Only when the user asks for a release.
+description: Releases Alvyo to production - tags vX.Y.Z on main, waits for the image build, lets Flux deploy it and checks it. Only when the user asks for a release.
 disable-model-invocation: true
 ---
 

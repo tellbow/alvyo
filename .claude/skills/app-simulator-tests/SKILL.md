@@ -1,6 +1,6 @@
 ---
 name: app-simulator-tests
-description: Run the Alvyo app's integration tests on the iOS simulator against the local dev stack (dev containers, API, web dev server, demo account). Use after changing app screens, navigation, recording, offline maps or the native Swift code.
+description: Runs the Alvyo app's integration tests on the iOS simulator against the local dev stack (dev containers, API, web dev server, demo account). Use after changing app screens, navigation, recording, offline maps or the native Swift code.
 ---
 
 # App integration tests on the simulator

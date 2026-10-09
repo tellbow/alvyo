@@ -2176,4 +2176,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyFailed => 'Copying did not work. Try again.';
+
+  @override
+  String get tokensTitle => 'Access tokens';
+
+  @override
+  String get tokensIntro =>
+      'With an access token, AI assistants such as Claude and the command-line program alvyo‑cli read your account: they plan routes, look up places, weather and closures, and see your routes and journeys. They cannot change anything. Give a token only to programs you trust.';
+
+  @override
+  String get tokensMcp => 'Address for AI assistants (MCP):';
+
+  @override
+  String get tokensName => 'What for?';
+
+  @override
+  String get tokensNamePlaceholder => 'e.g. Claude Desktop';
+
+  @override
+  String get tokensCreate => 'Create token';
+
+  @override
+  String get tokensCreated => 'Copy the token now: it is shown only this once.';
+
+  @override
+  String get tokensCopy => 'Copy';
+
+  @override
+  String get tokensCopied => 'Token copied';
+
+  @override
+  String tokensCreatedOn(String date) {
+    return 'created on $date';
+  }
+
+  @override
+  String tokensUsedOn(String date) {
+    return 'last used on $date';
+  }
+
+  @override
+  String get tokensNeverUsed => 'never used';
+
+  @override
+  String get tokensRevoke => 'Revoke';
+
+  @override
+  String tokensRevokeConfirm(String name) {
+    return 'Revoke “$name”? Programs with this token can then no longer get into your account.';
+  }
+
+  @override
+  String get tokensFull => 'You already have 20 tokens. Revoke one first.';
 }

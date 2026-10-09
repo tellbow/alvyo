@@ -2190,4 +2190,56 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get copyFailed => 'La copie n\'a pas fonctionné. Réessaie.';
+
+  @override
+  String get tokensTitle => 'Jetons d’accès';
+
+  @override
+  String get tokensIntro =>
+      'Avec un jeton d’accès, les assistants IA comme Claude et le programme en ligne de commande alvyo‑cli lisent ton compte : ils planifient des itinéraires, cherchent des lieux, consultent la météo et les fermetures, et voient tes itinéraires et tes randonnées par étapes. Ils ne peuvent rien modifier. Ne donne un jeton qu’à des programmes en qui tu as confiance.';
+
+  @override
+  String get tokensMcp => 'Adresse pour les assistants IA (MCP) :';
+
+  @override
+  String get tokensName => 'Pour quoi ?';
+
+  @override
+  String get tokensNamePlaceholder => 'p. ex. Claude Desktop';
+
+  @override
+  String get tokensCreate => 'Créer un jeton';
+
+  @override
+  String get tokensCreated => 'Copie le jeton maintenant : il n’est affiché que cette fois-ci.';
+
+  @override
+  String get tokensCopy => 'Copier';
+
+  @override
+  String get tokensCopied => 'Jeton copié';
+
+  @override
+  String tokensCreatedOn(String date) {
+    return 'créé le $date';
+  }
+
+  @override
+  String tokensUsedOn(String date) {
+    return 'utilisé pour la dernière fois le $date';
+  }
+
+  @override
+  String get tokensNeverUsed => 'jamais utilisé';
+
+  @override
+  String get tokensRevoke => 'Révoquer';
+
+  @override
+  String tokensRevokeConfirm(String name) {
+    return 'Révoquer « $name » ? Les programmes avec ce jeton n’auront alors plus accès à ton compte.';
+  }
+
+  @override
+  String get tokensFull => 'Tu as déjà 20 jetons. Révoques-en d’abord un.';
 }

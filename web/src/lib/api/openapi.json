@@ -1,6 +1,47 @@
 {
   "components": {
     "schemas": {
+      "AccessToken": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "last_used_at": {
+            "description": "Up to an hour early",
+            "format": "date-time",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "AccessTokensOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "tokens": {
+            "items": {
+              "$ref": "#/components/schemas/AccessToken"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "tokens"
+        ],
+        "type": "object"
+      },
       "AddContactInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -955,6 +996,52 @@
         "required": [
           "tag",
           "count"
+        ],
+        "type": "object"
+      },
+      "CreateAccessTokenInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "What it is for, e.g. «Claude Desktop»",
+            "maxLength": 60,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "CreateAccessTokenOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "last_used_at": {
+            "description": "Up to an hour early",
+            "format": "date-time",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "token": {
+            "description": "The token itself, shown only now: Authorization: Bearer alvyo_pat_…",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "id",
+          "name",
+          "created_at"
         ],
         "type": "object"
       },
@@ -12678,6 +12765,112 @@
         "summary": "The tags on the logged-in user's routes, journeys and collections",
         "tags": [
           "tags"
+        ]
+      }
+    },
+    "/me/tokens": {
+      "get": {
+        "operationId": "list-access-tokens",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokensOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "My personal access tokens, the newest first",
+        "tags": [
+          "me"
+        ]
+      },
+      "post": {
+        "description": "It reads what the account may see, through the API's GET operations and the MCP endpoint (`/api/v1/mcp`); it cannot change anything. At most 20 per account.",
+        "operationId": "create-access-token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccessTokenInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAccessTokenOutputBody"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Create a personal access token",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/tokens/{id}": {
+      "delete": {
+        "operationId": "revoke-access-token",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Revoke a personal access token; it stops working at once",
+        "tags": [
+          "me"
         ]
       }
     },

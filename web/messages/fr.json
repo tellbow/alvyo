@@ -870,5 +870,22 @@
 	"reach_pace_change": "Modifier",
 	"reach_hint_login": "Connecte-toi pour voir jusqu’où tu vas.",
 	"reach_error_422": "Aucun chemin près de ce point. Choisis un point sur un chemin ou à proximité.",
-	"reach_error_other": "Le calcul a échoué. Réessaie."
+	"reach_error_other": "Le calcul a échoué. Réessaie.",
+	"tokens_title": "Jetons d’accès pour assistants IA et scripts",
+	"tokens_intro": "Avec un jeton d’accès, les assistants IA comme Claude et le programme en ligne de commande alvyo‑cli lisent ton compte : ils planifient des itinéraires, cherchent des lieux, consultent la météo et les fermetures, et voient tes itinéraires et tes randonnées par étapes. Ils ne peuvent rien modifier. Ne donne un jeton qu’à des programmes en qui tu as confiance.",
+	"tokens_name": "Pour quoi ?",
+	"tokens_name_placeholder": "p. ex. Claude Desktop",
+	"tokens_create": "Créer un jeton",
+	"tokens_created": "Copie le jeton maintenant : il n’est affiché que cette fois-ci.",
+	"tokens_copy": "Copier",
+	"tokens_copied": "Copié",
+	"tokens_mcp": "Adresse pour les assistants IA (MCP) :",
+	"tokens_claude_code": "Dans Claude Code :",
+	"tokens_created_on": "créé le {date}",
+	"tokens_used_on": "utilisé pour la dernière fois le {date}",
+	"tokens_never_used": "jamais utilisé",
+	"tokens_revoke": "Révoquer",
+	"tokens_revoke_confirm": "Révoquer « {name} » ? Les programmes avec ce jeton n’auront alors plus accès à ton compte.",
+	"tokens_full": "Tu as déjà 20 jetons. Révoques-en d’abord un.",
+	"tokens_cancel": "Annuler"
 }

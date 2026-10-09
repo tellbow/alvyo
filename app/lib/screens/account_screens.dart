@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../errors.dart';
 import '../api.dart';
+import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../place_search.dart';
 
@@ -411,6 +413,181 @@ class _HomesScreenState extends State<HomesScreen> {
                   child: Text(t.homesAdd),
                 ),
               ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Personal access tokens for AI assistants (MCP) and alvyo-cli: they only
+/// read. The token itself is shown once, right after creating it.
+class AccessTokensScreen extends StatefulWidget {
+  const AccessTokensScreen({super.key, required this.api});
+  final Api api;
+
+  @override
+  State<AccessTokensScreen> createState() => _AccessTokensScreenState();
+}
+
+class _AccessTokensScreenState extends State<AccessTokensScreen> {
+  late Future<List<AccessToken>> _tokens = widget.api.accessTokens();
+  final _name = TextEditingController();
+  String? _created;
+  String? _error;
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  Future<void> _create() async {
+    final t = AppLocalizations.of(context);
+    final name = _name.text.trim();
+    if (name.isEmpty) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final created = await widget.api.createAccessToken(name);
+      _name.clear();
+      if (mounted) FocusScope.of(context).unfocus();
+      if (mounted) {
+        setState(() {
+          _created = created.token;
+          _tokens = widget.api.accessTokens();
+        });
+      }
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.status == 422 ? t.tokensFull : t.errorGeneric);
+    } on Object {
+      if (mounted) setState(() => _error = t.errorServer);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _revoke(AccessToken token) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(t.tokensRevokeConfirm(token.name)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.cancel)),
+          FilledButton(
+            key: const Key('token-revoke-ok'),
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(t.tokensRevoke),
+          ),
+        ],
+      ),
+    );
+    if (sure != true) return;
+    try {
+      await widget.api.revokeAccessToken(token.id);
+      if (mounted) {
+        setState(() {
+          _tokens = widget.api.accessTokens();
+        });
+      }
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final muted = TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant);
+    return Scaffold(
+      appBar: AppBar(title: Text(t.tokensTitle)),
+      body: FutureBuilder(
+        future: _tokens,
+        builder: (context, snap) {
+          final tokens = snap.data;
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(t.tokensIntro),
+              const SizedBox(height: 8),
+              Text(t.tokensMcp, style: muted),
+              SelectableText('${widget.api.server}/api/v1/mcp', key: const Key('mcp-url')),
+              if (_created case final token?)
+                Card(
+                  key: const Key('token-created'),
+                  margin: const EdgeInsets.only(top: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(t.tokensCreated),
+                        Row(
+                          children: [
+                            Expanded(child: SelectableText(token, key: const Key('token-value'))),
+                            IconButton(
+                              key: const Key('token-copy'),
+                              tooltip: t.tokensCopy,
+                              icon: const Icon(Icons.copy),
+                              onPressed: () async {
+                                await Clipboard.setData(ClipboardData(text: token));
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.tokensCopied)));
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              if (snap.hasError) Text(errorText(t, snap.error)),
+              if (tokens == null && !snap.hasError) const Center(child: CircularProgressIndicator()),
+              for (final tok in tokens ?? const <AccessToken>[])
+                ListTile(
+                  key: Key('token-${tok.id}'),
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.key_outlined),
+                  title: Text(tok.name),
+                  subtitle: Text(
+                    [
+                      t.tokensCreatedOn(formatDate(tok.createdAt)),
+                      if (tok.lastUsedAt case final used?) t.tokensUsedOn(formatDate(used)) else t.tokensNeverUsed,
+                    ].join(' · '),
+                  ),
+                  trailing: IconButton(
+                    tooltip: t.tokensRevoke,
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => _revoke(tok),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              TextField(
+                key: const Key('token-name'),
+                controller: _name,
+                maxLength: 60,
+                decoration: InputDecoration(labelText: t.tokensName, hintText: t.tokensNamePlaceholder),
+                onChanged: (_) => setState(() {}),
+              ),
+              if (_error case final e?)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                ),
+              FilledButton(
+                key: const Key('token-create'),
+                onPressed: _busy || _name.text.trim().isEmpty ? null : _create,
+                child: Text(t.tokensCreate),
+              ),
             ],
           );
         },

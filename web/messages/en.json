@@ -876,5 +876,22 @@
 	"reach_pace_change": "Change",
 	"reach_hint_login": "Log in to see how far you get.",
 	"reach_error_422": "No path near this point. Choose a point on or near a path.",
-	"reach_error_other": "Could not be worked out. Please try again."
+	"reach_error_other": "Could not be worked out. Please try again.",
+	"tokens_title": "Access tokens for AI assistants and scripts",
+	"tokens_intro": "With an access token, AI assistants such as Claude and the command-line program alvyo‑cli read your account: they plan routes, look up places, weather and closures, and see your routes and journeys. They cannot change anything. Give a token only to programs you trust.",
+	"tokens_name": "What for?",
+	"tokens_name_placeholder": "e.g. Claude Desktop",
+	"tokens_create": "Create token",
+	"tokens_created": "Copy the token now: it is shown only this once.",
+	"tokens_copy": "Copy",
+	"tokens_copied": "Copied",
+	"tokens_mcp": "Address for AI assistants (MCP):",
+	"tokens_claude_code": "In Claude Code:",
+	"tokens_created_on": "created on {date}",
+	"tokens_used_on": "last used on {date}",
+	"tokens_never_used": "never used",
+	"tokens_revoke": "Revoke",
+	"tokens_revoke_confirm": "Revoke “{name}”? Programs with this token can then no longer get into your account.",
+	"tokens_full": "You already have 20 tokens. Revoke one first.",
+	"tokens_cancel": "Cancel"
 }

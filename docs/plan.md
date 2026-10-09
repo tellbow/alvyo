@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-10-02.
+Status: 2026-10-09.
 
 ## Goal
 
@@ -76,6 +76,7 @@ A `v*` tag builds the images; Flux deploys them
 | 0.29.1 | 2026-10-07 | Reichweite: «Zurück zum Start» off by default, its areas without the holes and steps between the paths; the layer menu on its map |
 | 0.30.0 | 2026-10-08 | Fixes from a review of all parts: privacy — a live location of someone else's recorded hike, discovery and one's map no longer give away a hike's hidden start and end (the shown line is kept with the route), bug reports drop tokens from the address before the public issue, traces no longer hold the Komoot address and link tokens, a hike uploaded again is marked as hiked; overdue alerts are sent again when the mail server failed; ticking off a journey's stage no longer sends «beginnt morgen» each day, marking an unknown route or journey as hiked answers 404 instead of breaking the connection, stages from a track off the paths (a glacier) to a hut no longer fail, journey weather and protected areas load faster, missing forecast values no longer show as 0 °C or 0 mm; security: wrong passwords from elsewhere no longer lock one out, limits per address count an IPv6 network as one, a live location counts an e-mail per contact, moderators cannot ban admins or other moderators, the import preview is limited; website: leaving the planner with unsaved points asks first, logging in leads back to the page (with its filters), counts in the singular («1 Kommentar»), routes shared by link are no longer listed as «Privat», drop-downs that save act once the choice is made, late connection answers no longer overwrite newer ones, no other site can frame the pages; accessibility: readable error and like colours in dark mode, field borders and one focus ring with enough contrast, the map's buttons in the page's language and dark, the elevation profile and the route's numbers for screen readers, the planner announces its route, headings, a skip link, the current page in the menu, named point buttons, focus kept on confirmations and menus, arrow keys in tab bars; design: one radius scale, shared button styles, one route colour, the map's greys from the palette; app: a link opened during a hike leads back to it instead of a second recording, requests give up after 20 s and fall back to what is offline, Apple Watch workouts that cannot become routes are not uploaded again on every start, «Berge erkennen» takes a fresh position and says when the camera is not allowed, location taken away or switched off is said as such, a recording that cannot be saved says so, offline maps stop waiting for a build stuck on the server, the pace is kept for hikes started offline, «gibt es nicht (mehr)» instead of «Server nicht erreichbar» for deleted or private items; larger tap targets, readable warnings, the stats and headers with large text, VoiceOver for the rain timeline and elevation profile; maintenance: Go 1.26.6 and patched npm packages (no known vulnerabilities), CI checks vulnerabilities, workflows and secrets weekly too, actions pinned to commits, Renovate, images with SBOM and provenance, a GitHub Release per version, SECURITY.md; accounts: signing up no longer logs in or tells whether an address has an account (its owner gets an e-mail), the link from the e-mail names the account and logs in on «Bestätigen», logging in needs the address confirmed (a new link is sent), a password reset removes passkeys and Google/Apple sign-ins, sessions end 180 days after logging in at the latest, «Auf allen anderen Geräten abmelden» on the website and in the app; «Was ist neu» on the About page; the account page as wide as the other pages, ↑ ↓ for the points of a journey being planned, in the app one error state with «Nochmals versuchen» where it can help; release tags signed and checked, images signed with cosign, semgrep in CI |
 | 0.31.0 | 2026-10-09 | The official routes (70): the 440 routes of Wanderland Schweiz (national, regional, local, barrier-free) as public routes and journeys of «Wanderland Schweiz», imported monthly and synced by the API, named with a link to SchweizMobil and the source, «Herkunft» in «Entdecken»; «Als eigene Route / Etappentour bearbeiten» copies any route or journey one can see; in the app a collection's map («Karte der Sammlung», issue 19); temperatures just below zero as 0 °C, not «-0 °C»; the four numbers of a long journey in two rows; the rain layer's job in compose.prod.yaml (issue 30); Go 1.26.9 and golang.org/x/net 0.60.0 (security fixes); README with features and screenshots, architecture diagrams (docs/architecture.md) |
+| next | | AI assistants and the command line (71, issue 28): personal access tokens under «Konto» (website and app) that only read; an MCP server at `/api/v1/mcp` with nine tools (places, planning, reach, conditions, discovery, one's routes and journeys); `alvyo-cli`, also as a local MCP server for Claude Desktop, as binaries with each release |
 
 ## Requirements
 
@@ -85,7 +86,7 @@ From the project owner, numbered in the order given: 1–5 added on
 on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
 2026-10-07 (from issue 15), 68 on 2026-10-07 (from issue 16), 69 on
 2026-10-07 (a concept of the project owner), 70 on 2026-10-09 (from issue
-14).
+14), 71 on 2026-10-09 (from issue 28).
 
 ### Done
 
@@ -752,6 +753,32 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     planner; a journey's copy keeps its stages, routes and transfers, not
     dates, marks, notes or places to stay. On the website it is the main
     action for those who may not change the item, in the app in its «⋯» menu.
+
+71. **AI assistants and the command line** (issue 28; read-only,
+    personal access tokens rather than OAuth, the CLI also on its own).
+    «Zugriffstoken» under «Konto» on the website and in the app: named,
+    with when they were made and last used (within the hour), at most 20,
+    revoked at once; the token (`alvyo_pat_…`) is shown once, only its
+    SHA-256 is kept, and a password reset removes them all. With a token
+    the API answers GET requests only (others 403, a wrong or revoked
+    token 401), at most 60 at once and one a second after; the costly
+    ones count against the user's limits as from the website. The MCP
+    endpoint `/api/v1/mcp` (streamable HTTP, stateless, the official Go
+    SDK) takes only access tokens and offers nine tools that only read:
+    `search_places`, `plan_route` (from, via, to by name or «lat,lon»;
+    distance, ascent, Swiss hiking time also at one's pace, SAC grade, GPX
+    on request; places more than 40 km apart are refused as likely found
+    by mistake), `reach`, `route_conditions` (weather, closures and
+    shooting, protected areas of a saved or a planned route), `discover`
+    (public and official routes around a place), `my_routes`,
+    `my_journeys`, `get_route`, `get_journey` (one's own, shared, public,
+    or unlisted with the token). Each answers with a text and the same as
+    JSON. `alvyo-cli` (`api/cmd/alvyo-cli`) calls these tools:
+    `alvyo-cli route plan Sargans Weisstannen --gpx`, `alvyo-cli discover
+    --near Thun --official`, `alvyo-cli routes`, as text or `--json`;
+    `alvyo-cli mcp` serves them over stdio for assistants that start a
+    local program (Claude Desktop). Each release attaches it for Linux,
+    macOS and Windows. Setting up: [mcp.md](mcp.md).
 
 ### Open
 

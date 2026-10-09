@@ -45,6 +45,11 @@ type Limits struct {
 	Search *ratelimit.Limiter
 	// Bug reports open GitHub issues: a few a day per user.
 	BugReport *ratelimit.Limiter
+	// Requests per personal access token (AI assistants, the CLI); the
+	// costly ones count against the user's limits above as well.
+	AccessToken *ratelimit.Limiter
+	// Access tokens created, per user.
+	NewAccessToken *ratelimit.Limiter
 }
 
 // DefaultLimits are generous for people and tight for scripts.
@@ -70,6 +75,8 @@ func DefaultLimits() Limits {
 		Pack:            ratelimit.New(time.Minute, 20),
 		Search:          ratelimit.New(time.Second, 30),
 		BugReport:       ratelimit.New(3*time.Hour, 5),
+		AccessToken:     ratelimit.New(time.Second, 60),
+		NewAccessToken:  ratelimit.New(time.Minute, 10),
 	}
 }
 

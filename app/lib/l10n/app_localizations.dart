@@ -4071,6 +4071,96 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Das Kopieren hat nicht geklappt. Versuche es nochmals.'**
   String get copyFailed;
+
+  /// No description provided for @tokensTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Zugriffstoken'**
+  String get tokensTitle;
+
+  /// No description provided for @tokensIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit einem Zugriffstoken lesen KI-Assistenten wie Claude und das Kommandozeilenprogramm alvyo‑cli in deinem Konto: Sie planen Routen, suchen Orte, fragen Wetter und Sperrungen ab und sehen deine Routen und Etappentouren. Ändern können sie nichts. Gib ein Token nur Programmen, denen du vertraust.'**
+  String get tokensIntro;
+
+  /// No description provided for @tokensMcp.
+  ///
+  /// In de, this message translates to:
+  /// **'Adresse für KI-Assistenten (MCP):'**
+  String get tokensMcp;
+
+  /// No description provided for @tokensName.
+  ///
+  /// In de, this message translates to:
+  /// **'Wofür?'**
+  String get tokensName;
+
+  /// No description provided for @tokensNamePlaceholder.
+  ///
+  /// In de, this message translates to:
+  /// **'z. B. Claude Desktop'**
+  String get tokensNamePlaceholder;
+
+  /// No description provided for @tokensCreate.
+  ///
+  /// In de, this message translates to:
+  /// **'Token erstellen'**
+  String get tokensCreate;
+
+  /// No description provided for @tokensCreated.
+  ///
+  /// In de, this message translates to:
+  /// **'Kopiere das Token jetzt: Es wird nur dieses eine Mal angezeigt.'**
+  String get tokensCreated;
+
+  /// No description provided for @tokensCopy.
+  ///
+  /// In de, this message translates to:
+  /// **'Kopieren'**
+  String get tokensCopy;
+
+  /// No description provided for @tokensCopied.
+  ///
+  /// In de, this message translates to:
+  /// **'Token kopiert'**
+  String get tokensCopied;
+
+  /// No description provided for @tokensCreatedOn.
+  ///
+  /// In de, this message translates to:
+  /// **'erstellt am {date}'**
+  String tokensCreatedOn(String date);
+
+  /// No description provided for @tokensUsedOn.
+  ///
+  /// In de, this message translates to:
+  /// **'zuletzt benutzt am {date}'**
+  String tokensUsedOn(String date);
+
+  /// No description provided for @tokensNeverUsed.
+  ///
+  /// In de, this message translates to:
+  /// **'noch nie benutzt'**
+  String get tokensNeverUsed;
+
+  /// No description provided for @tokensRevoke.
+  ///
+  /// In de, this message translates to:
+  /// **'Widerrufen'**
+  String get tokensRevoke;
+
+  /// No description provided for @tokensRevokeConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'«{name}» widerrufen? Programme mit diesem Token kommen dann nicht mehr in dein Konto.'**
+  String tokensRevokeConfirm(String name);
+
+  /// No description provided for @tokensFull.
+  ///
+  /// In de, this message translates to:
+  /// **'Du hast schon 20 Token. Widerrufe zuerst eines.'**
+  String get tokensFull;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

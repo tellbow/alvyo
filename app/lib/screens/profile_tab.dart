@@ -278,6 +278,13 @@ class _ProfileTabState extends State<ProfileTab> {
                       onTap: () => _push(ContactsScreen(api: widget.api)),
                     ),
                     ListTile(
+                      key: const Key('tokens'),
+                      leading: const Icon(Icons.key_outlined),
+                      title: Text(t.tokensTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _push(AccessTokensScreen(api: widget.api)),
+                    ),
+                    ListTile(
                       key: const Key('blocked'),
                       leading: const Icon(Icons.block),
                       title: Text(t.blockedTitle),

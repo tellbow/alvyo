@@ -662,5 +662,20 @@
   "discoverOriginNone": "From people only",
   "routeCopy": "Edit as your own route",
   "journeyCopy": "Edit as your own journey",
-  "copyFailed": "Copying did not work. Try again."
+  "copyFailed": "Copying did not work. Try again.",
+  "tokensTitle": "Access tokens",
+  "tokensIntro": "With an access token, AI assistants such as Claude and the command-line program alvyo‑cli read your account: they plan routes, look up places, weather and closures, and see your routes and journeys. They cannot change anything. Give a token only to programs you trust.",
+  "tokensMcp": "Address for AI assistants (MCP):",
+  "tokensName": "What for?",
+  "tokensNamePlaceholder": "e.g. Claude Desktop",
+  "tokensCreate": "Create token",
+  "tokensCreated": "Copy the token now: it is shown only this once.",
+  "tokensCopy": "Copy",
+  "tokensCopied": "Token copied",
+  "tokensCreatedOn": "created on {date}",
+  "tokensUsedOn": "last used on {date}",
+  "tokensNeverUsed": "never used",
+  "tokensRevoke": "Revoke",
+  "tokensRevokeConfirm": "Revoke “{name}”? Programs with this token can then no longer get into your account.",
+  "tokensFull": "You already have 20 tokens. Revoke one first."
 }

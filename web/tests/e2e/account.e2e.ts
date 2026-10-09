@@ -76,3 +76,43 @@ test("one's pace: chosen in the account, hiking times follow it", async ({ page 
 	await page.goto('/account');
 	await expect(page.getByTestId('pace')).toHaveValue('1.5');
 });
+
+test('an access token: shown once, reads, revoked', async ({ page, playwright, baseURL }) => {
+	const id = `pat${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+	await signUp(page.request, {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Pat',
+			password: 'sehr-geheim-123'
+		}
+	});
+	await page.goto('/account');
+	await expect(page.getByTestId('mcp-url')).toHaveText(`${baseURL}/api/v1/mcp`);
+	await page.getByTestId('token-name').fill('Claude Desktop');
+	await page.getByTestId('token-create').click();
+	const token = (await page.getByTestId('token-value').textContent()) ?? '';
+	expect(token).toMatch(/^alvyo_pat_/);
+	await expect(page.getByTestId('tokens')).toContainText('Claude Desktop');
+	await expect(page.getByTestId('tokens')).toContainText('noch nie benutzt');
+
+	// Without the browser's cookie: the token alone reads, and writes nothing.
+	const script = await playwright.request.newContext({
+		baseURL,
+		extraHTTPHeaders: { Authorization: `Bearer ${token}` }
+	});
+	expect((await script.get('/api/v1/me')).status()).toBe(200);
+	expect((await script.post('/api/v1/routes', { data: {} })).status()).toBe(403);
+
+	// Shown once: not after loading the page again.
+	await page.reload();
+	await expect(page.getByTestId('token-value')).toHaveCount(0);
+	await expect(page.getByTestId('tokens')).toContainText('zuletzt benutzt');
+
+	await page.getByRole('button', { name: 'Widerrufen' }).click();
+	await expect(page.getByTestId('revoke-confirm')).toContainText('«Claude Desktop» widerrufen?');
+	await page.getByTestId('revoke-confirm').getByRole('button', { name: 'Widerrufen' }).click();
+	await expect(page.getByTestId('tokens')).not.toContainText('Claude Desktop');
+	expect((await script.get('/api/v1/me')).status()).toBe(401);
+	await script.dispose();
+});

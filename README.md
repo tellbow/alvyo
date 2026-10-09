@@ -10,6 +10,7 @@ comes next: [docs/plan.md](docs/plan.md); deployment: [docs/operations.md](docs/
 - **Journeys:** multi-week stage journeys planned from start, destination and days, with huts for the nights and public transport.
 - **Sharing and community:** public, by link or invitation; collections, a discovery map, friends, a feed, likes, comments and photos.
 - **App:** iOS, with the national map offline, spoken navigation, recording and Apple Watch import ([app/README.md](app/README.md)).
+- **AI assistants and the command line:** an MCP server and `alvyo-cli` with a personal access token, read-only ([docs/mcp.md](docs/mcp.md)).
 - **Data and privacy:** GPX export, import from GPX, KML, TCX, FIT and Komoot, privacy zones, passkeys; in German, English, French and Italian.
 
 ## Screenshots

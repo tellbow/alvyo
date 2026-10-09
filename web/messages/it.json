@@ -864,5 +864,22 @@
 	"reach_pace_change": "Modifica",
 	"reach_hint_login": "Accedi per vedere fin dove arrivi.",
 	"reach_error_422": "Nessun sentiero vicino a questo punto. Scegli un punto su un sentiero o nelle vicinanze.",
-	"reach_error_other": "Non è stato possibile calcolarlo. Riprova."
+	"reach_error_other": "Non è stato possibile calcolarlo. Riprova.",
+	"tokens_title": "Token di accesso per assistenti IA e script",
+	"tokens_intro": "Con un token di accesso, gli assistenti IA come Claude e il programma da riga di comando alvyo‑cli leggono il tuo account: pianificano percorsi, cercano luoghi, consultano meteo e chiusure e vedono i tuoi percorsi e trekking a tappe. Non possono modificare nulla. Dai un token solo a programmi di cui ti fidi.",
+	"tokens_name": "Per cosa?",
+	"tokens_name_placeholder": "p. es. Claude Desktop",
+	"tokens_create": "Crea token",
+	"tokens_created": "Copia il token ora: viene mostrato solo questa volta.",
+	"tokens_copy": "Copia",
+	"tokens_copied": "Copiato",
+	"tokens_mcp": "Indirizzo per assistenti IA (MCP):",
+	"tokens_claude_code": "In Claude Code:",
+	"tokens_created_on": "creato il {date}",
+	"tokens_used_on": "usato l’ultima volta il {date}",
+	"tokens_never_used": "mai usato",
+	"tokens_revoke": "Revoca",
+	"tokens_revoke_confirm": "Revocare «{name}»? I programmi con questo token non potranno più accedere al tuo account.",
+	"tokens_full": "Hai già 20 token. Revocane prima uno.",
+	"tokens_cancel": "Annulla"
 }

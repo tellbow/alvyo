@@ -28,23 +28,25 @@ type lineAreasInput struct {
 	}
 }
 
+// crossedAreas returns the protected areas a line crosses and the notices
+// (closures, shooting) on it from today on.
+func crossedAreas(ctx context.Context, d Deps, line []geo.Point) ([]areas.Area, []areas.Notice, error) {
+	found, err := d.Areas.Crossed(ctx, line)
+	var notices []areas.Notice
+	if err == nil {
+		notices, err = d.Areas.Notices(ctx, line, time.Now().In(zurich))
+	}
+	if errors.Is(err, areas.ErrUnavailable) {
+		slog.WarnContext(ctx, "protected areas", "err", err)
+		return nil, nil, huma.Error503ServiceUnavailable("protected areas unavailable, please retry")
+	}
+	return found, notices, err
+}
+
 func registerAreas(api huma.API, d Deps) {
 	tags := []string{"routing"}
-	zurich, err := time.LoadLocation("Europe/Zurich")
-	if err != nil {
-		panic(err) // cannot happen: time/tzdata is linked in
-	}
 	crossed := func(ctx context.Context, line []geo.Point) ([]areas.Area, []areas.Notice, error) {
-		found, err := d.Areas.Crossed(ctx, line)
-		var notices []areas.Notice
-		if err == nil {
-			notices, err = d.Areas.Notices(ctx, line, time.Now().In(zurich))
-		}
-		if errors.Is(err, areas.ErrUnavailable) {
-			slog.WarnContext(ctx, "protected areas", "err", err)
-			return nil, nil, huma.Error503ServiceUnavailable("protected areas unavailable, please retry")
-		}
-		return found, notices, err
+		return crossedAreas(ctx, d, line)
 	}
 	points := func(line [][3]float64) []geo.Point {
 		pts := make([]geo.Point, len(line))

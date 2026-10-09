@@ -52,6 +52,7 @@ export type JourneyWeather = components['schemas']['JourneyWeatherOutputBody'];
 export type ForecastDay = components['schemas']['ForecastDay'];
 export type Profile = components['schemas']['ProfileOutputBody'];
 export type Home = components['schemas']['Home'];
+export type AccessToken = components['schemas']['AccessToken'];
 export type Travel = components['schemas']['Travel'];
 export type TravelWay = components['schemas']['Way'];
 export type Trip = components['schemas']['TransitTrip'];

@@ -11,6 +11,7 @@
 	import SignInMethods from '$lib/account/SignInMethods.svelte';
 	import Contacts from '$lib/account/Contacts.svelte';
 	import Homes from '$lib/account/Homes.svelte';
+	import AccessTokens from '$lib/account/AccessTokens.svelte';
 	import { choose } from '$lib/util/choose';
 
 	let { data } = $props();
@@ -90,6 +91,8 @@
 			{loggedOut ? m.account_logout_others_done() : ''}
 		</p>
 	</div>
+
+	<AccessTokens />
 
 	<h2 class="mt-8 text-lg font-semibold">{m.account_pace()}</h2>
 	<p class="mt-1 text-sm text-stone-600">{m.account_pace_hint()}</p>

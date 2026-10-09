@@ -141,6 +141,15 @@ func (ns NullVisibility) Value() (driver.Value, error) {
 	return string(ns.Visibility), nil
 }
 
+type AccessToken struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	Name       string
+	TokenHash  []byte
+	CreatedAt  time.Time
+	LastUsedAt *time.Time
+}
+
 type AreaCache struct {
 	LineKey   string
 	Areas     []byte
@@ -351,6 +360,14 @@ type MailThrottle struct {
 	SentAt time.Time
 }
 
+type Official struct {
+	Nr        string
+	Kind      string
+	RouteID   *uuid.UUID
+	JourneyID *uuid.UUID
+	Hash      string
+}
+
 type Passkey struct {
 	ID         []byte
 	UserID     uuid.UUID
@@ -550,4 +567,32 @@ type User struct {
 	NotifyFollows   bool
 	ProfilePublic   bool
 	FriendToken     *string
+}
+
+type WanderlandImport struct {
+	One        bool
+	ImportedAt time.Time
+	SyncedAt   *time.Time
+}
+
+type WanderlandRoute struct {
+	Nr        string
+	Name      string
+	Kind      string
+	StartName string
+	EndName   string
+	Geom      interface{}
+}
+
+type WanderlandStage struct {
+	Nr        string
+	Stage     int32
+	StartName string
+	EndName   string
+	Geom      interface{}
+}
+
+type WanderlandTransport struct {
+	Mode string
+	Geom interface{}
 }

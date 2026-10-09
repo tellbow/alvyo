@@ -61,6 +61,9 @@ flowchart TB
 
 What each part does, and why it is there:
 
+- **AI assistants and `alvyo-cli`** read through the API's MCP endpoint
+  (`/api/v1/mcp`) with a personal access token; its tools call the same
+  code as the website's requests ([mcp.md](mcp.md)).
 - **web** renders the pages (SvelteKit). On the server it asks the API
   through the cluster (`API_INTERNAL_URL`); in the browser the pages call
   `/api` directly.

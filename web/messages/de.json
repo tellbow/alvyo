@@ -864,5 +864,22 @@
 	"reach_pace_change": "Ändern",
 	"reach_hint_login": "Melde dich an, um zu sehen, wie weit du kommst.",
 	"reach_error_422": "Kein Weg in der Nähe dieses Punkts. Wähle einen Punkt auf oder nahe bei einem Weg.",
-	"reach_error_other": "Konnte nicht berechnet werden. Versuche es nochmals."
+	"reach_error_other": "Konnte nicht berechnet werden. Versuche es nochmals.",
+	"tokens_title": "Zugriffstoken für KI-Assistenten und Skripte",
+	"tokens_intro": "Mit einem Zugriffstoken lesen KI-Assistenten wie Claude und das Kommandozeilenprogramm alvyo‑cli in deinem Konto: Sie planen Routen, suchen Orte, fragen Wetter und Sperrungen ab und sehen deine Routen und Etappentouren. Ändern können sie nichts. Gib ein Token nur Programmen, denen du vertraust.",
+	"tokens_name": "Wofür?",
+	"tokens_name_placeholder": "z. B. Claude Desktop",
+	"tokens_create": "Token erstellen",
+	"tokens_created": "Kopiere das Token jetzt: Es wird nur dieses eine Mal angezeigt.",
+	"tokens_copy": "Kopieren",
+	"tokens_copied": "Kopiert",
+	"tokens_mcp": "Adresse für KI-Assistenten (MCP):",
+	"tokens_claude_code": "In Claude Code:",
+	"tokens_created_on": "erstellt am {date}",
+	"tokens_used_on": "zuletzt benutzt am {date}",
+	"tokens_never_used": "noch nie benutzt",
+	"tokens_revoke": "Widerrufen",
+	"tokens_revoke_confirm": "«{name}» widerrufen? Programme mit diesem Token kommen dann nicht mehr in dein Konto.",
+	"tokens_full": "Du hast schon 20 Token. Widerrufe zuerst eines.",
+	"tokens_cancel": "Abbrechen"
 }

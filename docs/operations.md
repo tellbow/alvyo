@@ -79,12 +79,18 @@ address is confirmed.
   button. Logging in with an unconfirmed address sends a new link.
   Accounts from before 2026-10-08 that never confirmed are asked to on
   their next login; their sessions keep working until then.
-- A password reset ends all sessions and removes passkeys and provider
-  sign-ins: whoever resets takes the account over, also from someone who
-  signed up with another person's address.
+- A password reset ends all sessions and removes passkeys, provider
+  sign-ins and access tokens: whoever resets takes the account over, also
+  from someone who signed up with another person's address.
 - A session ends after 30 days without use and 180 days after the login at
   the latest. «Auf allen anderen Geräten abmelden» (account page, the app's
   profile) ends all others.
+- Personal access tokens (`alvyo_pat_…`, «Konto») let AI assistants and
+  `alvyo-cli` read an account: GET requests and the MCP endpoint
+  `/api/v1/mcp`, which needs nothing configured (it is under `/api`, so the
+  ingress passes it on). Only their SHA-256 is stored, in
+  `access_tokens`; a banned account's tokens stop working. Setting up an
+  assistant: [mcp.md](mcp.md).
 
 ## First deployment
 
@@ -173,6 +179,10 @@ cosign verify ghcr.io/tellbow/alvyo-api:0.1.0 \
   --certificate-identity-regexp '^https://github.com/tellbow/alvyo/.github/workflows/release.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com   # built by this repository's release
 ```
+
+The release also attaches `alvyo-cli` ([mcp.md](mcp.md)) for Linux, macOS
+and Windows (amd64 and arm64) with their SHA-256 sums, built with the tag
+as its version.
 
 Another person releasing adds their public key to `.github/release-signers.asc`.
 

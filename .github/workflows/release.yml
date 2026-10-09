@@ -2,7 +2,8 @@ name: release
 
 # A version tag (v0.1.0) publishes all images to GHCR for amd64 and arm64,
 # tagged 0.1.0 and sha-<commit>, each with an SBOM and its provenance; then a
-# GitHub Release with the version's row of docs/plan.md as its notes.
+# GitHub Release with the version's row of docs/plan.md as its notes and
+# alvyo-cli for Linux, macOS and Windows.
 on:
   push:
     tags: ['v*']
@@ -96,6 +97,21 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: api/go.mod
+          cache: false # a release builds once
+      - name: alvyo-cli for each platform
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          mkdir dist
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
+            os="${target%/*}" arch="${target#*/}" ext=""
+            [ "$os" = windows ] && ext=.exe
+            (cd api && CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath -ldflags "-s -w -X main.version=$v" \
+              -o "../dist/alvyo-cli-$v-$os-$arch$ext" ./cmd/alvyo-cli)
+          done
+          (cd dist && sha256sum alvyo-cli-* > SHA256SUMS)
       - name: Notes from docs/plan.md
         run: |
           v="${GITHUB_REF_NAME#v}"
@@ -107,6 +123,8 @@ jobs:
             echo "$what"
             echo
             echo "Images: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/alvyo-{api,web,data-import,postgis,graphhopper}:$v\`"
+            echo
+            echo "alvyo-cli for AI assistants and the command line: below (docs/mcp.md)."
             if [ -n "$prev" ]; then
               echo
               echo "Changes: https://github.com/${GITHUB_REPOSITORY}/compare/$prev...$GITHUB_REF_NAME"
@@ -115,4 +133,4 @@ jobs:
       - name: GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --title "Alvyo ${GITHUB_REF_NAME#v}" --notes-file notes.md
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --title "Alvyo ${GITHUB_REF_NAME#v}" --notes-file notes.md dist/*

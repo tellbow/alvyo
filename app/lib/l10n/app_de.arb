@@ -1264,5 +1264,41 @@
   "discoverOriginNone": "Nur von Leuten",
   "routeCopy": "Als eigene Route bearbeiten",
   "journeyCopy": "Als eigene Etappentour bearbeiten",
-  "copyFailed": "Das Kopieren hat nicht geklappt. Versuche es nochmals."
+  "copyFailed": "Das Kopieren hat nicht geklappt. Versuche es nochmals.",
+  "tokensTitle": "Zugriffstoken",
+  "tokensIntro": "Mit einem Zugriffstoken lesen KI-Assistenten wie Claude und das Kommandozeilenprogramm alvyo‑cli in deinem Konto: Sie planen Routen, suchen Orte, fragen Wetter und Sperrungen ab und sehen deine Routen und Etappentouren. Ändern können sie nichts. Gib ein Token nur Programmen, denen du vertraust.",
+  "tokensMcp": "Adresse für KI-Assistenten (MCP):",
+  "tokensName": "Wofür?",
+  "tokensNamePlaceholder": "z. B. Claude Desktop",
+  "tokensCreate": "Token erstellen",
+  "tokensCreated": "Kopiere das Token jetzt: Es wird nur dieses eine Mal angezeigt.",
+  "tokensCopy": "Kopieren",
+  "tokensCopied": "Token kopiert",
+  "tokensCreatedOn": "erstellt am {date}",
+  "@tokensCreatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tokensUsedOn": "zuletzt benutzt am {date}",
+  "@tokensUsedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "tokensNeverUsed": "noch nie benutzt",
+  "tokensRevoke": "Widerrufen",
+  "tokensRevokeConfirm": "«{name}» widerrufen? Programme mit diesem Token kommen dann nicht mehr in dein Konto.",
+  "@tokensRevokeConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tokensFull": "Du hast schon 20 Token. Widerrufe zuerst eines."
 }

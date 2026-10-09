@@ -13,6 +13,7 @@ import (
 	"github.com/klauspost/compress/gzhttp"
 
 	"github.com/tellbow/alvyo/api/internal/auth"
+	"github.com/tellbow/alvyo/api/internal/ratelimit"
 )
 
 const sessionCookie = "alvyo_session"
@@ -66,7 +67,7 @@ func withClientIP(next http.Handler, trustProxy bool) http.Handler {
 
 // withSession resolves the session cookie or bearer token to a user.
 // Sessions slide: when the service extends one, the cookie is renewed too.
-func withSession(next http.Handler, svc *auth.Service, secure bool) http.Handler {
+func withSession(next http.Handler, svc *auth.Service, secure bool, perToken *ratelimit.Limiter) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, fromCookie := "", false
 		if c, err := r.Cookie(sessionCookie); err == nil && c.Value != "" {
@@ -76,6 +77,10 @@ func withSession(next http.Handler, svc *auth.Service, secure bool) http.Handler
 		}
 		if token == "" {
 			next.ServeHTTP(w, r)
+			return
+		}
+		if !fromCookie && strings.HasPrefix(token, auth.AccessTokenPrefix) {
+			withAccessToken(w, r, next, svc, token, perToken)
 			return
 		}
 
@@ -101,6 +106,35 @@ func withSession(next http.Handler, svc *auth.Service, secure bool) http.Handler
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// withAccessToken serves a request with a personal access token, which may
+// only read: GET and HEAD, and the MCP endpoint, whose tools only read. A
+// token that is wrong or revoked is refused rather than taken as no login,
+// so that a script notices.
+func withAccessToken(w http.ResponseWriter, r *http.Request, next http.Handler, svc *auth.Service, token string, perToken *ratelimit.Limiter) {
+	ctx := r.Context()
+	u, id, err := svc.AccessTokenUser(ctx, token)
+	switch {
+	case errors.Is(err, auth.ErrNoSession), errors.Is(err, auth.ErrBanned):
+		w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
+		http.Error(w, "invalid or revoked access token", http.StatusUnauthorized)
+		return
+	case err != nil:
+		slog.ErrorContext(ctx, "access token lookup", "err", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if r.Method != http.MethodGet && r.Method != http.MethodHead && r.URL.Path != mcpPath {
+		http.Error(w, "access tokens can only read", http.StatusForbidden)
+		return
+	}
+	if !perToken.Allow(id.String()) {
+		http.Error(w, "too many requests, try again later", http.StatusTooManyRequests)
+		return
+	}
+	ctx = auth.WithAccessToken(auth.WithUser(ctx, u), id)
+	next.ServeHTTP(w, r.WithContext(ctx))
 }
 
 // withOriginCheck rejects cross-site state-changing requests (CSRF). Browsers

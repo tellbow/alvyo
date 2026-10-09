@@ -46,28 +46,28 @@ func resetMail(u dbq.User, link string) mailer.Message {
 			To:      u.Email,
 			Subject: "Alvyo : réinitialiser ton mot de passe",
 			Text: fmt.Sprintf("Bonjour %s\n\nAvec ce lien, tu peux définir un nouveau mot de passe (valable 1 heure) :\n\n%s\n\n"+
-				"Les passkeys et les connexions avec Google ou Apple sont supprimées ; ajoute-les de nouveau ensuite.\n\nSi tu n'as rien demandé, tu peux ignorer cet e-mail ; ton mot de passe reste inchangé.\n", u.DisplayName, link),
+				"Les passkeys, les connexions avec Google ou Apple et les jetons d'accès sont supprimés ; ajoute-les de nouveau ensuite.\n\nSi tu n'as rien demandé, tu peux ignorer cet e-mail ; ton mot de passe reste inchangé.\n", u.DisplayName, link),
 		}
 	case "it":
 		return mailer.Message{
 			To:      u.Email,
 			Subject: "Alvyo: reimposta la password",
 			Text: fmt.Sprintf("Ciao %s\n\nCon questo link puoi impostare una nuova password (valido 1 ora):\n\n%s\n\n"+
-				"Passkey e accessi con Google o Apple vengono rimossi; aggiungili di nuovo dopo.\n\nSe non l'hai richiesto, puoi ignorare questa e-mail; la tua password resta invariata.\n", u.DisplayName, link),
+				"Passkey, accessi con Google o Apple e token di accesso vengono rimossi; aggiungili di nuovo dopo.\n\nSe non l'hai richiesto, puoi ignorare questa e-mail; la tua password resta invariata.\n", u.DisplayName, link),
 		}
 	case "de":
 		return mailer.Message{
 			To:      u.Email,
 			Subject: "Alvyo: Passwort zurücksetzen",
 			Text: fmt.Sprintf("Hallo %s\n\nMit diesem Link kannst du ein neues Passwort setzen (gültig 1 Stunde):\n\n%s\n\n"+
-				"Passkeys und Anmeldungen mit Google oder Apple werden dabei entfernt; füge sie danach wieder hinzu.\n\nFalls du das nicht angefordert hast, kannst du diese E-Mail ignorieren; dein Passwort bleibt unverändert.\n", u.DisplayName, link),
+				"Passkeys, Anmeldungen mit Google oder Apple und Zugriffstoken werden dabei entfernt; füge sie danach wieder hinzu.\n\nFalls du das nicht angefordert hast, kannst du diese E-Mail ignorieren; dein Passwort bleibt unverändert.\n", u.DisplayName, link),
 		}
 	}
 	return mailer.Message{
 		To:      u.Email,
 		Subject: "Alvyo: reset your password",
 		Text: fmt.Sprintf("Hi %s\n\nUse this link to set a new password (valid for 1 hour):\n\n%s\n\n"+
-			"Passkeys and sign-ins with Google or Apple are removed; add them again afterwards.\n\nIf you did not request this, you can ignore this e-mail; your password stays unchanged.\n", u.DisplayName, link),
+			"Passkeys, sign-ins with Google or Apple and access tokens are removed; add them again afterwards.\n\nIf you did not request this, you can ignore this e-mail; your password stays unchanged.\n", u.DisplayName, link),
 	}
 }
 

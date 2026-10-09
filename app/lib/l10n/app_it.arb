@@ -662,5 +662,20 @@
   "discoverOriginNone": "Solo delle persone",
   "routeCopy": "Modifica come tuo percorso",
   "journeyCopy": "Modifica come tuo trekking a tappe",
-  "copyFailed": "La copia non è riuscita. Riprova."
+  "copyFailed": "La copia non è riuscita. Riprova.",
+  "tokensTitle": "Token di accesso",
+  "tokensIntro": "Con un token di accesso, gli assistenti IA come Claude e il programma da riga di comando alvyo‑cli leggono il tuo account: pianificano percorsi, cercano luoghi, consultano meteo e chiusure e vedono i tuoi percorsi e trekking a tappe. Non possono modificare nulla. Dai un token solo a programmi di cui ti fidi.",
+  "tokensMcp": "Indirizzo per assistenti IA (MCP):",
+  "tokensName": "Per cosa?",
+  "tokensNamePlaceholder": "p. es. Claude Desktop",
+  "tokensCreate": "Crea token",
+  "tokensCreated": "Copia il token ora: viene mostrato solo questa volta.",
+  "tokensCopy": "Copia",
+  "tokensCopied": "Token copiato",
+  "tokensCreatedOn": "creato il {date}",
+  "tokensUsedOn": "usato l’ultima volta il {date}",
+  "tokensNeverUsed": "mai usato",
+  "tokensRevoke": "Revoca",
+  "tokensRevokeConfirm": "Revocare «{name}»? I programmi con questo token non potranno più accedere al tuo account.",
+  "tokensFull": "Hai già 20 token. Revocane prima uno."
 }

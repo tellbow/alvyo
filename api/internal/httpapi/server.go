@@ -161,10 +161,12 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerOIDC(api, d)
 	registerPacks(api, d)
 	registerBugReports(api, d)
+	registerAccessTokens(api, d)
+	registerMCP(mux, d)
 
 	h := withCompression(mux)
 	if d.Auth != nil {
-		h = withSession(h, d.Auth, d.secureCookies())
+		h = withSession(h, d.Auth, d.secureCookies(), d.Limits.AccessToken)
 	}
 	h = withOriginCheck(h, d.PublicURL)
 	h = withSecurityHeaders(h)

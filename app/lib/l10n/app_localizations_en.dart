@@ -1243,6 +1243,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectionDeleteConfirm => 'Delete the collection? Routes and journeys stay.';
 
   @override
+  String get collectionMap => 'Map of the collection';
+
+  @override
   String collectionStages(int n) {
     return '$n stages';
   }

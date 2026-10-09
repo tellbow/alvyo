@@ -1247,6 +1247,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get collectionDeleteConfirm => 'Eliminare la raccolta? Percorsi e trekking restano.';
 
   @override
+  String get collectionMap => 'Mappa della raccolta';
+
+  @override
   String collectionStages(int n) {
     return '$n tappe';
   }

@@ -1104,7 +1104,8 @@ class CollectionItem {
       durationS = (j['duration_s'] as num).toInt(),
       sacGrade = (j['sac_grade'] as num).toInt(),
       sacMax = (j['sac_max'] as num).toInt(),
-      stages = (j['stages'] as num?)?.toInt() ?? 0;
+      stages = (j['stages'] as num?)?.toInt() ?? 0,
+      lines = [for (final l in j['lines'] as List? ?? const []) _line(l)];
 
   /// The item in the collection; [targetId] the route or journey.
   final String id;
@@ -1113,6 +1114,9 @@ class CollectionItem {
   final String kind, targetId, title, owner, note;
   final double distanceM, ascentM;
   final int durationS, sacGrade, sacMax, stages;
+
+  /// [lon, lat] per point; a journey has one line per routed stage.
+  final List<List<List<double>>> lines;
 }
 
 /// A collection with its routes and journeys.

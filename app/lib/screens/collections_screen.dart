@@ -5,6 +5,7 @@ import 'error_state.dart';
 import '../api.dart';
 import '../bug_report.dart';
 import '../l10n/app_localizations.dart';
+import 'collection_map_screen.dart';
 import 'details.dart';
 import 'item_menu.dart';
 import 'item_card.dart';
@@ -227,6 +228,23 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                 children: [
                   if (c.description.isNotEmpty)
                     Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: Text(c.description)),
+                  if (c.items.any((i) => i.lines.isNotEmpty))
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: TextButton.icon(
+                          key: const Key('collection-map'),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CollectionMapScreen(api: widget.api, collection: c),
+                            ),
+                          ),
+                          icon: const Icon(Icons.map_outlined),
+                          label: Text(t.collectionMap),
+                        ),
+                      ),
+                    ),
                   if (c.hidden > 0)
                     ListTile(key: const Key('collection-hidden'), title: Text(t.collectionHidden(c.hidden)))
                   else if (c.items.isEmpty)
@@ -252,21 +270,7 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                               onPressed: () => _remove(i),
                             )
                           : null,
-                      onTap: () async {
-                        // Who sees the collection without an invitation opens
-                        // its items through it, with the link's token.
-                        if (c.visibility != 'private' && !c.canEdit && !c.isOwner) {
-                          final link = widget.api.shareTokens[c.id];
-                          widget.api.shareTokenFor(i.targetId, 'c.${c.id}${link == null ? '' : '.$link'}');
-                        }
-                        await openItem(
-                          context,
-                          widget.api,
-                          journey: i.kind == 'journey',
-                          id: i.targetId,
-                          title: i.title,
-                        );
-                      },
+                      onTap: () => openCollectionItem(context, widget.api, c, i),
                     ),
                 ],
               ),
@@ -276,6 +280,17 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
       },
     );
   }
+}
+
+/// Opens the route or journey [i] of the collection [c].
+Future<void> openCollectionItem(BuildContext context, Api api, Collection c, CollectionItem i) {
+  // Who sees the collection without an invitation opens its items through
+  // it, with the link's token.
+  if (c.visibility != 'private' && !c.canEdit && !c.isOwner) {
+    final link = api.shareTokens[c.id];
+    api.shareTokenFor(i.targetId, 'c.${c.id}${link == null ? '' : '.$link'}');
+  }
+  return openItem(context, api, journey: i.kind == 'journey', id: i.targetId, title: i.title);
 }
 
 /// Picks one of the user's collections (or a new one) and adds the route

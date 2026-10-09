@@ -2338,6 +2338,12 @@ abstract class AppLocalizations {
   /// **'Sammlung löschen? Routen und Etappentouren bleiben.'**
   String get collectionDeleteConfirm;
 
+  /// No description provided for @collectionMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Karte der Sammlung'**
+  String get collectionMap;
+
   /// No description provided for @collectionStages.
   ///
   /// In de, this message translates to:

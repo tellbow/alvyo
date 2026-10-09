@@ -1249,6 +1249,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get collectionDeleteConfirm => 'Sammlung löschen? Routen und Etappentouren bleiben.';
 
   @override
+  String get collectionMap => 'Karte der Sammlung';
+
+  @override
   String collectionStages(int n) {
     return '$n Etappen';
   }

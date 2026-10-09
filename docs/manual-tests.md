@@ -396,6 +396,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       the journey with its weather and photos. Invited as editor, a route
       in it can be changed. After the release, as the app talks to
       production.
+- [ ] **A collection's map on the iPhone** (23, issue 19): «Karte der
+      Sammlung» in a collection with routes and a journey: all lines in
+      view, each item in its colour like its dot in the list below, a
+      journey's stages in one colour; a tap on a line opens that route or
+      journey, a tap on a hut on a line the hut.
 - [ ] **A route's page** (58) in Safari on the iPhone and the Mac and in
       Firefox: «Teilen» opens the share sheet on the iPhone and copies the
       link on the Mac; «Anderes Datum» opens the date picker; the «⋯» menu

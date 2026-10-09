@@ -374,6 +374,7 @@
   "collectionRemoveConfirm": "Retirer « {title} » de la collection ? L’itinéraire ou la randonnée par étapes reste.",
   "collectionDelete": "Supprimer la collection",
   "collectionDeleteConfirm": "Supprimer la collection ? Les itinéraires et randonnées restent.",
+  "collectionMap": "Carte de la collection",
   "collectionStages": "{n} étapes",
   "myMapKindHike": "Randonnées faites",
   "connectionsFromHere": "Correspondances d’ici au départ",

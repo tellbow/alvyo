@@ -279,7 +279,9 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     «Neuigkeiten» (the feed) instead of the Apple Watch, which moved to a
     button above «Meine Routen». What others shared shows below one's own
     routes and journeys; profiles with following, blocking and reporting;
-    collections; in the profile the map of one's tours, the e-mail
+    collections, with «Karte der Sammlung»: all their routes and journeys on
+    one map, each in its colour as on the website, a tap on a line opening
+    it (issue 19); in the profile the map of one's tours, the e-mail
     notifications, the contacts for shared hikes, blocked people and
     deleting the account; signing up and a forgotten password open the
     website. Left to the website: moderation, imports (files, Komoot),

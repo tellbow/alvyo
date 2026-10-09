@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/screens/collection_map_screen.dart';
 import 'package:alvyo/screens/collections_screen.dart';
 
 const _collection = '0199a000-0000-7000-8000-00000000000c';
@@ -17,7 +18,12 @@ const _route = '0199a000-0000-7000-8000-00000000000a';
 http.Response _json(Object body) =>
     http.Response(jsonEncode(body), 200, headers: {'content-type': 'application/json; charset=utf-8'});
 
-Map<String, dynamic> _body({required String visibility, required String role, int hidden = 0}) => {
+Map<String, dynamic> _body({
+  required String visibility,
+  required String role,
+  int hidden = 0,
+  List<Object> lines = const [],
+}) => {
   'id': _collection,
   'title': 'Mit Freunden',
   'description': '',
@@ -40,9 +46,22 @@ Map<String, dynamic> _body({required String visibility, required String role, in
       'sac_grade': 1,
       'sac_max': 1,
       'stages': 0,
+      'lines': lines,
     },
   ],
 };
+
+Widget _app(Widget home) => MaterialApp(
+  locale: const Locale('de'),
+  localizationsDelegates: const [
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: home,
+);
 
 void main() {
   late Directory support;
@@ -155,5 +174,81 @@ void main() {
     await tester.tap(find.byKey(const Key('remove-confirm')));
     await tester.pumpAndSettle();
     expect(deleted, ['/api/v1/collections/$_collection/items/i1']);
+  });
+
+  const line = [
+    [7.9, 46.6],
+    [7.95, 46.65],
+  ];
+
+  test('each item keeps its lines, a journey one per stage', () {
+    final body = _body(visibility: 'private', role: 'owner');
+    final item = (body['item_list'] as List).first as Map<String, dynamic>;
+    final c = Collection.fromJson({
+      ...body,
+      'item_list': [
+        {
+          ...item,
+          'kind': 'journey',
+          'lines': [
+            line,
+            [
+              [7.95, 46.65],
+              [8.0, 46.7],
+              [8.05, 46.7],
+            ],
+          ],
+        },
+      ],
+    });
+    expect([for (final l in c.items.single.lines) l.length], [2, 3]);
+    expect(c.items.single.lines[1].last, [8.05, 46.7]);
+    expect(Collection.fromJson(body).items.single.lines, isEmpty);
+  });
+
+  testWidgets('the map is offered only when an item has a line', (tester) async {
+    for (final (lines, shown) in [
+      (const <Object>[], findsNothing),
+      (const <Object>[line], findsOneWidget),
+    ]) {
+      final api = Api(
+        'https://alvyo.test',
+        client: MockClient((req) async => _json(_body(visibility: 'private', role: 'owner', lines: lines))),
+      );
+      await tester.pumpWidget(_app(CollectionScreen(api: api, id: _collection, title: '')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('collection-map')), shown);
+      expect(find.text('Karte der Sammlung'), shown);
+      await tester.pumpWidget(const SizedBox());
+    }
+  });
+
+  testWidgets('the map lists the items and opens them through the collection', (tester) async {
+    final asked = <Uri>[];
+    final api = Api(
+      'https://alvyo.test',
+      client: MockClient((req) async {
+        asked.add(req.url);
+        return http.Response('{"title": "Not Found", "status": 404}', 404);
+      }),
+    );
+    final c = Collection.fromJson(_body(visibility: 'public', role: 'viewer', lines: const [line]));
+    await tester.pumpWidget(
+      _app(
+        CollectionMapScreen(
+          api: api,
+          collection: c,
+          map: const SizedBox.expand(key: Key('map')),
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('map')), findsOneWidget);
+    expect(find.byKey(const Key('map-layers')), findsOneWidget);
+    expect(find.text('Mit Freunden'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('collection-map-i1')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    final call = asked.firstWhere((u) => u.path.startsWith('/api/v1/routes/$_route'), orElse: () => fail('$asked'));
+    expect(call.queryParameters['t'], 'c.$_collection');
   });
 }

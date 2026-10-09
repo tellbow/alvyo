@@ -1250,6 +1250,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get collectionDeleteConfirm => 'Supprimer la collection ? Les itinéraires et randonnées restent.';
 
   @override
+  String get collectionMap => 'Carte de la collection';
+
+  @override
   String collectionStages(int n) {
     return '$n étapes';
   }

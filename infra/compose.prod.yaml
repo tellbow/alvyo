@@ -146,6 +146,24 @@ services:
       - ./data-import:/scripts:ro
     command: ["sh", "/scripts/import-places.sh"]
 
+  # The rain on the map (radar and forecast) every 5 minutes, as the
+  # cluster's CronJob does: compose has no schedule, so the service loops.
+  weather-precip:
+    image: alvyo-data-import
+    build: ./data-import
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: odysgeh
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: odysgeh
+      HOME: /tmp
+    volumes:
+      - ./data-import:/scripts:ro
+    command: ["sh", "-c", "while true; do python3 /scripts/weather-precip.py; sleep 300; done"]
+
   # One-shot: the official routes of Wanderland Schweiz (a few updates a
   # year); the API makes them routes and journeys after its next check.
   wanderland-import:

@@ -3,7 +3,7 @@
 Alvyo is a website and an iOS app in front of one Go API. Everything of
 ours runs in the k3s cluster rk1 (namespace `alvyo`, deployed by Flux from
 the gitops repo, `cluster/alvyo/`); `infra/compose.prod.yaml` runs the same
-parts on a single server, except the weather job. The maps, heights,
+parts on a single server. The maps, heights,
 trails, weather and public transport come from Swiss open data, mostly
 through geo.admin.ch.
 

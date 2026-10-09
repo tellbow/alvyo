@@ -18,6 +18,21 @@ describe('weather', () => {
 		);
 	});
 
+	it('rounds a little below zero to 0, not -0', () => {
+		expect(dayText({ ...day, min_c: -0.4, max_c: 6.2 }, 'de-CH')).toMatch(/^0–6\s°C · /);
+		const c = {
+			month: 1,
+			station: 'Säntis',
+			height: 2502,
+			rain_station: 'Säntis',
+			min_c: -0.3,
+			max_c: 0.2,
+			rain_mm: 200,
+			rain_days: 15
+		};
+		expect(climateText(c, 2026, 'de-CH')).toContain('Januar: 0–0 °C');
+	});
+
 	it('names the day', () => {
 		expect(dayLabel('2026-09-29', 'de-CH')).toBe('Di., 29.9.');
 	});

@@ -24,6 +24,9 @@ export function weatherSymbol(
 	return s && { icon: s.icon as WeatherIcon, text: s[lang] };
 }
 
+/** Whole degrees; + 0 makes the -0 of -0.4 a 0, which Intl would write as «-0». */
+const degrees = (c: number) => Math.round(c) + 0;
+
 /** «Üblich im Oktober: 3–11 °C, an 10 von 31 Tagen Regen, 102 mm im Monat». */
 export function climateText(c: Climate, year: number, locale = intlLocale()): string {
 	const n = (x: number, digits = 0) =>
@@ -33,8 +36,8 @@ export function climateText(c: Climate, year: number, locale = intlLocale()): st
 	);
 	return m.weather_climate({
 		month,
-		min: n(Math.round(c.min_c)),
-		max: n(Math.round(c.max_c)),
+		min: n(degrees(c.min_c)),
+		max: n(degrees(c.max_c)),
 		days: n(Math.round(c.rain_days)),
 		total: new Date(Date.UTC(year, c.month, 0)).getUTCDate(),
 		mm: n(Math.round(c.rain_mm))
@@ -47,7 +50,7 @@ const NBSP = ' ';
 export function dayText(d: ForecastDay, locale = intlLocale()): string {
 	const n = (x: number, digits = 0) =>
 		new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(x);
-	const temp = `${n(Math.round(d.min_c))}–${n(Math.round(d.max_c))}${NBSP}°C`;
+	const temp = `${n(degrees(d.min_c))}–${n(degrees(d.max_c))}${NBSP}°C`;
 	const rain =
 		d.rain_hi_mm < 0.5
 			? m.weather_dry()

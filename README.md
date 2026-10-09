@@ -3,23 +3,31 @@
 Plan, share and walk hikes in Switzerland — custom routes on the swisstopo national map,
 official Swiss hiking times, SAC difficulty, and multi-week stage journeys.
 
-Status: early development. Working: accounts, route planning on the swisstopo
-map (Swiss hiking time, SAC grade, elevation profile, breakdowns), saving and
-editing routes, multi-week stage journeys (stops, huts, public transport
-connections), sharing by link and by invitation, collections, tags, GPX export,
-import from GPX, KML, TCX, FIT and Komoot, discovery of public hikes on the
-map, how far one gets in 2, 4 and 8 hours from a point (isochrones timed by
-slope), public or private profiles, friends (search, requests, invite links),
-hiked marks on routes and journeys, likes, comments, following with a news
-feed, OpenTelemetry traces and metrics, reports
-and a moderation queue, photos (metadata removed, pinned along the route),
-passkeys and sign-in with OpenID Connect providers, German, English, French
-and Italian, link previews. Hiking times match the official SchweizMobil
-figures ([docs/hiking-time.md](docs/hiking-time.md)). The iOS app shows
-routes on the national map, saves them offline, navigates with spoken turns,
-records hikes and imports Apple Watch workouts ([app/README.md](app/README.md)).
-Plan, status and what comes next: [docs/plan.md](docs/plan.md). Deployment:
-[docs/operations.md](docs/operations.md).
+Status: early development. What works, in short (details, status and what
+comes next: [docs/plan.md](docs/plan.md); deployment: [docs/operations.md](docs/operations.md)):
+
+- **Planning:** routes on the swisstopo map with Swiss hiking time ([matching SchweizMobil](docs/hiking-time.md)), SAC grade, elevation profile, weather, closures and how far one gets in 2, 4 and 8 hours.
+- **Journeys:** multi-week stage journeys planned from start, destination and days, with huts for the nights and public transport.
+- **Sharing and community:** public, by link or invitation; collections, a discovery map, friends, a feed, likes, comments and photos.
+- **App:** iOS, with the national map offline, spoken navigation, recording and Apple Watch import ([app/README.md](app/README.md)).
+- **Data and privacy:** GPX export, import from GPX, KML, TCX, FIT and Komoot, privacy zones, passkeys; in German, English, French and Italian.
+
+## Screenshots
+
+<table>
+<tr>
+<td><img src="docs/images/planner.webp" alt="Planner with a route and its elevation profile"><br>Planning a route</td>
+<td><img src="docs/images/route.webp" alt="A route's page with its numbers, weather and trail conditions"><br>A route's page</td>
+</tr>
+<tr>
+<td><img src="docs/images/journey.webp" alt="A journey with two stages"><br>A journey and its stages</td>
+<td><img src="docs/images/reach.webp" alt="Areas reached within 2, 4 and 8 hours from Kandersteg"><br>How far one gets («Reichweite»)</td>
+</tr>
+<tr>
+<td><img src="docs/images/discover.webp" alt="The discovery map of public hikes"><br>Discovering public hikes</td>
+<td align="center"><img src="docs/images/app-route.webp" width="32%" alt="A route in the iOS app"> <img src="docs/images/app-nav.webp" width="32%" alt="Navigation in the iOS app"><br>The app: a route, navigating</td>
+</tr>
+</table>
 
 ## Layout
 
@@ -31,6 +39,8 @@ Plan, status and what comes next: [docs/plan.md](docs/plan.md). Deployment:
 | `app/`   | Flutter app (iOS)                                                     |
 | `infra/` | Docker Compose, GraphHopper, tile cache, data import                  |
 | `docs/`  | Plan, ADRs, hiking-time calibration, development and operations       |
+
+How the parts fit together: [docs/architecture.md](docs/architecture.md).
 
 ## Development
 

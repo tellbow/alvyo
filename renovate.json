@@ -15,6 +15,20 @@
 	],
 	"packageRules": [
 		{
+			"description": "Our own module, taken from ../swiss by the replace in api/go.mod",
+			"matchPackageNames": [
+				"github.com/tellbow/alvyo/swiss"
+			],
+			"enabled": false
+		},
+		{
+			"description": "Flutter's Android template: the app is built for iOS only",
+			"matchFileNames": [
+				"app/android/**"
+			],
+			"enabled": false
+		},
+		{
 			"matchManagers": [
 				"gomod"
 			],

@@ -7,6 +7,13 @@ RUN apt-get update \
  && curl -fsSL -o /opt/graphhopper.jar \
     "https://repo1.maven.org/maven2/com/graphhopper/graphhopper-web/${GH_VERSION}/graphhopper-web-${GH_VERSION}.jar" \
  && echo "${GH_SHA1}  /opt/graphhopper.jar" | sha1sum -c -
+# OpenTelemetry agent: GraphHopper itself times nothing per request. Off
+# unless JAVA_OPTS adds -javaagent:/opt/opentelemetry-javaagent.jar (rk1).
+ARG OTEL_AGENT_VERSION=2.31.1
+ARG OTEL_AGENT_SHA1=1980f46fddc489e5c989d8369e655999455643ea
+RUN curl -fsSL -o /opt/opentelemetry-javaagent.jar \
+    "https://repo1.maven.org/maven2/io/opentelemetry/javaagent/opentelemetry-javaagent/${OTEL_AGENT_VERSION}/opentelemetry-javaagent-${OTEL_AGENT_VERSION}.jar" \
+ && echo "${OTEL_AGENT_SHA1}  /opt/opentelemetry-javaagent.jar" | sha1sum -c -
 COPY config.yml /opt/graphhopper/config.yml
 COPY custom_models /opt/graphhopper/custom_models
 WORKDIR /opt/graphhopper

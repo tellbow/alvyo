@@ -261,6 +261,25 @@ Logs are JSON on stderr; the collector reads them into VictoriaLogs (the
 JSON stays in `_msg`); lines of a request carry `trace_id`. Locally: `docker run -p 4318:4318
 otel/opentelemetry-collector-contrib` with a debug exporter shows the traces.
 
+GraphHopper times nothing per request itself. Its image carries the
+OpenTelemetry Java agent, switched on by
+`-javaagent:/opt/opentelemetry-javaagent.jar` in `JAVA_OPTS` (on rk1, not
+locally): spans `GET /isochrone`, `POST /route` and so on inside the API's
+trace, and `http_server_request_duration_seconds` and `jvm_*` for
+Prometheus on 9464 (`OTEL_EXPORTER_PROMETHEUS_HOST=0.0.0.0`, or the agent
+listens on localhost only). The span metrics carry `server_address`, so the
+time a client span waits splits by service (`graphhopper`, `db`,
+`api3.geo.admin.ch`, `api.opentransportdata.swiss`).
+
+The tile cache logs a JSON line per request: `request_time`,
+`upstream_time` and `cache` (`HIT`, `MISS`, `EXPIRED`). PostgreSQL preloads
+`pg_stat_statements` (`infra/postgis/Dockerfile`, migration 0037); the
+slowest queries in total:
+
+```sh
+kubectl -n alvyo exec deploy/db -- psql -U alvyo -d alvyo -c "SELECT calls, round(total_exec_time) AS ms, round(mean_exec_time::numeric, 1) AS mean, left(query, 80) FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 20"
+```
+
 ## Moderation
 
 ```sh

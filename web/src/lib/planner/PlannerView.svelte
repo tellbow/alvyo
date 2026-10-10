@@ -31,6 +31,7 @@
 	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
 	import Notices from '#lib/areas/Notices.svelte';
 	import { fetchLeg } from './api';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { Planner, type LegSlot } from './planner.svelte';
 	import { readPlanQuery } from './query';
 	import { formatDistance, formatDuration, formatHeight, type Profile } from './route';
@@ -75,6 +76,9 @@
 	const dragHint = () => notify(m.plan_drag_click());
 
 	const planner = new Planner(fetchLeg);
+	// The buttons of a saved route are rendered on the server: a click before
+	// hydration would do nothing.
+	const hydrated = new Hydrated();
 	// svelte-ignore state_referenced_locally
 	if (route)
 		planner.load({ profile: route.profile as Profile, anchors: route.anchors, legs: route.legs });
@@ -376,7 +380,7 @@
 									class="icon-button"
 									aria-label={m.plan_point_action({ point, action: m.plan_point_up() })}
 									title={m.plan_point_up()}
-									disabled={i === 0}
+									disabled={!hydrated.value || i === 0}
 									onclick={() => planner.reorder(i, i - 1)}>↑</button
 								>
 								<button
@@ -384,7 +388,7 @@
 									class="icon-button"
 									aria-label={m.plan_point_action({ point, action: m.plan_point_down() })}
 									title={m.plan_point_down()}
-									disabled={i === planner.anchors.length - 1}
+									disabled={!hydrated.value || i === planner.anchors.length - 1}
 									onclick={() => planner.reorder(i, i + 1)}>↓</button
 								>
 								<button
@@ -392,6 +396,7 @@
 									class="icon-button"
 									aria-label={m.plan_point_action({ point, action: m.plan_point_remove() })}
 									title={m.plan_point_remove()}
+									disabled={!hydrated.value}
 									onclick={() => planner.remove(a.id)}>×</button
 								>
 							</li>
@@ -414,7 +419,7 @@
 				<button
 					type="button"
 					class="btn"
-					disabled={planner.anchors.length < 2}
+					disabled={!hydrated.value || planner.anchors.length < 2}
 					onclick={() => planner.reverse()}
 				>
 					{m.plan_reverse()}
@@ -422,7 +427,7 @@
 				<button
 					type="button"
 					class="btn"
-					disabled={planner.anchors.length === 0}
+					disabled={!hydrated.value || planner.anchors.length === 0}
 					onclick={() => planner.clear()}
 				>
 					{m.plan_clear()}
@@ -492,6 +497,7 @@
 										<button
 											type="button"
 											class="ml-1 underline pointer-coarse:py-2"
+											disabled={!hydrated.value}
 											onclick={() => planner.setAlpine(i, true)}>{m.leg_alpine_use()}</button
 										>
 									</p>
@@ -501,6 +507,7 @@
 										<button
 											type="button"
 											class="ml-1 underline"
+											disabled={!hydrated.value}
 											onclick={() => planner.setAlpine(i, false)}>{m.leg_alpine_undo()}</button
 										>
 									</p>
@@ -513,6 +520,7 @@
 												type="button"
 												class="ml-1 underline"
 												data-testid="leg-retry"
+												disabled={!hydrated.value}
 												onclick={() => planner.retry()}>{m.leg_retry()}</button
 											>
 										{/if}

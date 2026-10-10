@@ -92,6 +92,10 @@ cd web && bun run test:e2e   # Playwright against the dev stack
 The end-to-end tests start their own API (:18080) and a production build of
 the web app (:4173); only the containers must be running. They fail on any
 uncaught browser error or console error (`tests/e2e/fixtures.ts`).
+CI runs them on every push to main (`.github/workflows/e2e.yml`, about 10
+minutes): the graph and the import files come from the Actions cache and are
+built again, about an hour, when `infra/graphhopper/` or the OSM fetch
+changes.
 
 Accounts in tests: signing up does not log in, the e-mailed link does
 (operations.md, «Accounts»). Go tests sign up with `s.signup(c, email,

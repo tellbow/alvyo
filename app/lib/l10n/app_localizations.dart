@@ -4000,6 +4000,24 @@ abstract class AppLocalizations {
   /// **'Konnte nicht berechnet werden. Versuche es nochmals.'**
   String get reachErrorOther;
 
+  /// No description provided for @reachPlanHere.
+  ///
+  /// In de, this message translates to:
+  /// **'Hierhin planen'**
+  String get reachPlanHere;
+
+  /// No description provided for @reachStartHere.
+  ///
+  /// In de, this message translates to:
+  /// **'Von hier aus neu'**
+  String get reachStartHere;
+
+  /// No description provided for @reachPlanHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Tippe in eine Fläche, um eine Route dorthin zu planen.'**
+  String get reachPlanHint;
+
   /// No description provided for @officialNational.
   ///
   /// In de, this message translates to:

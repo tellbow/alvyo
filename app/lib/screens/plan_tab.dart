@@ -179,7 +179,8 @@ class PlanTabState extends State<PlanTab> {
                   switch (_mode) {
                     PlanMode.day => PlannerScreen(key: key, api: widget.api, embedded: true, onSaved: _saved),
                     PlanMode.multi => JourneyPlanScreen(key: key, api: widget.api, embedded: true, onSaved: _saved),
-                    PlanMode.reach => ReachScreen(key: key, api: widget.api, embedded: true),
+                    // A route planned from there opens on top; the reach stays.
+                    PlanMode.reach => ReachScreen(key: key, api: widget.api, embedded: true, onSaved: widget.onSaved),
                   },
             ),
           ),

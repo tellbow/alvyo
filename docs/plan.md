@@ -622,7 +622,12 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     included: the page says «ungefähr». 8 hours take about 2 s on the dev
     machine, 7 s on rk1. In the app: «Wie weit komme ich?» (the radar icon above «Meine
     Routen»), from a tap on the map, a place or where one is, the map fitted
-    to the 8-hour area.
+    to the 8-hour area. From there to planning (issue 13): a click or tap
+    inside the areas says within how many hours and offers «Hierhin
+    planen» (and «Von hier aus neu»; outside the areas a click starts
+    anew): the planner opens with the start (its name if found by search)
+    and that point, the same profile; in the app with «Zurück zum Start» as
+    «Rundtour». On the website as `/plan?from=lon,lat&to=lon,lat&profile=…`.
 
 66. **A shared collection shares its items.** A collection shared by link
     or invitation showed «Noch leer»: its routes and journeys were private,

@@ -548,6 +548,45 @@ void main() {
       expect(popped(), isA<RouteDetail>());
     });
 
+    testWidgets('a route from «Wie weit komme ich?»: start, destination, alpine and back', (tester) async {
+      final asked = <Map<String, dynamic>>[];
+      final client = MockClient((req) async {
+        switch ((req.method, req.url.path)) {
+          case ('GET', '/api/v1/me'):
+            return _json({'id': 'u1', 'username': 'wodan', 'display_name': 'Wodan', 'speed_factor': 1.0});
+          case ('POST', '/api/v1/routing/leg'):
+            final body = jsonDecode(req.body) as Map<String, dynamic>;
+            asked.add(body);
+            return _json(_leg(body));
+        }
+        return http.Response('', 404);
+      });
+      await run(
+        tester,
+        (api) => PlannerScreen(
+          api: api,
+          plan: (
+            from: (lon: 9.4, lat: 47.0),
+            name: 'Sargans',
+            to: (lon: 9.3, lat: 47.0),
+            profile: 'alpine',
+            roundTrip: true,
+          ),
+          map: const SizedBox.expand(),
+        ),
+        client,
+      );
+      // There and back again, both alpine.
+      expect(
+        [for (final a in asked) ((a['from'] as Map)['lon'], (a['to'] as Map)['lon'], a['profile'])],
+        [(9.4, 9.3, 'alpine'), (9.3, 9.4, 'alpine')],
+      );
+      expect(find.text('Sargans'), findsOneWidget);
+      expect(find.byKey(const Key('planner-return')), findsOneWidget);
+      final round = tester.widget<Checkbox>(find.byKey(const Key('planner-round')));
+      expect(round.value, isTrue);
+    });
+
     testWidgets('a stage planned from where the one before ends', (tester) async {
       Map<String, dynamic>? posted;
       final client = MockClient((req) async {

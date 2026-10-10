@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/main.dart';
+import 'package:alvyo/screens/reach_screen.dart';
 
 /// Against a local dev server with the demo account (see README.md) and the
 /// graph with the time profiles: «Wie weit komme ich?» from a place.
+/// Then a tap inside the areas plans a route there.
 ///   `flutter test integration_test/reach_test.dart -d SIMULATOR_ID`
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +58,23 @@ void main() {
     expect(find.byKey(const Key('reach-legend-2')), findsOneWidget); // there and back, by default
     expect(find.byKey(const Key('reach-start')), findsOneWidget); // in the panel, scrolled to
     debugPrint('READY');
+    await tester.pump(const Duration(seconds: 6));
+
+    // A tap inside the areas offers a route there; the planner opens with
+    // both points. The tap as the map passes it on (a test's tap does not
+    // reach the native map): 2 km east of Sargans.
+    unawaited(tester.state<ReachScreenState>(find.byType(ReachScreen)).tapped((lon: 9.47, lat: 47.045)));
+    await waitFor(tester, find.byKey(const Key('reach-plan-here')), timeout: const Duration(seconds: 10));
+    await tester.pumpAndSettle();
+    debugPrint('SHEET');
+    await tester.pump(const Duration(seconds: 6));
+    await tester.tap(find.byKey(const Key('reach-plan-here')));
+    // One way: «Back to the start» is off.
+    await waitFor(tester, find.byKey(const Key('planner-round')));
+    expect(find.text('Sargans'), findsWidgets);
+    await waitFor(tester, find.textContaining(RegExp(r'\d m · |km · ')));
+    await tester.pumpAndSettle();
+    debugPrint('PLANNER');
     await tester.pump(const Duration(seconds: 6));
   });
 }

@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { choose } from '$lib/util/choose';
 	import type { GeoJSONSource, Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
+	import type * as MapLibre from 'maplibre-gl';
 	import { resolve } from '$app/paths';
 	import { api, type FoundPlace, type Me } from '$lib/api/client';
 	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
@@ -11,6 +12,7 @@
 	import { m } from '$lib/paraglide/messages';
 	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
 	import PlanTabs from '$lib/planner/PlanTabs.svelte';
+	import { planQuery } from '$lib/planner/query';
 	import type { Profile } from '$lib/planner/route';
 	import Seo from '$lib/seo/Seo.svelte';
 
@@ -58,6 +60,7 @@
 	}
 
 	function startAt(at: [number, number], name = '') {
+		popup?.remove();
 		start = { at, name };
 		void reach();
 	}
@@ -72,7 +75,39 @@
 		return c ? [c.lng, c.lat] : undefined;
 	}
 
-	function onready(mp: MapLibreMap) {
+	let popup: MapLibre.Popup | undefined;
+
+	/**
+	 * A click inside the areas: plan a route there from the start, with the
+	 * same profile, or start from there instead.
+	 */
+	function offerPlan(lib: typeof MapLibre, mp: MapLibreMap, at: [number, number], hours: number) {
+		if (!start) return;
+		const el = (tag: string, cls: string, text = '') => {
+			const e = document.createElement(tag);
+			e.className = cls;
+			e.textContent = text;
+			return e;
+		};
+		// MapLibre's popups stay white in dark mode: fixed light-mode colours.
+		const box = el('div', 'flex flex-col items-start gap-2 text-sm text-[#14201a]');
+		box.dataset.testid = 'reach-popup';
+		box.append(el('p', 'text-[#56645c]', m.reach_within({ hours })));
+		const plan = el(
+			'a',
+			'rounded-md bg-[#f28a48] px-2 py-1 font-medium text-on-accent',
+			m.reach_plan_here()
+		) as HTMLAnchorElement;
+		plan.href = `${resolve('/plan')}?${planQuery(start, at, profile)}`;
+		const again = el('button', 'text-[#b4531d] underline', m.reach_start_here());
+		(again as HTMLButtonElement).type = 'button';
+		again.onclick = () => startAt(at);
+		box.append(plan, again);
+		popup?.remove();
+		popup = new lib.Popup({ maxWidth: '260px' }).setLngLat(at).setDOMContent(box).addTo(mp);
+	}
+
+	function onready(mp: MapLibreMap, lib: typeof MapLibre) {
 		mp.addSource(AREAS, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 		mp.addLayer({
 			id: AREAS,
@@ -108,7 +143,10 @@
 		mp.on('click', (e: MapMouseEvent) => {
 			// Clicks on a hut's or a stop's pin are their own.
 			if (!user || e.defaultPrevented || e.originalEvent.target !== mp.getCanvas()) return;
-			startAt([e.lngLat.lng, e.lngLat.lat]);
+			const at: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+			const inside = mp.queryRenderedFeatures(e.point, { layers: [AREAS] });
+			if (inside.length === 0) return startAt(at);
+			offerPlan(lib, mp, at, Math.min(...inside.map((f) => Number(f.properties.hours))));
 		});
 		map = mp;
 	}
@@ -204,6 +242,7 @@
 						</li>
 					{/each}
 				</ul>
+				<p class="text-sm" data-testid="reach-plan-hint">{m.reach_plan_hint()}</p>
 				<p class="text-xs text-stone-500">{m.reach_note()}</p>
 				{#if (user.speed_factor ?? 1) !== 1}
 					<p class="text-xs text-stone-500">

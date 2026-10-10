@@ -2145,6 +2145,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reachErrorOther => 'Konnte nicht berechnet werden. Versuche es nochmals.';
 
   @override
+  String get reachPlanHere => 'Hierhin planen';
+
+  @override
+  String get reachStartHere => 'Von hier aus neu';
+
+  @override
+  String get reachPlanHint => 'Tippe in eine Fläche, um eine Route dorthin zu planen.';
+
+  @override
   String officialNational(String number) {
     return 'Nationale Route $number';
   }

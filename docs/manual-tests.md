@@ -366,6 +366,15 @@ Checked so far only in the simulator, with made-up or simulated positions
       In the app on the iPhone: «Mein Standort» asks for the location once
       and starts there. Simulator 2026-10-05: from Sargans, filled areas,
       the map on the 8-hour area.
+- [ ] **Planning from «Wie weit komme ich?»** (65, issue 13): in the app,
+      a tap inside the areas offers «Hierhin planen» and «Von hier aus
+      neu», a tap outside starts anew; «Hierhin planen» opens the planner
+      with the start's name, the tapped point, the same profile and, with
+      «Zurück zum Start», «Rundtour»; saved, the route is under «Touren» and
+      back in «Planen» the areas are still there. Simulator 2026-10-10 (iPhone 17
+      Pro, iOS 26.5): from Sargans, the sheet «within 2 hours», the planner
+      with Sargans and the point, the route computed; the tap itself came
+      from the test (a test's tap does not reach the native map).
 - [ ] **Invite link on the iPhone** (64): a friend's invite link opened in
       Safari offers «In der App öffnen»; the app shows who invites and
       «Freunde werden» makes friends. The app on the iPhone after the

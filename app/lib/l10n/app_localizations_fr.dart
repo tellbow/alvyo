@@ -2148,6 +2148,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reachErrorOther => 'Le calcul a échoué. Réessaie.';
 
   @override
+  String get reachPlanHere => 'Planifier jusqu’ici';
+
+  @override
+  String get reachStartHere => 'Partir d’ici';
+
+  @override
+  String get reachPlanHint => 'Touche une zone pour planifier un itinéraire jusque-là.';
+
+  @override
   String officialNational(String number) {
     return 'Itinéraire national $number';
   }

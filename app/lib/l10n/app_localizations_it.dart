@@ -2144,6 +2144,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reachErrorOther => 'Non è stato possibile calcolarlo. Riprova.';
 
   @override
+  String get reachPlanHere => 'Pianifica fin qui';
+
+  @override
+  String get reachStartHere => 'Parti da qui';
+
+  @override
+  String get reachPlanHint => 'Tocca un’area per pianificare un percorso fin lì.';
+
+  @override
   String officialNational(String number) {
     return 'Percorso nazionale $number';
   }

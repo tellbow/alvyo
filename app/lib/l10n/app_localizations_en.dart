@@ -2134,6 +2134,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reachErrorOther => 'Could not be worked out. Please try again.';
 
   @override
+  String get reachPlanHere => 'Plan a route here';
+
+  @override
+  String get reachStartHere => 'Start from here instead';
+
+  @override
+  String get reachPlanHint => 'Tap inside an area to plan a route there.';
+
+  @override
   String officialNational(String number) {
     return 'National route $number';
   }

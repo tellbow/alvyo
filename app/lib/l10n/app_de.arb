@@ -1225,6 +1225,9 @@
   "reachErrorNoPath": "Kein Weg in der Nähe dieses Punkts. Wähle einen Punkt auf oder nahe bei einem Weg.",
   "reachErrorBusy": "Zu viele Anfragen. Bitte kurz warten.",
   "reachErrorOther": "Konnte nicht berechnet werden. Versuche es nochmals.",
+  "reachPlanHere": "Hierhin planen",
+  "reachStartHere": "Von hier aus neu",
+  "reachPlanHint": "Tippe in eine Fläche, um eine Route dorthin zu planen.",
   "officialNational": "Nationale Route {number}",
   "@officialNational": {
     "placeholders": {

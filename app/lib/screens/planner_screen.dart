@@ -27,6 +27,7 @@ class PlannerScreen extends StatefulWidget {
     this.map,
     this.stage,
     this.start,
+    this.plan,
     this.edit,
     this.embedded = false,
     this.onSaved,
@@ -43,6 +44,10 @@ class PlannerScreen extends StatefulWidget {
 
   /// The first point, e.g. where the previous stage ends.
   final LonLat? start;
+
+  /// A route from a start ([name] if it is a place) to a destination, e.g.
+  /// from «Wie weit komme ich?»: its profile, and back to the start or not.
+  final ({LonLat from, String? name, LonLat to, String profile, bool roundTrip})? plan;
 
   /// Changes this route's line: start, destination and every point
   /// between; pops with the route saved.
@@ -84,6 +89,12 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
       _planner.load(r.profile, r.anchors, r.legs);
     } else if (widget.start case final p?) {
       _planner.add(p.lon, p.lat);
+    } else if (widget.plan case final p?) {
+      _planner
+        ..setProfile(p.profile)
+        ..setRoundTrip(p.roundTrip)
+        ..add(p.from.lon, p.from.lat, name: p.name)
+        ..add(p.to.lon, p.to.lat);
     }
     widget.api
         .me()
@@ -295,6 +306,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
         await Navigator.of(context).push(open);
         widget.onSaved?.call();
       } else {
+        widget.onSaved?.call();
         await Navigator.of(context).pushReplacement(open);
       }
     } on Object {
@@ -511,9 +523,11 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     final Widget child;
     if (slot.leg case final leg?) {
       final small = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
-      final to = _planner.points[i + 1];
+      // None on a round trip's way back: it has no point of its own.
+      final to = _planner.points.elementAtOrNull(i + 1);
       // «Wandern» goes round a harder part (as at Chamanna Jenatsch).
       final (note, action) = switch (leg.alpine) {
+        _ when to == null => (null, null),
         final a? when !to.alpine => (
           '${t.plannerAlpineShorter(formatDistance(a.distanceM), formatDistance(leg.distanceM))}'
               '${a.sacGrade > 3 ? ' ${t.plannerAlpineGrade('T${a.sacGrade}')}' : ''}',

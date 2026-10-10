@@ -32,6 +32,7 @@
 	import Notices from '$lib/areas/Notices.svelte';
 	import { fetchLeg } from './api';
 	import { Planner, type LegSlot } from './planner.svelte';
+	import { readPlanQuery } from './query';
 	import { formatDistance, formatDuration, formatHeight, type Profile } from './route';
 
 	let {
@@ -77,6 +78,10 @@
 	// svelte-ignore state_referenced_locally
 	if (route)
 		planner.load({ profile: route.profile as Profile, anchors: route.anchors, legs: route.legs });
+	// A new route from start to destination in the address (from «Reichweite»).
+	// svelte-ignore state_referenced_locally
+	const fromQuery = !route && !stage ? readPlanQuery(page.url.searchParams) : undefined;
+	if (fromQuery) planner.load({ ...fromQuery, legs: [] });
 
 	// Leaving unsaved points asks first; closing the tab gets the browser's
 	// own question (cancel on «leave»).
@@ -180,8 +185,13 @@
 			else planner.insert(Number(hit.properties.leg) + 1, e.lngLat.lng, e.lngLat.lat);
 		});
 		m.doubleClickZoom.disable(); // double-click removes anchors
-		// A saved route opens with the map on it, not where the map was last.
-		const coords = route ? planner.line.coordinates : [];
+		// A saved route opens with the map on it, not where the map was last;
+		// start and destination from the address too.
+		const coords = route
+			? planner.line.coordinates
+			: fromQuery
+				? planner.anchors.map((a) => [a.lon, a.lat])
+				: [];
 		if (coords.length > 0) {
 			const bounds = coords.reduce(
 				(b, c) => b.extend([c[0], c[1]]),

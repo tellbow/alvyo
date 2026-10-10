@@ -14,13 +14,17 @@ import '../place_search.dart';
 import '../precip.dart';
 
 import 'plan_sheet.dart';
+import 'planner_screen.dart';
 
 /// «Wie weit komme ich?»: from a point on the map, a place or where one is,
 /// the areas reached on foot within 2, 4 and 8 hours at one's pace, as on
 /// the website's «Reichweite».
 class ReachScreen extends StatefulWidget {
-  const ReachScreen({super.key, required this.api, @visibleForTesting this.map, this.embedded = false});
+  const ReachScreen({super.key, required this.api, @visibleForTesting this.map, this.embedded = false, this.onSaved});
   final Api api;
+
+  /// A route planned from here was saved.
+  final VoidCallback? onSaved;
 
   /// Inside Planen (requirement 69): without its app bar.
   final bool embedded;
@@ -30,15 +34,32 @@ class ReachScreen extends StatefulWidget {
   final Widget? map;
 
   @override
-  State<ReachScreen> createState() => _ReachScreenState();
+  State<ReachScreen> createState() => ReachScreenState();
 }
 
 /// The colours of the hours, as on the website.
 const reachColors = {2: Color(0xff16a34a), 4: Color(0xffeab308), 8: Color(0xffdc2626)};
 
+/// The fewest hours whose area holds [at] (inside an odd number of an
+/// area's rings), or null outside all.
+int? reachedWithin(List<ReachArea> areas, LonLat at) {
+  int? best;
+  for (final a in areas) {
+    var inside = false;
+    for (final ring in a.outline) {
+      for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        final (xi, yi, xj, yj) = (ring[i][0], ring[i][1], ring[j][0], ring[j][1]);
+        if ((yi > at.lat) != (yj > at.lat) && at.lon < (xj - xi) * (at.lat - yi) / (yj - yi) + xi) inside = !inside;
+      }
+    }
+    if (inside && (best == null || a.hours < best)) best = a.hours;
+  }
+  return best;
+}
+
 String _hex(Color c) => '#${(c.toARGB32() & 0xffffff).toRadixString(16).padLeft(6, '0')}';
 
-class _ReachScreenState extends State<ReachScreen> {
+class ReachScreenState extends State<ReachScreen> {
   late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
   MapController? _map;
   StyleController? _style;
@@ -47,7 +68,9 @@ class _ReachScreenState extends State<ReachScreen> {
   /// Back at the start within the hours (requirement 69); one way unless
   /// chosen.
   bool _back = false;
-  ({LonLat at, String name})? _start;
+
+  /// [found]: [name] is a place found by search, not «Punkt auf der Karte».
+  ({LonLat at, String name, bool found})? _start;
   List<ReachArea> _areas = const [];
   bool _busy = false;
   String? _error;
@@ -119,14 +142,14 @@ class _ReachScreenState extends State<ReachScreen> {
 
   static double _sinh(double x) => (exp(x) - exp(-x)) / 2;
 
-  void _startAt(LonLat at, String name) {
-    setState(() => _start = (at: at, name: name));
+  void _startAt(LonLat at, String name, {bool found = false}) {
+    setState(() => _start = (at: at, name: name, found: found));
     _draw();
     _reach();
   }
 
   void _pick(FoundPlace p) {
-    _startAt((lon: p.lon, lat: p.lat), p.name);
+    _startAt((lon: p.lon, lat: p.lat), p.name, found: true);
     _moveTo(p.lon, p.lat);
   }
 
@@ -152,6 +175,59 @@ class _ReachScreenState extends State<ReachScreen> {
           zoom: min(map.getCamera().zoom, 10),
         )
         .catchError((_) {});
+  }
+
+  /// A tap inside the areas: a route there from the start, with the same
+  /// profile (and back with «Zurück zum Start»), or start from there.
+  /// Called by tests too: their taps do not reach the native map.
+  @visibleForTesting
+  Future<void> tapped(LonLat at) async {
+    final t = AppLocalizations.of(context);
+    final start = _start;
+    final hours = start == null ? null : reachedWithin(_areas, at);
+    if (start == null || hours == null) return _startAt(at, t.reachMapPoint);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                _back ? t.reachWithinBack(hours) : t.reachWithin(hours),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            ListTile(
+              key: const Key('reach-plan-here'),
+              leading: const Icon(Icons.route_outlined),
+              title: Text(t.reachPlanHere),
+              subtitle: _back ? Text(t.plannerRoundTrip) : null,
+              onTap: () => Navigator.pop(context, 'plan'),
+            ),
+            ListTile(
+              key: const Key('reach-start-here'),
+              leading: const Icon(Icons.radar),
+              title: Text(t.reachStartHere),
+              onTap: () => Navigator.pop(context, 'start'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (choice == 'start') _startAt(at, t.reachMapPoint);
+    if (choice != 'plan') return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PlannerScreen(
+          api: widget.api,
+          plan: (from: start.at, name: start.found ? start.name : null, to: at, profile: _profile, roundTrip: _back),
+          onSaved: widget.onSaved,
+          map: widget.map,
+        ),
+      ),
+    );
   }
 
   LonLat? _near() {
@@ -250,9 +326,7 @@ class _ReachScreenState extends State<ReachScreen> {
         case MapEventClick(:final point, :final screenPoint) when _style != null:
           // A tap on a hut opens its sheet instead.
           final hut = _map?.featuresInRect(Rect.fromCircle(center: screenPoint, radius: 16), layerIds: ['places']);
-          if (hut == null || hut.isEmpty) {
-            _startAt((lon: point.lon, lat: point.lat), AppLocalizations.of(context).reachMapPoint);
-          }
+          if (hut == null || hut.isEmpty) tapped((lon: point.lon, lat: point.lat));
         default:
       }
     },
@@ -359,6 +433,8 @@ class _ReachScreenState extends State<ReachScreen> {
                       ],
                     ),
                   ),
+                const SizedBox(height: 8),
+                Text(t.reachPlanHint, key: const Key('reach-plan-hint')),
                 const SizedBox(height: 8),
                 Text(t.reachNote, style: muted),
                 if (_pace != 1) Text(t.reachPace(_pace.toString()), style: muted),

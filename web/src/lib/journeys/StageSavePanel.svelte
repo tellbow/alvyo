@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { api, type Journey, type Route } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import type { Planner } from '$lib/planner/planner.svelte';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api, type Journey, type Route } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import type { Planner } from '#lib/planner/planner.svelte.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	let {
 		planner,

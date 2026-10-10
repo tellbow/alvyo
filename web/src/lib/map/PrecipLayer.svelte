@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import type { ImageSource, Map as MapLibreMap } from 'maplibre-gl';
-	import { api, type Precip } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { intlLocale } from '$lib/util/locale';
+	import { api, type Precip } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { intlLocale } from '#lib/util/locale.js';
 	import { OVERLAY_PREFIX, ROUTE_PREFIX } from './styles';
 
 	let { map }: { map: MapLibreMap } = $props();

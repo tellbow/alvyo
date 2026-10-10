@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import FriendButton from '$lib/community/FriendButton.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
+	import { api } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import FriendButton from '#lib/community/FriendButton.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
 
 	type FriendRef = components['schemas']['FriendRef'];
 	let { data } = $props();
@@ -65,7 +65,7 @@
 			{/if}
 		</span>
 		<!-- A change moves the person between the lists: loaded anew. -->
-		<FriendButton username={f.username} friend={f.friend} onchange={() => invalidateAll()} />
+		<FriendButton username={f.username} friend={f.friend} onchange={() => refreshAll()} />
 	</li>
 {/snippet}
 

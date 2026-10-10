@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { api } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
+	import { api } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	type Report = components['schemas']['ReportInputBody'];
 

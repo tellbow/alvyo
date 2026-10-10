@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { m } from '$lib/paraglide/messages';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import type { Gallery, UploadProblem } from './gallery.svelte';
 	import Lightbox from './Lightbox.svelte';
 

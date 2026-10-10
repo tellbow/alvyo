@@ -1,4 +1,4 @@
-import { readDone, type DoneFilter } from '$lib/done/done';
+import { readDone, type DoneFilter } from '#lib/done/done.js';
 
 export type Kind = 'route' | 'journey' | 'hike';
 export const KINDS: Kind[] = ['route', 'journey', 'hike'];
@@ -23,7 +23,7 @@ const positive = (v: string | null) => {
 const grade = (v: string | null) => Math.min(Math.max(Math.round(Number(v)) || 0, 0), 6);
 
 /** Filters from the page address. */
-export function readFilters(p: URLSearchParams): Filters {
+export function readFilters(p: Pick<URLSearchParams, 'get' | 'getAll'>): Filters {
 	return {
 		kinds: (p.get('kind') ?? '').split(',').filter((k): k is Kind => KINDS.includes(k as Kind)),
 		done: readDone(p),

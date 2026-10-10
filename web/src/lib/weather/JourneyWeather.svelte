@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { api, type JourneyWeather } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { formatHeight } from '$lib/planner/route';
-	import { savedAt } from '$lib/util/locale';
+	import { api, type JourneyWeather } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { formatHeight } from '#lib/planner/route.js';
+	import { savedAt } from '#lib/util/locale.js';
 	import WeatherIcon from './WeatherIcon.svelte';
 	import { climateText, dayLabel, dayText } from './weather';
 

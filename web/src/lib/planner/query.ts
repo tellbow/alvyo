@@ -16,7 +16,9 @@ export function planQuery(from: QueryPoint, to: [number, number], profile: Profi
 }
 
 /** The points and profile of a planner query, if it has both points. */
-export function readPlanQuery(q: URLSearchParams): Omit<PlannerContent, 'legs'> | undefined {
+export function readPlanQuery(
+	q: Pick<URLSearchParams, 'get'>
+): Omit<PlannerContent, 'legs'> | undefined {
 	const point = (key: 'from' | 'to') => {
 		const [lon, lat] = (q.get(key) ?? '').split(',').map(Number);
 		if (!Number.isFinite(lon) || !Number.isFinite(lat)) return undefined;

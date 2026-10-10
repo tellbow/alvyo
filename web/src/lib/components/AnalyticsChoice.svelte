@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { analyticsActive, readConsent, setConsent, type Consent } from '$lib/analytics';
-	import { m } from '$lib/paraglide/messages';
+	import { analyticsActive, readConsent, setConsent, type Consent } from '#lib/analytics.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	// «Statistik» on the about page: the choice of the banner, changed here.
 	let active = $state(false);

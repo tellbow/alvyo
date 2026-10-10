@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Me, type Route } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import TagInput from '$lib/tags/TagInput.svelte';
+	import { api, type Me, type Route } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import TagInput from '#lib/tags/TagInput.svelte';
 	import type { Planner } from './planner.svelte';
 
 	let { planner, user, route }: { planner: Planner; user: Me; route?: Route } = $props();
@@ -82,7 +82,7 @@
 					return;
 				}
 				planner.markSaved(saving);
-				await goto(resolve('/plan/[id]', { id: data.id }), { replaceState: true });
+				await goto(resolve('/plan/[id]', { id: data.id }), { replace: true });
 				return;
 			}
 			const { data, response } = await api().PATCH('/routes/{id}', {

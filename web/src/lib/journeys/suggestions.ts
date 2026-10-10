@@ -1,4 +1,4 @@
-import type { PlanStage, Proposal } from '$lib/api/client';
+import type { PlanStage, Proposal } from '#lib/api/client.js';
 
 /** A suggested way, as far as putting a journey together needs it. */
 export type Way = { proposal: Pick<Proposal, 'stages'> };

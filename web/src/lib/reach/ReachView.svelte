@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { intlLocale } from '$lib/util/locale';
+	import { intlLocale } from '#lib/util/locale.js';
 	import { page } from '$app/state';
-	import { choose } from '$lib/util/choose';
+	import { choose } from '#lib/util/choose.js';
 	import type { GeoJSONSource, Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { resolve } from '$app/paths';
-	import { api, type FoundPlace, type Me } from '$lib/api/client';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import { ROUTE_PREFIX, type BaseMapId, type OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
-	import PlanTabs from '$lib/planner/PlanTabs.svelte';
-	import { planQuery } from '$lib/planner/query';
-	import type { Profile } from '$lib/planner/route';
-	import Seo from '$lib/seo/Seo.svelte';
+	import { api, type FoundPlace, type Me } from '#lib/api/client.js';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import { ROUTE_PREFIX, type BaseMapId, type OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import PlaceSearch from '#lib/planner/PlaceSearch.svelte';
+	import PlanTabs from '#lib/planner/PlanTabs.svelte';
+	import { planQuery } from '#lib/planner/query.js';
+	import type { Profile } from '#lib/planner/route.js';
+	import Seo from '#lib/seo/Seo.svelte';
 
 	// «Wie weit komme ich?»: from a point on the map or a place, the areas
 	// reached on foot within 2, 4 and 8 hours at the user's pace.

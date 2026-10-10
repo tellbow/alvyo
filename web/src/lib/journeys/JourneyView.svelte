@@ -1,5 +1,5 @@
 <script lang="ts">
-	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
+	import OpenInApp from '#lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { untrack } from 'svelte';
@@ -15,18 +15,18 @@
 		type RouteSummary,
 		type StagePatch,
 		type Trip
-	} from '$lib/api/client';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import { getLocale } from '$lib/paraglide/runtime';
-	import ElevationProfile from '$lib/planner/ElevationProfile.svelte';
-	import ProfileDock from '$lib/planner/ProfileDock.svelte';
-	import StatsPanel from '$lib/planner/StatsPanel.svelte';
-	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
-	import Notices from '$lib/areas/Notices.svelte';
-	import JourneyWeather from '$lib/weather/JourneyWeather.svelte';
+	} from '#lib/api/client.js';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
+	import ElevationProfile from '#lib/planner/ElevationProfile.svelte';
+	import ProfileDock from '#lib/planner/ProfileDock.svelte';
+	import StatsPanel from '#lib/planner/StatsPanel.svelte';
+	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
+	import Notices from '#lib/areas/Notices.svelte';
+	import JourneyWeather from '#lib/weather/JourneyWeather.svelte';
 	import {
 		formatDistance,
 		formatDuration,
@@ -34,40 +34,40 @@
 		formatSAC,
 		type Profile3,
 		type Totals
-	} from '$lib/planner/route';
-	import Seo from '$lib/seo/Seo.svelte';
+	} from '#lib/planner/route.js';
+	import Seo from '#lib/seo/Seo.svelte';
 	import { STAGE_RUN_COLORS } from './colors';
 	import Connections from './Connections.svelte';
 	import { transferStops } from './transfer';
 	import JourneyLayers from './JourneyLayers.svelte';
 	import { sbbTimetableUrl } from './sbb';
-	import AddToCollection from '$lib/collections/AddToCollection.svelte';
-	import { Community } from '$lib/community/community.svelte';
-	import Social from '$lib/community/Social.svelte';
-	import { Gallery } from '$lib/photos/gallery.svelte';
-	import PhotoPins from '$lib/photos/PhotoPins.svelte';
-	import Photos from '$lib/photos/Photos.svelte';
-	import SharePanel from '$lib/sharing/SharePanel.svelte';
-	import { actionButton, menuItem, primaryButtonSmall } from '$lib/components/actions';
-	import MoreMenu from '$lib/components/MoreMenu.svelte';
-	import CopyButton from '$lib/official/CopyButton.svelte';
-	import OfficialCredit from '$lib/official/OfficialCredit.svelte';
-	import ShareButton from '$lib/components/ShareButton.svelte';
-	import TabBar from '$lib/components/TabBar.svelte';
-	import LikeButton from '$lib/community/LikeButton.svelte';
-	import DoneButton from '$lib/done/DoneButton.svelte';
+	import AddToCollection from '#lib/collections/AddToCollection.svelte';
+	import { Community } from '#lib/community/community.svelte.js';
+	import Social from '#lib/community/Social.svelte';
+	import { Gallery } from '#lib/photos/gallery.svelte.js';
+	import PhotoPins from '#lib/photos/PhotoPins.svelte';
+	import Photos from '#lib/photos/Photos.svelte';
+	import SharePanel from '#lib/sharing/SharePanel.svelte';
+	import { actionButton, menuItem, primaryButtonSmall } from '#lib/components/actions.js';
+	import MoreMenu from '#lib/components/MoreMenu.svelte';
+	import CopyButton from '#lib/official/CopyButton.svelte';
+	import OfficialCredit from '#lib/official/OfficialCredit.svelte';
+	import ShareButton from '#lib/components/ShareButton.svelte';
+	import TabBar from '#lib/components/TabBar.svelte';
+	import LikeButton from '#lib/community/LikeButton.svelte';
+	import DoneButton from '#lib/done/DoneButton.svelte';
 	import StageCard from './StageCard.svelte';
 	import JourneyPeople from './JourneyPeople.svelte';
 	import JourneyReminders from './JourneyReminders.svelte';
 	import { stagePeople } from './people';
-	import type { Person } from '$lib/api/client';
-	import Travel from '$lib/travel/Travel.svelte';
-	import TravelLayers from '$lib/travel/TravelLayers.svelte';
-	import { journeyEnds } from '$lib/travel/travel';
-	import TagChips from '$lib/tags/TagChips.svelte';
-	import TagInput from '$lib/tags/TagInput.svelte';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
-	import { choose } from '$lib/util/choose';
+	import type { Person } from '#lib/api/client.js';
+	import Travel from '#lib/travel/Travel.svelte';
+	import TravelLayers from '#lib/travel/TravelLayers.svelte';
+	import { journeyEnds } from '#lib/travel/travel.js';
+	import TagChips from '#lib/tags/TagChips.svelte';
+	import TagInput from '#lib/tags/TagInput.svelte';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
+	import { choose } from '#lib/util/choose.js';
 
 	let {
 		journey: initial,

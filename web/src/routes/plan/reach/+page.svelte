@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ReachView from '$lib/reach/ReachView.svelte';
+	import ReachView from '#lib/reach/ReachView.svelte';
 
 	let { data } = $props();
 </script>

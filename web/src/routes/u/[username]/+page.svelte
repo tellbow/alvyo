@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { api } from '$lib/api/client';
-	import FriendButton from '$lib/community/FriendButton.svelte';
-	import ReportButton from '$lib/community/ReportButton.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { intlLocale } from '$lib/util/locale';
-	import { sacBackground, sacInk } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
+	import { api } from '#lib/api/client.js';
+	import FriendButton from '#lib/community/FriendButton.svelte';
+	import ReportButton from '#lib/community/ReportButton.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { intlLocale } from '#lib/util/locale.js';
+	import { sacBackground, sacInk } from '#lib/planner/colors.js';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
 
 	let { data } = $props();
 	const profile = $derived(data.profile);

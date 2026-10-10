@@ -1,26 +1,26 @@
 <script lang="ts">
-	import { focused } from '$lib/util/focus';
-	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
+	import { focused } from '#lib/util/focus.js';
+	import OpenInApp from '#lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Collection, type CollectionItem, type Me } from '$lib/api/client';
-	import { stageColor } from '$lib/journeys/colors';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { sacBackground, sacInk } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
-	import SharePanel from '$lib/sharing/SharePanel.svelte';
-	import TagChips from '$lib/tags/TagChips.svelte';
-	import TagInput from '$lib/tags/TagInput.svelte';
+	import { api, type Collection, type CollectionItem, type Me } from '#lib/api/client.js';
+	import { stageColor } from '#lib/journeys/colors.js';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { sacBackground, sacInk } from '#lib/planner/colors.js';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
+	import SharePanel from '#lib/sharing/SharePanel.svelte';
+	import TagChips from '#lib/tags/TagChips.svelte';
+	import TagInput from '#lib/tags/TagInput.svelte';
 	import AddItems from './AddItems.svelte';
 	import CollectionLayers from './CollectionLayers.svelte';
-	import { choose } from '$lib/util/choose';
+	import { choose } from '#lib/util/choose.js';
 
 	let { collection: initial, user }: { collection: Collection; user: Me | null } = $props();
 

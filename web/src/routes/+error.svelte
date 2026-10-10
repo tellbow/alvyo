@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
 
 	const missing = $derived(page.status === 404);
 </script>

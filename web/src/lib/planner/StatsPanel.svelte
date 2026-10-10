@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 	import Breakdowns from './Breakdowns.svelte';
 	import { sacBackground, sacInk } from './colors';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Totals } from './route';

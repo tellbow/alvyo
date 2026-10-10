@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	type Contact = components['schemas']['Contact'];
 

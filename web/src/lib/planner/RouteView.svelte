@@ -4,20 +4,20 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Me, type Revision, type Route } from '$lib/api/client';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { hikeDate, savedAt } from '$lib/util/locale';
-	import AddToCollection from '$lib/collections/AddToCollection.svelte';
-	import { Community } from '$lib/community/community.svelte';
-	import Social from '$lib/community/Social.svelte';
-	import { Gallery } from '$lib/photos/gallery.svelte';
-	import PhotoPins from '$lib/photos/PhotoPins.svelte';
-	import Photos from '$lib/photos/Photos.svelte';
-	import TagChips from '$lib/tags/TagChips.svelte';
+	import { api, type Me, type Revision, type Route } from '#lib/api/client.js';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { hikeDate, savedAt } from '#lib/util/locale.js';
+	import AddToCollection from '#lib/collections/AddToCollection.svelte';
+	import { Community } from '#lib/community/community.svelte.js';
+	import Social from '#lib/community/Social.svelte';
+	import { Gallery } from '#lib/photos/gallery.svelte.js';
+	import PhotoPins from '#lib/photos/PhotoPins.svelte';
+	import Photos from '#lib/photos/Photos.svelte';
+	import TagChips from '#lib/tags/TagChips.svelte';
 	import { breakdownParts } from './breakdown';
 	import Breakdowns from './Breakdowns.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
@@ -25,27 +25,32 @@
 	import Revisions from './Revisions.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import StatsPanel from './StatsPanel.svelte';
-	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
-	import Notices from '$lib/areas/Notices.svelte';
-	import Pois from '$lib/map/Pois.svelte';
-	import PoiPins from '$lib/map/PoiPins.svelte';
-	import type { Poi } from '$lib/map/places';
-	import RouteWeather from '$lib/weather/RouteWeather.svelte';
-	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
-	import Travel from '$lib/travel/Travel.svelte';
-	import TravelLayers from '$lib/travel/TravelLayers.svelte';
-	import { routeEnds } from '$lib/travel/travel';
-	import type { Trip } from '$lib/api/client';
-	import type { Notice, ProtectedArea } from '$lib/api/client';
+	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
+	import Notices from '#lib/areas/Notices.svelte';
+	import Pois from '#lib/map/Pois.svelte';
+	import PoiPins from '#lib/map/PoiPins.svelte';
+	import type { Poi } from '#lib/map/places.js';
+	import RouteWeather from '#lib/weather/RouteWeather.svelte';
+	import OpenInApp from '#lib/sharing/OpenInApp.svelte';
+	import Travel from '#lib/travel/Travel.svelte';
+	import TravelLayers from '#lib/travel/TravelLayers.svelte';
+	import { routeEnds } from '#lib/travel/travel.js';
+	import type { Trip } from '#lib/api/client.js';
+	import type { Notice, ProtectedArea } from '#lib/api/client.js';
 	import { onMount } from 'svelte';
-	import { actionButton, mainAction, menuItem, primaryButtonSmall } from '$lib/components/actions';
-	import MoreMenu from '$lib/components/MoreMenu.svelte';
-	import CopyButton from '$lib/official/CopyButton.svelte';
-	import OfficialCredit from '$lib/official/OfficialCredit.svelte';
-	import ShareButton from '$lib/components/ShareButton.svelte';
-	import TabBar from '$lib/components/TabBar.svelte';
-	import LikeButton from '$lib/community/LikeButton.svelte';
-	import DoneButton from '$lib/done/DoneButton.svelte';
+	import {
+		actionButton,
+		mainAction,
+		menuItem,
+		primaryButtonSmall
+	} from '#lib/components/actions.js';
+	import MoreMenu from '#lib/components/MoreMenu.svelte';
+	import CopyButton from '#lib/official/CopyButton.svelte';
+	import OfficialCredit from '#lib/official/OfficialCredit.svelte';
+	import ShareButton from '#lib/components/ShareButton.svelte';
+	import TabBar from '#lib/components/TabBar.svelte';
+	import LikeButton from '#lib/community/LikeButton.svelte';
+	import DoneButton from '#lib/done/DoneButton.svelte';
 	import { TRAIL_COLOR } from './colors';
 	import { Planner } from './planner.svelte';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Profile } from './route';
@@ -143,7 +148,7 @@
 		const { response } = await api().POST('/routes/{id}/revisions/{version}/restore', {
 			params: { path: { id: route.id, version }, header: { 'If-Match': `"${route.version}"` } }
 		});
-		if (response.ok) await goto(resolve('/routes/[id]', { id: route.id }), { invalidateAll: true });
+		if (response.ok) await goto(resolve('/routes/[id]', { id: route.id }), { refreshAll: true });
 		else changed = response.status === 412;
 	}
 

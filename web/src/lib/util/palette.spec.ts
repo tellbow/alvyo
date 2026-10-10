@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { contrast } from '$lib/planner/colors';
+import { contrast } from '#lib/planner/colors.js';
 
 // The colours of layout.css, light and chosen dark.
 const css = readFileSync(new URL('../../routes/layout.css', import.meta.url), 'utf8');

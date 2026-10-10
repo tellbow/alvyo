@@ -1,4 +1,4 @@
-import { ROUTE_COLOR } from '$lib/planner/colors';
+import { ROUTE_COLOR } from '#lib/planner/colors.js';
 /**
  * Stage colours on the journey map and profile, cycled; in an order where
  * neighbours differ also for red-green colour blindness (colors.spec.ts).

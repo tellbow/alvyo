@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
-	import { api, type FoundPlace, type Home } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api, type FoundPlace, type Home } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import PlaceSearch from '#lib/planner/PlaceSearch.svelte';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	const hydrated = new Hydrated();
 	let homes = $state<Home[]>([]);

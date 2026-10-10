@@ -1,4 +1,4 @@
-import { getLocale } from '$lib/paraglide/runtime';
+import { getLocale } from '#lib/paraglide/runtime.js';
 
 /** The Intl locale for dates and numbers in the current language. */
 export function intlLocale(): string {

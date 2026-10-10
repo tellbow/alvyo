@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { intlLocale } from '$lib/util/locale';
-	import { sacBackground, sacInk } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatSAC } from '$lib/planner/route';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { intlLocale } from '#lib/util/locale.js';
+	import { sacBackground, sacInk } from '#lib/planner/colors.js';
+	import { formatDistance, formatDuration, formatSAC } from '#lib/planner/route.js';
 
 	let { data } = $props();
 	// svelte-ignore state_referenced_locally

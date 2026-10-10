@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
-	import { primaryButton } from '$lib/components/actions';
-	import AuthCard from '$lib/components/AuthCard.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
+	import { api } from '#lib/api/client.js';
+	import { primaryButton } from '#lib/components/actions.js';
+	import AuthCard from '#lib/components/AuthCard.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
 
 	let status = $state<'pending' | 'ask' | 'confirming' | 'ok' | 'failed'>('pending');
 	let account = $state<{ username: string; display_name: string }>();
@@ -26,7 +26,7 @@
 		status = 'confirming';
 		const { response } = await api().POST('/auth/verify-email', { body: { token } });
 		status = response.ok ? 'ok' : 'failed';
-		if (response.ok) await invalidateAll(); // logged in
+		if (response.ok) await refreshAll(); // logged in
 	}
 </script>
 

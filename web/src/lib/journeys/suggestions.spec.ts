@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { PlanStage } from '$lib/api/client';
+import type { PlanStage } from '#lib/api/client.js';
 import { fewestDays, single, stagesOf, switches, switchTo, whole, type Way } from './suggestions';
 
 /** A way whose days end at the given places; null for the destination. */

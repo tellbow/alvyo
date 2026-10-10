@@ -1,5 +1,5 @@
-import type { Person } from '$lib/api/client';
-import { m } from '$lib/paraglide/messages';
+import type { Person } from '#lib/api/client.js';
+import { m } from '#lib/paraglide/messages.js';
 
 /** A person's name: the account's, else (for the owner) the address invited. */
 export function personName(p: Person): string {

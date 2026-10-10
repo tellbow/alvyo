@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import type { DiscoverItem } from '$lib/api/client';
-	import { outline } from '$lib/discover/outline';
-	import { m } from '$lib/paraglide/messages';
-	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
-	import Seo from '$lib/seo/Seo.svelte';
+	import type { DiscoverItem } from '#lib/api/client.js';
+	import { outline } from '#lib/discover/outline.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import PlaceSearch from '#lib/planner/PlaceSearch.svelte';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
+	import Seo from '#lib/seo/Seo.svelte';
 
 	let { data } = $props();
 	const pace = $derived(data.user?.speed_factor ?? 1);
@@ -31,7 +31,6 @@
 	function around(at: number[]) {
 		const [lon, lat] = at;
 		const bbox = [lon - 0.12, lat - 0.08, lon + 0.12, lat + 0.08].map((v) => v.toFixed(4));
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() gives the path; only the query is added
 		void goto(`${resolve('/discover')}?bbox=${bbox.join(',')}`);
 	}
 </script>

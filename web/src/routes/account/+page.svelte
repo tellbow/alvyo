@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
+	import { goto, refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { api } from '$lib/api/client';
-	import Field from '$lib/components/Field.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import OidcNotice from '$lib/account/OidcNotice.svelte';
-	import SignInMethods from '$lib/account/SignInMethods.svelte';
-	import Contacts from '$lib/account/Contacts.svelte';
-	import Homes from '$lib/account/Homes.svelte';
-	import AccessTokens from '$lib/account/AccessTokens.svelte';
-	import { choose } from '$lib/util/choose';
+	import { api } from '#lib/api/client.js';
+	import Field from '#lib/components/Field.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import OidcNotice from '#lib/account/OidcNotice.svelte';
+	import SignInMethods from '#lib/account/SignInMethods.svelte';
+	import Contacts from '#lib/account/Contacts.svelte';
+	import Homes from '#lib/account/Homes.svelte';
+	import AccessTokens from '#lib/account/AccessTokens.svelte';
+	import { choose } from '#lib/util/choose.js';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();
@@ -37,7 +37,7 @@
 		profile_public?: boolean;
 	}) {
 		const { response } = await api().PATCH('/me', { body });
-		if (response.ok) await invalidateAll();
+		if (response.ok) await refreshAll();
 	}
 
 	async function unblock(username: string) {
@@ -51,7 +51,7 @@
 		e.preventDefault();
 		const { response } = await api().DELETE('/me', { body: password ? { password } : {} });
 		if (response.ok) {
-			await invalidateAll();
+			await refreshAll();
 			await goto(resolve('/'));
 		} else if (response.status === 403) {
 			error = data.user?.has_password ? m.account_delete_wrong() : m.account_delete_login_again();

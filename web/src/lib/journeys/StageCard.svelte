@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
-	import { focused } from '$lib/util/focus';
-	import { choose } from '$lib/util/choose';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
+	import { focused } from '#lib/util/focus.js';
+	import { choose } from '#lib/util/choose.js';
 	import { resolve } from '$app/paths';
-	import type { JourneyStage, StagePatch } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { getLocale } from '$lib/paraglide/runtime';
-	import { sacBackground, sacInk } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
+	import type { JourneyStage, StagePatch } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
+	import { sacBackground, sacInk } from '#lib/planner/colors.js';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
 	import { stageColor } from './colors';
 	import PlacePicker from './PlacePicker.svelte';
 	import { placeDetail } from './places';

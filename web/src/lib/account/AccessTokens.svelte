@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { primaryButtonSmall } from '$lib/components/actions';
-	import { api, type AccessToken } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { focused } from '$lib/util/focus';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
-	import { hikeDate } from '$lib/util/locale';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
+	import { api, type AccessToken } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { focused } from '#lib/util/focus.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
+	import { hikeDate } from '#lib/util/locale.js';
 
 	// Personal access tokens for AI assistants (MCP) and alvyo-cli: they
 	// only read. The token itself is shown once, right after creating it.

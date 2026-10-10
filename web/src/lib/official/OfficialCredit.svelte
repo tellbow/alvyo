@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Official } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { getLocale } from '$lib/paraglide/runtime';
+	import type { Official } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { officialLabel, schweizMobilUrl } from './official';
 
 	// Instead of «von wanderland»: which official route, where it is

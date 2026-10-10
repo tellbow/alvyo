@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 
 	// Outcomes of a provider sign-in, passed back as ?oidc=… by the API.
 	const messages: Record<string, { text: () => string; ok?: boolean }> = {

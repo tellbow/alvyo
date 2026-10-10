@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 	import { SAC_COLOR } from './colors';
 	import { formatDistance, formatHeight, gradeAt, type Profile3 } from './route';
 

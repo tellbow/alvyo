@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { api } from '$lib/api/client';
-	import { actionButton, menuItem } from '$lib/components/actions';
-	import MoreMenu from '$lib/components/MoreMenu.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import { swissToday } from '$lib/travel/travel';
+	import { api } from '#lib/api/client.js';
+	import { actionButton, menuItem } from '#lib/components/actions.js';
+	import MoreMenu from '#lib/components/MoreMenu.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { swissToday } from '#lib/travel/travel.js';
 	import { doneDate } from './done';
 
 	// «Gewandert»: the viewer marks a route or journey as hiked on a day, or

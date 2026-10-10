@@ -1,7 +1,7 @@
-import type { Climate, ForecastDay } from '$lib/api/client';
-import { m } from '$lib/paraglide/messages';
-import { getLocale } from '$lib/paraglide/runtime';
-import { intlLocale } from '$lib/util/locale';
+import type { Climate, ForecastDay } from '#lib/api/client.js';
+import { m } from '#lib/paraglide/messages.js';
+import { getLocale } from '#lib/paraglide/runtime.js';
+import { intlLocale } from '#lib/util/locale.js';
 import table from './symbols.json';
 
 export type WeatherIcon = keyof typeof table.icons;

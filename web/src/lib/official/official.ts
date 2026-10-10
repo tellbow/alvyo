@@ -1,5 +1,5 @@
-import type { Official } from '$lib/api/client';
-import { m } from '$lib/paraglide/messages';
+import type { Official } from '#lib/api/client.js';
+import { m } from '#lib/paraglide/messages.js';
 
 // SchweizMobil's own path per language (fr and it redirect from the German
 // one, but land on their own).

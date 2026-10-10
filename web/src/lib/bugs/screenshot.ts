@@ -1,5 +1,5 @@
 import { toJpeg } from 'html-to-image';
-import { liveMaps } from '$lib/map/registry';
+import { liveMaps } from '#lib/map/registry.js';
 
 /**
  * The page as a JPEG data URL, without the bug report's own button. A map's

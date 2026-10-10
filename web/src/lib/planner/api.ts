@@ -1,4 +1,4 @@
-import { api, type Leg } from '$lib/api/client';
+import { api, type Leg } from '#lib/api/client.js';
 import { LegError, type LegRequest } from './planner.svelte';
 
 /** Computes a leg with the API; throws LegError with the HTTP status. */

@@ -6,7 +6,7 @@
 		getLocale,
 		locales,
 		type Locale
-	} from '$lib/paraglide/runtime';
+	} from '#lib/paraglide/runtime.js';
 	import { pageAddress } from './address';
 
 	/**

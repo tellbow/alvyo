@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { m } from '$lib/paraglide/messages';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	// Details on demand: a page's parts as tabs, with their counts; it stays
 	// on top while the panel scrolls. The panes are `pane-{id}`.

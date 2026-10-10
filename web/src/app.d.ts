@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
-import type { Me } from '$lib/api/client';
-import type { Theme } from '$lib/util/theme';
+import type { Me } from '#lib/api/client.js';
+import type { Theme } from '#lib/util/theme.js';
 
 declare global {
 	namespace App {

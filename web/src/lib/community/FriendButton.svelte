@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	type Friend = 'none' | 'requested' | 'incoming' | 'friends';
 	// Asking, accepting, declining and ending a friendship with a user.

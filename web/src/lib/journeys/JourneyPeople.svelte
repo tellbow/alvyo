@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { api, type JourneyStage, type Person } from '$lib/api/client';
-	import FriendOptions from '$lib/community/FriendOptions.svelte';
-	import { m } from '$lib/paraglide/messages';
+	import { api, type JourneyStage, type Person } from '#lib/api/client.js';
+	import FriendOptions from '#lib/community/FriendOptions.svelte';
+	import { m } from '#lib/paraglide/messages.js';
 	import { personName } from './people';
 
 	// Who comes along, and on which stages: seen by the owner and the people

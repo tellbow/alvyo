@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { primaryButton } from '$lib/components/actions';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { primaryButton } from '#lib/components/actions.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { resolve } from '$app/paths';
-	import { api, errorLocations } from '$lib/api/client';
-	import AuthCard from '$lib/components/AuthCard.svelte';
-	import Field from '$lib/components/Field.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { getLocale } from '$lib/paraglide/runtime';
-	import ProviderButtons from '$lib/account/ProviderButtons.svelte';
+	import { api, errorLocations } from '#lib/api/client.js';
+	import AuthCard from '#lib/components/AuthCard.svelte';
+	import Field from '#lib/components/Field.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { getLocale } from '#lib/paraglide/runtime.js';
+	import ProviderButtons from '#lib/account/ProviderButtons.svelte';
 
 	const hydrated = new Hydrated();
 

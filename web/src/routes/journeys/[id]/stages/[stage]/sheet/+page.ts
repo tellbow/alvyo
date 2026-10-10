@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
-import { api } from '$lib/api/client';
-import { loadJourney } from '$lib/api/journeys';
+import { api } from '#lib/api/client.js';
+import { loadJourney } from '#lib/api/journeys.js';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, params, url, parent }) => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Home, Journey, JourneyStage, Place, Route } from '$lib/api/client';
+import type { Home, Journey, JourneyStage, Place, Route } from '#lib/api/client.js';
 import { chosenWays, journeyEnds, routeEnds, travelQuery, tripLines } from './travel';
 
 const stop = (name: string, ref: string, at: number[]): Place => ({

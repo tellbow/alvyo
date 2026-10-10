@@ -122,8 +122,8 @@ Actions are pinned to commit SHAs. Renovate (`renovate.json`) opens grouped
 pull requests on Mondays for Go, web, app (not its unused Android
 template), images and actions, for releases at least 7 days old; patches
 and digests merge themselves once CI passes.
-`web/package.json` overrides `cookie` and `source-map-js` for fixes their
-dependents do not take up yet; drop an override once they do.
+`web/package.json` overrides `source-map-js` for a fix its dependents do
+not take up yet; drop the override once they do.
 Vulnerabilities are reported privately ([SECURITY.md](../SECURITY.md)).
 `make scorecard` runs the OpenSSF Scorecard as a checklist (2026-10-08:
 5.8; low where a private solo project cannot score: reviews, branch

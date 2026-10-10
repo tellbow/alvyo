@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CollectionView from '$lib/collections/CollectionView.svelte';
+	import CollectionView from '#lib/collections/CollectionView.svelte';
 
 	let { data } = $props();
 </script>

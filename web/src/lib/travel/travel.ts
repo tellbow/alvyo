@@ -1,5 +1,5 @@
 import type { FeatureCollection, LineString } from 'geojson';
-import type { Home, Journey, Place, Route, Travel, Trip, TravelWay } from '$lib/api/client';
+import type { Home, Journey, Place, Route, Travel, Trip, TravelWay } from '#lib/api/client.js';
 
 /** Where public transport meets the hike: a stop, or a point on the line. */
 export type End = {

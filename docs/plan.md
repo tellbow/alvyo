@@ -595,7 +595,7 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     banner («Akzeptieren / Ablehnen», remembered in the browser, changeable
     under «Über» → «Statistik»), Google sets no cookies and gets cookieless
     pings only. Page views are sent by the site itself on every navigation
-    (`$lib/analytics`): the address without query and fragment (share
+    (`#lib/analytics`): the address without query and fragment (share
     tokens, password resets) and with the token of live location and
     invitation links masked, the route's pattern as title (not the titles
     of tours). The privacy text says so instead of «no tracking».

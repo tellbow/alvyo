@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, type CollectionSummary } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { choose } from '$lib/util/choose';
+	import { api, type CollectionSummary } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { choose } from '#lib/util/choose.js';
 
 	let { kind, id }: { kind: 'route' | 'journey'; id: string } = $props();
 

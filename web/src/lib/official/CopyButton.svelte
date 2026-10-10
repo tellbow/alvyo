@@ -2,9 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Me } from '$lib/api/client';
-	import { mainAction } from '$lib/components/actions';
-	import { m } from '$lib/paraglide/messages';
+	import { api, type Me } from '#lib/api/client.js';
+	import { mainAction } from '#lib/components/actions.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	// «Als eigene Route bearbeiten»: a private copy, opened where it is
 	// changed. Without a login, the login first and back here.

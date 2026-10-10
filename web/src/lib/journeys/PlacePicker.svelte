@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { api, type Place } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { formatDistance } from '$lib/planner/route';
+	import { api, type Place } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { formatDistance } from '#lib/planner/route.js';
 	import { placeDetail, placeLabel } from './places';
 
 	let {

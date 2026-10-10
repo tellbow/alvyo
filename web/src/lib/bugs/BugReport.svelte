@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import { pageScreenshot } from './screenshot';
 
 	// «Fehler melden» on every page for signed-in people: what is open and a
@@ -17,7 +17,7 @@
 
 	/** The address without a share token: the issue is read by others. */
 	const place = () => {
-		const u = new URL(page.url);
+		const u = new URL(page.url.href);
 		u.searchParams.delete('t');
 		return u.pathname + u.search;
 	};

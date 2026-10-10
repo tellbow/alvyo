@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 	import { breakdownParts } from './breakdown';
 	import BreakdownBar from './BreakdownBar.svelte';
 	import { SURFACE_COLOR, TRAIL_COLOR, WAY_COLOR } from './colors';

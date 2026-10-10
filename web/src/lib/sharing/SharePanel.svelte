@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
-	import FriendOptions from '$lib/community/FriendOptions.svelte';
-	import { api, type Grant } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { choose } from '$lib/util/choose';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import FriendOptions from '#lib/community/FriendOptions.svelte';
+	import { api, type Grant } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { choose } from '#lib/util/choose.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	let {
 		kind,

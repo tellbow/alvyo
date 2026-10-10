@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { api, type FoundPlace } from '$lib/api/client';
-	import { placeLabel } from '$lib/journeys/places';
-	import { m } from '$lib/paraglide/messages';
+	import { api, type FoundPlace } from '#lib/api/client.js';
+	import { placeLabel } from '#lib/journeys/places.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let {
 		label,

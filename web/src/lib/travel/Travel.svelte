@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { choose as pick } from '$lib/util/choose';
+	import { choose as pick } from '#lib/util/choose.js';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { api, type Home, type Travel, type TravelWay, type Trip } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api, type Home, type Travel, type TravelWay, type Trip } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import PlaceSearch from '#lib/planner/PlaceSearch.svelte';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import TripList from './TripList.svelte';
 	import { swissToday, travelQuery, waySpot, type End } from './travel';
 

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { api } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { intlLocale } from '$lib/util/locale';
+	import { api } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { intlLocale } from '#lib/util/locale.js';
 
 	type Report = components['schemas']['Report'];
 

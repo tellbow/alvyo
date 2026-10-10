@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { choose } from '$lib/util/choose';
+	import { choose } from '#lib/util/choose.js';
 	import PlanTabs from './PlanTabs.svelte';
 	import type { Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { beforeNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
 	import {
 		api,
 		type FoundPlace,
@@ -19,17 +19,17 @@
 		type Notice,
 		type ProtectedArea,
 		type Route
-	} from '$lib/api/client';
-	import StageSavePanel from '$lib/journeys/StageSavePanel.svelte';
-	import SharePanel from '$lib/sharing/SharePanel.svelte';
+	} from '#lib/api/client.js';
+	import StageSavePanel from '#lib/journeys/StageSavePanel.svelte';
+	import SharePanel from '#lib/sharing/SharePanel.svelte';
 	import ElevationProfile from './ElevationProfile.svelte';
 	import ProfileDock from './ProfileDock.svelte';
 	import PlaceSearch from './PlaceSearch.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import SavePanel from './SavePanel.svelte';
 	import StatsPanel from './StatsPanel.svelte';
-	import ProtectedAreas from '$lib/areas/ProtectedAreas.svelte';
-	import Notices from '$lib/areas/Notices.svelte';
+	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
+	import Notices from '#lib/areas/Notices.svelte';
 	import { fetchLeg } from './api';
 	import { Planner, type LegSlot } from './planner.svelte';
 	import { readPlanQuery } from './query';

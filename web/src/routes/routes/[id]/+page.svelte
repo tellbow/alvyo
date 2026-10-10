@@ -1,5 +1,5 @@
 <script lang="ts">
-	import RouteView from '$lib/planner/RouteView.svelte';
+	import RouteView from '#lib/planner/RouteView.svelte';
 
 	let { data } = $props();
 </script>

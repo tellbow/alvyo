@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, type Place } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
+	import { api, type Place } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	type Trip = components['schemas']['TransitTrip'];
 

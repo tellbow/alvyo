@@ -3,9 +3,9 @@
 	import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import { api, type Pin } from '$lib/api/client';
-	import { placeDetail } from '$lib/journeys/places';
-	import { m as msg } from '$lib/paraglide/messages';
+	import { api, type Pin } from '#lib/api/client.js';
+	import { placeDetail } from '#lib/journeys/places.js';
+	import { m as msg } from '#lib/paraglide/messages.js';
 	import { PLACE_OVERLAYS, isPoi, placeFeatures, placeKinds, poiText, webLink } from './places';
 	import PrecipLayer from './PrecipLayer.svelte';
 	import { drawPoiIcon } from './poiIcons';

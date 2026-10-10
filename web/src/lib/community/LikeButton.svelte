@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Me } from '$lib/api/client';
-	import { actionButton } from '$lib/components/actions';
-	import { m } from '$lib/paraglide/messages';
+	import type { Me } from '#lib/api/client.js';
+	import { actionButton } from '#lib/components/actions.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import type { Community } from './community.svelte';
 
 	// «Merken» at the top of a page: the same like as the one with the comments.

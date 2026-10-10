@@ -1,4 +1,4 @@
-import type { Notice, ProtectedArea } from '$lib/api/client';
+import type { Notice, ProtectedArea } from '#lib/api/client.js';
 
 type Period = NonNullable<ProtectedArea['period']>;
 

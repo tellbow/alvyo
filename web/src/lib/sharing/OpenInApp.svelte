@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 
 	// On an iPhone or iPad, a link that opens this route, journey, collection
 	// or friend's invite (id: its token) in the app (its own scheme: universal

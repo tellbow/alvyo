@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { STAGE_COLORS } from '$lib/journeys/colors';
+import { STAGE_COLORS } from '#lib/journeys/colors.js';
 import { SAC_COLOR, contrast, sacInk } from './colors';
 
 // OKLab difference ×100, as seen normally or with deuteranopia/protanopia

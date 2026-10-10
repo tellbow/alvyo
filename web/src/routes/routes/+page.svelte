@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
-	import { focused } from '$lib/util/focus';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
+	import { focused } from '#lib/util/focus.js';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { hikeDate } from '$lib/util/locale';
-	import { sacBackground, sacInk } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
-	import TagChips from '$lib/tags/TagChips.svelte';
-	import TagFilter from '$lib/tags/TagFilter.svelte';
-	import { hasTag } from '$lib/tags/tags';
-	import { doneDate, passes, readDone } from '$lib/done/done';
-	import DoneFilter from '$lib/done/DoneFilter.svelte';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { hikeDate } from '#lib/util/locale.js';
+	import { sacBackground, sacInk } from '#lib/planner/colors.js';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
+	import TagChips from '#lib/tags/TagChips.svelte';
+	import TagFilter from '#lib/tags/TagFilter.svelte';
+	import { hasTag } from '#lib/tags/tags.js';
+	import { doneDate, passes, readDone } from '#lib/done/done.js';
+	import DoneFilter from '#lib/done/DoneFilter.svelte';
 
 	let { data } = $props();
 	const pace = $derived(data.user?.speed_factor ?? 1);

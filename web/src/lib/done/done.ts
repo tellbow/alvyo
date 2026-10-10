@@ -1,4 +1,4 @@
-import { intlLocale } from '$lib/util/locale';
+import { intlLocale } from '#lib/util/locale.js';
 
 /** A day (YYYY-MM-DD) as «1.8.2026», in the reader's language. */
 export function doneDate(day: string, locale = intlLocale()): string {
@@ -13,7 +13,7 @@ export function doneDate(day: string, locale = intlLocale()): string {
 export type DoneFilter = '' | 'done' | 'planned';
 
 /** The status filter of a list or map page (`?done=`). */
-export function readDone(p: URLSearchParams): DoneFilter {
+export function readDone(p: Pick<URLSearchParams, 'get'>): DoneFilter {
 	const v = p.get('done');
 	return v === 'done' || v === 'planned' ? v : '';
 }

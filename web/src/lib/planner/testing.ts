@@ -1,4 +1,4 @@
-import type { Leg } from '$lib/api/client';
+import type { Leg } from '#lib/api/client.js';
 
 /** A minimal leg straight from `from` to `to`, for tests. */
 export function fakeLeg(coords: number[][], over: Partial<Leg> = {}): Leg {

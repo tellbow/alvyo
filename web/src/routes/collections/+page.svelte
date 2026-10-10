@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { primaryButton } from '$lib/components/actions';
+	import { primaryButton } from '#lib/components/actions.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import TagChips from '$lib/tags/TagChips.svelte';
-	import TagFilter from '$lib/tags/TagFilter.svelte';
-	import { hasTag } from '$lib/tags/tags';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import TagChips from '#lib/tags/TagChips.svelte';
+	import TagFilter from '#lib/tags/TagFilter.svelte';
+	import { hasTag } from '#lib/tags/tags.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();

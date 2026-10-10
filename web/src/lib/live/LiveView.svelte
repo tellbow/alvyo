@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { ROUTE_COLOR } from '$lib/planner/colors';
+	import { ROUTE_COLOR } from '#lib/planner/colors.js';
 	import type { Map as MapLibreMap, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { onDestroy } from 'svelte';
-	import { api } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import CollectionLayers from '$lib/collections/CollectionLayers.svelte';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { intlLocale } from '$lib/util/locale';
+	import { api } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import CollectionLayers from '#lib/collections/CollectionLayers.svelte';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { intlLocale } from '#lib/util/locale.js';
 
 	type View = components['schemas']['View'];
 

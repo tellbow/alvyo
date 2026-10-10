@@ -5,12 +5,14 @@ paths:
 
 # SvelteKit web app
 
-- SvelteKit 2, Svelte 5 runes (`$state`, `$derived`, `$effect`, `$props`),
-  TypeScript, Tailwind, MapLibre GL.
-- API calls through `api()` from `$lib/api/client` (openapi-fetch, typed from
+- SvelteKit 3, Svelte 5 runes (`$state`, `$derived`, `$effect`, `$props`),
+  TypeScript, Tailwind, MapLibre GL. Its options are in `vite.config.ts`;
+  `src/lib` is imported as `#lib/…` with the file's extension (`.js` for
+  `.ts`, `.svelte.js` for `.svelte.ts`).
+- API calls through `api()` from `#lib/api/client.js` (openapi-fetch, typed from
   the generated `schema.d.ts`). A request that gets no answer comes back as a
   503 answer, so handling `data` and `error` covers offline too.
-- Texts: `m.key()` from `$lib/paraglide/messages`; every key goes into all four
+- Texts: `m.key()` from `#lib/paraglide/messages.js`; every key goes into all four
   `web/messages/*.json` (tab-indented).
 - No `{@html}`; map markers are built with `textContent`.
 - Unit tests: `*.spec.ts` next to the code (vitest).

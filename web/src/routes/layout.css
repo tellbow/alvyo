@@ -4,7 +4,7 @@
 
 /*
  * The Alvyo palette, light and dark after the system setting unless one
- * was chosen (<html data-theme>, see $lib/util/theme). The stone
+ * was chosen (<html data-theme>, see #lib/util/theme). The stone
  * scale is the palette's greyish greens and turns over in dark mode
  * (stone-50 is always the faintest, stone-900 the text), so pages need no
  * dark: variants for it. Accent: buttons and highlights; accent-ink: links

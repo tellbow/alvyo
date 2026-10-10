@@ -11,9 +11,9 @@
 		Marker
 	} from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
-	import { api } from '$lib/api/client';
-	import { ROUTE_PREFIX } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
+	import { api } from '#lib/api/client.js';
+	import { ROUTE_PREFIX } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import { distinctPoint, nearestWay, otherWays, type Way } from './dragWays';
 	import { legFeatures } from './geojson';
 	import type { Planner } from './planner.svelte';

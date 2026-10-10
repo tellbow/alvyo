@@ -1,4 +1,4 @@
-import type { Journey } from '$lib/api/client';
+import type { Journey } from '#lib/api/client.js';
 
 /** The stops of a public transport transfer from the previous stage's end. */
 export function transferStops(journey: Journey, i: number) {

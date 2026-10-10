@@ -1,7 +1,7 @@
 import type { FeatureCollection, Point } from 'geojson';
-import type { Pin } from '$lib/api/client';
-import { m } from '$lib/paraglide/messages';
-import { formatHeight } from '$lib/planner/route';
+import type { Pin } from '#lib/api/client.js';
+import { m } from '#lib/paraglide/messages.js';
+import { formatHeight } from '#lib/planner/route.js';
 import type { OverlayId, PlaceOverlayId } from './styles';
 
 type Kind = Exclude<Pin['kind'], 'pt_stop'>;

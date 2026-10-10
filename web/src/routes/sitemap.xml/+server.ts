@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
-import { api } from '$lib/api/client';
-import { locales } from '$lib/paraglide/runtime';
-import { pageAddress } from '$lib/seo/address';
+import { api } from '#lib/api/client.js';
+import { locales } from '#lib/paraglide/runtime.js';
+import { pageAddress } from '#lib/seo/address.js';
 import type { RequestHandler } from './$types';
 
 const PATHS = {

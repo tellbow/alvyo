@@ -1,4 +1,4 @@
-import { api } from '$lib/api/client';
+import { api } from '#lib/api/client.js';
 import type { PageLoad } from './$types';
 
 // All of Switzerland: the public hikes nearest its centre.

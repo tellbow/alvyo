@@ -1,21 +1,21 @@
 <script lang="ts">
-	import { ROUTE_COLOR } from '$lib/planner/colors';
+	import { ROUTE_COLOR } from '#lib/planner/colors.js';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import { onDestroy, onMount, untrack } from 'svelte';
-	import { goto, replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Me, type MyMapItem } from '$lib/api/client';
-	import CollectionLayers from '$lib/collections/CollectionLayers.svelte';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { SAC_COLOR, sacBackground, sacInk } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
-	import TagChips from '$lib/tags/TagChips.svelte';
-	import { sameTag } from '$lib/tags/tags';
+	import { api, type Me, type MyMapItem } from '#lib/api/client.js';
+	import CollectionLayers from '#lib/collections/CollectionLayers.svelte';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { SAC_COLOR, sacBackground, sacInk } from '#lib/planner/colors.js';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
+	import TagChips from '#lib/tags/TagChips.svelte';
+	import { sameTag } from '#lib/tags/tags.js';
 	import { apiQuery, KINDS, readFilters, writeFilters, type Kind } from './filters';
 
 	let { user }: { user: Me } = $props();
@@ -115,8 +115,11 @@
 		items = data?.items ?? [];
 		more = data?.more ?? false;
 		// The address keeps the view and the filters, to bookmark them.
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() gives the path; only the query is added
-		replaceState(`${resolve('/routes/map')}?${writeFilters(f, bbox)}`, page.state);
+		goto(`${resolve('/routes/map')}?${writeFilters(f, bbox)}`, {
+			shallow: true,
+			replace: true,
+			state: page.state
+		});
 	}
 
 	$effect(() => {

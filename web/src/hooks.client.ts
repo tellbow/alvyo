@@ -1,5 +1,5 @@
-import { prefixLocale } from '$lib/i18n';
-import { defineCustomClientStrategy } from '$lib/paraglide/runtime';
+import { prefixLocale } from '#lib/i18n.js';
+import { defineCustomClientStrategy } from '#lib/paraglide/runtime.js';
 
 defineCustomClientStrategy('custom-prefix', {
 	getLocale: () => prefixLocale(location.pathname),

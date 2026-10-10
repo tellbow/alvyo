@@ -1,4 +1,4 @@
-import { baseLocale, locales, type Locale } from '$lib/paraglide/runtime';
+import { baseLocale, locales, type Locale } from '#lib/paraglide/runtime.js';
 
 /**
  * The language an address names: /en/…, /fr/…, /it/…. German addresses have

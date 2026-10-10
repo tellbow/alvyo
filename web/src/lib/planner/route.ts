@@ -1,5 +1,5 @@
-import type { Leg } from '$lib/api/client';
-import { intlLocale } from '$lib/util/locale';
+import type { Leg } from '#lib/api/client.js';
+import { intlLocale } from '#lib/util/locale.js';
 
 export type Profile = 'hike' | 'alpine';
 export type Run = Leg['details']['sac'][number];

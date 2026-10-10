@@ -4,19 +4,18 @@ import {
 	ATTR_HTTP_RESPONSE_STATUS_CODE,
 	ATTR_HTTP_ROUTE
 } from '@opentelemetry/semantic-conventions';
-import type { Handle, HandleFetch } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
-import { env } from '$env/dynamic/private';
-import { api } from '$lib/api/client';
-import { prefixLocale } from '$lib/i18n';
+import { sequence, type Handle, type HandleFetch } from '@sveltejs/kit/hooks';
+import { API_INTERNAL_URL } from '$app/env/private';
+import { api } from '#lib/api/client.js';
+import { prefixLocale } from '#lib/i18n.js';
 import {
 	cookieName,
 	defineCustomServerStrategy,
 	getTextDirection,
 	locales
-} from '$lib/paraglide/runtime';
-import { paraglideMiddleware } from '$lib/paraglide/server';
-import { parseTheme, themeAttribute, themeCookie } from '$lib/util/theme';
+} from '#lib/paraglide/runtime.js';
+import { paraglideMiddleware } from '#lib/paraglide/server.js';
+import { parseTheme, themeAttribute, themeCookie } from '#lib/util/theme.js';
 
 // Paraglide asks custom strategies before all others on the server; the
 // cookie must still win, as in the browser, or the two disagree.
@@ -32,19 +31,19 @@ defineCustomServerStrategy('custom-prefix', {
 });
 
 /** Where the Go API is reachable from this server (not from browsers). */
-const apiInternalURL = () => env.API_INTERNAL_URL || 'http://localhost:8080';
+const apiInternalURL = () => API_INTERNAL_URL || 'http://localhost:8080';
 
 const handleParaglide: Handle = ({ event, resolve }) =>
-	paraglideMiddleware(event.request, ({ request, locale }) => {
-		event.request = request;
-
-		return resolve(event, {
+	// The request without the language prefix is not needed: reroute in
+	// hooks.ts finds the route, and event.request is read-only (SvelteKit 3).
+	paraglideMiddleware(event.request, ({ locale }) =>
+		resolve(event, {
 			transformPageChunk: ({ html }) =>
 				html
 					.replace('%paraglide.lang%', locale)
 					.replace('%paraglide.dir%', getTextDirection(locale))
-		});
-	});
+		})
+	);
 
 const handleTheme: Handle = ({ event, resolve }) => {
 	event.locals.theme = parseTheme(event.cookies.get(themeCookie));

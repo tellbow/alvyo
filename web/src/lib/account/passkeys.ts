@@ -5,7 +5,7 @@ import {
 	type PublicKeyCredentialCreationOptionsJSON,
 	type PublicKeyCredentialRequestOptionsJSON
 } from '@simplewebauthn/browser';
-import { api } from '$lib/api/client';
+import { api } from '#lib/api/client.js';
 
 export { browserSupportsWebAuthn };
 

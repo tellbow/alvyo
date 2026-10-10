@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
-	import { api, type Me } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
-	import { intlLocale } from '$lib/util/locale';
+	import { api, type Me } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { intlLocale } from '#lib/util/locale.js';
 	import { addPasskey, browserSupportsWebAuthn, type PasskeyProblem } from './passkeys';
 	import ProviderButtons from './ProviderButtons.svelte';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import JourneyView from '$lib/journeys/JourneyView.svelte';
+	import JourneyView from '#lib/journeys/JourneyView.svelte';
 
 	let { data } = $props();
 </script>

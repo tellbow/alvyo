@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import type { Map as MapLibreMap, MapMouseEvent, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
@@ -11,19 +11,19 @@
 		type Proposal,
 		type Suggestion,
 		type Travel
-	} from '$lib/api/client';
-	import CollectionLayers from '$lib/collections/CollectionLayers.svelte';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { sacBackground, sacInk } from '$lib/planner/colors';
-	import PlaceSearch from '$lib/planner/PlaceSearch.svelte';
-	import PlanTabs from '$lib/planner/PlanTabs.svelte';
-	import TravelChoice from '$lib/travel/TravelChoice.svelte';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	} from '#lib/api/client.js';
+	import CollectionLayers from '#lib/collections/CollectionLayers.svelte';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { sacBackground, sacInk } from '#lib/planner/colors.js';
+	import PlaceSearch from '#lib/planner/PlaceSearch.svelte';
+	import PlanTabs from '#lib/planner/PlanTabs.svelte';
+	import TravelChoice from '#lib/travel/TravelChoice.svelte';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { stageColor } from './colors';
 	import {
 		fewestDays,

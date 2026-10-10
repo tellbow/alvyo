@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ReportButton from '$lib/community/ReportButton.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import { intlLocale } from '$lib/util/locale';
+	import ReportButton from '#lib/community/ReportButton.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { intlLocale } from '#lib/util/locale.js';
 	import type { Gallery } from './gallery.svelte';
 
 	let { gallery, loggedIn }: { gallery: Gallery; loggedIn: boolean } = $props();

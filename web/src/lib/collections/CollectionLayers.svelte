@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibreMap } from 'maplibre-gl';
 	import type { FeatureCollection, MultiLineString, Point } from 'geojson';
-	import type { CollectionItem } from '$lib/api/client';
-	import { stageColor } from '$lib/journeys/colors';
-	import { ROUTE_PREFIX } from '$lib/map/styles';
+	import type { CollectionItem } from '#lib/api/client.js';
+	import { stageColor } from '#lib/journeys/colors.js';
+	import { ROUTE_PREFIX } from '#lib/map/styles.js';
 
 	let {
 		map,

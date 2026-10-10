@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import { addTag, MAX_TAG_LENGTH, MAX_TAGS, sameTag } from './tags';
 
 	let {

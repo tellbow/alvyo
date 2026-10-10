@@ -1,4 +1,4 @@
-import { loadJourney } from '$lib/api/journeys';
+import { loadJourney } from '#lib/api/journeys.js';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, params, url, parent }) =>

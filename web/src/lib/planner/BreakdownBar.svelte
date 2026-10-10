@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { intlLocale } from '$lib/util/locale';
-	import { m } from '$lib/paraglide/messages';
+	import { intlLocale } from '#lib/util/locale.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import { legendParts, type breakdownParts } from './breakdown';
 	import { formatDistance } from './route';
 

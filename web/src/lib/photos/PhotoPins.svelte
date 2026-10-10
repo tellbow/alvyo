@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 	import type { Map as MapLibreMap, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import type { Gallery } from './gallery.svelte';

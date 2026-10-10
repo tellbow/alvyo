@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { loadRoute } from '$lib/api/routes';
+import { loadRoute } from '#lib/api/routes.js';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, params, url, parent }) => {

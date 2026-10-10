@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { formatDistance, formatRange } from '$lib/planner/route';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { formatDistance, formatRange } from '#lib/planner/route.js';
 	import PoiIcon from './PoiIcon.svelte';
 	import {
 		groupPois,

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 
 	/** Which planner this is: one route, a multi-day hike, or how far one gets. */
 	let { current }: { current: 'route' | 'journey' | 'reach' } = $props();

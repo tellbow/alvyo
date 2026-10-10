@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { primaryButton } from '$lib/components/actions';
+	import { primaryButton } from '#lib/components/actions.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { api, type Proposal } from '$lib/api/client';
-	import type { components } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
-	import { formatDistance, formatDuration, formatHeight } from '$lib/planner/route';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api, type Proposal } from '#lib/api/client.js';
+	import type { components } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { formatDistance, formatDuration, formatHeight } from '#lib/planner/route.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import ImportResult from './ImportResult.svelte';
 
 	type Preview = components['schemas']['ImportPreviewOutputBody'];

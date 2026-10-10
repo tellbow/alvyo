@@ -1,4 +1,4 @@
-import { m } from '$lib/paraglide/messages';
+import { m } from '#lib/paraglide/messages.js';
 import type { BaseMapId, OverlayId } from './styles';
 
 export const baseLabel: Record<BaseMapId, () => string> = {

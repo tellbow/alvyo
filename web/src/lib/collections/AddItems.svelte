@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
 	import { candidates, type Candidate } from './candidates';
 
 	/** [taken]: what the collection has, as "kind:id". */

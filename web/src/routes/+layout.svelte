@@ -1,30 +1,30 @@
 <script lang="ts">
-	import BugReport from '$lib/bugs/BugReport.svelte';
-	import { analyticsActive, pageView } from '$lib/analytics';
-	import ConsentBanner from '$lib/components/ConsentBanner.svelte';
+	import BugReport from '#lib/bugs/BugReport.svelte';
+	import { analyticsActive, pageView } from '#lib/analytics.js';
+	import ConsentBanner from '#lib/components/ConsentBanner.svelte';
 	import './layout.css';
-	import { afterNavigate, goto, invalidateAll } from '$app/navigation';
+	import { afterNavigate, goto, refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { choose } from '$lib/util/choose';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
-	import { parseTheme, setTheme, themes, type Theme } from '$lib/util/theme';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { choose } from '#lib/util/choose.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
+	import { parseTheme, setTheme, themes, type Theme } from '#lib/util/theme.js';
 	import {
 		deLocalizeUrl,
 		getLocale,
 		locales,
 		setLocale,
 		type Locale
-	} from '$lib/paraglide/runtime';
+	} from '#lib/paraglide/runtime.js';
 
 	let { data, children } = $props();
 	let resent = $state(false);
 
 	async function logout() {
 		await api().POST('/auth/logout');
-		await invalidateAll();
+		await refreshAll();
 		await goto(resolve('/'));
 	}
 
@@ -49,7 +49,7 @@
 	};
 
 	// The page's section in the navigation, whatever the language prefix.
-	const here = $derived(deLocalizeUrl(page.url).pathname);
+	const here = $derived(deLocalizeUrl(page.url.href).pathname);
 	const isHere = (section: string) => here === section || here.startsWith(section + '/');
 	const current = (section: string) => (isHere(section) ? 'page' : undefined);
 	function tab(section: string) {
@@ -68,7 +68,9 @@
 
 	// Below xl the links and settings go into a menu.
 	let menu = $state(false);
-	afterNavigate(({ to }) => {
+	afterNavigate(({ to, shallow }) => {
+		// Filters written into the address (shallow) are no page view.
+		if (shallow) return;
 		menu = false;
 		// The page's route: to.route.id is null behind the language prefix.
 		if (to && analyticsActive()) pageView(to.url, page.route.id);

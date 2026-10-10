@@ -1,5 +1,5 @@
-import { api } from '$lib/api/client';
-import type { components } from '$lib/api/schema';
+import { api } from '#lib/api/client.js';
+import type { components } from '#lib/api/schema.js';
 
 export type Photo = components['schemas']['Photo'];
 type Photos = components['schemas']['PhotosBody'];

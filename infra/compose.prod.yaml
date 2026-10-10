@@ -29,7 +29,6 @@ services:
     image: alvyo-web:${VERSION:-dev}
     restart: unless-stopped
     environment:
-      ORIGIN: https://${DOMAIN}
       API_INTERNAL_URL: http://api:8080
       PUBLIC_CONTACT_EMAIL: ${CONTACT_EMAIL:-}
 

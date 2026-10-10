@@ -23,9 +23,9 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter(),
-			// OpenTelemetry: spans of requests, loads and actions, and
-			// src/instrumentation.server.ts loaded first to send them.
-			experimental: { tracing: { server: true }, instrumentation: { server: true } }
+			// OpenTelemetry: spans of requests, loads and actions;
+			// src/instrumentation.server.ts is loaded first to send them.
+			tracing: { server: true }
 		}),
 
 		paraglideVitePlugin({

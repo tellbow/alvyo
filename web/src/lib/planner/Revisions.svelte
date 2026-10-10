@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { api, type Revision } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { savedAt } from '$lib/util/locale';
+	import { api, type Revision } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { savedAt } from '#lib/util/locale.js';
 	import { formatDistance } from './route';
 
 	// The earlier lines of a route, for its owner and editors; loaded when

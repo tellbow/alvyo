@@ -1,4 +1,4 @@
-import { loadCollection } from '$lib/api/collections';
+import { loadCollection } from '#lib/api/collections.js';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, params, url, parent }) =>

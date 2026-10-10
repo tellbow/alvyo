@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { api, type Trip } from '$lib/api/client';
-	import type { paths } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
+	import { api, type Trip } from '#lib/api/client.js';
+	import type { paths } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	type Query = NonNullable<paths['/connections']['get']['parameters']['query']>;
 

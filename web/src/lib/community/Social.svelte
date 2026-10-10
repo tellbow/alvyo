@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type Me } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { intlLocale } from '$lib/util/locale';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api, type Me } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { intlLocale } from '#lib/util/locale.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import type { Community, SocialBody } from './community.svelte';
 	import ReportButton from './ReportButton.svelte';
 

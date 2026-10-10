@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { analyticsActive, readConsent, setConsent, type Consent } from '$lib/analytics';
-	import { m } from '$lib/paraglide/messages';
+	import { analyticsActive, readConsent, setConsent, type Consent } from '#lib/analytics.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	// Asks once whether Google Analytics may set cookies; both answers alike.
 	let open = $state(false);

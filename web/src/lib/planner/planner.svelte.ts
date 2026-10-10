@@ -1,5 +1,5 @@
 import { SvelteMap } from 'svelte/reactivity';
-import type { Leg } from '$lib/api/client';
+import type { Leg } from '#lib/api/client.js';
 import { combine, legKey, reverseLeg, totals, type Profile } from './route';
 
 type LonLat = { lon: number; lat: number };

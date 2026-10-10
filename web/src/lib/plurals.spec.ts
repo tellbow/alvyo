@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { m } from '$lib/paraglide/messages';
+import { m } from '#lib/paraglide/messages.js';
 
 describe('counts', () => {
 	it('say one in the singular', () => {

@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
-	import AnalyticsChoice from '$lib/components/AnalyticsChoice.svelte';
-	import { releases } from '$lib/news/releases';
-	import { m } from '$lib/paraglide/messages';
-	import { intlLocale } from '$lib/util/locale';
-	import Seo from '$lib/seo/Seo.svelte';
+	import { PUBLIC_CONTACT_EMAIL } from '$app/env/public';
+	import AnalyticsChoice from '#lib/components/AnalyticsChoice.svelte';
+	import { releases } from '#lib/news/releases.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { intlLocale } from '#lib/util/locale.js';
+	import Seo from '#lib/seo/Seo.svelte';
 
 	let { data } = $props();
-	const contact = env.PUBLIC_CONTACT_EMAIL;
+	const contact = PUBLIC_CONTACT_EMAIL;
 	const day = (iso: string) =>
 		new Intl.DateTimeFormat(intlLocale(), { dateStyle: 'medium', timeZone: 'UTC' }).format(
 			new Date(`${iso}T00:00:00Z`)

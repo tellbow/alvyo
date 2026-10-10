@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 	import { baseLabel, overlayLabel } from './labels';
 	import PoiIcon from './PoiIcon.svelte';
 	import { POI_KINDS, poiLabel } from './places';

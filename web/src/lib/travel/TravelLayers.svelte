@@ -2,8 +2,8 @@
 	import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import type { FeatureCollection, LineString } from 'geojson';
-	import type { Trip } from '$lib/api/client';
-	import { ROUTE_PREFIX } from '$lib/map/styles';
+	import type { Trip } from '#lib/api/client.js';
+	import { ROUTE_PREFIX } from '#lib/map/styles.js';
 	import { tripLines } from './travel';
 
 	/** The chosen trips from and to home: rides dashed, walks dotted. */

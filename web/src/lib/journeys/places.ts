@@ -1,5 +1,5 @@
-import type { Place } from '$lib/api/client';
-import { m } from '$lib/paraglide/messages';
+import type { Place } from '#lib/api/client.js';
+import { m } from '#lib/paraglide/messages.js';
 
 export function placeLabel(kind: Place['kind']): string {
 	switch (kind) {

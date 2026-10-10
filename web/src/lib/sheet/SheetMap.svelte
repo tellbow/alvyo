@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { ROUTE_COLOR } from '$lib/planner/colors';
+	import { ROUTE_COLOR } from '#lib/planner/colors.js';
 	import { onMount } from 'svelte';
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import { m } from '$lib/paraglide/messages';
-	import { baseStyle, overlaySource } from '$lib/map/styles';
-	import { TILE_PROTOCOL, tileLoader } from '$lib/map/tiles';
+	import { m } from '#lib/paraglide/messages.js';
+	import { baseStyle, overlaySource } from '#lib/map/styles.js';
+	import { TILE_PROTOCOL, tileLoader } from '#lib/map/tiles.js';
 
 	// The line on the national map with the hiking trails, drawn once and
 	// kept as an image: a WebGL canvas does not print reliably. Drawn at

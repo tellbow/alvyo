@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { officialLabel } from '$lib/official/official';
+	import { officialLabel } from '#lib/official/official.js';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import { onDestroy, untrack } from 'svelte';
-	import { goto, replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, type DiscoverItem, type Me } from '$lib/api/client';
-	import CollectionLayers from '$lib/collections/CollectionLayers.svelte';
-	import { stageColor } from '$lib/journeys/colors';
-	import LayerSwitcher from '$lib/map/LayerSwitcher.svelte';
-	import Map from '$lib/map/Map.svelte';
-	import type { BaseMapId, OverlayId } from '$lib/map/styles';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { sacBackground, sacInk } from '$lib/planner/colors';
-	import { formatDistance, formatDuration, formatHeight, formatSAC } from '$lib/planner/route';
+	import { api, type DiscoverItem, type Me } from '#lib/api/client.js';
+	import CollectionLayers from '#lib/collections/CollectionLayers.svelte';
+	import { stageColor } from '#lib/journeys/colors.js';
+	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
+	import Map from '#lib/map/Map.svelte';
+	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { sacBackground, sacInk } from '#lib/planner/colors.js';
+	import { formatDistance, formatDuration, formatHeight, formatSAC } from '#lib/planner/route.js';
 
 	let { user }: { user: Me | null } = $props();
 	const pace = $derived(user?.speed_factor ?? 1);
@@ -111,8 +111,7 @@
 				([, v]) => v
 			)
 		);
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() gives the path; only the query is added
-		replaceState(`${resolve('/discover')}?${q}`, page.state);
+		goto(`${resolve('/discover')}?${q}`, { shallow: true, replace: true, state: page.state });
 	}
 
 	$effect(() => {

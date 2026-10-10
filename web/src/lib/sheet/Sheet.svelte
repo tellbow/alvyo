@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { primaryButtonSmall } from '$lib/components/actions';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount, type Snippet } from 'svelte';
-	import type { Me, Route } from '$lib/api/client';
-	import Pois from '$lib/map/Pois.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import ElevationProfile from '$lib/planner/ElevationProfile.svelte';
-	import { Planner } from '$lib/planner/planner.svelte';
-	import type { Profile } from '$lib/planner/route';
-	import Breakdowns from '$lib/planner/Breakdowns.svelte';
-	import StatsPanel from '$lib/planner/StatsPanel.svelte';
-	import { intlLocale } from '$lib/util/locale';
-	import RouteWeather from '$lib/weather/RouteWeather.svelte';
+	import type { Me, Route } from '#lib/api/client.js';
+	import Pois from '#lib/map/Pois.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import ElevationProfile from '#lib/planner/ElevationProfile.svelte';
+	import { Planner } from '#lib/planner/planner.svelte.js';
+	import type { Profile } from '#lib/planner/route.js';
+	import Breakdowns from '#lib/planner/Breakdowns.svelte';
+	import StatsPanel from '#lib/planner/StatsPanel.svelte';
+	import { intlLocale } from '#lib/util/locale.js';
+	import RouteWeather from '#lib/weather/RouteWeather.svelte';
 	import SheetMap from './SheetMap.svelte';
 
 	// A page to print on A4 (or save as PDF): map, profile, numbers, places,

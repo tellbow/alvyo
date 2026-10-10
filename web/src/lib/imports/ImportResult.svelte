@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { components } from '$lib/api/schema';
-	import { m } from '$lib/paraglide/messages';
+	import type { components } from '#lib/api/schema.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	type Result = components['schemas']['ImportOutputBody'];
 	type Reason = components['schemas']['Skipped']['reason'];

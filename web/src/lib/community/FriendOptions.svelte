@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
+	import { api } from '#lib/api/client.js';
 
 	// One's friends offered while typing a username (<input list={id}>).
 	let { id }: { id: string } = $props();

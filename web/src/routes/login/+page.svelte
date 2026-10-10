@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { primaryButton } from '$lib/components/actions';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { primaryButton } from '#lib/components/actions.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
+	import { goto, refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api, errorLocations } from '$lib/api/client';
-	import AuthCard from '$lib/components/AuthCard.svelte';
-	import Field from '$lib/components/Field.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { safeRedirect } from '$lib/util/redirect';
+	import { api, errorLocations } from '#lib/api/client.js';
+	import AuthCard from '#lib/components/AuthCard.svelte';
+	import Field from '#lib/components/Field.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { safeRedirect } from '#lib/util/redirect.js';
 	import { onMount } from 'svelte';
-	import { browserSupportsWebAuthn, loginWithPasskey } from '$lib/account/passkeys';
-	import ProviderButtons from '$lib/account/ProviderButtons.svelte';
-	import OidcNotice from '$lib/account/OidcNotice.svelte';
+	import { browserSupportsWebAuthn, loginWithPasskey } from '#lib/account/passkeys.js';
+	import ProviderButtons from '#lib/account/ProviderButtons.svelte';
+	import OidcNotice from '#lib/account/OidcNotice.svelte';
 
 	const hydrated = new Hydrated();
 	let passkeys = $state(false);
@@ -26,8 +26,7 @@
 		const problem = await loginWithPasskey();
 		busy = false;
 		if (!problem) {
-			await invalidateAll();
-			// eslint-disable-next-line svelte/no-navigation-without-resolve
+			await refreshAll();
 			await goto(redirect);
 		} else if (problem !== 'cancelled') {
 			error = problem === 'rejected' ? m.passkey_login_rejected() : m.error_generic();
@@ -45,9 +44,7 @@
 		const { response, error: err } = await api().POST('/auth/login', { body: { login, password } });
 		busy = false;
 		if (response.ok) {
-			await invalidateAll();
-			// safeRedirect only allows same-site paths, which resolve() cannot type.
-			// eslint-disable-next-line svelte/no-navigation-without-resolve
+			await refreshAll();
 			await goto(safeRedirect(page.url.searchParams.get('redirect')));
 		} else if (response.status === 401) {
 			error = m.login_invalid();

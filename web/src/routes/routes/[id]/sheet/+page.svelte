@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { api, type Home, type Travel } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
-	import Sheet from '$lib/sheet/Sheet.svelte';
-	import SheetTrips from '$lib/sheet/SheetTrips.svelte';
-	import { chosenWays, routeEnds, swissToday } from '$lib/travel/travel';
+	import { api, type Home, type Travel } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
+	import Sheet from '#lib/sheet/Sheet.svelte';
+	import SheetTrips from '#lib/sheet/SheetTrips.svelte';
+	import { chosenWays, routeEnds, swissToday } from '#lib/travel/travel.js';
 
 	let { data } = $props();
 	let date = $state(swissToday());

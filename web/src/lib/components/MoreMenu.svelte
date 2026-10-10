@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { m } from '$lib/paraglide/messages';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { actionButton } from './actions';
 
 	// «⋯»: what is done now and then (printing, collections, deleting …);

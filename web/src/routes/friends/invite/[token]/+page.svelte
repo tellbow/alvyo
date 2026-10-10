@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { primaryButton } from '$lib/components/actions';
+	import { primaryButton } from '#lib/components/actions.js';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import OpenInApp from '$lib/sharing/OpenInApp.svelte';
-	import Seo from '$lib/seo/Seo.svelte';
-	import { Hydrated } from '$lib/util/hydrated.svelte';
+	import { api } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import OpenInApp from '#lib/sharing/OpenInApp.svelte';
+	import Seo from '#lib/seo/Seo.svelte';
+	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 
 	// Someone's invite link: whoever opens it and agrees becomes their friend.
 	let { data } = $props();

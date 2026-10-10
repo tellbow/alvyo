@@ -1,8 +1,8 @@
 <script lang="ts">
-	import FileImport from '$lib/imports/FileImport.svelte';
-	import KomootImport from '$lib/imports/KomootImport.svelte';
-	import { m } from '$lib/paraglide/messages';
-	import Seo from '$lib/seo/Seo.svelte';
+	import FileImport from '#lib/imports/FileImport.svelte';
+	import KomootImport from '#lib/imports/KomootImport.svelte';
+	import { m } from '#lib/paraglide/messages.js';
+	import Seo from '#lib/seo/Seo.svelte';
 
 	let { data } = $props();
 </script>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { m } from '$lib/paraglide/messages';
+	import { m } from '#lib/paraglide/messages.js';
 
 	/** The active tag filter of a list page (`?tag=`), with a way back to all. */
 	const tag = $derived(page.url.searchParams.get('tag'));

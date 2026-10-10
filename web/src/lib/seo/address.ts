@@ -1,4 +1,4 @@
-import { localizeUrl, type Locale } from '$lib/paraglide/runtime';
+import { localizeUrl, type Locale } from '#lib/paraglide/runtime.js';
 
 /**
  * A page's address in a language as it is served: German without a prefix,

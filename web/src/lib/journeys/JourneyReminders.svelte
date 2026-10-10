@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { api, type JourneyReminders } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
-	import { dayLabel } from '$lib/weather/weather';
+	import { api, type JourneyReminders } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
+	import { dayLabel } from '#lib/weather/weather.js';
 
 	// Reminders by e-mail before the journey starts (to book the nights, the
 	// weather, the day before), for the owner and the people who come along;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, type Home, type Travel } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
+	import { api, type Home, type Travel } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	/** From which home to the start and back to which after the end, when planning. */
 	let { onchange }: { onchange: (travel: Travel) => void } = $props();

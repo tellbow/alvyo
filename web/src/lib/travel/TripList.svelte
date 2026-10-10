@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Trip } from '$lib/api/client';
-	import { m } from '$lib/paraglide/messages';
+	import type { Trip } from '#lib/api/client.js';
+	import { m } from '#lib/paraglide/messages.js';
 
 	let {
 		trips,

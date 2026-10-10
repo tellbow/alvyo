@@ -17,7 +17,8 @@ paths:
 - No `{@html}`; map markers are built with `textContent`.
 - Unit tests: `*.spec.ts` next to the code (vitest).
 - End-to-end tests: `tests/e2e/*.e2e.ts` with `./fixtures` (they fail on any
-  console error). Sign up users with `signUp(page.request, { data })`
+  console error; `goto` and `reload` wait until the page is hydrated, also in
+  contexts from `browser.newContext()`). Sign up users with `signUp(page.request, { data })`
   (`./accounts`: signing up alone does not log in) and a unique name (time
   plus a random suffix: tests run in parallel). Before mouse gestures on the
   map, wait for its state (e.g. the canvas cursor turning to `pointer` over

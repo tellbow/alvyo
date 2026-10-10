@@ -45,7 +45,12 @@ test('find someone, ask, be accepted; a private profile through its invite link'
 	// Beat goes private: Carla does not find him, but his link makes them
 	// friends.
 	await beatPage.goto('/account');
+	// Saved before leaving: the next page load would cancel the request.
+	const saved = beatPage.waitForResponse(
+		(r) => r.url().endsWith('/api/v1/me') && r.request().method() === 'PATCH'
+	);
 	await beatPage.getByTestId('profile-public').uncheck();
+	expect((await saved).ok()).toBe(true);
 	await expect(beatPage.getByTestId('profile-public')).not.toBeChecked();
 	await beatPage.goto('/friends');
 	const link = await beatPage.getByTestId('friend-link').locator('input').inputValue();

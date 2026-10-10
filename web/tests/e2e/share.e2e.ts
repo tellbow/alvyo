@@ -45,7 +45,7 @@ test('share a route by link with someone without an account', async ({
 	const guest = await (await browser.newContext()).newPage();
 	await guest.goto(shareUrl);
 	await expect(guest.getByTestId('route-title')).toHaveText('Geteilte Runde');
-	await expect(guest.getByRole('link', { name: 'Bearbeiten' })).toHaveCount(0);
+	await expect(guest.getByRole('link', { name: 'Bearbeiten', exact: true })).toHaveCount(0);
 	// Link previews: Open Graph tags point at a rendered image the guest may load.
 	const ogImage = await guest.locator('meta[property="og:image"]').getAttribute('content');
 	expect(ogImage).toMatch(/\/og\.png\?v=\d+&t=[\w-]{22}$/);

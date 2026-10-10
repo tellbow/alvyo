@@ -22,6 +22,13 @@
 			"enabled": false
 		},
 		{
+			"description": "Node's types follow the Node the website runs on (web/Dockerfile)",
+			"matchPackageNames": [
+				"@types/node"
+			],
+			"allowedVersions": "<25"
+		},
+		{
 			"description": "Flutter's Android template: the app is built for iOS only",
 			"matchFileNames": [
 				"app/android/**"

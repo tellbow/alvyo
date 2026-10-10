@@ -7,6 +7,9 @@ const WEB_PORT = 4173;
 
 export default defineConfig({
 	testMatch: '**/*.e2e.{ts,js}',
+	// One browser at a time in CI: the runner draws the maps without a GPU, and
+	// two at once left pages without an answer.
+	workers: process.env.CI ? 1 : undefined,
 	// German, like most tests expect; the language follows the browser.
 	use: { baseURL: `http://localhost:${WEB_PORT}`, locale: 'de-CH' },
 	projects: [

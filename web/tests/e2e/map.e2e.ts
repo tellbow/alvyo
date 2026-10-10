@@ -72,6 +72,9 @@ test('the terrain in 3D, from the tile cache, and flat again', async ({ page }) 
 	await page.getByRole('button', { name: 'Karten' }).click();
 	await page.getByLabel('Luftbild').check();
 	await expect(page.getByRole('button', { name: 'Gelände flach zeigen' })).toBeVisible();
+	// Without a GPU (CI), drawing the aerial pictures in 3D keeps the page
+	// too busy for a click until they are loaded.
+	await page.waitForLoadState('networkidle');
 	await page.getByRole('button', { name: 'Gelände flach zeigen' }).click();
 	await expect(on).toBeVisible();
 });

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -8,9 +9,19 @@ import '../session.dart';
 
 /// Log in to an Alvyo server; signing up and a forgotten password on its website.
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.session, required this.onLoggedIn, this.client});
+  const LoginScreen({
+    super.key,
+    required this.session,
+    required this.onLoggedIn,
+    this.client,
+    this.showServer = kDebugMode,
+  });
   final Session session;
   final void Function(Api api) onLoggedIn;
+
+  /// The server field: only in debug builds (local servers, the tests);
+  /// release builds always use [Session.defaultServer].
+  final bool showServer;
 
   /// For tests: the server's answers.
   final http.Client? client;
@@ -29,6 +40,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    if (!widget.showServer) {
+      _server.text = Session.defaultServer;
+      return;
+    }
     // Unless typed in meanwhile: secure storage can take a moment (Android).
     widget.session.lastServer().then((s) {
       if (mounted && _server.text.isEmpty) _server.text = s;
@@ -87,13 +102,14 @@ class _LoginScreenState extends State<LoginScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              TextField(
-                key: const Key('server'),
-                controller: _server,
-                decoration: InputDecoration(labelText: t.server),
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-              ),
+              if (widget.showServer)
+                TextField(
+                  key: const Key('server'),
+                  controller: _server,
+                  decoration: InputDecoration(labelText: t.server),
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                ),
               TextField(
                 key: const Key('login'),
                 controller: _login,

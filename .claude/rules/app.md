@@ -27,5 +27,6 @@ paths:
   needs `tester.runAsync`. Integration tests in `integration_test/` run on
   the simulator against the local dev stack (skill `app-simulator-tests`).
 - The app talks to production (https://alvyo.tellbow.ch) unless the login
-  names another server; features that need new API endpoints work there only
+  names another server (a debug build only: release builds have no server
+  field); features that need new API endpoints work there only
   after a release.

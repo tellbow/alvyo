@@ -36,6 +36,10 @@ Play Store is to come.
 flutter run -d <simulator or phone>   # server: https://alvyo.tellbow.ch or http://localhost:5173
 ```
 
+The login asks for the server only in debug builds (`flutter run`, the
+tests); release builds (App Store, Play Store, the APKs, `flutter run
+--release`) always use https://alvyo.tellbow.ch.
+
 On an iPhone (by cable, Developer Mode on) with a free Apple ID: add the
 Apple ID in Xcode → Settings → Accounts and create an «Apple Development»
 certificate there (Manage Certificates). Flutter then picks the team from the

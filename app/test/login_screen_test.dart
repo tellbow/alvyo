@@ -74,6 +74,32 @@ void main() {
     await tester.pump();
     expect(find.text('http://localhost:5173'), findsOneWidget);
   });
+
+  testWidgets('a release build has no server field and logs in to alvyo.tellbow.ch', (tester) async {
+    Uri? asked;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: LoginScreen(
+          session: _SlowSession(Future.value('http://localhost:5173')),
+          onLoggedIn: (_) {},
+          showServer: false,
+          client: MockClient((r) async {
+            asked = r.url;
+            return problem(401, 'invalid login or password');
+          }),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('server')), findsNothing);
+    await tester.enterText(find.byKey(const Key('login')), 'anna');
+    await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
+    await tester.tap(find.byKey(const Key('submit')));
+    await tester.pumpAndSettle();
+    expect(asked?.host, 'alvyo.tellbow.ch');
+  });
 }
 
 /// Reads the last server slowly, as secure storage on Android can.

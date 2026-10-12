@@ -6,6 +6,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/main.dart';
 import 'package:alvyo/screens/reach_screen.dart';
 
+import 'login.dart';
+
 /// Against a local dev server with the demo account (see README.md) and the
 /// graph with the time profiles: «Wie weit komme ich?» from a place.
 /// Then a tap inside the areas plans a route there.
@@ -26,12 +28,7 @@ void main() {
   testWidgets('how far one gets from Sargans', (tester) async {
     await tester.pumpWidget(AlvyoApp(key: UniqueKey()));
     await settle(tester);
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester);
     // Entdecken › Wie weit komme ich? opens Planen › Reichweite.
     await waitFor(tester, find.byKey(const Key('tool-reach')));
     await tester.tap(find.byKey(const Key('tool-reach')));

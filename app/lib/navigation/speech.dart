@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-/// Spoken prompts (AppDelegate.swift): other audio is turned down meanwhile,
+/// Spoken prompts (AppDelegate.swift, MainActivity.kt): other audio is turned down meanwhile,
 /// also with the screen locked.
 class Speech {
   static const _channel = MethodChannel('alvyo/speech');
@@ -12,7 +12,7 @@ class Speech {
     } on PlatformException {
       // no voice: the banner shows it all the same
     } on MissingPluginException {
-      // not on iOS
+      // no native side (tests)
     }
   }
 }

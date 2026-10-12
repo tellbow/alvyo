@@ -79,6 +79,9 @@ jobs:
       # Unit and widget tests; the integration tests need a simulator and the
       # dev stack (app/README.md).
       - run: flutter test
+      # The Android app still builds (signed with the debug key: the release
+      # key is only in the release workflow).
+      - run: flutter build apk --release
 
   # The supply chain: vulnerable npm and pub packages, risky workflow
   # patterns, secrets in the history.

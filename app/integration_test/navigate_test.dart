@@ -118,6 +118,10 @@ void main() {
 
     await waitFor(tester, find.byKey(const Key('nav-progress')));
     await waitFor(tester, find.byKey(const Key('nav-off-route')));
+    // Sent once the map has followed (on Android that waits for the glide).
+    while (alerts.shown.isEmpty) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     expect(alerts.shown.single, matches(RegExp(r'^\d+ m neben der Route$')));
     await waitFor(tester, find.byKey(const Key('nav-progress')));
     final end = DateTime.now().add(const Duration(seconds: 60));
@@ -193,7 +197,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('the iOS voice takes a prompt', (tester) async {
+  testWidgets('the native voice takes a prompt (iOS and Android)', (tester) async {
     // The channel itself, so that a missing channel or a refused audio
     // session fails (Speech keeps quiet about both).
     await const MethodChannel('alvyo/speech').invokeMethod<void>('say', {'text': 'Links abbiegen', 'language': 'de'});

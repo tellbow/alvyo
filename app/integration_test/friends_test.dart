@@ -8,6 +8,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/main.dart';
 
+import 'login.dart';
+
 /// Against a local dev server with the demo account (see README.md): a
 /// friend's invite link opened in the app, the friend found by the search;
 /// a route marked as hiked, on «Übersicht» with its trail conditions, then
@@ -38,12 +40,7 @@ void main() {
   Future<void> start(WidgetTester tester) async {
     await tester.pumpWidget(AlvyoApp(key: UniqueKey()));
     await settle(tester);
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), server);
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester, server: server);
     await waitFor(tester, find.byKey(const Key('tab-profile')));
   }
 

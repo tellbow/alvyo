@@ -1,5 +1,110 @@
 package ch.tellbow.alvyo
 
-import io.flutter.embedding.android.FlutterActivity
+import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
+import android.os.Handler
+import android.os.Looper
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import java.util.Locale
 
-class MainActivity : FlutterActivity()
+// A fragment activity: the health plugin asks for permissions through it.
+class MainActivity : FlutterFragmentActivity() {
+    private var speech: Speech? = null
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        // Turn-by-turn prompts (lib/navigation/speech.dart).
+        val speech = Speech(applicationContext).also { this.speech = it }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "alvyo/speech").setMethodCallHandler { call, result ->
+            val text = call.argument<String>("text")
+            val language = call.argument<String>("language")
+            if (call.method != "say" || text == null || language == null) {
+                result.notImplemented()
+                return@setMethodCallHandler
+            }
+            speech.say(text, language) { error ->
+                if (error == null) result.success(null) else result.error("speech", error, null)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        speech?.shutdown()
+        super.onDestroy()
+    }
+}
+
+// Spoken navigation prompts, like Speech in AppDelegate.swift: other audio
+// is turned down while one plays, also with the screen locked.
+class Speech(context: Context) : UtteranceProgressListener() {
+    private val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val main = Handler(Looper.getMainLooper())
+    private val focus =
+        AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(attributes)
+            .build()
+    private var ready: Boolean? = null // null while the engine starts
+    private val waiting = mutableListOf<() -> Unit>()
+    private var count = 0
+    private val tts =
+        TextToSpeech(context) { status ->
+            main.post {
+                ready = status == TextToSpeech.SUCCESS
+                waiting.forEach { it() }
+                waiting.clear()
+            }
+        }
+
+    init {
+        tts.setAudioAttributes(attributes)
+        tts.setOnUtteranceProgressListener(this)
+    }
+
+    fun say(text: String, language: String, done: (String?) -> Unit) {
+        when (ready) {
+            null -> waiting += { say(text, language, done) }
+            false -> done("no text-to-speech engine")
+            true -> {
+                // A Swiss voice if there is one, else the language's usual one.
+                val usual = mapOf("de" to Locale.GERMANY, "fr" to Locale.FRANCE, "it" to Locale.ITALY)[language] ?: Locale.UK
+                val swiss = Locale(language, "CH")
+                val locale = if (tts.isLanguageAvailable(swiss) >= TextToSpeech.LANG_COUNTRY_AVAILABLE) swiss else usual
+                if (tts.setLanguage(locale) < TextToSpeech.LANG_AVAILABLE) {
+                    done("no voice for $locale")
+                    return
+                }
+                audio.requestAudioFocus(focus)
+                tts.speak(text, TextToSpeech.QUEUE_ADD, null, "alvyo-${count++}")
+                done(null)
+            }
+        }
+    }
+
+    fun shutdown() = tts.shutdown()
+
+    override fun onStart(utteranceId: String?) {}
+
+    override fun onDone(utteranceId: String?) = release()
+
+    @Deprecated("Deprecated in Java")
+    override fun onError(utteranceId: String?) = release()
+
+    // Other audio back to full volume once nothing is being said.
+    private fun release() {
+        main.postDelayed({ if (!tts.isSpeaking) audio.abandonAudioFocusRequest(focus) }, 500)
+    }
+
+    private companion object {
+        val attributes: AudioAttributes =
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build()
+    }
+}

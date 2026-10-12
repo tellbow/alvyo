@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 
@@ -167,15 +168,17 @@ class _DiscoverTabState extends State<DiscoverTab> {
                     onTap: () => widget.onPlan(PlanMode.reach),
                   ),
                 ),
-                Expanded(
-                  child: _ToolCard(
-                    key: const Key('tool-peaks'),
-                    icon: Icons.filter_hdr_outlined,
-                    title: t.discoverPeaks,
-                    text: t.discoverPeaksHint,
-                    onTap: () => _push(PeaksScreen(api: widget.api)),
+                // Android has no camera view yet (issue 8).
+                if (!Platform.isAndroid)
+                  Expanded(
+                    child: _ToolCard(
+                      key: const Key('tool-peaks'),
+                      icon: Icons.filter_hdr_outlined,
+                      title: t.discoverPeaks,
+                      text: t.discoverPeaksHint,
+                      onTap: () => _push(PeaksScreen(api: widget.api)),
+                    ),
                   ),
-                ),
               ],
             ),
           ),

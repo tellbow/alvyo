@@ -1,6 +1,6 @@
 # Alvyo app
 
-Flutter app for iOS (Android later): log in, list your routes, show a route on
+Flutter app for iOS and Android: log in, list your routes, show a route on
 the swisstopo national map and save it offline, and hike it: your position on
 the map, how far and how long it is still, the next turn, also spoken (about
 100 m before and at the junction, with the screen locked too), a warning (also
@@ -17,6 +17,18 @@ saves every stage's map and keeps the journey for opening it offline.
 Hikes recorded with the Apple Watch's Workout app («Hiking» or «Outdoor Walk»)
 are imported from Apple Health the same way (the watch button in the list;
 HealthKit works with a free Apple ID).
+
+Android (issue 8) has all of this except «Berge erkennen» (no camera view
+yet) and the watch import (Health Connect to come); both are hidden there.
+Recording goes on with the screen locked through a foreground service with
+a notification, started while the app is open, so the app needs no
+background location. The native pieces are in `MainActivity.kt` (spoken
+turns with Android's text-to-speech); offline maps and the login stay out of
+backups by `res/xml/*_rules.xml`. Links to alvyo.tellbow.ch's routes,
+journeys, collections and invites open the app (app links: the release
+key's fingerprint is in `web/static/.well-known/assetlinks.json`; a new key
+needs it changed there). The APK of each release is on GitHub; the
+Play Store is to come.
 
 ## Run
 
@@ -51,6 +63,48 @@ flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') 
   --dart-define=ALVYO_VERSION=$(git describe --tags --always)
 ```
 
+### Android
+
+The emulator (once: `brew install openjdk@17` and `brew install --cask
+android-commandlinetools`, then with `sdkmanager` the platform, build tools,
+emulator and a system image, and `flutter config --android-sdk
+/opt/homebrew/share/android-commandlinetools`):
+
+```sh
+emulator -avd alvyo -gpu host &               # an AVD made with avdmanager
+adb reverse tcp:5173 tcp:5173                 # localhost:5173 on the emulator is the Mac's
+flutter run -d emulator-5554
+```
+
+`adb reverse` is lost when the emulator restarts or adb loses it. The web
+dev server listens on 127.0.0.1 for it (`web/vite.config.ts`). Debug builds
+may use plain HTTP (`src/debug/AndroidManifest.xml`); release builds only
+HTTPS.
+
+**Release key.** A release APK is signed with the key in
+`android/key.properties`, else with the debug key (`flutter run --release`
+works without it). Phones install a later APK over an earlier one only if
+both have the same key, so it is made once and kept (in the password
+manager as well):
+
+```sh
+keytool -genkeypair -keystore alvyo-release.jks -storetype PKCS12 -alias alvyo \
+  -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=Alvyo"
+gh secret set ANDROID_KEYSTORE < <(base64 -i alvyo-release.jks)
+gh secret set ANDROID_KEYSTORE_PASSWORD             # the password given to keytool
+keytool -list -keystore alvyo-release.jks -alias alvyo | grep SHA-256   # into assetlinks.json
+```
+
+The release workflow writes `key.properties` from these secrets and adds
+`alvyo-<version>.apk` to the GitHub Release; CI builds the APK with the
+debug key. Locally, with the version as for the App Store:
+
+```sh
+flutter build apk --release --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') \
+  --build-number=$(git rev-list --count HEAD) \
+  --dart-define=ALVYO_VERSION=$(git describe --tags --always)
+```
+
 ## Tests
 
 ```sh
@@ -67,8 +121,8 @@ The integration tests expect the API and the web dev server (:5173) from
 - `offline_test.dart` saves the route offline and opens it with an
   unreachable server;
 - `navigate_test.dart` hikes it with made-up positions: progress, off the route
-  and back, arrival, recording; the spoken turns (a fake voice) and the iOS
-  voice channel;
+  and back, arrival, recording; the spoken turns (a fake voice) and the
+  native voice channel (iOS and Android);
 - `journey_test.dart` opens the journey, saves all stages offline and opens it
   and a stage with an unreachable server;
 - `community_test.dart` switches the look and the language in the profile,
@@ -83,5 +137,11 @@ The integration tests expect the API and the web dev server (:5173) from
   xcrun simctl location <simulator> start --speed=30 <lat,lon> <lat,lon> …
   ```
 
-What only a real iPhone and a real hike can show is listed in
+On the Android emulator the same tests run with `-d emulator-5554` after
+`adb reverse tcp:5173 tcp:5173` (offline, navigate and journey checked
+2026-10-12); `flutter test` installs the app afresh for each file, so it
+logs in each time. If a run hangs on the splash screen, an earlier run was
+cut off: `adb shell am force-stop ch.tellbow.alvyo` and run again.
+
+What only a real phone and a real hike can show is listed in
 `docs/manual-tests.md`.

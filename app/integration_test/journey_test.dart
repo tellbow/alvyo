@@ -8,6 +8,7 @@ import 'package:alvyo/main.dart';
 import 'package:alvyo/screens/journey_screen.dart';
 import 'package:alvyo/offline/packs.dart';
 
+import 'login.dart';
 import 'offline_test.dart' show OfflineSession;
 
 /// Against a local dev server with the demo account's journey «Via Alpina»
@@ -41,14 +42,12 @@ void main() {
 
     await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester);
     await waitFor(tester, find.byKey(const Key('tab-tours')));
     await tester.tap(find.byKey(const Key('tab-tours')));
+    // Journeys only: routes left by other tests can push it out of sight.
+    await waitFor(tester, find.byKey(const Key('tours-kind-journeys')));
+    await tester.tap(find.byKey(const Key('tours-kind-journeys')));
     await waitFor(tester, find.text('Via Alpina'));
     await tester.pump(const Duration(seconds: 1)); // the tabs slide
     await tapAboveBar(tester, find.text('Via Alpina'));

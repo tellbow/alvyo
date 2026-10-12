@@ -3,12 +3,16 @@ paths:
   - "app/**"
 ---
 
-# Flutter app (iOS)
+# Flutter app (iOS and Android)
 
 - Plugins come through Swift Package Manager only; plugins that need
   CocoaPods are out (flutter_tts was dropped for that). Small native pieces
   are method channels in `ios/Runner/AppDelegate.swift` (`alvyo/backup`,
-  `alvyo/speech`).
+  `alvyo/speech`) and, for Android, in
+  `android/app/src/main/kotlin/ch/tellbow/alvyo/MainActivity.kt`
+  (`alvyo/speech`; backups by `res/xml/*_rules.xml`). Something only one
+  platform has yet is hidden on the other with `Platform.isAndroid`
+  (`dart:io`; widget tests run as neither).
 - `dart format` with page width 120, flutter_lints.
 - Texts in `lib/l10n/app_*.arb` (`app_de.arb` is the template and holds the
   placeholders); run `flutter gen-l10n`; the generated files are committed.

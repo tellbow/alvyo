@@ -21,6 +21,8 @@ plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "9.0.1" apply false
     id("org.jetbrains.kotlin.android") version "2.3.20" apply false
+    // maplibre_android 0.3.6 applies it without a version (josxha/flutter-maplibre#565).
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0" apply false
 }
 
 include(":app")

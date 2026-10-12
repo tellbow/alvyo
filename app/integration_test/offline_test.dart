@@ -9,6 +9,8 @@ import 'package:alvyo/main.dart';
 import 'package:alvyo/offline/packs.dart';
 import 'package:alvyo/session.dart';
 
+import 'login.dart';
+
 /// A login whose server cannot be reached, as in the mountains.
 class OfflineSession extends Session {
   @override
@@ -32,12 +34,7 @@ void main() {
   testWidgets('log in, save a route offline, then open it without a connection', (tester) async {
     await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester);
     await waitFor(tester, find.byKey(const Key('tab-tours')));
     await tester.tap(find.byKey(const Key('tab-tours')));
     await waitFor(tester, find.text('Sargans–Weisstannen'));
@@ -63,8 +60,11 @@ void main() {
     final route = (await store.savedRoutes()).singleWhere((r) => r.title == 'Sargans–Weisstannen');
     final pack = (await store.saved(route.id))!;
     expect(pack.files.keys, unorderedEquals(['landeskarte', 'wanderwege']));
-    // Kept out of iCloud backups (the native side answers with the flag).
-    expect(await const MethodChannel('alvyo/backup').invokeMethod<bool>('exclude', store.root.path), isTrue);
+    // Kept out of iCloud backups (the native side answers with the flag);
+    // on Android by the backup rules in the manifest.
+    if (Platform.isIOS) {
+      expect(await const MethodChannel('alvyo/backup').invokeMethod<bool>('exclude', store.root.path), isTrue);
+    }
     for (final f in pack.files.values) {
       debugPrint('${f.split('/').last}: ${File(f).lengthSync()} bytes');
     }

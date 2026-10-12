@@ -29,7 +29,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    widget.session.lastServer().then((s) => _server.text = s);
+    // Unless typed in meanwhile: secure storage can take a moment (Android).
+    widget.session.lastServer().then((s) {
+      if (mounted && _server.text.isEmpty) _server.text = s;
+    });
   }
 
   @override

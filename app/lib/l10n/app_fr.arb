@@ -37,7 +37,7 @@
   "navContinue": "Continuer",
   "navNoPermission": "L'app a besoin de ta position. Autorise-la dans les réglages.",
   "gpsOff": "La localisation est désactivée : active-la dans les réglages.",
-  "recordSaveFailed": "L’enregistrement ne peut pas être sauvegardé. La mémoire de l’iPhone est-elle pleine ?",
+  "recordSaveFailed": "L’enregistrement ne peut pas être sauvegardé. La mémoire du téléphone est-elle pleine ?",
   "navSaved": "Enregistré : {distance} en {duration}. Envoi dès que tu seras en ligne.",
   "navFollow": "Suivre ma position",
   "navUploaded": "Enregistré dans Mes itinéraires : {distance} en {duration}",
@@ -378,7 +378,7 @@
   "collectionStages": "{n} étapes",
   "myMapKindHike": "Randonnées faites",
   "connectionsFromHere": "Correspondances d’ici au départ",
-  "connectionsNoPosition": "Ta position n’est pas connue. Autorise Alvyo à l’utiliser dans les réglages de l’iPhone.",
+  "connectionsNoPosition": "Ta position n’est pas connue. Autorise Alvyo à l’utiliser dans les réglages du téléphone.",
   "stageMore": "Détails et accès",
   "travelTitle": "Aller et retour",
   "travelTo": "Aller",
@@ -706,5 +706,8 @@
   "aboutPrivacyHint": "Ce que nous enregistrons et où vont les données – sur le site",
   "aboutOperator": "Exploitant et contact",
   "mapCreditLabel": "Sources de la carte",
-  "peaksCredit": "Relief : Mapterhorn · Sommets : © les contributeurs d'OpenStreetMap"
+  "peaksCredit": "Relief : Mapterhorn · Sommets : © les contributeurs d'OpenStreetMap",
+  "gpsServiceTitle": "Randonnée en cours",
+  "gpsServiceText": "Alvyo suit ta position, même écran verrouillé.",
+  "channelReminders": "Rappels des randonnées par étapes"
 }

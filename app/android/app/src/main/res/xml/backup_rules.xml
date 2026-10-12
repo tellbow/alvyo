@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and older. Offline maps and the mountains can be downloaded
+     again; the login is encrypted with a key of this phone and cannot be
+     read on another. -->
+<full-backup-content>
+    <exclude domain="file" path="packs/" />
+    <exclude domain="file" path="peaks/" />
+    <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+    <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml" />
+</full-backup-content>

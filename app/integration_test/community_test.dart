@@ -5,6 +5,8 @@ import 'package:alvyo/api.dart';
 import 'package:alvyo/main.dart';
 import 'package:alvyo/settings.dart';
 
+import 'login.dart';
+
 /// Against a local dev server with the demo account (see README.md): the
 /// profile's settings, a route's description, likes and comments, a
 /// collection, a stage's accommodation, sharing and the feed, as on the
@@ -43,12 +45,7 @@ void main() {
   Future<void> start(WidgetTester tester) async {
     await tester.pumpWidget(AlvyoApp(key: UniqueKey()));
     await settle(tester);
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester);
     await waitFor(tester, find.byKey(const Key('tab-profile')));
   }
 

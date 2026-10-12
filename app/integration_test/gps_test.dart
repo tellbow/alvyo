@@ -5,6 +5,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/main.dart';
 import 'package:alvyo/session.dart';
 
+import 'login.dart';
+
 /// The real GPS path, against the local dev server (see offline_test.dart).
 /// The simulator must be granted location access and be moving along
 /// «Sargans–Weisstannen» (`xcrun simctl privacy … grant location …`,
@@ -25,12 +27,7 @@ void main() {
   testWidgets('start a hike with the GPS', (tester) async {
     await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester);
     await waitFor(tester, find.byKey(const Key('tab-tours')));
     await tester.tap(find.byKey(const Key('tab-tours')));
     await waitFor(tester, find.text('Sargans–Weisstannen'));

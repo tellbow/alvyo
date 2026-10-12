@@ -5,6 +5,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/main.dart';
 
+import 'login.dart';
+
 /// Against a local dev server with the demo account and the places imported
 /// (`make places-import`): plans Sargans → Weisstannen by search, saves it
 /// and finds it in the list. Each run saves another route.
@@ -23,12 +25,7 @@ void main() {
   testWidgets('plan a route by search, save it and open it', (tester) async {
     await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester);
     await waitFor(tester, find.byKey(const Key('tab-plan')));
     await tester.tap(find.byKey(const Key('tab-plan'))); // Tagestour first
     await waitFor(tester, find.byKey(const Key('place-search-open')));

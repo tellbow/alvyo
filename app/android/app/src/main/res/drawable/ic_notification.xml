@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Λ for the status bar: white on transparent, cut to the letter. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="624"
+    android:viewportHeight="624">
+    <group
+        android:translateX="-200"
+        android:translateY="-200">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M220,795 L467,258 Q512,190 557,258 L804,795 L696,795 L512,396 L328,795 Z M409,460 L615,460 L615,538 L409,538 Z" />
+    </group>
+</vector>

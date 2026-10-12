@@ -12,7 +12,9 @@ const proxy = {
 };
 
 export default defineConfig({
-	server: { proxy },
+	// IPv4: the Android emulator reaches localhost:5173 through `adb reverse`,
+	// which connects to 127.0.0.1 only (Node would take ::1 on macOS).
+	server: { proxy, host: '127.0.0.1' },
 	preview: { proxy },
 	plugins: [
 		tailwindcss(),

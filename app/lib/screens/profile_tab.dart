@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -177,14 +178,16 @@ class _ProfileTabState extends State<ProfileTab> {
                         }
                       },
                     ),
-                    ListTile(
-                      key: const Key('devices'),
-                      leading: const Icon(Icons.watch_outlined),
-                      title: Text(t.devicesTitle),
-                      subtitle: Text(t.devicesSubtitle),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _push(DevicesScreen(api: widget.api, settings: widget.settings)),
-                    ),
+                    // Apple Watch only; Health Connect on Android is to come (issue 8).
+                    if (!Platform.isAndroid)
+                      ListTile(
+                        key: const Key('devices'),
+                        leading: const Icon(Icons.watch_outlined),
+                        title: Text(t.devicesTitle),
+                        subtitle: Text(t.devicesSubtitle),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _push(DevicesScreen(api: widget.api, settings: widget.settings)),
+                      ),
                   ]),
                   heading(t.settingsTitle),
                   group([

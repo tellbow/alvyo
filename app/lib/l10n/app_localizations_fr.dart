@@ -123,7 +123,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recordSaveFailed =>
-      'L’enregistrement ne peut pas être sauvegardé. La mémoire de l’iPhone est-elle pleine ?';
+      'L’enregistrement ne peut pas être sauvegardé. La mémoire du téléphone est-elle pleine ?';
 
   @override
   String navSaved(String distance, String duration) {
@@ -1265,7 +1265,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get connectionsNoPosition =>
-      'Ta position n’est pas connue. Autorise Alvyo à l’utiliser dans les réglages de l’iPhone.';
+      'Ta position n’est pas connue. Autorise Alvyo à l’utiliser dans les réglages du téléphone.';
 
   @override
   String get stageMore => 'Détails et accès';
@@ -2339,4 +2339,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get peaksCredit => 'Relief : Mapterhorn · Sommets : © les contributeurs d\'OpenStreetMap';
+
+  @override
+  String get gpsServiceTitle => 'Randonnée en cours';
+
+  @override
+  String get gpsServiceText => 'Alvyo suit ta position, même écran verrouillé.';
+
+  @override
+  String get channelReminders => 'Rappels des randonnées par étapes';
 }

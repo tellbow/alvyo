@@ -354,6 +354,48 @@ Checked so far only in the simulator, with made-up or simulated positions
       license page (packages and both fonts), the website's privacy text and
       operator. The peak camera shows its credit above «Passt die Linie …».
 
+## App on an Android phone (release APK)
+
+The APK from a GitHub Release (or `flutter build apk --release`), installed
+with «Install unknown apps» allowed for the browser or files app. The
+emulator ran the integration tests offline, navigate and journey
+(2026-10-12); the rest needs a phone.
+
+- [ ] **The map in a release build** (production): routes, journeys, the
+  offline map; release builds shrink the code, which the emulator tests
+  (debug builds) do not.
+- [ ] **Recording with the screen locked** for a whole hike: the
+  notification «Wanderung läuft» shows while recording and goes when it
+  ends; the track has no gaps, also with battery saver on (some makers stop
+  apps in the background: note the phone).
+- [ ] **Spoken turns** with the screen locked and music playing: the music
+  goes quieter for the prompt and back; a Swiss voice where the phone has
+  one.
+- [ ] **Off-route warning while locked**: the notification arrives and
+  vibrates; «Warnungen» and «Erinnerungen an Etappentouren» are listed
+  under the app's notifications in the settings.
+- [ ] **Location switched off, then on** with «Aufzeichnen» open: the red
+  banner goes once fixes come and the recording goes on (the emulator took
+  no GPS fixes, so this is untested).
+- [ ] **Notifications refused** (Android 13 and later): navigation and
+  recording still work, without warnings.
+- [ ] **A link from the website** («In der App öffnen»): opens the route,
+  journey or collection in the app, also when the app was closed.
+- [ ] **App links** (after a release with the APK and the website's
+  `assetlinks.json` deployed): a shared https link to a route, journey,
+  collection or invite opens the app without asking, in Messages or mail
+  (`adb shell pm get-app-links ch.tellbow.alvyo` says `verified`); other
+  addresses (the planner, /routes/map) open the browser.
+- [ ] **An update**: the APK of a later release installs over the earlier
+  one, and the login, offline maps and an unsent hike are still there.
+- [ ] **A new phone from a backup**: the app starts without an error and
+  asks for the login again (the login and settings are encrypted with a key
+  of the old phone, so they stay out of backups); no offline maps.
+- [ ] **Photos, sharing, files**: «Foto aufnehmen», a photo from the gallery,
+  «Link senden …» and importing a GPX file.
+- [ ] **Look and size**: the icon (also themed), the status bar in light and
+  dark, the back gesture, the keyboard over fields, large text.
+
 ## Web
 
 - [ ] **Google Analytics** (62): after the release, the banner on the

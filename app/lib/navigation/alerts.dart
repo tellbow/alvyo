@@ -8,19 +8,30 @@ class Alerts {
   bool _ready = false;
 
   /// Asks for permission the first time; completes once answered.
-  Future<void> init() => _init ??= _plugin
-      .initialize(
-        settings: const InitializationSettings(iOS: DarwinInitializationSettings(requestBadgePermission: false)),
-      )
-      .then((_) => _ready = true);
+  Future<void> init() => _init ??= () async {
+    await _plugin.initialize(
+      settings: const InitializationSettings(
+        iOS: DarwinInitializationSettings(requestBadgePermission: false),
+        android: AndroidInitializationSettings('ic_notification'),
+      ),
+    );
+    await _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    _ready = true;
+  }();
 
+  /// On Android, [title] also names the notifications in the system settings.
   Future<void> offRoute(String title, String body) async {
     await init();
     await _plugin.show(
       id: 1,
       title: title,
       body: body,
-      notificationDetails: const NotificationDetails(iOS: DarwinNotificationDetails(presentSound: true)),
+      notificationDetails: NotificationDetails(
+        iOS: const DarwinNotificationDetails(presentSound: true),
+        android: AndroidNotificationDetails('off-route', title, importance: Importance.high, priority: Priority.high),
+      ),
     );
   }
 

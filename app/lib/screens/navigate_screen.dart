@@ -189,7 +189,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
     }
     if (!mounted) return;
     setState(() => _recording = rec);
-    _sub = (widget.positions ?? gpsFixes)().listen(
+    _sub = (widget.positions ?? () => gpsFixes(AppLocalizations.of(context)))().listen(
       _onFix,
       onError: (Object e) {
         if (mounted) setState(() => _gps = gpsProblem(e));
@@ -226,11 +226,14 @@ class _NavigateScreenState extends State<NavigateScreen> {
     await _style?.updateGeoJsonSource(id: 'me', data: positionJson(fix.lon, fix.lat));
     if (_follow) {
       // A short glide rather than a jump to each position.
-      await _map?.animateCamera(
-        center: Geographic(lon: fix.lon, lat: fix.lat),
-        zoom: _followZoom,
-        nativeDuration: const Duration(milliseconds: 400),
-      );
+      // The next position or a gesture can cut it short (Android then fails it).
+      await _map
+          ?.animateCamera(
+            center: Geographic(lon: fix.lon, lat: fix.lat),
+            zoom: _followZoom,
+            nativeDuration: const Duration(milliseconds: 400),
+          )
+          .catchError((_) {});
     }
     if (p == null || !mounted) return;
     final t = AppLocalizations.of(context);
@@ -368,11 +371,13 @@ class _NavigateScreenState extends State<NavigateScreen> {
                         onPressed: () {
                           setState(() => _follow = true);
                           final f = _fix!;
-                          _map?.animateCamera(
-                            center: Geographic(lon: f.lon, lat: f.lat),
-                            zoom: _followZoom,
-                            nativeDuration: const Duration(milliseconds: 400),
-                          );
+                          _map
+                              ?.animateCamera(
+                                center: Geographic(lon: f.lon, lat: f.lat),
+                                zoom: _followZoom,
+                                nativeDuration: const Duration(milliseconds: 400),
+                              )
+                              .catchError((_) {});
                         },
                         child: const Icon(Icons.my_location),
                       ),

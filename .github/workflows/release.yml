@@ -2,8 +2,8 @@ name: release
 
 # A version tag (v0.1.0) publishes all images to GHCR for amd64 and arm64,
 # tagged 0.1.0 and sha-<commit>, each with an SBOM and its provenance; then a
-# GitHub Release with the version's row of docs/plan.md as its notes and
-# alvyo-cli for Linux, macOS and Windows.
+# GitHub Release with the version's row of docs/plan.md as its notes,
+# alvyo-cli for Linux, macOS and Windows, and the Android app (APK).
 on:
   push:
     tags: ['v*']
@@ -111,7 +111,29 @@ jobs:
             (cd api && CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath -ldflags "-s -w -X main.version=$v" \
               -o "../dist/alvyo-cli-$v-$os-$arch$ext" ./cmd/alvyo-cli)
           done
-          (cd dist && sha256sum alvyo-cli-* > SHA256SUMS)
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: 3.44.8
+          channel: stable
+          cache: false # a release builds once
+      # Signed with the release key (app/README.md): every later APK must be
+      # signed with the same key, or phones refuse it as an update.
+      - name: Android app (APK)
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          [ -n "$ANDROID_KEYSTORE" ] || { echo "::error::secret ANDROID_KEYSTORE is missing (app/README.md)"; exit 1; }
+          v="${GITHUB_REF_NAME#v}"
+          echo "$ANDROID_KEYSTORE" | base64 -d > "$RUNNER_TEMP/alvyo.jks"
+          printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=alvyo\nkeyPassword=%s\n' \
+            "$RUNNER_TEMP/alvyo.jks" "$ANDROID_KEYSTORE_PASSWORD" "$ANDROID_KEYSTORE_PASSWORD" > app/android/key.properties
+          (cd app && flutter build apk --release --build-name="$v" --build-number="$(git rev-list --count HEAD)" \
+            --dart-define=ALVYO_VERSION="$GITHUB_REF_NAME")
+          cp app/build/app/outputs/flutter-apk/app-release.apk "dist/alvyo-$v.apk"
+          rm "$RUNNER_TEMP/alvyo.jks" app/android/key.properties
+      - name: Checksums
+        run: (cd dist && sha256sum alvyo-* > SHA256SUMS)
       - name: Notes from docs/plan.md
         run: |
           v="${GITHUB_REF_NAME#v}"
@@ -125,6 +147,8 @@ jobs:
             echo "Images: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/alvyo-{api,web,data-import,postgis,graphhopper}:$v\`"
             echo
             echo "alvyo-cli for AI assistants and the command line: below (docs/mcp.md)."
+            echo
+            echo "The Android app: alvyo-$v.apk below, to install on the phone (app/README.md)."
             if [ -n "$prev" ]; then
               echo
               echo "Changes: https://github.com/${GITHUB_REPOSITORY}/compare/$prev...$GITHUB_REF_NAME"

@@ -122,7 +122,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsOff => 'Location is switched off: turn it on in Settings.';
 
   @override
-  String get recordSaveFailed => 'The recording cannot be saved. Is the iPhone’s storage full?';
+  String get recordSaveFailed => 'The recording cannot be saved. Is the phone’s storage full?';
 
   @override
   String navSaved(String distance, String duration) {
@@ -1257,7 +1257,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionsFromHere => 'Connections from here to the start';
 
   @override
-  String get connectionsNoPosition => 'Your location is not known. Allow Alvyo to use it in the iPhone settings.';
+  String get connectionsNoPosition => 'Your location is not known. Allow Alvyo to use it in the phoneâs settings.';
 
   @override
   String get stageMore => 'Details and getting there';
@@ -2324,4 +2324,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get peaksCredit => 'Terrain: Mapterhorn · Summits: © OpenStreetMap contributors';
+
+  @override
+  String get gpsServiceTitle => 'Hike in progress';
+
+  @override
+  String get gpsServiceText => 'Alvyo follows your location, also with the screen locked.';
+
+  @override
+  String get channelReminders => 'Journey reminders';
 }

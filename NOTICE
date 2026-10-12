@@ -56,6 +56,10 @@ Code derived from third-party projects is listed below with its license.
   software are copyright © 2010 The FreeType Project (www.freetype.org).
   All rights reserved.
 
+The Android app contains Google's desugar_jdk_libs (parts of OpenJDK,
+GPL-2.0 with the Classpath Exception; source at
+https://github.com/google/desugar_jdk_libs).
+
 Fonts: Figtree and Bricolage Grotesque, SIL Open Font License 1.1
 (app/assets/fonts/OFL-*.txt; on the website from @fontsource-variable).
 

@@ -319,7 +319,7 @@ abstract class AppLocalizations {
   /// No description provided for @recordSaveFailed.
   ///
   /// In de, this message translates to:
-  /// **'Die Aufzeichnung kann nicht gespeichert werden. Ist der Speicher des iPhones voll?'**
+  /// **'Die Aufzeichnung kann nicht gespeichert werden. Ist der Speicher des Telefons voll?'**
   String get recordSaveFailed;
 
   /// No description provided for @navSaved.
@@ -2365,7 +2365,7 @@ abstract class AppLocalizations {
   /// No description provided for @connectionsNoPosition.
   ///
   /// In de, this message translates to:
-  /// **'Dein Standort ist nicht bekannt. Erlaube Alvyo den Standort in den iPhone-Einstellungen.'**
+  /// **'Dein Standort ist nicht bekannt. Erlaube Alvyo den Standort in den Einstellungen des Telefons.'**
   String get connectionsNoPosition;
 
   /// No description provided for @stageMore.
@@ -4335,6 +4335,24 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Gelände: Mapterhorn · Gipfel: © OpenStreetMap-Mitwirkende'**
   String get peaksCredit;
+
+  /// No description provided for @gpsServiceTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderung läuft'**
+  String get gpsServiceTitle;
+
+  /// No description provided for @gpsServiceText.
+  ///
+  /// In de, this message translates to:
+  /// **'Alvyo folgt deinem Standort, auch bei gesperrtem Bildschirm.'**
+  String get gpsServiceText;
+
+  /// No description provided for @channelReminders.
+  ///
+  /// In de, this message translates to:
+  /// **'Erinnerungen an Etappentouren'**
+  String get channelReminders;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

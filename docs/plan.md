@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-10-10.
+Status: 2026-10-12.
 
 ## Goal
 
@@ -87,7 +87,7 @@ From the project owner, numbered in the order given: 1–5 added on
 on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
 2026-10-07 (from issue 15), 68 on 2026-10-07 (from issue 16), 69 on
 2026-10-07 (a concept of the project owner), 70 on 2026-10-09 (from issue
-14), 71 on 2026-10-09 (from issue 28).
+14), 71 on 2026-10-09 (from issue 28), 72 on 2026-10-12 (from issue 8).
 
 ### Done
 
@@ -816,6 +816,36 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
 14 was added on 2026-09-24 from a survey of Komoot, AllTrails,
 Outdooractive, SchweizMobil, the swisstopo app and others, and waits for
 Garmin. 44 is from the project owner on 2026-09-29.
+
+#### 72. The Android app (issue 8, started)
+
+The app on Android as on iOS, its APK with every GitHub Release, later in
+the Play Store; Google Analytics as for iOS (issue 9) comes after.
+
+Done (2026-10-12): the app builds and runs (minimum Android 8, the iOS
+icon as adaptive and themed icon); recording and navigation with the
+screen locked through a foreground service with a notification (no
+background location); spoken turns with Android's text-to-speech, other
+audio turned down; off-route warnings and journey reminders as
+notifications in their own channels, asked for on Android 13 and later;
+`alvyo://open/…` links, and app links: the website's addresses of a route,
+journey or collection and invite links open in the app (verified against
+`/.well-known/assetlinks.json` with the release key's fingerprint, also
+under /en/, /fr/, /it/); offline maps, the peak pack and the login kept out
+of backups; texts that named the iPhone name the phone. CI builds the
+APK; the release workflow signs it with the release key (secrets
+`ANDROID_KEYSTORE`, `ANDROID_KEYSTORE_PASSWORD`, app/README.md) and adds
+it to the GitHub Release. The integration tests offline, navigate and
+journey pass on the emulator. Found on the way: the login screen could
+overwrite a server typed before the last one was read, and on Android a
+camera move cut short by the next position skipped the rest of it
+(progress, warning, spoken turn).
+
+Open: «Berge erkennen» (a CameraX view and the rotation sensor) and the
+watch import through Health Connect, hidden on Android until then; the
+Play Store (developer account, listing, data
+safety form, an AAB); the manual tests on a real phone
+([manual-tests.md](manual-tests.md)).
 
 #### 44. 3D in the app (blocked)
 

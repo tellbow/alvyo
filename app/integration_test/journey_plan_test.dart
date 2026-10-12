@@ -6,6 +6,8 @@ import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/main.dart';
 
+import 'login.dart';
+
 /// Against a local dev server with GraphHopper and the places imported (see
 /// offline_test.dart for the demo account): plans Thun → Zermatt in five
 /// days on the journeys tab, suggests several ways, takes the second, goes
@@ -29,12 +31,7 @@ void main() {
 
     await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), server);
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester, server: server);
     await waitFor(tester, find.byKey(const Key('tab-plan')));
     await tester.tap(find.byKey(const Key('tab-plan')));
     await waitFor(tester, find.byKey(const Key('plan-mode-multi')));

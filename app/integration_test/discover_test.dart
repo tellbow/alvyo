@@ -4,6 +4,8 @@ import 'package:integration_test/integration_test.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/main.dart';
 
+import 'login.dart';
+
 /// Against a local dev server (web dev server on :5173 with the demo account
 /// appdemo / sehr-geheim-123 and imported routes, GraphHopper running):
 /// makes a public route near the centre of Switzerland unless there is one,
@@ -43,12 +45,7 @@ void main() {
 
     await tester.pumpWidget(const AlvyoApp());
     await tester.pump(const Duration(seconds: 1));
-    if (find.byKey(const Key('server')).evaluate().isNotEmpty) {
-      await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
-      await tester.enterText(find.byKey(const Key('login')), 'appdemo');
-      await tester.enterText(find.byKey(const Key('password')), 'sehr-geheim-123');
-      await tester.tap(find.byKey(const Key('submit')));
-    }
+    await logInIfAsked(tester);
     // Entdecken › In deiner Nähe › Karte.
     await waitFor(tester, find.byKey(const Key('nearby-map')));
     await tester.tap(find.byKey(const Key('nearby-map')));

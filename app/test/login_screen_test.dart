@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -58,4 +59,29 @@ void main() {
     await login(tester, problem(401, 'invalid login or password'));
     expect(find.text('E-Mail/Benutzername oder Passwort ist falsch.'), findsOneWidget);
   });
+
+  testWidgets('a server typed before the last one is read stays', (tester) async {
+    final last = Completer<String>();
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: LoginScreen(session: _SlowSession(last.future), onLoggedIn: (_) {}),
+      ),
+    );
+    await tester.enterText(find.byKey(const Key('server')), 'http://localhost:5173');
+    last.complete('https://alvyo.tellbow.ch');
+    await tester.pump();
+    expect(find.text('http://localhost:5173'), findsOneWidget);
+  });
+}
+
+/// Reads the last server slowly, as secure storage on Android can.
+class _SlowSession extends Session {
+  _SlowSession(this.last);
+
+  final Future<String> last;
+
+  @override
+  Future<String> lastServer() => last;
 }

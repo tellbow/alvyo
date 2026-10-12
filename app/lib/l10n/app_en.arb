@@ -37,7 +37,7 @@
   "navContinue": "Keep going",
   "navNoPermission": "This needs your location. Allow it in Settings.",
   "gpsOff": "Location is switched off: turn it on in Settings.",
-  "recordSaveFailed": "The recording cannot be saved. Is the iPhone’s storage full?",
+  "recordSaveFailed": "The recording cannot be saved. Is the phone’s storage full?",
   "navSaved": "Recorded: {distance} in {duration}. It will be uploaded once you are online.",
   "navFollow": "Follow my position",
   "navUploaded": "Saved to My routes: {distance} in {duration}",
@@ -378,7 +378,7 @@
   "collectionStages": "{n} stages",
   "myMapKindHike": "Hiked",
   "connectionsFromHere": "Connections from here to the start",
-  "connectionsNoPosition": "Your location is not known. Allow Alvyo to use it in the iPhone settings.",
+  "connectionsNoPosition": "Your location is not known. Allow Alvyo to use it in the phoneâs settings.",
   "stageMore": "Details and getting there",
   "travelTitle": "Getting there and back",
   "travelTo": "Getting there",
@@ -706,5 +706,8 @@
   "aboutPrivacyHint": "What we store and where data goes – on the website",
   "aboutOperator": "Operator and contact",
   "mapCreditLabel": "Map sources",
-  "peaksCredit": "Terrain: Mapterhorn · Summits: © OpenStreetMap contributors"
+  "peaksCredit": "Terrain: Mapterhorn · Summits: © OpenStreetMap contributors",
+  "gpsServiceTitle": "Hike in progress",
+  "gpsServiceText": "Alvyo follows your location, also with the screen locked.",
+  "channelReminders": "Journey reminders"
 }

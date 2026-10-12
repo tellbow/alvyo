@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Λ of the app icon on its 1024 px grid: a themed launcher icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <!-- Smaller, as on the launcher icon's foreground, so a round mask keeps the legs. -->
+    <group
+        android:pivotX="512"
+        android:pivotY="512"
+        android:scaleX="0.75"
+        android:scaleY="0.75">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M220,795 L467,258 Q512,190 557,258 L804,795 L696,795 L512,396 L328,795 Z M409,460 L615,460 L615,538 L409,538 Z" />
+    </group>
+</vector>

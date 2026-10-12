@@ -26,7 +26,12 @@ terms change, so check again when a source's use changes.
   License, credited in NOTICE), npm 316 (permissive; MPL-2.0 only in the
   build tool lightningcss), Dart 142 (permissive; MPL-2.0 only in Linux
   plugins). The fonts are OFL-1.1; the app ships their license texts and
-  shows them on its license page with every package's.
+  shows them on its license page with every package's. The Android app
+  adds Gradle libraries `make licenses` does not list: MapLibre Native
+  (BSD-2-Clause), AndroidX and Google's (Apache-2.0), and Google's
+  `desugar_jdk_libs` (parts of OpenJDK, GPL-2.0 with the Classpath
+  Exception: allowed in an AGPL app, credited in NOTICE; checked
+  2026-10-12 on its Maven POM). The ktlint Gradle plugin (MIT) only builds.
 - **Commercial use** is allowed by the AGPL and by every data source below
   except as noted (opentransportdata.swiss above its free quota, geo.admin
   services beyond fair use).

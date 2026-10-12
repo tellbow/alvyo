@@ -1,0 +1,12 @@
+[
+	{
+		"relation": ["delegate_permission/common.handle_all_urls"],
+		"target": {
+			"namespace": "android_app",
+			"package_name": "ch.tellbow.alvyo",
+			"sha256_cert_fingerprints": [
+				"42:D0:B0:D1:F1:67:10:1A:70:91:1E:6C:31:75:34:15:5F:7F:08:55:87:09:D6:29:FB:E7:1A:42:3B:FC:6B:11"
+			]
+		}
+	}
+]

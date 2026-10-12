@@ -1,8 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- The position on the map and the recording of a hike. Recording goes
+         on with the screen locked through a foreground service started while
+         the app is open (geolocator), so no background location is needed. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Journey reminders are scheduled again after a restart. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:label="Alvyo"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -24,7 +38,52 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Links from the website («In der App öffnen»): alvyo://open/routes/{id}?t=… -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="alvyo" android:host="open" />
+            </intent-filter>
+            <!-- App links: the website's addresses of a route, journey or collection
+                 (an id: «........-»; not /routes/map or /journeys/plan) and invite
+                 links open in the app. Android checks them against
+                 web/static/.well-known/assetlinks.json, which names the release
+                 key; debug builds are not signed with it. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="alvyo.tellbow.ch" />
+                <data android:pathPattern="/routes/........-.*" />
+                <data android:pathPattern="/journeys/........-.*" />
+                <data android:pathPattern="/collections/........-.*" />
+                <data android:pathPrefix="/friends/invite/" />
+                <data android:pathPattern="/en/routes/........-.*" />
+                <data android:pathPattern="/en/journeys/........-.*" />
+                <data android:pathPattern="/en/collections/........-.*" />
+                <data android:pathPrefix="/en/friends/invite/" />
+                <data android:pathPattern="/fr/routes/........-.*" />
+                <data android:pathPattern="/fr/journeys/........-.*" />
+                <data android:pathPattern="/fr/collections/........-.*" />
+                <data android:pathPrefix="/fr/friends/invite/" />
+                <data android:pathPattern="/it/routes/........-.*" />
+                <data android:pathPattern="/it/journeys/........-.*" />
+                <data android:pathPattern="/it/collections/........-.*" />
+                <data android:pathPrefix="/it/friends/invite/" />
+            </intent-filter>
         </activity>
+        <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+        <!-- Journey reminders (flutter_local_notifications). -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

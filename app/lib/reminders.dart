@@ -58,6 +58,7 @@ class PhoneReminders {
           requestSoundPermission: false,
           requestBadgePermission: false,
         ),
+        android: AndroidInitializationSettings('ic_notification'),
       ),
     );
   }();
@@ -77,6 +78,9 @@ class PhoneReminders {
         alert: true,
         sound: true,
       );
+      await _plugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
       for (final r in due) {
         await _plugin.zonedSchedule(
           id: r.id,
@@ -87,7 +91,10 @@ class PhoneReminders {
             _ => t.reminderStart,
           },
           scheduledDate: tz.TZDateTime(zurich, r.at.year, r.at.month, r.at.day, r.at.hour),
-          notificationDetails: const NotificationDetails(iOS: DarwinNotificationDetails()),
+          notificationDetails: NotificationDetails(
+            iOS: const DarwinNotificationDetails(),
+            android: AndroidNotificationDetails('reminders', t.channelReminders),
+          ),
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
       }

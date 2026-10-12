@@ -37,7 +37,7 @@
   "navContinue": "Continua",
   "navNoPermission": "L'app ha bisogno della tua posizione. Consentila nelle impostazioni.",
   "gpsOff": "La localizzazione è disattivata: attivala nelle impostazioni.",
-  "recordSaveFailed": "La registrazione non può essere salvata. La memoria dell’iPhone è piena?",
+  "recordSaveFailed": "La registrazione non può essere salvata. La memoria del telefono è piena?",
   "navSaved": "Registrata: {distance} in {duration}. Verrà caricata appena sei online.",
   "navFollow": "Segui la mia posizione",
   "navUploaded": "Salvata in I miei percorsi: {distance} in {duration}",
@@ -378,7 +378,7 @@
   "collectionStages": "{n} tappe",
   "myMapKindHike": "Escursioni fatte",
   "connectionsFromHere": "Collegamenti da qui alla partenza",
-  "connectionsNoPosition": "La tua posizione non è nota. Consenti ad Alvyo di usarla nelle impostazioni dell’iPhone.",
+  "connectionsNoPosition": "La tua posizione non è nota. Consenti ad Alvyo di usarla nelle impostazioni del telefono.",
   "stageMore": "Dettagli e come arrivare",
   "travelTitle": "Andata e ritorno",
   "travelTo": "Andata",
@@ -706,5 +706,8 @@
   "aboutPrivacyHint": "Cosa salviamo e dove vanno i dati – sul sito",
   "aboutOperator": "Gestore e contatto",
   "mapCreditLabel": "Fonti della carta",
-  "peaksCredit": "Terreno: Mapterhorn · Cime: © i contributori di OpenStreetMap"
+  "peaksCredit": "Terreno: Mapterhorn · Cime: © i contributori di OpenStreetMap",
+  "gpsServiceTitle": "Escursione in corso",
+  "gpsServiceText": "Alvyo segue la tua posizione, anche a schermo bloccato.",
+  "channelReminders": "Promemoria dei trekking a tappe"
 }

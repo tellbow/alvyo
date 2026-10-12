@@ -21,7 +21,7 @@ One VPS in Switzerland or the EU is enough to start:
 |---|---|---|
 | CPU | 4 vCPU | GraphHopper import (weekly), API |
 | RAM | 8 GB | GraphHopper serves with ~3 GB heap, imports need ~4 GB more |
-| Disk | 40 GB | OSM extract 0.6 GB, graph 2 GB (+2 GB during refresh), trail data 0.6 GB, tile cache up to 60 GB (`infra/tilecache/nginx.conf`, `max_size`) — size the cache to the disk; photos about 0.5 MB each (at most 1000 per person), plus 3 copies in the backups; offline map packs at most 512 MiB in the API cache (ADR-0004) |
+| Disk | 40 GB | OSM extracts 4.9 GB (Switzerland, Liechtenstein and the neighbouring regions), graph 0.7 GB (three during a refresh), trail data 0.6 GB, tile cache up to 60 GB (`infra/tilecache/nginx.conf`, `max_size`) — size the cache to the disk; photos about 0.5 MB each (at most 1000 per person), plus 3 copies in the backups; offline map packs at most 512 MiB in the API cache (ADR-0004) |
 
 Docker with the Compose plugin, ports 80/443 open, a DNS record for the domain.
 
@@ -34,7 +34,6 @@ The API calls these services; allow them if egress is restricted:
 | `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
 | `api.opentransportdata.swiss` | Connections (OJP), only if `ALVYO_OJP_TOKEN` is set |
 | `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for `tellbow/alvyo` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write». Without it reports are only kept in the database. |
-| `api.komoot.de` | Komoot import. This is Komoot's unofficial API: when Komoot changes it, the import fails with 502, while GPX, KML, TCX and FIT upload keep working. |
 
 The tile cache fetches from `wmts.geo.admin.ch` and `tiles.mapterhorn.com`
 and checks their certificates (`proxy_ssl_verify`; the cluster has its own
@@ -98,7 +97,7 @@ address is confirmed.
 git clone https://github.com/tellbow/alvyo.git /srv/alvyo
 cd /srv/alvyo
 make osm-fetch                          # OSM extracts: Switzerland, Liechtenstein, 15 km beyond
-cp infra/.env.example infra/.env        # fill in DOMAIN, POSTGRES_PASSWORD, SMTP, CONTACT_EMAIL
+cp infra/.env.example infra/.env        # fill in DOMAIN, POSTGRES_PASSWORD, SMTP, CONTACT_EMAIL, OPERATOR_*
 cd infra
 docker compose -f compose.prod.yaml up -d --build   # first start: GraphHopper imports ~2 min
 docker compose -f compose.prod.yaml run --rm tlm-import   # official trail network, once a year
@@ -110,8 +109,19 @@ Caddy obtains the TLS certificate on the first request to `https://$DOMAIN`.
 Set `VERSION` in `.env` to the deployed git SHA (`git rev-parse --short HEAD`);
 the About page shows it next to the source link (AGPL §13).
 
-Before going public, e-mail swisstopo (geodata@swisstopo.ch) about the
-expected tile volume: the WMTS terms allow restricting "excessive use".
+Before going public:
+
+- Set `OPERATOR_NAME` and `OPERATOR_ADDRESS` (on the cluster
+  `PUBLIC_OPERATOR_NAME` and `PUBLIC_OPERATOR_ADDRESS` of the web
+  deployment in the gitops repo): the About page then names who answers
+  for the site, as data protection law asks.
+- Make the GitHub repository public: the About pages link its source (AGPL
+  §13), NOTICE and the scripts that make the OpenStreetMap databases (ODbL).
+  Bug reports then become public issues, as the report form says.
+- E-mail swisstopo (geodata@swisstopo.ch) about the expected tile volume:
+  the terms allow restricting "excessive use" (about 20,000 users a day in
+  a web application count as fair use).
+- The terms and credits of every source: [licensing.md](licensing.md).
 
 ## Scheduled jobs (cron, as the deploy user)
 
@@ -157,6 +167,17 @@ gets a service account token (it restarts GraphHopper). The `geodata`
 volume belongs to uid 1000; Longhorn does not apply `fsGroup` to
 ReadWriteMany volumes, so a pod writing to it must run as 1000. The nginx
 configurations keep their pid file and temp files in `/tmp`.
+
+The `geodata` volume (15 GiB) holds about 7.5 GB (2026-10-12): OSM 4.9 GB,
+the graph and its rollback copy 0.7 GB each, swissTLM3D 0.6 GB, the
+elevation cache 0.2 GB, Wanderland and places 0.2 GB. The weekly
+`graph-refresh` (Monday 02:00 UTC) rewrites about 6 GB of it, and Longhorn
+counts freed blocks as used until the filesystem is trimmed: the
+RecurringJob `filesystem-trim` (gitops
+`cluster/longhorn-system/recurringjob-trim.yaml`) therefore runs daily at
+04:00 UTC. Weekly, it left the volume's actual size at 88 % for six days
+and fired `LonghornVolumeUsageWarning` (over 80 %). A trim by hand: Longhorn
+UI, the volume, «Trim Filesystem».
 
 ## Releases (container images)
 
@@ -207,7 +228,7 @@ noisy tracks).
 The OSM data reaches 15 km beyond the border (requirement 31): `fetch-and-merge.sh`
 downloads about 3.4 GB of neighbouring extracts (kept, so later runs download
 only what changed) and cuts them with `osmium extract`, which needs up to
-3.7 GiB of memory; with them the data volume holds about 4.5 GB of OSM files
+3.7 GiB of memory; with them the data volume holds about 4.9 GB of OSM files
 and 0.6 GB per graph (three during a refresh). The graph import stays within
 a 3 GB heap (2.3 GB used, 3 min); GraphHopper serves it in about 1.4 GB
 (the old graph: 0.7 GB), well within its 4.5 GiB limit.

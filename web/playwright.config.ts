@@ -48,7 +48,12 @@ export default defineConfig({
 			command: 'bun run build && bun run preview',
 			port: WEB_PORT,
 			reuseExistingServer: !process.env.CI,
-			env: { API_INTERNAL_URL: `http://localhost:${API_PORT}` }
+			env: {
+				API_INTERNAL_URL: `http://localhost:${API_PORT}`,
+				PUBLIC_CONTACT_EMAIL: 'hallo@alvyo.test',
+				PUBLIC_OPERATOR_NAME: 'Alvyo Test',
+				PUBLIC_OPERATOR_ADDRESS: 'Wanderweg 1, 3000 Bern'
+			}
 		}
 	]
 });

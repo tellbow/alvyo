@@ -1,7 +1,7 @@
 GO_MODULES := swiss api
 COMPOSE    := docker compose -f infra/compose.yaml
 
-.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import wanderland-import weather-precip sqlc api-client scorecard
+.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import wanderland-import weather-precip sqlc api-client scorecard licenses
 
 test: test-go test-web
 
@@ -10,6 +10,11 @@ test-go:
 
 test-web:
 	cd web && bun run test:unit --run --passWithNoTests
+
+# The licenses of all Go, npm and Dart packages; fails on one not reviewed
+# (after `bun install` in web and `flutter pub get` in app; docs/licensing.md).
+licenses:
+	python3 -I infra/ops/licenses.py
 
 lint: lint-go lint-web
 

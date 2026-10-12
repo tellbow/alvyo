@@ -1,19 +1,44 @@
 Alvyo
 Copyright (C) 2026 Adrian Berger and Alvyo contributors
 Licensed under the GNU Affero General Public License v3.0 only (AGPL-3.0-only).
+Contributions are accepted under the Contributor License Agreement in CLA.md.
 
-Data sources (attribution required when displaying or distributing):
-- Maps, elevation (swissALTI3D), swissTLM3D hiking trails: © swisstopo
-  (Federal Office of Topography swisstopo, free geodata / OGD terms)
-- Routing network, huts and accommodation: © OpenStreetMap contributors (ODbL)
-- Public transport stops: Federal Office of Transport BAV (list of stops, OGD)
-- Public transport: opentransportdata.swiss
-- The official hiking routes (national, regional, local, barrier-free):
-  Wanderland Schweiz, ASTRA / SchweizMobil (ch.astra.wanderland,
+Data sources (attribution required when displaying or distributing; terms,
+links and where each is credited: docs/licensing.md):
+- Maps, aerial images, base map, elevation (swissALTI3D), relief, slopes,
+  swissTLM3D hiking trails, place names: © swisstopo (Federal Office of
+  Topography swisstopo, free geodata / OGD terms)
+- The official hiking routes (national, regional, local, barrier-free) and
+  hiking trail closures and diversions: Wanderland Schweiz, ASTRA /
+  SchweizMobil (ch.astra.wanderland, ch.astra.wanderland-sperrungen_umleitungen,
   opendata.swiss, open use, source required); named on every route's page
 - Reference stages for calibration (swiss/testdata/reference_stages.json):
   Wanderland Schweiz, ASTRA / SchweizMobil (opendata.swiss, open use, source
   required)
+- Wildlife rest areas and federal hunting reserves: Federal Office for the
+  Environment BAFU and the cantons (opendata.swiss, open use, source required)
+- Shooting notices: Federal Department of Defence VBS (ch.vbs.schiessanzeigen,
+  opendata.swiss, open use, source required)
+- Weather forecasts, rain radar, ICON-CH1 precipitation forecast, climate
+  normals 1991–2020: Source: MeteoSwiss (CC BY 4.0)
+- Public transport connections: opentransportdata.swiss (Open Journey Planner)
+- Public transport stops: Federal Office of Transport BAV (list of stops, OGD)
+- Routing network, huts, accommodation, places, points of interest and the
+  summits of the app's peak pack: © OpenStreetMap contributors (ODbL,
+  https://www.openstreetmap.org/copyright), from Geofabrik's extracts. The
+  databases Alvyo derives from it are made by the import scripts in
+  infra/data-import and are available under the ODbL.
+- Terrain for the 3D map and the app's peak pack: Mapterhorn
+  (https://mapterhorn.com/attribution), built from Copernicus GLO-30
+  (© DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018,
+  provided under COPERNICUS by the European Union and ESA), swissALTI3D
+  (© swisstopo) and the national elevation models of the neighbouring
+  countries (mostly CC BY 4.0 and open government licences)
+- Heights in the routing graph (slopes of «Wie weit komme ich?»): Terrain
+  Tiles by Mapzen (https://github.com/tilezen/joerd/blob/master/docs/attribution.md);
+  Europe: produced using Copernicus data and information funded by the
+  European Union – EU-DEM layers; SRTM data courtesy of the U.S. Geological
+  Survey
 
 Algorithms:
 - Swiss hiking time: SchweizMobil variant of the Schweizer Wanderwege formula,
@@ -24,7 +49,15 @@ Code derived from third-party projects is listed below with its license.
 - HEIC photos are decoded with github.com/gen2brain/heic (MIT), which embeds
   the Rust heic decoder (github.com/imazen/heic, AGPL-3.0-only) compiled to
   WebAssembly.
-- api/internal/imports/komoot.go: use of Komoot's unofficial API (login, tour
-  list, tour coordinates) follows the Komoot plugin of wanderer
-  (github.com/open-wanderer/wanderer, plugins/komoot), AGPL-3.0.
-  Re-implemented in Go for Alvyo on 2026-09-23.
+- api/internal/packs/pmtiles.go: the PMTiles v3 encoding is adapted from
+  protomaps/go-pmtiles (BSD-3-Clause, © 2021 Protomaps LLC).
+- The OG images are drawn with github.com/fogleman/gg, which uses
+  github.com/golang/freetype under the FreeType License: portions of this
+  software are copyright © 2010 The FreeType Project (www.freetype.org).
+  All rights reserved.
+
+Fonts: Figtree and Bricolage Grotesque, SIL Open Font License 1.1
+(app/assets/fonts/OFL-*.txt; on the website from @fontsource-variable).
+
+The licenses of all other Go, npm and Dart packages are listed by the
+commands in docs/licensing.md; the app shows them under «Über Alvyo».

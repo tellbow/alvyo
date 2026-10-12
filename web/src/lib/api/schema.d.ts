@@ -561,60 +561,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/imports/komoot": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Import Komoot tours as private routes */
-        post: operations["komoot-import"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/imports/komoot/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Log in to Komoot and list the tours
-         * @description The password goes to Komoot only and is not stored; Komoot's session token is kept in memory for 30 minutes.
-         */
-        post: operations["komoot-login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/imports/komoot/tours": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Another page of Komoot tours */
-        get: operations["komoot-tours"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/imports/preview": {
         parameters: {
             query?: never;
@@ -3352,8 +3298,6 @@ export interface components {
         ImportedRoute: {
             /** Format: uuid */
             id: string;
-            /** @description The Komoot tour id */
-            ref?: string;
             title: string;
         };
         Info: {
@@ -3536,35 +3480,6 @@ export interface components {
             /** Format: date-time */
             run: string;
             stages: components["schemas"]["StageWeather"][];
-        };
-        KomootImportInputBody: {
-            session: string;
-            /** @description At most 10 per request; the page imports in batches */
-            tour_ids: number[];
-        };
-        KomootLoginInputBody: {
-            email: string;
-            password: string;
-        };
-        KomootTour: {
-            date: string;
-            /** Format: double */
-            distance: number;
-            /** Format: int64 */
-            id: number;
-            /** Format: uuid */
-            imported_route_id?: string;
-            name: string;
-            sport: string;
-            /** @description tour_planned or tour_recorded */
-            type: string;
-        };
-        KomootToursOutputBody: {
-            /** @description Pass to the other Komoot calls; expires after 30 minutes */
-            session: string;
-            /** Format: int64 */
-            total_pages: number;
-            tours: components["schemas"]["KomootTour"][];
         };
         LargeBlobInputs: {
             read?: boolean;
@@ -6043,104 +5958,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "komoot-import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["KomootImportInputBody"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImportOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "komoot-login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["KomootLoginInputBody"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KomootToursOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "komoot-tours": {
-        parameters: {
-            query: {
-                session: string;
-                page?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KomootToursOutputBody"];
                 };
             };
             /** @description Error */

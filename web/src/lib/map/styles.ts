@@ -7,6 +7,16 @@ export const CH_CENTER: [number, number] = [8.23, 46.82];
 
 export const SWISSTOPO_ATTRIBUTION =
 	'<a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener">© swisstopo</a>';
+/** Routes are computed on OpenStreetMap; huts, places and points of interest come from it. */
+export const OSM_ATTRIBUTION =
+	'<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>';
+const ASTRA_ATTRIBUTION =
+	'<a href="https://www.schweizmobil.ch/" target="_blank" rel="noopener">© ASTRA, SchweizMobil</a>';
+const BAFU_ATTRIBUTION =
+	'<a href="https://www.bafu.admin.ch/" target="_blank" rel="noopener">© BAFU</a>';
+/** The heights behind the reach areas' slopes (GraphHopper's elevation from Mapzen's terrain tiles). */
+export const TERRAIN_TILES_ATTRIBUTION =
+	'<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">Terrain Tiles: Mapzen, EU-DEM (Copernicus), SRTM (USGS)</a>';
 
 export type BaseMapId = 'landeskarte' | 'landeskarte_grau' | 'luftbild' | 'basemap';
 export type RasterOverlayId =
@@ -32,15 +42,34 @@ export const OVERLAYS: OverlayId[] = [
 ];
 
 /** swisstopo WMTS layers (EPSG:3857) served through our tile cache. */
-const RASTER: Record<string, { layer: string; ext: 'jpeg' | 'png'; maxzoom: number }> = {
+/** The federal offices' layers credit their office (BAFU, ASTRA); swisstopo's are in the base attribution. */
+const RASTER: Record<
+	string,
+	{ layer: string; ext: 'jpeg' | 'png'; maxzoom: number; attribution?: string }
+> = {
 	landeskarte: { layer: 'ch.swisstopo.pixelkarte-farbe', ext: 'jpeg', maxzoom: 19 },
 	landeskarte_grau: { layer: 'ch.swisstopo.pixelkarte-grau', ext: 'jpeg', maxzoom: 19 },
 	luftbild: { layer: 'ch.swisstopo.swissimage', ext: 'jpeg', maxzoom: 20 },
 	wanderwege: { layer: 'ch.swisstopo.swisstlm3d-wanderwege', ext: 'png', maxzoom: 18 },
-	wanderland: { layer: 'ch.astra.wanderland', ext: 'png', maxzoom: 18 },
+	wanderland: {
+		layer: 'ch.astra.wanderland',
+		ext: 'png',
+		maxzoom: 18,
+		attribution: ASTRA_ATTRIBUTION
+	},
 	hangneigung: { layer: 'ch.swisstopo.hangneigung-ueber_30', ext: 'png', maxzoom: 17 },
-	wildruhezonen: { layer: 'ch.bafu.wrz-wildruhezonen_portal', ext: 'png', maxzoom: 18 },
-	jagdbanngebiete: { layer: 'ch.bafu.bundesinventare-jagdbanngebiete', ext: 'png', maxzoom: 18 },
+	wildruhezonen: {
+		layer: 'ch.bafu.wrz-wildruhezonen_portal',
+		ext: 'png',
+		maxzoom: 18,
+		attribution: BAFU_ATTRIBUTION
+	},
+	jagdbanngebiete: {
+		layer: 'ch.bafu.bundesinventare-jagdbanngebiete',
+		ext: 'png',
+		maxzoom: 18,
+		attribution: BAFU_ATTRIBUTION
+	},
 	relief: { layer: 'ch.swisstopo.swissalti3d-reliefschattierung', ext: 'png', maxzoom: 18 }
 };
 
@@ -53,7 +82,8 @@ function rasterSource(id: string, origin: string) {
 		tiles: [`${TILE_PROTOCOL}://${origin}/tiles/wmts/${r.layer}/{z}/{x}/{y}.${r.ext}`],
 		tileSize: 256,
 		maxzoom: r.maxzoom,
-		bounds: CH_BOUNDS
+		bounds: CH_BOUNDS,
+		...(r.attribution ? { attribution: r.attribution } : {})
 	};
 }
 

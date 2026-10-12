@@ -35,6 +35,9 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  assets:
+    - assets/fonts/OFL-Figtree.txt
+    - assets/fonts/OFL-BricolageGrotesque.txt
   fonts:
     - family: Figtree
       fonts:

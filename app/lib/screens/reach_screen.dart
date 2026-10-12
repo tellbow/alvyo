@@ -7,6 +7,7 @@ import 'package:maplibre/maplibre.dart';
 import '../api.dart';
 import '../camera.dart';
 import '../l10n/app_localizations.dart';
+import '../map_credit.dart';
 import '../map_style.dart';
 import '../navigation/gps.dart';
 import '../place_layer.dart';
@@ -345,7 +346,12 @@ class ReachScreenState extends State<ReachScreen> {
       body: Stack(
         children: [
           Positioned.fill(child: _mapView),
-          Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
+          Positioned(
+            top: 12,
+            left: 12,
+            right: 64,
+            child: MapCorner(precip: PrecipBar(controller: _places.precip)),
+          ),
           const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
           if (_busy)
             Positioned(

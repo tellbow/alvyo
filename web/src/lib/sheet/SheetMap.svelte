@@ -119,6 +119,7 @@
 		/>
 	{/if}
 	<figcaption class="absolute right-0 bottom-0 bg-white/80 px-1 text-[9px] text-[#56645c]">
-		© swisstopo
+		<!-- On paper the OpenStreetMap credit carries its address (the line is routed on OSM). -->
+		© swisstopo · © OpenStreetMap contributors, openstreetmap.org/copyright
 	</figcaption>
 </figure>

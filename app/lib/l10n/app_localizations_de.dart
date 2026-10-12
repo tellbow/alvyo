@@ -1611,7 +1611,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String bugPrivacy(String place) {
-    return 'Mit dem Bericht gehen die Adresse ($place), die Version, dein Benutzername und das Bildschirmfoto an die Entwickler (GitHub). Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.';
+    return 'Der Bericht wird als öffentliches Issue auf GitHub veröffentlicht: dein Text, die Adresse ($place), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.';
   }
 
   @override
@@ -2248,4 +2248,90 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tokensFull => 'Du hast schon 20 Token. Widerrufe zuerst eines.';
+
+  @override
+  String get aboutTitle => 'Über Alvyo';
+
+  @override
+  String get aboutIntro => 'Alvyo ist eine offene Plattform, um Wanderungen in der Schweiz zu planen und zu teilen.';
+
+  @override
+  String get aboutDataTitle => 'Daten';
+
+  @override
+  String get aboutDataIntro => 'Alvyo zeigt Daten dieser Quellen; danke allen, die sie offen zur Verfügung stellen:';
+
+  @override
+  String get aboutSrcSwisstopo =>
+      'Bundesamt für Landestopografie swisstopo: Landeskarten, Luftbilder, Basiskarte, Höhenmodell swissALTI3D, Relief, Hangneigung und Wanderwege (swissTLM3D)';
+
+  @override
+  String get aboutSrcAstra =>
+      'Bundesamt für Strassen ASTRA und SchweizMobil: die offiziellen Routen von Wanderland Schweiz, Sperrungen und Umleitungen von Wanderwegen';
+
+  @override
+  String get aboutSrcBafu => 'Bundesamt für Umwelt BAFU und Kantone: Wildruhezonen und eidgenössische Jagdbanngebiete';
+
+  @override
+  String get aboutSrcVbs =>
+      'Eidgenössisches Departement für Verteidigung, Bevölkerungsschutz und Sport VBS: Schiessanzeigen';
+
+  @override
+  String get aboutSrcMeteo =>
+      'Quelle: MeteoSchweiz – Wetterprognosen, Regenradar, Niederschlagsprognose (ICON-CH1) und Klimanormwerte';
+
+  @override
+  String get aboutSrcTransport => 'opentransportdata.swiss: Fahrplan und Verbindungen (Open Journey Planner)';
+
+  @override
+  String get aboutSrcBav => 'Bundesamt für Verkehr BAV: Haltestellen des öffentlichen Verkehrs';
+
+  @override
+  String get aboutSrcOsm =>
+      '© OpenStreetMap-Mitwirkende: das Wegnetz für die Routenberechnung, Hütten, Unterkünfte, Orte und Gipfel';
+
+  @override
+  String get aboutSrcMapterhorn =>
+      'Mapterhorn (aus Copernicus GLO-30, swissALTI3D und Höhenmodellen der Nachbarländer): Gelände für die 3D-Karte und «Berge erkennen» in der App';
+
+  @override
+  String get aboutSrcTerrain =>
+      'Terrain Tiles von Mapzen (EU-DEM: mit Daten von Copernicus erstellt, finanziert von der Europäischen Union; SRTM: U.S. Geological Survey): Steigungen für «Wie weit komme ich?»';
+
+  @override
+  String get aboutSrcHikingtime => 'Wanderzeiten nach der Formel von SchweizMobil / Schweizer Wanderwege';
+
+  @override
+  String get aboutSafety =>
+      'Wanderzeiten und Schwierigkeiten sind berechnete Richtwerte. Prüfe Wetter, Verhältnisse und die Signalisation vor Ort.';
+
+  @override
+  String get aboutCodeTitle => 'Quellcode und Lizenzen';
+
+  @override
+  String get aboutCode => 'Alvyo ist freie Software unter der AGPL-3.0.';
+
+  @override
+  String get aboutSourceLink => 'Quellcode auf GitHub';
+
+  @override
+  String get aboutNoticeLink => 'Quellen und Lizenzen von Code und Daten anderer (NOTICE)';
+
+  @override
+  String get aboutLicenses => 'Lizenzen der Bausteine dieser App';
+
+  @override
+  String get aboutPrivacy => 'Datenschutz';
+
+  @override
+  String get aboutPrivacyHint => 'Was wir speichern und wohin Daten gehen – auf der Website';
+
+  @override
+  String get aboutOperator => 'Betreiber und Kontakt';
+
+  @override
+  String get mapCreditLabel => 'Quellenangaben der Karte';
+
+  @override
+  String get peaksCredit => 'Gelände: Mapterhorn · Gipfel: © OpenStreetMap-Mitwirkende';
 }

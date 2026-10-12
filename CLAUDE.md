@@ -45,7 +45,6 @@ database container stays behind.
 
 - Read or print secrets: `infra/.env.local-test` (holds the OJP key; source
   it only in a subshell), `cluster/alvyo/secret.yaml` in the gitops repo.
-  Komoot credentials are never stored or logged.
 - Use another kubeconfig than `KUBECONFIG=~/.kube/k3s.yaml` with
   `--context rk1`; the default one holds unrelated clusters.
 - Set image tags in the gitops repo by hand: Flux image automation does.

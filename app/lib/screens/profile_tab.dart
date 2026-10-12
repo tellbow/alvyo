@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../settings.dart';
+import 'about_screen.dart';
 import 'account_screens.dart';
 import 'devices_screen.dart';
 import 'friends_screen.dart';
@@ -290,6 +291,16 @@ class _ProfileTabState extends State<ProfileTab> {
                       title: Text(t.blockedTitle),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => _push(BlockedScreen(api: widget.api)),
+                    ),
+                  ]),
+                  const SizedBox(height: 12),
+                  group([
+                    ListTile(
+                      key: const Key('about'),
+                      leading: const Icon(Icons.info_outline),
+                      title: Text(t.aboutTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _push(AboutScreen(server: widget.api.server)),
                     ),
                   ]),
                   const SizedBox(height: 20),

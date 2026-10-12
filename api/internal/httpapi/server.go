@@ -73,7 +73,6 @@ type Deps struct {
 	Packs       *packs.Service
 	Planner     Planner // public transport connections; nil when not configured
 	Importer    *imports.Importer
-	Komoot      *imports.Komoot
 	Images      *og.Renderer
 	Bugs        *bugs.Store
 	Reminders   *reminders.Store

@@ -14,6 +14,7 @@
 	import {
 		CH_CENTER,
 		OVERLAYS,
+		OSM_ATTRIBUTION,
 		OVERLAY_PREFIX,
 		ROUTE_PREFIX,
 		SWISSTOPO_ATTRIBUTION,
@@ -230,7 +231,7 @@
 						m.addSource(PLACES, {
 							type: 'geojson',
 							data: places,
-							attribution: '© OpenStreetMap contributors'
+							attribution: OSM_ATTRIBUTION
 						});
 					// Along the way: an icon per kind; huts and accommodation: dots.
 					if (id === 'pois')

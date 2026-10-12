@@ -3,7 +3,7 @@
 	import type * as MapLibre from 'maplibre-gl';
 	import type { FeatureCollection, LineString } from 'geojson';
 	import type { Journey } from '#lib/api/client.js';
-	import { ROUTE_PREFIX } from '#lib/map/styles.js';
+	import { OSM_ATTRIBUTION, ROUTE_PREFIX } from '#lib/map/styles.js';
 	import { stageColor } from './colors';
 
 	let {
@@ -46,7 +46,7 @@
 		map.addSource(SRC, {
 			type: 'geojson',
 			data: empty,
-			attribution: '© OpenStreetMap contributors'
+			attribution: OSM_ATTRIBUTION
 		});
 		map.addSource(HOVER, { type: 'geojson', data: empty });
 		map.addLayer({

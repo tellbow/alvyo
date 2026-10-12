@@ -1,5 +1,5 @@
-// Package imports turns GPS tracks from files (GPX, KML, TCX, FIT) and from
-// Komoot into routes and journeys.
+// Package imports turns GPS tracks from files (GPX, KML, TCX, FIT) into
+// routes and journeys.
 package imports
 
 import (

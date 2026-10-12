@@ -1610,7 +1610,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String bugPrivacy(String place) {
-    return 'La segnalazione invia l’indirizzo ($place), la versione, il tuo nome utente e lo screenshot agli sviluppatori (GitHub). Lo screenshot resta presso Alvyo e viene eliminato con il tuo account.';
+    return 'Il rapporto è pubblicato come issue pubblica su GitHub: il tuo testo, l\'indirizzo ($place), la versione e il tuo nome utente. Lo screenshot resta ad Alvyo e viene cancellato con il tuo account.';
   }
 
   @override
@@ -2247,4 +2247,91 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tokensFull => 'Hai già 20 token. Revocane prima uno.';
+
+  @override
+  String get aboutTitle => 'Informazioni su Alvyo';
+
+  @override
+  String get aboutIntro => 'Alvyo è una piattaforma aperta per pianificare e condividere escursioni in Svizzera.';
+
+  @override
+  String get aboutDataTitle => 'Dati';
+
+  @override
+  String get aboutDataIntro => 'Alvyo mostra dati di queste fonti; grazie a chi li mette a disposizione liberamente:';
+
+  @override
+  String get aboutSrcSwisstopo =>
+      'Ufficio federale di topografia swisstopo: carte nazionali, immagini aeree, carta di base, modello altimetrico swissALTI3D, rilievo, pendenze e sentieri (swissTLM3D)';
+
+  @override
+  String get aboutSrcAstra =>
+      'Ufficio federale delle strade USTRA (ASTRA) e SvizzeraMobile: i percorsi ufficiali di La Svizzera a piedi, chiusure e deviazioni di sentieri';
+
+  @override
+  String get aboutSrcBafu =>
+      'Ufficio federale dell\'ambiente UFAM (BAFU) e Cantoni: zone di tranquillità per la fauna e bandite federali di caccia';
+
+  @override
+  String get aboutSrcVbs =>
+      'Dipartimento federale della difesa, della protezione della popolazione e dello sport DDPS (VBS): avvisi di tiro';
+
+  @override
+  String get aboutSrcMeteo =>
+      'Fonte: MeteoSvizzera – previsioni meteo, radar delle precipitazioni, previsione delle precipitazioni (ICON-CH1) e valori climatici normali';
+
+  @override
+  String get aboutSrcTransport => 'opentransportdata.swiss: orario e collegamenti (Open Journey Planner)';
+
+  @override
+  String get aboutSrcBav => 'Ufficio federale dei trasporti UFT (BAV): fermate dei trasporti pubblici';
+
+  @override
+  String get aboutSrcOsm =>
+      '© i contributori di OpenStreetMap: la rete di sentieri per il calcolo dei percorsi, capanne, alloggi, luoghi e cime';
+
+  @override
+  String get aboutSrcMapterhorn =>
+      'Mapterhorn (da Copernicus GLO-30, swissALTI3D e i modelli altimetrici dei paesi vicini): il terreno per la carta 3D e «Riconoscere le montagne» nell\'app';
+
+  @override
+  String get aboutSrcTerrain =>
+      'Terrain Tiles di Mapzen (EU-DEM: prodotto con dati Copernicus finanziati dall\'Unione europea; SRTM: U.S. Geological Survey): pendenze per «Fin dove arrivo?»';
+
+  @override
+  String get aboutSrcHikingtime => 'Tempi di percorrenza secondo la formula di SvizzeraMobile / Sentieri Svizzeri';
+
+  @override
+  String get aboutSafety =>
+      'Tempi di percorrenza e difficoltà sono valori indicativi calcolati. Verifica meteo, condizioni e segnaletica sul posto.';
+
+  @override
+  String get aboutCodeTitle => 'Codice sorgente e licenze';
+
+  @override
+  String get aboutCode => 'Alvyo è software libero sotto AGPL-3.0.';
+
+  @override
+  String get aboutSourceLink => 'Codice sorgente su GitHub';
+
+  @override
+  String get aboutNoticeLink => 'Fonti e licenze del codice e dei dati di terzi (NOTICE)';
+
+  @override
+  String get aboutLicenses => 'Licenze dei componenti di questa app';
+
+  @override
+  String get aboutPrivacy => 'Protezione dei dati';
+
+  @override
+  String get aboutPrivacyHint => 'Cosa salviamo e dove vanno i dati – sul sito';
+
+  @override
+  String get aboutOperator => 'Gestore e contatto';
+
+  @override
+  String get mapCreditLabel => 'Fonti della carta';
+
+  @override
+  String get peaksCredit => 'Terreno: Mapterhorn · Cime: © i contributori di OpenStreetMap';
 }

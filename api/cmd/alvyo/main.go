@@ -182,7 +182,6 @@ func serve(ctx context.Context) error {
 		Routes:      routeStore,
 		Journeys:    journeyStore,
 		Importer:    importer,
-		Komoot:      &imports.Komoot{API: imports.KomootAPI},
 		Places:      &places.Store{DB: pool, Names: &places.GeoAdmin{}},
 		Live:        liveStore,
 		Travel:      &travel.Store{DB: pool},

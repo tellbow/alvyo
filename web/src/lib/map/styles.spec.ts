@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { StyleSpecification } from 'maplibre-gl';
-import { baseStyle, keepOwnLayers } from './styles';
+import { baseStyle, keepOwnLayers, overlaySource } from './styles';
 
 const style = (layers: string[], sources: string[]): StyleSpecification => ({
 	version: 8,
@@ -39,5 +39,15 @@ describe('baseStyle', () => {
 			'alvyo-tile://https://alvyo.ch/tiles/wmts/ch.swisstopo.pixelkarte-farbe/{z}/{x}/{y}.jpeg'
 		);
 		expect(src.bounds).toEqual([5.7, 45.6, 10.8, 48.0]);
+	});
+});
+
+describe('overlaySource', () => {
+	it('credits the federal office of each overlay', () => {
+		expect(overlaySource('wanderland', 'https://a.test').attribution).toContain('ASTRA');
+		expect(overlaySource('wildruhezonen', 'https://a.test').attribution).toContain('BAFU');
+		expect(overlaySource('jagdbanngebiete', 'https://a.test').attribution).toContain('BAFU');
+		// swisstopo's layers are credited by the map's own attribution.
+		expect(overlaySource('wanderwege', 'https://a.test').attribution).toBeUndefined();
 	});
 });

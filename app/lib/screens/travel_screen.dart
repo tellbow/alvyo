@@ -8,6 +8,7 @@ import '../api.dart';
 import '../camera.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
+import '../map_credit.dart';
 import '../map_style.dart';
 import '../place_search.dart';
 import '../route_layers.dart';
@@ -325,28 +326,32 @@ class _TravelScreenState extends State<TravelScreen> {
             if (at != null)
               Expanded(
                 flex: 4,
-                child:
+                child: Stack(
+                  children: [
                     widget.map ??
-                    LayoutBuilder(
-                      builder: (context, size) {
-                        final view = fitLine(at.line, size.maxWidth, size.maxHeight, maxZoom: 12);
-                        _mapSize = size.biggest;
-                        return MapLibreMap(
-                          onEvent: (e) {
-                            if (e is MapEventMapCreated) _map = e.mapController;
+                        LayoutBuilder(
+                          builder: (context, size) {
+                            final view = fitLine(at.line, size.maxWidth, size.maxHeight, maxZoom: 12);
+                            _mapSize = size.biggest;
+                            return MapLibreMap(
+                              onEvent: (e) {
+                                if (e is MapEventMapCreated) _map = e.mapController;
+                              },
+                              options: MapOptions(
+                                initStyle: swisstopoStyle(widget.api.server),
+                                initCenter: Geographic(lon: view.lon, lat: view.lat),
+                                initZoom: view.zoom,
+                              ),
+                              onStyleLoaded: (style) async {
+                                await addRouteLine(style, at.line);
+                                await _addLayers(style);
+                              },
+                            );
                           },
-                          options: MapOptions(
-                            initStyle: swisstopoStyle(widget.api.server),
-                            initCenter: Geographic(lon: view.lon, lat: view.lat),
-                            initZoom: view.zoom,
-                          ),
-                          onStyleLoaded: (style) async {
-                            await addRouteLine(style, at.line);
-                            await _addLayers(style);
-                          },
-                        );
-                      },
-                    ),
+                        ),
+                    const Positioned(top: 12, left: 12, right: 12, child: MapCredit()),
+                  ],
+                ),
               ),
             Expanded(
               flex: 5,

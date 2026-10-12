@@ -2,16 +2,11 @@ package httpapi
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"log/slog"
 	"net/http"
 	"slices"
-	"strconv"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
@@ -25,10 +20,6 @@ import (
 	"github.com/tellbow/alvyo/api/internal/stageplan"
 	"github.com/tellbow/alvyo/swiss/geo"
 )
-
-// komootSessionTTL bounds how long a Komoot API token is kept (in memory
-// only) after logging in, to pick and import tours.
-const komootSessionTTL = 30 * time.Minute
 
 type importFileForm struct {
 	File  huma.FormFile `form:"file" required:"true"`
@@ -90,7 +81,6 @@ type importInput struct {
 type importedRoute struct {
 	ID    string `json:"id" format:"uuid"`
 	Title string `json:"title"`
-	Ref   string `json:"ref,omitempty" doc:"The Komoot tour id"`
 }
 
 type importOutput struct {
@@ -101,79 +91,8 @@ type importOutput struct {
 	}
 }
 
-type komootLoginInput struct {
-	Body struct {
-		Email    string `json:"email" maxLength:"254"`
-		Password string `json:"password" maxLength:"200"`
-	}
-}
-
-type komootTour struct {
-	imports.KomootTour
-	ImportedRouteID string `json:"imported_route_id,omitempty" format:"uuid"`
-}
-
-type komootToursOutput struct {
-	Body struct {
-		Session    string       `json:"session" doc:"Pass to the other Komoot calls; expires after 30 minutes"`
-		Tours      []komootTour `json:"tours"`
-		TotalPages int          `json:"total_pages"`
-	}
-}
-
-type komootToursInput struct {
-	Session string `query:"session" required:"true"`
-	Page    int    `query:"page" minimum:"0"`
-}
-
-type komootImportInput struct {
-	Body struct {
-		Session string  `json:"session"`
-		TourIDs []int64 `json:"tour_ids" minItems:"1" maxItems:"10" doc:"At most 10 per request; the page imports in batches"`
-	}
-}
-
-// komootSessions holds Komoot API tokens briefly, bound to our user.
-type komootSessions struct {
-	mu sync.Mutex
-	m  map[string]komootSessionEntry
-}
-
-type komootSessionEntry struct {
-	owner   uuid.UUID
-	session imports.KomootSession
-	until   time.Time
-}
-
-func (s *komootSessions) put(owner uuid.UUID, ks imports.KomootSession) string {
-	b := make([]byte, 16)
-	_, _ = rand.Read(b)
-	id := base64.RawURLEncoding.EncodeToString(b)
-	now := time.Now()
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for k, e := range s.m {
-		if now.After(e.until) {
-			delete(s.m, k)
-		}
-	}
-	s.m[id] = komootSessionEntry{owner: owner, session: ks, until: now.Add(komootSessionTTL)}
-	return id
-}
-
-func (s *komootSessions) get(owner uuid.UUID, id string) (imports.KomootSession, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	e, ok := s.m[id]
-	if !ok || e.owner != owner || time.Now().After(e.until) {
-		return imports.KomootSession{}, false
-	}
-	return e.session, true
-}
-
 func registerImports(api huma.API, d Deps) {
 	tags := []string{"imports"}
-	sessions := &komootSessions{m: map[string]komootSessionEntry{}}
 
 	parse := func(f huma.FormFile) (string, []imports.Track, error) {
 		format, tracks, err := imports.Parse(f.Filename, f)
@@ -403,117 +322,6 @@ func registerImports(api huma.API, d Deps) {
 		return mutateJourney(ctx, d.Journeys, j, role, nil)
 	})
 
-	// Komoot's tours, with those imported before marked.
-	listTours := func(ctx context.Context, owner uuid.UUID, ks imports.KomootSession, page int) ([]komootTour, int, error) {
-		tours, pages, err := d.Komoot.Tours(ctx, ks, page, 100)
-		if err != nil {
-			return nil, 0, komootError(err)
-		}
-		done, err := d.Routes.ImportedRefs(ctx, owner, "komoot")
-		if err != nil {
-			return nil, 0, err
-		}
-		out := make([]komootTour, len(tours))
-		for i, t := range tours {
-			out[i] = komootTour{KomootTour: t, ImportedRouteID: done[strconv.FormatInt(t.ID, 10)]}
-		}
-		return out, pages, nil
-	}
-
-	huma.Register(api, huma.Operation{
-		OperationID: "komoot-login", Method: http.MethodPost, Path: "/imports/komoot/login",
-		Summary:     "Log in to Komoot and list the tours",
-		Description: "The password goes to Komoot only and is not stored; Komoot's session token is kept in memory for 30 minutes.",
-		Tags:        tags,
-	}, func(ctx context.Context, in *komootLoginInput) (*komootToursOutput, error) {
-		u, err := requireUser(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if !d.Limits.KomootLogin.Allow(u.ID.String()) {
-			return nil, huma.Error429TooManyRequests("too many Komoot logins; try again later")
-		}
-		ks, err := d.Komoot.Login(ctx, in.Body.Email, in.Body.Password)
-		if err != nil {
-			return nil, komootError(err)
-		}
-		out := &komootToursOutput{}
-		if out.Body.Tours, out.Body.TotalPages, err = listTours(ctx, u.ID, ks, 0); err != nil {
-			return nil, err
-		}
-		out.Body.Session = sessions.put(u.ID, ks)
-		return out, nil
-	})
-
-	huma.Register(api, huma.Operation{
-		OperationID: "komoot-tours", Method: http.MethodGet, Path: "/imports/komoot/tours",
-		Summary: "Another page of Komoot tours", Tags: tags,
-	}, func(ctx context.Context, in *komootToursInput) (*komootToursOutput, error) {
-		u, err := requireUser(ctx)
-		if err != nil {
-			return nil, err
-		}
-		ks, ok := sessions.get(u.ID, in.Session)
-		if !ok {
-			return nil, huma.Error401Unauthorized("the Komoot session expired; log in again")
-		}
-		out := &komootToursOutput{}
-		out.Body.Session = in.Session
-		out.Body.Tours, out.Body.TotalPages, err = listTours(ctx, u.ID, ks, in.Page)
-		return out, err
-	})
-
-	huma.Register(api, huma.Operation{
-		OperationID: "komoot-import", Method: http.MethodPost, Path: "/imports/komoot",
-		Summary: "Import Komoot tours as private routes", Tags: tags,
-	}, func(ctx context.Context, in *komootImportInput) (*importOutput, error) {
-		u, err := requireUser(ctx)
-		if err != nil {
-			return nil, err
-		}
-		ks, ok := sessions.get(u.ID, in.Body.Session)
-		if !ok {
-			return nil, huma.Error401Unauthorized("the Komoot session expired; log in again")
-		}
-		if !d.Limits.Import.Allow(u.ID.String()) {
-			return nil, huma.Error429TooManyRequests("too many imports; try again in a few minutes")
-		}
-		done, err := d.Routes.ImportedRefs(ctx, u.ID, "komoot")
-		if err != nil {
-			return nil, err
-		}
-		out := &importOutput{}
-		out.Body.Routes, out.Body.Skipped = []importedRoute{}, []imports.Skipped{}
-		for _, id := range in.Body.TourIDs {
-			ref := strconv.FormatInt(id, 10)
-			if done[ref] != "" {
-				out.Body.Skipped = append(out.Body.Skipped, imports.Skipped{Name: ref, Reason: "duplicate"})
-				continue
-			}
-			t, err := d.Komoot.Track(ctx, ks, id)
-			if err != nil {
-				out.Body.Skipped = append(out.Body.Skipped, imports.Skipped{Name: ref, Reason: "other"})
-				continue
-			}
-			r, err := d.Importer.Route(ctx, u.ID, t, imports.Source{Kind: "komoot", Ref: ref})
-			if err != nil {
-				out.Body.Skipped = append(out.Body.Skipped, imports.Skipped{Name: t.Name, Reason: imports.Reason(err)})
-				continue
-			}
-			out.Body.Routes = append(out.Body.Routes, importedRoute{ID: r.ID, Title: r.Title, Ref: ref})
-		}
-		return out, nil
-	})
-}
-
-func komootError(err error) error {
-	switch {
-	case errors.Is(err, imports.ErrKomootLogin):
-		return huma.Error422UnprocessableEntity("Komoot did not accept the e-mail address or password")
-	case errors.Is(err, imports.ErrKomoot):
-		return huma.Error502BadGateway("Komoot did not answer as expected")
-	}
-	return err
 }
 
 func inside(pts []geo.Point) bool {

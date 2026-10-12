@@ -31,10 +31,8 @@ type Limits struct {
 	// OJP quota of 50 requests per minute.
 	ConnectionsUser *ratelimit.Limiter
 	ConnectionsAll  *ratelimit.Limiter
-	// Imports sample elevations for every track; Komoot logins are guarded
-	// against password guessing through us.
-	Import      *ratelimit.Limiter
-	KomootLogin *ratelimit.Limiter
+	// Imports sample elevations for every track.
+	Import *ratelimit.Limiter
 	// Comments, reports and photo uploads, per user.
 	Comment *ratelimit.Limiter
 	Report  *ratelimit.Limiter
@@ -68,7 +66,6 @@ func DefaultLimits() Limits {
 		ConnectionsUser: ratelimit.New(3*time.Second, 10),
 		ConnectionsAll:  ratelimit.New(1500*time.Millisecond, 40), // 40/min
 		Import:          ratelimit.New(20*time.Second, 30),
-		KomootLogin:     ratelimit.New(2*time.Minute, 5),
 		Comment:         ratelimit.New(10*time.Second, 10),
 		Report:          ratelimit.New(time.Minute, 10),
 		Photo:           ratelimit.New(3*time.Second, 30),

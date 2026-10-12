@@ -3013,7 +3013,7 @@ abstract class AppLocalizations {
   /// No description provided for @bugPrivacy.
   ///
   /// In de, this message translates to:
-  /// **'Mit dem Bericht gehen die Adresse ({place}), die Version, dein Benutzername und das Bildschirmfoto an die Entwickler (GitHub). Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.'**
+  /// **'Der Bericht wird als öffentliches Issue auf GitHub veröffentlicht: dein Text, die Adresse ({place}), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.'**
   String bugPrivacy(String place);
 
   /// No description provided for @bugSend.
@@ -4179,6 +4179,162 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Du hast schon 20 Token. Widerrufe zuerst eines.'**
   String get tokensFull;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Über Alvyo'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Alvyo ist eine offene Plattform, um Wanderungen in der Schweiz zu planen und zu teilen.'**
+  String get aboutIntro;
+
+  /// No description provided for @aboutDataTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Daten'**
+  String get aboutDataTitle;
+
+  /// No description provided for @aboutDataIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Alvyo zeigt Daten dieser Quellen; danke allen, die sie offen zur Verfügung stellen:'**
+  String get aboutDataIntro;
+
+  /// No description provided for @aboutSrcSwisstopo.
+  ///
+  /// In de, this message translates to:
+  /// **'Bundesamt für Landestopografie swisstopo: Landeskarten, Luftbilder, Basiskarte, Höhenmodell swissALTI3D, Relief, Hangneigung und Wanderwege (swissTLM3D)'**
+  String get aboutSrcSwisstopo;
+
+  /// No description provided for @aboutSrcAstra.
+  ///
+  /// In de, this message translates to:
+  /// **'Bundesamt für Strassen ASTRA und SchweizMobil: die offiziellen Routen von Wanderland Schweiz, Sperrungen und Umleitungen von Wanderwegen'**
+  String get aboutSrcAstra;
+
+  /// No description provided for @aboutSrcBafu.
+  ///
+  /// In de, this message translates to:
+  /// **'Bundesamt für Umwelt BAFU und Kantone: Wildruhezonen und eidgenössische Jagdbanngebiete'**
+  String get aboutSrcBafu;
+
+  /// No description provided for @aboutSrcVbs.
+  ///
+  /// In de, this message translates to:
+  /// **'Eidgenössisches Departement für Verteidigung, Bevölkerungsschutz und Sport VBS: Schiessanzeigen'**
+  String get aboutSrcVbs;
+
+  /// No description provided for @aboutSrcMeteo.
+  ///
+  /// In de, this message translates to:
+  /// **'Quelle: MeteoSchweiz – Wetterprognosen, Regenradar, Niederschlagsprognose (ICON-CH1) und Klimanormwerte'**
+  String get aboutSrcMeteo;
+
+  /// No description provided for @aboutSrcTransport.
+  ///
+  /// In de, this message translates to:
+  /// **'opentransportdata.swiss: Fahrplan und Verbindungen (Open Journey Planner)'**
+  String get aboutSrcTransport;
+
+  /// No description provided for @aboutSrcBav.
+  ///
+  /// In de, this message translates to:
+  /// **'Bundesamt für Verkehr BAV: Haltestellen des öffentlichen Verkehrs'**
+  String get aboutSrcBav;
+
+  /// No description provided for @aboutSrcOsm.
+  ///
+  /// In de, this message translates to:
+  /// **'© OpenStreetMap-Mitwirkende: das Wegnetz für die Routenberechnung, Hütten, Unterkünfte, Orte und Gipfel'**
+  String get aboutSrcOsm;
+
+  /// No description provided for @aboutSrcMapterhorn.
+  ///
+  /// In de, this message translates to:
+  /// **'Mapterhorn (aus Copernicus GLO-30, swissALTI3D und Höhenmodellen der Nachbarländer): Gelände für die 3D-Karte und «Berge erkennen» in der App'**
+  String get aboutSrcMapterhorn;
+
+  /// No description provided for @aboutSrcTerrain.
+  ///
+  /// In de, this message translates to:
+  /// **'Terrain Tiles von Mapzen (EU-DEM: mit Daten von Copernicus erstellt, finanziert von der Europäischen Union; SRTM: U.S. Geological Survey): Steigungen für «Wie weit komme ich?»'**
+  String get aboutSrcTerrain;
+
+  /// No description provided for @aboutSrcHikingtime.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderzeiten nach der Formel von SchweizMobil / Schweizer Wanderwege'**
+  String get aboutSrcHikingtime;
+
+  /// No description provided for @aboutSafety.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderzeiten und Schwierigkeiten sind berechnete Richtwerte. Prüfe Wetter, Verhältnisse und die Signalisation vor Ort.'**
+  String get aboutSafety;
+
+  /// No description provided for @aboutCodeTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Quellcode und Lizenzen'**
+  String get aboutCodeTitle;
+
+  /// No description provided for @aboutCode.
+  ///
+  /// In de, this message translates to:
+  /// **'Alvyo ist freie Software unter der AGPL-3.0.'**
+  String get aboutCode;
+
+  /// No description provided for @aboutSourceLink.
+  ///
+  /// In de, this message translates to:
+  /// **'Quellcode auf GitHub'**
+  String get aboutSourceLink;
+
+  /// No description provided for @aboutNoticeLink.
+  ///
+  /// In de, this message translates to:
+  /// **'Quellen und Lizenzen von Code und Daten anderer (NOTICE)'**
+  String get aboutNoticeLink;
+
+  /// No description provided for @aboutLicenses.
+  ///
+  /// In de, this message translates to:
+  /// **'Lizenzen der Bausteine dieser App'**
+  String get aboutLicenses;
+
+  /// No description provided for @aboutPrivacy.
+  ///
+  /// In de, this message translates to:
+  /// **'Datenschutz'**
+  String get aboutPrivacy;
+
+  /// No description provided for @aboutPrivacyHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Was wir speichern und wohin Daten gehen – auf der Website'**
+  String get aboutPrivacyHint;
+
+  /// No description provided for @aboutOperator.
+  ///
+  /// In de, this message translates to:
+  /// **'Betreiber und Kontakt'**
+  String get aboutOperator;
+
+  /// No description provided for @mapCreditLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Quellenangaben der Karte'**
+  String get mapCreditLabel;
+
+  /// No description provided for @peaksCredit.
+  ///
+  /// In de, this message translates to:
+  /// **'Gelände: Mapterhorn · Gipfel: © OpenStreetMap-Mitwirkende'**
+  String get peaksCredit;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

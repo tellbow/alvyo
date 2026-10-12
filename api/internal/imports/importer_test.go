@@ -9,7 +9,7 @@ import (
 )
 
 func TestContentRejectsTracksWithoutLine(t *testing.T) {
-	// A Komoot tour without coordinates, a single point, a point twice:
+	// A track without coordinates, a single point, a point twice:
 	// too short, not a crash. (No router needed: rejected before.)
 	im := &Importer{}
 	for _, pts := range [][]geo.Point{nil, {{Lon: 8, Lat: 46.5}}, {{Lon: 8, Lat: 46.5}, {Lon: 8, Lat: 46.5}}} {

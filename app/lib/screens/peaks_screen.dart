@@ -236,17 +236,26 @@ class _PeaksScreenState extends State<PeaksScreen> {
                 bottom: 16,
                 left: 16,
                 right: 16,
-                child: Row(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _chip(t.peaksAlign)),
-                    if (_dAz != 0 || _dEl != 0) ...[
-                      const SizedBox(width: 8),
-                      FilledButton.tonal(
-                        key: const Key('peaks-reset'),
-                        onPressed: () => setState(() => _dAz = _dEl = 0),
-                        child: Text(t.peaksReset),
-                      ),
-                    ],
+                    // The height grid is Mapterhorn's, the summits OpenStreetMap's.
+                    _chip(t.peaksCredit, key: const Key('peaks-credit')),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(child: _chip(t.peaksAlign)),
+                        if (_dAz != 0 || _dEl != 0) ...[
+                          const SizedBox(width: 8),
+                          FilledButton.tonal(
+                            key: const Key('peaks-reset'),
+                            onPressed: () => setState(() => _dAz = _dEl = 0),
+                            child: Text(t.peaksReset),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),

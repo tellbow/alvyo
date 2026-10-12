@@ -49,7 +49,10 @@ void main() {
     });
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('bug-with-shot')), findsOneWidget);
-    expect(find.textContaining('Mit dem Bericht gehen die Adresse (/routes/r1)'), findsOneWidget);
+    expect(
+      find.textContaining('öffentliches Issue auf GitHub veröffentlicht: dein Text, die Adresse (/routes/r1)'),
+      findsOneWidget,
+    );
     await tester.enterText(find.byKey(const Key('bug-text')), 'Die Karte bleibt leer.');
     await tester.pump();
     await tester.tap(find.byKey(const Key('bug-send')));

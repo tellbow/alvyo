@@ -120,6 +120,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () => _web('/forgot-password'),
                 child: Text(t.loginForgot),
               ),
+              TextButton(
+                key: const Key('privacy'),
+                onPressed: () => _web('/about#privacy'),
+                child: Text(t.aboutPrivacy),
+              ),
             ],
           ),
         ),

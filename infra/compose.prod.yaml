@@ -31,6 +31,9 @@ services:
     environment:
       API_INTERNAL_URL: http://api:8080
       PUBLIC_CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+      # Who answers for the site (about page, data protection): name and postal address.
+      PUBLIC_OPERATOR_NAME: ${OPERATOR_NAME:-}
+      PUBLIC_OPERATOR_ADDRESS: ${OPERATOR_ADDRESS:-}
 
   api:
     logging: *logging

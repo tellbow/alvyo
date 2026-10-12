@@ -33,7 +33,7 @@ type hikeResp struct {
 }
 
 func TestUploadHike(t *testing.T) {
-	s := newImportServer(t, "")
+	s := newImportServer(t)
 	c := s.client(t)
 	start := time.Date(2026, 9, 23, 8, 0, 0, 0, time.UTC)
 	if code, _ := c.do("POST", "/api/v1/hikes", hikeBody("rec-1", "", 8.0, start)); code != http.StatusUnauthorized {

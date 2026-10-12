@@ -8,7 +8,26 @@ test('about page links to the source of this version', async ({ page }) => {
 		'href',
 		'https://github.com/tellbow/alvyo'
 	);
-	await expect(page.getByText('© swisstopo')).toBeVisible();
+	await expect(page.getByTestId('notice-link')).toHaveAttribute(
+		'href',
+		/^https:\/\/github\.com\/tellbow\/alvyo\/blob\/.+\/NOTICE$/
+	);
+});
+
+test('about page credits every data source and names the operator', async ({ page }) => {
+	await page.goto('/about');
+	const sources = page.getByTestId('data-sources');
+	await expect(sources.getByRole('listitem')).toHaveCount(11);
+	await expect(sources.getByRole('link', { name: 'OGD, © swisstopo' })).toBeVisible();
+	await expect(sources.getByRole('link', { name: 'ODbL' })).toHaveAttribute(
+		'href',
+		'https://www.openstreetmap.org/copyright'
+	);
+	await expect(sources).toContainText('Quelle: MeteoSchweiz');
+	await expect(sources).toContainText('Wanderwegen (opendata.swiss)');
+	await expect(page.getByTestId('operator')).toContainText('Alvyo Test');
+	await expect(page.getByTestId('operator')).toContainText('Wanderweg 1, 3000 Bern');
+	await expect(page.getByTestId('operator')).toContainText('hallo@alvyo.test');
 });
 
 test('delete the account', async ({ page }) => {

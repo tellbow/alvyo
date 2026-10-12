@@ -1,8 +1,11 @@
 import { defineEnvVars } from '@sveltejs/kit/env';
 
 // Unset, they are empty: the API is then on localhost (hooks.server.ts),
-// and no contact on the about page.
+// and no operator or contact on the about page. The operator (name and
+// postal address) is who answers for the site under data protection law.
 export const variables = defineEnvVars({
 	API_INTERNAL_URL: { schema: (input) => input ?? '' },
-	PUBLIC_CONTACT_EMAIL: { public: true, schema: (input) => input ?? '' }
+	PUBLIC_CONTACT_EMAIL: { public: true, schema: (input) => input ?? '' },
+	PUBLIC_OPERATOR_NAME: { public: true, schema: (input) => input ?? '' },
+	PUBLIC_OPERATOR_ADDRESS: { public: true, schema: (input) => input ?? '' }
 });

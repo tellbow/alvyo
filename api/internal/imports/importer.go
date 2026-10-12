@@ -51,7 +51,7 @@ func (im *Importer) Content(ctx context.Context, t Track) (routes.Content, error
 		}
 	}
 	pts := geo.Simplify(t.Points, simplifyM)
-	if len(pts) < 2 { // e.g. a Komoot tour without coordinates
+	if len(pts) < 2 { // e.g. a track without coordinates
 		return routes.Content{}, ErrShort
 	}
 	total := geo.CumulativeDistance(pts)[len(pts)-1]
@@ -81,8 +81,8 @@ func (im *Importer) Content(ctx context.Context, t Track) (routes.Content, error
 
 // Source says where tracks come from, for skipping repeated imports.
 type Source struct {
-	Kind string // gpx, kml, tcx, fit, komoot, recorded (with the app)
-	Ref  string // e.g. the Komoot tour id; "" for files
+	Kind string // gpx, kml, tcx, fit, recorded (with the app); komoot in older routes
+	Ref  string // e.g. the id of a hike the app uploaded; "" for files
 }
 
 // Route imports a track as a private route.

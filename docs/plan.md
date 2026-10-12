@@ -786,6 +786,31 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     local program (Claude Desktop). Each release attaches it for Linux,
     macOS and Windows. Setting up: [mcp.md](mcp.md).
 
+72. **Licences and credits, ready to publish** (issue 25). The terms of
+    every data source and service checked and written down with links
+    ([licensing.md](licensing.md)); NOTICE lists all of them and the
+    third-party code. Credits wherever the data shows: on the website's
+    maps OpenStreetMap linked to its copyright page, ASTRA and BAFU with
+    their overlays, the reach areas with Mapzen's terrain, the print sheet
+    with openstreetmap.org/copyright; in the app a credit line in every
+    map's upper left corner («© swisstopo · © OpenStreetMap», the offices
+    of the overlays that are on; a tap lists all sources) and on the peak
+    camera (Mapterhorn, OpenStreetMap). The About page lists every source
+    with its terms, links NOTICE of the running version, names the
+    operator (`PUBLIC_OPERATOR_NAME`, `PUBLIC_OPERATOR_ADDRESS`) and has a
+    fuller privacy text (own servers in Switzerland, e-mail through
+    Infomaniak, sign-in providers, the app's location and Apple Health,
+    one's rights); «Über Alvyo» in the app's profile has the sources, the
+    source code, NOTICE, the license page of all packages and fonts, and
+    the privacy text and operator on the website, which the login screen
+    links too. Bug reports say they become public issues. The Komoot import
+    is gone: Komoot's terms forbid exporting tours other than with its own
+    export and passing on the password; the import page says to upload
+    Komoot's GPX export instead. Contributions come under a CLA (CLA.md,
+    CONTRIBUTING.md), so the app can go into the App Store; `make licenses`
+    checks the licenses of all packages; `.claude/rules/licensing.md`
+    asks for the terms before a new API, data source or package.
+
 ### Open
 
 14 was added on 2026-09-24 from a survey of Komoot, AllTrails,

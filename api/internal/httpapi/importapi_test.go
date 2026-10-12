@@ -3,14 +3,12 @@ package httpapi
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -58,11 +56,10 @@ func gpxDoc(tracks ...string) string {
 		strings.Join(tracks, "") + `</gpx>`
 }
 
-func newImportServer(t *testing.T, komootURL string) *testServer {
+func newImportServer(t *testing.T) *testServer {
 	return newTestServerWith(t, func(d *Deps) {
 		router := &routing.Router{Elevation: flatSampler{}, Trails: &routing.TrailMatcher{DB: d.DB}}
 		d.Importer = &imports.Importer{Router: router, Routes: d.Routes, Journeys: d.Journeys}
-		d.Komoot = &imports.Komoot{API: komootURL}
 	})
 }
 
@@ -70,7 +67,6 @@ type importResp struct {
 	Routes []struct {
 		ID    string `json:"id"`
 		Title string `json:"title"`
-		Ref   string `json:"ref"`
 	} `json:"routes"`
 	JourneyID string            `json:"journey_id"`
 	Skipped   []imports.Skipped `json:"skipped"`
@@ -90,7 +86,7 @@ func (c *client) imported(code int, body []byte) importResp {
 }
 
 func TestImportFile(t *testing.T) {
-	s := newImportServer(t, "http://komoot.invalid")
+	s := newImportServer(t)
 	c := s.client(t)
 	file := gpxDoc(line("Tag 1", 8.00, 46.66, 30), line("Tag 2", 8.03, 46.66, 30), line("Mailand", 9.19, 45.46, 5))
 
@@ -161,102 +157,8 @@ func TestImportFile(t *testing.T) {
 	}
 }
 
-// fakeKomoot mimics the Komoot login, tour list and tour endpoints.
-func fakeKomoot(t *testing.T) string {
-	t.Helper()
-	basic := func(user, secret string) string {
-		return "Basic " + base64.StdEncoding.EncodeToString([]byte(user+":"+secret))
-	}
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /v006/account/email/{email}/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != basic(r.PathValue("email"), "right") {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		_, _ = w.Write([]byte(`{"username":"42","password":"api-token"}`))
-	})
-	mux.HandleFunc("GET /v007/users/42/tours/", func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte(`{"_embedded":{"tours":[
-			{"id":1,"type":"tour_recorded","name":"Faulhorn","date":"2026-08-01T07:00:00.000Z","sport":"hike","distance":2200},
-			{"id":2,"type":"tour_planned","name":"Navigli","date":"2026-07-01T07:00:00.000Z","sport":"hike","distance":400}
-		]},"page":{"totalPages":1}}`))
-	})
-	tour := func(name string, lon, lat float64) string {
-		var items []string
-		for i := range 30 {
-			items = append(items, fmt.Sprintf(`{"lat":%f,"lng":%f}`, lat, lon+float64(i)*0.001))
-		}
-		return `{"name":"` + name + `","_embedded":{"coordinates":{"items":[` + strings.Join(items, ",") + `]}}}`
-	}
-	mux.HandleFunc("GET /v007/tours/{id}", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != basic("42", "api-token") {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		switch r.PathValue("id") {
-		case "1":
-			_, _ = w.Write([]byte(tour("Faulhorn", 8.0, 46.66)))
-		case "2":
-			_, _ = w.Write([]byte(tour("Navigli", 9.17, 45.45)))
-		default:
-			w.WriteHeader(http.StatusNotFound)
-		}
-	})
-	srv := httptest.NewServer(mux)
-	t.Cleanup(srv.Close)
-	return srv.URL
-}
-
-func TestImportKomoot(t *testing.T) {
-	s := newImportServer(t, fakeKomoot(t))
-	c := s.client(t)
-	s.signup(c, "komoot@example.ch", "komooter")
-	if code, body := c.do("POST", "/api/v1/imports/komoot/login", map[string]any{"email": "k@example.ch", "password": "wrong"}); code != http.StatusUnprocessableEntity {
-		t.Errorf("wrong password: %d %s", code, body)
-	}
-	code, body := c.do("POST", "/api/v1/imports/komoot/login", map[string]any{"email": "k@example.ch", "password": "right"})
-	var tours struct {
-		Session string       `json:"session"`
-		Tours   []komootTour `json:"tours"`
-	}
-	_ = json.Unmarshal(body, &tours)
-	if code != http.StatusOK || tours.Session == "" || len(tours.Tours) != 2 || tours.Tours[0].Name != "Faulhorn" || tours.Tours[0].ImportedRouteID != "" {
-		t.Fatalf("login: %d %s", code, body)
-	}
-	if strings.Contains(string(body), "api-token") {
-		t.Error("the Komoot token reached the browser")
-	}
-
-	r := c.imported(c.do("POST", "/api/v1/imports/komoot", map[string]any{"session": tours.Session, "tour_ids": []int{1, 2, 3}}))
-	if len(r.Routes) != 1 || r.Routes[0].Title != "Faulhorn" || r.Routes[0].Ref != "1" || len(r.Skipped) != 2 ||
-		r.Skipped[0] != (imports.Skipped{Name: "Navigli", Reason: "outside"}) || r.Skipped[1].Reason != "other" {
-		t.Fatalf("import: %+v", r)
-	}
-
-	// Imported tours are marked, and not imported twice.
-	_, body = c.do("GET", "/api/v1/imports/komoot/tours?session="+tours.Session, nil)
-	_ = json.Unmarshal(body, &tours)
-	if len(tours.Tours) != 2 || tours.Tours[0].ImportedRouteID != r.Routes[0].ID {
-		t.Fatalf("tours after import: %s", body)
-	}
-	again := c.imported(c.do("POST", "/api/v1/imports/komoot", map[string]any{"session": tours.Session, "tour_ids": []int{1}}))
-	if len(again.Routes) != 0 || len(again.Skipped) != 1 || again.Skipped[0].Reason != "duplicate" {
-		t.Errorf("second import: %+v", again)
-	}
-
-	// The session is bound to the user.
-	other := s.client(t)
-	s.signup(other, "other@example.ch", "other")
-	if code, _ := other.do("GET", "/api/v1/imports/komoot/tours?session="+tours.Session, nil); code != http.StatusUnauthorized {
-		t.Errorf("another user's session: %d, want 401", code)
-	}
-	if code, _ := other.do("POST", "/api/v1/imports/komoot", map[string]any{"session": tours.Session, "tour_ids": []int{1}}); code != http.StatusUnauthorized {
-		t.Errorf("another user's import: %d, want 401", code)
-	}
-}
-
 func TestImportIntoStage(t *testing.T) {
-	s := newImportServer(t, "http://komoot.invalid")
+	s := newImportServer(t)
 	var stop string
 	if err := s.db.QueryRow(context.Background(), `INSERT INTO places (kind, name, source, source_id, geom)
 		VALUES ('pt_stop', 'Faulhorn', 'didok', '1', ST_SetSRID(ST_MakePoint(8.059, 46.66), 4326)) RETURNING id`).Scan(&stop); err != nil {

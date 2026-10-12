@@ -3,7 +3,7 @@
 	import type * as MapLibre from 'maplibre-gl';
 	import { poiText, type Poi } from './places';
 	import { poiShown } from './poiKinds.svelte';
-	import { ROUTE_PREFIX } from './styles';
+	import { OSM_ATTRIBUTION, ROUTE_PREFIX } from './styles';
 
 	// What lies along the route, drawn with the kinds' icons (Map.svelte draws
 	// them) and named in a popup; the kinds switched off in the layer menu stay off.
@@ -28,7 +28,7 @@
 		map.addSource(ID, {
 			type: 'geojson',
 			data: { type: 'FeatureCollection', features: [] },
-			attribution: '© OpenStreetMap contributors'
+			attribution: OSM_ATTRIBUTION
 		});
 		map.addLayer({
 			id: ID,

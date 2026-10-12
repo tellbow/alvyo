@@ -6,14 +6,7 @@
 	type Result = components['schemas']['ImportOutputBody'];
 	type Reason = components['schemas']['Skipped']['reason'];
 
-	let {
-		result,
-		names = {}
-	}: {
-		result: Result;
-		/** Display names for skipped entries named by id (Komoot tours). */
-		names?: Record<string, string>;
-	} = $props();
+	let { result }: { result: Result } = $props();
 
 	const reasons: Record<Reason, () => string> = {
 		outside: m.import_reason_outside,
@@ -48,7 +41,7 @@
 		<p class="text-stone-700">{m.import_skipped()}</p>
 		<ul class="list-inside list-disc text-stone-600" data-testid="import-skipped">
 			{#each result.skipped as s, i (i)}
-				<li>{names[s.name] ?? s.name}: {reasons[s.reason]()}</li>
+				<li>{s.name}: {reasons[s.reason]()}</li>
 			{/each}
 		</ul>
 	{/if}

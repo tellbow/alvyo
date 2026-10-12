@@ -1613,7 +1613,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String bugPrivacy(String place) {
-    return 'Le rapport envoie l’adresse ($place), la version, ton nom d’utilisateur et la capture d’écran aux développeurs (GitHub). La capture reste chez Alvyo et est supprimée avec ton compte.';
+    return 'Le rapport est publié comme issue publique sur GitHub : ton texte, l\'adresse ($place), la version et ton nom d\'utilisateur. La capture d\'écran reste chez Alvyo et est supprimée avec ton compte.';
   }
 
   @override
@@ -2251,4 +2251,92 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tokensFull => 'Tu as déjà 20 jetons. Révoques-en d’abord un.';
+
+  @override
+  String get aboutTitle => 'À propos d\'Alvyo';
+
+  @override
+  String get aboutIntro => 'Alvyo est une plateforme ouverte pour planifier et partager des randonnées en Suisse.';
+
+  @override
+  String get aboutDataTitle => 'Données';
+
+  @override
+  String get aboutDataIntro =>
+      'Alvyo affiche des données de ces sources ; merci à toutes celles et ceux qui les mettent librement à disposition :';
+
+  @override
+  String get aboutSrcSwisstopo =>
+      'Office fédéral de topographie swisstopo : cartes nationales, images aériennes, carte de base, modèle altimétrique swissALTI3D, relief, pentes et chemins de randonnée (swissTLM3D)';
+
+  @override
+  String get aboutSrcAstra =>
+      'Office fédéral des routes OFROU (ASTRA) et SuisseMobile : les itinéraires officiels de La Suisse à pied, fermetures et déviations de chemins de randonnée';
+
+  @override
+  String get aboutSrcBafu =>
+      'Office fédéral de l\'environnement OFEV (BAFU) et cantons : zones de tranquillité pour la faune et districts francs fédéraux';
+
+  @override
+  String get aboutSrcVbs =>
+      'Département fédéral de la défense, de la protection de la population et des sports DDPS (VBS) : avis de tir';
+
+  @override
+  String get aboutSrcMeteo =>
+      'Source : MétéoSuisse – prévisions météo, radar des précipitations, prévision des précipitations (ICON-CH1) et normes climatologiques';
+
+  @override
+  String get aboutSrcTransport => 'opentransportdata.swiss : horaire et correspondances (Open Journey Planner)';
+
+  @override
+  String get aboutSrcBav => 'Office fédéral des transports OFT (BAV) : arrêts des transports publics';
+
+  @override
+  String get aboutSrcOsm =>
+      '© les contributeurs d\'OpenStreetMap : le réseau de chemins pour le calcul des itinéraires, cabanes, hébergements, lieux et sommets';
+
+  @override
+  String get aboutSrcMapterhorn =>
+      'Mapterhorn (à partir de Copernicus GLO-30, swissALTI3D et des modèles altimétriques des pays voisins) : le relief de la carte 3D et « Reconnaître les sommets » dans l\'app';
+
+  @override
+  String get aboutSrcTerrain =>
+      'Terrain Tiles de Mapzen (EU-DEM : produit à partir de données Copernicus financées par l\'Union européenne ; SRTM : U.S. Geological Survey) : pentes pour « Jusqu’où puis-je aller ? »';
+
+  @override
+  String get aboutSrcHikingtime => 'Temps de marche selon la formule de SuisseMobile / Suisse Rando';
+
+  @override
+  String get aboutSafety =>
+      'Les temps de marche et difficultés sont des valeurs indicatives calculées. Vérifie la météo, les conditions et la signalisation sur place.';
+
+  @override
+  String get aboutCodeTitle => 'Code source et licences';
+
+  @override
+  String get aboutCode => 'Alvyo est un logiciel libre sous AGPL-3.0.';
+
+  @override
+  String get aboutSourceLink => 'Code source sur GitHub';
+
+  @override
+  String get aboutNoticeLink => 'Sources et licences du code et des données de tiers (NOTICE)';
+
+  @override
+  String get aboutLicenses => 'Licences des composants de cette app';
+
+  @override
+  String get aboutPrivacy => 'Protection des données';
+
+  @override
+  String get aboutPrivacyHint => 'Ce que nous enregistrons et où vont les données – sur le site';
+
+  @override
+  String get aboutOperator => 'Exploitant et contact';
+
+  @override
+  String get mapCreditLabel => 'Sources de la carte';
+
+  @override
+  String get peaksCredit => 'Relief : Mapterhorn · Sommets : © les contributeurs d\'OpenStreetMap';
 }

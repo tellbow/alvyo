@@ -8,7 +8,13 @@
 	import { api, type FoundPlace, type Me } from '#lib/api/client.js';
 	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
 	import Map from '#lib/map/Map.svelte';
-	import { ROUTE_PREFIX, type BaseMapId, type OverlayId } from '#lib/map/styles.js';
+	import {
+		OSM_ATTRIBUTION,
+		ROUTE_PREFIX,
+		TERRAIN_TILES_ATTRIBUTION,
+		type BaseMapId,
+		type OverlayId
+	} from '#lib/map/styles.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import PlaceSearch from '#lib/planner/PlaceSearch.svelte';
 	import PlanTabs from '#lib/planner/PlanTabs.svelte';
@@ -108,7 +114,12 @@
 	}
 
 	function onready(mp: MapLibreMap, lib: typeof MapLibre) {
-		mp.addSource(AREAS, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+		// Areas from GraphHopper: OpenStreetMap's paths, slopes from Mapzen's terrain tiles.
+		mp.addSource(AREAS, {
+			type: 'geojson',
+			data: { type: 'FeatureCollection', features: [] },
+			attribution: `${OSM_ATTRIBUTION} ${TERRAIN_TILES_ATTRIBUTION}`
+		});
 		mp.addLayer({
 			id: AREAS,
 			type: 'fill',

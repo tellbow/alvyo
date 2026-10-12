@@ -77,6 +77,8 @@ void main() {
     expect(find.byKey(const Key('peaks-overlay')), findsOneWidget);
     expect(find.text('Richtung 0° · Neigung 0°'), findsOneWidget);
     expect(find.byKey(const Key('peaks-message')), findsNothing);
+    // The pack's sources: Mapterhorn's terrain, OpenStreetMap's summits.
+    expect(find.text('Gelände: Mapterhorn · Gipfel: © OpenStreetMap-Mitwirkende'), findsOneWidget);
   });
 
   testWidgets('dragging aligns the view; reset undoes it', (tester) async {

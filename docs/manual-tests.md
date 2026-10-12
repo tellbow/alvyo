@@ -346,6 +346,14 @@ Checked so far only in the simulator, with made-up or simulated positions
       profile logs out the website in another browser (after the API and
       app releases).
 
+- [ ] **Credits and «Über Alvyo»** (72): the credit line in each map's upper
+      left corner is readable on the national map and on aerial images, and
+      stays clear of the rain bar and the layer button; with «Wanderland» or
+      the BAFU overlays on, it names ASTRA or BAFU; a tap lists the sources
+      and their links open in Safari. «Über Alvyo» opens GitHub, NOTICE, the
+      license page (packages and both fonts), the website's privacy text and
+      operator. The peak camera shows its credit above «Passt die Linie …».
+
 ## Web
 
 - [ ] **Google Analytics** (62): after the release, the banner on the
@@ -516,7 +524,7 @@ Checked so far only in the simulator, with made-up or simulated positions
       2026-09-29, local with Mailpit: journeys starting in 21, 2 and 1 days;
       at 16:38 all three e-mails reached the owner and the one along.
 
-- [ ] **Turns for imported Komoot tours**: planned ones get turns, recorded ones
+- [ ] **Turns for imported tours**: planned ones get turns, recorded ones
       (GPS tracks) none or few; nothing announced along a straight leg.
 - [x] **Long Watch hikes** (8 h, a position every second) upload within the
       50,000-point limit; the app sends points 5 m apart.

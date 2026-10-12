@@ -5,6 +5,7 @@ import '../api.dart';
 import '../camera.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
+import '../map_credit.dart';
 import '../map_style.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
@@ -66,7 +67,12 @@ class _JourneyMapScreenState extends State<JourneyMapScreen> {
                         );
                       },
                     ),
-                Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  right: 64,
+                  child: MapCorner(precip: PrecipBar(controller: _places.precip)),
+                ),
                 const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
               ],
             ),

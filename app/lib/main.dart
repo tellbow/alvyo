@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -13,7 +15,17 @@ import 'session.dart';
 import 'settings.dart';
 import 'theme.dart';
 
-void main() => runApp(const AlvyoApp());
+void main() {
+  LicenseRegistry.addLicense(fontLicenses);
+  runApp(const AlvyoApp());
+}
+
+/// The fonts' licence (OFL) goes with them: on the app's licence page.
+Stream<LicenseEntry> fontLicenses() async* {
+  for (final (font, file) in [('Figtree', 'OFL-Figtree.txt'), ('Bricolage Grotesque', 'OFL-BricolageGrotesque.txt')]) {
+    yield LicenseEntryWithLineBreaks([font], await rootBundle.loadString('assets/fonts/$file'));
+  }
+}
 
 class AlvyoApp extends StatefulWidget {
   const AlvyoApp({super.key, this.session, this.settings});

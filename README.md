@@ -11,7 +11,7 @@ comes next: [docs/plan.md](docs/plan.md); deployment: [docs/operations.md](docs/
 - **Sharing and community:** public, by link or invitation; collections, a discovery map, friends, a feed, likes, comments and photos.
 - **App:** iOS, with the national map offline, spoken navigation, recording and Apple Watch import ([app/README.md](app/README.md)).
 - **AI assistants and the command line:** an MCP server and `alvyo-cli` with a personal access token, read-only ([docs/mcp.md](docs/mcp.md)).
-- **Data and privacy:** GPX export, import from GPX, KML, TCX, FIT and Komoot, privacy zones, passkeys; in German, English, French and Italian.
+- **Data and privacy:** GPX export, import from GPX, KML, TCX and FIT, privacy zones, passkeys; in German, English, French and Italian.
 
 ## Screenshots
 
@@ -58,3 +58,5 @@ cd web && bun run dev                    # → http://localhost:5173
 ## License
 
 AGPL-3.0-only — see [LICENSE](LICENSE). Third-party data and code attributions: [NOTICE](NOTICE).
+Terms of every data source and where each is credited: [docs/licensing.md](docs/licensing.md).
+Contributions: [CONTRIBUTING.md](CONTRIBUTING.md) (with a [CLA](CLA.md)).

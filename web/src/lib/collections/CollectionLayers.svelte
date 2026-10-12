@@ -3,7 +3,7 @@
 	import type { FeatureCollection, MultiLineString, Point } from 'geojson';
 	import type { CollectionItem } from '#lib/api/client.js';
 	import { stageColor } from '#lib/journeys/colors.js';
-	import { ROUTE_PREFIX } from '#lib/map/styles.js';
+	import { OSM_ATTRIBUTION, ROUTE_PREFIX } from '#lib/map/styles.js';
 
 	let {
 		map,
@@ -61,7 +61,7 @@
 		map.addSource(SRC, {
 			type: 'geojson',
 			data: { type: 'FeatureCollection', features: [] },
-			attribution: '© OpenStreetMap contributors'
+			attribution: OSM_ATTRIBUTION
 		});
 		map.addLayer({
 			id: `${ROUTE_PREFIX}collection-casing`,

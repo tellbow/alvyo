@@ -143,7 +143,6 @@ flowchart LR
   end
 
   subgraph services["Other services"]
-    komoot["Komoot<br/>unofficial API"]
     oidc["OpenID Connect<br/>e.g. Google"]
     github["GitHub API"]
     smtp["SMTP server"]
@@ -157,7 +156,6 @@ flowchart LR
   api -- "heights, place search,<br/>areas, closures" --> api3
   api -- "hourly" --> forecast
   api -.-> ojp
-  api -- "import" --> komoot
   api -. "sign-in" .-> oidc
   api -. "bug reports" .-> github
   api -- "mails" --> smtp
@@ -183,7 +181,6 @@ In more detail:
 | `download.geofabrik.de` | graph-refresh, graphhopper's first start | OSM extracts for the graph and the places |
 | `tiles.mapterhorn.com` | tile cache | Terrain for the 3D map, the app's peak recognition and its peak pack |
 | AWS Terrain Tiles (skadi) | GraphHopper import | Heights in the graph, for the isochrones' slopes |
-| `api.komoot.de` | API | Komoot import; Komoot's unofficial API, so it can break when Komoot changes it |
 | OpenID Connect providers | API, browser | Optional sign-in, e.g. Google (`ALVYO_OIDC_PROVIDERS`) |
 | `api.github.com` | API | Bug reports as issues, only with `ALVYO_GITHUB_TOKEN` |
 | SMTP server | API | Confirmation, password and reminder mails |

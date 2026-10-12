@@ -1,6 +1,5 @@
 <script lang="ts">
 	import FileImport from '#lib/imports/FileImport.svelte';
-	import KomootImport from '#lib/imports/KomootImport.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import Seo from '#lib/seo/Seo.svelte';
 
@@ -13,7 +12,7 @@
 	<div>
 		<h1 class="text-2xl font-semibold">{m.import_title()}</h1>
 		<p class="mt-1 text-stone-600">{m.import_intro()}</p>
+		<p class="mt-1 text-sm text-stone-600">{m.import_komoot_hint()}</p>
 	</div>
 	<FileImport pace={data.user?.speed_factor ?? 1} />
-	<KomootImport />
 </main>

@@ -10,6 +10,7 @@ import '../camera.dart';
 import '../elevation_profile.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
+import '../map_credit.dart';
 import '../map_style.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
@@ -364,7 +365,12 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
       body: Stack(
         children: [
           Positioned.fill(child: _mapView),
-          Positioned(top: 12, left: 12, right: 64, child: PrecipBar(controller: _places.precip)),
+          Positioned(
+            top: 12,
+            left: 12,
+            right: 64,
+            child: MapCorner(precip: PrecipBar(controller: _places.precip)),
+          ),
           const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
           PlanSheet(panelKey: const Key('planner-panel'), children: _panel(t)),
         ],

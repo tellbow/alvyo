@@ -63,6 +63,9 @@ flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') 
   --dart-define=ALVYO_VERSION=$(git describe --tags --always)
 ```
 
+The App Store's screenshots, header and search result picture, and the
+scripts that make them: [store/README.md](store/README.md).
+
 ### Android
 
 The emulator (once: `brew install openjdk@17` and `brew install --cask

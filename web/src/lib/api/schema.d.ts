@@ -2681,7 +2681,7 @@ export interface components {
             /** @description The page's address or the app's screen, and the item open */
             place: string;
             /** @enum {string} */
-            platform: "web" | "ios";
+            platform: "web" | "ios" | "android";
             /** @description PNG or JPEG, base64, up to 4 MB */
             screenshot?: string;
             version: string;

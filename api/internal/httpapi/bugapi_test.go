@@ -77,6 +77,13 @@ func TestBugReports(t *testing.T) {
 		t.Errorf("moderator: %d, %d bytes", code, len(got))
 	}
 
+	// From the Android app.
+	report["platform"] = "android"
+	if code, body := c.do("POST", "/api/v1/bug-reports", report); code != http.StatusCreated ||
+		!strings.Contains(issue["body"].(string), "Platform: android") {
+		t.Errorf("android: %d %s", code, body)
+	}
+
 	// Not an image; nothing said.
 	report["screenshot"] = []byte("<svg/>")
 	if code, _ := c.do("POST", "/api/v1/bug-reports", report); code != http.StatusUnprocessableEntity {

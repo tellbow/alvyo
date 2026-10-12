@@ -61,7 +61,7 @@ void main() {
     expect(find.byKey(const Key('bug-sent')), findsOneWidget);
     expect(sent!['description'], 'Die Karte bleibt leer.');
     expect(sent!['place'], '/routes/r1');
-    expect(sent!['platform'], 'ios');
+    expect(sent!['platform'], 'android'); // widget tests run as Android
     expect(sent!['version'], 'dev');
     expect(base64Decode(sent!['screenshot'] as String).sublist(1, 4), 'PNG'.codeUnits);
   });

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -11,6 +12,26 @@ void main() {
     final never = MockClient((_) => Completer<http.Response>().future);
     final api = Api('https://alvyo.test', client: never, timeout: const Duration(milliseconds: 50));
     await expectLater(api.routes(), throwsA(isA<TimeoutException>()));
+  });
+
+  test('a bug report says which platform it comes from', () async {
+    final sent = <Object?>[];
+    final api = Api(
+      'https://alvyo.test',
+      client: MockClient((req) async {
+        sent.add((jsonDecode(req.body) as Map)['platform']);
+        return http.Response(jsonEncode({'id': 'b1'}), 201);
+      }),
+    );
+    try {
+      for (final p in [TargetPlatform.iOS, TargetPlatform.android]) {
+        debugDefaultTargetPlatformOverride = p;
+        await api.reportBug(description: 'Karte leer', place: 'route', version: '0.34.0');
+      }
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+    expect(sent, ['ios', 'android']);
   });
 
   const totals = {

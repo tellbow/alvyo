@@ -39,7 +39,7 @@ type Report struct {
 	Description string
 	Place       string // the page's address or the app's screen, and the item
 	Version     string
-	Platform    string // web or ios
+	Platform    string // web, ios or android
 	Screenshot  []byte
 }
 

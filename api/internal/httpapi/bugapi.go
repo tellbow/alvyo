@@ -17,7 +17,7 @@ type bugReportInput struct {
 		Description string `json:"description" minLength:"1" maxLength:"4000"`
 		Place       string `json:"place" maxLength:"500" doc:"The page's address or the app's screen, and the item open"`
 		Version     string `json:"version" maxLength:"60"`
-		Platform    string `json:"platform" enum:"web,ios"`
+		Platform    string `json:"platform" enum:"web,ios,android"`
 		Screenshot  []byte `json:"screenshot,omitempty" doc:"PNG or JPEG, base64, up to 4 MB"`
 	}
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'format.dart';
@@ -2043,7 +2044,7 @@ class Api {
               'description': description,
               'place': place,
               'version': version,
-              'platform': 'ios',
+              'platform': defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios',
               if (screenshot != null) 'screenshot': base64Encode(screenshot),
             })
             as Map<String, dynamic>;

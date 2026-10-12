@@ -31,7 +31,7 @@ the same commit when a requirement is done or changes. Layout: `README.md`.
 | Go tests | `go test ./swiss/... ./api/...` (testcontainers; needs Docker) |
 | Go lint | `make lint-go` (golangci-lint in `api/` and `swiss/`) |
 | Web checks | `cd web && bun run check && bun run lint && bunx vitest run` |
-| Web end-to-end | `cd web && bunx playwright test` (starts its own API and web; needs the dev stack; CI: `e2e.yml`) |
+| Web end-to-end | `cd web && bunx playwright test` (starts its own API and web; needs the dev stack; local only, before every release: `.claude/rules/e2e.md`) |
 | App | `cd app && dart format --output=none --set-exit-if-changed lib test integration_test && flutter analyze && flutter test` |
 | App on the simulator / iPhone / Android emulator | the `app-simulator-tests` and `iphone-install` skills; Android: `app/README.md` |
 | Supply chain (CI runs them too) | govulncheck, osv-scanner, zizmor, gitleaks: `docs/development.md`, «Supply chain» |

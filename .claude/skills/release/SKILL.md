@@ -11,7 +11,8 @@ version with the user before tagging: fixes raise the patch number, new
 features the minor one.
 
 1. **Ready?** `main` is pushed and CI passed for its last commit:
-   `gh run list -L 1 --branch main`. `docs/plan.md` describes what is in it
+   `gh run list -L 1 --branch main`. The end-to-end tests passed locally
+   on that commit (`.claude/rules/e2e.md`). `docs/plan.md` describes what is in it
    (the «next» row of the release table).
 2. **Record first:** in `docs/plan.md`, the «next» row becomes the X.Y.Z
    row with today's date, and «Was ist neu» gets a line for the people

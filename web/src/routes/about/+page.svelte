@@ -48,7 +48,7 @@
 	<ul class="mt-2 flex list-inside list-disc flex-col gap-1" data-testid="data-sources">
 		{#each sources as s (s.text)}
 			<li>
-				{s.text()}{#if s.terms}&#32;(<a
+				{s.text()}{#if s.terms}&nbsp;(<a
 						href={s.terms.href}
 						class="text-accent-ink underline"
 						rel="noopener">{s.terms.label}</a

@@ -376,6 +376,24 @@ abstract class AppLocalizations {
   /// **'Importiert – in «Meine Routen»'**
   String get watchImported;
 
+  /// No description provided for @watchImportAgain.
+  ///
+  /// In de, this message translates to:
+  /// **'Nochmals'**
+  String get watchImportAgain;
+
+  /// No description provided for @watchAgainTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Schon importiert'**
+  String get watchAgainTitle;
+
+  /// No description provided for @watchAgainBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Nochmals als neue Route importieren? Die bisherige bleibt, wie sie ist.'**
+  String get watchAgainBody;
+
   /// No description provided for @watchNoTrack.
   ///
   /// In de, this message translates to:

@@ -121,6 +121,38 @@ void main() {
     expect(bodies, hasLength(1));
   });
 
+  testWidgets('an imported workout can be imported again, as a new route', (tester) async {
+    final ids = <String>[];
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        ids.add((jsonDecode(req.body) as Map<String, dynamic>)['id'] as String);
+        return http.Response(jsonEncode({'id': 'route-${ids.length}'}), 201);
+      }),
+    );
+    File('${dir.path}/imported.json').writeAsStringSync('["w1"]');
+    await pump(tester, FakeWorkouts([hike]), api);
+    expect(find.byIcon(Icons.check), findsOneWidget);
+
+    // Asks first; «Abbrechen» sends nothing.
+    await tester.tap(find.text('Nochmals'));
+    await tester.pumpAndSettle();
+    expect(find.text('Schon importiert'), findsOneWidget);
+    await tester.tap(find.text('Abbrechen'));
+    await tester.pumpAndSettle();
+    expect(ids, isEmpty);
+
+    await tester.tap(find.text('Nochmals'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.text('Importieren')));
+    await settle(tester);
+    expect(find.text('Importiert – in «Meine Routen»'), findsOneWidget);
+    // Not the first import's id, which the server would answer with that
+    // route, even when it was renamed or changed.
+    expect(ids.single, startsWith('watch-w1-'));
+  });
+
   testWidgets('a list of imports cut off when the app stopped does not hide the workouts', (tester) async {
     File('${dir.path}/imported.json').writeAsStringSync('["w');
     final api = Api('https://alvyo.test', token: 't', client: MockClient((_) async => http.Response('', 500)));

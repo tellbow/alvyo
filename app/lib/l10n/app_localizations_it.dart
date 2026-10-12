@@ -158,6 +158,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get watchImported => 'Importata – in I miei percorsi';
 
   @override
+  String get watchImportAgain => 'Di nuovo';
+
+  @override
+  String get watchAgainTitle => 'Già importata';
+
+  @override
+  String get watchAgainBody => 'Importarla di nuovo come nuovo percorso? Quello esistente resta com\'è.';
+
+  @override
   String get watchNoTrack => 'Questo allenamento non ha una traccia GPS.';
 
   @override

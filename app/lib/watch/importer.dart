@@ -48,9 +48,12 @@ class WatchImporter {
 
   Future<Set<String>> _refusedIds() async => _refused ??= await _load(await _refusedFile());
 
-  /// Imports [w] titled [title]; null when done, else why not.
-  Future<WatchFailure?> import(Workout w, String title) async {
-    final failure = await _upload(w, title);
+  /// Imports [w] titled [title]; null when done, else why not. [again]
+  /// makes a new route even when an earlier import is still there (renamed or
+  /// changed): the server answers an id it knows with that route.
+  Future<WatchFailure?> import(Workout w, String title, {bool again = false}) async {
+    final id = again ? 'watch-${w.uuid}-${DateTime.now().millisecondsSinceEpoch}' : 'watch-${w.uuid}';
+    final failure = await _upload(w, id, title);
     if (failure == null) {
       await _save(await _file(), (await imported())..add(w.uuid));
     } else if (failure != WatchFailure.other) {
@@ -59,11 +62,11 @@ class WatchImporter {
     return failure;
   }
 
-  Future<WatchFailure?> _upload(Workout w, String title) async {
+  Future<WatchFailure?> _upload(Workout w, String id, String title) async {
     final points = uploadPoints(await source.track(w));
     if (points.length < 2) return WatchFailure.noTrack;
     try {
-      await api.uploadHike(id: 'watch-${w.uuid}', title: title, points: points);
+      await api.uploadHike(id: id, title: title, points: points);
     } on ApiException catch (e) {
       return failureOf(e);
     }

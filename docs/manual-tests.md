@@ -106,6 +106,10 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **Apple Watch import** of real «Wandern» and «Gehen (im Freien)» workouts:
       the track and time are right; a paused workout (several route parts)
       comes out as one hike; a workout without GPS says so.
+      iPhone 2026-10-12: real Watch workouts import (before, each said «keine
+      GPS-Strecke», issue 33); paused and GPS-less workouts still to try.
+- [ ] **Apple Watch import again**: an imported workout's «Nochmals» makes a
+      new route after asking, also when the first was deleted or renamed.
 - [x] **Health access refused**: the watch screen explains where to allow it.
       Simulator 2026-10-01 (iPhone 17 Pro, iOS 26.5): «Don't Allow» in the
       Health sheet; the screen says where: Settings → Apps → Health → Data

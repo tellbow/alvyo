@@ -35,12 +35,12 @@ class _WatchScreenState extends State<WatchScreen> {
     return _importer.source.recent();
   }
 
-  Future<void> _import(Workout w) async {
+  Future<void> _import(Workout w, {bool again = false}) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _busy = w.uuid);
     try {
-      final failure = await _importer.import(w, watchTitle(t, w));
+      final failure = await _importer.import(w, watchTitle(t, w), again: again);
       messenger.showSnackBar(
         SnackBar(
           content: Text(switch (failure) {
@@ -57,6 +57,24 @@ class _WatchScreenState extends State<WatchScreen> {
     } finally {
       if (mounted) setState(() => _busy = null);
     }
+  }
+
+  /// The route may have been deleted, renamed or changed: a new one, after
+  /// asking.
+  Future<void> _importAgain(Workout w) async {
+    final t = AppLocalizations.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t.watchAgainTitle),
+        content: Text(t.watchAgainBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(t.watchImport)),
+        ],
+      ),
+    );
+    if (ok == true && mounted) await _import(w, again: true);
   }
 
   @override
@@ -93,10 +111,19 @@ class _WatchScreenState extends State<WatchScreen> {
                     w.source,
                   ].join(' · '),
                 ),
-                trailing: done
-                    ? Icon(Icons.check, semanticLabel: t.watchImported)
-                    : _busy == w.uuid
+                trailing: _busy == w.uuid
                     ? const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                    : done
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check, semanticLabel: t.watchImported),
+                          TextButton(
+                            onPressed: _busy == null ? () => _importAgain(w) : null,
+                            child: Text(t.watchImportAgain),
+                          ),
+                        ],
+                      )
                     : TextButton(onPressed: _busy == null ? () => _import(w) : null, child: Text(t.watchImport)),
               );
             },

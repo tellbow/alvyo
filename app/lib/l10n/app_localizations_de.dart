@@ -158,6 +158,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get watchImported => 'Importiert – in «Meine Routen»';
 
   @override
+  String get watchImportAgain => 'Nochmals';
+
+  @override
+  String get watchAgainTitle => 'Schon importiert';
+
+  @override
+  String get watchAgainBody => 'Nochmals als neue Route importieren? Die bisherige bleibt, wie sie ist.';
+
+  @override
   String get watchNoTrack => 'Dieses Training hat keine GPS-Strecke.';
 
   @override

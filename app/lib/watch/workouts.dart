@@ -39,7 +39,8 @@ abstract interface class WorkoutSource {
 
 /// Workouts from Apple Health.
 class HealthWorkouts implements WorkoutSource {
-  final _health = Health();
+  HealthWorkouts({Health? health}) : _health = health ?? Health();
+  final Health _health;
 
   @override
   Future<bool> authorize() async {
@@ -74,14 +75,20 @@ class HealthWorkouts implements WorkoutSource {
     ]..sort((a, b) => b.start.compareTo(a.start));
   }
 
+  /// How long before its workout a route may start. HealthKit only finds
+  /// routes that start within the time asked for, and the Watch's can start
+  /// seconds before the workout (issue 33).
+  static const routeLead = Duration(minutes: 10);
+
   @override
   Future<List<Fix>> track(Workout w) async {
     final points = await _health.getHealthDataFromTypes(
       types: [HealthDataType.WORKOUT_ROUTE],
-      startTime: w.start,
+      startTime: w.start.subtract(routeLead),
       endTime: w.end,
     );
-    // A paused workout has one route per part.
+    // A paused workout has one route per part. Watch routes name no workout:
+    // only the positions within its time, not those of one just before.
     return [
       for (final p in points)
         if (p.value case WorkoutRouteHealthValue(
@@ -89,13 +96,14 @@ class HealthWorkouts implements WorkoutSource {
           :final workoutUuid,
         ) when workoutUuid == null || workoutUuid == w.uuid)
           for (final l in locations)
-            Fix(
-              lon: l.longitude,
-              lat: l.latitude,
-              ele: l.altitude,
-              accuracyM: l.horizontalAccuracy ?? 10,
-              time: l.timestamp,
-            ),
+            if (!l.timestamp.isBefore(w.start) && !l.timestamp.isAfter(w.end))
+              Fix(
+                lon: l.longitude,
+                lat: l.latitude,
+                ele: l.altitude,
+                accuracyM: l.horizontalAccuracy ?? 10,
+                time: l.timestamp,
+              ),
     ]..sort((a, b) => a.time.compareTo(b.time));
   }
 }

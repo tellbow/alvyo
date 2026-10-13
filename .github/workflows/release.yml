@@ -11,11 +11,13 @@ on:
 permissions:
   contents: read
 
+# verify and image run where CI_RUNNER says, like ci.yml (the cluster's
+# arm64 runners build amd64 under qemu); release at GitHub, for the APK.
 jobs:
   # Only a tag signed with the key of .github/release-signers.asc releases:
   # the images are built from what its signer tagged.
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -27,7 +29,7 @@ jobs:
 
   image:
     needs: verify
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     permissions:
       contents: read
       packages: write

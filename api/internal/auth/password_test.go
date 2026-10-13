@@ -35,7 +35,7 @@ func TestVerifyPasswordRejectsGarbage(t *testing.T) {
 }
 
 func TestHashCost(t *testing.T) {
-	if testing.Short() {
+	if testing.Short() || raceEnabled {
 		t.Skip()
 	}
 	start := time.Now()

@@ -12,14 +12,9 @@ on:
 permissions:
   contents: read
 
-# The jobs run where the repository variable CI_RUNNER says: the label of
-# our self-hosted arm64 runners on the cluster; unset, GitHub's
-# ubuntu-latest. The app job always runs at GitHub (no Android
-# toolchain for arm64 Linux). Self-hosted runners only while the repository
-# is private: a pull request from a fork could run anything on them.
 jobs:
   go:
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         module: [swiss, api]
@@ -30,9 +25,6 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: ${{ matrix.module }}/go.mod
-      # -race needs cgo; the self-hosted runners' image has no C compiler.
-      - name: C compiler
-        run: command -v gcc || { sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc libc6-dev; }
       - run: go vet ./...
         working-directory: ${{ matrix.module }}
       # Known vulnerabilities in the code paths actually called.
@@ -53,7 +45,7 @@ jobs:
           working-directory: ${{ matrix.module }}
 
   web:
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: web
@@ -94,7 +86,7 @@ jobs:
   # The supply chain: vulnerable npm and pub packages, risky workflow
   # patterns, secrets in the history.
   supply-chain:
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -105,9 +97,6 @@ jobs:
           go-version: '1.27' # osv-scanner 2.6 needs it; only the tool runs here
       - name: osv-scanner (web and app lockfiles; Go is govulncheck's)
         run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.6.0 scan source -L web/bun.lock -L app/pubspec.lock
-      # pipx is not in the self-hosted runners' image.
-      - name: pipx
-        run: command -v pipx || { sudo apt-get update && sudo apt-get install -y --no-install-recommends pipx; }
       - name: zizmor (workflows)
         run: pipx run zizmor==1.30.1 --format=github .github/workflows
       - name: gitleaks (history, test passwords allowed by .gitleaks.toml)
@@ -118,7 +107,7 @@ jobs:
 
   # The images of a release still build (base image or Dockerfile changes).
   images:
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -137,14 +126,11 @@ jobs:
   #   renovate-missing-minimum-release-age: renovate.json sets the 7 days
   #     for all packages, not per rule.
   semgrep:
-    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # pipx is not in the self-hosted runners' image.
-      - name: pipx
-        run: command -v pipx || { sudo apt-get update && sudo apt-get install -y --no-install-recommends pipx; }
       - run: >-
           pipx run semgrep==1.180.0 scan --config p/default --metrics=off --error
           --exclude-rule go.lang.security.audit.net.cookie-missing-secure.cookie-missing-secure

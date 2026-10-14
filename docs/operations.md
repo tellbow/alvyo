@@ -37,7 +37,7 @@ The API calls these services; allow them if egress is restricted:
 
 The tile cache fetches from `wmts.geo.admin.ch` and `tiles.mapterhorn.com`
 and checks their certificates (`proxy_ssl_verify`; the cluster has its own
-copy of the configuration in the gitops repo, `cluster/alvyo/tilecache-nginx.conf`).
+copy of the configuration in the deployment repository).
 
 Reverse proxies in front of `/api` must accept request bodies of 22 MB
 (file imports: 20 MB plus form overhead).
@@ -53,8 +53,8 @@ providers you configure, e.g. Google:
 2. In `infra/.env`: `OIDC_PROVIDERS=google`, `OIDC_GOOGLE_CLIENT_ID=…`,
    `OIDC_GOOGLE_CLIENT_SECRET=…` (compose.prod.yaml passes them on).
    On the cluster: `ALVYO_OIDC_GOOGLE_CLIENT_ID` and
-   `ALVYO_OIDC_GOOGLE_CLIENT_SECRET` in `alvyo-secret` (`sops
-   cluster/alvyo/secret.yaml` in the gitops repo), the provider list, name
+   `ALVYO_OIDC_GOOGLE_CLIENT_SECRET` in `alvyo-secret` (sops-encrypted in
+   the deployment repository), the provider list, name
    and issuer in `configmap.yaml`. A provider listed without its secret
    stops the API from starting: the keys go in first.
 3. Check: `GET /api/v1/auth/providers` lists it, the login page shows
@@ -113,7 +113,7 @@ Before going public:
 
 - Set `OPERATOR_NAME` and `OPERATOR_ADDRESS` (on the cluster
   `PUBLIC_OPERATOR_NAME` and `PUBLIC_OPERATOR_ADDRESS` of the web
-  deployment in the gitops repo): the About page then names who answers
+  deployment): the About page then names who answers
   for the site, as data protection law asks.
 - Make the GitHub repository public: the About pages link its source (AGPL
   §13), NOTICE and the scripts that make the OpenStreetMap databases (ODbL).
@@ -173,8 +173,7 @@ the graph and its rollback copy 0.7 GB each, swissTLM3D 0.6 GB, the
 elevation cache 0.2 GB, Wanderland and places 0.2 GB. The weekly
 `graph-refresh` (Monday 02:00 UTC) rewrites about 6 GB of it, and Longhorn
 counts freed blocks as used until the filesystem is trimmed: the
-RecurringJob `filesystem-trim` (gitops
-`cluster/longhorn-system/recurringjob-trim.yaml`) therefore runs daily at
+Longhorn RecurringJob `filesystem-trim` therefore runs daily at
 04:00 UTC. Weekly, it left the volume's actual size at 88 % for six days
 and fired `LonghornVolumeUsageWarning` (over 80 %). A trim by hand: Longhorn
 UI, the volume, «Trim Filesystem».
@@ -220,7 +219,7 @@ The graph has elevation for the slopes of the isochrones' time profiles
 AWS Terrain Tiles (skadi) into `/data/elevation-cache` (about 210 MB, kept
 for later imports). With them the graph is 0.67 GB instead of 0.61 GB and
 the import needs about 2.9 GB of heap (local, 2026-10-05: 8 min reading the
-OSM data, 1 min per CH profile; on rk1 11 min with a 4 GB heap, 4.7 GiB of
+OSM data, 1 min per CH profile; on the cluster 11 min with a 4 GB heap, 4.7 GiB of
 memory). Routes are found as before; the turns of
 map matching are as many as before on GPS tracks (54 against 55 on 20
 noisy tracks).
@@ -266,17 +265,16 @@ wait for the next check or restart the API.
 The API and the web server send traces by OTLP when
 `OTEL_EXPORTER_OTLP_ENDPOINT` is set (standard OpenTelemetry variables:
 `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`, `OTEL_SDK_DISABLED=true` to
-switch off). On rk1 they reach the collector DaemonSet on their node
-(`http://$(HOST_IP):4318`, monitoring-system in the gitops repo), which
-sends them to Tempo (`cluster/monitoring-system/tempo`, a week kept). Tempo
-derives span metrics (`traces_spanmetrics_*`) and the service graph
+switch off). On the cluster they reach the collector DaemonSet on their
+node (`http://$(HOST_IP):4318`), which sends them to Tempo (a week
+kept). Tempo derives span metrics (`traces_spanmetrics_*`) and the service graph
 (`traces_service_graph_*`) and writes them to Prometheus. In Grafana, a
 trace links to its log lines in VictoriaLogs and to the request rate and
 latency of its service; a VictoriaLogs line with a `trace_id` links to the
 trace («Trace»). Metrics are served for
 Prometheus on their own port when `ALVYO_METRICS_LISTEN` (API, e.g. `:9464`)
 and `METRICS_PORT` (web) are set; kube-prometheus-stack scrapes them through
-`cluster/alvyo/servicemonitor.yaml` (`http_server_request_duration_seconds`
+a ServiceMonitor (`http_server_request_duration_seconds`
 of the API, `http_server_request_duration` of the web, `db_client_*`, `go_*`).
 Logs are JSON on stderr; the collector reads them into VictoriaLogs (the
 JSON stays in `_msg`); lines of a request carry `trace_id`. Locally: `docker run -p 4318:4318
@@ -284,8 +282,8 @@ otel/opentelemetry-collector-contrib` with a debug exporter shows the traces.
 
 GraphHopper times nothing per request itself. Its image carries the
 OpenTelemetry Java agent, switched on by
-`-javaagent:/opt/opentelemetry-javaagent.jar` in `JAVA_OPTS` (on rk1, not
-locally): spans `GET /isochrone`, `POST /route` and so on inside the API's
+`-javaagent:/opt/opentelemetry-javaagent.jar` in `JAVA_OPTS` (on the cluster,
+not locally): spans `GET /isochrone`, `POST /route` and so on inside the API's
 trace, and `http_server_request_duration_seconds` and `jvm_*` for
 Prometheus on 9464 (`OTEL_EXPORTER_PROMETHEUS_HOST=0.0.0.0`, or the agent
 listens on localhost only). The span metrics carry `server_address`, so the

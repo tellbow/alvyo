@@ -408,14 +408,14 @@ emulator ran the integration tests offline, navigate and journey
       GA's real-time report shows the visit, addresses without `?t=` and
       `/live/-`. In GA's data stream, «Page changes based on browser history
       events» is off (2026-10-05): the site sends its page views itself.
-- [ ] **Telemetry on rk1** (59): after the release, Prometheus scrapes
+- [ ] **Telemetry in production** (59): after the release, Prometheus scrapes
       the api and web targets (up) with their request durations;
       VictoriaLogs lines of the API carry `trace_id`; the collector logs no
       export errors. In Grafana: a trace of alvyo-api in Tempo, «Logs for
       this span» shows its lines in VictoriaLogs, «Related metrics» the
       request rate and p95; a VictoriaLogs line of the API has a «Trace»
       link that opens it.
-- [ ] **How far one gets on rk1** (65): after the new graph, «Reichweite»
+- [ ] **How far one gets in production** (65): after the new graph, «Reichweite»
       from a few starts (a station in a valley, a hut): the areas follow the
       valleys, 8 hours answer within about 10 s, the planner still routes.
       In the app on the iPhone: «Mein Standort» asks for the location once
@@ -452,7 +452,7 @@ emulator ran the integration tests offline, navigate and journey
       day with showers: the radar matches what one sees in the sky, the
       card refreshes every 5 minutes, play runs through the timeline and the
       forecast hours follow on; without reception the last pictures stay.
-      On rk1 after the release: the `weather-precip` job runs every 5
+      In production after the release: the `weather-precip` job runs every 5
       minutes without errors, a new forecast run appears within 3 hours.
 - [ ] **A shared collection on the iPhone** (66): the link of an unlisted
       collection with private routes and a private journey, opened in

@@ -557,8 +557,8 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
 
 59. **Traces and metrics to the observability stack.** API and web are
     instrumented with OpenTelemetry. Traces go by OTLP to the collector on
-    their node (rk1: the DaemonSet's host port 4318,
-    `OTEL_EXPORTER_OTLP_ENDPOINT` in the gitops repo; without an endpoint
+    their node (in production the DaemonSet's host port 4318 in
+    `OTEL_EXPORTER_OTLP_ENDPOINT`; without an endpoint
     nothing is sent); metrics are served for Prometheus on a port of their
     own (9464, `ALVYO_METRICS_LISTEN` and `METRICS_PORT`, not behind the
     ingress) and scraped through a ServiceMonitor. API: a span per
@@ -569,7 +569,7 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     trace continued into the API, request durations per route. Logs stay
     on stderr, where the collector already reads every container's into
     VictoriaLogs, now with `trace_id` and `span_id`. The collector sends
-    traces to Tempo on rk1 (a week kept, span metrics and the service graph
+    traces to Tempo (a week kept, span metrics and the service graph
     to Prometheus); Grafana links a trace to its log lines and metrics, and
     a log line to its trace.
 60. **Friends.** Mutual: one asks (an e-mail with the «new follower»
@@ -622,7 +622,7 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     graph has elevation for it (30 m terrain tiles, skadi). An area is the
     outline around what is reached, lakes and pathless slopes inside
     included: the page says «ungefähr». 8 hours take about 2 s on the dev
-    machine, 7 s on rk1. In the app: «Wie weit komme ich?» (the radar icon above «Meine
+    machine, 7 s in production. In the app: «Wie weit komme ich?» (the radar icon above «Meine
     Routen»), from a tap on the map, a place or where one is, the map fitted
     to the 8-hour area. From there to planning (issue 13): a click or tap
     inside the areas says within how many hours and offers «Hierhin

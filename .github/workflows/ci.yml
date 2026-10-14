@@ -12,9 +12,9 @@ on:
 permissions:
   contents: read
 
-# The jobs run where the repository variable CI_RUNNER says: rk1-arm64 is
-# the self-hosted runners on the cluster (gitops repo, arc-runners); unset,
-# GitHub's ubuntu-latest. The app job always runs at GitHub (no Android
+# The jobs run where the repository variable CI_RUNNER says: the label of
+# our self-hosted arm64 runners on the cluster; unset, GitHub's
+# ubuntu-latest. The app job always runs at GitHub (no Android
 # toolchain for arm64 Linux). Self-hosted runners only while the repository
 # is private: a pull request from a fork could run anything on them.
 jobs:

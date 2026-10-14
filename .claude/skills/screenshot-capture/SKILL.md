@@ -44,10 +44,11 @@ way) and the journey «Via Alpina».
 
 If the request comes with a script, run it as it is. Otherwise write a
 small one in the output directory, with the web app's Playwright (not
-`bunx playwright test`):
+`bunx playwright test`; `<repo>` is the repository's absolute path,
+`git rev-parse --show-toplevel`):
 
 ```js
-import { chromium } from '/Users/adrian/git/private/alvyo/web/node_modules/playwright/index.mjs';
+import { chromium } from '<repo>/web/node_modules/playwright/index.mjs';
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1440, height: 900 }, locale: 'de-CH', colorScheme: 'light' });
 await p.goto('http://localhost:5173/login');

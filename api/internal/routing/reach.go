@@ -25,8 +25,8 @@ type ReachArea struct {
 	Outline [][][2]float64 `json:"outline" doc:"Polygon rings, the outer one first; [lon, lat] per point"`
 }
 
-// reachTimeout: eight hours on foot search much of a region (about 10 s on
-// rk1), more than a leg's 10 s.
+// reachTimeout: eight hours on foot search much of a region (about 10 s in
+// production), more than a leg's 10 s.
 const reachTimeout = 45 * time.Second
 
 // Reach returns the areas reached from p within ReachHours at pace (one's

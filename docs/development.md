@@ -110,9 +110,8 @@ request). The e2e tests stub the planner, so they never use the OJP quota.
 ## CI runners
 
 CI runs on GitHub's runners, or with the repository variable `CI_RUNNER`
-set on the self-hosted arm64 runners in the cluster (gitops repo,
-`cluster/arc-runners`): `gh variable set CI_RUNNER --body rk1-arm64`,
-back with `gh variable delete CI_RUNNER`; the release's images too (amd64
+set on the self-hosted arm64 runners in the cluster:
+`gh variable set CI_RUNNER --body <their label>`, back with `gh variable delete CI_RUNNER`; the release's images too (amd64
 under qemu). The app job and the release's last job (the Android APK)
 always run at GitHub. Self-hosted only while the repository is private: a
 pull request from a fork could run anything on them (their runner group

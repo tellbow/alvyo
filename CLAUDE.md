@@ -44,7 +44,8 @@ database container stays behind.
 ## Never
 
 - Read or print secrets: `infra/.env.local-test` (holds the OJP key; source
-  it only in a subshell), `cluster/alvyo/secret.yaml` in the gitops repo.
-- Use another kubeconfig than `KUBECONFIG=~/.kube/k3s.yaml` with
-  `--context rk1`; the default one holds unrelated clusters.
-- Set image tags in the gitops repo by hand: Flux image automation does.
+  it only in a subshell), the deployment's secret (`CLAUDE.local.md`).
+- Use another kubeconfig or context than the ones in `CLAUDE.local.md`
+  (not in the repository); the default one holds unrelated clusters.
+- Set image tags in the deployment repository by hand: Flux image
+  automation does.

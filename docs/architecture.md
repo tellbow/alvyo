@@ -1,8 +1,8 @@
 # Architecture
 
 Alvyo is a website and an iOS app in front of one Go API. Everything of
-ours runs in the k3s cluster rk1 (namespace `alvyo`, deployed by Flux from
-the gitops repo, `cluster/alvyo/`); `infra/compose.prod.yaml` runs the same
+ours runs in a Kubernetes cluster (namespace `alvyo`, deployed by Flux
+from a private deployment repository); `infra/compose.prod.yaml` runs the same
 parts on a single server. The maps, heights,
 trails, weather and public transport come from Swiss open data, mostly
 through geo.admin.ch.
@@ -19,7 +19,7 @@ flowchart TB
   browser["Website in the browser<br/>SvelteKit, web/"]
   app["iOS app<br/>Flutter, app/"]
 
-  subgraph k3s["k3s rk1, namespace alvyo"]
+  subgraph cluster["Kubernetes, namespace alvyo"]
     ingress["Ingress<br/>alvyo.tellbow.ch"]
     web["web<br/>SvelteKit server"]
     api["api<br/>Go, api/ and swiss/"]

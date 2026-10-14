@@ -976,7 +976,7 @@
   "bugWhat": "Was ist passiert? Was hast du erwartet?",
   "bugWithScreenshot": "Bildschirmfoto mitsenden",
   "bugScreenshotAlt": "Bildschirmfoto dieser Seite",
-  "bugPrivacy": "Der Bericht wird als öffentliches Issue auf GitHub veröffentlicht: dein Text, die Adresse ({place}), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.",
+  "bugPrivacy": "Der Bericht landet als Issue in einem privaten GitHub-Repository, das nur das Alvyo-Team sieht: dein Text, die Adresse ({place}), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.",
   "bugSend": "Senden",
   "bugSent": "Danke! Der Fehler ist gemeldet.",
   "bugFailed": "Das hat nicht geklappt. Versuch es später nochmals.",

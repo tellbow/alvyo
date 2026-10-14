@@ -1620,7 +1620,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String bugPrivacy(String place) {
-    return 'Der Bericht wird als öffentliches Issue auf GitHub veröffentlicht: dein Text, die Adresse ($place), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.';
+    return 'Der Bericht landet als Issue in einem privaten GitHub-Repository, das nur das Alvyo-Team sieht: dein Text, die Adresse ($place), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.';
   }
 
   @override

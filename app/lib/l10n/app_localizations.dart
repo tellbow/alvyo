@@ -3031,7 +3031,7 @@ abstract class AppLocalizations {
   /// No description provided for @bugPrivacy.
   ///
   /// In de, this message translates to:
-  /// **'Der Bericht wird als öffentliches Issue auf GitHub veröffentlicht: dein Text, die Adresse ({place}), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.'**
+  /// **'Der Bericht landet als Issue in einem privaten GitHub-Repository, das nur das Alvyo-Team sieht: dein Text, die Adresse ({place}), die Version und dein Benutzername. Das Bildschirmfoto bleibt bei Alvyo und wird mit deinem Konto gelöscht.'**
   String bugPrivacy(String place);
 
   /// No description provided for @bugSend.

@@ -109,7 +109,7 @@ func (s *Store) Screenshot(ctx context.Context, id uuid.UUID) ([]byte, string, e
 var secretPath = regexp.MustCompile(`/(live|friends/invite|friend-invites)/[^/?#]+`)
 
 // Place is the reported address without what would let a reader of the
-// public issue in: path tokens masked, share and reset tokens dropped, and
+// issue in: path tokens masked, share and reset tokens dropped, and
 // on one line, so it cannot add markdown to the issue.
 func Place(place string) string {
 	place = oneLine(place)

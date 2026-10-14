@@ -20,7 +20,7 @@ test('a bug reported from the planner, with what is open and a screenshot', asyn
 	const dialog = page.getByRole('dialog', { name: 'Fehler melden' });
 	await expect(dialog.getByRole('img', { name: 'Bildschirmfoto dieser Seite' })).toBeVisible();
 	await expect(dialog).toContainText(
-		'öffentliches Issue auf GitHub veröffentlicht: dein Text, die Adresse (/plan)'
+		'das nur das Alvyo-Team sieht: dein Text, die Adresse (/plan)'
 	);
 	await dialog.getByTestId('bug-text').fill('Die Karte bleibt leer.');
 	const sent = page.waitForRequest((r) => r.url().endsWith('/api/v1/bug-reports'));

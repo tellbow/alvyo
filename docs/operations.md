@@ -33,7 +33,7 @@ The API calls these services; allow them if egress is restricted:
 |---|---|
 | `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
 | `api.opentransportdata.swiss` | Connections (OJP), only if `ALVYO_OJP_TOKEN` is set |
-| `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for `tellbow/alvyo` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write». Without it reports are only kept in the database. |
+| `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for the private `tellbow/alvyo-feedback` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write». Without it reports are only kept in the database. |
 
 The tile cache fetches from `wmts.geo.admin.ch` and `tiles.mapterhorn.com`
 and checks their certificates (`proxy_ssl_verify`; the cluster has its own
@@ -117,7 +117,7 @@ Before going public:
   for the site, as data protection law asks.
 - Make the GitHub repository public: the About pages link its source (AGPL
   §13), NOTICE and the scripts that make the OpenStreetMap databases (ODbL).
-  Bug reports then become public issues, as the report form says.
+  Bug reports stay private either way: they go to `tellbow/alvyo-feedback`.
 - E-mail swisstopo (geodata@swisstopo.ch) about the expected tile volume:
   the terms allow restricting "excessive use" (about 20,000 users a day in
   a web application count as fair use).

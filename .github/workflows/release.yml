@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# One run per tag: GitHub once started two for the same push (v0.34.0), and
+# the second failed on the release the first had created.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Only a tag signed with the key of .github/release-signers.asc releases:
   # the images are built from what its signer tagged.

@@ -67,6 +67,11 @@ flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') 
   --dart-define=ALVYO_VERSION=$(git describe --tags --always)
 ```
 
+Uploading that build without a distribution certificate on the Mac:
+`xcodebuild -exportArchive` with `ios/ExportOptions-upload.plist` and
+`-allowProvisioningUpdates` signs it through the Apple ID in Xcode and
+sends it to App Store Connect (the `testflight` skill has the steps).
+
 The App Store's screenshots, header and search result picture, and the
 scripts that make them: [store/README.md](store/README.md).
 

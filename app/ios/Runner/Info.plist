@@ -9,6 +9,9 @@
 	<string>Alvyo adds photos from your library to your routes and journeys.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Alvyo imports the hikes you recorded with your Apple Watch.</string>
+	<!-- Only HTTPS: exempt from export documentation, so App Store Connect does not ask on every build. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<!-- Required because the health plugin links the write APIs; Alvyo never writes. -->
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Alvyo does not write to Apple Health; it only reads the hikes you recorded with your Apple Watch.</string>

@@ -1,0 +1,8 @@
+/* Permission texts; the keys are in Info.plist. */
+NSCameraUsageDescription = "Alvyo adds the photos you take to your routes and journeys, and names the mountains in the camera's view.";
+NSPhotoLibraryUsageDescription = "Alvyo adds photos from your library to your routes and journeys.";
+NSHealthShareUsageDescription = "Alvyo imports the hikes you recorded with your Apple Watch.";
+NSHealthUpdateUsageDescription = "Alvyo does not write to Apple Health; it only reads the hikes you recorded with your Apple Watch.";
+NSLocationWhenInUseUsageDescription = "Alvyo shows where you are on the route and records your hike.";
+NSLocationAlwaysAndWhenInUseUsageDescription = "Alvyo records your hike while the phone is locked.";
+NSLocationAlwaysUsageDescription = "Alvyo records your hike while the phone is locked.";

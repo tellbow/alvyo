@@ -1,0 +1,8 @@
+/* Permission texts; the keys are in Info.plist. */
+NSCameraUsageDescription = "Alvyo ajoute les photos que tu prends à tes itinéraires et randonnées par étapes, et nomme les montagnes dans le champ de la caméra.";
+NSPhotoLibraryUsageDescription = "Alvyo ajoute des photos de ta photothèque à tes itinéraires et randonnées par étapes.";
+NSHealthShareUsageDescription = "Alvyo importe les randonnées que tu as enregistrées avec ton Apple Watch.";
+NSHealthUpdateUsageDescription = "Alvyo n’écrit rien dans Apple Health et y lit seulement les randonnées que tu as enregistrées avec ton Apple Watch.";
+NSLocationWhenInUseUsageDescription = "Alvyo montre où tu es sur l’itinéraire et enregistre ta randonnée.";
+NSLocationAlwaysAndWhenInUseUsageDescription = "Alvyo enregistre ta randonnée, même écran verrouillé.";
+NSLocationAlwaysUsageDescription = "Alvyo enregistre ta randonnée, même écran verrouillé.";

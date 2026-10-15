@@ -85,33 +85,44 @@ func (s *Store) Create(ctx context.Context, r Report) (id uuid.UUID, issueURL st
 
 // MoveScreenshots commits the screenshots that earlier versions kept in
 // the database, shows each in a comment on its issue and drops it from
-// the database; how many it moved.
+// the database; how many it moved. The issue is the one whose text links
+// the report's screenshot: the stored numbers changed when the issues
+// moved to another repository. Without one the file is only committed.
 func (s *Store) MoveScreenshots(ctx context.Context) (int, error) {
-	rows, err := s.DB.Query(ctx, `SELECT id, screenshot, issue_number FROM bug_reports
-		WHERE screenshot IS NOT NULL AND issue_number IS NOT NULL ORDER BY id`)
+	rows, err := s.DB.Query(ctx, `SELECT id, screenshot FROM bug_reports WHERE screenshot IS NOT NULL ORDER BY id`)
 	if err != nil {
 		return 0, fmt.Errorf("bugs: screenshots: %w", err)
 	}
 	type old struct {
-		id     uuid.UUID
-		shot   []byte
-		number int
+		id   uuid.UUID
+		shot []byte
 	}
 	olds, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (old, error) {
 		var o old
-		err := r.Scan(&o.id, &o.shot, &o.number)
+		err := r.Scan(&o.id, &o.shot)
 		return o, err
 	})
 	if err != nil {
 		return 0, fmt.Errorf("bugs: screenshots: %w", err)
 	}
+	issues, err := s.GitHub.reportIssues(ctx)
+	if err != nil {
+		return 0, err
+	}
 	for i, o := range olds {
-		url, err := s.GitHub.Commit(ctx, screenshotPath(o.id, o.shot), o.shot)
+		path := screenshotPath(o.id, o.shot)
+		// Committed by an earlier run that stopped before the comment.
+		url, err := s.GitHub.File(ctx, path)
+		if err == nil && url == "" {
+			url, err = s.GitHub.Commit(ctx, path, o.shot)
+		}
 		if err != nil {
 			return i, err
 		}
-		if err := s.GitHub.Comment(ctx, o.number, screenshotMarkdown(url)+"\n"); err != nil {
-			return i, err
+		if number, ok := issues[o.id]; ok {
+			if err := s.GitHub.Comment(ctx, number, screenshotMarkdown(url)+"\n"); err != nil {
+				return i, err
+			}
 		}
 		if _, err := s.DB.Exec(ctx, `UPDATE bug_reports SET screenshot = NULL, screenshot_type = NULL WHERE id = $1`, o.id); err != nil {
 			return i, fmt.Errorf("bugs: screenshots: %w", err)
@@ -253,23 +264,77 @@ func (g *GitHub) Commit(ctx context.Context, path string, content []byte) (strin
 	return out.Content.HTMLURL, nil
 }
 
+// File is the address of the file at path on github.com; empty when
+// there is none.
+func (g *GitHub) File(ctx context.Context, path string) (string, error) {
+	var out struct {
+		HTMLURL string `json:"html_url"`
+	}
+	err := g.do(ctx, http.MethodGet, "/contents/"+path, nil, &out)
+	if s, ok := errors.AsType[statusError](err); ok && s.code == http.StatusNotFound {
+		return "", nil
+	}
+	return out.HTMLURL, err
+}
+
+// reportLink finds a report in an issue's text: the link to its
+// screenshot that versions up to 1.0 wrote.
+var reportLink = regexp.MustCompile(`/bug-reports/([0-9a-f-]{36})/screenshot`)
+
+// reportIssues are the numbers of the issues that link a report's
+// screenshot, by report.
+func (g *GitHub) reportIssues(ctx context.Context) (map[uuid.UUID]int, error) {
+	out := map[uuid.UUID]int{}
+	for page := 1; ; page++ {
+		var issues []struct {
+			Number int    `json:"number"`
+			Body   string `json:"body"`
+		}
+		if err := g.do(ctx, http.MethodGet, fmt.Sprintf("/issues?state=all&per_page=100&page=%d", page), nil, &issues); err != nil {
+			return nil, err
+		}
+		for _, i := range issues {
+			for _, m := range reportLink.FindAllStringSubmatch(i.Body, -1) {
+				if id, err := uuid.Parse(m[1]); err == nil {
+					out[id] = i.Number
+				}
+			}
+		}
+		if len(issues) < 100 {
+			return out, nil
+		}
+	}
+}
+
 // Comment adds a comment to issue number.
 func (g *GitHub) Comment(ctx context.Context, number int, body string) error {
 	return g.do(ctx, http.MethodPost, fmt.Sprintf("/issues/%d/comments", number), map[string]any{"body": body}, nil)
 }
 
-// do sends payload to the repository's endpoint path and decodes the
-// answer into out; GitHub answers 201 for what these create.
+// statusError is an answer other than 200 or 201.
+type statusError struct {
+	code int
+	msg  string
+}
+
+func (e statusError) Error() string { return fmt.Sprintf("status %d: %s", e.code, e.msg) }
+
+// do sends payload (none when nil) to the repository's endpoint path and
+// decodes the answer into out.
 func (g *GitHub) do(ctx context.Context, method, path string, payload, out any) error {
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return err
+	var body io.Reader
+	if payload != nil {
+		b, err := json.Marshal(payload)
+		if err != nil {
+			return err
+		}
+		body = bytes.NewReader(b)
 	}
 	base := g.URL
 	if base == "" {
 		base = "https://api.github.com"
 	}
-	req, err := http.NewRequestWithContext(ctx, method, base+"/repos/"+g.Repo+path, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, method, base+"/repos/"+g.Repo+path, body)
 	if err != nil {
 		return err
 	}
@@ -285,9 +350,9 @@ func (g *GitHub) do(ctx context.Context, method, path string, payload, out any) 
 		return fmt.Errorf("github: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		msg, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		return fmt.Errorf("github: %s %s: status %d: %s", method, path, resp.StatusCode, msg)
+		return fmt.Errorf("github: %s %s: %w", method, path, statusError{resp.StatusCode, string(msg)})
 	}
 	if out == nil {
 		return nil

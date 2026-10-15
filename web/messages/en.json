@@ -157,6 +157,7 @@
 	"nav_about": "About",
 	"about_title": "About Alvyo",
 	"about_news_title": "What's new",
+	"news_1_0_0": "Version 1.0, ready for the App Store: the iPhone app shows the Alvyo logo when it starts, and when it asks for your location, the camera, your photos or Apple Health, it now says why in your language.",
 	"news_0_34_0": "The app is now on Android too (to download with every version on GitHub). Hikes from the Apple Watch import again, and «Again» brings one in once more as a new route. «About» lists all data sources and says more about privacy. The Komoot import is gone: export your tours from Komoot as GPX and import the file here.",
 	"news_0_33_0": "New in «Reach»: tap inside an area and plan a route there right away – from the start, with the same profile, in the app as a round trip back to the start if you like. Fixed: the app's planner broke on a round trip.",
 	"news_0_32_0": "New under «Account»: access tokens for AI assistants such as Claude and the command-line tool alvyo-cli. With one they plan routes, search places, check weather and closures and see your routes and journeys – they cannot change anything.",

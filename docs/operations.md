@@ -33,7 +33,7 @@ The API calls these services; allow them if egress is restricted:
 |---|---|
 | `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
 | `api.opentransportdata.swiss` | Connections (OJP), only if `ALVYO_OJP_TOKEN` is set |
-| `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for the private `tellbow/alvyo-feedback` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write». Without it reports are only kept in the database. |
+| `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for the private `tellbow/alvyo-feedback` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write» and «Contents: read and write» (screenshots are committed under `screenshots/`). Without it reports are only kept in the database, without screenshot. |
 
 The tile cache fetches from `wmts.geo.admin.ch` and `tiles.mapterhorn.com`
 and checks their certificates (`proxy_ssl_verify`; the cluster has its own
@@ -308,6 +308,11 @@ docker compose -f compose.prod.yaml exec api /alvyo user unban <username>
 docker compose -f compose.prod.yaml exec api /alvyo user role <username> moderator   # sees "Moderation" in the app
 docker compose -f compose.prod.yaml exec api /alvyo route unpublish <route-id>
 ```
+
+Once after updating from 1.0: `alvyo bugs screenshots` (in the api
+container, like `route retrail`) commits the bug report screenshots that
+1.0 and earlier kept in the database to the feedback repository, shows
+each in a comment on its issue and removes it from the database.
 
 ## Verified locally (2026-09-22)
 

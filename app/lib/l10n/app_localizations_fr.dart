@@ -1622,7 +1622,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String bugPrivacy(String place) {
-    return 'Le rapport devient une issue dans un dépôt GitHub privé que seule l\'équipe Alvyo voit : ton texte, l\'adresse ($place), la version et ton nom d\'utilisateur. La capture d\'écran reste chez Alvyo et est supprimée avec ton compte.';
+    return 'Le rapport devient une issue dans un dépôt GitHub privé que seule l\'équipe Alvyo voit : ton texte, l\'adresse ($place), la version, ton nom d\'utilisateur et la capture d\'écran.';
   }
 
   @override

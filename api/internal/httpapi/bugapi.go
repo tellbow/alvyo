@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/google/uuid"
 
 	"github.com/tellbow/alvyo/api/internal/bugs"
 )
@@ -34,7 +33,7 @@ func registerBugReports(api huma.API, d Deps) {
 	huma.Register(api, huma.Operation{
 		OperationID: "report-bug", Method: http.MethodPost, Path: "/bug-reports",
 		Summary:     "Report a bug, with what is open and a screenshot",
-		Description: "Opens an issue on GitHub; the screenshot stays with us. A few a day per person.",
+		Description: "Opens an issue on GitHub, with the screenshot committed to the same repository. A few a day per person.",
 		Tags:        tags, DefaultStatus: http.StatusCreated, MaxBodyBytes: bugs.MaxScreenshotBytes*4/3 + 1<<20,
 	}, func(ctx context.Context, in *bugReportInput) (*bugReportOutput, error) {
 		u, err := requireUser(ctx)
@@ -64,32 +63,5 @@ func registerBugReports(api huma.API, d Deps) {
 		out := &bugReportOutput{}
 		out.Body.ID, out.Body.IssueURL = id.String(), issue
 		return out, nil
-	})
-
-	huma.Register(api, huma.Operation{
-		OperationID: "bug-screenshot", Method: http.MethodGet, Path: "/bug-reports/{id}/screenshot",
-		Summary: "A bug report's screenshot (moderators)", Tags: tags,
-	}, func(ctx context.Context, in *struct {
-		ID string `path:"id" format:"uuid"`
-	}) (*imageOutput, error) {
-		u, err := requireUser(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if !isModerator(u) {
-			return nil, huma.Error403Forbidden("for moderators")
-		}
-		id, err := uuid.Parse(in.ID)
-		if err != nil {
-			return nil, huma.Error404NotFound("no such screenshot")
-		}
-		b, kind, err := d.Bugs.Screenshot(ctx, id)
-		if errors.Is(err, bugs.ErrNotFound) {
-			return nil, huma.Error404NotFound("no such screenshot")
-		}
-		if err != nil {
-			return nil, err
-		}
-		return &imageOutput{ContentType: kind, CacheControl: "private, no-store", Body: b}, nil
 	})
 }

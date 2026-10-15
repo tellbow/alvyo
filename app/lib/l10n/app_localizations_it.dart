@@ -1619,7 +1619,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String bugPrivacy(String place) {
-    return 'Il rapporto diventa una issue in un repository GitHub privato che vede solo il team di Alvyo: il tuo testo, l\'indirizzo ($place), la versione e il tuo nome utente. Lo screenshot resta ad Alvyo e viene cancellato con il tuo account.';
+    return 'Il rapporto diventa una issue in un repository GitHub privato che vede solo il team di Alvyo: il tuo testo, l\'indirizzo ($place), la versione, il tuo nome utente e lo screenshot.';
   }
 
   @override

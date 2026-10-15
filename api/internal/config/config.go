@@ -37,7 +37,8 @@ type Config struct {
 	// limit for end-to-end tests. Never set it in production.
 	RelaxedLimits bool
 	// Bug reports open issues in ALVYO_GITHUB_REPO (default tellbow/alvyo-feedback, private)
-	// with ALVYO_GITHUB_TOKEN (issues: write); without it they are only kept.
+	// with ALVYO_GITHUB_TOKEN (issues and contents: write, for the screenshots);
+	// without it they are only kept, without screenshot.
 	GitHubRepo  string
 	GitHubToken string
 	SMTP        mailer.SMTPConfig

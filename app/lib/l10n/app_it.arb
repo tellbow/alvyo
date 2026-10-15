@@ -489,7 +489,7 @@
   "bugWhat": "Cos’è successo? Cosa ti aspettavi?",
   "bugWithScreenshot": "Invia uno screenshot",
   "bugScreenshotAlt": "Screenshot di questa pagina",
-  "bugPrivacy": "Il rapporto diventa una issue in un repository GitHub privato che vede solo il team di Alvyo: il tuo testo, l'indirizzo ({place}), la versione e il tuo nome utente. Lo screenshot resta ad Alvyo e viene cancellato con il tuo account.",
+  "bugPrivacy": "Il rapporto diventa una issue in un repository GitHub privato che vede solo il team di Alvyo: il tuo testo, l'indirizzo ({place}), la versione, il tuo nome utente e lo screenshot.",
   "bugSend": "Invia",
   "bugSent": "Grazie! L’errore è segnalato.",
   "bugFailed": "Non ha funzionato. Riprova più tardi.",

@@ -215,26 +215,9 @@ export interface paths {
         put?: never;
         /**
          * Report a bug, with what is open and a screenshot
-         * @description Opens an issue on GitHub; the screenshot stays with us. A few a day per person.
+         * @description Opens an issue on GitHub, with the screenshot committed to the same repository. A few a day per person.
          */
         post: operations["report-bug"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/bug-reports/{id}/screenshot": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** A bug report's screenshot (moderators) */
-        get: operations["bug-screenshot"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4887,39 +4870,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BugReportOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "bug-screenshot": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    "Cache-Control"?: string;
-                    "Content-Type"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string;
                 };
             };
             /** @description Error */

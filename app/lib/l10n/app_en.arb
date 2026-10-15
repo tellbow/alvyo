@@ -489,7 +489,7 @@
   "bugWhat": "What happened? What did you expect?",
   "bugWithScreenshot": "Send a screenshot",
   "bugScreenshotAlt": "Screenshot of this page",
-  "bugPrivacy": "The report becomes an issue in a private GitHub repository that only the Alvyo team can see: your text, the address ({place}), the version and your username. The screenshot stays with Alvyo and is deleted with your account.",
+  "bugPrivacy": "The report becomes an issue in a private GitHub repository that only the Alvyo team can see: your text, the address ({place}), the version, your username and the screenshot.",
   "bugSend": "Send",
   "bugSent": "Thank you! The bug is reported.",
   "bugFailed": "That did not work. Please try again later.",

@@ -6719,7 +6719,7 @@
     },
     "/bug-reports": {
       "post": {
-        "description": "Opens an issue on GitHub; the screenshot stays with us. A few a day per person.",
+        "description": "Opens an issue on GitHub, with the screenshot committed to the same repository. A few a day per person.",
         "operationId": "report-bug",
         "requestBody": {
           "content": {
@@ -6754,61 +6754,6 @@
           }
         },
         "summary": "Report a bug, with what is open and a screenshot",
-        "tags": [
-          "bugs"
-        ]
-      }
-    },
-    "/bug-reports/{id}/screenshot": {
-      "get": {
-        "operationId": "bug-screenshot",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "contentEncoding": "base64",
-                  "type": "string"
-                }
-              }
-            },
-            "description": "OK",
-            "headers": {
-              "Cache-Control": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Content-Type": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorModel"
-                }
-              }
-            },
-            "description": "Error"
-          }
-        },
-        "summary": "A bug report's screenshot (moderators)",
         "tags": [
           "bugs"
         ]

@@ -1,11 +1,12 @@
 // Package bugs keeps bug reports from the website and the app and opens
-// each as an issue on GitHub. The screenshot stays in the database: the
-// issue links to it for moderators, and it goes with the account.
+// each as an issue on GitHub. The screenshot is committed to the same
+// (private) repository and shown in the issue.
 package bugs
 
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,9 +27,6 @@ import (
 // MaxScreenshotBytes bounds a screenshot (PNG or JPEG).
 const MaxScreenshotBytes = 4 << 20
 
-// ErrNotFound means no such report, or one without a screenshot.
-var ErrNotFound = errors.New("bugs: not found")
-
 // ErrScreenshot means the screenshot is not a PNG or JPEG.
 var ErrScreenshot = errors.New("bugs: screenshot must be PNG or JPEG")
 
@@ -45,39 +43,34 @@ type Report struct {
 
 // Store keeps reports; GitHub opens their issues (nil: kept only).
 type Store struct {
-	DB        *pgxpool.Pool
-	GitHub    *GitHub
-	PublicURL string
+	DB     *pgxpool.Pool
+	GitHub *GitHub
 }
 
 // Create keeps a report and opens its issue; the issue's address, empty
 // when GitHub is not configured or did not answer (the report is kept).
 func (s *Store) Create(ctx context.Context, r Report) (id uuid.UUID, issueURL string, err error) {
 	r.Place, r.Version = Place(r.Place), oneLine(r.Version)
-	var kind *string
 	if len(r.Screenshot) > 0 {
-		t := http.DetectContentType(r.Screenshot)
-		if t != "image/png" && t != "image/jpeg" {
+		if _, ok := screenshotExt(r.Screenshot); !ok {
 			return uuid.Nil, "", ErrScreenshot
 		}
-		kind = &t
-	}
-	var shot []byte
-	if kind != nil {
-		shot = r.Screenshot
 	}
 	if err := s.DB.QueryRow(ctx, `
-		INSERT INTO bug_reports (user_id, description, place, version, platform, screenshot, screenshot_type)
-		VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-		r.UserID, r.Description, r.Place, r.Version, r.Platform, shot, kind).Scan(&id); err != nil {
+		INSERT INTO bug_reports (user_id, description, place, version, platform)
+		VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+		r.UserID, r.Description, r.Place, r.Version, r.Platform).Scan(&id); err != nil {
 		return uuid.Nil, "", fmt.Errorf("bugs: create: %w", err)
 	}
 	if s.GitHub == nil {
-		return id, "", nil
+		return id, "", nil // the screenshot has nowhere to go
 	}
-	screenshot := ""
-	if kind != nil {
-		screenshot = s.PublicURL + "/api/v1/bug-reports/" + id.String() + "/screenshot"
+	screenshot := Screenshot{}
+	if len(r.Screenshot) > 0 {
+		if screenshot.URL, err = s.GitHub.Commit(ctx, screenshotPath(id, r.Screenshot), r.Screenshot); err != nil {
+			slog.WarnContext(ctx, "bug report: screenshot not stored", "id", id, "err", err)
+			screenshot.Failed = true
+		}
 	}
 	number, url, err := s.GitHub.Open(ctx, Title(r.Description), Body(r, screenshot))
 	if err != nil {
@@ -90,18 +83,65 @@ func (s *Store) Create(ctx context.Context, r Report) (id uuid.UUID, issueURL st
 	return id, url, nil
 }
 
-// Screenshot returns a report's screenshot and its type.
-func (s *Store) Screenshot(ctx context.Context, id uuid.UUID) ([]byte, string, error) {
-	var b []byte
-	var t *string
-	err := s.DB.QueryRow(ctx, `SELECT screenshot, screenshot_type FROM bug_reports WHERE id = $1`, id).Scan(&b, &t)
-	if errors.Is(err, pgx.ErrNoRows) || (err == nil && (b == nil || t == nil)) {
-		return nil, "", ErrNotFound
-	}
+// MoveScreenshots commits the screenshots that earlier versions kept in
+// the database, shows each in a comment on its issue and drops it from
+// the database; how many it moved.
+func (s *Store) MoveScreenshots(ctx context.Context) (int, error) {
+	rows, err := s.DB.Query(ctx, `SELECT id, screenshot, issue_number FROM bug_reports
+		WHERE screenshot IS NOT NULL AND issue_number IS NOT NULL ORDER BY id`)
 	if err != nil {
-		return nil, "", fmt.Errorf("bugs: screenshot: %w", err)
+		return 0, fmt.Errorf("bugs: screenshots: %w", err)
 	}
-	return b, *t, nil
+	type old struct {
+		id     uuid.UUID
+		shot   []byte
+		number int
+	}
+	olds, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (old, error) {
+		var o old
+		err := r.Scan(&o.id, &o.shot, &o.number)
+		return o, err
+	})
+	if err != nil {
+		return 0, fmt.Errorf("bugs: screenshots: %w", err)
+	}
+	for i, o := range olds {
+		url, err := s.GitHub.Commit(ctx, screenshotPath(o.id, o.shot), o.shot)
+		if err != nil {
+			return i, err
+		}
+		if err := s.GitHub.Comment(ctx, o.number, screenshotMarkdown(url)+"\n"); err != nil {
+			return i, err
+		}
+		if _, err := s.DB.Exec(ctx, `UPDATE bug_reports SET screenshot = NULL, screenshot_type = NULL WHERE id = $1`, o.id); err != nil {
+			return i, fmt.Errorf("bugs: screenshots: %w", err)
+		}
+	}
+	return len(olds), nil
+}
+
+// screenshotExt is the file extension of a PNG or JPEG.
+func screenshotExt(b []byte) (string, bool) {
+	switch http.DetectContentType(b) {
+	case "image/png":
+		return "png", true
+	case "image/jpeg":
+		return "jpg", true
+	}
+	return "", false
+}
+
+// screenshotPath is where a report's screenshot goes in the repository:
+// by month, named after the report.
+func screenshotPath(id uuid.UUID, b []byte) string {
+	ext, _ := screenshotExt(b)
+	return fmt.Sprintf("screenshots/%s/%s.%s", time.Unix(id.Time().UnixTime()).UTC().Format("2006-01"), id, ext)
+}
+
+// screenshotMarkdown shows a committed screenshot: ?raw=true serves the
+// image itself, also from a private repository to those who can see it.
+func screenshotMarkdown(url string) string {
+	return "![Screenshot](" + url + "?raw=true)"
 }
 
 // secretPath matches the part of an address that is a token: live
@@ -146,10 +186,17 @@ func Title(description string) string {
 	return line
 }
 
+// Screenshot is what became of a report's screenshot: its address in the
+// repository, or Failed.
+type Screenshot struct {
+	URL    string
+	Failed bool
+}
+
 // Body is the issue's text: the description as it was written (in a
 // fence, so it mentions and formats nothing), where it happened, the
-// version and the screenshot's link.
-func Body(r Report, screenshot string) string {
+// version and the screenshot.
+func Body(r Report, screenshot Screenshot) string {
 	var b strings.Builder
 	b.WriteString("~~~~text\n")
 	b.WriteString(strings.ReplaceAll(strings.TrimSpace(r.Description), "~~~~", "~~~"))
@@ -157,15 +204,18 @@ func Body(r Report, screenshot string) string {
 	fmt.Fprintf(&b, "- Where: `%s`\n", strings.ReplaceAll(r.Place, "`", "'"))
 	fmt.Fprintf(&b, "- Platform: %s, version `%s`\n", r.Platform, strings.ReplaceAll(r.Version, "`", "'"))
 	fmt.Fprintf(&b, "- Reported by: `%s`\n", r.Username)
-	if screenshot != "" {
-		fmt.Fprintf(&b, "- Screenshot (moderators, signed in): %s\n", screenshot)
+	switch {
+	case screenshot.Failed:
+		b.WriteString("- Screenshot: could not be stored\n")
+	case screenshot.URL != "":
+		b.WriteString("\n" + screenshotMarkdown(screenshot.URL) + "\n")
 	}
 	b.WriteString("\n_Sent with «Fehler melden»._\n")
 	return b.String()
 }
 
-// GitHub opens issues in Repo ("owner/name") with a token that may write
-// its issues.
+// GitHub opens issues in Repo ("owner/name") and commits screenshots to
+// it, with a token that may write its issues and contents.
 type GitHub struct {
 	Repo   string
 	Token  string
@@ -175,37 +225,75 @@ type GitHub struct {
 
 // Open opens an issue labelled bug; its number and address.
 func (g *GitHub) Open(ctx context.Context, title, body string) (int, string, error) {
-	payload, _ := json.Marshal(map[string]any{"title": title, "body": body, "labels": []string{"bug"}})
+	var out struct {
+		Number  int    `json:"number"`
+		HTMLURL string `json:"html_url"`
+	}
+	err := g.do(ctx, http.MethodPost, "/issues", map[string]any{"title": title, "body": body, "labels": []string{"bug"}}, &out)
+	return out.Number, out.HTMLURL, err
+}
+
+// Commit adds a file at path to the repository's default branch; its
+// address on github.com.
+func (g *GitHub) Commit(ctx context.Context, path string, content []byte) (string, error) {
+	var out struct {
+		Content struct {
+			HTMLURL string `json:"html_url"`
+		} `json:"content"`
+	}
+	if err := g.do(ctx, http.MethodPut, "/contents/"+path, map[string]any{
+		"message": "Screenshot for a bug report",
+		"content": base64.StdEncoding.EncodeToString(content),
+	}, &out); err != nil {
+		return "", err
+	}
+	if out.Content.HTMLURL == "" {
+		return "", errors.New("github: no address for the file")
+	}
+	return out.Content.HTMLURL, nil
+}
+
+// Comment adds a comment to issue number.
+func (g *GitHub) Comment(ctx context.Context, number int, body string) error {
+	return g.do(ctx, http.MethodPost, fmt.Sprintf("/issues/%d/comments", number), map[string]any{"body": body}, nil)
+}
+
+// do sends payload to the repository's endpoint path and decodes the
+// answer into out; GitHub answers 201 for what these create.
+func (g *GitHub) do(ctx context.Context, method, path string, payload, out any) error {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
 	base := g.URL
 	if base == "" {
 		base = "https://api.github.com"
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, base+"/repos/"+g.Repo+"/issues", bytes.NewReader(payload))
+	req, err := http.NewRequestWithContext(ctx, method, base+"/repos/"+g.Repo+path, bytes.NewReader(body))
 	if err != nil {
-		return 0, "", err
+		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+g.Token)
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 	client := g.Client
 	if client == nil {
-		client = &http.Client{Timeout: 20 * time.Second}
+		client = &http.Client{Timeout: 30 * time.Second}
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, "", fmt.Errorf("github: %w", err)
+		return fmt.Errorf("github: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusCreated {
 		msg, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		return 0, "", fmt.Errorf("github: status %d: %s", resp.StatusCode, msg)
+		return fmt.Errorf("github: %s %s: status %d: %s", method, path, resp.StatusCode, msg)
 	}
-	var out struct {
-		Number  int    `json:"number"`
-		HTMLURL string `json:"html_url"`
+	if out == nil {
+		return nil
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
-		return 0, "", fmt.Errorf("github: %w", err)
+	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		return fmt.Errorf("github: %w", err)
 	}
-	return out.Number, out.HTMLURL, nil
+	return nil
 }

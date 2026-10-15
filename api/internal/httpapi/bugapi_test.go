@@ -3,6 +3,7 @@ package httpapi
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"image"
 	"image/png"
@@ -16,21 +17,33 @@ import (
 )
 
 func TestBugReports(t *testing.T) {
-	var issue map[string]any
-	var auth string
+	var issue, file, comment map[string]any
+	var auth, filePath string
+	failCommit := false
 	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/repos/tellbow/alvyo/issues" {
-			http.NotFound(w, r)
-			return
-		}
 		auth = r.Header.Get("Authorization")
-		_ = json.NewDecoder(r.Body).Decode(&issue)
-		w.WriteHeader(http.StatusCreated)
-		_, _ = io.WriteString(w, `{"number": 42, "html_url": "https://github.com/tellbow/alvyo/issues/42"}`)
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/repos/tellbow/alvyo/issues":
+			_ = json.NewDecoder(r.Body).Decode(&issue)
+			w.WriteHeader(http.StatusCreated)
+			_, _ = io.WriteString(w, `{"number": 42, "html_url": "https://github.com/tellbow/alvyo/issues/42"}`)
+		case r.Method == http.MethodPut && strings.HasPrefix(r.URL.Path, "/repos/tellbow/alvyo/contents/") && !failCommit:
+			filePath = strings.TrimPrefix(r.URL.Path, "/repos/tellbow/alvyo/contents/")
+			_ = json.NewDecoder(r.Body).Decode(&file)
+			w.WriteHeader(http.StatusCreated)
+			_, _ = io.WriteString(w, `{"content": {"html_url": "https://github.com/tellbow/alvyo/blob/main/`+filePath+`"}}`)
+		case r.Method == http.MethodPost && r.URL.Path == "/repos/tellbow/alvyo/issues/7/comments":
+			_ = json.NewDecoder(r.Body).Decode(&comment)
+			w.WriteHeader(http.StatusCreated)
+			_, _ = io.WriteString(w, `{}`)
+		default:
+			http.Error(w, "no", http.StatusForbidden)
+		}
 	}))
 	t.Cleanup(gh.Close)
+	github := &bugs.GitHub{Repo: "tellbow/alvyo", Token: "tok", URL: gh.URL}
 	s := newTestServerWith(t, func(d *Deps) {
-		d.Bugs = &bugs.Store{DB: d.DB, PublicURL: origin, GitHub: &bugs.GitHub{Repo: "tellbow/alvyo", Token: "tok", URL: gh.URL}}
+		d.Bugs = &bugs.Store{DB: d.DB, GitHub: github}
 	})
 	var shot bytes.Buffer
 	_ = png.Encode(&shot, image.NewRGBA(image.Rect(0, 0, 4, 4)))
@@ -58,23 +71,46 @@ func TestBugReports(t *testing.T) {
 	text, _ := issue["body"].(string)
 	if auth != "Bearer tok" || issue["title"] != "Die Karte bleibt leer" ||
 		!strings.Contains(text, "~~~~text\nDie Karte bleibt leer\n@someone schau mal ~~~\n~~~~") ||
-		!strings.Contains(text, origin+"/api/v1/bug-reports/"+out.ID+"/screenshot") ||
 		!strings.Contains(text, "`hiker`") || !strings.Contains(text, "version `0.17.0`") {
 		t.Errorf("issue: %v %v", auth, issue)
 	}
 
-	// The screenshot: for moderators only.
-	shotPath := "/api/v1/bug-reports/" + out.ID + "/screenshot"
-	if code, _ := c.do("GET", shotPath, nil); code != http.StatusForbidden {
-		t.Errorf("the reporter: %d", code)
+	// The screenshot: committed to the repository, shown in the issue, not
+	// kept in the database.
+	if !strings.HasPrefix(filePath, "screenshots/") || !strings.HasSuffix(filePath, "/"+out.ID+".png") ||
+		file["content"] != base64.StdEncoding.EncodeToString(shot.Bytes()) {
+		t.Errorf("commit: %s %v", filePath, file)
 	}
-	mod := s.client(t)
-	s.signup(mod, "mod@example.ch", "mod")
-	if _, err := s.db.Exec(context.Background(), `UPDATE users SET role = 'moderator' WHERE username = 'mod'`); err != nil {
+	if !strings.Contains(text, "![Screenshot](https://github.com/tellbow/alvyo/blob/main/"+filePath+"?raw=true)") {
+		t.Errorf("issue without the screenshot: %s", text)
+	}
+	var kept int
+	if err := s.db.QueryRow(context.Background(), `SELECT count(*) FROM bug_reports WHERE screenshot IS NOT NULL`).Scan(&kept); err != nil || kept != 0 {
+		t.Errorf("screenshots in the database: %d %v", kept, err)
+	}
+
+	// GitHub takes the issue but not the screenshot: the issue says so.
+	failCommit = true
+	if code, body := c.do("POST", "/api/v1/bug-reports", report); code != http.StatusCreated ||
+		!strings.Contains(issue["body"].(string), "- Screenshot: could not be stored") {
+		t.Errorf("commit failed: %d %s %v", code, body, issue)
+	}
+	failCommit = false
+
+	// One kept by an earlier version moves to its issue.
+	ctx := context.Background()
+	if _, err := s.db.Exec(ctx, `UPDATE bug_reports SET screenshot = $2, screenshot_type = 'image/png', issue_number = 7 WHERE id = $1`,
+		out.ID, shot.Bytes()); err != nil {
 		t.Fatal(err)
 	}
-	if code, got := mod.do("GET", shotPath, nil); code != http.StatusOK || !bytes.Equal(got, shot.Bytes()) {
-		t.Errorf("moderator: %d, %d bytes", code, len(got))
+	filePath = ""
+	n, err := (&bugs.Store{DB: s.db, GitHub: github}).MoveScreenshots(ctx)
+	if err != nil || n != 1 || !strings.HasSuffix(filePath, "/"+out.ID+".png") ||
+		comment["body"] != "![Screenshot](https://github.com/tellbow/alvyo/blob/main/"+filePath+"?raw=true)\n" {
+		t.Errorf("move: %d %v %s %v", n, err, filePath, comment)
+	}
+	if err := s.db.QueryRow(ctx, `SELECT count(*) FROM bug_reports WHERE screenshot IS NOT NULL OR screenshot_type IS NOT NULL`).Scan(&kept); err != nil || kept != 0 {
+		t.Errorf("screenshots left after the move: %d %v", kept, err)
 	}
 
 	// From the Android app.

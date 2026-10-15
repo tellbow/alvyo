@@ -51,13 +51,9 @@ func newTestServerWith(t *testing.T, adjust func(*Deps)) *testServer {
 	t.Helper()
 	pool := testdb.New(t)
 	rec := &mailer.Recorder{}
-	wa, err := auth.NewWebAuthn(origin)
-	if err != nil {
-		t.Fatal(err)
-	}
 	d := Deps{
 		DB:          pool,
-		Auth:        &auth.Service{DB: pool, Mail: rec, PublicURL: origin, WebAuthn: wa},
+		Auth:        &auth.Service{DB: pool, Mail: rec, PublicURL: origin},
 		Routes:      &routes.Store{DB: pool},
 		Journeys:    &journeys.Store{DB: pool, Routes: &routes.Store{DB: pool}},
 		Places:      &places.Store{DB: pool},

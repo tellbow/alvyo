@@ -10,28 +10,11 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import Seo from '#lib/seo/Seo.svelte';
 	import { safeRedirect } from '#lib/util/redirect.js';
-	import { onMount } from 'svelte';
-	import { browserSupportsWebAuthn, loginWithPasskey } from '#lib/account/passkeys.js';
 	import ProviderButtons from '#lib/account/ProviderButtons.svelte';
 	import OidcNotice from '#lib/account/OidcNotice.svelte';
 
 	const hydrated = new Hydrated();
-	let passkeys = $state(false);
-	onMount(() => (passkeys = browserSupportsWebAuthn()));
 	const redirect = $derived(safeRedirect(page.url.searchParams.get('redirect')));
-
-	async function passkey() {
-		error = '';
-		busy = true;
-		const problem = await loginWithPasskey();
-		busy = false;
-		if (!problem) {
-			await refreshAll();
-			await goto(redirect);
-		} else if (problem !== 'cancelled') {
-			error = problem === 'rejected' ? m.passkey_login_rejected() : m.error_generic();
-		}
-	}
 
 	let login = $state('');
 	let password = $state('');
@@ -84,15 +67,6 @@
 		</button>
 	</form>
 	<div class="mt-4 flex flex-col gap-2">
-		{#if passkeys}
-			<button
-				type="button"
-				disabled={!hydrated.value || busy}
-				onclick={passkey}
-				class="rounded-md px-4 py-2 ring-1 ring-stone-300 hover:bg-stone-50 disabled:opacity-60"
-				>{m.passkey_login()}</button
-			>
-		{/if}
 		<ProviderButtons {redirect} label={(name) => m.provider_login({ provider: name })} />
 	</div>
 	<div class="mt-6 flex flex-col gap-2 text-sm">

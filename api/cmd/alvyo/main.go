@@ -133,10 +133,6 @@ func serve(ctx context.Context) error {
 		Trails:      &routing.TrailMatcher{DB: pool},
 		Outlines:    &routing.Outliner{DB: pool},
 	}
-	webAuthn, err := auth.NewWebAuthn(cfg.PublicURL)
-	if err != nil {
-		return fmt.Errorf("passkeys: %w", err)
-	}
 	packService := &packs.Service{
 		Builder: &packs.Builder{
 			TilesURL: cfg.TilesURL, Dir: filepath.Join(cfg.CacheDir, "packs"),
@@ -177,7 +173,7 @@ func serve(ctx context.Context) error {
 	}
 	handler, _ := httpapi.New(httpapi.Deps{
 		DB:          pool,
-		Auth:        &auth.Service{DB: pool, Mail: sender, PublicURL: cfg.PublicURL, WebAuthn: webAuthn},
+		Auth:        &auth.Service{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Router:      router,
 		Routes:      routeStore,
 		Journeys:    journeyStore,

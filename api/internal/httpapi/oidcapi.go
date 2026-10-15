@@ -216,7 +216,7 @@ func registerOIDC(api huma.API, d Deps) {
 		case errors.Is(err, auth.ErrUnknownProvider):
 			return nil, huma.Error404NotFound("not connected to this provider")
 		case errors.Is(err, auth.ErrLastLogin):
-			return nil, huma.Error409Conflict("this is your last way to log in; set a password or add a passkey first")
+			return nil, huma.Error409Conflict("this is your last way to log in; set a password first")
 		case err != nil:
 			return nil, err
 		}

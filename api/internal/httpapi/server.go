@@ -156,7 +156,6 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerCommunity(api, d)
 	registerDone(api, d)
 	registerPhotos(api, d)
-	registerPasskeys(api, d)
 	registerOIDC(api, d)
 	registerPacks(api, d)
 	registerBugReports(api, d)

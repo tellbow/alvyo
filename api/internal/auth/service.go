@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -49,10 +48,6 @@ type Service struct {
 	Mail      mailer.Sender
 	PublicURL string // base URL of the web app for links in e-mails
 	Now       func() time.Time
-	// WebAuthn enables passkeys (NewWebAuthn); nil turns them off.
-	WebAuthn *webauthn.WebAuthn
-
-	passkeyCeremonies ceremonies
 }
 
 func (s *Service) now() time.Time {
@@ -344,10 +339,10 @@ func (s *Service) ResetPassword(ctx context.Context, token, password string) err
 		if err != nil {
 			return err
 		}
-		// Resetting takes the account over: passkeys, provider accounts and
-		// access tokens may be a stranger's who signed up with the address,
+		// Resetting takes the account over: provider accounts and access
+		// tokens may be a stranger's who signed up with the address,
 		// so they go (the e-mail says so); the owner adds theirs again.
-		for _, table := range []string{"passkeys", "identities", "access_tokens"} {
+		for _, table := range []string{"identities", "access_tokens"} {
 			if _, err := tx.Exec(ctx, `DELETE FROM `+table+` WHERE user_id = $1`, userID); err != nil {
 				return err
 			}

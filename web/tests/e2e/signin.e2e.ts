@@ -3,47 +3,6 @@ import { expect, test } from './fixtures';
 
 const suffix = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
-test('add a passkey, then log in with it without a password', async ({ page }) => {
-	// Chromium's virtual authenticator stands in for the fingerprint reader.
-	const cdp = await page.context().newCDPSession(page);
-	await cdp.send('WebAuthn.enable');
-	await cdp.send('WebAuthn.addVirtualAuthenticator', {
-		options: {
-			protocol: 'ctap2',
-			transport: 'internal',
-			hasResidentKey: true,
-			hasUserVerification: true,
-			isUserVerified: true,
-			automaticPresenceSimulation: true
-		}
-	});
-
-	const name = `pk${suffix()}`;
-	const res = await signUp(page.request, {
-		data: {
-			email: `${name}@example.ch`,
-			username: name,
-			display_name: 'Pia',
-			password: 'sehr-geheim-123'
-		}
-	});
-	expect(res.status()).toBe(200);
-
-	await page.goto('/account');
-	const methods = page.getByTestId('signin-methods');
-	await methods.getByRole('button', { name: 'Passkey hinzufügen' }).click();
-	await methods.getByLabel('Name, z. B. «Laptop» oder «iPhone»').fill('Testgerät');
-	await methods.getByLabel('Passwort').fill('sehr-geheim-123');
-	await methods.getByRole('button', { name: 'Passkey erstellen' }).click();
-	await expect(methods.getByTestId('passkeys')).toContainText('Testgerät');
-
-	await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
-	await page.goto('/login?redirect=/routes');
-	await page.getByRole('button', { name: 'Mit Passkey anmelden' }).click();
-	await expect(page).toHaveURL(/\/routes$/);
-	await expect(page.getByTestId('current-user')).toHaveText(name);
-});
-
 test('sign up with a provider; an existing account connects it after logging in', async ({
 	page,
 	browser

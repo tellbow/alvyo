@@ -205,3 +205,22 @@ func (s *Service) UnlinkIdentity(ctx context.Context, u dbq.User, provider strin
 		return lastLogin(ctx, tx, u)
 	})
 }
+
+// lastLogin fails with ErrLastLogin (rolling back tx) if u has no way left
+// to log in: no password or provider account.
+func lastLogin(ctx context.Context, tx pgx.Tx, u dbq.User) error {
+	var ok bool
+	if err := tx.QueryRow(ctx, `SELECT password_hash IS NOT NULL
+		OR EXISTS (SELECT 1 FROM identities WHERE user_id = $1)
+		FROM users WHERE id = $1`, u.ID).Scan(&ok); err != nil {
+		return err
+	}
+	if !ok {
+		return ErrLastLogin
+	}
+	return nil
+}
+
+// ErrLastLogin means a change would leave the account without a way to log
+// in.
+var ErrLastLogin = errors.New("auth: this is the last way to log in")

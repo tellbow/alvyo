@@ -95,40 +95,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/passkey": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Log in with the passkey the browser chose */
-        post: operations["finish-passkey-login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/passkey/begin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Start logging in with a passkey */
-        post: operations["begin-passkey-login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/auth/password/forgot": {
         parameters: {
             query?: never;
@@ -1490,58 +1456,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/me/passkeys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** The account's passkeys */
-        get: operations["list-passkeys"];
-        put?: never;
-        /** Store the passkey the browser created */
-        post: operations["finish-passkey-registration"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/passkeys/begin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Start adding a passkey to the account */
-        post: operations["begin-passkey-registration"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/passkeys/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove a passkey (not the last way to log in) */
-        delete: operations["delete-passkey"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/me/tags": {
         parameters: {
             query?: never;
@@ -2641,28 +2555,6 @@ export interface components {
             /** @description Closed trails and shooting on the way, from today on */
             notices: components["schemas"]["Notice"][];
         };
-        AuthenticationExtensions: {
-            appid?: string;
-            appidExclude?: string;
-            credBlob?: string;
-            credProps?: boolean;
-            credentialProtectionPolicy?: string;
-            enforceCredentialProtectionPolicy?: boolean;
-            getCredBlob?: boolean;
-            hmacCreateSecret?: boolean;
-            hmacGetSecret?: components["schemas"]["HMACGetSecretInputs"];
-            largeBlob?: components["schemas"]["LargeBlobInputs"];
-            minPinLength?: boolean;
-            prf?: components["schemas"]["PRFInputs"];
-            remoteClientDataJSON?: string;
-            uvm?: boolean;
-        };
-        AuthenticatorSelection: {
-            authenticatorAttachment?: string;
-            requireResidentKey?: boolean;
-            residentKey?: string;
-            userVerification?: string;
-        };
         BlockedOutputBody: {
             users: components["schemas"]["UserRef"][];
         };
@@ -2938,16 +2830,6 @@ export interface components {
              * @enum {string}
              */
             visibility: "private" | "unlisted" | "public";
-        };
-        CredentialDescriptor: {
-            id: string;
-            transports?: string[];
-            type: string;
-        };
-        CredentialParameter: {
-            /** Format: int64 */
-            alg: number;
-            type: string;
         };
         DeleteMeInputBody: {
             /** @description Current password, as confirmation; accounts without one must have logged in within 15 minutes */
@@ -3246,10 +3128,6 @@ export interface components {
         GrantsOutputBody: {
             grants: components["schemas"]["Grant"][];
         };
-        HMACGetSecretInputs: {
-            salt1: string;
-            salt2?: string;
-        };
         HikePoint: {
             /** Format: double */
             lat: number;
@@ -3481,11 +3359,6 @@ export interface components {
             run: string;
             stages: components["schemas"]["StageWeather"][];
         };
-        LargeBlobInputs: {
-            read?: boolean;
-            support?: string;
-            write?: string;
-        };
         Leg: {
             /** @description Planned with hike: the alpine profile's much shorter way */
             alpine?: components["schemas"]["AlpineWay"];
@@ -3629,54 +3502,6 @@ export interface components {
             title: components["schemas"]["Texts"];
             /** Format: date */
             to?: string;
-        };
-        PRFInputs: {
-            eval?: components["schemas"]["PRFValues"];
-            evalByCredential?: {
-                [key: string]: components["schemas"]["PRFValues"];
-            };
-        };
-        PRFValues: {
-            first: string;
-            second?: string;
-        };
-        PasskeyInfo: {
-            /** Format: date-time */
-            created_at: string;
-            /** @description Credential id (base64url) */
-            id: string;
-            /** Format: date-time */
-            last_used_at?: string;
-            name: string;
-        };
-        PasskeyLoginBeginOutputBody: {
-            ceremony: string;
-            /** @description For navigator.credentials.get (publicKey) */
-            options: components["schemas"]["PublicKeyCredentialRequestOptions"];
-        };
-        PasskeyLoginFinishInputBody: {
-            ceremony: string;
-            response: unknown;
-        };
-        PasskeyRegisterBeginInputBody: {
-            /** @description Current password, as confirmation; accounts without one must have logged in within 15 minutes */
-            password?: string;
-        };
-        PasskeyRegisterBeginOutputBody: {
-            /** @description Pass back with the answer */
-            ceremony: string;
-            /** @description For navigator.credentials.create (publicKey) */
-            options: components["schemas"]["PublicKeyCredentialCreationOptions"];
-        };
-        PasskeyRegisterFinishInputBody: {
-            ceremony: string;
-            /** @description To recognise it later, e.g. the device */
-            name: string;
-            /** @description The PublicKeyCredential as JSON (toJSON()) */
-            response: unknown;
-        };
-        PasskeysOutputBody: {
-            passkeys: components["schemas"]["PasskeyInfo"][];
         };
         PeopleOutputBody: {
             people: components["schemas"]["Person"][];
@@ -3923,30 +3748,6 @@ export interface components {
         ProvidersOutputBody: {
             providers: components["schemas"]["ProviderInfo"][];
         };
-        PublicKeyCredentialCreationOptions: {
-            attestation?: string;
-            attestationFormats?: string[];
-            authenticatorSelection?: components["schemas"]["AuthenticatorSelection"];
-            challenge: string;
-            excludeCredentials?: components["schemas"]["CredentialDescriptor"][];
-            extensions?: components["schemas"]["AuthenticationExtensions"];
-            hints?: string[];
-            pubKeyCredParams?: components["schemas"]["CredentialParameter"][];
-            rp: components["schemas"]["RelyingPartyEntity"];
-            /** Format: int64 */
-            timeout?: number;
-            user: components["schemas"]["UserEntity"];
-        };
-        PublicKeyCredentialRequestOptions: {
-            allowCredentials?: components["schemas"]["CredentialDescriptor"][];
-            challenge: string;
-            extensions?: components["schemas"]["AuthenticationExtensions"];
-            hints?: string[];
-            rpId?: string;
-            /** Format: int64 */
-            timeout?: number;
-            userVerification?: string;
-        };
         ReachArea: {
             /** Format: int64 */
             hours: number;
@@ -3981,10 +3782,6 @@ export interface components {
              * @enum {string}
              */
             friend: "none" | "requested" | "incoming" | "friends";
-        };
-        RelyingPartyEntity: {
-            id: string;
-            name: string;
         };
         Reminder: {
             /** Format: date */
@@ -4623,11 +4420,6 @@ export interface components {
             /** Format: uuid */
             id: string;
         };
-        UserEntity: {
-            displayName: string;
-            id: unknown;
-            name: string;
-        };
         UserRef: {
             display_name: string;
             username: string;
@@ -4847,71 +4639,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "finish-passkey-login": {
-        parameters: {
-            query?: never;
-            header?: {
-                "User-Agent"?: string;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PasskeyLoginFinishInputBody"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    "Set-Cookie"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "begin-passkey-login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PasskeyLoginBeginOutputBody"];
-                };
             };
             /** @description Error */
             default: {
@@ -8405,132 +8132,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyMapOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "list-passkeys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PasskeysOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "finish-passkey-registration": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PasskeyRegisterFinishInputBody"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PasskeysOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "begin-passkey-registration": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PasskeyRegisterBeginInputBody"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PasskeyRegisterBeginOutputBody"];
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ErrorModel"];
-                };
-            };
-        };
-    };
-    "delete-passkey": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PasskeysOutputBody"];
                 };
             };
             /** @description Error */

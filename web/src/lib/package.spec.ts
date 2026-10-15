@@ -5,7 +5,7 @@ import pkg from '../../package.json';
 describe('package.json', () => {
 	// adapter-node bundles devDependencies into build/ but leaves dependencies
 	// as imports: a dependency the image lacks breaks every page that imports
-	// it (/login with the passkeys, once every page with html-to-image). The
+	// it (once /login with a passkey package, every page with html-to-image). The
 	// one dependency is @opentelemetry/api, which SvelteKit imports itself.
 	it('has only the dependencies the image installs', () => {
 		expect(Object.keys((pkg as { dependencies?: object }).dependencies ?? {})).toEqual([

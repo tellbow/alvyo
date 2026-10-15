@@ -44,7 +44,7 @@ Reverse proxies in front of `/api` must accept request bodies of 22 MB
 
 ### Sign-in providers (optional)
 
-Besides passwords and passkeys, people can log in through OpenID Connect
+Besides passwords, people can log in through OpenID Connect
 providers you configure, e.g. Google:
 
 1. Google Cloud console → APIs & Services → Credentials → OAuth client ID
@@ -78,8 +78,8 @@ address is confirmed.
   button. Logging in with an unconfirmed address sends a new link.
   Accounts from before 2026-10-08 that never confirmed are asked to on
   their next login; their sessions keep working until then.
-- A password reset ends all sessions and removes passkeys, provider
-  sign-ins and access tokens: whoever resets takes the account over, also
+- A password reset ends all sessions and removes provider sign-ins
+  and access tokens: whoever resets takes the account over, also
   from someone who signed up with another person's address.
 - A session ends after 30 days without use and 180 days after the login at
   the latest. «Auf allen anderen Geräten abmelden» (account page, the app's

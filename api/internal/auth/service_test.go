@@ -132,7 +132,7 @@ func TestResetPasswordEndsSessions(t *testing.T) {
 // Someone signs up through a provider with another person's address, which
 // the provider does not vouch for. When the address's owner resets the
 // password, the provider must no longer log in.
-func TestResetPasswordDropsPasskeysAndIdentities(t *testing.T) {
+func TestResetPasswordDropsIdentities(t *testing.T) {
 	ctx := context.Background()
 	svc, rec, _ := newService(t)
 	stranger := Identity{Provider: "test", Subject: "s-1", Email: "c@example.ch"}
@@ -153,14 +153,10 @@ func TestResetPasswordDropsPasskeysAndIdentities(t *testing.T) {
 	}
 
 	// Also once the address was confirmed: a reset takes the account over,
-	// passkeys and providers go (they may have been added by whoever
+	// providers go (they may have been added by whoever
 	// confirmed a stranger's address by mistake).
 	owner := Identity{Provider: "test", Subject: "o-1", Email: "d@example.ch", EmailVerified: true}
-	u, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := svc.DB.Exec(ctx, `INSERT INTO passkeys (id, user_id, name, credential) VALUES ('\x01', $1, 'iPhone', '{}')`, u.ID); err != nil {
+	if _, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow); err != nil {
 		t.Fatal(err)
 	}
 	if err := svc.ForgotPassword(ctx, "d@example.ch"); err != nil {
@@ -173,10 +169,6 @@ func TestResetPasswordDropsPasskeysAndIdentities(t *testing.T) {
 	}
 	if _, _, err := svc.IdentityLogin(ctx, owner, "de", "", allow); !errors.Is(err, ErrEmailTaken) {
 		t.Errorf("provider login after the reset: %v, want ErrEmailTaken", err)
-	}
-	var passkeys int
-	if err := svc.DB.QueryRow(ctx, `SELECT count(*) FROM passkeys WHERE user_id = $1`, u.ID).Scan(&passkeys); err != nil || passkeys != 0 {
-		t.Errorf("passkeys after the reset: %d %v", passkeys, err)
 	}
 }
 

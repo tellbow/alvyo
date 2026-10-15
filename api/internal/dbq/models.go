@@ -368,15 +368,6 @@ type Official struct {
 	Hash      string
 }
 
-type Passkey struct {
-	ID         []byte
-	UserID     uuid.UUID
-	Name       string
-	Credential []byte
-	CreatedAt  time.Time
-	LastUsedAt *time.Time
-}
-
 type Photo struct {
 	ID         uuid.UUID
 	UploaderID uuid.UUID

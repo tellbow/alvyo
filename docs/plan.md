@@ -28,7 +28,7 @@ official figures: [hiking-time.md](hiking-time.md).
 | | What | Status |
 |---|---|---|
 | M1 | Web planner, journeys and stages, sharing, GPX export, public pages, deployment | done (0.1.0) |
-| M2 | Follows and feed, likes, comments, reports and moderation, photos, import (GPX, KML, TCX, FIT, Komoot), discovery, passkeys and OpenID Connect, French and Italian | done (0.1.0); open items in the backlog |
+| M2 | Follows and feed, likes, comments, reports and moderation, photos, import (GPX, KML, TCX, FIT, Komoot), discovery, passkeys (removed on 2026-10-15) and OpenID Connect, French and Italian | done (0.1.0); open items in the backlog |
 | M3 | iOS app: offline maps, navigation, recording, Apple Watch import, spoken turns, journeys, planning | done up to 0.9.0; open items in the backlog |
 | M4 | Extras: weather, points of interest, PDF stage sheets, 3D, closures, how to get there | done (0.16.0); the own 1:25 000 map in the backlog |
 
@@ -290,7 +290,7 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     notifications, the contacts for shared hikes, blocked people and
     deleting the account; signing up and a forgotten password open the
     website. Left to the website: moderation, imports (files, Komoot),
-    passkeys and sign-in providers, planning a route again on its map.
+    sign-in providers, planning a route again on its map.
 24. **From home and back by public transport** (0.13.0). Up to five
     homes in the account (a name and an address from the place search).
     For a journey, each person who can open it chooses for themselves a

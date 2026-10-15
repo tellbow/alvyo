@@ -309,13 +309,6 @@ docker compose -f compose.prod.yaml exec api /alvyo user role <username> moderat
 docker compose -f compose.prod.yaml exec api /alvyo route unpublish <route-id>
 ```
 
-Once after updating from 1.0: `alvyo bugs screenshots` (in the api
-container, like `route retrail`) commits the bug report screenshots that
-1.0 and earlier kept in the database to the feedback repository, shows
-each in a comment on the issue that links it (found by the report's id:
-the issue numbers changed with the move to that repository) and removes
-it from the database.
-
 ## Verified locally (2026-09-22)
 
 The production stack ran on `DOMAIN=localhost` (Caddy's internal CA): pages,

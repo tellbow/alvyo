@@ -163,16 +163,14 @@ type Block struct {
 }
 
 type BugReport struct {
-	ID             uuid.UUID
-	UserID         uuid.UUID
-	CreatedAt      time.Time
-	Description    string
-	Place          string
-	Version        string
-	Platform       string
-	Screenshot     []byte
-	ScreenshotType *string
-	IssueNumber    *int32
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	CreatedAt   time.Time
+	Description string
+	Place       string
+	Version     string
+	Platform    string
+	IssueNumber *int32
 }
 
 type Collection struct {

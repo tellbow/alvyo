@@ -61,7 +61,7 @@ var version = "dev"
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: alvyo serve|migrate|openapi|user|route|bugs")
+		fmt.Fprintln(os.Stderr, "usage: alvyo serve|migrate|openapi|user|route")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1], os.Args[2:]); err != nil {
@@ -81,7 +81,7 @@ func run(cmd string, args []string) error {
 		return migrate(ctx)
 	case "openapi":
 		return printOpenAPI()
-	case "user", "route", "bugs":
+	case "user", "route":
 		return adminCommand(ctx, cmd, args)
 	default:
 		return fmt.Errorf("unknown command %q", cmd)
@@ -262,7 +262,7 @@ func adminCommand(ctx context.Context, cmd string, args []string) error {
 	}
 	defer pool.Close()
 
-	usage := errors.New("usage: alvyo user ban|unban <username> | user role <username> <role> | route unpublish <id> | route retrail | bugs screenshots")
+	usage := errors.New("usage: alvyo user ban|unban <username> | user role <username> <role> | route unpublish <id> | route retrail")
 	switch {
 	case cmd == "user" && len(args) == 2 && args[0] == "ban":
 		err = admin.Ban(ctx, pool, args[1])
@@ -278,14 +278,6 @@ func adminCommand(ctx context.Context, cmd string, args []string) error {
 		var n int
 		n, err = (&routes.Store{DB: pool}).Retrail(ctx, &routing.TrailMatcher{DB: pool})
 		slog.Info("routes retrailed", "changed", n)
-	case cmd == "bugs" && len(args) == 1 && args[0] == "screenshots":
-		// Once: the screenshots versions up to 1.0 kept in the database.
-		if cfg.GitHubToken == "" {
-			return errors.New("bugs screenshots: ALVYO_GITHUB_TOKEN is not set")
-		}
-		var n int
-		n, err = (&bugs.Store{DB: pool, GitHub: &bugs.GitHub{Repo: cfg.GitHubRepo, Token: cfg.GitHubToken}}).MoveScreenshots(ctx)
-		slog.Info("screenshots moved to GitHub", "moved", n)
 	default:
 		return usage
 	}

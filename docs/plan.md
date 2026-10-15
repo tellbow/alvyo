@@ -463,9 +463,9 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     with `ALVYO_GITHUB_TOKEN` (the description in a fence, so it mentions
     no one); the screenshot is committed to that repository
     (`screenshots/YYYY-MM/<report id>.png`) and shown in the issue (since
-    2026-10-15; before, it stayed in the database for moderators, moved
-    once with `alvyo bugs screenshots`). Five in a burst, then one every
-    three hours per person.
+    2026-10-15; before, it stayed in the database for moderators; those
+    were moved there and migration 0039 drops their columns). Five in a
+    burst, then one every three hours per person.
 42. **The app's map layers.** The website's overlays in the app's «Karten»:
     hiking trails, SchweizMobil, slopes over 30°, wildlife rest areas,
     hunting reserves, relief, huts, hotels and campsites, along the way;
@@ -876,8 +876,6 @@ Connect's course import.
 - Journeys: cancelled trains and buses are not shown in connections (OJP).
 - Operations: backups are kept on the cluster only; an off-site copy is
   missing.
-- Bug reports: drop the columns `screenshot` and `screenshot_type` of
-  `bug_reports` once `alvyo bugs screenshots` has run in production.
 - Texts: the French and Italian texts to be reviewed by a native speaker.
 - Logo: the Λ of the Alvyo mock-up, drawn as a vector for the web and the
   app icon; a final one from a designer.

@@ -6,6 +6,7 @@ import { m } from '#lib/paraglide/messages.js';
  * developers' account). The `release` skill adds the line of a new version.
  */
 export const releases: { version: string; date: string; text: () => string }[] = [
+	{ version: '1.1.0', date: '2026-10-15', text: m.news_1_1_0 },
 	{ version: '1.0.0', date: '2026-10-15', text: m.news_1_0_0 },
 	{ version: '0.34.0', date: '2026-10-14', text: m.news_0_34_0 },
 	{ version: '0.33.0', date: '2026-10-10', text: m.news_0_33_0 },

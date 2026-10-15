@@ -157,6 +157,7 @@
 	"nav_about": "À propos",
 	"about_title": "À propos d'Alvyo",
 	"about_news_title": "Quoi de neuf",
+	"news_1_1_0": "Les passkeys n'existent plus : tu te connectes avec ton mot de passe ou un compte connecté ; si tu n'avais qu'une passkey, définis un mot de passe via « Mot de passe oublié ? ». La carte d'un itinéraire montre maintenant tout ce qui figure sous « En chemin », même les types désactivés dans les couches de la carte. La capture d'écran de « Signaler un bug » va avec le rapport dans le dépôt GitHub privé.",
 	"news_1_0_0": "Version 1.0, prête pour l’App Store : l’app iPhone affiche le logo d’Alvyo au démarrage, et quand elle demande ta position, l’appareil photo, tes photos ou Apple Health, elle dit maintenant pourquoi dans ta langue.",
 	"news_0_34_0": "L'app existe maintenant aussi pour Android (à télécharger avec chaque version sur GitHub). Les randonnées de l'Apple Watch sont de nouveau importées, et « À nouveau » en importe une à nouveau comme nouvel itinéraire. « À propos » liste toutes les sources de données et en dit plus sur la protection des données. L'import Komoot disparaît : exporte tes tours depuis Komoot en GPX et importe le fichier ici.",
 	"news_0_33_0": "Nouveau dans « Portée » : touche une zone et planifie tout de suite un itinéraire jusque-là – depuis le départ, avec le même profil, dans l'app aussi en boucle retour au départ. Corrigé : le planificateur de l'app plantait sur une boucle.",

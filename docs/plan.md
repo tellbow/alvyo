@@ -484,7 +484,9 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     address as viewers or editors.
 47. **Along the way on a stage's map.** What lies along a route or stage
     (34) is drawn on its map with the kinds' icons, on the website and in
-    the app, named on a tap; the kinds switched off stay off.
+    the app, named on a tap; all of it, as in the list (since 2026-10-15,
+    feedback issue 1: the kinds switched off in the layer menu hid points
+    the list showed; they now only filter the places around).
 48. **Along the way, in more kinds.** Besides summits, viewpoints,
     waterfalls, drinking water and shelters: fire places, picnic spots,
     restaurants and cafés (all of them, named ones), toilets and cable car

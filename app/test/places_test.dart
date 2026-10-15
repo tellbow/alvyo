@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:maplibre/maplibre.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/l10n/app_localizations_de.dart';
@@ -39,6 +40,30 @@ void main() {
     expect(placeKinds({PlaceGroup.pois}, 11), isEmpty);
     expect(placeKinds({PlaceGroup.pois}, 12), hasLength(10));
     expect(placeKinds({PlaceGroup.pois, PlaceGroup.huts}, 12, {'water', 'firepit'}), ['hut', 'water', 'firepit']);
+  });
+
+  test("a route's points along the way: all on its map, as in its list", () async {
+    // The layer menu's kinds are for the places around; the route's own
+    // points show whatever is switched there (feedback issue 1).
+    final s = PlaceSettings()..pois.value = {'water'};
+    final layer = PlaceLayer(Api('http://test'), onTap: (_) {}, settings: s);
+    final style = _Style();
+    await layer.addAlong(style, [
+      for (final (kind, m) in [('restaurant', 10), ('water', 20), ('picnic', 30)])
+        Poi.fromJson({
+          'kind': kind,
+          'name': '',
+          'at': [9.4, 47.0],
+          'along_m': m,
+        }),
+    ]);
+    List<String> kinds() => [
+      for (final f in jsonDecode(style.data['places-along']!)['features'] as List) f['properties']['kind'] as String,
+    ];
+    expect(kinds(), ['restaurant', 'water', 'picnic']);
+    s.pois.value = {};
+    expect(kinds(), ['restaurant', 'water', 'picnic']);
+    layer.dispose();
   });
 
   test('base map, overlays and kinds along the way are remembered', () async {
@@ -254,4 +279,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(picked?.name, 'Weisstannen');
   });
+}
+
+/// The sources a layer adds and updates, by id; the rest does nothing.
+class _Style implements StyleController {
+  final data = <String, String>{};
+
+  @override
+  Future<void> addSource(Source source) async {
+    if (source is GeoJsonSource) data[source.id] = source.data;
+  }
+
+  @override
+  Future<void> updateGeoJsonSource({required String id, required String data}) async => this.data[id] = data;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future<void>.value();
 }

@@ -2,11 +2,11 @@
 	import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { poiText, type Poi } from './places';
-	import { poiShown } from './poiKinds.svelte';
 	import { OSM_ATTRIBUTION, ROUTE_PREFIX } from './styles';
 
 	// What lies along the route, drawn with the kinds' icons (Map.svelte draws
-	// them) and named in a popup; the kinds switched off in the layer menu stay off.
+	// them) and named in a popup: all of it, as in the route's list; the layer
+	// menu's kinds are for the places around.
 	let {
 		map,
 		lib,
@@ -98,17 +98,14 @@
 		};
 	});
 
-	// The points of the kinds switched on.
 	$effect(() => {
 		(map.getSource(ID) as GeoJSONSource | undefined)?.setData({
 			type: 'FeatureCollection',
-			features: pois
-				.filter((p) => poiShown.kinds.includes(p.kind))
-				.map((p) => ({
-					type: 'Feature',
-					geometry: { type: 'Point', coordinates: p.at },
-					properties: { kind: p.kind, name: p.name, ele: p.ele ?? 0 }
-				}))
+			features: pois.map((p) => ({
+				type: 'Feature',
+				geometry: { type: 'Point', coordinates: p.at },
+				properties: { kind: p.kind, name: p.name, ele: p.ele ?? 0 }
+			}))
 		});
 	});
 

@@ -240,8 +240,8 @@ class PlaceLayer {
   }
 
   /// What lies along a route, drawn with the kinds' icons on top of the
-  /// screen's layers (call after [addTo] and the route line); the kinds
-  /// switched off in the layer menu stay off.
+  /// screen's layers (call after [addTo] and the route line): all of it, as
+  /// in the route's list; the layer menu's kinds are for the places around.
   Future<void> addAlong(StyleController style, List<Poi> pois) async {
     _along = [for (final (i, p) in pois.indexed) p.toPin(i)];
     // Under the icons: a ring around the points of the line tapped in the list.
@@ -259,7 +259,9 @@ class PlaceLayer {
         },
       ),
     );
-    await style.addSource(GeoJsonSource(id: _alongId, data: _alongJson(), attribution: '© OpenStreetMap contributors'));
+    await style.addSource(
+      GeoJsonSource(id: _alongId, data: _geojson(_along), attribution: '© OpenStreetMap contributors'),
+    );
     await style.addLayer(
       const SymbolStyleLayer(
         id: _alongId,
@@ -297,8 +299,6 @@ class PlaceLayer {
     }
   }
 
-  String _alongJson() => _geojson(_along.where((p) => settings.pois.value.contains(p.kind)).toList());
-
   void onEvent(MapEvent e) {
     switch (e) {
       case MapEventMapCreated(:final mapController):
@@ -326,7 +326,6 @@ class PlaceLayer {
   void _switched() {
     final kinds = placeKinds(settings.shown.value, double.infinity, settings.pois.value).toSet();
     _show(_shown.where((p) => kinds.contains(p.kind)).toList());
-    if (_along.isNotEmpty) _style?.updateGeoJsonSource(id: _alongId, data: _alongJson()).catchError((_) {});
     _load(now: true);
   }
 

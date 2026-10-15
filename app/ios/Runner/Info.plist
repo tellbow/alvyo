@@ -9,6 +9,9 @@
 	<string>Alvyo adds photos from your library to your routes and journeys.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Alvyo imports the hikes you recorded with your Apple Watch.</string>
+	<!-- Required because the health plugin links the write APIs; Alvyo never writes. -->
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Alvyo does not write to Apple Health; it only reads the hikes you recorded with your Apple Watch.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Alvyo shows where you are on the route and records your hike.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

@@ -157,6 +157,7 @@
 	"nav_about": "About",
 	"about_title": "About Alvyo",
 	"about_news_title": "What's new",
+	"news_1_2_0": "Alvyo on the iPad: the sections are in a bar on the left, and routes, multi-day hikes, planning and discovering show the map at full height beside the details, upright and on its side. An iPhone turned sideways shows them the same way.",
 	"news_1_1_0": "Passkeys are gone: you log in with your password or a connected account; if you only had a passkey, set a password with “Forgot your password?”. A route's map now shows everything listed under “Along the way”, even kinds switched off in the map layers. The screenshot sent with “Report a bug” goes with the report into the private GitHub repository.",
 	"news_1_0_0": "Version 1.0, ready for the App Store: the iPhone app shows the Alvyo logo when it starts, and when it asks for your location, the camera, your photos or Apple Health, it now says why in your language.",
 	"news_0_34_0": "The app is now on Android too (to download with every version on GitHub). Hikes from the Apple Watch import again, and «Again» brings one in once more as a new route. «About» lists all data sources and says more about privacy. The Komoot import is gone: export your tours from Komoot as GPX and import the file here.",

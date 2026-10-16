@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'wide.dart';
 
 import '../api.dart';
 import '../format.dart';
@@ -82,53 +83,55 @@ class _WatchScreenState extends State<WatchScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.watchTitle)),
-      body: FutureBuilder(
-        future: _workouts,
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-          final workouts = snap.data;
-          final message = snap.hasError || workouts == null
-              ? t.watchUnavailable
-              : workouts.isEmpty
-              ? t.watchEmpty
-              : null;
-          if (message != null) {
-            return Padding(padding: const EdgeInsets.all(16), child: Text(message));
-          }
-          return ListView.separated(
-            itemCount: workouts!.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (context, i) {
-              final w = workouts[i];
-              final done = _imported.contains(w.uuid);
-              return ListTile(
-                key: Key('workout-${w.uuid}'),
-                title: Text(watchTitle(t, w)),
-                subtitle: Text(
-                  [
-                    if (w.distanceM != null) formatDistance(w.distanceM!),
-                    formatDuration(w.end.difference(w.start).inSeconds),
-                    w.source,
-                  ].join(' · '),
-                ),
-                trailing: _busy == w.uuid
-                    ? const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                    : done
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check, semanticLabel: t.watchImported),
-                          TextButton(
-                            onPressed: _busy == null ? () => _importAgain(w) : null,
-                            child: Text(t.watchImportAgain),
-                          ),
-                        ],
-                      )
-                    : TextButton(onPressed: _busy == null ? () => _import(w) : null, child: Text(t.watchImport)),
-              );
-            },
-          );
-        },
+      body: Readable(
+        child: FutureBuilder(
+          future: _workouts,
+          builder: (context, snap) {
+            if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
+            final workouts = snap.data;
+            final message = snap.hasError || workouts == null
+                ? t.watchUnavailable
+                : workouts.isEmpty
+                ? t.watchEmpty
+                : null;
+            if (message != null) {
+              return Padding(padding: const EdgeInsets.all(16), child: Text(message));
+            }
+            return ListView.separated(
+              itemCount: workouts!.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, i) {
+                final w = workouts[i];
+                final done = _imported.contains(w.uuid);
+                return ListTile(
+                  key: Key('workout-${w.uuid}'),
+                  title: Text(watchTitle(t, w)),
+                  subtitle: Text(
+                    [
+                      if (w.distanceM != null) formatDistance(w.distanceM!),
+                      formatDuration(w.end.difference(w.start).inSeconds),
+                      w.source,
+                    ].join(' · '),
+                  ),
+                  trailing: _busy == w.uuid
+                      ? const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : done
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check, semanticLabel: t.watchImported),
+                            TextButton(
+                              onPressed: _busy == null ? () => _importAgain(w) : null,
+                              child: Text(t.watchImportAgain),
+                            ),
+                          ],
+                        )
+                      : TextButton(onPressed: _busy == null ? () => _import(w) : null, child: Text(t.watchImport)),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

@@ -8,6 +8,7 @@ import '../api.dart';
 import '../l10n/app_localizations.dart';
 import 'tiles.dart';
 import 'user_screen.dart';
+import 'wide.dart';
 
 /// Asking, accepting, declining and ending a friendship with [username];
 /// [onChanged] gets the state afterwards.
@@ -142,79 +143,81 @@ class _FriendsScreenState extends State<FriendsScreen> {
     final muted = TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant);
     return Scaffold(
       appBar: AppBar(title: Text(t.friendsTitle)),
-      body: FutureBuilder(
-        future: _lists,
-        builder: (context, snap) {
-          final lists = snap.data;
-          return ListView(
-            padding: const EdgeInsets.only(bottom: 32),
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: TextField(
-                  key: const Key('friends-search'),
-                  controller: _query,
-                  onChanged: _search,
-                  decoration: InputDecoration(
-                    labelText: t.friendsSearch,
-                    helperText: t.friendsSearchHint,
-                    prefixIcon: const Icon(Icons.search),
-                  ),
-                ),
-              ),
-              if (_found case final found?)
-                if (found.isEmpty) ListTile(title: Text(t.friendsNoneFound)) else for (final f in found) _person(f),
-              if (snap.hasError) ListTile(title: Text(errorText(t, snap.error))),
-              if (lists != null) ...[
-                if (lists.incoming.isNotEmpty) ...[
-                  ListHeading(t.friendsIncoming),
-                  for (final f in lists.incoming) _person(f),
-                ],
-                ListHeading(t.friendsList),
-                if (lists.friends.isEmpty) ListTile(title: Text(t.friendsEmpty, style: muted)),
-                for (final f in lists.friends) _person(f),
-                if (lists.outgoing.isNotEmpty) ...[
-                  ListHeading(t.friendsOutgoing),
-                  for (final f in lists.outgoing) _person(f),
-                ],
-              ],
-              ListHeading(t.friendsLinkTitle),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(t.friendsLinkHint, style: muted),
-              ),
-              FutureBuilder(
-                future: _token,
-                builder: (context, snap) => switch (snap.data) {
-                  final token? => Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: Wrap(
-                      spacing: 8,
-                      children: [
-                        FilledButton.tonalIcon(
-                          key: const Key('friend-link-share'),
-                          icon: const Icon(Icons.ios_share),
-                          label: Text(t.friendsLinkShare),
-                          onPressed: () => SharePlus.instance.share(
-                            ShareParams(uri: Uri.parse('${widget.api.server}/friends/invite/$token')),
-                          ),
-                        ),
-                        TextButton(
-                          key: const Key('friend-link-renew'),
-                          onPressed: () => setState(() {
-                            _token = widget.api.friendLink(renew: true);
-                          }),
-                          child: Text(t.friendsLinkRenew),
-                        ),
-                      ],
+      body: Readable(
+        child: FutureBuilder(
+          future: _lists,
+          builder: (context, snap) {
+            final lists = snap.data;
+            return ListView(
+              padding: const EdgeInsets.only(bottom: 32),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: TextField(
+                    key: const Key('friends-search'),
+                    controller: _query,
+                    onChanged: _search,
+                    decoration: InputDecoration(
+                      labelText: t.friendsSearch,
+                      helperText: t.friendsSearchHint,
+                      prefixIcon: const Icon(Icons.search),
                     ),
                   ),
-                  _ => const SizedBox.shrink(),
-                },
-              ),
-            ],
-          );
-        },
+                ),
+                if (_found case final found?)
+                  if (found.isEmpty) ListTile(title: Text(t.friendsNoneFound)) else for (final f in found) _person(f),
+                if (snap.hasError) ListTile(title: Text(errorText(t, snap.error))),
+                if (lists != null) ...[
+                  if (lists.incoming.isNotEmpty) ...[
+                    ListHeading(t.friendsIncoming),
+                    for (final f in lists.incoming) _person(f),
+                  ],
+                  ListHeading(t.friendsList),
+                  if (lists.friends.isEmpty) ListTile(title: Text(t.friendsEmpty, style: muted)),
+                  for (final f in lists.friends) _person(f),
+                  if (lists.outgoing.isNotEmpty) ...[
+                    ListHeading(t.friendsOutgoing),
+                    for (final f in lists.outgoing) _person(f),
+                  ],
+                ],
+                ListHeading(t.friendsLinkTitle),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(t.friendsLinkHint, style: muted),
+                ),
+                FutureBuilder(
+                  future: _token,
+                  builder: (context, snap) => switch (snap.data) {
+                    final token? => Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: Wrap(
+                        spacing: 8,
+                        children: [
+                          FilledButton.tonalIcon(
+                            key: const Key('friend-link-share'),
+                            icon: const Icon(Icons.ios_share),
+                            label: Text(t.friendsLinkShare),
+                            onPressed: () => SharePlus.instance.share(
+                              ShareParams(uri: Uri.parse('${widget.api.server}/friends/invite/$token')),
+                            ),
+                          ),
+                          TextButton(
+                            key: const Key('friend-link-renew'),
+                            onPressed: () => setState(() {
+                              _token = widget.api.friendLink(renew: true);
+                            }),
+                            child: Text(t.friendsLinkRenew),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _ => const SizedBox.shrink(),
+                  },
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -268,58 +271,60 @@ class _InviteScreenState extends State<InviteScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.friendsTitle)),
-      body: FutureBuilder(
-        future: _load,
-        builder: (context, snap) {
-          if (snap.hasError) return Center(child: Text(t.errorGeneric));
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-          final (inviter, me) = snap.data!;
-          return ListView(
-            key: const Key('friend-invite'),
-            padding: const EdgeInsets.all(24),
-            children: [
-              if (inviter == null)
-                Text(t.inviteInvalid)
-              else ...[
-                Text(t.inviteTitle(inviter.displayName), style: theme.textTheme.headlineSmall),
-                Text('@${inviter.username}', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
-                const SizedBox(height: 16),
-                Text(t.inviteText),
-                const SizedBox(height: 24),
-                if (inviter.username == me)
-                  Text(t.inviteSelf)
-                else if (_done) ...[
-                  Text(t.inviteDone, key: const Key('friend-invite-done'), style: theme.textTheme.titleMedium),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute<void>(
-                          builder: (_) => UserScreen(api: widget.api, username: inviter.username),
+      body: Readable(
+        child: FutureBuilder(
+          future: _load,
+          builder: (context, snap) {
+            if (snap.hasError) return Center(child: Text(t.errorGeneric));
+            if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+            final (inviter, me) = snap.data!;
+            return ListView(
+              key: const Key('friend-invite'),
+              padding: const EdgeInsets.all(24),
+              children: [
+                if (inviter == null)
+                  Text(t.inviteInvalid)
+                else ...[
+                  Text(t.inviteTitle(inviter.displayName), style: theme.textTheme.headlineSmall),
+                  Text('@${inviter.username}', style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
+                  const SizedBox(height: 16),
+                  Text(t.inviteText),
+                  const SizedBox(height: 24),
+                  if (inviter.username == me)
+                    Text(t.inviteSelf)
+                  else if (_done) ...[
+                    Text(t.inviteDone, key: const Key('friend-invite-done'), style: theme.textTheme.titleMedium),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pushReplacement(
+                          MaterialPageRoute<void>(
+                            builder: (_) => UserScreen(api: widget.api, username: inviter.username),
+                          ),
                         ),
+                        child: Text('@${inviter.username}'),
                       ),
-                      child: Text('@${inviter.username}'),
                     ),
-                  ),
-                ] else ...[
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: FilledButton(
-                      key: const Key('friend-invite-accept'),
-                      onPressed: _busy ? null : _accept,
-                      child: Text(t.inviteAccept),
+                  ] else ...[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton(
+                        key: const Key('friend-invite-accept'),
+                        onPressed: _busy ? null : _accept,
+                        child: Text(t.inviteAccept),
+                      ),
                     ),
-                  ),
-                  if (_failed)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(t.errorGeneric, style: TextStyle(color: theme.colorScheme.error)),
-                    ),
+                    if (_failed)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(t.errorGeneric, style: TextStyle(color: theme.colorScheme.error)),
+                      ),
+                  ],
                 ],
               ],
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

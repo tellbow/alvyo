@@ -359,6 +359,21 @@ Checked so far only in the simulator, with made-up or simulated positions
       license page (packages and both fonts), the website's privacy text and
       operator. The peak camera shows its credit above «Passt die Linie …».
 
+## App on the iPad (release build)
+
+Checked in the iPad Pro 13-inch simulator (iOS 26.5) upright on
+2026-10-16: the rail, the route, the journey with its map, Planen, Touren
+and Profil. The simulator could not be turned; the layout on its side is
+only in the widget tests (1180 × 820).
+
+- [ ] **On its side** (iPad 10th generation): the rail, a route's panel
+      beside the map, Planen's panel; turning while planning a route keeps
+      the points and the map.
+- [ ] **Split View and Slide Over**: narrower than 820 points the bar and
+      the phone's layout come back, wider the rail; nothing cut off between.
+- [ ] **Recording and navigating** on an iPad with GPS (cellular models):
+      the map and the banners below it.
+
 ## App on an Android phone (release APK)
 
 The APK from a GitHub Release (or `flutter build apk --release`), installed

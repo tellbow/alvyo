@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import 'friends_screen.dart';
 import 'report_dialog.dart';
 import 'tiles.dart';
+import 'wide.dart';
 
 /// Someone's public profile: their public routes and journeys, following
 /// and blocking them.
@@ -73,70 +74,72 @@ class _UserScreenState extends State<UserScreen> {
                 ),
             ],
           ),
-          body: switch (snap) {
-            _ when snap.hasError => ErrorState(
-              error: snap.error,
-              onRetry: () => setState(() => _profile = widget.api.profile(widget.username)),
-            ),
-            _ when p == null => const Center(child: CircularProgressIndicator()),
-            _ => ListView(
-              padding: const EdgeInsets.only(bottom: 24),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 4,
-                    children: [
-                      Text(
-                        '@${p.username} · '
-                        '${t.profileSince(DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(DateTime.parse(p.since)))}',
-                      ),
-                      Text(
-                        key: const Key('profile-counts'),
-                        '${t.profileFollowers(p.followers)} · ${t.profileFollowing(p.following)}',
-                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                      if (p.blocked) Text(t.profileBlockedNote),
-                      if (!p.self && !p.blocked) ...[
-                        const SizedBox(height: 8),
-                        FriendButton(
-                          key: Key('friend-${p.friend}'),
-                          api: widget.api,
-                          username: p.username,
-                          friend: p.friend,
+          body: Readable(
+            child: switch (snap) {
+              _ when snap.hasError => ErrorState(
+                error: snap.error,
+                onRetry: () => setState(() => _profile = widget.api.profile(widget.username)),
+              ),
+              _ when p == null => const Center(child: CircularProgressIndicator()),
+              _ => ListView(
+                padding: const EdgeInsets.only(bottom: 24),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 4,
+                      children: [
+                        Text(
+                          '@${p.username} · '
+                          '${t.profileSince(DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(DateTime.parse(p.since)))}',
                         ),
-                        const SizedBox(height: 8),
-                        p.followed
-                            ? OutlinedButton(
-                                key: const Key('unfollow'),
-                                onPressed: _busy ? null : () => _set(() => widget.api.follow(p.username, false)),
-                                child: Text(t.profileUnfollow),
-                              )
-                            : FilledButton(
-                                key: const Key('follow'),
-                                onPressed: _busy ? null : () => _set(() => widget.api.follow(p.username, true)),
-                                child: Text(t.profileFollow),
-                              ),
+                        Text(
+                          key: const Key('profile-counts'),
+                          '${t.profileFollowers(p.followers)} · ${t.profileFollowing(p.following)}',
+                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                        if (p.blocked) Text(t.profileBlockedNote),
+                        if (!p.self && !p.blocked) ...[
+                          const SizedBox(height: 8),
+                          FriendButton(
+                            key: Key('friend-${p.friend}'),
+                            api: widget.api,
+                            username: p.username,
+                            friend: p.friend,
+                          ),
+                          const SizedBox(height: 8),
+                          p.followed
+                              ? OutlinedButton(
+                                  key: const Key('unfollow'),
+                                  onPressed: _busy ? null : () => _set(() => widget.api.follow(p.username, false)),
+                                  child: Text(t.profileUnfollow),
+                                )
+                              : FilledButton(
+                                  key: const Key('follow'),
+                                  onPressed: _busy ? null : () => _set(() => widget.api.follow(p.username, true)),
+                                  child: Text(t.profileFollow),
+                                ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                if (p.routes.isNotEmpty) ListHeading(t.profileRoutes),
-                for (final r in p.routes)
-                  RouteTile(
-                    route: r,
-                    onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
-                  ),
-                if (p.journeys.isNotEmpty) ListHeading(t.profileJourneys),
-                for (final j in p.journeys)
-                  JourneyTile(
-                    journey: j,
-                    onTap: () => openItem(context, widget.api, journey: true, id: j.id, title: j.title),
-                  ),
-              ],
-            ),
-          },
+                  if (p.routes.isNotEmpty) ListHeading(t.profileRoutes),
+                  for (final r in p.routes)
+                    RouteTile(
+                      route: r,
+                      onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
+                    ),
+                  if (p.journeys.isNotEmpty) ListHeading(t.profileJourneys),
+                  for (final j in p.journeys)
+                    JourneyTile(
+                      journey: j,
+                      onTap: () => openItem(context, widget.api, journey: true, id: j.id, title: j.title),
+                    ),
+                ],
+              ),
+            },
+          ),
         );
       },
     );

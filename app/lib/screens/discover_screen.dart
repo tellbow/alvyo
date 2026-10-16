@@ -16,6 +16,7 @@ import '../precip.dart';
 import 'details.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
+import 'wide.dart';
 
 /// The line colours, cycled through the results as on the website.
 const discoverColors = [
@@ -176,21 +177,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         widget.map ??
         (items, onView, onOpen) =>
             _DiscoverMap(api: widget.api, items: items, onView: onView, onOpen: onOpen, start: widget.start);
-    final body = Column(
-      children: [
-        Expanded(flex: 5, child: map(_items, _viewed, _open)),
-        if (_status == _Status.loading) const LinearProgressIndicator(minHeight: 2) else const SizedBox(height: 2),
-        Expanded(
-          flex: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _filters(t),
-              Expanded(child: _results(t)),
-            ],
-          ),
-        ),
-      ],
+    final body = MapSplit(
+      share: 4 / 9,
+      map: map(_items, _viewed, _open),
+      panel: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_status == _Status.loading) const LinearProgressIndicator(minHeight: 2) else const SizedBox(height: 2),
+          _filters(t),
+          Expanded(child: _results(t)),
+        ],
+      ),
     );
     if (widget.embedded) return body;
     return Scaffold(

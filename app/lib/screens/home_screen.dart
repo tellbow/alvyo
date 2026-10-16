@@ -16,6 +16,7 @@ import 'record_screen.dart';
 import 'route_screen.dart';
 import 'tours_tab.dart';
 import 'watch_screen.dart';
+import 'wide.dart';
 
 /// The app after logging in (requirement 69): Entdecken (where to?),
 /// Planen (how?), the record button (go!), Touren (what do I have?) and
@@ -184,28 +185,54 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       BarItem(const Key('tab-tours'), Icons.filter_none_outlined, t.barTours),
       BarItem(const Key('tab-profile'), Icons.person_outline, t.navProfile),
     ];
+    final wide = isWide(context);
     return Scaffold(
       extendBody: true,
-      // Every tab is kept: switching back keeps its scroll and its state.
-      body: IndexedStack(
-        index: _tab.index,
+      body: Row(
         children: [
-          for (final tab in HomeTab.values)
-            if (!_shown.contains(tab)) const SizedBox.shrink() else _build(tab),
+          if (wide)
+            SideBar(
+              items: items,
+              selected: _tab.index,
+              onSelect: (i) => _select(HomeTab.values[i]),
+              recordLabel: t.navRecord,
+              onRecord: _record,
+            ),
+          // Every tab is kept: switching back keeps its scroll and its state,
+          // and so does turning the phone (the key keeps them with the rail).
+          Expanded(
+            key: const Key('tabs'),
+            // The rail keeps the left edge (a phone's notch) out.
+            child: MediaQuery.removePadding(
+              context: context,
+              removeLeft: wide,
+              child: IndexedStack(
+                index: _tab.index,
+                children: [
+                  for (final tab in HomeTab.values)
+                    if (!_shown.contains(tab)) const SizedBox.shrink() else _build(tab),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: BottomBar(
-        items: items,
-        selected: _tab.index,
-        onSelect: (i) => _select(HomeTab.values[i]),
-        recordLabel: t.navRecord,
-        onRecord: _record,
-      ),
+      bottomNavigationBar: wide
+          ? null
+          : BottomBar(
+              items: items,
+              selected: _tab.index,
+              onSelect: (i) => _select(HomeTab.values[i]),
+              recordLabel: t.navRecord,
+              onRecord: _record,
+            ),
     );
   }
 
   Widget _build(HomeTab tab) => switch (tab) {
-    HomeTab.discover => DiscoverTab(api: widget.api, onPlan: _planIn),
+    HomeTab.discover => Readable(
+      child: DiscoverTab(api: widget.api, onPlan: _planIn),
+    ),
     HomeTab.plan => PlanTab(
       key: _plan,
       api: widget.api,
@@ -221,7 +248,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     ),
     HomeTab.profile => SafeArea(
       bottom: false,
-      child: ProfileTab(api: widget.api, onLogout: widget.onLogout, settings: _settings),
+      child: Readable(
+        child: ProfileTab(api: widget.api, onLogout: widget.onLogout, settings: _settings),
+      ),
     ),
   };
 }

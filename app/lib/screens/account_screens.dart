@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'wide.dart';
 
 import '../errors.dart';
 import '../api.dart';
@@ -82,58 +83,60 @@ class _ContactsScreenState extends State<ContactsScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.contactsTitle)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(t.contactsIntro),
-          const SizedBox(height: 8),
-          FutureBuilder(
-            future: _contacts,
-            builder: (context, snap) {
-              if (snap.hasError) return Text(errorText(t, snap.error));
-              if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-              return Column(
-                children: [
-                  for (final c in snap.data!)
-                    ListTile(
-                      key: Key('contact-${c.email}'),
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(c.name),
-                      subtitle: Text(c.email),
-                      trailing: IconButton(
-                        tooltip: t.contactsRemove,
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _remove(c),
+      body: Readable(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(t.contactsIntro),
+            const SizedBox(height: 8),
+            FutureBuilder(
+              future: _contacts,
+              builder: (context, snap) {
+                if (snap.hasError) return Text(errorText(t, snap.error));
+                if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+                return Column(
+                  children: [
+                    for (final c in snap.data!)
+                      ListTile(
+                        key: Key('contact-${c.email}'),
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(c.name),
+                        subtitle: Text(c.email),
+                        trailing: IconButton(
+                          tooltip: t.contactsRemove,
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _remove(c),
+                        ),
                       ),
-                    ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            key: const Key('contact-name'),
-            controller: _name,
-            decoration: InputDecoration(labelText: t.contactsName),
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            key: const Key('contact-email'),
-            controller: _email,
-            decoration: InputDecoration(labelText: t.contactsEmail),
-            keyboardType: TextInputType.emailAddress,
-            autocorrect: false,
-            onSubmitted: (_) => _add(),
-          ),
-          if (_error case final e?)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  ],
+                );
+              },
             ),
-          const SizedBox(height: 8),
-          FilledButton(key: const Key('contact-add'), onPressed: _busy ? null : _add, child: Text(t.contactsAdd)),
-        ],
+            const SizedBox(height: 8),
+            TextField(
+              key: const Key('contact-name'),
+              controller: _name,
+              decoration: InputDecoration(labelText: t.contactsName),
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const Key('contact-email'),
+              controller: _email,
+              decoration: InputDecoration(labelText: t.contactsEmail),
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+              onSubmitted: (_) => _add(),
+            ),
+            if (_error case final e?)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              ),
+            const SizedBox(height: 8),
+            FilledButton(key: const Key('contact-add'), onPressed: _busy ? null : _add, child: Text(t.contactsAdd)),
+          ],
+        ),
       ),
     );
   }
@@ -171,25 +174,27 @@ class _BlockedScreenState extends State<BlockedScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.blockedTitle)),
-      body: FutureBuilder(
-        future: _blocked,
-        builder: (context, snap) {
-          if (snap.hasError) return ListView(children: [ListTile(title: Text(errorText(t, snap.error)))]);
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-          final users = snap.data!;
-          if (users.isEmpty) return ListView(children: [ListTile(title: Text(t.blockedEmpty))]);
-          return ListView(
-            children: [
-              for (final u in users)
-                ListTile(
-                  key: Key('blocked-${u.username}'),
-                  title: Text(u.displayName),
-                  subtitle: Text('@${u.username}'),
-                  trailing: TextButton(onPressed: () => _unblock(u), child: Text(t.profileUnblock)),
-                ),
-            ],
-          );
-        },
+      body: Readable(
+        child: FutureBuilder(
+          future: _blocked,
+          builder: (context, snap) {
+            if (snap.hasError) return ListView(children: [ListTile(title: Text(errorText(t, snap.error)))]);
+            if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+            final users = snap.data!;
+            if (users.isEmpty) return ListView(children: [ListTile(title: Text(t.blockedEmpty))]);
+            return ListView(
+              children: [
+                for (final u in users)
+                  ListTile(
+                    key: Key('blocked-${u.username}'),
+                    title: Text(u.displayName),
+                    subtitle: Text('@${u.username}'),
+                    trailing: TextButton(onPressed: () => _unblock(u), child: Text(t.profileUnblock)),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -354,68 +359,70 @@ class _HomesScreenState extends State<HomesScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.homesTitle)),
-      body: FutureBuilder(
-        future: _homes,
-        builder: (context, snap) {
-          final homes = snap.data;
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(t.homesIntro),
-              const SizedBox(height: 8),
-              if (snap.hasError) Text(errorText(t, snap.error)),
-              if (homes == null && !snap.hasError) const Center(child: CircularProgressIndicator()),
-              for (final h in homes ?? const <Home>[])
-                ListTile(
-                  key: Key('home-${h.id}'),
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.home_outlined),
-                  title: Text(h.name),
-                  subtitle: Text(h.address),
-                  trailing: IconButton(
-                    tooltip: t.homesRemove,
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () => _remove(h),
-                  ),
-                ),
-              if (homes != null && homes.length < 5) ...[
+      body: Readable(
+        child: FutureBuilder(
+          future: _homes,
+          builder: (context, snap) {
+            final homes = snap.data;
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text(t.homesIntro),
                 const SizedBox(height: 8),
-                TextField(
-                  key: const Key('home-name'),
-                  controller: _name,
-                  decoration: InputDecoration(labelText: t.homesName, hintText: t.homesNamePlaceholder),
-                  textCapitalization: TextCapitalization.sentences,
-                ),
-                const SizedBox(height: 8),
-                if (_found case final f?)
+                if (snap.hasError) Text(errorText(t, snap.error)),
+                if (homes == null && !snap.hasError) const Center(child: CircularProgressIndicator()),
+                for (final h in homes ?? const <Home>[])
                   ListTile(
-                    key: const Key('home-address'),
+                    key: Key('home-${h.id}'),
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.place_outlined),
-                    title: Text(f.name),
+                    leading: const Icon(Icons.home_outlined),
+                    title: Text(h.name),
+                    subtitle: Text(h.address),
                     trailing: IconButton(
-                      icon: const Icon(Icons.close),
-                      tooltip: t.cancel,
-                      onPressed: () => setState(() => _found = null),
+                      tooltip: t.homesRemove,
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _remove(h),
                     ),
-                  )
-                else
-                  PlaceSearch(api: widget.api, label: t.homesAddress, onPick: (p) => setState(() => _found = p)),
-                if (_error case final e?)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   ),
-                const SizedBox(height: 8),
-                FilledButton(
-                  key: const Key('home-add'),
-                  onPressed: _busy || _found == null ? null : _add,
-                  child: Text(t.homesAdd),
-                ),
+                if (homes != null && homes.length < 5) ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('home-name'),
+                    controller: _name,
+                    decoration: InputDecoration(labelText: t.homesName, hintText: t.homesNamePlaceholder),
+                    textCapitalization: TextCapitalization.sentences,
+                  ),
+                  const SizedBox(height: 8),
+                  if (_found case final f?)
+                    ListTile(
+                      key: const Key('home-address'),
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.place_outlined),
+                      title: Text(f.name),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.close),
+                        tooltip: t.cancel,
+                        onPressed: () => setState(() => _found = null),
+                      ),
+                    )
+                  else
+                    PlaceSearch(api: widget.api, label: t.homesAddress, onPick: (p) => setState(() => _found = p)),
+                  if (_error case final e?)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    ),
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    key: const Key('home-add'),
+                    onPressed: _busy || _found == null ? null : _add,
+                    child: Text(t.homesAdd),
+                  ),
+                ],
               ],
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -508,89 +515,91 @@ class _AccessTokensScreenState extends State<AccessTokensScreen> {
     final muted = TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant);
     return Scaffold(
       appBar: AppBar(title: Text(t.tokensTitle)),
-      body: FutureBuilder(
-        future: _tokens,
-        builder: (context, snap) {
-          final tokens = snap.data;
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(t.tokensIntro),
-              const SizedBox(height: 8),
-              Text(t.tokensMcp, style: muted),
-              SelectableText('${widget.api.server}/api/v1/mcp', key: const Key('mcp-url')),
-              if (_created case final token?)
-                Card(
-                  key: const Key('token-created'),
-                  margin: const EdgeInsets.only(top: 12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(t.tokensCreated),
-                        Row(
-                          children: [
-                            Expanded(child: SelectableText(token, key: const Key('token-value'))),
-                            IconButton(
-                              key: const Key('token-copy'),
-                              tooltip: t.tokensCopy,
-                              icon: const Icon(Icons.copy),
-                              onPressed: () async {
-                                await Clipboard.setData(ClipboardData(text: token));
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.tokensCopied)));
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+      body: Readable(
+        child: FutureBuilder(
+          future: _tokens,
+          builder: (context, snap) {
+            final tokens = snap.data;
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text(t.tokensIntro),
+                const SizedBox(height: 8),
+                Text(t.tokensMcp, style: muted),
+                SelectableText('${widget.api.server}/api/v1/mcp', key: const Key('mcp-url')),
+                if (_created case final token?)
+                  Card(
+                    key: const Key('token-created'),
+                    margin: const EdgeInsets.only(top: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(t.tokensCreated),
+                          Row(
+                            children: [
+                              Expanded(child: SelectableText(token, key: const Key('token-value'))),
+                              IconButton(
+                                key: const Key('token-copy'),
+                                tooltip: t.tokensCopy,
+                                icon: const Icon(Icons.copy),
+                                onPressed: () async {
+                                  await Clipboard.setData(ClipboardData(text: token));
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.tokensCopied)));
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              const SizedBox(height: 8),
-              if (snap.hasError) Text(errorText(t, snap.error)),
-              if (tokens == null && !snap.hasError) const Center(child: CircularProgressIndicator()),
-              for (final tok in tokens ?? const <AccessToken>[])
-                ListTile(
-                  key: Key('token-${tok.id}'),
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.key_outlined),
-                  title: Text(tok.name),
-                  subtitle: Text(
-                    [
-                      t.tokensCreatedOn(formatDate(tok.createdAt)),
-                      if (tok.lastUsedAt case final used?) t.tokensUsedOn(formatDate(used)) else t.tokensNeverUsed,
-                    ].join(' · '),
+                const SizedBox(height: 8),
+                if (snap.hasError) Text(errorText(t, snap.error)),
+                if (tokens == null && !snap.hasError) const Center(child: CircularProgressIndicator()),
+                for (final tok in tokens ?? const <AccessToken>[])
+                  ListTile(
+                    key: Key('token-${tok.id}'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.key_outlined),
+                    title: Text(tok.name),
+                    subtitle: Text(
+                      [
+                        t.tokensCreatedOn(formatDate(tok.createdAt)),
+                        if (tok.lastUsedAt case final used?) t.tokensUsedOn(formatDate(used)) else t.tokensNeverUsed,
+                      ].join(' · '),
+                    ),
+                    trailing: IconButton(
+                      tooltip: t.tokensRevoke,
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => _revoke(tok),
+                    ),
                   ),
-                  trailing: IconButton(
-                    tooltip: t.tokensRevoke,
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () => _revoke(tok),
+                const SizedBox(height: 8),
+                TextField(
+                  key: const Key('token-name'),
+                  controller: _name,
+                  maxLength: 60,
+                  decoration: InputDecoration(labelText: t.tokensName, hintText: t.tokensNamePlaceholder),
+                  onChanged: (_) => setState(() {}),
+                ),
+                if (_error case final e?)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   ),
+                FilledButton(
+                  key: const Key('token-create'),
+                  onPressed: _busy || _name.text.trim().isEmpty ? null : _create,
+                  child: Text(t.tokensCreate),
                 ),
-              const SizedBox(height: 8),
-              TextField(
-                key: const Key('token-name'),
-                controller: _name,
-                maxLength: 60,
-                decoration: InputDecoration(labelText: t.tokensName, hintText: t.tokensNamePlaceholder),
-                onChanged: (_) => setState(() {}),
-              ),
-              if (_error case final e?)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(e, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                ),
-              FilledButton(
-                key: const Key('token-create'),
-                onPressed: _busy || _name.text.trim().isEmpty ? null : _create,
-                child: Text(t.tokensCreate),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

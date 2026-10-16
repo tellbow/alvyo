@@ -27,6 +27,7 @@ import 'social.dart';
 import 'stage_sheet.dart';
 import 'tag_chips.dart';
 import 'travel_screen.dart';
+import 'wide.dart';
 
 /// A journey's stages. Each opens as a route: its map, saving it offline,
 /// hiking it; all can be saved offline at once. A stage's sheet has its
@@ -376,7 +377,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
             (id: 'travel', label: t.routeTabTravel),
             (id: 'photos', label: _photoCount == null ? t.photosTitle : '${t.photosTitle} $_photoCount'),
           ];
-          return RefreshIndicator(
+          final list = RefreshIndicator(
             onRefresh: () async {
               final next = _load();
               setState(() {
@@ -418,7 +419,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                         else if (!j.isOwner && j.owner.isNotEmpty)
                           OwnerLine(api: widget.api, owner: j.owner, open: true),
                         if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
-                        if (j.stageLines.isNotEmpty)
+                        if (j.stageLines.isNotEmpty && !isWide(context))
                           Align(
                             alignment: Alignment.centerLeft,
                             child: TextButton.icon(
@@ -609,6 +610,12 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                 ),
               ],
             ),
+          );
+          // On a wide screen the stages' map beside them (requirement 73).
+          if (j.stageLines.isEmpty) return list;
+          return MapSplit(
+            map: JourneyMap(api: widget.api, journey: j),
+            panel: list,
           );
         },
       ),

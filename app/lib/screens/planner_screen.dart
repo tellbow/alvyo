@@ -117,16 +117,16 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     _draw();
   }
 
-  Widget _buildMap() => LayoutBuilder(builder: (context, size) => _buildMapIn(size));
+  Widget _buildMap() => LayoutBuilder(builder: (context, size) => _buildMapIn(context, size));
 
-  Widget _buildMapIn(BoxConstraints size) {
+  Widget _buildMapIn(BuildContext context, BoxConstraints size) {
     // A route being changed, or a stage going on from the one before: there.
     final points = [
       for (final p in _planner.points) [p.lon, p.lat],
     ];
     final view = points.isEmpty
         ? (lon: 8.23, lat: 46.8, zoom: 7.0)
-        : fitLine(points, size.maxWidth, size.maxHeight * (1 - PlanSheet.initial), maxZoom: 13);
+        : fitLine(points, size.maxWidth, size.maxHeight * (1 - PlanSheet.cover(context)), maxZoom: 13);
     return _mapLibre(view);
   }
 
@@ -362,18 +362,21 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
                 _ => t.plannerTitle,
               }),
             ),
-      body: Stack(
-        children: [
-          Positioned.fill(child: _mapView),
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 64,
-            child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-          ),
-          const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
-          PlanSheet(panelKey: const Key('planner-panel'), children: _panel(t)),
-        ],
+      body: PlanSheet(
+        map: Stack(
+          children: [
+            Positioned.fill(child: _mapView),
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 64,
+              child: MapCorner(precip: PrecipBar(controller: _places.precip)),
+            ),
+            const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+          ],
+        ),
+        panelKey: const Key('planner-panel'),
+        children: _panel(t),
       ),
     );
   }

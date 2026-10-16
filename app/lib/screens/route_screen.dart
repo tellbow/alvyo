@@ -34,6 +34,7 @@ import 'social.dart';
 import 'tag_chips.dart';
 import 'planner_screen.dart';
 import 'travel_screen.dart';
+import 'wide.dart';
 
 /// A route on the national map, with offline saving; its description,
 /// photos and comments, and a menu to change, share or export it.
@@ -530,123 +531,112 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
             if (r.line.length >= 2 && r.journeyId == null) _Tab.travel,
             if (r.journeyId == null) _Tab.photos,
           ];
-          return LayoutBuilder(
-            builder: (context, body) => Column(
+          return MapSplit(
+            // Half the screen on a phone, so the panel keeps its height
+            // between the tabs; the tab bar stays while the rest scrolls.
+            share: 0.5,
+            map: Stack(
               children: [
-                Expanded(
-                  child: Stack(
-                    children: [
-                      widget.map ??
-                          LayoutBuilder(
-                            builder: (context, size) {
-                              // Someone else's short hike: no line, Switzerland.
-                              final view = r.line.isEmpty
-                                  ? (lon: 8.23, lat: 46.8, zoom: 7.0)
-                                  : fitLine(r.line, size.maxWidth, size.maxHeight);
-                              return MapLibreMap(
-                                key: ValueKey(pack?.key), // a new style needs a new map
-                                options: MapOptions(
-                                  initStyle: pack != null
-                                      ? offlineStyle(pack.files)
-                                      : swisstopoStyle(widget.api.server),
-                                  initCenter: Geographic(lon: view.lon, lat: view.lat),
-                                  initZoom: view.zoom,
-                                ),
-                                onEvent: _places.onEvent,
-                                onStyleLoaded: (style) async {
-                                  await _places.addTo(style);
-                                  await addRouteLine(style, r.line);
-                                  await _places.addAlong(style, await _pois);
-                                },
-                              );
-                            },
+                widget.map ??
+                    LayoutBuilder(
+                      builder: (context, size) {
+                        // Someone else's short hike: no line, Switzerland.
+                        final view = r.line.isEmpty
+                            ? (lon: 8.23, lat: 46.8, zoom: 7.0)
+                            : fitLine(r.line, size.maxWidth, size.maxHeight);
+                        return MapLibreMap(
+                          key: ValueKey(pack?.key), // a new style needs a new map
+                          options: MapOptions(
+                            initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
+                            initCenter: Geographic(lon: view.lon, lat: view.lat),
+                            initZoom: view.zoom,
                           ),
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        right: 64,
-                        child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-                      ),
-                      const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
-                    ],
-                  ),
+                          onEvent: _places.onEvent,
+                          onStyleLoaded: (style) async {
+                            await _places.addTo(style);
+                            await addRouteLine(style, r.line);
+                            await _places.addAlong(style, await _pois);
+                          },
+                        );
+                      },
+                    ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  right: 64,
+                  child: MapCorner(precip: PrecipBar(controller: _places.precip)),
                 ),
-                // Half the screen, so it keeps its height between the tabs; the
-                // tab bar stays while the rest scrolls.
-                SizedBox(
-                  height: body.maxHeight / 2,
-                  child: CustomScrollView(
-                    slivers: [
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                        sliver: SliverToBoxAdapter(child: _head(t, r, pack)),
-                      ),
-                      if (tabs.length > 1)
-                        SliverPersistentHeader(pinned: true, delegate: PinnedTabBar(_tabBar(t, tabs))),
-                      SliverSafeArea(
-                        top: false,
-                        sliver: SliverPadding(
-                          padding: const EdgeInsets.all(12),
-                          sliver: SliverToBoxAdapter(
-                            child: Column(
+                const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+              ],
+            ),
+            panel: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                  sliver: SliverToBoxAdapter(child: _head(t, r, pack)),
+                ),
+                if (tabs.length > 1) SliverPersistentHeader(pinned: true, delegate: PinnedTabBar(_tabBar(t, tabs))),
+                SliverSafeArea(
+                  top: false,
+                  sliver: SliverPadding(
+                    padding: const EdgeInsets.all(12),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Every tab stays built: the map shows what each one loads.
+                          _pane(
+                            _Tab.overview,
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // Every tab stays built: the map shows what each one loads.
-                                _pane(
-                                  _Tab.overview,
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      if (r.description.isNotEmpty) ...[
-                                        Text(key: const Key('route-description'), r.description),
-                                        const SizedBox(height: 8),
-                                      ],
-                                      if (offTrail(r.json)) OffTrailWarning(distanceM: r.totals.distanceM),
-                                      ElevationProfile.ofLine(r.line),
-                                      ProtectedAreas(_areas),
-                                      RouteWeatherView(
-                                        _weather,
-                                        later: (date) => widget.api
-                                            .routeWeather(widget.id, date: date)
-                                            .then<RouteWeather?>((w) => w, onError: (_) => null),
-                                      ),
-                                      TrailConditions(route: r.json, distanceM: r.totals.distanceM),
-                                    ],
-                                  ),
+                                if (r.description.isNotEmpty) ...[
+                                  Text(key: const Key('route-description'), r.description),
+                                  const SizedBox(height: 8),
+                                ],
+                                if (offTrail(r.json)) OffTrailWarning(distanceM: r.totals.distanceM),
+                                ElevationProfile.ofLine(r.line),
+                                ProtectedAreas(_areas),
+                                RouteWeatherView(
+                                  _weather,
+                                  later: (date) => widget.api
+                                      .routeWeather(widget.id, date: date)
+                                      .then<RouteWeather?>((w) => w, onError: (_) => null),
                                 ),
-                                _pane(_Tab.along, PoiList(_pois, onTap: _places.markAlong)),
-                                if (tabs.contains(_Tab.travel))
-                                  _pane(
-                                    _Tab.travel,
-                                    TravelTiles(
-                                      api: widget.api,
-                                      ends: routeEnds(r, start: t.travelRouteStart, end: t.travelRouteEnd),
-                                      load: () => widget.api.routeTravel(widget.id),
-                                      save: (travel) => widget.api.setRouteTravel(widget.id, travel),
-                                      pickDay: true,
-                                    ),
-                                  ),
-                                if (tabs.contains(_Tab.photos))
-                                  _pane(
-                                    _Tab.photos,
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                                        PhotoStrip(
-                                          api: widget.api,
-                                          id: r.id,
-                                          onCount: (n) => setState(() => _photoCount = n),
-                                        ),
-                                        SocialPanel(api: widget.api, id: r.id),
-                                      ],
-                                    ),
-                                  ),
+                                TrailConditions(route: r.json, distanceM: r.totals.distanceM),
                               ],
                             ),
                           ),
-                        ),
+                          _pane(_Tab.along, PoiList(_pois, onTap: _places.markAlong)),
+                          if (tabs.contains(_Tab.travel))
+                            _pane(
+                              _Tab.travel,
+                              TravelTiles(
+                                api: widget.api,
+                                ends: routeEnds(r, start: t.travelRouteStart, end: t.travelRouteEnd),
+                                load: () => widget.api.routeTravel(widget.id),
+                                save: (travel) => widget.api.setRouteTravel(widget.id, travel),
+                                pickDay: true,
+                              ),
+                            ),
+                          if (tabs.contains(_Tab.photos))
+                            _pane(
+                              _Tab.photos,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  PhotoStrip(
+                                    api: widget.api,
+                                    id: r.id,
+                                    onCount: (n) => setState(() => _photoCount = n),
+                                  ),
+                                  SocialPanel(api: widget.api, id: r.id),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],

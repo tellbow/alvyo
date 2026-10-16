@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'wide.dart';
 
 import '../api.dart';
 import '../format.dart';
@@ -48,64 +49,66 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
     final muted = TextStyle(color: theme.colorScheme.onSurfaceVariant);
     return Scaffold(
       appBar: AppBar(title: Text(t.connectionsShow)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('${widget.from.name} → ${widget.to.name}', style: theme.textTheme.titleMedium),
-          Text(formatDate(widget.day), style: muted),
-          const SizedBox(height: 12),
-          Row(
-            spacing: 8,
-            children: [
-              SegmentedButton<bool>(
-                key: const Key('connections-mode'),
-                showSelectedIcon: false,
-                segments: [
-                  ButtonSegment(value: false, label: Text(t.connectionsDepart)),
-                  ButtonSegment(value: true, label: Text(t.connectionsArrive)),
-                ],
-                selected: {_arrive},
-                onSelectionChanged: (s) {
-                  _arrive = s.first;
-                  _search();
-                },
-              ),
-              OutlinedButton(
-                key: const Key('connections-time'),
-                onPressed: () async {
-                  final picked = await showTimePicker(context: context, initialTime: _time);
-                  if (picked == null) return;
-                  _time = picked;
-                  _search();
-                },
-                child: Text(_time.format(context)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          FutureBuilder(
-            future: _trips,
-            builder: (context, snap) {
-              if (snap.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snap.hasError) {
-                final e = snap.error;
-                return Text(e is ApiException && e.status == 429 ? t.shareRate : t.connectionsUnavailable);
-              }
-              final trips = snap.data!;
-              if (trips.isEmpty) return Text(key: const Key('connections-none'), t.connectionsNone);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final (i, trip) in trips.indexed) TripCard(key: Key('trip-$i'), trip: trip),
-                  const SizedBox(height: 8),
-                  Text(t.connectionsSource, style: theme.textTheme.bodySmall?.merge(muted)),
-                ],
-              );
-            },
-          ),
-        ],
+      body: Readable(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text('${widget.from.name} → ${widget.to.name}', style: theme.textTheme.titleMedium),
+            Text(formatDate(widget.day), style: muted),
+            const SizedBox(height: 12),
+            Row(
+              spacing: 8,
+              children: [
+                SegmentedButton<bool>(
+                  key: const Key('connections-mode'),
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment(value: false, label: Text(t.connectionsDepart)),
+                    ButtonSegment(value: true, label: Text(t.connectionsArrive)),
+                  ],
+                  selected: {_arrive},
+                  onSelectionChanged: (s) {
+                    _arrive = s.first;
+                    _search();
+                  },
+                ),
+                OutlinedButton(
+                  key: const Key('connections-time'),
+                  onPressed: () async {
+                    final picked = await showTimePicker(context: context, initialTime: _time);
+                    if (picked == null) return;
+                    _time = picked;
+                    _search();
+                  },
+                  child: Text(_time.format(context)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            FutureBuilder(
+              future: _trips,
+              builder: (context, snap) {
+                if (snap.connectionState != ConnectionState.done) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snap.hasError) {
+                  final e = snap.error;
+                  return Text(e is ApiException && e.status == 429 ? t.shareRate : t.connectionsUnavailable);
+                }
+                final trips = snap.data!;
+                if (trips.isEmpty) return Text(key: const Key('connections-none'), t.connectionsNone);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, trip) in trips.indexed) TripCard(key: Key('trip-$i'), trip: trip),
+                    const SizedBox(height: 8),
+                    Text(t.connectionsSource, style: theme.textTheme.bodySmall?.merge(muted)),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

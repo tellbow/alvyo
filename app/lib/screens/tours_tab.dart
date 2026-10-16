@@ -11,6 +11,7 @@ import 'journey_screen.dart';
 import 'route_screen.dart';
 import 'tab_header.dart';
 import 'tiles.dart';
+import 'wide.dart';
 
 /// What the list shows: planned or hiked tours, or the collections.
 enum TourSegment { planned, hiked, collections }
@@ -76,66 +77,70 @@ class ToursTabState extends State<ToursTab> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final lists = _segment != TourSegment.collections;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TabHeader(
-          t.toursTitle,
-          action: lists
-              ? HeaderAction(
-                  key: const Key('tours-map'),
-                  icon: _map ? Icons.list : Icons.map_outlined,
-                  label: _map ? t.toursList : t.toursMap,
-                  onPressed: () => setState(() => _map = !_map),
-                )
-              : null,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SegmentedButton<TourSegment>(
-            key: const Key('tours-segment'),
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment(value: TourSegment.planned, label: Text(t.doneFilterPlanned)),
-              ButtonSegment(value: TourSegment.hiked, label: Text(t.doneFilterDone)),
-              ButtonSegment(value: TourSegment.collections, label: Text(t.collectionsTitle)),
-            ],
-            selected: {_segment},
-            onSelectionChanged: (v) => setState(() => _segment = v.first),
+    // The map as wide as the screen.
+    return Readable(
+      on: !(lists && _map),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TabHeader(
+            t.toursTitle,
+            action: lists
+                ? HeaderAction(
+                    key: const Key('tours-map'),
+                    icon: _map ? Icons.list : Icons.map_outlined,
+                    label: _map ? t.toursList : t.toursMap,
+                    onPressed: () => setState(() => _map = !_map),
+                  )
+                : null,
           ),
-        ),
-        if (lists && !_map)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
-            child: Row(
-              spacing: 8,
-              children: [
-                for (final (k, label) in [
-                  (TourKind.all, t.doneFilterAll),
-                  (TourKind.routes, t.barRoutes),
-                  (TourKind.journeys, t.toursJourneys),
-                  (TourKind.shared, t.toursShared),
-                ])
-                  ChoiceChip(
-                    key: Key('tours-kind-${k.name}'),
-                    label: Text(label),
-                    selected: _kind == k,
-                    showCheckmark: false,
-                    onSelected: (_) => setState(() => _kind = k),
-                  ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SegmentedButton<TourSegment>(
+              key: const Key('tours-segment'),
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(value: TourSegment.planned, label: Text(t.doneFilterPlanned)),
+                ButtonSegment(value: TourSegment.hiked, label: Text(t.doneFilterDone)),
+                ButtonSegment(value: TourSegment.collections, label: Text(t.collectionsTitle)),
               ],
+              selected: {_segment},
+              onSelectionChanged: (v) => setState(() => _segment = v.first),
             ),
           ),
-        const SizedBox(height: 6),
-        Expanded(
-          child: switch (_segment) {
-            TourSegment.collections => CollectionsList(api: widget.api),
-            _ when _map => DiscoverScreen(api: widget.api, mine: true, embedded: true),
-            _ => _list(t),
-          },
-        ),
-      ],
+          if (lists && !_map)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
+              child: Row(
+                spacing: 8,
+                children: [
+                  for (final (k, label) in [
+                    (TourKind.all, t.doneFilterAll),
+                    (TourKind.routes, t.barRoutes),
+                    (TourKind.journeys, t.toursJourneys),
+                    (TourKind.shared, t.toursShared),
+                  ])
+                    ChoiceChip(
+                      key: Key('tours-kind-${k.name}'),
+                      label: Text(label),
+                      selected: _kind == k,
+                      showCheckmark: false,
+                      onSelected: (_) => setState(() => _kind = k),
+                    ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: switch (_segment) {
+              TourSegment.collections => CollectionsList(api: widget.api),
+              _ when _map => DiscoverScreen(api: widget.api, mine: true, embedded: true),
+              _ => _list(t),
+            },
+          ),
+        ],
+      ),
     );
   }
 

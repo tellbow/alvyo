@@ -31,40 +31,9 @@ class BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final accent = AlvyoColors.of(context).accent;
-    // Large text grows the names a little only: the bar keeps its height.
-    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.2);
-    Widget place(int i) {
-      final on = i == selected;
-      final color = on ? scheme.primary : scheme.onSurfaceVariant;
-      return Expanded(
-        child: Semantics(
-          button: true,
-          selected: on,
-          child: InkWell(
-            key: items[i].key,
-            onTap: () => onSelect(i),
-            borderRadius: BorderRadius.circular(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(items[i].icon, color: color),
-                const SizedBox(height: 2),
-                Text(
-                  items[i].label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textScaler: scaler,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: color, fontWeight: on ? FontWeight.w600 : null),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    Widget place(int i) => Expanded(
+      child: _Place(items[i], on: i == selected, onTap: () => onSelect(i)),
+    );
 
     return SafeArea(
       minimum: const EdgeInsets.only(bottom: 12),
@@ -84,26 +53,7 @@ class BottomBar extends StatelessWidget {
             children: [
               place(0),
               place(1),
-              Semantics(
-                button: true,
-                label: recordLabel,
-                child: Tooltip(
-                  message: recordLabel,
-                  child: Material(
-                    color: accent,
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      key: const Key('record'),
-                      customBorder: const CircleBorder(),
-                      onTap: onRecord,
-                      child: const SizedBox.square(
-                        dimension: 56,
-                        child: Icon(Icons.fiber_manual_record, color: AlvyoColors.onAccent, size: 26),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              _RecordButton(label: recordLabel, onTap: onRecord),
               place(2),
               place(3),
             ],
@@ -112,4 +62,133 @@ class BottomBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The [BottomBar]'s places and record button in a rail on the left of a
+/// wide screen (requirement 73), in the same order from the top.
+class SideBar extends StatelessWidget {
+  const SideBar({
+    super.key,
+    required this.items,
+    required this.selected,
+    required this.onSelect,
+    required this.recordLabel,
+    required this.onRecord,
+  }) : assert(items.length == 4);
+
+  final List<BarItem> items;
+  final int selected;
+  final ValueChanged<int> onSelect;
+  final String recordLabel;
+  final VoidCallback onRecord;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Widget place(int i) => SizedBox(
+      height: 64,
+      child: _Place(items[i], on: i == selected, onTap: () => onSelect(i)),
+    );
+
+    return SafeArea(
+      right: false,
+      minimum: const EdgeInsets.only(left: 12, top: 12, bottom: 12),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          width: 84,
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                place(0),
+                place(1),
+                _RecordButton(label: recordLabel, onTap: onRecord),
+                place(2),
+                place(3),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A place: its icon, its name under it.
+class _Place extends StatelessWidget {
+  const _Place(this.item, {required this.on, required this.onTap});
+  final BarItem item;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    // Large text grows the names a little only: the bar keeps its height.
+    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.2);
+    final color = on ? scheme.primary : scheme.onSurfaceVariant;
+    return Semantics(
+      button: true,
+      selected: on,
+      child: InkWell(
+        key: item.key,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(item.icon, color: color),
+            const SizedBox(height: 2),
+            Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textScaler: scaler,
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: color, fontWeight: on ? FontWeight.w600 : null),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The record button, round in the accent colour.
+class _RecordButton extends StatelessWidget {
+  const _RecordButton({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    child: Tooltip(
+      message: label,
+      child: Material(
+        color: AlvyoColors.of(context).accent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          key: const Key('record'),
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: const SizedBox.square(
+            dimension: 56,
+            child: Icon(Icons.fiber_manual_record, color: AlvyoColors.onAccent, size: 26),
+          ),
+        ),
+      ),
+    ),
+  );
 }

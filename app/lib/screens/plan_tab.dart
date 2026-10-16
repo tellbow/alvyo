@@ -9,6 +9,7 @@ import 'reach_screen.dart';
 import 'route_screen.dart';
 import 'tab_header.dart';
 import 'watch_screen.dart';
+import 'wide.dart';
 
 /// The kinds of planning.
 enum PlanMode { day, multi, reach }
@@ -145,25 +146,32 @@ class PlanTabState extends State<PlanTab> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-          child: SegmentedButton<PlanMode>(
-            key: const Key('plan-mode'),
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment(
-                value: PlanMode.day,
-                label: Text(t.planDay, key: const Key('plan-mode-day')),
+          // On a wide screen above the panel, as wide as it.
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: SizedBox(
+              width: isWide(context) ? panelWidth - 32 : double.infinity,
+              child: SegmentedButton<PlanMode>(
+                key: const Key('plan-mode'),
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: PlanMode.day,
+                    label: Text(t.planDay, key: const Key('plan-mode-day')),
+                  ),
+                  ButtonSegment(
+                    value: PlanMode.multi,
+                    label: Text(t.planMulti, key: const Key('plan-mode-multi')),
+                  ),
+                  ButtonSegment(
+                    value: PlanMode.reach,
+                    label: Text(t.planReach, key: const Key('plan-mode-reach')),
+                  ),
+                ],
+                selected: {_mode},
+                onSelectionChanged: (v) => setState(() => _mode = v.first),
               ),
-              ButtonSegment(
-                value: PlanMode.multi,
-                label: Text(t.planMulti, key: const Key('plan-mode-multi')),
-              ),
-              ButtonSegment(
-                value: PlanMode.reach,
-                label: Text(t.planReach, key: const Key('plan-mode-reach')),
-              ),
-            ],
-            selected: {_mode},
-            onSelectionChanged: (v) => setState(() => _mode = v.first),
+            ),
           ),
         ),
         Expanded(

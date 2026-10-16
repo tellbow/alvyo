@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'wide.dart';
 
 import '../api.dart';
 import '../l10n/app_localizations.dart';
@@ -96,55 +97,57 @@ class _LoginScreenState extends State<LoginScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.loginTitle)),
-      body: SafeArea(
-        // One group: iOS offers to keep the login in the Keychain.
-        child: AutofillGroup(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (widget.showServer)
+      body: Readable(
+        child: SafeArea(
+          // One group: iOS offers to keep the login in the Keychain.
+          child: AutofillGroup(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (widget.showServer)
+                  TextField(
+                    key: const Key('server'),
+                    controller: _server,
+                    decoration: InputDecoration(labelText: t.server),
+                    keyboardType: TextInputType.url,
+                    autocorrect: false,
+                  ),
                 TextField(
-                  key: const Key('server'),
-                  controller: _server,
-                  decoration: InputDecoration(labelText: t.server),
-                  keyboardType: TextInputType.url,
+                  key: const Key('login'),
+                  controller: _login,
+                  decoration: InputDecoration(labelText: t.login),
                   autocorrect: false,
+                  autofillHints: const [AutofillHints.username],
                 ),
-              TextField(
-                key: const Key('login'),
-                controller: _login,
-                decoration: InputDecoration(labelText: t.login),
-                autocorrect: false,
-                autofillHints: const [AutofillHints.username],
-              ),
-              TextField(
-                key: const Key('password'),
-                controller: _password,
-                decoration: InputDecoration(labelText: t.password),
-                obscureText: true,
-                autofillHints: const [AutofillHints.password],
-                onSubmitted: (_) => _submit(),
-              ),
-              const SizedBox(height: 16),
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                TextField(
+                  key: const Key('password'),
+                  controller: _password,
+                  decoration: InputDecoration(labelText: t.password),
+                  obscureText: true,
+                  autofillHints: const [AutofillHints.password],
+                  onSubmitted: (_) => _submit(),
                 ),
-              FilledButton(key: const Key('submit'), onPressed: _busy ? null : _submit, child: Text(t.loginSubmit)),
-              const SizedBox(height: 8),
-              TextButton(key: const Key('signup'), onPressed: () => _web('/signup'), child: Text(t.loginSignup)),
-              TextButton(
-                key: const Key('forgot'),
-                onPressed: () => _web('/forgot-password'),
-                child: Text(t.loginForgot),
-              ),
-              TextButton(
-                key: const Key('privacy'),
-                onPressed: () => _web('/about#privacy'),
-                child: Text(t.aboutPrivacy),
-              ),
-            ],
+                const SizedBox(height: 16),
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  ),
+                FilledButton(key: const Key('submit'), onPressed: _busy ? null : _submit, child: Text(t.loginSubmit)),
+                const SizedBox(height: 8),
+                TextButton(key: const Key('signup'), onPressed: () => _web('/signup'), child: Text(t.loginSignup)),
+                TextButton(
+                  key: const Key('forgot'),
+                  onPressed: () => _web('/forgot-password'),
+                  child: Text(t.loginForgot),
+                ),
+                TextButton(
+                  key: const Key('privacy'),
+                  onPressed: () => _web('/about#privacy'),
+                  child: Text(t.aboutPrivacy),
+                ),
+              ],
+            ),
           ),
         ),
       ),

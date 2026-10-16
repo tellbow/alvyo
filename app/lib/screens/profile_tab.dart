@@ -12,6 +12,7 @@ import 'devices_screen.dart';
 import 'friends_screen.dart';
 import 'tab_header.dart';
 import 'user_screen.dart';
+import 'wide.dart';
 
 /// Profil (requirement 69): who one is, friends and connected devices, the
 /// settings, the account (homes, contacts, blocked), logging out and
@@ -387,21 +388,23 @@ class _NotificationsScreenState extends State<_NotificationsScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(t.accountNotifications)),
-      body: ListView(
-        children: [
-          SwitchListTile(
-            key: const Key('notify-comments'),
-            title: Text(t.accountNotifyComments),
-            value: _me.notifyComments,
-            onChanged: (v) => _update(widget.api.updateMe(notifyComments: v)),
-          ),
-          SwitchListTile(
-            key: const Key('notify-follows'),
-            title: Text(t.accountNotifyFollows),
-            value: _me.notifyFollows,
-            onChanged: (v) => _update(widget.api.updateMe(notifyFollows: v)),
-          ),
-        ],
+      body: Readable(
+        child: ListView(
+          children: [
+            SwitchListTile(
+              key: const Key('notify-comments'),
+              title: Text(t.accountNotifyComments),
+              value: _me.notifyComments,
+              onChanged: (v) => _update(widget.api.updateMe(notifyComments: v)),
+            ),
+            SwitchListTile(
+              key: const Key('notify-follows'),
+              title: Text(t.accountNotifyFollows),
+              value: _me.notifyFollows,
+              onChanged: (v) => _update(widget.api.updateMe(notifyFollows: v)),
+            ),
+          ],
+        ),
       ),
     );
   }

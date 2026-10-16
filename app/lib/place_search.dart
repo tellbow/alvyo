@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'api.dart';
 import 'l10n/app_localizations.dart';
 import 'place_layer.dart';
+import 'screens/wide.dart';
 
 /// A field for finding places, names and addresses (`GET /places/search`).
 /// A tap opens the search on a page of its own, the results right below the
@@ -113,26 +114,28 @@ class _SearchPageState extends State<_SearchPage> {
           decoration: InputDecoration(border: InputBorder.none, hintText: widget.label ?? t.placeSearch),
         ),
       ),
-      body: ListView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        children: [
-          if (_failed)
-            Padding(padding: const EdgeInsets.all(16), child: Text(t.errorServer))
-          else if (results != null && results.isEmpty)
-            Padding(padding: const EdgeInsets.all(16), child: Text(t.placeNothingFound))
-          else if (results != null)
-            for (final (i, p) in results.indexed)
-              ListTile(
-                key: Key('place-result-$i'),
-                title: Text(p.name),
-                subtitle: Text(placeKindText(t, p.kind, p.detail)),
-                onTap: () {
-                  _timer?.cancel();
-                  _asked++;
-                  Navigator.of(context).pop(p);
-                },
-              ),
-        ],
+      body: Readable(
+        child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          children: [
+            if (_failed)
+              Padding(padding: const EdgeInsets.all(16), child: Text(t.errorServer))
+            else if (results != null && results.isEmpty)
+              Padding(padding: const EdgeInsets.all(16), child: Text(t.placeNothingFound))
+            else if (results != null)
+              for (final (i, p) in results.indexed)
+                ListTile(
+                  key: Key('place-result-$i'),
+                  title: Text(p.name),
+                  subtitle: Text(placeKindText(t, p.kind, p.detail)),
+                  onTap: () {
+                    _timer?.cancel();
+                    _asked++;
+                    Navigator.of(context).pop(p);
+                  },
+                ),
+          ],
+        ),
       ),
     );
   }

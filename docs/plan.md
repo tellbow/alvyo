@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-10-12.
+Status: 2026-10-16.
 
 ## Goal
 
@@ -819,6 +819,17 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     CONTRIBUTING.md), so the app can go into the App Store; `make licenses`
     checks the licenses of all packages; `.claude/rules/licensing.md`
     asks for the terms before a new API, data source or package.
+
+73. **The app on the iPad.** At 820 points wide and more (any iPad in full
+    screen but the mini upright, a phone turned sideways) the places are in
+    a rail on the left instead of the floating bar, the record button among
+    them; a route, a journey (with its stages' map), Planen's three modes,
+    the discover map, a collection's map and the way there have their panel
+    on the left, 375 wide, and the map beside it at full height; lists and
+    forms are at most 720 wide in the middle. Upright and on its side, in
+    Split View narrower than that as on a phone; turning keeps the tabs and
+    the maps. App Store screenshots for 13-inch iPads come from the iPad Pro
+    13-inch simulator (2064 × 2752).
 
 ### Open
 

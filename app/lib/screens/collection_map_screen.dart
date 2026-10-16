@@ -10,6 +10,7 @@ import '../place_layer.dart';
 import '../precip.dart';
 import '../route_layers.dart';
 import 'collections_screen.dart';
+import 'wide.dart';
 
 /// All routes and journeys of a collection on one map, each in its own
 /// colour as on the website; below, the list. A tap on a line or an entry
@@ -71,60 +72,54 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
     ];
     return Scaffold(
       appBar: AppBar(title: Text(c.title)),
-      body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                widget.map ??
-                    LayoutBuilder(
-                      builder: (context, size) {
-                        final view = fitLine([for (final (_, l) in lines) ...l], size.maxWidth, size.maxHeight);
-                        return MapLibreMap(
-                          options: MapOptions(
-                            initStyle: swisstopoStyle(widget.api.server),
-                            initCenter: Geographic(lon: view.lon, lat: view.lat),
-                            initZoom: view.zoom,
-                          ),
-                          onEvent: _onEvent,
-                          onStyleLoaded: (style) async {
-                            await _places.addTo(style);
-                            await addStageLines(style, lines);
-                          },
-                        );
+      body: MapSplit(
+        height: 180,
+        map: Stack(
+          children: [
+            widget.map ??
+                LayoutBuilder(
+                  builder: (context, size) {
+                    final view = fitLine([for (final (_, l) in lines) ...l], size.maxWidth, size.maxHeight);
+                    return MapLibreMap(
+                      options: MapOptions(
+                        initStyle: swisstopoStyle(widget.api.server),
+                        initCenter: Geographic(lon: view.lon, lat: view.lat),
+                        initZoom: view.zoom,
+                      ),
+                      onEvent: _onEvent,
+                      onStyleLoaded: (style) async {
+                        await _places.addTo(style);
+                        await addStageLines(style, lines);
                       },
-                    ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  right: 64,
-                  child: MapCorner(precip: PrecipBar(controller: _places.precip)),
+                    );
+                  },
                 ),
-                const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
-              ],
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 64,
+              child: MapCorner(precip: PrecipBar(controller: _places.precip)),
             ),
-          ),
-          SizedBox(
-            height: 180,
-            child: ListView(
-              key: const Key('collection-map-items'),
-              children: [
-                for (final (i, it) in c.items.indexed)
-                  ListTile(
-                    key: Key('collection-map-${it.id}'),
-                    dense: true,
-                    leading: CircleAvatar(radius: 8, backgroundColor: _color(i)),
-                    title: Text(it.title),
-                    subtitle: Text(
-                      '${formatDistance(it.distanceM)} · ${formatHikingTime(it.durationS)} · '
-                      '↑ ${formatHeight(it.ascentM)}',
-                    ),
-                    onTap: () => openCollectionItem(context, widget.api, c, it),
-                  ),
-              ],
-            ),
-          ),
-        ],
+            const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+          ],
+        ),
+        panel: ListView(
+          key: const Key('collection-map-items'),
+          children: [
+            for (final (i, it) in c.items.indexed)
+              ListTile(
+                key: Key('collection-map-${it.id}'),
+                dense: true,
+                leading: CircleAvatar(radius: 8, backgroundColor: _color(i)),
+                title: Text(it.title),
+                subtitle: Text(
+                  '${formatDistance(it.distanceM)} · ${formatHikingTime(it.durationS)} · '
+                  '↑ ${formatHeight(it.ascentM)}',
+                ),
+                onTap: () => openCollectionItem(context, widget.api, c, it),
+              ),
+          ],
+        ),
       ),
     );
   }

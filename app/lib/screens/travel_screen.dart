@@ -15,6 +15,7 @@ import '../route_layers.dart';
 import '../travel.dart';
 import 'account_screens.dart';
 import 'connections_screen.dart';
+import 'wide.dart';
 
 /// The rows «Anreise» and «Heimreise» of a journey or route: from where and
 /// when, each opening a [TravelScreen]. Nothing while loading or offline.
@@ -314,6 +315,175 @@ class _TravelScreenState extends State<TravelScreen> {
     final muted = TextStyle(color: theme.colorScheme.onSurfaceVariant);
     final at = _at;
     final way = _way;
+    final choice = FutureBuilder(
+      future: _homes,
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return ErrorState(error: snap.error, onRetry: () => setState(() => _homes = widget.api.homes()));
+        }
+        final homes = snap.data;
+        if (homes == null) return const Center(child: CircularProgressIndicator());
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (at?.name case final name? when name.isNotEmpty)
+              Text(widget.to ? '→ $name' : '← $name', style: theme.textTheme.titleMedium),
+            if (homes.isEmpty) ...[
+              Text(t.travelNoHomes),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                key: const Key('travel-homes'),
+                onPressed: () async {
+                  await Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute<void>(builder: (_) => HomesScreen(api: widget.api)));
+                  if (mounted) {
+                    setState(() {
+                      _homes = widget.api.homes();
+                    });
+                  }
+                },
+                child: Text(t.homesTitle),
+              ),
+            ],
+            const SizedBox(height: 8),
+            DropdownMenu<String>(
+              key: const Key('travel-home'),
+              label: Text(widget.to ? t.travelFrom : t.travelToHome),
+              expandedInsets: EdgeInsets.zero,
+              initialSelection: _searching || way?.place != null ? _elsewhere : way?.homeId ?? '',
+              onSelected: (v) {
+                setState(() => _searching = v == _elsewhere);
+                if (v == null || v.isEmpty) {
+                  _set(null);
+                } else if (v != _elsewhere) {
+                  _change(homeId: v);
+                }
+              },
+              dropdownMenuEntries: [
+                DropdownMenuEntry(value: '', label: t.travelNone),
+                for (final h in homes) DropdownMenuEntry(value: h.id, label: h.name),
+                DropdownMenuEntry(value: _elsewhere, label: t.travelElsewhere),
+              ],
+            ),
+            if (_searching || way?.place != null) ...[
+              const SizedBox(height: 8),
+              PlaceSearch(
+                key: const Key('travel-place'),
+                api: widget.api,
+                label: way?.place?.name ?? t.travelPlaceSearch,
+                near: () => switch (at?.line) {
+                  [final c, ...] => (lon: c[0], lat: c[1]),
+                  _ => null,
+                },
+                onPick: (p) {
+                  setState(() => _searching = false);
+                  final name = p.name.length > 60 ? p.name.substring(0, 60) : p.name;
+                  _change(place: (name: name, lon: p.lon, lat: p.lat));
+                },
+              ),
+            ],
+            if (widget.pickDay) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                key: const Key('travel-day'),
+                icon: const Icon(Icons.calendar_today_outlined),
+                label: Text('${t.travelDay} ${formatDate(_day)}'),
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _day,
+                    firstDate: DateUtils.dateOnly(DateTime.now()),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (picked == null || !mounted) return;
+                  setState(() => _day = picked);
+                  await _search();
+                },
+              ),
+            ],
+            if (way != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                spacing: 8,
+                children: [
+                  SegmentedButton<bool>(
+                    key: const Key('travel-mode'),
+                    showSelectedIcon: false,
+                    segments: [
+                      ButtonSegment(value: false, label: Text(t.connectionsDepart)),
+                      ButtonSegment(value: true, label: Text(t.connectionsArrive)),
+                    ],
+                    selected: {way.arrive},
+                    onSelectionChanged: (s) => _change(arrive: s.first),
+                  ),
+                  OutlinedButton(
+                    key: const Key('travel-time'),
+                    onPressed: () async {
+                      final parts = way.time.split(':');
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
+                      );
+                      if (picked == null) return;
+                      String two(int n) => n.toString().padLeft(2, '0');
+                      _change(time: '${two(picked.hour)}:${two(picked.minute)}');
+                    },
+                    child: Text(way.time),
+                  ),
+                ],
+              ),
+            ],
+            if (_error case final e?)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(e, style: TextStyle(color: theme.colorScheme.error)),
+              ),
+            if (way != null && at == null) ...[
+              const SizedBox(height: 12),
+              Text(t.travelNoRoute, style: muted),
+            ] else if (way != null && at != null) ...[
+              const SizedBox(height: 12),
+              if (!widget.pickDay)
+                Text(at.day != null ? t.travelOn(formatDate(at.day!)) : t.travelNoDate, style: muted),
+              const SizedBox(height: 8),
+              FutureBuilder(
+                future: _trips,
+                builder: (context, snap) {
+                  if (snap.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snap.hasError) {
+                    final e = snap.error;
+                    return Text(e is ApiException && e.status == 429 ? t.shareRate : t.connectionsUnavailable);
+                  }
+                  final trips = snap.data ?? const <Trip>[];
+                  if (trips.isEmpty) return Text(key: const Key('travel-none'), t.connectionsNone);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final (i, trip) in trips.indexed)
+                        TripCard(
+                          key: Key('travel-trip-$i'),
+                          trip: trip,
+                          selected: i == _chosen,
+                          onTap: () {
+                            setState(() => _chosen = i);
+                            _draw(trip);
+                          },
+                        ),
+                      Text(t.connectionsSource, style: theme.textTheme.bodySmall?.merge(muted)),
+                    ],
+                  );
+                },
+              ),
+            ],
+            const SizedBox(height: 12),
+            Text(t.travelPrivate, style: theme.textTheme.bodySmall?.merge(muted)),
+          ],
+        );
+      },
+    );
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -321,12 +491,12 @@ class _TravelScreenState extends State<TravelScreen> {
       },
       child: Scaffold(
         appBar: AppBar(title: Text(widget.to ? t.travelTo : t.travelBack)),
-        body: Column(
-          children: [
-            if (at != null)
-              Expanded(
-                flex: 4,
-                child: Stack(
+        // The map, if there is one, above or beside the choice.
+        body: at == null
+            ? choice
+            : MapSplit(
+                share: 5 / 9,
+                map: Stack(
                   children: [
                     widget.map ??
                         LayoutBuilder(
@@ -352,183 +522,8 @@ class _TravelScreenState extends State<TravelScreen> {
                     const Positioned(top: 12, left: 12, right: 12, child: MapCredit()),
                   ],
                 ),
+                panel: choice,
               ),
-            Expanded(
-              flex: 5,
-              child: FutureBuilder(
-                future: _homes,
-                builder: (context, snap) {
-                  if (snap.hasError) {
-                    return ErrorState(error: snap.error, onRetry: () => setState(() => _homes = widget.api.homes()));
-                  }
-                  final homes = snap.data;
-                  if (homes == null) return const Center(child: CircularProgressIndicator());
-                  return ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      if (at?.name case final name? when name.isNotEmpty)
-                        Text(widget.to ? '→ $name' : '← $name', style: theme.textTheme.titleMedium),
-                      if (homes.isEmpty) ...[
-                        Text(t.travelNoHomes),
-                        const SizedBox(height: 8),
-                        OutlinedButton(
-                          key: const Key('travel-homes'),
-                          onPressed: () async {
-                            await Navigator.of(
-                              context,
-                            ).push(MaterialPageRoute<void>(builder: (_) => HomesScreen(api: widget.api)));
-                            if (mounted) {
-                              setState(() {
-                                _homes = widget.api.homes();
-                              });
-                            }
-                          },
-                          child: Text(t.homesTitle),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      DropdownMenu<String>(
-                        key: const Key('travel-home'),
-                        label: Text(widget.to ? t.travelFrom : t.travelToHome),
-                        expandedInsets: EdgeInsets.zero,
-                        initialSelection: _searching || way?.place != null ? _elsewhere : way?.homeId ?? '',
-                        onSelected: (v) {
-                          setState(() => _searching = v == _elsewhere);
-                          if (v == null || v.isEmpty) {
-                            _set(null);
-                          } else if (v != _elsewhere) {
-                            _change(homeId: v);
-                          }
-                        },
-                        dropdownMenuEntries: [
-                          DropdownMenuEntry(value: '', label: t.travelNone),
-                          for (final h in homes) DropdownMenuEntry(value: h.id, label: h.name),
-                          DropdownMenuEntry(value: _elsewhere, label: t.travelElsewhere),
-                        ],
-                      ),
-                      if (_searching || way?.place != null) ...[
-                        const SizedBox(height: 8),
-                        PlaceSearch(
-                          key: const Key('travel-place'),
-                          api: widget.api,
-                          label: way?.place?.name ?? t.travelPlaceSearch,
-                          near: () => switch (at?.line) {
-                            [final c, ...] => (lon: c[0], lat: c[1]),
-                            _ => null,
-                          },
-                          onPick: (p) {
-                            setState(() => _searching = false);
-                            final name = p.name.length > 60 ? p.name.substring(0, 60) : p.name;
-                            _change(place: (name: name, lon: p.lon, lat: p.lat));
-                          },
-                        ),
-                      ],
-                      if (widget.pickDay) ...[
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          key: const Key('travel-day'),
-                          icon: const Icon(Icons.calendar_today_outlined),
-                          label: Text('${t.travelDay} ${formatDate(_day)}'),
-                          onPressed: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: _day,
-                              firstDate: DateUtils.dateOnly(DateTime.now()),
-                              lastDate: DateTime.now().add(const Duration(days: 365)),
-                            );
-                            if (picked == null || !mounted) return;
-                            setState(() => _day = picked);
-                            await _search();
-                          },
-                        ),
-                      ],
-                      if (way != null) ...[
-                        const SizedBox(height: 12),
-                        Row(
-                          spacing: 8,
-                          children: [
-                            SegmentedButton<bool>(
-                              key: const Key('travel-mode'),
-                              showSelectedIcon: false,
-                              segments: [
-                                ButtonSegment(value: false, label: Text(t.connectionsDepart)),
-                                ButtonSegment(value: true, label: Text(t.connectionsArrive)),
-                              ],
-                              selected: {way.arrive},
-                              onSelectionChanged: (s) => _change(arrive: s.first),
-                            ),
-                            OutlinedButton(
-                              key: const Key('travel-time'),
-                              onPressed: () async {
-                                final parts = way.time.split(':');
-                                final picked = await showTimePicker(
-                                  context: context,
-                                  initialTime: TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1])),
-                                );
-                                if (picked == null) return;
-                                String two(int n) => n.toString().padLeft(2, '0');
-                                _change(time: '${two(picked.hour)}:${two(picked.minute)}');
-                              },
-                              child: Text(way.time),
-                            ),
-                          ],
-                        ),
-                      ],
-                      if (_error case final e?)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(e, style: TextStyle(color: theme.colorScheme.error)),
-                        ),
-                      if (way != null && at == null) ...[
-                        const SizedBox(height: 12),
-                        Text(t.travelNoRoute, style: muted),
-                      ] else if (way != null && at != null) ...[
-                        const SizedBox(height: 12),
-                        if (!widget.pickDay)
-                          Text(at.day != null ? t.travelOn(formatDate(at.day!)) : t.travelNoDate, style: muted),
-                        const SizedBox(height: 8),
-                        FutureBuilder(
-                          future: _trips,
-                          builder: (context, snap) {
-                            if (snap.connectionState != ConnectionState.done) {
-                              return const Center(child: CircularProgressIndicator());
-                            }
-                            if (snap.hasError) {
-                              final e = snap.error;
-                              return Text(
-                                e is ApiException && e.status == 429 ? t.shareRate : t.connectionsUnavailable,
-                              );
-                            }
-                            final trips = snap.data ?? const <Trip>[];
-                            if (trips.isEmpty) return Text(key: const Key('travel-none'), t.connectionsNone);
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                for (final (i, trip) in trips.indexed)
-                                  TripCard(
-                                    key: Key('travel-trip-$i'),
-                                    trip: trip,
-                                    selected: i == _chosen,
-                                    onTap: () {
-                                      setState(() => _chosen = i);
-                                      _draw(trip);
-                                    },
-                                  ),
-                                Text(t.connectionsSource, style: theme.textTheme.bodySmall?.merge(muted)),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                      Text(t.travelPrivate, style: theme.textTheme.bodySmall?.merge(muted)),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

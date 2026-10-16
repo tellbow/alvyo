@@ -496,7 +496,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
             latitudeSouth: pts.map((c) => c[1]).reduce(min),
             latitudeNorth: pts.map((c) => c[1]).reduce(max),
           ),
-          padding: EdgeInsets.fromLTRB(40, 40, 40, 40 + (context.size?.height ?? 0) * PlanSheet.initial),
+          padding: EdgeInsets.fromLTRB(40, 40, 40, 40 + (context.size?.height ?? 0) * PlanSheet.cover(context)),
           nativeDuration: const Duration(milliseconds: 600),
         )
         .catchError((_) {});
@@ -514,84 +514,84 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     final t = AppLocalizations.of(context);
     return Scaffold(
       appBar: widget.embedded ? null : AppBar(title: Text(t.jplanTitle)),
-      body: Stack(
+      body: PlanSheet(
+        map: Stack(
+          children: [
+            if (widget.showMap) ...[
+              Positioned.fill(child: _mapView),
+              Positioned(
+                top: 12,
+                left: 12,
+                right: 64,
+                child: MapCorner(precip: PrecipBar(controller: _places.precip)),
+              ),
+              const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+            ] else
+              const Positioned.fill(child: ColoredBox(color: Colors.black12)),
+          ],
+        ),
+        panelKey: const Key('jplan-panel'),
         children: [
-          if (widget.showMap) ...[
-            Positioned.fill(child: _mapView),
-            Positioned(
-              top: 12,
-              left: 12,
-              right: 64,
-              child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-            ),
-            const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
-          ] else
-            const Positioned.fill(child: ColoredBox(color: Colors.black12)),
-          PlanSheet(
-            panelKey: const Key('jplan-panel'),
-            children: [
-              Text(t.jplanIntro, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 8),
-              ..._pointList(t),
-              PlaceSearch(
-                api: widget.api,
-                onPick: _addPlace,
-                near: _center,
-                label: switch (_points.length) {
-                  0 => t.jplanSearchStart,
-                  1 => t.jplanSearchEnd,
-                  _ => t.jplanSearchMore,
-                },
-              ),
-              if (_points.length < 2 && widget.showMap)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(t.jplanMapHint, style: Theme.of(context).textTheme.bodySmall),
-                ),
-              const SizedBox(height: 16),
-              ..._asks(t),
-              const SizedBox(height: 16),
-              FilledButton(
-                key: const Key('jplan-submit'),
-                onPressed: _canPlan ? _plan : null,
-                child: Text(_busy ? t.jplanRunning : t.jplanSubmit),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton(
-                key: const Key('jplan-suggest'),
-                onPressed: _canPlan ? _suggest : null,
-                child: Text(t.jplanSuggest),
-              ),
-              if (_busy) const LinearProgressIndicator(key: Key('jplan-busy')),
-              if (_problem case final p?)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Text(key: const Key('jplan-problem'), switch (p) {
-                    _Problem.noPath => t.jplanNoPath,
-                    _Problem.failed => t.jplanFailed,
-                    _Problem.create => t.errorServer,
-                    _Problem.tooLong when _fewest > 0 => t.jplanTooLong(_maxAsked, _fewest),
-                    _Problem.tooLong => t.jplanTooLongNone(_maxAsked),
-                  }, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                ),
-              if (_problem == _Problem.tooLong && _byDays && _fewest > 0)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    key: const Key('jplan-fewest'),
-                    onPressed: _busy
-                        ? null
-                        : () {
-                            _days.text = '$_fewest';
-                            _plan();
-                          },
-                    child: Text(t.jplanPlanIn(_fewest)),
-                  ),
-                ),
-              if (_ways.isNotEmpty) ..._wayList(t),
-              if (_stages case final stages?) ..._dayList(t, stages),
-            ],
+          Text(t.jplanIntro, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 8),
+          ..._pointList(t),
+          PlaceSearch(
+            api: widget.api,
+            onPick: _addPlace,
+            near: _center,
+            label: switch (_points.length) {
+              0 => t.jplanSearchStart,
+              1 => t.jplanSearchEnd,
+              _ => t.jplanSearchMore,
+            },
           ),
+          if (_points.length < 2 && widget.showMap)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(t.jplanMapHint, style: Theme.of(context).textTheme.bodySmall),
+            ),
+          const SizedBox(height: 16),
+          ..._asks(t),
+          const SizedBox(height: 16),
+          FilledButton(
+            key: const Key('jplan-submit'),
+            onPressed: _canPlan ? _plan : null,
+            child: Text(_busy ? t.jplanRunning : t.jplanSubmit),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            key: const Key('jplan-suggest'),
+            onPressed: _canPlan ? _suggest : null,
+            child: Text(t.jplanSuggest),
+          ),
+          if (_busy) const LinearProgressIndicator(key: Key('jplan-busy')),
+          if (_problem case final p?)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(key: const Key('jplan-problem'), switch (p) {
+                _Problem.noPath => t.jplanNoPath,
+                _Problem.failed => t.jplanFailed,
+                _Problem.create => t.errorServer,
+                _Problem.tooLong when _fewest > 0 => t.jplanTooLong(_maxAsked, _fewest),
+                _Problem.tooLong => t.jplanTooLongNone(_maxAsked),
+              }, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ),
+          if (_problem == _Problem.tooLong && _byDays && _fewest > 0)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                key: const Key('jplan-fewest'),
+                onPressed: _busy
+                    ? null
+                    : () {
+                        _days.text = '$_fewest';
+                        _plan();
+                      },
+                child: Text(t.jplanPlanIn(_fewest)),
+              ),
+            ),
+          if (_ways.isNotEmpty) ..._wayList(t),
+          if (_stages case final stages?) ..._dayList(t, stages),
         ],
       ),
     );
@@ -702,6 +702,8 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       DropdownButtonFormField<String>(
         key: const Key('jplan-profile'),
         initialValue: _profile,
+        // A long name (large text, another language) shortened, not over the edge.
+        isExpanded: true,
         decoration: InputDecoration(labelText: t.jplanProfile),
         items: [
           DropdownMenuItem(value: 'hike', child: Text(t.jplanProfileHike)),

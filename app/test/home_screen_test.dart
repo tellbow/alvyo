@@ -13,7 +13,9 @@ import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/navigation/tracker.dart';
 import 'package:alvyo/screens/record_screen.dart';
 import 'package:alvyo/screens/route_screen.dart';
+import 'package:alvyo/screens/bottom_bar.dart';
 import 'package:alvyo/screens/home_screen.dart';
+import 'package:alvyo/screens/tours_tab.dart';
 import 'package:alvyo/theme.dart';
 
 void main() {
@@ -125,6 +127,29 @@ void main() {
       expect(loggedOut, isTrue);
     });
   }
+
+  testWidgets('on a wide screen the places in a rail on the left; turning keeps the tabs', (tester) async {
+    tester.view.physicalSize = const Size(1180, 820); // an iPad on its side
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(tester, Brightness.light, () {});
+    expect(find.byType(SideBar), findsOneWidget);
+    expect(find.byType(BottomBar), findsNothing);
+    expect(tester.getCenter(find.byKey(const Key('tab-discover'))).dx, lessThan(100));
+    expect(tester.getTopLeft(find.byKey(const Key('discover-search'))).dx, greaterThan(100));
+
+    await tester.tap(find.byKey(const Key('tab-tours')));
+    await until(tester, find.byKey(const Key('tours-empty')));
+    final tours = tester.state(find.byType(ToursTab));
+
+    // Upright on a phone: the bar again, the same tab with its state.
+    tester.view.physicalSize = const Size(400, 860);
+    await tester.pump();
+    expect(find.byType(SideBar), findsNothing);
+    expect(find.byType(BottomBar), findsOneWidget);
+    expect(find.byKey(const Key('tours-empty')), findsOneWidget);
+    expect(tester.state(find.byType(ToursTab)), same(tours));
+  });
 
   testWidgets('the record button records a hike without a route, which becomes one', (tester) async {
     final positions = StreamController<Fix>();

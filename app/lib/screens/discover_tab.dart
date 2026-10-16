@@ -15,6 +15,7 @@ import 'peaks_screen.dart';
 import 'plan_tab.dart';
 import 'tab_header.dart';
 import 'tiles.dart';
+import 'wide.dart';
 
 /// Entdecken (requirement 69): where to? A search for places and summits,
 /// the tools for around one, the tours of people one follows and public
@@ -191,7 +192,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
             onPressed: () => _push(
               Scaffold(
                 appBar: AppBar(title: Text(t.discoverFollowing)),
-                body: FeedTab(api: widget.api),
+                body: Readable(child: FeedTab(api: widget.api)),
               ),
             ),
           ),

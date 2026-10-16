@@ -10,6 +10,7 @@ import 'details.dart';
 import 'item_menu.dart';
 import 'item_card.dart';
 import 'tiles.dart';
+import 'wide.dart';
 
 /// The user's collections and those shared with them.
 class CollectionsScreen extends StatelessWidget {
@@ -19,7 +20,7 @@ class CollectionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(AppLocalizations.of(context).collectionsTitle)),
-    body: CollectionsList(api: api),
+    body: Readable(child: CollectionsList(api: api)),
   );
 }
 
@@ -209,73 +210,75 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                 ),
             ],
           ),
-          body: switch (snap) {
-            _ when snap.hasError => ErrorState(
-              error: snap.error,
-              onRetry: () => setState(() => _collection = widget.api.collection(widget.id)),
-            ),
-            _ when c == null => const Center(child: CircularProgressIndicator()),
-            _ => RefreshIndicator(
-              onRefresh: () async {
-                final next = widget.api.collection(widget.id);
-                setState(() {
-                  _collection = next;
-                });
-                await next;
-              },
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 24),
-                children: [
-                  if (c.description.isNotEmpty)
-                    Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: Text(c.description)),
-                  if (c.items.any((i) => i.lines.isNotEmpty))
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: TextButton.icon(
-                          key: const Key('collection-map'),
-                          onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => CollectionMapScreen(api: widget.api, collection: c),
+          body: Readable(
+            child: switch (snap) {
+              _ when snap.hasError => ErrorState(
+                error: snap.error,
+                onRetry: () => setState(() => _collection = widget.api.collection(widget.id)),
+              ),
+              _ when c == null => const Center(child: CircularProgressIndicator()),
+              _ => RefreshIndicator(
+                onRefresh: () async {
+                  final next = widget.api.collection(widget.id);
+                  setState(() {
+                    _collection = next;
+                  });
+                  await next;
+                },
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  children: [
+                    if (c.description.isNotEmpty)
+                      Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 8), child: Text(c.description)),
+                    if (c.items.any((i) => i.lines.isNotEmpty))
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: TextButton.icon(
+                            key: const Key('collection-map'),
+                            onPressed: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => CollectionMapScreen(api: widget.api, collection: c),
+                              ),
                             ),
+                            icon: const Icon(Icons.map_outlined),
+                            label: Text(t.collectionMap),
                           ),
-                          icon: const Icon(Icons.map_outlined),
-                          label: Text(t.collectionMap),
                         ),
                       ),
-                    ),
-                  if (c.hidden > 0)
-                    ListTile(key: const Key('collection-hidden'), title: Text(t.collectionHidden(c.hidden)))
-                  else if (c.items.isEmpty)
-                    ListTile(title: Text(t.collectionEmpty)),
-                  for (final i in c.items)
-                    OtherTile(
-                      key: Key('item-${i.id}'),
-                      journey: i.kind == 'journey',
-                      title: i.title,
-                      owner: i.owner,
-                      distanceM: i.distanceM,
-                      durationS: i.durationS,
-                      ascentM: i.ascentM,
-                      sacGrade: i.sacGrade,
-                      sacMax: i.sacMax,
-                      stages: i.stages,
-                      extra: i.note.isEmpty ? null : i.note,
-                      trailing: c.canEdit
-                          ? IconButton(
-                              key: Key('item-remove-${i.id}'),
-                              tooltip: t.collectionRemoveItem,
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: () => _remove(i),
-                            )
-                          : null,
-                      onTap: () => openCollectionItem(context, widget.api, c, i),
-                    ),
-                ],
+                    if (c.hidden > 0)
+                      ListTile(key: const Key('collection-hidden'), title: Text(t.collectionHidden(c.hidden)))
+                    else if (c.items.isEmpty)
+                      ListTile(title: Text(t.collectionEmpty)),
+                    for (final i in c.items)
+                      OtherTile(
+                        key: Key('item-${i.id}'),
+                        journey: i.kind == 'journey',
+                        title: i.title,
+                        owner: i.owner,
+                        distanceM: i.distanceM,
+                        durationS: i.durationS,
+                        ascentM: i.ascentM,
+                        sacGrade: i.sacGrade,
+                        sacMax: i.sacMax,
+                        stages: i.stages,
+                        extra: i.note.isEmpty ? null : i.note,
+                        trailing: c.canEdit
+                            ? IconButton(
+                                key: Key('item-remove-${i.id}'),
+                                tooltip: t.collectionRemoveItem,
+                                icon: const Icon(Icons.remove_circle_outline),
+                                onPressed: () => _remove(i),
+                              )
+                            : null,
+                        onTap: () => openCollectionItem(context, widget.api, c, i),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          },
+            },
+          ),
         );
       },
     );

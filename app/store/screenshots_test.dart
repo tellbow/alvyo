@@ -12,6 +12,7 @@ import 'package:alvyo/navigation/alerts.dart';
 import 'package:alvyo/navigation/speech.dart';
 import 'package:alvyo/navigation/tracker.dart';
 import 'package:alvyo/screens/navigate_screen.dart';
+import 'package:alvyo/theme.dart';
 
 /// Walks the app through the App Store screenshots' states and prints
 /// `SHOT <name>` at each; capture.sh takes the picture. Not one of the
@@ -173,6 +174,8 @@ void main() {
       final cut = (route.line.length * 0.35).round();
       await tester.pumpWidget(
         MaterialApp(
+          // The app's look: without it Flutter's default purple shows.
+          theme: alvyoTheme(Brightness.light),
           locale: const Locale(_lang),
           localizationsDelegates: const [
             AppLocalizations.delegate,

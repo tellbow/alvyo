@@ -1,11 +1,12 @@
-// The App Store pictures from work/raw/ (capture.sh) and the website's map:
-// six iPhone screenshots with a headline (1206 × 2622), the product page
-// header (21:9, 3840 × 1646) and the search result (3:2, 3840 × 2560), in
-// <language>/. The header and search result are PNG: App Store Connect
+// The App Store pictures from work/raw/ and work/raw-ipad/ (capture.sh) and
+// the website's map: six iPhone screenshots with a headline (1206 × 2622),
+// the product page header (21:9, 3840 × 1646) and the search result (3:2,
+// 3840 × 2560), in <language>/; the six iPad screenshots (2064 × 2752) in
+// <language>/ipad/. The header and search result are PNG: App Store Connect
 // refuses a JPEG header, although Apple's specification lists it. Needs the
 // web dev server and seed.sh's account.
-// Usage: bun app/store/render.mjs [de,en,fr,it]
-import { mkdirSync, writeFileSync } from 'node:fs';
+// Usage: bun app/store/render.mjs [de,en,fr,it] [iphone,ipad]
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,6 +18,7 @@ const fonts = join(store, '../assets/fonts');
 const web = 'http://localhost:5173';
 mkdirSync(join(work, 'web'), { recursive: true });
 const langs = (process.argv[2] ?? 'de,en,fr,it').split(',');
+const devices = (process.argv[3] ?? 'iphone,ipad').split(',');
 
 // In App Store order: the first three also show in search results.
 const shots = [
@@ -92,16 +94,24 @@ const heroPhones = ['route', 'nav'];
 const fontFaces = `
 @font-face { font-family: Bricolage; src: url(file://${fonts}/BricolageGrotesque-Bold.ttf); font-weight: 700; }
 @font-face { font-family: Figtree; src: url(file://${fonts}/Figtree-Medium.ttf); font-weight: 500; }`;
-const raw = (lang, n) => `file://${work}/raw/${lang}/${n}.png`;
+const raw = (lang, n, device = 'iphone') =>
+	`file://${work}/${device === 'ipad' ? 'raw-ipad' : 'raw'}/${lang}/${n}.png`;
 
-const framed = (img, text) => `<!doctype html><html><head><meta charset="utf-8"><style>${fontFaces}
-html, body { margin: 0; width: 1206px; height: 2622px; overflow: hidden; }
+// Each device's picture: its size, the headline's, and the screenshot's
+// place below it (its height follows from the width).
+const frames = {
+	iphone: { w: 1206, h: 2622, side: 90, top: 150, font: 104, shot: { left: 103, top: 640, width: 1000, radius: 64 } },
+	ipad: { w: 2064, h: 2752, side: 160, top: 130, font: 112, shot: { left: 252, top: 520, width: 1560, radius: 48 } }
+};
+
+const framed = (img, text, f) => `<!doctype html><html><head><meta charset="utf-8"><style>${fontFaces}
+html, body { margin: 0; width: ${f.w}px; height: ${f.h}px; overflow: hidden; }
 body { background: radial-gradient(120% 60% at 50% 0%, #24312A 0%, #14201A 55%, #0E1512 100%); }
-h1 { position: absolute; left: 90px; right: 90px; top: 150px; margin: 0; font: 700 104px/1.08 Bricolage, sans-serif;
-	letter-spacing: -2px; color: #F2F4EF; text-wrap: balance; }
+h1 { position: absolute; left: ${f.side}px; right: ${f.side}px; top: ${f.top}px; margin: 0;
+	font: 700 ${f.font}px/1.08 Bricolage, sans-serif; letter-spacing: -2px; color: #F2F4EF; text-wrap: balance; }
 em { font-style: normal; color: #FFA66B; }
-.shot { position: absolute; left: 103px; top: 640px; width: 1000px; border-radius: 64px; overflow: hidden;
-	box-shadow: 0 0 0 10px #2E3D35, 0 40px 120px rgba(0,0,0,.45); }
+.shot { position: absolute; left: ${f.shot.left}px; top: ${f.shot.top}px; width: ${f.shot.width}px;
+	border-radius: ${f.shot.radius}px; overflow: hidden; box-shadow: 0 0 0 10px #2E3D35, 0 40px 120px rgba(0,0,0,.45); }
 .shot img { display: block; width: 100%; }
 </style></head><body><h1>${text}</h1><div class="shot"><img src="${img}"></div></body></html>`;
 
@@ -180,13 +190,23 @@ for (const a of heroes) {
 }
 
 for (const lang of langs) {
-	const out = join(store, lang);
-	mkdirSync(out, { recursive: true });
-	for (const [i, [name, shot]] of shots.entries()) {
-		await render(browser, framed(raw(lang, shot), texts[lang].shots[i]), 1206, 2622, 1, join(out, `${name}.jpg`));
+	for (const device of devices) {
+		const f = frames[device];
+		if (!f) throw new Error(`unknown device ${device} (iphone or ipad)`);
+		const out = device === 'ipad' ? join(store, lang, 'ipad') : join(store, lang);
+		mkdirSync(out, { recursive: true });
+		for (const [i, [name, shot]] of shots.entries()) {
+			// A missing capture would show as a broken image.
+			const img = raw(lang, shot, device);
+			if (!existsSync(new URL(img))) throw new Error(`${img} is missing: run capture.sh ${lang} ${shot} ${device}`);
+			await render(browser, framed(img, texts[lang].shots[i], f), f.w, f.h, 1, join(out, `${name}.jpg`));
+		}
 	}
-	for (const a of heroes) {
-		await render(browser, hero(a, lang), a.w, a.h, 2, join(out, `${a.name}.png`));
+	// The header and search result show iPhone screenshots.
+	if (devices.includes('iphone')) {
+		for (const a of heroes) {
+			await render(browser, hero(a, lang), a.w, a.h, 2, join(store, lang, `${a.name}.png`));
+		}
 	}
 }
 await browser.close();

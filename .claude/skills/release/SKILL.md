@@ -47,5 +47,5 @@ features the minor one.
      (`git diff vPREVIOUS -- infra/data-import`): the `places-import` and
      `tlm-import` cron jobs are suspended, so run the changed one by hand,
      e.g. `kubectl --context <context> -n alvyo create job --from=cronjob/places-import places-import-X-Y-Z`
-7. **Afterwards:** if the app changed, offer the `iphone-install` skill,
-   and the `testflight` skill for TestFlight.
+7. **Afterwards:** if the app changed, offer the `iphone-install` and
+   `android-install` skills, and the `testflight` skill for TestFlight.

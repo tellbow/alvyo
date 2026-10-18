@@ -33,7 +33,7 @@ the same commit when a requirement is done or changes. Layout: `README.md`.
 | Web checks | `cd web && bun run check && bun run lint && bunx vitest run` |
 | Web end-to-end | `cd web && bunx playwright test` (starts its own API and web; needs the dev stack; local only, before every release: `.claude/rules/e2e.md`) |
 | App | `cd app && dart format --output=none --set-exit-if-changed lib test integration_test && flutter analyze && flutter test` |
-| App on the simulator / iPhone / iPad / Android emulator | the `app-simulator-tests`, `iphone-install` and `ipad-install` skills; Android: `app/README.md` |
+| App on the simulator / iPhone / iPad / Android phone / Android emulator | the `app-simulator-tests`, `iphone-install`, `ipad-install` and `android-install` skills; the emulator: `app/README.md` |
 | Supply chain (CI runs them too) | govulncheck, osv-scanner, zizmor, gitleaks: `docs/development.md`, «Supply chain» |
 
 Live tests against GraphHopper and geo.admin: `go test -tags live
@@ -44,7 +44,8 @@ database container stays behind.
 ## Never
 
 - Read or print secrets: `infra/.env.local-test` (holds the OJP key; source
-  it only in a subshell), the deployment's secret (`CLAUDE.local.md`).
+  it only in a subshell), the deployment's secret (`CLAUDE.local.md`), the
+  Android release key (`app/android/key.properties` and its keystore).
 - Use another kubeconfig or context than the ones in `CLAUDE.local.md`
   (not in the repository); the default one holds unrelated clusters.
 - Set image tags in the deployment repository by hand: Flux image

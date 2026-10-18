@@ -1380,6 +1380,22 @@ class Api {
     return me;
   }
 
+  /// Signs up; the server answers the same for an address with an account
+  /// and sends a link to confirm it (or a note how to log in).
+  Future<void> signup({
+    required String email,
+    required String username,
+    required String displayName,
+    required String password,
+    required String locale,
+  }) => _send('POST', '/auth/signup', {
+    'email': email,
+    'username': username,
+    'display_name': displayName,
+    'password': password,
+    'locale': locale,
+  });
+
   /// Ends the account's other sessions (other phones and browsers).
   Future<void> logoutOthers() => _send('POST', '/auth/logout-others');
 

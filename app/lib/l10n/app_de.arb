@@ -1335,5 +1335,20 @@
   "peaksCredit": "Gelände: Mapterhorn · Gipfel: © OpenStreetMap-Mitwirkende",
   "gpsServiceTitle": "Wanderung läuft",
   "gpsServiceText": "Alvyo folgt deinem Standort, auch bei gesperrtem Bildschirm.",
-  "channelReminders": "Erinnerungen an Etappentouren"
+  "channelReminders": "Erinnerungen an Etappentouren",
+  "signupUsername": "Benutzername",
+  "signupUsernameHint": "3–30 Zeichen: Kleinbuchstaben, Ziffern und _",
+  "signupUsernameTaken": "Dieser Benutzername ist vergeben.",
+  "signupDisplayName": "Anzeigename",
+  "signupDisplayNameMissing": "Gib einen Namen ein.",
+  "signupPasswordHint": "Mindestens 10 Zeichen",
+  "signupSent": "Fast geschafft: Wir haben dir eine E-Mail an {email} geschickt. Bestätige darin deine Adresse, dann kannst du dich hier anmelden. Hast du schon ein Konto, steht in der E-Mail, wie du hineinkommst.",
+  "@signupSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "errorTooMany": "Zu viele Versuche. Bitte warte einen Moment."
 }

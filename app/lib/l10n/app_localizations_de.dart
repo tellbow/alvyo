@@ -2352,4 +2352,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get channelReminders => 'Erinnerungen an Etappentouren';
+
+  @override
+  String get signupUsername => 'Benutzername';
+
+  @override
+  String get signupUsernameHint => '3–30 Zeichen: Kleinbuchstaben, Ziffern und _';
+
+  @override
+  String get signupUsernameTaken => 'Dieser Benutzername ist vergeben.';
+
+  @override
+  String get signupDisplayName => 'Anzeigename';
+
+  @override
+  String get signupDisplayNameMissing => 'Gib einen Namen ein.';
+
+  @override
+  String get signupPasswordHint => 'Mindestens 10 Zeichen';
+
+  @override
+  String signupSent(String email) {
+    return 'Fast geschafft: Wir haben dir eine E-Mail an $email geschickt. Bestätige darin deine Adresse, dann kannst du dich hier anmelden. Hast du schon ein Konto, steht in der E-Mail, wie du hineinkommst.';
+  }
+
+  @override
+  String get errorTooMany => 'Zu viele Versuche. Bitte warte einen Moment.';
 }

@@ -712,5 +712,13 @@
   "peaksCredit": "Terreno: Mapterhorn · Cime: © i contributori di OpenStreetMap",
   "gpsServiceTitle": "Escursione in corso",
   "gpsServiceText": "Alvyo segue la tua posizione, anche a schermo bloccato.",
-  "channelReminders": "Promemoria dei trekking a tappe"
+  "channelReminders": "Promemoria dei trekking a tappe",
+  "signupUsername": "Nome utente",
+  "signupUsernameHint": "3–30 caratteri: lettere minuscole, cifre e _",
+  "signupUsernameTaken": "Questo nome utente è già in uso.",
+  "signupDisplayName": "Nome visualizzato",
+  "signupDisplayNameMissing": "Inserisci un nome.",
+  "signupPasswordHint": "Almeno 10 caratteri",
+  "signupSent": "Quasi fatto: ti abbiamo inviato un’e-mail a {email}. Conferma lì il tuo indirizzo, poi potrai accedere qui. Se hai già un account, l’e-mail ti spiega come accedere.",
+  "errorTooMany": "Troppi tentativi. Attendi un momento."
 }

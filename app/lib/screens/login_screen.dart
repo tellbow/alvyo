@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'signup_screen.dart';
 import 'wide.dart';
 
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../session.dart';
 
-/// Log in to an Alvyo server; signing up and a forgotten password on its website.
+/// Log in to an Alvyo server, or sign up; a forgotten password on its website.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
@@ -88,9 +89,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// A page of the server's website, in the browser.
+  /// A page of the server's website, in a browser view inside the app
+  /// (App Review wants no switch to Safari around signing in).
   Future<void> _web(String page) =>
-      launchUrl(Uri.parse('${Api(_server.text).server}$page'), mode: LaunchMode.externalApplication);
+      launchUrl(Uri.parse('${Api(_server.text).server}$page'), mode: LaunchMode.inAppBrowserView);
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +137,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 FilledButton(key: const Key('submit'), onPressed: _busy ? null : _submit, child: Text(t.loginSubmit)),
                 const SizedBox(height: 8),
-                TextButton(key: const Key('signup'), onPressed: () => _web('/signup'), child: Text(t.loginSignup)),
+                TextButton(
+                  key: const Key('signup'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => SignupScreen(server: _server.text.trim(), client: widget.client),
+                    ),
+                  ),
+                  child: Text(t.loginSignup),
+                ),
                 TextButton(
                   key: const Key('forgot'),
                   onPressed: () => _web('/forgot-password'),

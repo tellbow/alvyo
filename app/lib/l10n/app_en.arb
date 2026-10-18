@@ -712,5 +712,13 @@
   "peaksCredit": "Terrain: Mapterhorn · Summits: © OpenStreetMap contributors",
   "gpsServiceTitle": "Hike in progress",
   "gpsServiceText": "Alvyo follows your location, also with the screen locked.",
-  "channelReminders": "Journey reminders"
+  "channelReminders": "Journey reminders",
+  "signupUsername": "Username",
+  "signupUsernameHint": "3–30 characters: lowercase letters, digits and _",
+  "signupUsernameTaken": "This username is taken.",
+  "signupDisplayName": "Display name",
+  "signupDisplayNameMissing": "Enter a name.",
+  "signupPasswordHint": "At least 10 characters",
+  "signupSent": "Almost there: we sent an e-mail to {email}. Confirm your address in it, then you can log in here. If you already have an account, the e-mail says how to get in.",
+  "errorTooMany": "Too many attempts. Please wait a moment."
 }

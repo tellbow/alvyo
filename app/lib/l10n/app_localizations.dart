@@ -4371,6 +4371,54 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Erinnerungen an Etappentouren'**
   String get channelReminders;
+
+  /// No description provided for @signupUsername.
+  ///
+  /// In de, this message translates to:
+  /// **'Benutzername'**
+  String get signupUsername;
+
+  /// No description provided for @signupUsernameHint.
+  ///
+  /// In de, this message translates to:
+  /// **'3–30 Zeichen: Kleinbuchstaben, Ziffern und _'**
+  String get signupUsernameHint;
+
+  /// No description provided for @signupUsernameTaken.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieser Benutzername ist vergeben.'**
+  String get signupUsernameTaken;
+
+  /// No description provided for @signupDisplayName.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzeigename'**
+  String get signupDisplayName;
+
+  /// No description provided for @signupDisplayNameMissing.
+  ///
+  /// In de, this message translates to:
+  /// **'Gib einen Namen ein.'**
+  String get signupDisplayNameMissing;
+
+  /// No description provided for @signupPasswordHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Mindestens 10 Zeichen'**
+  String get signupPasswordHint;
+
+  /// No description provided for @signupSent.
+  ///
+  /// In de, this message translates to:
+  /// **'Fast geschafft: Wir haben dir eine E-Mail an {email} geschickt. Bestätige darin deine Adresse, dann kannst du dich hier anmelden. Hast du schon ein Konto, steht in der E-Mail, wie du hineinkommst.'**
+  String signupSent(String email);
+
+  /// No description provided for @errorTooMany.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu viele Versuche. Bitte warte einen Moment.'**
+  String get errorTooMany;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

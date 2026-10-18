@@ -359,6 +359,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       license page (packages and both fonts), the website's privacy text and
       operator. The peak camera shows its credit above «Passt die Linie …».
 
+- [ ] **Signing up in the app** with a new address: the form, the e-mail,
+      its link confirms the address, then logging in in the app works.
+      «Passwort vergessen?» and «Datenschutz» on the login screen open in
+      a Safari view inside the app, «Fertig» leads back to the login.
+
 ## App on the iPad (release build)
 
 Checked in the iPad Pro 13-inch simulator (iOS 26.5) upright on

@@ -2,7 +2,7 @@
 
 What Alvyo is for, what is done and what comes next. Keep it current:
 when a requirement is done or changes, update this file in the same commit.
-Status: 2026-10-16.
+Status: 2026-10-18.
 
 ## Goal
 
@@ -831,6 +831,13 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     Split View narrower than that as on a phone; turning keeps the tabs and
     the maps. App Store screenshots for 13-inch iPads come from the iPad Pro
     13-inch simulator (2064 × 2752).
+
+74. **Signing up in the app** (App Review, 2026-10-18: the app sent people
+    to Safari to sign up). «Konto erstellen» on the login screen is a form
+    in the app (e-mail, username, name, password), as on the website; the
+    e-mail's link confirms the address, then one logs in in the app.
+    «Passwort vergessen?» and the privacy text open in a Safari view inside
+    the app. Deleting the account was already in the app.
 
 ### Open
 

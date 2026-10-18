@@ -2357,4 +2357,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get channelReminders => 'Rappels des randonnées par étapes';
+
+  @override
+  String get signupUsername => 'Nom d\'utilisateur';
+
+  @override
+  String get signupUsernameHint => '3 à 30 caractères : minuscules, chiffres et _';
+
+  @override
+  String get signupUsernameTaken => 'Ce nom d\'utilisateur est déjà pris.';
+
+  @override
+  String get signupDisplayName => 'Nom affiché';
+
+  @override
+  String get signupDisplayNameMissing => 'Indique un nom.';
+
+  @override
+  String get signupPasswordHint => 'Au moins 10 caractères';
+
+  @override
+  String signupSent(String email) {
+    return 'Presque fini : nous t’avons envoyé un e-mail à $email. Confirme ton adresse dans cet e-mail, puis tu pourras te connecter ici. Si tu as déjà un compte, l’e-mail t’explique comment y accéder.';
+  }
+
+  @override
+  String get errorTooMany => 'Trop de tentatives. Merci de patienter un instant.';
 }

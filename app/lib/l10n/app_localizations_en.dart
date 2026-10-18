@@ -2342,4 +2342,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get channelReminders => 'Journey reminders';
+
+  @override
+  String get signupUsername => 'Username';
+
+  @override
+  String get signupUsernameHint => '3–30 characters: lowercase letters, digits and _';
+
+  @override
+  String get signupUsernameTaken => 'This username is taken.';
+
+  @override
+  String get signupDisplayName => 'Display name';
+
+  @override
+  String get signupDisplayNameMissing => 'Enter a name.';
+
+  @override
+  String get signupPasswordHint => 'At least 10 characters';
+
+  @override
+  String signupSent(String email) {
+    return 'Almost there: we sent an e-mail to $email. Confirm your address in it, then you can log in here. If you already have an account, the e-mail says how to get in.';
+  }
+
+  @override
+  String get errorTooMany => 'Too many attempts. Please wait a moment.';
 }

@@ -474,6 +474,19 @@ void main() {
       // 30 min at pace 1.5: 45 min.
       expect(find.text('1.0\u00a0km · 45\u00a0min · ↑\u00a0100\u00a0m ↓\u00a020\u00a0m · T2'), findsOneWidget);
 
+      // One search at a time (feedback issue 19): «+ Zwischenziel» swaps the
+      // destination's search for the stop's, «Abbrechen» swaps it back.
+      await tester.ensureVisible(find.byKey(const Key('planner-via')));
+      await tester.tap(find.byKey(const Key('planner-via')));
+      await tester.pump();
+      expect(find.byKey(const Key('place-search-open')), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Zwischenziel suchen …'), findsOneWidget);
+      expect(find.widgetWithText(TextField, 'Weiteres Ziel suchen …'), findsNothing);
+      await tester.tap(find.text('Abbrechen'));
+      await tester.pump();
+      expect(find.widgetWithText(TextField, 'Weiteres Ziel suchen …'), findsOneWidget);
+      expect(find.text('+ Zwischenziel'), findsOneWidget);
+
       await search('Gletscher');
       expect(find.byKey(const Key('planner-leg-error-1')), findsOneWidget);
       expect(find.text('Kein Weg in der Nähe. Entferne den Punkt oder setze einen anderen.'), findsOneWidget);

@@ -732,17 +732,20 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
           leading: const Icon(Icons.u_turn_left),
           title: Text(t.plannerReturn),
         ),
-      PlaceSearch(
-        api: widget.api,
-        onPick: _pick,
-        near: _near,
-        label: switch (points.length) {
-          0 => t.plannerSearchStart,
-          1 => t.plannerSearchEnd,
-          _ => t.plannerSearchMore,
-        },
-      ),
-      if (_via)
+      // One search at a time (feedback issue 19): a destination, or with
+      // «+ Zwischenziel» open a stop before it.
+      if (!_via)
+        PlaceSearch(
+          api: widget.api,
+          onPick: _pick,
+          near: _near,
+          label: switch (points.length) {
+            0 => t.plannerSearchStart,
+            1 => t.plannerSearchEnd,
+            _ => t.plannerSearchMore,
+          },
+        )
+      else
         PlaceSearch(
           key: const Key('planner-via-search'),
           api: widget.api,
@@ -761,7 +764,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
           TextButton(
             key: const Key('planner-via'),
             onPressed: points.length < 2 ? null : () => setState(() => _via = !_via),
-            child: Text('+ ${t.plannerVia}'),
+            child: Text(_via ? t.cancel : '+ ${t.plannerVia}'),
           ),
           InkWell(
             onTap: () => _planner.setRoundTrip(!_planner.roundTrip),

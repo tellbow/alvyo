@@ -562,17 +562,19 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
           Text(t.jplanIntro, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 8),
           ..._pointList(t),
-          PlaceSearch(
-            api: widget.api,
-            onPick: _addPlace,
-            near: _center,
-            label: switch (_points.length) {
-              0 => t.jplanSearchStart,
-              1 => t.jplanSearchEnd,
-              _ => t.jplanSearchMore,
-            },
-          ),
-          if (_via)
+          // One search at a time (feedback issue 19), as in the day's planner.
+          if (!_via)
+            PlaceSearch(
+              api: widget.api,
+              onPick: _addPlace,
+              near: _center,
+              label: switch (_points.length) {
+                0 => t.jplanSearchStart,
+                1 => t.jplanSearchEnd,
+                _ => t.jplanSearchMore,
+              },
+            )
+          else
             PlaceSearch(
               key: const Key('jplan-via-search'),
               api: widget.api,
@@ -586,7 +588,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
               child: TextButton(
                 key: const Key('jplan-via'),
                 onPressed: () => setState(() => _via = !_via),
-                child: Text('+ ${t.plannerVia}'),
+                child: Text(_via ? t.cancel : '+ ${t.plannerVia}'),
               ),
             ),
           if (_points.length < 2 && widget.showMap)

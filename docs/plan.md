@@ -851,7 +851,9 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     goes there (the website's «Zwischenpunkt»; on a phone the line itself
     cannot be grabbed, MapLibre takes every touch on the map). After the
     second place found by search the map shows all points. «Mehrtägig»
-    has ↑ ↓ and «+ Zwischenziel» as the day's planner. Planen's panels end
+    has ↑ ↓ and «+ Zwischenziel» as the day's planner. One search at a
+    time in both (feedback issue 19): «+ Zwischenziel» swaps the
+    destination's search for the stop's and becomes «Abbrechen». Planen's panels end
     above the floating bar. Bug reports' screenshots show the maps: the
     screen copied natively (Android: Flutter's surface with PixelCopy;
     iOS: the window's `drawHierarchy`), not Flutter's picture, which left

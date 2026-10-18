@@ -320,6 +320,9 @@ void main() {
 
     await tap(tester, 'jplan-via');
     final via = find.byKey(const Key('jplan-via-search'));
+    // Only the stop's search while it is open (feedback issue 19).
+    expect(find.byKey(const Key('place-search-open')), findsOneWidget);
+    expect(find.text('Abbrechen'), findsOneWidget);
     await tester.tap(find.descendant(of: via, matching: find.byKey(const Key('place-search-open'))));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('place-search')), 'Visp');
@@ -329,6 +332,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(names(), ['Thun', 'Visp', 'Zermatt']);
     expect(via, findsNothing);
+    expect(find.widgetWithText(TextField, 'Weiteres Ziel suchen …'), findsOneWidget);
 
     await tap(tester, 'jplan-down-0');
     expect(names(), ['Visp', 'Thun', 'Zermatt']);

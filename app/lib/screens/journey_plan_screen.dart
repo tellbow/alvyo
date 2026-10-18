@@ -60,6 +60,9 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   /// Start, points to pass, destination: each new point is the destination.
   var _points = <({double lon, double lat, String? name})>[];
 
+  /// The search for a stop before the destination is open.
+  bool _via = false;
+
   /// Counts the changes of the points: answers for older points are dropped.
   int _asked = 0;
 
@@ -160,6 +163,30 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       if (_title.text.isEmpty && _points.length >= 2 && start != null && name != null) {
         _title.text = '$start – $name';
       }
+    });
+    _draw();
+  }
+
+  /// «+ Zwischenziel» (feedback issue 14): before the destination, as in
+  /// the day's planner.
+  void _insertBeforeLast(FoundPlace p) {
+    setState(() {
+      _via = false;
+      final point = (lon: p.lon, lat: p.lat, name: p.name);
+      _points = [..._points.take(_points.length - 1), point, _points.last];
+      _reset();
+    });
+    _draw();
+  }
+
+  /// Moves the point at [from] to position [to].
+  void _movePoint(int from, int to) {
+    if (to < 0 || to >= _points.length) return;
+    setState(() {
+      final points = [..._points];
+      points.insert(to, points.removeAt(from));
+      _points = points;
+      _reset();
     });
     _draw();
   }
@@ -545,6 +572,23 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
               _ => t.jplanSearchMore,
             },
           ),
+          if (_via)
+            PlaceSearch(
+              key: const Key('jplan-via-search'),
+              api: widget.api,
+              near: _center,
+              label: t.plannerSearchVia,
+              onPick: _insertBeforeLast,
+            ),
+          if (_points.length >= 2)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                key: const Key('jplan-via'),
+                onPressed: () => setState(() => _via = !_via),
+                child: Text('+ ${t.plannerVia}'),
+              ),
+            ),
           if (_points.length < 2 && widget.showMap)
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -605,11 +649,28 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
         contentPadding: EdgeInsets.zero,
         leading: _pointMark(i),
         title: Text(p.name ?? t.jplanPointMap),
-        trailing: IconButton(
-          key: Key('jplan-remove-$i'),
-          tooltip: t.jplanPointRemove,
-          icon: const Icon(Icons.close),
-          onPressed: () => _removePoint(i),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              key: Key('jplan-up-$i'),
+              tooltip: t.plannerUp,
+              icon: const Icon(Icons.arrow_upward),
+              onPressed: i == 0 ? null : () => _movePoint(i, i - 1),
+            ),
+            IconButton(
+              key: Key('jplan-down-$i'),
+              tooltip: t.plannerDown,
+              icon: const Icon(Icons.arrow_downward),
+              onPressed: i == _points.length - 1 ? null : () => _movePoint(i, i + 1),
+            ),
+            IconButton(
+              key: Key('jplan-remove-$i'),
+              tooltip: t.jplanPointRemove,
+              icon: const Icon(Icons.close),
+              onPressed: () => _removePoint(i),
+            ),
+          ],
         ),
       ),
   ];

@@ -1,16 +1,23 @@
 package ch.tellbow.alvyo
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.view.PixelCopy
+import android.view.View
+import android.view.ViewGroup
 import android.speech.tts.UtteranceProgressListener
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.android.FlutterSurfaceView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.io.ByteArrayOutputStream
 import java.util.Locale
 
 // A fragment activity: the health plugin asks for permissions through it.
@@ -32,6 +39,46 @@ class MainActivity : FlutterFragmentActivity() {
                 if (error == null) result.success(null) else result.error("speech", error, null)
             }
         }
+        // Bug reports (lib/bug_report.dart): the screen as shown, with the
+        // maps, which Flutter's own picture leaves empty.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "alvyo/screenshot").setMethodCallHandler { call, result ->
+            if (call.method != "window") {
+                result.notImplemented()
+                return@setMethodCallHandler
+            }
+            screenshot { png -> runOnUiThread { result.success(png) } }
+        }
+    }
+
+    /**
+     * Flutter's surface as a PNG at twice its size in dp, as the Flutter
+     * picture was; null if the copy fails. Flutter draws into a surface of
+     * its own, which a copy of the window leaves out; the maps are drawn
+     * into it too (texture layer platform views).
+     */
+    private fun screenshot(done: (ByteArray?) -> Unit) {
+        val view = flutterSurface(window.decorView)
+        if (view == null || view.width == 0 || view.height == 0) return done(null)
+        val full = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val thread = HandlerThread("screenshot").apply { start() }
+        PixelCopy.request(view, full, { code ->
+            val scale = 2 / resources.displayMetrics.density
+            val png =
+                if (code != PixelCopy.SUCCESS) {
+                    null
+                } else {
+                    val small = Bitmap.createScaledBitmap(full, (full.width * scale).toInt(), (full.height * scale).toInt(), true)
+                    ByteArrayOutputStream().also { small.compress(Bitmap.CompressFormat.PNG, 100, it) }.toByteArray()
+                }
+            thread.quitSafely()
+            done(png)
+        }, Handler(thread.looper))
+    }
+
+    private fun flutterSurface(view: View): FlutterSurfaceView? = when (view) {
+        is FlutterSurfaceView -> view
+        is ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { flutterSurface(view.getChildAt(it)) }
+        else -> null
     }
 
     override fun onDestroy() {

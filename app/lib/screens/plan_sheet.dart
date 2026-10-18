@@ -28,7 +28,9 @@ class PlanSheet extends StatelessWidget {
       key: panelKey,
       controller: scroll,
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: EdgeInsets.fromLTRB(16, wide ? 16 : 8, 16, 32),
+      // On a phone the end scrolls out from under the floating bar, as in
+      // the other tabs.
+      padding: EdgeInsets.fromLTRB(16, wide ? 16 : 8, 16, wide ? 32 : 120),
       children: [
         if (!wide)
           Center(

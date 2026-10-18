@@ -122,6 +122,67 @@ void main() {
       expect(planner.legs.single.leg, isNotNull);
     });
 
+    test('a point dragged elsewhere: only its legs again, without the name it was found as', () async {
+      final asked = <String>[];
+      final planner = RoutePlanner(
+        Api(
+          'https://alvyo.test',
+          client: MockClient((req) async {
+            asked.add(_asked(req));
+            return _json(_leg(jsonDecode(req.body) as Map<String, dynamic>));
+          }),
+        ),
+      );
+      planner.add(8.0, 46.0, name: 'A');
+      planner.add(8.1, 46.0, name: 'B');
+      planner.add(8.2, 46.0, name: 'C');
+      await planner.idle();
+      asked.clear();
+
+      planner.move(planner.points[1].id, 8.15, 46.05); // both legs of B
+      await planner.idle();
+      expect(asked, ['8.0>8.15', '8.15>8.2']);
+      expect(planner.points.map((p) => p.name), ['A', null, 'C']);
+      expect(planner.points[1].lat, 46.05);
+
+      planner.move(planner.points[2].id, 8.25, 46.0); // only the last leg
+      await planner.idle();
+      expect(asked.last, '8.15>8.25');
+      expect(asked, hasLength(3));
+      expect(planner.complete, isTrue);
+    });
+
+    test('a leg dragged onto another way, or a stop where it was dropped', () async {
+      final asked = <Map<String, dynamic>>[];
+      final planner = RoutePlanner(
+        Api(
+          'https://alvyo.test',
+          client: MockClient((req) async {
+            final body = jsonDecode(req.body) as Map<String, dynamic>;
+            asked.add(body);
+            return _json(_leg(body));
+          }),
+        ),
+      );
+      planner.add(8.0, 46.0, name: 'A');
+      planner.add(8.2, 46.0, name: 'B');
+      await planner.idle();
+      asked.clear();
+
+      planner.takeWay(0, (lon: 8.1, lat: 46.05)); // the leg again, through there
+      await planner.idle();
+      expect(asked.single['through'], {'lon': 8.1, 'lat': 46.05});
+      expect(planner.anchors.last.through, (lon: 8.1, lat: 46.05)); // saved with it
+      expect(planner.complete, isTrue);
+
+      planner.insertAt(1, 8.1, 45.95); // a stop: the split leg forgets the way
+      await planner.idle();
+      expect(planner.points.map((p) => p.name), ['A', null, 'B']);
+      expect(planner.points.last.through, isNull);
+      expect([for (final b in asked.skip(1)) b.containsKey('through')], [false, false]);
+      expect(planner.legs, hasLength(2));
+    });
+
     test('a leg much longer by hiking is planned alpine on request, and back', () async {
       final asked = <String>[];
       final planner = RoutePlanner(

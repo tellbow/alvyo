@@ -2,14 +2,16 @@ import 'package:flutter/foundation.dart';
 
 import 'api.dart';
 
-/// A point of a planned route; [name] is the place it was found as, and
-/// [alpine]: the leg arriving here uses the alpine profile on a hike route.
+/// A point of a planned route; [name] is the place it was found as,
+/// [alpine]: the leg arriving here uses the alpine profile on a hike route,
+/// and [through]: that leg was dragged onto another way, which passes here.
 class PlanPoint {
-  const PlanPoint(this.id, this.lon, this.lat, [this.name, this.alpine = false]);
+  const PlanPoint(this.id, this.lon, this.lat, [this.name, this.alpine = false, this.through]);
   final int id;
   final double lon, lat;
   final String? name;
   final bool alpine;
+  final LonLat? through;
 }
 
 /// A leg between two consecutive points: computing, computed, or failed with
@@ -106,7 +108,7 @@ class RoutePlanner extends ChangeNotifier {
             straight: k.anchor.straight,
             through: k.anchor.through,
           ),
-          _ => Anchor(p.lon, p.lat, name: p.name, alpine: p.alpine),
+          _ => Anchor(p.lon, p.lat, name: p.name, alpine: p.alpine, through: p.through),
         },
     ];
   }
@@ -119,7 +121,7 @@ class RoutePlanner extends ChangeNotifier {
   /// legs are computed again.
   void load(String profile, List<Anchor> anchors, List<Leg> legs) {
     _profile = profile;
-    _points = [for (final a in anchors) PlanPoint(_nextId++, a.lon, a.lat, a.name, a.alpine)];
+    _points = [for (final a in anchors) PlanPoint(_nextId++, a.lon, a.lat, a.name, a.alpine, a.through)];
     for (var i = 1; i < _points.length && i - 1 < legs.length; i++) {
       final key = _key(_points[i - 1], _points[i]);
       final slot = LegSlot._(leg: legs[i - 1]);
@@ -151,6 +153,29 @@ class RoutePlanner extends ChangeNotifier {
       if (p.id != id) p,
   ]);
 
+  /// A point dragged elsewhere on the map: no longer the place it was
+  /// found as, so without its name; only its legs are asked again.
+  void move(int id, double lon, double lat) =>
+      _change([for (final p in _points) p.id == id ? PlanPoint(p.id, lon, lat, null, p.alpine, p.through) : p]);
+
+  /// A stop at [index], e.g. where a leg's line was dragged to; the leg it
+  /// splits loses the way it was dragged onto.
+  void insertAt(int index, double lon, double lat) {
+    final points = [..._points]..insert(index, PlanPoint(_nextId++, lon, lat));
+    if (index + 1 < points.length) {
+      final next = points[index + 1];
+      points[index + 1] = PlanPoint(next.id, next.lon, next.lat, next.name, next.alpine);
+    }
+    _change(points);
+  }
+
+  /// Leg [index] takes the way that passes [through] (dragged onto it).
+  void takeWay(int index, LonLat through) {
+    if (index + 1 >= _points.length) return;
+    final p = _points[index + 1];
+    _change([..._points]..[index + 1] = PlanPoint(p.id, p.lon, p.lat, p.name, p.alpine, through));
+  }
+
   /// Moves the point at [from] to position [to].
   void reorder(int from, int to) {
     if (to < 0 || to >= _points.length || from == to) return;
@@ -163,7 +188,7 @@ class RoutePlanner extends ChangeNotifier {
   void setAlpine(int index, bool alpine) {
     if (index + 1 >= _points.length) return;
     final p = _points[index + 1];
-    _change([..._points]..[index + 1] = PlanPoint(p.id, p.lon, p.lat, p.name, alpine));
+    _change([..._points]..[index + 1] = PlanPoint(p.id, p.lon, p.lat, p.name, alpine, p.through));
   }
 
   void setProfile(String profile) {
@@ -190,7 +215,7 @@ class RoutePlanner extends ChangeNotifier {
 
   void _change(List<PlanPoint> points) {
     // The first point has no leg arriving.
-    if (points.firstOrNull case final p? when p.alpine) {
+    if (points.firstOrNull case final p? when p.alpine || p.through != null) {
       points = [PlanPoint(p.id, p.lon, p.lat, p.name), ...points.skip(1)];
     }
     _points = points;
@@ -202,7 +227,11 @@ class RoutePlanner extends ChangeNotifier {
 
   String _key(PlanPoint from, PlanPoint to) {
     String p(double v) => v.toStringAsFixed(6);
-    return '${p(from.lon)},${p(from.lat)}>${p(to.lon)},${p(to.lat)}|${_profileOf(to)}';
+    final through = switch (to.through) {
+      final t? => '@${p(t.lon)},${p(t.lat)}',
+      null => '',
+    };
+    return '${p(from.lon)},${p(from.lat)}>${p(to.lon)},${p(to.lat)}|${_profileOf(to)}$through';
   }
 
   /// Requests the legs not computed yet; forgets requests no longer needed.
@@ -224,7 +253,12 @@ class RoutePlanner extends ChangeNotifier {
         LegSlot done;
         try {
           done = LegSlot._(
-            leg: await api.leg((lon: from.lon, lat: from.lat), (lon: to.lon, lat: to.lat), profile: profile),
+            leg: await api.leg(
+              (lon: from.lon, lat: from.lat),
+              (lon: to.lon, lat: to.lat),
+              profile: profile,
+              through: to.through,
+            ),
           );
         } on ApiException catch (e) {
           done = LegSlot._(error: e.status);

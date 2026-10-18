@@ -359,6 +359,14 @@ Checked so far only in the simulator, with made-up or simulated positions
       license page (packages and both fonts), the website's privacy text and
       operator. The peak camera shows its credit above «Passt die Linie …».
 
+- [ ] **Dragging in the planner** with a finger: a point, and the dot
+      halfway along a leg onto another way (the teal ones while dragging)
+      and off it (a stop); panning beside them still moves the map.
+      Simulator and emulator 2026-10-18: by integration test and by hand
+      on Android.
+- [ ] **A bug report's screenshot** on «Planen» and a route: the map is in
+      the picture (iOS `drawHierarchy`, which the simulator could not show
+      reliably).
 - [ ] **Signing up in the app** with a new address: the form, the e-mail,
       its link confirms the address, then logging in in the app works.
       «Passwort vergessen?» and «Datenschutz» on the login screen open in

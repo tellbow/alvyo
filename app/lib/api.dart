@@ -1601,6 +1601,24 @@ class Api {
             as Map<String, dynamic>,
       );
 
+  /// The ways between [from] and [to] a leg can be dragged onto, the
+  /// shortest first; [lon, lat] per point.
+  Future<List<List<List<double>>>> alternatives(LonLat from, LonLat to, {String profile = 'hike'}) async {
+    final j =
+        await _send('POST', '/routing/alternatives', {
+              'from': {'lon': from.lon, 'lat': from.lat},
+              'to': {'lon': to.lon, 'lat': to.lat},
+              'profile': profile,
+            })
+            as Map<String, dynamic>;
+    return [
+      for (final w in j['ways'] as List)
+        [
+          for (final p in w as List) [((p as List)[0] as num).toDouble(), (p[1] as num).toDouble()],
+        ],
+    ];
+  }
+
   /// What one reaches on foot from [from] within 2, 4 and 8 hours at one's
   /// pace, the smallest first; [profile] hike or alpine.
   /// The areas reached from [from] within 2, 4 and 8 hours; [back]: back

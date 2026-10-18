@@ -1,8 +1,8 @@
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 import 'api.dart';
 import 'l10n/app_localizations.dart';
@@ -48,7 +48,17 @@ class _BugReportFrameState extends State<BugReportFrame> {
   final _boundary = GlobalKey();
   bool _taking = false;
 
+  /// The window as shown, natively: the maps are platform views, which
+  /// toImage leaves empty (all feedback screenshots until 1.3). Flutter's picture where
+  /// that fails (tests, or no window).
   Future<Uint8List?> _screenshot() async {
+    try {
+      await WidgetsBinding.instance.endOfFrame; // the bug button hidden
+      final png = await const MethodChannel('alvyo/screenshot').invokeMethod<Uint8List>('window');
+      if (png != null) return png;
+    } on Object {
+      // no channel
+    }
     try {
       final r = _boundary.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (r == null) return null;
@@ -80,7 +90,7 @@ class _BugReportFrameState extends State<BugReportFrame> {
     return Stack(
       children: [
         RepaintBoundary(key: _boundary, child: widget.child),
-        if (api != null)
+        if (api != null && !_taking)
           Positioned(
             right: 0,
             top: MediaQuery.sizeOf(context).height * 0.45,

@@ -6,6 +6,7 @@ import 'package:maplibre/maplibre.dart';
 
 import '../api.dart';
 import '../bug_report.dart';
+import '../drag_ways.dart';
 import '../camera.dart';
 import '../elevation_profile.dart';
 import '../format.dart';
@@ -80,6 +81,27 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
   /// The search for a stop before the destination is open.
   bool _via = false;
 
+  /// Where the points are on the map, for dragging them (feedback issue
+  /// 12): MapLibre reports taps on its features but no drags.
+  final _handles = ValueNotifier<List<Offset>>(const []);
+
+  /// The point being dragged and where the finger is.
+  ({int index, Offset at})? _drag;
+
+  /// A dot halfway along each leg between two points (not the way back of a
+  /// round trip): dragged, the leg takes another way or gets a stop.
+  final _legHandles = ValueNotifier<List<Offset>>(const []);
+
+  /// The leg being dragged, where the finger is, and the other ways between
+  /// its points once they have come.
+  ({int leg, Offset at, List<({Way way, int index})>? ways})? _legDrag;
+  Future<void>? _waysComing;
+
+  /// Where the other ways' points are on the screen (the map holds still
+  /// while a leg is dragged), and the one within reach of the finger.
+  final _waysOnScreen = Map<List<double>, Offset>.identity();
+  int? _inReach;
+
   // Built once: the screen rebuilds with every leg.
   late final Widget _mapView = widget.map ?? _buildMap();
 
@@ -107,6 +129,8 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
 
   @override
   void dispose() {
+    _handles.dispose();
+    _legHandles.dispose();
     _places.dispose();
     _planner.dispose();
     super.dispose();
@@ -115,6 +139,160 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
   void _changed() {
     setState(() {});
     _draw();
+    _placeHandles();
+  }
+
+  /// The touch targets onto their points, after a change or a camera move.
+  void _placeHandles() {
+    final map = _map;
+    // The style can finish loading after the screen has gone.
+    if (!mounted || map == null || _style == null || _drag != null || _legDrag != null) return;
+    final points = _planner.points;
+    final legs = _planner.legs;
+    final middles = [
+      for (var i = 0; i + 1 < points.length && i < legs.length; i++)
+        if (legs[i].leg?.line case final line? when line.isNotEmpty) line[line.length ~/ 2],
+    ];
+    try {
+      final at = map.toScreenLocations([
+        for (final p in points) Geographic(lon: p.lon, lat: p.lat),
+        for (final m in middles) Geographic(lon: m[0], lat: m[1]),
+      ]);
+      _handles.value = at.take(points.length).toList();
+      // Only while every leg between points is there: the dots keep their legs.
+      _legHandles.value = middles.length == points.length - 1 ? at.skip(points.length).toList() : const [];
+    } on Object {
+      _handles.value = const []; // the map going away
+      _legHandles.value = const [];
+    }
+  }
+
+  /// Dragging leg [leg]: the other ways between its points show.
+  void _legStart(int leg) {
+    _legDrag = (leg: leg, at: _legHandles.value[leg], ways: null);
+    _waysComing = _loadWays(leg);
+  }
+
+  Future<void> _loadWays(int leg) async {
+    final from = _planner.points[leg], to = _planner.points[leg + 1];
+    try {
+      final ways = await widget.api.alternatives(
+        (lon: from.lon, lat: from.lat),
+        (lon: to.lon, lat: to.lat),
+        profile: to.alpine ? 'alpine' : _planner.profile,
+      );
+      final drag = _legDrag;
+      if (!mounted || drag == null || drag.leg != leg) return;
+      final others = otherWays(ways, _planner.legs[leg].leg?.line ?? const []);
+      final all = [for (final w in others) ...w.way];
+      _waysOnScreen.clear();
+      final map = _map;
+      if (map != null && all.isNotEmpty) {
+        for (final (i, o) in map.toScreenLocations([for (final p in all) Geographic(lon: p[0], lat: p[1])]).indexed) {
+          _waysOnScreen[all[i]] = o;
+        }
+      }
+      _legDrag = (leg: leg, at: drag.at, ways: others);
+      _inReach = null;
+      _showWays();
+    } on Object {
+      // none: a drop gives a stop
+    }
+  }
+
+  void _legBy(int leg, Offset delta) {
+    final drag = _legDrag;
+    if (drag == null) return;
+    _legDrag = (leg: leg, at: drag.at + delta, ways: drag.ways);
+    _legHandles.value = [..._legHandles.value]..[leg] = drag.at + delta;
+    final inReach = _nearWay(drag.at + delta)?.way.index;
+    if (inReach != _inReach) {
+      _inReach = inReach;
+      _showWays();
+    }
+  }
+
+  /// The other way within 40 px of [at], as on the website.
+  ({({Way way, int index}) way, List<double> point, double px})? _nearWay(Offset at) {
+    final ways = _legDrag?.ways ?? const [];
+    if (ways.isEmpty || _waysOnScreen.isEmpty) return null;
+    final hit = nearestWay(ways, at, (p) => _waysOnScreen[p] ?? const Offset(double.infinity, double.infinity));
+    return hit != null && hit.px <= 40 ? hit : null;
+  }
+
+  /// The other ways while a leg is dragged, the one in reach stronger.
+  void _showWays() {
+    final ways = _legDrag?.ways ?? const [];
+    final data = _waysJson([for (final w in ways) w.way], near: ways.indexWhere((w) => w.index == _inReach));
+    _style?.updateGeoJsonSource(id: 'plan-alts', data: data).catchError((_) {});
+  }
+
+  /// Let go on another way: the leg takes it, through where it differs most
+  /// from the rest; elsewhere a stop goes there (as «Zwischenpunkt» on the
+  /// website, which has a switch for it).
+  Future<void> _legDrop() async {
+    // Let go before the ways came: they decide, so wait a moment for them.
+    if (_legDrag case final d? when d.ways == null) {
+      await _waysComing?.timeout(const Duration(seconds: 5), onTimeout: () {});
+    }
+    final drag = _legDrag;
+    final map = _map;
+    final hit = drag == null ? null : _nearWay(drag.at);
+    _legDrag = null;
+    _inReach = null;
+    _waysOnScreen.clear();
+    if (!mounted) return;
+    _style?.updateGeoJsonSource(id: 'plan-alts', data: _waysJson(const [])).catchError((_) {});
+    if (drag == null || map == null || drag.leg + 1 >= _planner.points.length) return _placeHandles();
+    if (hit != null) {
+      final rest = [
+        for (final w in drag.ways ?? const <({Way way, int index})>[])
+          if (!identical(w, hit.way)) w.way,
+        ?_planner.legs[drag.leg].leg?.line,
+      ];
+      final p = distinctPoint(hit.way.way, rest);
+      _planner.takeWay(drag.leg, (lon: p[0], lat: p[1]));
+      return;
+    }
+    final where = map.toLngLat(drag.at);
+    _planner.insertAt(drag.leg + 1, where.lon, where.lat);
+  }
+
+  /// [near]: the index of the way within reach.
+  String _waysJson(List<Way> ways, {int? near}) => jsonEncode({
+    'type': 'FeatureCollection',
+    'features': [
+      for (final (i, w) in ways.indexed)
+        {
+          'type': 'Feature',
+          'properties': {'near': i == near},
+          'geometry': {'type': 'LineString', 'coordinates': w},
+        },
+    ],
+  });
+
+  void _dragBy(int index, Offset delta) {
+    final at = (_drag?.at ?? _handles.value[index]) + delta;
+    _drag = (index: index, at: at);
+    _handles.value = [..._handles.value]..[index] = at;
+    // The point follows the finger; the legs wait for the drop.
+    final where = _map?.toLngLat(at);
+    if (where != null) {
+      _style
+          ?.updateGeoJsonSource(
+            id: 'plan-points',
+            data: _pointsJson(moved: (index: index, lon: where.lon, lat: where.lat)),
+          )
+          .catchError((_) {});
+    }
+  }
+
+  void _drop() {
+    final drag = _drag;
+    _drag = null;
+    final where = drag == null ? null : _map?.toLngLat(drag.at);
+    if (drag == null || where == null || drag.index >= _planner.points.length) return _placeHandles();
+    _planner.move(_planner.points[drag.index].id, where.lon, where.lat);
   }
 
   Widget _buildMap() => LayoutBuilder(builder: (context, size) => _buildMapIn(context, size));
@@ -141,6 +319,8 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
       switch (e) {
         case MapEventMapCreated(:final mapController):
           _map = mapController;
+        case MapEventMoveCamera() || MapEventCameraIdle():
+          _placeHandles();
         // Once the layers are there: before, a point could not be drawn.
         case MapEventClick(:final point, :final screenPoint) when _style != null:
           // A tap on a hut opens its sheet instead.
@@ -151,6 +331,31 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     },
     onStyleLoaded: (style) async {
       await _places.addTo(style);
+      // The other ways while a leg is dragged, under the route.
+      await style.addSource(GeoJsonSource(id: 'plan-alts', data: _waysJson(const [])));
+      await style.addLayer(
+        const LineStyleLayer(
+          id: 'plan-alts',
+          sourceId: 'plan-alts',
+          // As on the website (RouteLayers.svelte).
+          paint: {
+            'line-color': '#0e7490',
+            'line-width': [
+              'case',
+              ['get', 'near'],
+              8,
+              5,
+            ],
+            'line-opacity': [
+              'case',
+              ['get', 'near'],
+              0.9,
+              0.45,
+            ],
+          },
+          layout: {'line-cap': 'round', 'line-join': 'round'},
+        ),
+      );
       await style.addSource(GeoJsonSource(id: 'plan-line', data: _lineJson()));
       await style.addLayer(
         const LineStyleLayer(
@@ -190,6 +395,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
         ),
       );
       _style = style;
+      _placeHandles();
     },
   );
 
@@ -218,7 +424,8 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     ],
   });
 
-  String _pointsJson() {
+  /// [moved]: a point being dragged, where the finger is.
+  String _pointsJson({({int index, double lon, double lat})? moved}) {
     final points = _planner.points;
     return jsonEncode({
       'type': 'FeatureCollection',
@@ -235,7 +442,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
             },
             'geometry': {
               'type': 'Point',
-              'coordinates': [p.lon, p.lat],
+              'coordinates': moved?.index == i ? [moved!.lon, moved.lat] : [p.lon, p.lat],
             },
           },
       ],
@@ -268,6 +475,21 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     _planner.add(p.lon, p.lat, name: p.name);
     final map = _map;
     if (map == null) return;
+    // From the second point on all of them, above the panel: the line in
+    // view, to drag it.
+    final points = _planner.points;
+    if (points.length > 1) {
+      // Not the map's size: under the search page with its keyboard the
+      // planner is only a strip.
+      final panel = MediaQuery.sizeOf(context).height * PlanSheet.cover(context);
+      map
+          .fitBounds(
+            bounds: LngLatBounds.fromPoints([for (final q in points) Geographic(lon: q.lon, lat: q.lat)]),
+            padding: EdgeInsets.fromLTRB(48, 48, 48, 48 + panel),
+          )
+          .catchError((_) {});
+      return;
+    }
     map
         .animateCamera(
           center: Geographic(lon: p.lon, lat: p.lat),
@@ -366,6 +588,64 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
         map: Stack(
           children: [
             Positioned.fill(child: _mapView),
+            Positioned.fill(
+              child: ValueListenableBuilder(
+                valueListenable: _handles,
+                builder: (context, at, _) => Stack(
+                  children: [
+                    for (final (i, o) in at.indexed)
+                      Positioned(
+                        left: o.dx - 22,
+                        top: o.dy - 22,
+                        width: 44,
+                        height: 44,
+                        child: GestureDetector(
+                          key: Key('planner-handle-$i'),
+                          behavior: HitTestBehavior.opaque,
+                          onPanUpdate: (d) => _dragBy(i, d.delta),
+                          onPanEnd: (_) => _drop(),
+                          onPanCancel: _drop,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: ValueListenableBuilder(
+                valueListenable: _legHandles,
+                builder: (context, at, _) => Stack(
+                  children: [
+                    for (final (i, o) in at.indexed)
+                      Positioned(
+                        left: o.dx - 22,
+                        top: o.dy - 22,
+                        width: 44,
+                        height: 44,
+                        child: GestureDetector(
+                          key: Key('planner-leg-handle-$i'),
+                          behavior: HitTestBehavior.opaque,
+                          onPanStart: (_) => _legStart(i),
+                          onPanUpdate: (d) => _legBy(i, d.delta),
+                          onPanEnd: (_) => _legDrop(),
+                          onPanCancel: _legDrop,
+                          child: Center(
+                            child: Container(
+                              width: 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xff7e22ce), width: 3),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
             Positioned(
               top: 12,
               left: 12,

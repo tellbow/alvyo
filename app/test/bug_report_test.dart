@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -45,8 +46,10 @@ void main() {
     await pump(tester, api, GlobalKey<NavigatorState>());
     await tester.runAsync(() async {
       await tester.tap(find.byKey(const Key('bug-open')));
-      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
     });
+    await tester.pump(); // the frame without the bug button, then the picture
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('bug-with-shot')), findsOneWidget);
     expect(find.textContaining('das nur das Alvyo-Team sieht: dein Text, die Adresse (/routes/r1)'), findsOneWidget);
@@ -61,6 +64,39 @@ void main() {
     expect(sent!['platform'], 'android'); // widget tests run as Android
     expect(sent!['version'], 'dev');
     expect(base64Decode(sent!['screenshot'] as String).sublist(1, 4), 'PNG'.codeUnits);
+  });
+
+  testWidgets('the screenshot is the window as shown, maps included, taken natively', (tester) async {
+    // 1 × 1 pixel
+    final window = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+    );
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('alvyo/screenshot'),
+      (call) async => call.method == 'window' ? window : null,
+    );
+    addTearDown(
+      () =>
+          tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('alvyo/screenshot'), null),
+    );
+    Map<String, dynamic>? sent;
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        sent = jsonDecode(req.body) as Map<String, dynamic>;
+        return http.Response('{"id": "b1"}', 201, headers: {'content-type': 'application/json'});
+      }),
+    );
+    await pump(tester, api, GlobalKey<NavigatorState>());
+    await tester.tap(find.byKey(const Key('bug-open')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('bug-text')), 'Die Karte fehlt im Bild.');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('bug-send')));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+    await tester.pumpAndSettle();
+    expect(base64Decode(sent!['screenshot'] as String), window);
   });
 
   testWidgets('not before signing in', (tester) async {

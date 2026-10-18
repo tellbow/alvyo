@@ -840,6 +840,22 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     «Passwort vergessen?» and the privacy text open in a Safari view inside
     the app. Deleting the account was already in the app.
 
+75. **Dragging in the app's planner, as on the website** (feedback issues
+    12, 14, 2026-10-18). A point (start, destination, stop) is dragged on
+    the map and loses the name it was found as; only its legs are asked
+    again. A dot halfway along each leg drags the line: the other ways
+    between its points show (`/routing/alternatives`, the one within reach
+    stronger, as on the website); let go on one, the leg takes it
+    (`through`, where it differs most from the others); elsewhere a stop
+    goes there (the website's «Zwischenpunkt»; on a phone the line itself
+    cannot be grabbed, MapLibre takes every touch on the map). After the
+    second place found by search the map shows all points. «Mehrtägig»
+    has ↑ ↓ and «+ Zwischenziel» as the day's planner. Planen's panels end
+    above the floating bar. Bug reports' screenshots show the maps: the
+    screen copied natively (Android: Flutter's surface with PixelCopy;
+    iOS: the window's `drawHierarchy`), not Flutter's picture, which left
+    platform views empty.
+
 ### Open
 
 14 was added on 2026-09-24 from a survey of Komoot, AllTrails,

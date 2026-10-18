@@ -125,10 +125,10 @@ class _Server {
         return _json({
           'places': [
             {
-              'name': q.startsWith('Th') ? 'Thun' : 'Zermatt',
+              'name': q.startsWith('Th') ? 'Thun' : (q.startsWith('Vi') ? 'Visp' : 'Zermatt'),
               'kind': 'pt_stop',
               'detail': 'Zug',
-              'at': q.startsWith('Th') ? [7.63, 46.75] : [7.75, 46.02],
+              'at': q.startsWith('Th') ? [7.63, 46.75] : (q.startsWith('Vi') ? [7.88, 46.29] : [7.75, 46.02]),
             },
           ],
         });
@@ -306,6 +306,35 @@ void main() {
     await tester.drag(find.byKey(const Key('jplan-panel')), const Offset(0, -100));
     await tester.pump();
     expect(tester.testTextInput.isVisible, isFalse, reason: 'scrolled');
+  });
+
+  testWidgets('a stop before the destination and the order changed, as in the day\'s planner', (tester) async {
+    await open(tester, _Server());
+    await search(tester, 'Thun');
+    await search(tester, 'Zermatt');
+    List<String> names() => [
+      for (var i = 0; i < 3; i++)
+        if (find.byKey(Key('jplan-point-$i')).evaluate().isNotEmpty)
+          (tester.widget<ListTile>(find.byKey(Key('jplan-point-$i'))).title as Text).data!,
+    ];
+
+    await tap(tester, 'jplan-via');
+    final via = find.byKey(const Key('jplan-via-search'));
+    await tester.tap(find.descendant(of: via, matching: find.byKey(const Key('place-search-open'))));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('place-search')), 'Visp');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('place-result-0')));
+    await tester.pumpAndSettle();
+    expect(names(), ['Thun', 'Visp', 'Zermatt']);
+    expect(via, findsNothing);
+
+    await tap(tester, 'jplan-down-0');
+    expect(names(), ['Visp', 'Thun', 'Zermatt']);
+    await tap(tester, 'jplan-up-2');
+    expect(names(), ['Visp', 'Zermatt', 'Thun']);
+    expect(enabled(tester, 'jplan-submit'), isTrue);
   });
 
   testWidgets('an answer for points changed meanwhile is dropped', (tester) async {

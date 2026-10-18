@@ -55,6 +55,30 @@ import UserNotifications
       FlutterEventChannel(name: "alvyo/peak-motion", binaryMessenger: registrar.messenger())
         .setStreamHandler(peakMotion)
     }
+    // Bug reports (lib/bug_report.dart): the window as shown, with the maps,
+    // which Flutter's own picture leaves empty; nil if there is none.
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoScreenshot") {
+      FlutterMethodChannel(name: "alvyo/screenshot", binaryMessenger: registrar.messenger())
+        .setMethodCallHandler { call, result in
+          guard call.method == "window" else {
+            result(FlutterMethodNotImplemented)
+            return
+          }
+          let window = UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first
+          guard let window else {
+            result(nil)
+            return
+          }
+          // Twice the size in points, as the Flutter picture was.
+          let format = UIGraphicsImageRendererFormat()
+          format.scale = 2
+          let image = UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
+          }
+          result(image.pngData().map { FlutterStandardTypedData(bytes: $0) })
+        }
+    }
     // Turn-by-turn prompts.
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoSpeech") {
       let channel = FlutterMethodChannel(name: "alvyo/speech", binaryMessenger: registrar.messenger())

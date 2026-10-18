@@ -157,6 +157,7 @@
 	"nav_about": "Informazioni",
 	"about_title": "Informazioni su Alvyo",
 	"about_news_title": "Novità",
+	"news_1_3_0": "Ora puoi creare un account direttamente nell’app, senza passare dal sito web. «Password dimenticata?» e la protezione dei dati si aprono nell’app.",
 	"news_1_2_0": "Alvyo sull’iPad: le sezioni sono in una barra a sinistra, e percorsi, escursioni di più giorni, pianificazione e scoperta mostrano la carta a tutta altezza accanto ai dettagli, in verticale come in orizzontale. Anche un iPhone tenuto in orizzontale li mostra così.",
 	"news_1_1_0": "Le passkey non ci sono più: accedi con la tua password o con un account collegato; se avevi solo una passkey, imposta una password con «Password dimenticata?». La mappa di un percorso mostra ora tutto ciò che è elencato sotto «Lungo il cammino», anche i tipi disattivati nei livelli della mappa. Lo screenshot di «Segnala un errore» va con il rapporto nel repository GitHub privato.",
 	"news_1_0_0": "Versione 1.0, pronta per l’App Store: all’avvio l’app per iPhone mostra il logo di Alvyo e, quando chiede la tua posizione, la fotocamera, le tue foto o Apple Salute, ora spiega perché nella tua lingua.",

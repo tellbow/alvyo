@@ -84,6 +84,7 @@ A `v*` tag builds the images; Flux deploys them
 | 1.1.1 | 2026-10-15 | `alvyo bugs screenshots` finds each screenshot's issue by the report's id instead of the number stored with it (the issues were numbered anew in the feedback repository) |
 | 1.1.2 | 2026-10-15 | Migration 0039 drops the screenshot columns of `bug_reports` (moved to the feedback repository with 1.1.1); `alvyo bugs screenshots` is gone with them |
 | 1.2.0 | 2026-10-16 | The app on the iPad (73): from 820 points wide a rail on the left instead of the floating bar, a map's panel beside it at full height (routes, journeys with their stages' map, Planen's modes, the discover map, a collection's map, the way there), lists and forms at most 720 wide; upright and on its side, also a phone on its side; App Store pictures for the iPad (`app/store`), the navigation picture in the app's colours; the `ipad-install` skill |
+| 1.3.0 | 2026-10-18 | Signing up in the app (74, App Review refused 1.2.0 for sending people to Safari): «Konto erstellen» is a form in the app; «Passwort vergessen?» and the privacy text open in a Safari view inside the app |
 
 ## Requirements
 

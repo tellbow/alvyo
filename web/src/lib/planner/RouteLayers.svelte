@@ -1,15 +1,6 @@
 <script lang="ts">
 	import { ROUTE_COLOR } from './colors';
-	import type {
-		FilterSpecification,
-		GeoJSONSource,
-		Map as MapLibreMap,
-		MapLayerMouseEvent,
-		MapLayerTouchEvent,
-		MapMouseEvent,
-		MapTouchEvent,
-		Marker
-	} from 'maplibre-gl';
+	import type { FilterSpecification, GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { api } from '#lib/api/client.js';
 	import { OSM_ATTRIBUTION, ROUTE_PREFIX } from '#lib/map/styles.js';
@@ -24,9 +15,7 @@
 		planner,
 		hover,
 		editable = true,
-		ghosts = [],
-		dragPath = false,
-		onnotice
+		ghosts = []
 	}: {
 		map: MapLibreMap;
 		lib: typeof MapLibre;
@@ -37,25 +26,17 @@
 		editable?: boolean;
 		/** reference points, e.g. the ends of neighbouring journey stages */
 		ghosts?: { at: number[]; label: string }[];
-		/** dragging the line moves the leg onto another path instead of adding a point (Alt flips it) */
-		dragPath?: boolean;
-		/** a message for the user, e.g. that there is no other way */
-		onnotice?: (text: string) => void;
 	} = $props();
 
 	const LEGS = `${ROUTE_PREFIX}legs`;
 	const HOVER = `${ROUTE_PREFIX}hover`;
-	/** Dashed lines to the neighbouring points while a point or the line is dragged. */
+	/** Dashed lines to the neighbouring points while a point or a leg's dot is dragged. */
 	const DRAG = `${ROUTE_PREFIX}drag`;
-	/** The other ways of a leg while it is dragged onto another path. */
+	/** The other ways of a leg while its dot is dragged. */
 	const WAYS = `${ROUTE_PREFIX}ways`;
-	/** How close to another way the line is let go to take it, in pixels. */
+	/** How close to another way a leg's dot is let go to take it, in pixels. */
 	const REACH_PX = 40;
-	/** Layers that count as "the route" for clicks. */
-	export const LINE_LAYERS = [`${ROUTE_PREFIX}line`, `${ROUTE_PREFIX}line-straight`];
 	const COLOR = ROUTE_COLOR;
-	/** How long a finger rests on the line before it takes the line. */
-	const HOLD_MS = 400;
 
 	const empty = { type: 'FeatureCollection' as const, features: [] };
 
@@ -199,145 +180,7 @@
 			renderHover();
 		};
 		map.on('style.load', onStyle);
-		const onEnter = () => (map.getCanvas().style.cursor = editable ? 'pointer' : '');
-		const onLeave = () => (map.getCanvas().style.cursor = '');
-		// Press on the line and drag: a new point where it is released, between
-		// the ends of that leg; or (dragPath, or Alt held) the leg onto another
-		// way between them, which show while dragging. A click without
-		// dragging is handled by the planner.
-		const drag = (leg: number) => {
-			// A straight line has no path to move onto.
-			const onPath = (path: boolean) => path && !planner.anchors[leg + 1]?.straight;
-			let ways: Promise<Ways | undefined> | undefined;
-			let got: Ways | undefined;
-			const fetch = () => (ways ??= waysOf(leg).then((w) => (got = w)));
-			return {
-				move(at: [number, number], path: boolean) {
-					if (!onPath(path)) {
-						showWays();
-						band(at, leg, leg + 1);
-						return;
-					}
-					band();
-					void fetch();
-					const near = got && nearestWay(got.others, map.project(at), (p) => map.project(p));
-					showWays(got?.others, near && near.px <= REACH_PX ? near.way.index : undefined);
-				},
-				async end(at: [number, number], path: boolean) {
-					band();
-					if (!onPath(path)) {
-						showWays();
-						planner.insert(leg + 1, at[0], at[1]);
-						return;
-					}
-					const [from, to] = [planner.anchors[leg], planner.anchors[leg + 1]];
-					const w = await fetch();
-					showWays();
-					// Points added, moved or undone meanwhile: the leg is another.
-					if (planner.anchors[leg] !== from || planner.anchors[leg + 1] !== to) return;
-					if (!w) return onnotice?.(m.plan_drag_failed());
-					if (w.others.length === 0) return onnotice?.(m.plan_drag_none());
-					const near = nearestWay(w.others, map.project(at), (p) => map.project(p));
-					if (!near || near.px > REACH_PX) return onnotice?.(m.plan_drag_off());
-					// The shortest way is the leg without a shape.
-					if (near.way.index === 0) planner.unshape(leg);
-					else {
-						const p = distinctPoint(
-							near.way.way,
-							w.all.filter((_, i) => i !== near.way.index)
-						);
-						planner.reroute(leg, p[0], p[1]);
-					}
-				},
-				cancel() {
-					band();
-					showWays();
-				}
-			};
-		};
-		const onDown = (e: MapLayerMouseEvent) => {
-			const leg = Number(e.features?.[0]?.properties?.leg);
-			// Presses on a point's marker reach the map too; the marker drags itself.
-			if (e.originalEvent.target !== map.getCanvas()) return;
-			if (!editable || e.originalEvent.button !== 0 || Number.isNaN(leg)) return;
-			e.preventDefault(); // no map panning
-			const start = e.point;
-			const d = drag(leg);
-			let at: [number, number] | undefined;
-			const onMove = (ev: MapMouseEvent) => {
-				if (!at && ev.point.dist(start) < 3) return; // MapLibre's click tolerance
-				at = [ev.lngLat.lng, ev.lngLat.lat];
-				map.getCanvas().style.cursor = 'grabbing';
-				d.move(at, dragPath !== ev.originalEvent.altKey);
-			};
-			const onUp = (ev: MouseEvent) => {
-				map.off('mousemove', onMove);
-				// A click leaves the pointer on the line: its cursor stays.
-				if (!at) return d.cancel();
-				map.getCanvas().style.cursor = '';
-				void d.end(at, dragPath !== ev.altKey);
-			};
-			map.on('mousemove', onMove);
-			window.addEventListener('mouseup', onUp, { once: true });
-		};
-		// On a touch screen a finger on the line pans the map, as elsewhere;
-		// held still for a moment, it takes the line instead.
-		const onTouch = (e: MapLayerTouchEvent) => {
-			const leg = Number(e.features?.[0]?.properties?.leg);
-			if (!editable || e.points.length !== 1 || Number.isNaN(leg)) return;
-			const start = e.point;
-			const d = drag(leg);
-			let dragging = false;
-			let at: [number, number] | undefined;
-			const hold = setTimeout(() => {
-				dragging = true;
-				map.dragPan.disable(); // also ends the pan gesture begun
-				at = [e.lngLat.lng, e.lngLat.lat];
-				d.move(at, dragPath);
-				navigator.vibrate?.(10);
-			}, HOLD_MS);
-			const onMove = (ev: MapTouchEvent) => {
-				if (!dragging) {
-					// Moved or pinched before the hold: the map's gesture.
-					if (ev.points.length !== 1 || ev.point.dist(start) > 10) end();
-					return;
-				}
-				ev.preventDefault();
-				at = [ev.lngLat.lng, ev.lngLat.lat];
-				d.move(at, dragPath);
-			};
-			const end = () => {
-				clearTimeout(hold);
-				map.off('touchmove', onMove);
-				map.off('touchend', onEnd);
-				map.off('touchcancel', end);
-				if (dragging) map.dragPan.enable();
-			};
-			const onEnd = () => {
-				const done = dragging && at;
-				end();
-				if (done) void d.end(at!, dragPath);
-				else d.cancel();
-			};
-			map.on('touchmove', onMove);
-			map.on('touchend', onEnd);
-			map.on('touchcancel', end);
-		};
-		for (const id of LINE_LAYERS) {
-			map.on('mouseenter', id, onEnter);
-			map.on('mouseleave', id, onLeave);
-			map.on('mousedown', id, onDown);
-			map.on('touchstart', id, onTouch);
-		}
-		return () => {
-			map.off('style.load', onStyle);
-			for (const id of LINE_LAYERS) {
-				map.off('mouseenter', id, onEnter);
-				map.off('mouseleave', id, onLeave);
-				map.off('mousedown', id, onDown);
-				map.off('touchstart', id, onTouch);
-			}
-		};
+		return () => map.off('style.load', onStyle);
 	});
 
 	$effect(() => {
@@ -425,6 +268,72 @@
 		markers.clear();
 	});
 
+	/**
+	 * A leg's dot let go at `at`: on another way within reach the leg takes
+	 * it (the shortest one: no shape); elsewhere, or without other ways, a
+	 * stop goes there. As in the app (feedback issue 3).
+	 */
+	async function dropLeg(leg: number, at: [number, number], ways: Promise<Ways | undefined>) {
+		const [from, to] = [planner.anchors[leg], planner.anchors[leg + 1]];
+		const w = await ways;
+		showWays();
+		// Points added, moved or undone meanwhile: the leg is another.
+		if (planner.anchors[leg] !== from || planner.anchors[leg + 1] !== to) return;
+		const near = w && nearestWay(w.others, map.project(at), (p) => map.project(p));
+		if (!near || near.px > REACH_PX) return planner.insert(leg + 1, at[0], at[1]);
+		if (near.way.index === 0) planner.unshape(leg);
+		else {
+			const p = distinctPoint(
+				near.way.way,
+				w!.all.filter((_, i) => i !== near.way.index)
+			);
+			planner.reroute(leg, p[0], p[1]);
+		}
+	}
+
+	// A dot halfway along each computed leg: dragged, the other ways between
+	// its points show (a straight leg has none), and the dashed lines to them.
+	$effect(() => {
+		if (!editable) return;
+		const anchors = planner.anchors;
+		const placed = planner.legs.flatMap((slot, leg) => {
+			if (slot?.state !== 'ok' || leg + 1 >= anchors.length) return [];
+			const line = slot.leg.coordinates;
+			const mid = line[Math.floor(line.length / 2)];
+			const el = document.createElement('div');
+			el.appendChild(document.createElement('div'));
+			const dot = el.firstElementChild as HTMLElement;
+			dot.className = 'midpoint';
+			dot.title = m.plan_midpoint_title();
+			dot.dataset.testid = 'midpoint';
+			const marker = new lib.Marker({ element: el, draggable: true })
+				.setLngLat([mid[0], mid[1]])
+				.addTo(map);
+			const straight = !!anchors[leg + 1]?.straight;
+			let ways: Promise<Ways | undefined> = Promise.resolve(undefined);
+			let got: Ways | undefined;
+			const at = (): [number, number] => {
+				const p = marker.getLngLat();
+				return [p.lng, p.lat];
+			};
+			marker.on('dragstart', () => {
+				got = undefined;
+				if (!straight) ways = waysOf(leg).then((w) => (got = w));
+			});
+			marker.on('drag', () => {
+				band(at(), leg, leg + 1);
+				const near = got && nearestWay(got.others, map.project(at()), (p) => map.project(p));
+				showWays(got?.others, near && near.px <= REACH_PX ? near.way.index : undefined);
+			});
+			marker.on('dragend', () => {
+				band();
+				void dropLeg(leg, at(), ways);
+			});
+			return [marker];
+		});
+		return () => placed.forEach((mk) => mk.remove());
+	});
+
 	/** Where leg i passes closest to p: the dot of a leg dragged onto a path. */
 	function onLeg(i: number, p: { lon: number; lat: number }): [number, number] {
 		const slot = planner.legs[i];
@@ -501,6 +410,15 @@
 		border: 2px solid var(--alvyo-route);
 		background: #fff;
 		cursor: default;
+	}
+	:global(.midpoint) {
+		width: 14px;
+		height: 14px;
+		border-radius: 9999px;
+		border: 3px solid var(--alvyo-route);
+		background: #fff;
+		box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+		cursor: grab;
 	}
 	:global(.anchor-start) {
 		background: #16a34a;

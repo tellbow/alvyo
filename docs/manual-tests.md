@@ -382,6 +382,9 @@ only in the widget tests (1180 × 820).
 - [ ] **On its side** (iPad 10th generation): the rail, a route's panel
       beside the map, Planen's panel; turning while planning a route keeps
       the points and the map.
+- [ ] **«Berge erkennen» held sideways** (both ways round) and upright:
+      the camera picture upright, the skyline lies on the ridges, the
+      names readable; dragging aligns it in the right direction.
 - [ ] **Split View and Slide Over**: narrower than 820 points the bar and
       the phone's layout come back, wider the rail; nothing cut off between.
 - [ ] **Recording and navigating** on an iPad with GPS (cellular models):

@@ -195,7 +195,7 @@ class _PeaksScreenState extends State<PeaksScreen> {
           onPanUpdate: pose == null
               ? null
               : (d) => setState(() {
-                  final perPx = pose.fov / max(screen.height, screen.width * pose.aspect);
+                  final perPx = pose.fov / pose.fillScale(screen);
                   _dAz += d.delta.dx * perPx;
                   _dEl -= d.delta.dy * perPx;
                 }),

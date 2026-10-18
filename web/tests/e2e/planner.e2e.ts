@@ -88,100 +88,103 @@ test('plan a route by clicking the map, then adjust it', async ({ page, context 
 	await expect(anchors).toHaveCount(2);
 });
 
-test('drag the line to a different path', async ({ page, context }) => {
+/** A user logged in on /plan, zoomed in near Grindelwald First without overlays. */
+async function planAt(
+	page: import('@playwright/test').Page,
+	context: import('@playwright/test').BrowserContext,
+	name: string
+) {
 	await context.addInitScript(() => {
 		localStorage.setItem(
 			'alvyo.map',
 			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
 		);
 	});
-	const id = `drag${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	const id = `${name}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 	const signup = await signUp(page.request, {
 		data: {
 			email: `${id}@example.ch`,
 			username: id,
-			display_name: 'Dragger',
+			display_name: name,
 			password: 'sehr-geheim-123'
 		}
 	});
 	expect(signup.status()).toBe(200);
+	await page.goto('/plan');
+	const canvas = page.locator('canvas.maplibregl-canvas');
+	const box = (await canvas.boundingBox())!;
+	return { canvas, cx: box.x + box.width / 2, cy: box.y + box.height / 2 };
+}
+
+/** Where a position is on the screen at zoom 14 around [8.04, 46.665]. */
+function screenAt(cx: number, cy: number) {
+	// MapLibre's zoom 0 is 512 px wide: at zoom 14 a pixel is 360° / 2^23 of
+	// longitude, and × cos(latitude) of latitude.
+	const px = 360 / 2 ** 23;
+	const cos = Math.cos((46.665 * Math.PI) / 180);
+	return {
+		px,
+		cos,
+		screen: (lon: number, lat: number) => ({
+			x: cx + (lon - 8.04) / px,
+			y: cy - (lat - 46.665) / (px * cos)
+		})
+	};
+}
+
+/** Drags the dot halfway along leg `i` to `to`, slowly enough for the ways to come. */
+async function dragDot(page: import('@playwright/test').Page, to: { x: number; y: number }, i = 0) {
+	const dot = (await page.getByTestId('midpoint').nth(i).boundingBox())!;
+	const from = { x: dot.x + dot.width / 2, y: dot.y + dot.height / 2 };
+	await page.mouse.move(from.x, from.y);
+	await page.mouse.down();
+	await page.mouse.move((from.x + to.x) / 2, (from.y + to.y) / 2, { steps: 4 });
+	await page.mouse.move(to.x, to.y, { steps: 4 });
+	await page.waitForTimeout(300); // the ways arrive while dragging
+	await page.mouse.move(to.x + 1, to.y);
+	await page.mouse.move(to.x, to.y);
+	await page.mouse.up();
+}
+
+test("a leg's dot let go off every way: a stop there", async ({ page, context }) => {
 	type LegBody = { to: { lon: number; lat: number } };
 	const legRequests: LegBody[] = [];
 	page.on('request', (r) => {
 		if (r.url().includes('/api/v1/routing/leg')) legRequests.push(r.postDataJSON());
 	});
-
-	await page.goto('/plan');
-	const canvas = page.locator('canvas.maplibregl-canvas');
-	const box = (await canvas.boundingBox())!;
-	const cx = box.x + box.width / 2;
-	const cy = box.y + box.height / 2;
+	const { cx, cy } = await planAt(page, context, 'dot');
 	await page.mouse.click(cx - 200, cy);
 	await page.mouse.click(cx + 200, cy);
 	const legs = page.getByTestId('leg');
 	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
-	// As a straight line the leg certainly runs through the middle.
+	// A straight line has no other ways: a stop wherever the dot goes.
 	await legs.nth(0).getByLabel('Gerade Linie').check();
 	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	await expect(page.getByTestId('midpoint')).toHaveCount(1);
 	const before = legRequests.length;
 
-	// Pressed only once the line is drawn there (the pointer shows it), or
-	// the press would pan the map.
-	await expect
-		.poll(
-			async () => {
-				await page.mouse.move(cx + 1, cy);
-				await page.mouse.move(cx, cy);
-				return canvas.evaluate((c) => (c as HTMLCanvasElement).style.cursor);
-			},
-			{ timeout: 10_000 }
-		)
-		.toBe('pointer');
-	await page.mouse.down();
-	await page.mouse.move(cx + 20, cy + 60, { steps: 4 });
-	await page.mouse.move(cx + 40, cy + 120, { steps: 4 });
+	await dragDot(page, { x: cx + 40, y: cy + 120 });
 	await page.screenshot({ path: 'test-results/drag.png' });
-	await page.mouse.up();
 
-	// One new point where it was released; only its two legs are computed.
+	// One new point where it was let go; only its two legs are computed.
 	await expect(page.getByTestId('anchor')).toHaveCount(3);
 	await expect(legs).toHaveCount(2);
 	await expect.poll(() => legRequests.length).toBe(before + 2);
 	await expect(legs.nth(1)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
-	// MapLibre's zoom 0 is 512 px wide: at zoom 14 a pixel is 360° / 2^23 of
-	// longitude, and × cos(latitude) of latitude. Released 40 px right and
-	// 120 px down of the centre.
-	const px = 360 / 2 ** 23;
-	const released = {
-		lon: 8.04 + 40 * px,
-		lat: 46.665 - 120 * px * Math.cos((46.665 * Math.PI) / 180)
-	};
+	const { px, cos } = screenAt(cx, cy);
+	const released = { lon: 8.04 + 40 * px, lat: 46.665 - 120 * px * cos };
 	const to = legRequests[before].to;
 	expect(Math.abs(to.lon - released.lon)).toBeLessThan(0.0005);
 	expect(Math.abs(to.lat - released.lat)).toBeLessThan(0.0005);
+	// Each leg has its dot again.
+	await expect(page.getByTestId('midpoint')).toHaveCount(2);
 
 	// The map did not pan while dragging: the start marker stayed.
 	const start = (await page.getByTestId('anchor').nth(0).boundingBox())!;
 	expect(Math.abs(start.x + start.width / 2 - (cx - 200))).toBeLessThan(40);
 });
 
-test('drag the line onto another path without a new point', async ({ page, context }) => {
-	await context.addInitScript(() => {
-		localStorage.setItem(
-			'alvyo.map',
-			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
-		);
-	});
-	const id = `path${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await signUp(page.request, {
-		data: {
-			email: `${id}@example.ch`,
-			username: id,
-			display_name: 'Pathfinder',
-			password: 'sehr-geheim-123'
-		}
-	});
-	expect(signup.status()).toBe(200);
+test("a leg's dot let go on another way: the leg takes it", async ({ page, context }) => {
 	type LonLat = { lon: number; lat: number };
 	const requests: { through?: LonLat }[] = [];
 	const legs: { coordinates: number[][] }[] = [];
@@ -196,21 +199,8 @@ test('drag the line onto another path without a new point', async ({ page, conte
 				() => {}
 			);
 	});
-
-	await page.goto('/plan');
-	const canvas = page.locator('canvas.maplibregl-canvas');
-	const box = (await canvas.boundingBox())!;
-	const cx = box.x + box.width / 2;
-	const cy = box.y + box.height / 2;
-	// Where a position is on the screen (see the test above for the scale).
-	const px = 360 / 2 ** 23;
-	const cos = Math.cos((46.665 * Math.PI) / 180);
-	const screen = (lon: number, lat: number) => ({
-		x: cx + (lon - 8.04) / px,
-		y: cy - (lat - 46.665) / (px * cos)
-	});
-
-	await page.getByLabel('Anderer Weg').check();
+	const { cx, cy } = await planAt(page, context, 'path');
+	const { screen } = screenAt(cx, cy);
 	await page.mouse.click(cx - 200, cy);
 	await page.mouse.click(cx + 200, cy);
 	const legItems = page.getByTestId('leg');
@@ -218,33 +208,8 @@ test('drag the line onto another path without a new point', async ({ page, conte
 	// The leg's JSON is read after the page may already show it.
 	await expect.poll(() => legs.length).toBe(1);
 
-	/** Presses the line at `from` and lets it go at `to` (Alt held if `alt`). */
-	const dragTo = async (
-		from: { x: number; y: number },
-		to: { x: number; y: number },
-		alt = false
-	) => {
-		await expect
-			.poll(
-				async () => {
-					await page.mouse.move(from.x + 1, from.y);
-					await page.mouse.move(from.x, from.y);
-					return canvas.evaluate((c) => (c as HTMLCanvasElement).style.cursor);
-				},
-				{ timeout: 10_000 }
-			)
-			.toBe('pointer');
-		if (alt) await page.keyboard.down('Alt');
-		await page.mouse.down();
-		await page.mouse.move((from.x + to.x) / 2, (from.y + to.y) / 2, { steps: 4 });
-		await page.mouse.move(to.x, to.y, { steps: 4 });
-		await page.waitForTimeout(300); // the ways arrive while dragging
-		await page.mouse.up();
-		if (alt) await page.keyboard.up('Alt');
-	};
-
 	// The ways between the two points, as the API offers them: the leg's own
-	// and one bulging 300 m south through where the line will be let go.
+	// and one bulging 300 m south through where the dot will be let go.
 	const own = legs[0].coordinates.map((c) => [c[0], c[1]]);
 	const mid = own[Math.floor(own.length / 2)];
 	const south = own.map(([lon, lat]) => {
@@ -257,96 +222,54 @@ test('drag the line onto another path without a new point', async ({ page, conte
 		asked++;
 		return route.fulfill({ json: { ways } });
 	});
-	const notice = page.getByTestId('map-notice');
-
-	// Let go on the southern way: the leg takes it, through a point on it
-	// (where it is farthest from the leg's own), and no point is added.
-	const before = requests.length;
+	const anchors = page.getByTestId('anchor');
 	const southScreen = screen(mid[0], mid[1] - 300 / 111_000);
-	const line = legs.at(-1)!.coordinates;
-	const from = screen(line[Math.floor(line.length / 2)][0], line[Math.floor(line.length / 2)][1]);
-	await dragTo(from, southScreen);
+
+	// On the southern way: the leg takes it, through a point on it (where it
+	// is farthest from the leg's own), and no point is added.
+	const before = requests.length;
+	await dragDot(page, southScreen);
 	await expect.poll(() => requests.length).toBeGreaterThan(before);
 	const through = requests.at(-1)!.through!;
 	expect(south.some((p) => p[0] === through.lon && p[1] === through.lat)).toBe(true);
 	expect(asked).toBe(1);
 	await expect(legItems.nth(0)).toHaveAttribute('data-state', /ok|error/, { timeout: 15_000 });
-	await expect(page.getByTestId('anchor')).toHaveCount(2);
+	await expect(anchors).toHaveCount(2);
 	await expect(page.getByTestId('through')).toHaveCount(1);
-	await expect(notice).toHaveCount(0);
 
-	// Let go away from every way: nothing changes, the user is told.
-	const legsAsked = requests.length;
+	// Away from every way: a stop there.
 	await page.getByRole('button', { name: 'Rückgängig' }).click();
 	await expect(page.getByTestId('through')).toHaveCount(0);
-	const undone = requests.length;
-	await dragTo(from, { x: from.x, y: from.y - 150 });
-	await expect(notice).toHaveText('Lass die Linie auf einem der hervorgehobenen Wege los.');
-	expect(requests.length).toBe(undone);
-	expect(legsAsked).toBeGreaterThan(0);
-
-	// No other way at all: said so.
-	ways = [own];
-	await dragTo(from, southScreen);
-	await expect(notice).toHaveText('Zwischen diesen Punkten gibt es keinen anderen Weg.');
-	await expect(page.getByTestId('anchor')).toHaveCount(2);
-
-	// A click on the line adds no point here.
-	await page.mouse.click(from.x, from.y);
-	await expect(notice).toHaveText(
-		'Zieh die Linie: andere Wege erscheinen, auf einem lässt du sie los.'
-	);
-	await expect(page.getByTestId('anchor')).toHaveCount(2);
-
-	// With Alt held, dragging adds a point as before.
-	await dragTo(from, { x: from.x, y: from.y + 100 }, true);
-	await expect(page.getByTestId('anchor')).toHaveCount(3);
+	await expect(page.getByTestId('midpoint')).toHaveCount(1);
+	const dot = (await page.getByTestId('midpoint').boundingBox())!;
+	await dragDot(page, { x: dot.x, y: dot.y - 150 });
+	await expect(anchors).toHaveCount(3);
 	await expect(page.getByTestId('through')).toHaveCount(0);
+
+	// No other way at all: a stop as well, also on the southern way.
+	await page.getByRole('button', { name: 'Rückgängig' }).click();
+	await expect(anchors).toHaveCount(2);
+	ways = [own];
+	await dragDot(page, southScreen);
+	await expect(anchors).toHaveCount(3);
+
+	// A click on the line adds a destination, as anywhere on the map.
+	await expect(legItems.nth(1)).toHaveAttribute('data-state', /ok|error/, { timeout: 15_000 });
+	await page.mouse.click(screen(mid[0], mid[1]).x, screen(mid[0], mid[1]).y);
+	await expect(anchors).toHaveCount(4);
 });
 
-test('on a touch screen, hold the line to drag it; a quick swipe pans the map', async ({
+test('on a touch screen the dot moves with the finger; a swipe beside it pans', async ({
 	page,
 	context
 }) => {
-	await context.addInitScript(() => {
-		localStorage.setItem(
-			'alvyo.map',
-			JSON.stringify({ base: 'landeskarte', overlays: [], center: [8.04, 46.665], zoom: 14 })
-		);
-	});
-	const id = `touch${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-	const signup = await signUp(page.request, {
-		data: {
-			email: `${id}@example.ch`,
-			username: id,
-			display_name: 'Thumb',
-			password: 'sehr-geheim-123'
-		}
-	});
-	expect(signup.status()).toBe(200);
-
-	await page.goto('/plan');
-	const canvas = page.locator('canvas.maplibregl-canvas');
-	const box = (await canvas.boundingBox())!;
-	const cx = box.x + box.width / 2;
-	const cy = box.y + box.height / 2;
+	const { cx, cy } = await planAt(page, context, 'touch');
 	await page.mouse.click(cx - 200, cy);
 	await page.mouse.click(cx + 200, cy);
 	const legs = page.getByTestId('leg');
 	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
-	// A straight line certainly runs through the middle.
 	await legs.nth(0).getByLabel('Gerade Linie').check();
-	await expect(legs.nth(0)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
-	await expect
-		.poll(
-			async () => {
-				await page.mouse.move(cx + 1, cy);
-				await page.mouse.move(cx, cy);
-				return canvas.evaluate((c) => (c as HTMLCanvasElement).style.cursor);
-			},
-			{ timeout: 10_000 }
-		)
-		.toBe('pointer');
+	await expect(page.getByTestId('midpoint')).toHaveCount(1);
 
 	// Touch events as a phone sends them (Playwright itself only taps).
 	const cdp = await context.newCDPSession(page);
@@ -355,23 +278,23 @@ test('on a touch screen, hold the line to drag it; a quick swipe pans the map', 
 			type,
 			touchPoints: x === undefined ? [] : [{ x, y: y! }]
 		});
-	const swipe = async (hold: number) => {
-		await touch('touchStart', cx, cy);
-		await page.waitForTimeout(hold);
-		for (let i = 1; i <= 6; i++) await touch('touchMove', cx + i * 7, cy + i * 20);
+	const swipe = async (x: number, y: number) => {
+		await touch('touchStart', x, y);
+		for (let i = 1; i <= 6; i++) await touch('touchMove', x + i * 7, y + i * 20);
 		await touch('touchEnd');
 	};
 	const start = async () => (await page.getByTestId('anchor').nth(0).boundingBox())!.x;
 
-	// Held still first, the finger takes the line: a new point, no panning.
+	// The dot under the finger: a new point, no panning.
+	const dot = (await page.getByTestId('midpoint').boundingBox())!;
 	const before = await start();
-	await swipe(700);
+	await swipe(dot.x + dot.width / 2, dot.y + dot.height / 2);
 	await expect(page.getByTestId('anchor')).toHaveCount(3);
 	expect(Math.abs((await start()) - before)).toBeLessThan(2);
 
-	// A quick swipe pans the map and leaves the points alone.
+	// Beside it the map pans and the points stay.
 	await page.waitForTimeout(500);
-	await swipe(0);
+	await swipe(cx, cy - 150);
 	await expect.poll(start).not.toBeCloseTo(before, 0);
 	await expect(page.getByTestId('anchor')).toHaveCount(3);
 });

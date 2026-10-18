@@ -52,29 +52,6 @@
 	let map = $state<MapLibreMap>();
 	let lib = $state<typeof MapLibre>();
 	let hoverIndex = $state<number>();
-	// What dragging the line does; remembered in this browser.
-	const DRAG_KEY = 'alvyo.dragPath';
-	let dragPath = $state(false);
-
-	function setDragPath(on: boolean) {
-		dragPath = on;
-		try {
-			localStorage.setItem(DRAG_KEY, on ? '1' : '');
-		} catch {
-			// storage blocked: the choice lasts for this page
-		}
-	}
-
-	// A message over the map for a few seconds, e.g. that there is no other way.
-	let notice = $state('');
-	let noticeTimer: ReturnType<typeof setTimeout> | undefined;
-	function notify(text: string) {
-		notice = text;
-		clearTimeout(noticeTimer);
-		noticeTimer = setTimeout(() => (notice = ''), 5000);
-	}
-	const dragHint = () => notify(m.plan_drag_click());
-
 	const planner = new Planner(fetchLeg);
 	// The buttons of a saved route are rendered on the server: a click before
 	// hydration would do nothing.
@@ -138,8 +115,6 @@
 					: ''
 	);
 
-	const ROUTE_LINES = ['route-line', 'route-line-straight'];
-
 	// The protected areas the planned line crosses, asked for once the line
 	// has stopped changing for a moment.
 	let areas = $state<ProtectedArea[]>();
@@ -172,21 +147,11 @@
 	function onready(m: MapLibreMap, l: typeof MapLibre) {
 		map = m;
 		lib = l;
-		try {
-			dragPath = localStorage.getItem(DRAG_KEY) === '1';
-		} catch {
-			// storage blocked: the default
-		}
 		m.on('click', (e: MapMouseEvent) => {
-			// Clicks on a point (a marker above the map) or a hut are their own.
+			// Clicks on a point (a marker above the map) or a hut are their own;
+			// elsewhere, also on the line, a new destination, as in the app.
 			if (!user || e.defaultPrevented || e.originalEvent.target !== m.getCanvas()) return;
-			const hit = m.queryRenderedFeatures(e.point, {
-				layers: ROUTE_LINES.filter((id) => m.getLayer(id))
-			})[0];
-			if (!hit) planner.add(e.lngLat.lng, e.lngLat.lat);
-			// Set to another way, a click adds no point: dragging moves the leg.
-			else if (dragPath !== e.originalEvent.altKey) dragHint();
-			else planner.insert(Number(hit.properties.leg) + 1, e.lngLat.lng, e.lngLat.lat);
+			planner.add(e.lngLat.lng, e.lngLat.lat);
 		});
 		m.doubleClickZoom.disable(); // double-click removes anchors
 		// A saved route opens with the map on it, not where the map was last;
@@ -275,19 +240,8 @@
 		/>
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
-			<RouteLayers {map} {lib} {planner} {hover} {ghosts} {dragPath} onnotice={notify} />
+			<RouteLayers {map} {lib} {planner} {hover} {ghosts} />
 		{/if}
-		<!-- Always there, so screen readers announce what is written into it. -->
-		<p
-			role="status"
-			class={[
-				'pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-md bg-stone-900/85 px-3 py-2 text-sm text-white shadow',
-				!notice && 'sr-only'
-			]}
-			data-testid={notice ? 'map-notice' : undefined}
-		>
-			{notice}
-		</p>
 		<p class="sr-only" aria-live="polite">{routeStatus}</p>
 		{#if planner.line.coordinates.length > 1}
 			<ProfileDock>
@@ -321,31 +275,6 @@
 					<option value="alpine">{m.plan_profile_alpine()}</option>
 				</select>
 			</label>
-
-			<fieldset class="flex flex-col gap-1 text-sm" data-testid="drag-mode">
-				<legend class="mb-1 font-medium">{m.plan_drag()}</legend>
-				<div class="flex gap-3">
-					<label class="flex items-center gap-1">
-						<input
-							type="radio"
-							name="drag-mode"
-							checked={!dragPath}
-							onchange={() => setDragPath(false)}
-						/>
-						{m.plan_drag_point()}
-					</label>
-					<label class="flex items-center gap-1">
-						<input
-							type="radio"
-							name="drag-mode"
-							checked={dragPath}
-							onchange={() => setDragPath(true)}
-						/>
-						{m.plan_drag_path()}
-					</label>
-				</div>
-				<p class="text-xs text-stone-500">{m.plan_drag_hint()}</p>
-			</fieldset>
 
 			<section data-testid="points">
 				<h2 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">

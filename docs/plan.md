@@ -119,18 +119,18 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
    importieren» gives a stage its route from a GPX, KML, TCX or FIT file in
    one step (`POST /journeys/{id}/stages/{stage}/import`, several tracks
    joined); a stage's route is only replaced after asking.
-9. **Dragging the line: a point, or a different path** (0.5.0). A switch in
-   the planner («Beim Ziehen: Zwischenpunkt / anderer Weg», remembered in
-   the browser; Alt/⌥ flips it for one drag). «Anderer Weg» keeps the points:
-   while the line is dragged, the other ways between them show
-   (`/routing/alternatives`), the one in reach stronger; let go on one, the
-   leg takes it; elsewhere, or without another way, nothing changes and a
-   message says why, and a click on the line adds no point (2026-10-02:
-   before, the leg went through the release point when no way came within
-   100 m, which looked like a new point). The way is kept on the leg's end
-   anchor (`through`, a point where it differs most from the others),
-   drawn as a small dot on the line; a double-click on it gives the
-   shortest path back. GraphHopper 11
+9. **Dragging the line: a point, or a different path** (0.5.0; since
+   2026-10-18 as in the app, feedback issue 3). A click on the map adds a
+   destination, also on the line. A dot halfway along each leg drags the
+   line: while it is dragged, the other ways between the leg's points show
+   (`/routing/alternatives`), the one in reach stronger, and dashed lines
+   to the points; let go on one, the leg takes it; elsewhere, or without
+   another way, a stop goes there. (Before: a switch «Zwischenpunkt /
+   anderer Weg», Alt/⌥ to flip it, the line itself pressed or held on a
+   touch screen, and messages when nothing changed – more confusing than
+   useful.) The way is kept on the leg's end anchor (`through`, a point
+   where it differs most from the others), drawn as a small dot on the
+   line; a double-click on it gives the shortest path back. GraphHopper 11
    offers alternatives with the CH profiles once its factors are loosened
    (paths up to twice as long, sharing up to 80 %), in about 30 ms.
 10. **Tags** (0.5.0). Routes (recorded hikes included), journeys and
@@ -856,6 +856,12 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     screen copied natively (Android: Flutter's surface with PixelCopy;
     iOS: the window's `drawHierarchy`), not Flutter's picture, which left
     platform views empty.
+
+76. **«Berge erkennen» on an iPad held sideways** (feedback issue 13). The
+    iPad ignores the portrait lock (Split View), so the screen turns: the
+    lines and names follow the screen's top (the device's edge pointing
+    up) and the camera picture turns with it; on the iPhone it stays
+    upright as before.
 
 ### Open
 

@@ -89,5 +89,26 @@ void main() {
       // side spans max(800, 400·4/3) = 800 px: 400 px from the centre.
       expect(north.project(0, 30, size)!.dy, closeTo(0, 1e-6));
     });
+
+    // Feedback issue 13: the iPad turns the screen with it. Turned left (the
+    // device's top to the left, its right edge up) and right, still looking
+    // north: east to the right, up to the top, on a wide screen.
+    for (final (turn, pose) in [
+      ('left', const CameraPose([0, 0, 1, 0, 1, 0, -1, 0, 0], fov: 60)),
+      ('right', const CameraPose([0, 0, -1, 0, -1, 0, -1, 0, 0], fov: 60)),
+    ]) {
+      test('turned $turn on a wide screen: east to the right, up to the top', () {
+        const wide = Size(800, 400);
+        expect(pose.centre.azimuth, closeTo(0, 1e-9));
+        expect(pose.project(0, 0, wide), const Offset(400, 200));
+        final east = pose.project(10, 0, wide)!, up = pose.project(0, 5, wide)!;
+        expect(east.dx, greaterThan(400));
+        expect(east.dy, closeTo(200, 1e-6));
+        expect(up.dx, closeTo(400, 1e-6));
+        expect(up.dy, lessThan(200));
+        // The long side now along the width: 30° to the side is its edge.
+        expect(pose.project(30, 0, wide)!.dx, closeTo(800, 1e-6));
+      });
+    }
   });
 }

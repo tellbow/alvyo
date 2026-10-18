@@ -52,6 +52,34 @@ final class PeakCameraView: NSObject, FlutterPlatformView {
 final class PreviewView: UIView {
   override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
   var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
+
+  // The picture upright on a screen turned with the device (the iPad
+  // ignores the portrait lock; feedback issue 13).
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    guard let connection = previewLayer.connection,
+      let orientation = window?.windowScene?.interfaceOrientation
+    else { return }
+    if #available(iOS 17.0, *) {
+      let angle: CGFloat =
+        switch orientation {
+        case .landscapeLeft: 180
+        case .landscapeRight: 0
+        case .portraitUpsideDown: 270
+        default: 90
+        }
+      if connection.isVideoRotationAngleSupported(angle) { connection.videoRotationAngle = angle }
+    } else {
+      let video: AVCaptureVideoOrientation =
+        switch orientation {
+        case .landscapeLeft: .landscapeLeft
+        case .landscapeRight: .landscapeRight
+        case .portraitUpsideDown: .portraitUpsideDown
+        default: .portrait
+        }
+      if connection.isVideoOrientationSupported { connection.videoOrientation = video }
+    }
+  }
 }
 
 enum PeakCamera {

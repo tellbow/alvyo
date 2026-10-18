@@ -611,6 +611,8 @@
   "discoverNearby": "Près de toi",
   "discoverNearbyNoPosition": "Autorise la localisation pour voir les randonnées près de toi.",
   "discoverNearbyAllow": "Autoriser la localisation",
+  "discoverNearbyUnknown": "Ta position n’est pas connue pour l’instant. Dehors ou avec le Wi-Fi, le téléphone la trouve en général plus vite.",
+  "openSettings": "Ouvrir les réglages",
   "discoverNearbyEmpty": "Aucune randonnée publiée autour de toi pour l’instant. Tu en trouves d’autres sur la carte.",
   "toursTitle": "Randonnées",
   "toursMap": "Carte",

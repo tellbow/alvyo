@@ -611,6 +611,8 @@
   "discoverNearby": "Vicino a te",
   "discoverNearbyNoPosition": "Consenti la posizione per vedere le escursioni vicino a te.",
   "discoverNearbyAllow": "Consenti la posizione",
+  "discoverNearbyUnknown": "La tua posizione al momento non è nota. All’aperto o con il Wi-Fi il telefono di solito la trova più in fretta.",
+  "openSettings": "Apri le impostazioni",
   "discoverNearbyEmpty": "Nessuna escursione pubblicata intorno a te. Ne trovi altre sulla mappa.",
   "toursTitle": "Escursioni",
   "toursMap": "Mappa",

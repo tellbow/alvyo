@@ -12,6 +12,25 @@ Future<bool> locationAllowed() async {
   return p == LocationPermission.whileInUse || p == LocationPermission.always;
 }
 
+/// What stands between the app and the phone's position: nothing, a
+/// question still to ask, the phone's settings (asked before and refused
+/// for good), or the location switched off.
+enum LocationAccess { allowed, ask, settings, off }
+
+/// The [LocationAccess] now; never asks.
+Future<LocationAccess> locationAccess() async {
+  try {
+    if (!await Geolocator.isLocationServiceEnabled()) return LocationAccess.off;
+    return switch (await Geolocator.checkPermission()) {
+      LocationPermission.whileInUse || LocationPermission.always => LocationAccess.allowed,
+      LocationPermission.deniedForever => LocationAccess.settings,
+      _ => LocationAccess.ask,
+    };
+  } on Object {
+    return LocationAccess.ask; // no plugin (tests)
+  }
+}
+
 /// GPS positions for hiking: the best accuracy, every 5 m, also while the
 /// phone is locked (iOS shows the location indicator, Android a
 /// notification of the foreground service that keeps the app running).

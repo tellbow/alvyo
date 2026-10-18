@@ -2014,6 +2014,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get discoverNearbyAllow => 'Autoriser la localisation';
 
   @override
+  String get discoverNearbyUnknown =>
+      'Ta position n’est pas connue pour l’instant. Dehors ou avec le Wi-Fi, le téléphone la trouve en général plus vite.';
+
+  @override
+  String get openSettings => 'Ouvrir les réglages';
+
+  @override
   String get discoverNearbyEmpty =>
       'Aucune randonnée publiée autour de toi pour l’instant. Tu en trouves d’autres sur la carte.';
 

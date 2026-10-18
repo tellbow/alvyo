@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../errors.dart';
 import '../api.dart';
@@ -21,7 +22,7 @@ import 'wide.dart';
 /// the tools for around one, the tours of people one follows and public
 /// tours nearby.
 class DiscoverTab extends StatefulWidget {
-  const DiscoverTab({super.key, required this.api, required this.onPlan, this.position});
+  const DiscoverTab({super.key, required this.api, required this.onPlan, this.position, this.access});
   final Api api;
 
   /// Opens Planen in a mode («Wie weit komme ich?»).
@@ -29,6 +30,9 @@ class DiscoverTab extends StatefulWidget {
 
   /// For tests: where the phone is.
   final Future<LonLat?> Function()? position;
+
+  /// For tests: whether the app may use the location.
+  final Future<LocationAccess> Function()? access;
 
   @override
   State<DiscoverTab> createState() => _DiscoverTabState();
@@ -39,7 +43,7 @@ const _shown = 3;
 
 class _DiscoverTabState extends State<DiscoverTab> {
   late Future<List<FeedItem>> _feed = _loadFeed();
-  late Future<({LonLat? at, List<DiscoverItem> items})> _nearby = _loadNearby();
+  late Future<_Nearby> _nearby = _loadNearby();
   final _search = TextEditingController();
   List<FoundPlace>? _found;
   Timer? _typing;
@@ -48,9 +52,12 @@ class _DiscoverTabState extends State<DiscoverTab> {
   Future<List<FeedItem>> _loadFeed() => widget.api.feed().then((p) => p.items);
 
   /// Public tours in about 15 km around the phone; none without a position.
-  Future<({LonLat? at, List<DiscoverItem> items})> _loadNearby() async {
-    final at = await (widget.position ?? knownPosition)();
-    if (at == null) return (at: null, items: <DiscoverItem>[]);
+  /// [precise] when asked for: a fresh fix, waited for longer.
+  Future<_Nearby> _loadNearby({bool precise = false}) async {
+    final at =
+        await (widget.position ??
+            () => precise ? knownPosition(maxAge: const Duration(minutes: 2)) : knownPosition())();
+    if (at == null) return (at: null, access: await (widget.access ?? locationAccess)(), items: <DiscoverItem>[]);
     const dLat = 0.14, dLon = 0.2;
     final found = await widget.api.discover((
       west: at.lon - dLon,
@@ -58,18 +65,41 @@ class _DiscoverTabState extends State<DiscoverTab> {
       east: at.lon + dLon,
       north: at.lat + dLat,
     ));
-    return (at: at, items: found.items);
+    return (at: at, access: LocationAccess.allowed, items: found.items);
   }
 
-  Future<void> _reload() async {
+  Future<void> _reload({bool precise = false}) async {
     setState(() {
       _feed = _loadFeed();
-      _nearby = _loadNearby();
+      _nearby = _loadNearby(precise: precise);
     });
     await Future.wait([
       _feed.catchError((_) => <FeedItem>[]),
-      _nearby.catchError((_) => (at: null, items: <DiscoverItem>[])),
+      _nearby.catchError((_) => (at: null, access: LocationAccess.allowed, items: <DiscoverItem>[])),
     ]);
+  }
+
+  /// «Standort erlauben»: asks, or opens the settings where only they can
+  /// help (Android asks at most twice, iOS once); with the location allowed
+  /// but not found, tries again.
+  Future<void> _allowLocation(LocationAccess access) async {
+    switch (access) {
+      case LocationAccess.off:
+        await Geolocator.openLocationSettings();
+      case LocationAccess.settings:
+        await Geolocator.openAppSettings();
+      case LocationAccess.ask:
+        final p = await Geolocator.requestPermission();
+        if (p == LocationPermission.whileInUse || p == LocationPermission.always) {
+          await _reload(precise: true);
+        } else if (p == LocationPermission.deniedForever && mounted) {
+          // Android asks twice at most, then answers at once without a
+          // dialog; only its settings can help.
+          setState(() => _nearby = Future.value((at: null, access: LocationAccess.settings, items: <DiscoverItem>[])));
+        }
+      case LocationAccess.allowed:
+        await _reload(precise: true);
+    }
   }
 
   @override
@@ -244,15 +274,26 @@ class _DiscoverTabState extends State<DiscoverTab> {
           builder: (context, snap) {
             if (snap.hasError) return ListTile(title: Text(errorText(t, snap.error)));
             if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-            final (:at, :items) = snap.data!;
+            final (:at, :access, :items) = snap.data!;
+            if (at == null && access == LocationAccess.allowed) {
+              // Allowed, but no fix in time: asking again would change nothing.
+              return EmptyHint(
+                key: const Key('nearby-unknown'),
+                text: t.discoverNearbyUnknown,
+                action: t.discoverRetry,
+                onAction: () => _allowLocation(access),
+              );
+            }
             if (at == null) {
               return EmptyHint(
                 key: const Key('nearby-no-position'),
-                text: t.discoverNearbyNoPosition,
-                action: t.discoverNearbyAllow,
-                onAction: () async {
-                  if (await locationAllowed()) await _reload();
+                text: switch (access) {
+                  LocationAccess.off => t.gpsOff,
+                  LocationAccess.settings => t.connectionsNoPosition,
+                  _ => t.discoverNearbyNoPosition,
                 },
+                action: access == LocationAccess.ask ? t.discoverNearbyAllow : t.openSettings,
+                onAction: () => _allowLocation(access),
               );
             }
             if (items.isEmpty) {
@@ -322,3 +363,5 @@ class _ToolCard extends StatelessWidget {
     );
   }
 }
+
+typedef _Nearby = ({LonLat? at, LocationAccess access, List<DiscoverItem> items});

@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/navigation/gps.dart';
 import 'package:alvyo/screens/discover_tab.dart';
 import 'package:alvyo/screens/plan_tab.dart';
 import 'package:alvyo/screens/tours_tab.dart';
@@ -201,6 +202,60 @@ void main() {
     await until(tester, find.text('1408 m'));
     expect(find.text('1408 m'), findsOneWidget);
     expect(find.text('Feed 0'), findsNothing);
+  });
+
+  group('Entdecken without a position', () {
+    Future<void> pump(WidgetTester tester, LocationAccess access, Future<LonLat?> Function() position) async {
+      tester.view.physicalSize = const Size(400, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final api = Api(
+        'https://alvyo.test',
+        token: 't',
+        client: MockClient(
+          (req) async => switch (req.url.path) {
+            '/api/v1/feed' => _json({'items': []}),
+            _ => _json({'items': []}),
+          },
+        ),
+      );
+      await tester.pumpWidget(
+        _app(DiscoverTab(api: api, onPlan: (_) {}, position: position, access: () async => access)),
+      );
+    }
+
+    testWidgets('the location allowed but not found: no «Standort erlauben», a retry that finds it', (tester) async {
+      var asked = 0;
+      await pump(tester, LocationAccess.allowed, () async => ++asked == 1 ? null : (lon: 8.0, lat: 47.0));
+      await until(tester, find.byKey(const Key('nearby-unknown')));
+      expect(find.text('Standort erlauben'), findsNothing);
+      await tester.tap(find.text('Nochmals versuchen'));
+      await until(tester, find.byKey(const Key('nearby-empty')));
+      expect(asked, 2);
+    });
+
+    testWidgets('not allowed yet: asks for it', (tester) async {
+      await pump(tester, LocationAccess.ask, () async => null);
+      await until(tester, find.byKey(const Key('nearby-no-position')));
+      expect(find.text('Standort erlauben'), findsOneWidget);
+    });
+
+    testWidgets('switched off: says so', (tester) async {
+      await pump(tester, LocationAccess.off, () async => null);
+      await until(tester, find.byKey(const Key('nearby-no-position')));
+      expect(find.text('Der Standort ist ausgeschaltet: schalte ihn in den Einstellungen ein.'), findsOneWidget);
+      expect(find.text('Einstellungen öffnen'), findsOneWidget);
+    });
+
+    testWidgets('refused for good: the way to the settings', (tester) async {
+      await pump(tester, LocationAccess.settings, () async => null);
+      await until(tester, find.byKey(const Key('nearby-no-position')));
+      expect(
+        find.text('Dein Standort ist nicht bekannt. Erlaube Alvyo den Standort in den Einstellungen des Telefons.'),
+        findsOneWidget,
+      );
+      expect(find.text('Einstellungen öffnen'), findsOneWidget);
+    });
   });
 
   testWidgets('Planen: three modes and «Importieren»', (tester) async {

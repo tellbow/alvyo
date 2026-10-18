@@ -1266,7 +1266,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionsFromHere => 'Connections from here to the start';
 
   @override
-  String get connectionsNoPosition => 'Your location is not known. Allow Alvyo to use it in the phoneâs settings.';
+  String get connectionsNoPosition => 'Your location is not known. Allow Alvyo to use it in the phone’s settings.';
 
   @override
   String get stageMore => 'Details and getting there';
@@ -2001,6 +2001,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discoverNearbyAllow => 'Allow location';
+
+  @override
+  String get discoverNearbyUnknown =>
+      'Your location is not known right now. Outdoors or with Wi-Fi the phone usually finds it faster.';
+
+  @override
+  String get openSettings => 'Open settings';
 
   @override
   String get discoverNearbyEmpty => 'No tour has been published around you yet. You find more on the map.';

@@ -2010,6 +2010,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get discoverNearbyAllow => 'Consenti la posizione';
 
   @override
+  String get discoverNearbyUnknown =>
+      'La tua posizione al momento non è nota. All’aperto o con il Wi-Fi il telefono di solito la trova più in fretta.';
+
+  @override
+  String get openSettings => 'Apri le impostazioni';
+
+  @override
   String get discoverNearbyEmpty => 'Nessuna escursione pubblicata intorno a te. Ne trovi altre sulla mappa.';
 
   @override

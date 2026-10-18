@@ -97,6 +97,7 @@ void main() {
       expect(find.byKey(const Key('discover-search')), findsOneWidget);
       expect(find.text('Wie weit komme ich?'), findsOneWidget);
       expect(find.text('Gipfel anschauen'), findsOneWidget);
+      await until(tester, find.byKey(const Key('nearby-no-position')));
       expect(find.byKey(const Key('nearby-no-position')), findsOneWidget);
 
       // Touren: nothing planned yet, the next step goes to Planen.

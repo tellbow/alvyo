@@ -389,6 +389,16 @@ emulator ran the integration tests offline, navigate and journey
 - [ ] **The map in a release build** (production): routes, journeys, the
   offline map; release builds shrink the code, which the emulator tests
   (debug builds) do not.
+  Emulator 2026-10-18 (release APK, production): «Planen» showed no map
+  (feedback issues 10, 18: R8 renamed Flutter's PlatformView, which
+  maplibre_android finds by name); with `proguard-rules.pro` it shows.
+  Routes, journeys and the offline map still to check on a phone.
+- [ ] **The location on «Entdecken»**: «Standort erlauben» asks; refused
+  twice, the next tap says to allow it in the settings and «Einstellungen
+  öffnen» opens Alvyo's page there; allowed but not found (indoors, no
+  Wi-Fi), «Dein Standort ist gerade nicht bekannt» and «Nochmals
+  versuchen» finds it. Emulator 2026-10-18: asking, refused for good and
+  the settings checked.
 - [ ] **Recording with the screen locked** for a whole hike: the
   notification «Wanderung läuft» shows while recording and goes when it
   ends; the track has no gaps, also with battery saver on (some makers stop

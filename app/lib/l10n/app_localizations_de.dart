@@ -2011,6 +2011,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get discoverNearbyAllow => 'Standort erlauben';
 
   @override
+  String get discoverNearbyUnknown =>
+      'Dein Standort ist gerade nicht bekannt. Draussen oder mit WLAN findet ihn das Telefon meist schneller.';
+
+  @override
+  String get openSettings => 'Einstellungen öffnen';
+
+  @override
   String get discoverNearbyEmpty =>
       'Rund um dich ist noch keine Tour veröffentlicht. Auf der Karte findest du weitere.';
 

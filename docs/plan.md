@@ -869,6 +869,12 @@ journey pass on the emulator. Found on the way: the login screen could
 overwrite a server typed before the last one was read, and on Android a
 camera move cut short by the next position skipped the rest of it
 (progress, warning, spoken turn).
+Found on 2026-10-18 (feedback issues 10, 11, 18): release builds showed
+no map on «Planen» (R8 renamed Flutter's PlatformView, which
+maplibre_android finds by name through JNI; kept in `proguard-rules.pro`,
+checked in CI); «Standort erlauben» on «Entdecken» did nothing when the
+location was allowed but not found yet, or refused for good (Android asks
+twice at most): it says which and opens the settings where only they help.
 
 Open: «Berge erkennen» (a CameraX view and the rotation sensor) and the
 watch import through Health Connect, hidden on Android until then; the

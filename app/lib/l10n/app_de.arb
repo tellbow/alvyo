@@ -1154,6 +1154,8 @@
   "discoverNearby": "In deiner Nähe",
   "discoverNearbyNoPosition": "Erlaube den Standort, um Touren in deiner Nähe zu sehen.",
   "discoverNearbyAllow": "Standort erlauben",
+  "discoverNearbyUnknown": "Dein Standort ist gerade nicht bekannt. Draussen oder mit WLAN findet ihn das Telefon meist schneller.",
+  "openSettings": "Einstellungen öffnen",
   "discoverNearbyEmpty": "Rund um dich ist noch keine Tour veröffentlicht. Auf der Karte findest du weitere.",
   "toursTitle": "Touren",
   "toursMap": "Karte",

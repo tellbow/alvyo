@@ -3760,6 +3760,18 @@ abstract class AppLocalizations {
   /// **'Standort erlauben'**
   String get discoverNearbyAllow;
 
+  /// No description provided for @discoverNearbyUnknown.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Standort ist gerade nicht bekannt. Draussen oder mit WLAN findet ihn das Telefon meist schneller.'**
+  String get discoverNearbyUnknown;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In de, this message translates to:
+  /// **'Einstellungen öffnen'**
+  String get openSettings;
+
   /// No description provided for @discoverNearbyEmpty.
   ///
   /// In de, this message translates to:

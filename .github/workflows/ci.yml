@@ -82,6 +82,9 @@ jobs:
       # The Android app still builds (signed with the debug key: the release
       # key is only in the release workflow).
       - run: flutter build apk --release
+      # maplibre_android finds Flutter's PlatformView by name through JNI:
+      # renamed by R8, release builds show no map (proguard-rules.pro).
+      - run: grep -qx 'io.flutter.plugin.platform.PlatformView -> io.flutter.plugin.platform.PlatformView:' build/app/outputs/mapping/release/mapping.txt
 
   # The supply chain: vulnerable npm and pub packages, risky workflow
   # patterns, secrets in the history.

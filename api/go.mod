@@ -27,6 +27,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.47.0
 	go.opentelemetry.io/otel/sdk/metric v1.47.0
 	golang.org/x/oauth2 v0.37.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

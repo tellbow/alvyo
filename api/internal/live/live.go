@@ -81,13 +81,19 @@ func (s *Store) Contacts(ctx context.Context, owner uuid.UUID) ([]Contact, error
 	})
 }
 
-// AddContact adds a contact, at most MaxContacts.
+// AddContact adds a contact, at most MaxContacts. The user's row is locked,
+// so two at once cannot both be the tenth.
 func (s *Store) AddContact(ctx context.Context, owner uuid.UUID, name, email string) (Contact, error) {
 	var c Contact
 	var id uuid.UUID
-	err := s.DB.QueryRow(ctx, `INSERT INTO contacts (owner_id, name, email)
-		SELECT $1, $2, $3 WHERE (SELECT count(*) FROM contacts WHERE owner_id = $1) < $4
-		RETURNING id, name, email`, owner, name, email, MaxContacts).Scan(&id, &c.Name, &c.Email)
+	err := pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `SELECT 1 FROM users WHERE id = $1 FOR UPDATE`, owner); err != nil {
+			return err
+		}
+		return tx.QueryRow(ctx, `INSERT INTO contacts (owner_id, name, email)
+			SELECT $1, $2, $3 WHERE (SELECT count(*) FROM contacts WHERE owner_id = $1) < $4
+			RETURNING id, name, email`, owner, name, email, MaxContacts).Scan(&id, &c.Name, &c.Email)
+	})
 	var pg *pgconn.PgError
 	switch {
 	case errors.As(err, &pg) && pg.Code == "23505":

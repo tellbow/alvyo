@@ -80,7 +80,9 @@ Identifiers & Profiles):
    `ALVYO_OIDC_APPLE_ISSUER=https://appleid.apple.com`,
    `ALVYO_OIDC_APPLE_CLIENT_ID` (the Services ID), `_TEAM_ID`, `_KEY_ID`,
    `_APP_ID` (the bundle id, for the app's own sign-in) in `configmap.yaml`;
-   `ALVYO_OIDC_APPLE_KEY` (the .p8 file's contents, PEM) in `alvyo-secret`.
+   `ALVYO_OIDC_APPLE_KEY` (the .p8 file's contents, PEM) in `alvyo-secret`,
+   passed on by its own `secretKeyRef` in `api-deployment.yaml` (the API
+   takes the secret's keys one by one).
    No client secret: the API signs one with the key for each call. With
    Compose: `OIDC_APPLE_CLIENT_ID`, `OIDC_APPLE_TEAM_ID`,
    `OIDC_APPLE_KEY_ID`, `OIDC_APPLE_APP_ID`, `OIDC_APPLE_KEY` in

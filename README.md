@@ -4,7 +4,7 @@ Plan, share and walk hikes in Switzerland — custom routes on the swisstopo nat
 official Swiss hiking times, SAC difficulty, and multi-week stage journeys.
 
 Status: early development. What works, in short (details, status and what
-comes next: [docs/plan.md](docs/plan.md); deployment: [docs/operations.md](docs/operations.md)):
+comes next: [docs/plan.md](docs/plan.md); deployment: [docs/operations.md](docs/operations.md), restoring it: [docs/restore.md](docs/restore.md)):
 
 - **Planning:** routes on the swisstopo map with Swiss hiking time ([matching SchweizMobil](docs/hiking-time.md)), SAC grade, elevation profile, weather, closures and how far one gets in 2, 4 and 8 hours.
 - **Journeys:** multi-week stage journeys planned from start, destination and days, with huts for the nights and public transport.

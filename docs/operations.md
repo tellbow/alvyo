@@ -178,7 +178,8 @@ Photos live in the `photos` volume (`/data/photos` in the api container). To
 restore them with the database dump of the same night:
 `docker compose -f compose.prod.yaml cp - api:/data < backups/photos-<stamp>.tar`
 (the tar holds the `photos` directory). Files of deleted photos are removed
-by the API within a minute.
+by the API within a minute. The cluster deployment's backups and how a
+restore goes, by what was lost: [restore.md](restore.md).
 
 ## Updates
 

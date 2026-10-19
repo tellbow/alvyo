@@ -32,6 +32,10 @@ void main() {
   });
 
   testWidgets('the map credit follows the overlays and lists every source on a tap', (tester) async {
+    // A phone: the sources are longer than the screen.
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final settings = PlaceSettings();
     await tester.pumpWidget(app(Scaffold(body: MapCredit(settings: settings))));
     expect(find.text('© swisstopo · © OpenStreetMap'), findsOneWidget);
@@ -49,6 +53,12 @@ void main() {
       find.descendant(of: sources, matching: find.textContaining('Quelle: MeteoSchweiz', findRichText: true)),
       findsOneWidget,
     );
+
+    // The map stays in sight above the sources: a tap there leads back
+    // (feedback issue 21: the list covered the whole screen).
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('data-sources')), findsNothing);
   });
 
   testWidgets('about: sources, source code, licences, privacy', (tester) async {

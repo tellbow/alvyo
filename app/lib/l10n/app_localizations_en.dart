@@ -1506,6 +1506,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Shows where snow lies, not how deep it is or whether the trail is passable. The BFU advises planning hikes so as not to meet snow fields, and turning back when in doubt.';
 
   @override
+  String get snowMore => 'More about it';
+
+  @override
+  String get snowLess => 'Less';
+
+  @override
   String get poiFirepit => 'Fire place';
 
   @override

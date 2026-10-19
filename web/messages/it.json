@@ -78,6 +78,8 @@
 	"snow_mostly": "in prevalenza",
 	"snow_full": "continua",
 	"snow_hint": "Mostra dove c’è neve, non quanto è profonda né se il sentiero è percorribile. L’UPI consiglia di pianificare le escursioni in modo da non incontrare nevai e, nel dubbio, di tornare indietro.",
+	"snow_more": "Maggiori informazioni",
+	"snow_less": "Meno",
 	"map_ovl_huts": "Capanne",
 	"map_ovl_lodging": "Alberghi e campeggi",
 	"map_place_website": "Sito web",

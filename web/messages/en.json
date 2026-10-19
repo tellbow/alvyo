@@ -78,6 +78,8 @@
 	"snow_mostly": "mostly",
 	"snow_full": "complete",
 	"snow_hint": "Shows where snow lies, not how deep it is or whether the trail is passable. The BFU advises planning hikes so as not to meet snow fields, and turning back when in doubt.",
+	"snow_more": "More about it",
+	"snow_less": "Less",
 	"map_ovl_huts": "Huts",
 	"map_ovl_lodging": "Hotels and campsites",
 	"map_place_website": "Website",

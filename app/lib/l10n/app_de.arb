@@ -869,6 +869,8 @@
   "snowMostly": "überwiegend",
   "snowFull": "geschlossen",
   "snowHint": "Zeigt, wo Schnee liegt, nicht wie tief er ist oder ob der Weg begehbar ist. Die BFU rät, Wanderungen so zu planen, dass man nicht auf Schneefelder trifft, und im Zweifel umzukehren.",
+  "snowMore": "Mehr dazu",
+  "snowLess": "Weniger",
   "poiFirepit": "Feuerstelle",
   "poiPicnic": "Picknickplatz",
   "poiRestaurant": "Restaurant, Café",

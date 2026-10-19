@@ -2836,6 +2836,18 @@ abstract class AppLocalizations {
   /// **'Zeigt, wo Schnee liegt, nicht wie tief er ist oder ob der Weg begehbar ist. Die BFU rät, Wanderungen so zu planen, dass man nicht auf Schneefelder trifft, und im Zweifel umzukehren.'**
   String get snowHint;
 
+  /// No description provided for @snowMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Mehr dazu'**
+  String get snowMore;
+
+  /// No description provided for @snowLess.
+  ///
+  /// In de, this message translates to:
+  /// **'Weniger'**
+  String get snowLess;
+
   /// No description provided for @poiFirepit.
   ///
   /// In de, this message translates to:

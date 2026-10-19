@@ -1513,6 +1513,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zeigt, wo Schnee liegt, nicht wie tief er ist oder ob der Weg begehbar ist. Die BFU rät, Wanderungen so zu planen, dass man nicht auf Schneefelder trifft, und im Zweifel umzukehren.';
 
   @override
+  String get snowMore => 'Mehr dazu';
+
+  @override
+  String get snowLess => 'Weniger';
+
+  @override
   String get poiFirepit => 'Feuerstelle';
 
   @override

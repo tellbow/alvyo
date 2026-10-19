@@ -41,11 +41,22 @@ class MapCredit extends StatelessWidget {
           child: InkWell(
             key: const Key('map-credit'),
             borderRadius: BorderRadius.circular(8),
+            // Not over the whole screen: the map stays in sight above, a
+            // tap there or pulling the sheet down leads back.
             onTap: () => showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
-              builder: (context) => SafeArea(
-                child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: const DataSources()),
+              builder: (context) => DraggableScrollableSheet(
+                expand: false,
+                initialChildSize: 0.6,
+                maxChildSize: 0.9,
+                builder: (context, scroll) => SafeArea(
+                  child: SingleChildScrollView(
+                    controller: scroll,
+                    padding: const EdgeInsets.all(16),
+                    child: const DataSources(),
+                  ),
+                ),
               ),
             ),
             child: Padding(

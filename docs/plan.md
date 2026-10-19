@@ -895,7 +895,12 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     «geschlossen»), with the day, the credit and what it does not show
     (depth, whether a trail is passable) beside the BFU's advice to plan
     around snow fields and turn back in doubt (press release with the
-    Schweizer Wanderwege, 24 May 2022).
+    Schweizer Wanderwege, 24 May 2022). The box is small at first, the day
+    and the three colours with their names; the rest behind «Mehr dazu»
+    (feedback issue 20, which also found the app's colours missing).
+    The app's sources behind the map's credit open in a sheet that leaves
+    the map in sight: a tap above or pulling it down leads back (feedback
+    issue 21; it covered the whole screen).
     The snow-cover job (every 6 hours; a day is converted once) reads the
     11 tiles from EEA's public bucket, merges and colours them into tiles
     for zoom 6–11 (only those with snow) in the database; the API serves

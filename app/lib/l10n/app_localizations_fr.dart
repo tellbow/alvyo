@@ -1515,6 +1515,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Montre où il y a de la neige, pas son épaisseur ni si le chemin est praticable. Le BPA conseille de planifier ses randonnées de manière à éviter les névés et de faire demi-tour en cas de doute.';
 
   @override
+  String get snowMore => 'En savoir plus';
+
+  @override
+  String get snowLess => 'Moins';
+
+  @override
   String get poiFirepit => 'Place de feu';
 
   @override

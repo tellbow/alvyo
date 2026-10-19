@@ -1512,6 +1512,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra dove c’è neve, non quanto è profonda né se il sentiero è percorribile. L’UPI consiglia di pianificare le escursioni in modo da non incontrare nevai e, nel dubbio, di tornare indietro.';
 
   @override
+  String get snowMore => 'Maggiori informazioni';
+
+  @override
+  String get snowLess => 'Meno';
+
+  @override
   String get poiFirepit => 'Focolare';
 
   @override

@@ -457,6 +457,8 @@
   "snowMostly": "en majorité",
   "snowFull": "continue",
   "snowHint": "Montre où il y a de la neige, pas son épaisseur ni si le chemin est praticable. Le BPA conseille de planifier ses randonnées de manière à éviter les névés et de faire demi-tour en cas de doute.",
+  "snowMore": "En savoir plus",
+  "snowLess": "Moins",
   "poiFirepit": "Place de feu",
   "poiPicnic": "Aire de pique-nique",
   "poiRestaurant": "Restaurant, café",

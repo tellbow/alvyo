@@ -78,6 +78,8 @@
 	"snow_mostly": "überwiegend",
 	"snow_full": "geschlossen",
 	"snow_hint": "Zeigt, wo Schnee liegt, nicht wie tief er ist oder ob der Weg begehbar ist. Die BFU rät, Wanderungen so zu planen, dass man nicht auf Schneefelder trifft, und im Zweifel umzukehren.",
+	"snow_more": "Mehr dazu",
+	"snow_less": "Weniger",
 	"map_ovl_huts": "Hütten",
 	"map_ovl_lodging": "Hotels und Campingplätze",
 	"map_place_website": "Website",

@@ -19,6 +19,7 @@
 	const ABOVE = ['precip', 'huts', 'lodging', 'pois'].map((id) => OVERLAY_PREFIX + id);
 
 	let cover = $state<Snow>();
+	let open = $state(false);
 
 	// A new day comes once a day; an hour is often enough.
 	$effect(() => {
@@ -89,7 +90,18 @@
 	{#if cover && !cover.date}
 		<p>{m.snow_none()}</p>
 	{:else if cover?.date}
-		<p class="font-medium" data-testid="snow-date">{m.snow_date({ date: day(cover.date) })}</p>
+		<div class="flex items-start justify-between gap-2">
+			<p class="font-medium" data-testid="snow-date">{m.snow_date({ date: day(cover.date) })}</p>
+			<button
+				type="button"
+				class="-m-1 rounded px-1 text-sm text-stone-600 hover:bg-stone-100"
+				aria-expanded={open}
+				aria-label={open ? m.snow_less() : m.snow_more()}
+				title={open ? m.snow_less() : m.snow_more()}
+				data-testid="snow-more"
+				onclick={() => (open = !open)}>{open ? '▴' : 'ⓘ'}</button
+			>
+		</div>
 		<!-- Each colour with its name: 15, 50 and 90 % snow. -->
 		<div class="mt-1.5 grid grid-cols-3 gap-0.5">
 			{#each cover.legend as l, i (l.from)}
@@ -99,15 +111,18 @@
 				</div>
 			{/each}
 		</div>
-		<p class="mt-1">{m.snow_hint()}</p>
-		<p class="mt-1 text-stone-500">
-			{m.snow_note()} ·
-			<a
-				href="https://land.copernicus.eu/en/products/snow"
-				target="_blank"
-				rel="noopener"
-				class="underline">Copernicus (EU)</a
-			>
-		</p>
+		<!-- Small at first: what it does not show and the source behind a tap. -->
+		{#if open}
+			<p class="mt-1">{m.snow_hint()}</p>
+			<p class="mt-1 text-stone-500">
+				{m.snow_note()} ·
+				<a
+					href="https://land.copernicus.eu/en/products/snow"
+					target="_blank"
+					rel="noopener"
+					class="underline">Copernicus (EU)</a
+				>
+			</p>
+		{/if}
 	{/if}
 </div>

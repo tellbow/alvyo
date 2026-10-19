@@ -78,6 +78,8 @@
 	"snow_mostly": "en majorité",
 	"snow_full": "continue",
 	"snow_hint": "Montre où il y a de la neige, pas son épaisseur ni si le chemin est praticable. Le BPA conseille de planifier ses randonnées de manière à éviter les névés et de faire demi-tour en cas de doute.",
+	"snow_more": "En savoir plus",
+	"snow_less": "Moins",
 	"map_ovl_huts": "Cabanes",
 	"map_ovl_lodging": "Hôtels et campings",
 	"map_place_website": "Site web",

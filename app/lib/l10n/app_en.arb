@@ -457,6 +457,8 @@
   "snowMostly": "mostly",
   "snowFull": "complete",
   "snowHint": "Shows where snow lies, not how deep it is or whether the trail is passable. The BFU advises planning hikes so as not to meet snow fields, and turning back when in doubt.",
+  "snowMore": "More about it",
+  "snowLess": "Less",
   "poiFirepit": "Fire place",
   "poiPicnic": "Picnic spot",
   "poiRestaurant": "Restaurant, café",

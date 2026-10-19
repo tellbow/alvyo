@@ -134,17 +134,25 @@ class SnowController {
   }
 }
 
-/// The snow cover's day and legend over a map with it on; nothing while
-/// it is off.
-class SnowBar extends StatelessWidget {
+/// The snow cover's day and legend over a map with it on, small: what it
+/// does not show and the source a tap away; nothing while it is off.
+class SnowBar extends StatefulWidget {
   const SnowBar({super.key, required this.controller});
   final SnowController controller;
+
+  @override
+  State<SnowBar> createState() => _SnowBarState();
+}
+
+class _SnowBarState extends State<SnowBar> {
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final small = Theme.of(context).textTheme.bodySmall;
+    final controller = widget.controller;
     return ListenableBuilder(
       listenable: Listenable.merge([controller.overlays, controller.cover]),
       builder: (context, _) {
@@ -154,22 +162,35 @@ class SnowBar extends StatelessWidget {
           key: const Key('snow'),
           margin: EdgeInsets.zero,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            padding: const EdgeInsets.fromLTRB(12, 4, 4, 8),
             child: switch (c) {
-              null => const LinearProgressIndicator(),
-              SnowCover(date: null) => Text(t.snowNone),
+              null => const Padding(padding: EdgeInsets.fromLTRB(0, 8, 8, 0), child: LinearProgressIndicator()),
+              SnowCover(date: null) => Padding(padding: const EdgeInsets.only(top: 4), child: Text(t.snowNone)),
               SnowCover(:final date?) => Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    t.snowDate(DateFormat.MMMMd(locale).format(date)),
-                    key: const Key('snow-date'),
-                    style: small?.copyWith(fontWeight: FontWeight.w600),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          t.snowDate(DateFormat.MMMMd(locale).format(date)),
+                          key: const Key('snow-date'),
+                          style: small?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      IconButton(
+                        key: const Key('snow-more'),
+                        visualDensity: VisualDensity.compact,
+                        tooltip: _open ? t.snowLess : t.snowMore,
+                        icon: Icon(_open ? Icons.expand_less : Icons.info_outline, size: 20),
+                        onPressed: () => setState(() => _open = !_open),
+                      ),
+                    ],
                   ),
                   // Each colour with its name: 15, 50 and 90 % snow.
                   Padding(
-                    padding: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.only(right: 8),
                     child: Row(
                       children: [
                         for (final (i, l) in c.legend.indexed)
@@ -177,7 +198,7 @@ class SnowBar extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.only(right: 2),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(2),
@@ -191,11 +212,11 @@ class SnowBar extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(t.snowHint, style: small),
-                  ),
-                  Text('${t.snowNote} · Copernicus (EU)', style: small),
+                  if (_open)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 4, 8, 0),
+                      child: Text('${t.snowHint}\n${t.snowNote} · Copernicus (EU)', style: small),
+                    ),
                 ],
               ),
             },

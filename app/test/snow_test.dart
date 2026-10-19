@@ -89,7 +89,25 @@ void main() {
     overlays.value = {'snow'};
     await tester.pumpAndSettle();
     expect(find.text('Schneebedeckung am 18. Oktober'), findsOneWidget);
+    // Each colour is drawn beside its name (feedback issue 20: the names
+    // showed without their colours).
+    for (final name in ['Flecken', 'überwiegend', 'geschlossen']) {
+      expect(find.text(name), findsOneWidget);
+    }
+    final swatches = find.descendant(of: find.byKey(const Key('snow')), matching: find.byType(ColoredBox));
+    expect(swatches, findsNWidgets(3));
+    for (final e in swatches.evaluate()) {
+      expect(tester.getSize(find.byWidget(e.widget)).width, greaterThan(20));
+    }
+    // Small at first: what it does not show and the source behind a tap.
+    expect(find.textContaining('Die BFU rät'), findsNothing);
+    await tester.tap(find.byKey(const Key('snow-more')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Die BFU rät'), findsOneWidget);
     expect(find.textContaining('Copernicus (EU)'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('snow-more')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Die BFU rät'), findsNothing);
     c.dispose();
   });
 

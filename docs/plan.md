@@ -89,6 +89,7 @@ A `v*` tag builds the images; Flux deploys them
 | 1.5.0 | 2026-10-18 | The website's planner as the app's (9, feedback issue 3): a click on the map adds a destination, also on the line, a dot halfway along each leg drags it onto another way or into a stop; the switch «Zwischenpunkt / Anderer Weg», Alt and holding the line are gone; one search at a time in the app's planners (75, issue 19); «Berge erkennen» on an iPad held sideways (76, issue 13) |
 | 1.6.0 | 2026-10-19 | Sign in with Apple (77, feedback issue 2): on the website beside Google and in the iOS app with the system's sheet; Apple's tokens revoked when the account is deleted, Apple disconnected or the password reset; Apple's notifications remove an identity (migration 0040); universal links (45): shared links to routes, journeys, collections and invites open the iOS app (`apple-app-site-association`) |
 | 1.7.0 | 2026-10-19 | Snow on the map (78, feedback issue 17): the overlay «Schnee (Satellit)» on the website and in the app, Copernicus's daily snow cover (60 m) over Switzerland as tiles from the new snow-cover job (migration 0041, the cluster's CronJob every 6 hours) |
+| 1.7.1 | 2026-10-19 | The snow box small at first, the rest behind ⓘ, and the app's colour bars drawn again (feedback issue 20); the app's data sources behind the map's credit in a sheet that closes again (issue 21) |
 
 ## Requirements
 

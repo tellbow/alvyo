@@ -3,11 +3,12 @@ package elevation
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math"
-	"math/rand/v2"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -164,7 +165,15 @@ func retryWait(n int, base time.Duration) time.Duration {
 	if base == 0 {
 		base = time.Second
 	}
-	return min(base<<(n-1), 64*base) + rand.N(base)
+	return min(base<<(n-1), 64*base) + jitter(base)
+}
+
+// jitter is a random wait below limit, from crypto/rand like every random
+// number here (semgrep refuses math/rand).
+func jitter(limit time.Duration) time.Duration {
+	var b [8]byte
+	_, _ = rand.Read(b[:]) // never fails (crypto/rand panics on failure)
+	return time.Duration(binary.LittleEndian.Uint64(b[:]) % uint64(limit))
 }
 
 // do performs one request; retry reports whether the error is transient.

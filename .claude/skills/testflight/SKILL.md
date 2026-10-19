@@ -18,17 +18,25 @@ in TestFlight is the one in production.
      --build-number=$(git rev-list --count HEAD) \
      --dart-define=ALVYO_VERSION=$(git describe --tags --always)
    ```
-   It ends with «Encountered error while creating the IPA: … No signing
-   certificate "iOS Distribution" found»: expected, there is no
-   distribution certificate on this Mac. The archive in
-   `build/ios/archive/Runner.xcarchive` is what counts.
-3. **Sign and upload** with Xcode's cloud signing (the Apple ID in Xcode →
-   Settings → Accounts, team HYFKN2HQXF), as the Organizer does:
+   An error at the end while creating the IPA does not matter: the
+   archive in `build/ios/archive/Runner.xcarchive` is what counts.
+3. **Sign and upload**: signed on this Mac with the «Apple Distribution»
+   certificate (in the keychain) and the App Store profile «Alvyo App
+   Store» (`ios/ExportOptions-upload.plist`), uploaded with the App Store
+   Connect API key («App Manager»; its file in
+   `~/.appstoreconnect/private_keys/`, its key and issuer id in
+   `CLAUDE.local.md`). Xcode's own Apple ID session is not used: the
+   command line could not renew it.
    ```sh
    xcodebuild -exportArchive -archivePath build/ios/archive/Runner.xcarchive \
      -exportOptionsPlist ios/ExportOptions-upload.plist \
-     -exportPath <scratchpad>/export -allowProvisioningUpdates
+     -exportPath <scratchpad>/export \
+     -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_<key id>.p8 \
+     -authenticationKeyID <key id> -authenticationKeyIssuerID <issuer id>
    ```
+   «Provisioning profile … not found» or «expired»: the profile is renewed
+   once a year in the developer portal (Profiles → «Alvyo App Store» →
+   Edit → Generate; download and double-click), by the user.
    «Upload succeeded» and «EXPORT SUCCEEDED» mean it is in App Store
    Connect, processing (5–30 minutes until TestFlight shows it). The
    warning that MapLibre.framework has no dSYM is harmless: only crashes

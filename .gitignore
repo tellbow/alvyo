@@ -5,6 +5,8 @@
 
 # Apple keys (Sign in with Apple, APNs): they go into the deployment's secret
 *.p8
+# Provisioning profiles: installed into Xcode, not kept here
+*.mobileprovision
 
 # Go
 /api/bin/

@@ -5,7 +5,16 @@
 	<key>method</key><string>app-store-connect</string>
 	<key>destination</key><string>upload</string>
 	<key>teamID</key><string>HYFKN2HQXF</string>
-	<key>signingStyle</key><string>automatic</string>
+	<!-- Signed on this Mac with the «Apple Distribution» certificate and the
+	     App Store profile «Alvyo App Store» (renewed once a year in the
+	     developer portal); the upload uses an App Store Connect API key
+	     (the testflight skill). -->
+	<key>signingStyle</key><string>manual</string>
+	<key>signingCertificate</key><string>Apple Distribution</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>ch.tellbow.alvyo</key><string>Alvyo App Store</string>
+	</dict>
 	<key>manageAppVersionAndBuildNumber</key><false/>
 	<key>uploadSymbols</key><true/>
 </dict>

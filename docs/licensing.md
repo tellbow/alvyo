@@ -25,7 +25,8 @@ terms change, so check again when a source's use changes.
   2026-10-12: Go 78 (MIT, BSD, Apache-2.0; freetype under the FreeType
   License, credited in NOTICE), npm 316 (permissive; MPL-2.0 only in the
   build tool lightningcss), Dart 142 (permissive; MPL-2.0 only in Linux
-  plugins). The fonts are OFL-1.1; the app ships their license texts and
+  plugins). Only in tests, so in no binary or app: `pgregory.net/rapid`
+  (MPL-2.0, checked 2026-10-19). The fonts are OFL-1.1; the app ships their license texts and
   shows them on its license page with every package's. The Android app
   adds Gradle libraries `make licenses` does not list: MapLibre Native
   (BSD-2-Clause), AndroidX and Google's (Apache-2.0), and Google's

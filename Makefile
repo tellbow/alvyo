@@ -1,7 +1,7 @@
 GO_MODULES := swiss api
 COMPOSE    := docker compose -f infra/compose.yaml
 
-.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import alti-import wanderland-import weather-precip snow-cover sqlc api-client scorecard licenses
+.PHONY: test test-go test-web fuzz lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import alti-import wanderland-import weather-precip snow-cover sqlc api-client scorecard licenses
 
 test: test-go test-web
 
@@ -10,6 +10,14 @@ test-go:
 
 test-web:
 	cd web && bun run test:unit --run --passWithNoTests
+
+# Every Go fuzz test in turn, FUZZTIME each (docs/development.md, «Fuzzing»)
+FUZZTIME ?= 1m
+fuzz:
+	@for m in $(GO_MODULES); do (cd $$m && for f in $$(grep -rl --include='*_test.go' '^func Fuzz' .); do \
+		for n in $$(grep -o '^func Fuzz[A-Za-z0-9_]*' $$f | cut -c6-); do \
+			echo "== $$m/$$(dirname $$f) $$n"; go test $$(dirname $$f) -run '^$$' -fuzz "^$$n\$$" -fuzztime $(FUZZTIME) || exit 1; \
+		done; done) || exit 1; done
 
 # The licenses of all Go, npm and Dart packages; fails on one not reviewed
 # (after `bun install` in web and `flutter pub get` in app; docs/licensing.md).

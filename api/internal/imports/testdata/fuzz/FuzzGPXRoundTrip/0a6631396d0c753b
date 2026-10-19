@@ -1,0 +1,7 @@
+go test fuzz v1
+string("\x0e")
+float64(8.02)
+float64(5.185555555555556)
+float64(0.001)
+float64(-0.0005)
+byte('\x04')

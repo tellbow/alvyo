@@ -108,6 +108,33 @@ Live tests against the real external services:
 `ALVYO_OJP_TOKEN` set `go test -tags live ./swiss/ojp/` (one planner
 request). The e2e tests stub the planner, so they never use the OJP quota.
 
+### Fuzzing, models and simulated time
+
+Beside the tests with fixed examples, three kinds check rules on many
+generated inputs:
+
+- **Fuzz tests** (`func Fuzz…`, Go's own): what anyone can upload (track
+  files in `imports`, photos in `photos`) and the geometry in `swiss/`
+  (LV95, simplify, densify, hiking time). A normal `go test` only replays
+  their seeds and the saved inputs in `testdata/fuzz/`, which takes
+  seconds. To search for new failures, locally: `make fuzz` (each one
+  minute; `FUZZTIME=10m make fuzz` for longer), or one alone, e.g.
+  `cd api && go test ./internal/imports/ -run '^$' -fuzz '^FuzzParse$'`.
+  A failure is saved in the package's `testdata/fuzz/`: fix it, or the
+  test if its rule was wrong, and commit the file so it stays a seed.
+- **Model tests** run random sequences of actions against a simple model:
+  contacts with `pgregory.net/rapid` (`api/internal/live`, also adding at
+  the same moment), the app's upload queue against a server failing at
+  random (`app/test/uploads_model_test.dart`), the app's tracker, upload
+  points and titles (`app/test/properties_test.dart`). A failure names
+  its seed (`-rapid.seed=…`, or the test named «seed N»).
+- **Simulated time** with `testing/synctest`: the geo.admin retries
+  against seeded failures with the real waits and timeout
+  (`swiss/elevation/geoadmin_sim_test.go`), the rate limiter over hours
+  (`api/internal/ratelimit/sim_test.go`). Inside the bubble the clock
+  moves only when every goroutine waits, so no network: answers come
+  from a fake `http.RoundTripper`, not `httptest.NewServer`.
+
 ## Supply chain
 
 CI (`.github/workflows/ci.yml`, also every Monday) checks more than the

@@ -15,7 +15,6 @@ import '../navigation/tracker.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
-import '../precip.dart';
 import 'navigate_screen.dart';
 import 'route_screen.dart';
 import 'tiles.dart';
@@ -313,12 +312,7 @@ class _RecordScreenState extends State<RecordScreen> {
               child: Stack(
                 children: [
                   _mapView,
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    right: 64,
-                    child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-                  ),
+                  Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
                   const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                   if (!_follow && _fix != null)
                     Positioned(

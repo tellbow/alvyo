@@ -8,6 +8,7 @@
 	import { m as msg } from '#lib/paraglide/messages.js';
 	import { PLACE_OVERLAYS, isPoi, placeFeatures, placeKinds, poiText, webLink } from './places';
 	import PrecipLayer from './PrecipLayer.svelte';
+	import SnowLayer from './SnowLayer.svelte';
 	import { drawPoiIcon } from './poiIcons';
 	import { poiShown } from './poiKinds.svelte';
 	import { liveMaps } from './registry';
@@ -221,7 +222,7 @@
 		const below = (layers: string[]) =>
 			m.getStyle().layers.find((l) => l.id.startsWith(ROUTE_PREFIX) || layers.includes(l.id))?.id;
 		for (const id of OVERLAYS) {
-			if (id === 'precip') continue; // PrecipLayer
+			if (id === 'precip' || id === 'snow') continue; // PrecipLayer, SnowLayer
 			const layerId = OVERLAY_PREFIX + id;
 			const present = !!m.getLayer(layerId);
 			if (id in PLACE_OVERLAYS) {
@@ -392,5 +393,8 @@
 	<div bind:this={container} class="h-full w-full" data-testid="map" data-layers={layerIds}></div>
 	{#if map && overlays.includes('precip')}
 		<PrecipLayer {map} />
+	{/if}
+	{#if map && overlays.includes('snow')}
+		<SnowLayer {map} below={overlays.includes('precip')} />
 	{/if}
 </div>

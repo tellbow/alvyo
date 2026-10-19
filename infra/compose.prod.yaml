@@ -173,6 +173,24 @@ services:
       - ./data-import:/scripts:ro
     command: ["sh", "-c", "while true; do python3 /scripts/weather-precip.py; sleep 300; done"]
 
+  # The snow cover on the map (Copernicus, daily, published around 00:30
+  # UTC); looked for every 6 hours, a day is converted once.
+  snow-cover:
+    image: alvyo-data-import
+    build: ./data-import
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: alvyo
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: alvyo
+      HOME: /tmp
+    volumes:
+      - ./data-import:/scripts:ro
+    command: ["sh", "-c", "while true; do python3 /scripts/snow-cover.py; sleep 21600; done"]
+
   # One-shot: the official routes of Wanderland Schweiz (a few updates a
   # year); the API makes them routes and journeys after its next check.
   wanderland-import:

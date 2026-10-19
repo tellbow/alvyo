@@ -16,7 +16,6 @@ import '../map_style.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import '../planner.dart';
-import '../precip.dart';
 import 'plan_sheet.dart';
 import 'route_screen.dart';
 
@@ -646,12 +645,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
                 ),
               ),
             ),
-            Positioned(
-              top: 12,
-              left: 12,
-              right: 64,
-              child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-            ),
+            Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
             const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
           ],
         ),

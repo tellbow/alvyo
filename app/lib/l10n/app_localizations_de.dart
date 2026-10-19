@@ -1486,6 +1486,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get precipHeavy => 'stark';
 
   @override
+  String get mapOverlaySnow => 'Schnee (Satellit)';
+
+  @override
+  String snowDate(String date) {
+    return 'Schneebedeckung am $date';
+  }
+
+  @override
+  String get snowNone => 'Noch keine Schneedaten.';
+
+  @override
+  String get snowNote => 'Satellit, 60 m; bei Wolken bis 7 Tage alt';
+
+  @override
+  String get snowPatchy => 'Flecken';
+
+  @override
+  String get snowMostly => 'überwiegend';
+
+  @override
+  String get snowFull => 'geschlossen';
+
+  @override
+  String get snowHint =>
+      'Zeigt, wo Schnee liegt, nicht wie tief er ist oder ob der Weg begehbar ist. Die BFU rät, Wanderungen so zu planen, dass man nicht auf Schneefelder trifft, und im Zweifel umzukehren.';
+
+  @override
   String get poiFirepit => 'Feuerstelle';
 
   @override
@@ -2302,6 +2329,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get aboutSrcMeteo =>
       'Quelle: MeteoSchweiz – Wetterprognosen, Regenradar, Niederschlagsprognose (ICON-CH1) und Klimanormwerte';
+
+  @override
+  String get aboutSrcCopernicus =>
+      'Erstellt mit Informationen des Copernicus Land Monitoring Service der Europäischen Union: Schneebedeckung (HR-WSI, täglich, 60 m), von uns eingefärbt und auf die Schweiz zugeschnitten';
 
   @override
   String get aboutSrcTransport => 'opentransportdata.swiss: Fahrplan und Verbindungen (Open Journey Planner)';

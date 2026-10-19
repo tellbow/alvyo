@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'format.dart';
 import 'precip.dart';
+import 'snow.dart';
 
 /// A failed API call with its HTTP status.
 class ApiException implements Exception {
@@ -1575,6 +1576,9 @@ class Api {
   /// The rain on the map: the radar's last hour and the forecast.
   Future<PrecipTimeline> precip() async =>
       PrecipTimeline.fromJson(await _get('/weather/precip') as Map<String, dynamic>);
+
+  /// The snow cover on the map: its day and tiles.
+  Future<SnowCover> snow() async => SnowCover.fromJson(await _get('/weather/snow') as Map<String, dynamic>);
 
   Future<RouteWeather> routeWeather(String routeId, {String? date}) async =>
       RouteWeather.fromJson(await _get('/routes/$routeId/weather', {'date': ?date}) as Map<String, dynamic>);

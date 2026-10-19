@@ -416,6 +416,25 @@
         ],
         "type": "object"
       },
+      "Class": {
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "description": "#rrggbb",
+            "type": "string"
+          },
+          "from": {
+            "description": "Snow cover in %",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "from",
+          "color"
+        ],
+        "type": "object"
+      },
       "Climate": {
         "additionalProperties": false,
         "properties": {
@@ -1526,6 +1545,34 @@
         },
         "required": [
           "expected_end"
+        ],
+        "type": "object"
+      },
+      "Extent": {
+        "additionalProperties": false,
+        "properties": {
+          "east": {
+            "format": "double",
+            "type": "number"
+          },
+          "north": {
+            "format": "double",
+            "type": "number"
+          },
+          "south": {
+            "format": "double",
+            "type": "number"
+          },
+          "west": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "west",
+          "south",
+          "east",
+          "north"
         ],
         "type": "object"
       },
@@ -5144,6 +5191,47 @@
         "required": [
           "from_m",
           "to_m"
+        ],
+        "type": "object"
+      },
+      "SnowOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution": {
+            "type": "string"
+          },
+          "bounds": {
+            "$ref": "#/components/schemas/Extent"
+          },
+          "date": {
+            "description": "The day the snow cover is for (YYYY-MM-DD); missing while there is none",
+            "type": "string"
+          },
+          "legend": {
+            "items": {
+              "$ref": "#/components/schemas/Class"
+            },
+            "type": "array"
+          },
+          "maxzoom": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "minzoom": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "tiles": {
+            "description": "The tiles' URL ({z}, {x}, {y}): PNG, Web Mercator, transparent without snow",
+            "type": "string"
+          }
+        },
+        "required": [
+          "minzoom",
+          "maxzoom",
+          "bounds",
+          "legend",
+          "attribution"
         ],
         "type": "object"
       },
@@ -15517,6 +15605,134 @@
           }
         },
         "summary": "One picture of the rain on the map",
+        "tags": [
+          "weather"
+        ]
+      }
+    },
+    "/weather/snow": {
+      "get": {
+        "description": "The Copernicus Land Monitoring Service's daily snow cover (60 m; in cloudy weather up to 7 days old) as map tiles over bounds.",
+        "operationId": "get-snow-cover",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnowOutputBody"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Snow cover on the map",
+        "tags": [
+          "weather"
+        ]
+      }
+    },
+    "/weather/snow/{day}/{z}/{x}/{y}/tile.png": {
+      "get": {
+        "description": "204 where there is no snow; 404 for a day that is not (or no longer) there.",
+        "operationId": "get-snow-tile",
+        "parameters": [
+          {
+            "description": "YYYY-MM-DD",
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "description": "YYYY-MM-DD",
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "z",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "maximum": 20,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "x",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "y",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "contentEncoding": "base64",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "One tile of the snow cover",
         "tags": [
           "weather"
         ]

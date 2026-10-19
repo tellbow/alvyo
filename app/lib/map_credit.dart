@@ -3,6 +3,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'l10n/app_localizations.dart';
 import 'place_layer.dart';
+import 'precip.dart';
+import 'snow.dart';
 
 /// Who to credit for what the map shows, always in sight: swisstopo asks
 /// for its source on every map, OpenStreetMap for one that needs no tap
@@ -20,6 +22,7 @@ class MapCredit extends StatelessWidget {
     '© OpenStreetMap',
     if (overlays.contains('wanderland')) '© ASTRA, SchweizMobil',
     if (overlays.contains('wildruhezonen') || overlays.contains('jagdbanngebiete')) '© BAFU',
+    if (overlays.contains('snow')) 'Copernicus (EU)',
   ].join(' · ');
 
   @override
@@ -59,18 +62,24 @@ class MapCredit extends StatelessWidget {
   }
 }
 
-/// The precipitation bar and the credit in the map's upper left corner:
-/// there no sheet covers the credit.
+/// The bars of the rain and the snow cover and the credit in the map's
+/// upper left corner: there no sheet covers the credit.
 class MapCorner extends StatelessWidget {
-  const MapCorner({super.key, required this.precip});
+  const MapCorner({super.key, required this.places});
 
-  final Widget precip;
+  final PlaceLayer places;
 
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
-    children: [precip, const SizedBox(height: 4), const MapCredit()],
+    children: [
+      PrecipBar(controller: places.precip),
+      const SizedBox(height: 4),
+      SnowBar(controller: places.snow),
+      const SizedBox(height: 4),
+      const MapCredit(),
+    ],
   );
 }
 
@@ -91,6 +100,7 @@ List<DataSource> dataSources(AppLocalizations t) => [
   (text: t.aboutSrcBafu, terms: _ogd.$1, href: _ogd.$2),
   (text: t.aboutSrcVbs, terms: _ogd.$1, href: _ogd.$2),
   (text: t.aboutSrcMeteo, terms: 'CC BY 4.0', href: 'https://opendatadocs.meteoswiss.ch/general/terms-of-use'),
+  (text: t.aboutSrcCopernicus, terms: 'CLMS data policy', href: 'https://land.copernicus.eu/en/data-policy'),
   (
     text: t.aboutSrcTransport,
     terms: 'opentransportdata.swiss',

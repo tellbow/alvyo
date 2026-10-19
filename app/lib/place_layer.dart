@@ -11,6 +11,7 @@ import 'l10n/app_localizations.dart';
 import 'map_style.dart';
 import 'poi_icons.dart';
 import 'precip.dart';
+import 'snow.dart';
 
 /// The places a map can show, each switched on in the layer menu.
 enum PlaceGroup { huts, lodging, pois }
@@ -142,6 +143,9 @@ class PlaceLayer {
   /// The rain, while the overlay «precip» is on; its bar goes on the screen.
   late final precip = PrecipController(api, settings.overlays);
 
+  /// The snow cover, while the overlay «snow» is on; its bar goes on the screen.
+  late final snow = SnowController(api, settings.overlays);
+
   static const _id = 'places';
   static const _poisId = 'places-pois';
   static const _alongId = 'places-along';
@@ -235,6 +239,7 @@ class PlaceLayer {
     _style = style;
     await settings.loaded;
     _syncRaster();
+    snow.attach(style, below: _id);
     precip.attach(style, below: _id);
     _load(now: true);
   }
@@ -317,6 +322,7 @@ class PlaceLayer {
     settings.base.removeListener(_syncRaster);
     settings.overlays.removeListener(_syncRaster);
     precip.dispose();
+    snow.dispose();
     _timer?.cancel();
     _asked++;
     _style = null;
@@ -505,6 +511,12 @@ class PlaceLayerButton extends StatelessWidget {
                       title: Text(t.mapOverlayPrecip),
                       value: s.overlays.value.contains('precip'),
                       onChanged: (_) => s.toggleOverlay('precip'),
+                    ),
+                    SwitchListTile(
+                      key: const Key('map-overlay-snow'),
+                      title: Text(t.mapOverlaySnow),
+                      value: s.overlays.value.contains('snow'),
+                      onChanged: (_) => s.toggleOverlay('snow'),
                     ),
                     for (final (g, label) in [
                       (PlaceGroup.huts, t.mapHuts),

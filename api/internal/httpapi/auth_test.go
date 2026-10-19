@@ -29,6 +29,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/ratelimit"
 	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
+	"github.com/tellbow/alvyo/api/internal/snow"
 	"github.com/tellbow/alvyo/api/internal/testdb"
 	"github.com/tellbow/alvyo/api/internal/travel"
 )
@@ -60,6 +61,7 @@ func newTestServerWith(t *testing.T, adjust func(*Deps)) *testServer {
 		Grants:      &grants.Store{DB: pool, Mail: rec, PublicURL: origin},
 		Collections: &collections.Store{DB: pool},
 		Precip:      &precip.Store{DB: pool},
+		Snow:        &snow.Store{DB: pool},
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: rec, PublicURL: origin},
 		Done:        &done.Store{DB: pool},

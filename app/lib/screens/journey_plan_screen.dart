@@ -13,7 +13,6 @@ import '../map_credit.dart';
 import '../map_style.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
-import '../precip.dart';
 import 'journey_screen.dart';
 import 'plan_sheet.dart';
 import 'travel_screen.dart';
@@ -546,12 +545,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
           children: [
             if (widget.showMap) ...[
               Positioned.fill(child: _mapView),
-              Positioned(
-                top: 12,
-                left: 12,
-                right: 64,
-                child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-              ),
+              Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
               const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
             ] else
               const Positioned.fill(child: ColoredBox(color: Colors.black12)),

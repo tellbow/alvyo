@@ -35,6 +35,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/snow"
 	"github.com/tellbow/alvyo/api/internal/telemetry"
 	"github.com/tellbow/alvyo/api/internal/travel"
 	"github.com/tellbow/alvyo/api/internal/weather"
@@ -60,6 +61,7 @@ type Deps struct {
 	Areas       *areas.Finder // protected areas along routes
 	Weather     *weather.Forecast
 	Precip      *precip.Store  // rain on the map
+	Snow        *snow.Store    // snow cover on the map
 	Peaks       *peaks.Service // the pack for recognising mountains
 	Live        *live.Store    // hikes shared with contacts
 	Travel      *travel.Store  // homes and the way to and from journeys
@@ -135,6 +137,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerAreas(api, d)
 	registerWeather(api, d)
 	registerPrecip(api, d)
+	registerSnow(api, d)
 	registerPeaks(api, d)
 	registerLive(api, d)
 	registerRoutes(api, d)

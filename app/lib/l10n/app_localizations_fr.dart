@@ -1488,6 +1488,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get precipHeavy => 'fort';
 
   @override
+  String get mapOverlaySnow => 'Neige (satellite)';
+
+  @override
+  String snowDate(String date) {
+    return 'Enneigement le $date';
+  }
+
+  @override
+  String get snowNone => 'Pas encore de données d’enneigement.';
+
+  @override
+  String get snowNote => 'Satellite, 60 m ; jusqu’à 7 jours sous les nuages';
+
+  @override
+  String get snowPatchy => 'plaques';
+
+  @override
+  String get snowMostly => 'en majorité';
+
+  @override
+  String get snowFull => 'continue';
+
+  @override
+  String get snowHint =>
+      'Montre où il y a de la neige, pas son épaisseur ni si le chemin est praticable. Le BPA conseille de planifier ses randonnées de manière à éviter les névés et de faire demi-tour en cas de doute.';
+
+  @override
   String get poiFirepit => 'Place de feu';
 
   @override
@@ -2307,6 +2334,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get aboutSrcMeteo =>
       'Source : MétéoSuisse – prévisions météo, radar des précipitations, prévision des précipitations (ICON-CH1) et normes climatologiques';
+
+  @override
+  String get aboutSrcCopernicus =>
+      'Réalisé à partir d’informations du service Copernicus de surveillance des terres de l’Union européenne : enneigement (HR-WSI, quotidien, 60 m), coloré et découpé sur la Suisse par nos soins';
 
   @override
   String get aboutSrcTransport => 'opentransportdata.swiss : horaire et correspondances (Open Journey Planner)';

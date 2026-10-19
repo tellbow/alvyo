@@ -375,6 +375,9 @@ Checked so far only in the simulator, with made-up or simulated positions
       Deleting the account: Settings → Apple ID → Sign in with Apple no
       longer lists Alvyo.
       2026-10-19, 1.6.0 on the iPhone: by the project owner.
+- [ ] **Snow in the app** (78, after the release): «Schnee (Satellit)» in
+      «Karten» on «Planen», a route and «Entdecken»: the blue areas, the
+      box with the day and «Copernicus (EU)» in the map's credit.
 - [x] **Universal links** (45, after the release and the website's
       `apple-app-site-association` deployed): a shared https link to a
       route, journey, collection or invite opens the app from Messages or
@@ -466,6 +469,11 @@ emulator ran the integration tests offline, navigate and journey
       (`…@privaterelay.appleid.com`). Removing Alvyo under Apple ID → Sign in
       with Apple removes it from «Verbundene Konten» (Apple's notification).
       2026-10-19, production: by the project owner.
+- [ ] **Snow on the map** (78, after the release and the snow-cover job's
+      first run in production): «Schnee (Satellit)» in the layer menu shows
+      blue areas where the Alps have snow, with yesterday's date and the
+      Copernicus credit (box and attribution); zoomed in beyond 11 the
+      tiles get coarser, not empty; together with the rain both boxes show.
 - [ ] **Google Analytics** (62): after the release, the banner on the
       first visit (also on a phone, not covering the planner's buttons);
       GA's real-time report shows the visit, addresses without `?t=` and

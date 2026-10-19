@@ -22,6 +22,10 @@ export const sources: Source[] = [
 		terms: { label: 'CC BY 4.0', href: 'https://opendatadocs.meteoswiss.ch/general/terms-of-use' }
 	},
 	{
+		text: m.about_src_copernicus,
+		terms: { label: 'CLMS data policy', href: 'https://land.copernicus.eu/en/data-policy' }
+	},
+	{
 		text: m.about_src_transport,
 		terms: {
 			label: 'opentransportdata.swiss',

@@ -12,7 +12,6 @@ import '../map_style.dart';
 import '../navigation/gps.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
-import '../precip.dart';
 
 import 'plan_sheet.dart';
 import 'planner_screen.dart';
@@ -350,12 +349,7 @@ class ReachScreenState extends State<ReachScreen> {
         map: Stack(
           children: [
             Positioned.fill(child: _mapView),
-            Positioned(
-              top: 12,
-              left: 12,
-              right: 64,
-              child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-            ),
+            Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
             const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
             if (_busy)
               Positioned(

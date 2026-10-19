@@ -21,6 +21,10 @@ links and where each is credited: docs/licensing.md):
   opendata.swiss, open use, source required)
 - Weather forecasts, rain radar, ICON-CH1 precipitation forecast, climate
   normals 1991–2020: Source: MeteoSwiss (CC BY 4.0)
+- Snow cover: Generated using European Union's Copernicus Land Monitoring
+  Service information (HR-WSI Gap-filled Fractional Snow Cover,
+  doi:10.2909/832c7297-a20f-4b92-8e32-1e2e1548e642), coloured and cut to
+  Switzerland by Alvyo (CLMS data policy, Regulation (EU) 1159/2013)
 - Public transport connections: opentransportdata.swiss (Open Journey Planner)
 - Public transport stops: Federal Office of Transport BAV (list of stops, OGD)
 - Routing network, huts, accommodation, places, points of interest and the

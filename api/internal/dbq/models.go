@@ -511,6 +511,19 @@ type Session struct {
 	UserAgent  *string
 }
 
+type SnowDay struct {
+	Day       pgtype.Date
+	CreatedAt time.Time
+}
+
+type SnowTile struct {
+	Day pgtype.Date
+	Z   int16
+	X   int32
+	Y   int32
+	Png []byte
+}
+
 type Stage struct {
 	ID                  uuid.UUID
 	JourneyID           uuid.UUID

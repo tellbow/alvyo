@@ -1485,6 +1485,33 @@ class AppLocalizationsIt extends AppLocalizations {
   String get precipHeavy => 'forte';
 
   @override
+  String get mapOverlaySnow => 'Neve (satellite)';
+
+  @override
+  String snowDate(String date) {
+    return 'Copertura nevosa il $date';
+  }
+
+  @override
+  String get snowNone => 'Ancora nessun dato sulla neve.';
+
+  @override
+  String get snowNote => 'Satellite, 60 m; fino a 7 giorni sotto le nuvole';
+
+  @override
+  String get snowPatchy => 'chiazze';
+
+  @override
+  String get snowMostly => 'in prevalenza';
+
+  @override
+  String get snowFull => 'continua';
+
+  @override
+  String get snowHint =>
+      'Mostra dove c’è neve, non quanto è profonda né se il sentiero è percorribile. L’UPI consiglia di pianificare le escursioni in modo da non incontrare nevai e, nel dubbio, di tornare indietro.';
+
+  @override
   String get poiFirepit => 'Focolare';
 
   @override
@@ -2302,6 +2329,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get aboutSrcMeteo =>
       'Fonte: MeteoSvizzera – previsioni meteo, radar delle precipitazioni, previsione delle precipitazioni (ICON-CH1) e valori climatici normali';
+
+  @override
+  String get aboutSrcCopernicus =>
+      'Realizzato con informazioni del servizio Copernicus di monitoraggio del territorio dell’Unione europea: copertura nevosa (HR-WSI, giornaliera, 60 m), colorata e ritagliata sulla Svizzera da noi';
 
   @override
   String get aboutSrcTransport => 'opentransportdata.swiss: orario e collegamenti (Open Journey Planner)';

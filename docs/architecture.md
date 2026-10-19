@@ -32,6 +32,7 @@ flowchart TB
     imports["tlm-import, places-import<br/>by hand"]
     wanderland["wanderland-import<br/>monthly"]
     precip["weather-precip<br/>every 5 min"]
+    snow["snow-cover<br/>every 6 hours"]
   end
 
   monitoring["namespace monitoring-system<br/>OpenTelemetry collector, Tempo,<br/>Prometheus, VictoriaLogs, Grafana"]
@@ -53,6 +54,7 @@ flowchart TB
   imports -- "OSM extract" --> geodata
   imports --> db
   precip -- "rain pictures" --> db
+  snow -- "snow tiles" --> db
   wanderland -- "official routes" --> db
   backup --> db
 
@@ -95,6 +97,10 @@ What each part does, and why it is there:
 - **weather-precip** turns MeteoSwiss's radar of the last hour and the
   ICON-CH1 forecast into pictures every five minutes, so the API only
   serves them from the database.
+- **snow-cover** turns Copernicus's daily snow cover (60 m, the newest day
+  with all tiles over Switzerland) into map tiles (zoom 6–11, only those
+  with snow), looked for every six hours; the API serves them from the
+  database.
 - **monitoring-system** is the cluster's own namespace for it. The API
   and the web server send traces to the OpenTelemetry collector on their
   node, which passes them to Tempo; Tempo derives span metrics for
@@ -117,6 +123,7 @@ flowchart LR
   imports["tlm-import,<br/>places-import"]
   wanderland["wanderland-import"]
   precip["weather-precip"]
+  snow["snow-cover"]
 
   subgraph swisstopo["swisstopo and geo.admin.ch"]
     vt["Vector base map<br/>vectortiles.geo.admin.ch"]
@@ -165,6 +172,7 @@ flowchart LR
   imports --> bav
   wanderland --> wl
   precip --> radar
+  snow -- "snow cover" --> clms["Copernicus HR-WSI<br/>s3.WAW3-2.cloudferro.com"]
 ```
 
 In more detail:
@@ -176,6 +184,7 @@ In more detail:
 | `api3.geo.admin.ch` | API | Heights of every planned or imported leg (profile service), place search, protected areas (BAFU) and current notices (ASTRA trail closures, VBS shooting) along a line (identify service) |
 | `data.geo.admin.ch` | tlm-import, places-import | swissTLM3D hiking trails, BAV stops |
 | `data.geo.admin.ch` (ASTRA) | wanderland-import | The official routes of Wanderland Schweiz, monthly |
+| `s3.WAW3-2.cloudferro.com` (EEA, Copernicus) | snow-cover | The daily gap-filled snow cover (HR-WSI GFSC), EEA's public bucket, read without keys |
 | `data.geo.admin.ch` (MeteoSwiss) | API, weather-precip | Local forecast (API, hourly), radar and ICON-CH1 (job). The climate normals are a file in the API, updated once a decade. |
 | `api.opentransportdata.swiss` | API | Public transport connections (OJP), only with `ALVYO_OJP_TOKEN` |
 | `download.geofabrik.de` | graph-refresh, graphhopper's first start | OSM extracts for the graph and the places |

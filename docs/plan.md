@@ -885,6 +885,22 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     using it with Alvyo or deletes their Apple account. An address that
     has an account already is not taken over: its owner connects Apple on
     the website first (the app says so).
+78. **Snow on the map** (feedback issue 17, 2026-10-19). The overlay
+    «Schnee (Satellit)» on the website and in the app's «Karten»: the
+    Copernicus Land Monitoring Service's daily gap-filled snow cover
+    (HR-WSI GFSC, 60 m, Sentinel-2 with Sentinel-1 filling the cloud gaps;
+    under clouds up to 7 days old) over Switzerland and 15 km around, in
+    three blues from 15, 50 and 90 % snow («Flecken», «überwiegend»,
+    «geschlossen»), with the day, the credit and what it does not show
+    (depth, whether a trail is passable) beside the BFU's advice to plan
+    around snow fields and turn back in doubt (press release with the
+    Schweizer Wanderwege, 24 May 2022).
+    The snow-cover job (every 6 hours; a day is converted once) reads the
+    11 tiles from EEA's public bucket, merges and colours them into tiles
+    for zoom 6–11 (only those with snow) in the database; the API serves
+    them (`/weather/snow`). SLF's snow depth maps would be better for
+    Switzerland but have no open terms; station snow depths and snowshoe
+    routes were the other options.
 
 ### Open
 

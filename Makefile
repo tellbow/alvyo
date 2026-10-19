@@ -1,7 +1,7 @@
 GO_MODULES := swiss api
 COMPOSE    := docker compose -f infra/compose.yaml
 
-.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import wanderland-import weather-precip sqlc api-client scorecard licenses
+.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import wanderland-import weather-precip snow-cover sqlc api-client scorecard licenses
 
 test: test-go test-web
 
@@ -48,6 +48,11 @@ wanderland-import:
 # cluster runs it every 5 minutes.
 weather-precip:
 	$(COMPOSE) run --rm weather-precip
+
+# Snow cover tiles for the map (Copernicus; run `migrate` first). The
+# cluster looks for a new day every 6 hours.
+snow-cover:
+	$(COMPOSE) run --rm snow-cover
 
 # Regenerate api/internal/dbq from api/queries/*.sql and the migrations.
 sqlc:

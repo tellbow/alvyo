@@ -36,6 +36,10 @@ The API calls these services; allow them if egress is restricted:
 | `accounts.google.com`, `appleid.apple.com` | Sign-in providers (`ALVYO_OIDC_PROVIDERS`): discovery, keys, tokens, and Apple's revocation when an account is deleted |
 | `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for the private `tellbow/alvyo-feedback` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write» and «Contents: read and write» (screenshots are committed under `screenshots/`). Without it reports are only kept in the database, without screenshot. |
 
+The jobs fetch from `data.geo.admin.ch` (weather-precip and the imports),
+`download.geofabrik.de` (graph-refresh) and `s3.WAW3-2.cloudferro.com`
+(snow-cover: Copernicus's snow cover, EEA's public bucket).
+
 The tile cache fetches from `wmts.geo.admin.ch` and `tiles.mapterhorn.com`
 and checks their certificates (`proxy_ssl_verify`; the cluster has its own
 copy of the configuration in the deployment repository).

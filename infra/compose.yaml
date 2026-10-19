@@ -124,6 +124,22 @@ services:
       - ./data-import:/scripts:ro
     command: ["python3", "/scripts/weather-precip.py"]
 
+  # One-shot: make snow-cover (Copernicus's snow cover as map tiles).
+  snow-cover:
+    image: alvyo-data-import
+    build: ./data-import
+    profiles: [data]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: alvyo
+      PGPASSWORD: alvyo
+      PGDATABASE: alvyo
+    volumes:
+      - ./data-import:/scripts:ro
+    command: ["python3", "/scripts/snow-cover.py"]
+
   mailpit:
     image: axllent/mailpit:latest
     ports:

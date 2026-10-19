@@ -1479,6 +1479,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get precipHeavy => 'heavy';
 
   @override
+  String get mapOverlaySnow => 'Snow (satellite)';
+
+  @override
+  String snowDate(String date) {
+    return 'Snow cover on $date';
+  }
+
+  @override
+  String get snowNone => 'No snow data yet.';
+
+  @override
+  String get snowNote => 'Satellite, 60 m; up to 7 days old under clouds';
+
+  @override
+  String get snowPatchy => 'patches';
+
+  @override
+  String get snowMostly => 'mostly';
+
+  @override
+  String get snowFull => 'complete';
+
+  @override
+  String get snowHint =>
+      'Shows where snow lies, not how deep it is or whether the trail is passable. The BFU advises planning hikes so as not to meet snow fields, and turning back when in doubt.';
+
+  @override
   String get poiFirepit => 'Fire place';
 
   @override
@@ -2292,6 +2319,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get aboutSrcMeteo =>
       'Source: MeteoSwiss – weather forecasts, rain radar, precipitation forecast (ICON-CH1) and climate normals';
+
+  @override
+  String get aboutSrcCopernicus =>
+      'Generated using European Union\'s Copernicus Land Monitoring Service information: snow cover (HR-WSI, daily, 60 m), coloured and cut to Switzerland by us';
 
   @override
   String get aboutSrcTransport => 'opentransportdata.swiss: timetable and connections (Open Journey Planner)';

@@ -57,6 +57,7 @@ export type Travel = components['schemas']['Travel'];
 export type TravelWay = components['schemas']['Way'];
 export type Trip = components['schemas']['TransitTrip'];
 export type Precip = components['schemas']['PrecipOutputBody'];
+export type Snow = components['schemas']['SnowOutputBody'];
 
 /**
  * Typed client for the Alvyo API. Pass SvelteKit's `fetch` in load

@@ -12,7 +12,6 @@ import '../map_credit.dart';
 import '../map_style.dart';
 import '../navigation/gps.dart';
 import '../place_layer.dart';
-import '../precip.dart';
 import 'details.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
@@ -511,12 +510,7 @@ class _DiscoverMapState extends State<_DiscoverMap> {
               );
             },
           ),
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 64,
-            child: MapCorner(precip: PrecipBar(controller: _places.precip)),
-          ),
+          Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
           const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
         ],
       );

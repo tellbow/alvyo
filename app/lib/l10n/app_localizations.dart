@@ -2788,6 +2788,54 @@ abstract class AppLocalizations {
   /// **'stark'**
   String get precipHeavy;
 
+  /// No description provided for @mapOverlaySnow.
+  ///
+  /// In de, this message translates to:
+  /// **'Schnee (Satellit)'**
+  String get mapOverlaySnow;
+
+  /// No description provided for @snowDate.
+  ///
+  /// In de, this message translates to:
+  /// **'Schneebedeckung am {date}'**
+  String snowDate(String date);
+
+  /// No description provided for @snowNone.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Schneedaten.'**
+  String get snowNone;
+
+  /// No description provided for @snowNote.
+  ///
+  /// In de, this message translates to:
+  /// **'Satellit, 60 m; bei Wolken bis 7 Tage alt'**
+  String get snowNote;
+
+  /// No description provided for @snowPatchy.
+  ///
+  /// In de, this message translates to:
+  /// **'Flecken'**
+  String get snowPatchy;
+
+  /// No description provided for @snowMostly.
+  ///
+  /// In de, this message translates to:
+  /// **'überwiegend'**
+  String get snowMostly;
+
+  /// No description provided for @snowFull.
+  ///
+  /// In de, this message translates to:
+  /// **'geschlossen'**
+  String get snowFull;
+
+  /// No description provided for @snowHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Zeigt, wo Schnee liegt, nicht wie tief er ist oder ob der Weg begehbar ist. Die BFU rät, Wanderungen so zu planen, dass man nicht auf Schneefelder trifft, und im Zweifel umzukehren.'**
+  String get snowHint;
+
   /// No description provided for @poiFirepit.
   ///
   /// In de, this message translates to:
@@ -4275,6 +4323,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Quelle: MeteoSchweiz – Wetterprognosen, Regenradar, Niederschlagsprognose (ICON-CH1) und Klimanormwerte'**
   String get aboutSrcMeteo;
+
+  /// No description provided for @aboutSrcCopernicus.
+  ///
+  /// In de, this message translates to:
+  /// **'Erstellt mit Informationen des Copernicus Land Monitoring Service der Europäischen Union: Schneebedeckung (HR-WSI, täglich, 60 m), von uns eingefärbt und auf die Schweiz zugeschnitten'**
+  String get aboutSrcCopernicus;
 
   /// No description provided for @aboutSrcTransport.
   ///

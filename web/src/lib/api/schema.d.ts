@@ -2473,6 +2473,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/weather/snow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Snow cover on the map
+         * @description The Copernicus Land Monitoring Service's daily snow cover (60 m; in cloudy weather up to 7 days old) as map tiles over bounds.
+         */
+        get: operations["get-snow-cover"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weather/snow/{day}/{z}/{x}/{y}/tile.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One tile of the snow cover
+         * @description 204 where there is no snow; 404 for a day that is not (or no longer) there.
+         */
+        get: operations["get-snow-tile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2613,6 +2653,15 @@ export interface components {
             id: string;
             /** @description The GitHub issue, when one was opened */
             issue_url?: string;
+        };
+        Class: {
+            /** @description #rrggbb */
+            color: string;
+            /**
+             * Format: int64
+             * @description Snow cover in %
+             */
+            from: number;
         };
         Climate: {
             /**
@@ -3019,6 +3068,16 @@ export interface components {
         ExtendLiveInputBody: {
             /** Format: date-time */
             expected_end: string;
+        };
+        Extent: {
+            /** Format: double */
+            east: number;
+            /** Format: double */
+            north: number;
+            /** Format: double */
+            south: number;
+            /** Format: double */
+            west: number;
         };
         FeedItem: {
             /** Format: double */
@@ -4175,6 +4234,19 @@ export interface components {
             from_m: number;
             /** Format: double */
             to_m: number;
+        };
+        SnowOutputBody: {
+            attribution: string;
+            bounds: components["schemas"]["Extent"];
+            /** @description The day the snow cover is for (YYYY-MM-DD); missing while there is none */
+            date?: string;
+            legend: components["schemas"]["Class"][];
+            /** Format: int64 */
+            maxzoom: number;
+            /** Format: int64 */
+            minzoom: number;
+            /** @description The tiles' URL ({z}, {x}, {y}): PNG, Web Mercator, transparent without snow */
+            tiles?: string;
         };
         SocialBody: {
             /** @description The viewer may write a comment */
@@ -10559,6 +10631,73 @@ export interface operations {
                 kind: "radar" | "forecast";
                 /** @description Unix seconds of the frame's time */
                 time: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Content-Type"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-snow-cover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnowOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-snow-tile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description YYYY-MM-DD */
+                day: string;
+                z: number;
+                x: number;
+                y: number;
             };
             cookie?: never;
         };

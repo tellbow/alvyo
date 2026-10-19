@@ -1,6 +1,6 @@
 ---
 name: testflight
-description: Builds the Alvyo iOS app of the last release tag and uploads it to App Store Connect for TestFlight, signed through the Apple ID in Xcode. Only when the user asks for a TestFlight or App Store build.
+description: Builds the Alvyo iOS app of the last release tag and uploads it to App Store Connect for TestFlight, signed on this Mac (Apple Distribution certificate, App Store profile «Alvyo App Store») and uploaded with an App Store Connect API key, without the user. Only when the user asks for a TestFlight or App Store build.
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,12 @@ only once. Build from a release tag (the `release` skill), so the version
 in TestFlight is the one in production.
 
 1. **On the tag:** `git describe --tags --exact-match` names the release
-   (`vX.Y.Z`) and `git status` is clean. Otherwise stop and say so.
+   (`vX.Y.Z`) and `git status` is clean. When `main` has moved on since
+   the tag, build in a worktree of it instead
+   (`git worktree add --detach <scratchpad>/rel-X.Y.Z vX.Y.Z`, removed
+   afterwards); tags up to v1.7.1 carry the old export options, so give
+   `-exportOptionsPlist` the path of `main`'s
+   `app/ios/ExportOptions-upload.plist`.
 2. **Archive** (about two minutes), in `app/`:
    ```sh
    flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') \

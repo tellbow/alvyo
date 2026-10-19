@@ -17,13 +17,17 @@ test('about page links to the source of this version', async ({ page }) => {
 test('about page credits every data source and names the operator', async ({ page }) => {
 	await page.goto('/about');
 	const sources = page.getByTestId('data-sources');
-	await expect(sources.getByRole('listitem')).toHaveCount(11);
+	await expect(sources.getByRole('listitem')).toHaveCount(12);
 	await expect(sources.getByRole('link', { name: 'OGD, © swisstopo' })).toBeVisible();
 	await expect(sources.getByRole('link', { name: 'ODbL' })).toHaveAttribute(
 		'href',
 		'https://www.openstreetmap.org/copyright'
 	);
 	await expect(sources).toContainText('Quelle: MeteoSchweiz');
+	await expect(sources.getByRole('link', { name: 'CLMS data policy' })).toHaveAttribute(
+		'href',
+		'https://land.copernicus.eu/en/data-policy'
+	);
 	await expect(sources).toContainText('Wanderwegen (opendata.swiss)');
 	await expect(page.getByTestId('operator')).toContainText('Alvyo Test');
 	await expect(page.getByTestId('operator')).toContainText('Wanderweg 1, 3000 Bern');

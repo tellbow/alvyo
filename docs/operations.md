@@ -259,7 +259,10 @@ noisy tracks).
 The OSM data reaches 15 km beyond the border (requirement 31): `fetch-and-merge.sh`
 downloads about 3.4 GB of neighbouring extracts (kept, so later runs download
 only what changed) and cuts them with `osmium extract`, which needs up to
-3.7 GiB of memory; with them the data volume holds about 4.9 GB of OSM files
+3.7 GiB of memory. Geofabrik's regions are not all from the same day, so
+`merge-extracts.sh` keeps only the newest version of an object on the border
+(two versions made the graph import fail on 2026-10-19). With them the data
+volume holds about 4.9 GB of OSM files
 and 0.6 GB per graph (three during a refresh). The graph import stays within
 a 3 GB heap (2.3 GB used, 3 min); GraphHopper serves it in about 1.4 GB
 (the old graph: 0.7 GB), well within its 4.5 GiB limit.

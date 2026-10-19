@@ -38,12 +38,8 @@ for region in $neighbours; do
 	strips="$strips strip-$name.osm.pbf"
 done
 
-# Objects on the border appear in several extracts; merge drops the
-# duplicates. Keep the Swiss extract's timestamp so GraphHopper reports the
-# data date.
-ts=$(osmium fileinfo -g header.option.osmosis_replication_timestamp switzerland-latest.osm.pbf)
+# The Swiss extract first: its timestamp is the data date.
 # shellcheck disable=SC2086 # the strips are separate arguments
-osmium merge --overwrite -o ch-fl.osm.pbf \
-	--output-header="osmosis_replication_timestamp=$ts" \
+sh "$here/merge-extracts.sh" ch-fl.osm.pbf \
 	switzerland-latest.osm.pbf liechtenstein-latest.osm.pbf $strips
 osmium fileinfo -g header.option.osmosis_replication_timestamp ch-fl.osm.pbf

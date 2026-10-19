@@ -117,6 +117,9 @@ jobs:
           persist-credentials: false
       - run: docker build -f api/Dockerfile .
       - run: docker build web
+      - run: docker build -t alvyo-data-import infra/data-import
+      - name: merge-extracts test (osmium in the data-import image)
+        run: docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import sh /scripts/merge-extracts_test.sh
 
   # Static analysis with semgrep's default rules. Excluded after a look at
   # each finding (2026-10-08):

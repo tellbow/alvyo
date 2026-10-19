@@ -14,6 +14,8 @@
   "routesEmpty": "No routes yet. Plan them on the website.",
   "logout": "Log out",
   "loginUnverified": "Confirm your e-mail address first. We sent you a new link.",
+  "appleContinue": "Continue with Apple",
+  "appleExists": "An account with this e-mail address exists already. Log in with your password and connect Apple on the website under «Account».",
   "logoutOthers": "Log out on all other devices",
   "logoutOthersDone": "The other devices are logged out.",
   "offlineSave": "Save offline",

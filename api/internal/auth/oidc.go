@@ -36,6 +36,10 @@ type OIDCProvider struct {
 	Issuer       string
 	ClientID     string
 	ClientSecret string
+	// Sign in with Apple: no fixed secret, but a key (PEM) that signs one
+	// for each call, with the team's and the key's ids. AppID is the iOS
+	// app's bundle id, the audience of the app's own sign-in.
+	TeamID, KeyID, Key, AppID string
 }
 
 // Identity is what a provider tells us about the person who signed in.
@@ -46,6 +50,9 @@ type Identity struct {
 	EmailVerified bool
 	Name          string
 	Username      string // preferred_username, if any
+	// RefreshToken is kept to revoke the sign-in when the identity goes
+	// (Apple only); TokenClient is the client id it was issued to.
+	RefreshToken, TokenClient string
 }
 
 // OIDC runs the authorization code flow (with PKCE and nonce) against the
@@ -61,8 +68,10 @@ type OIDC struct {
 }
 
 type oidcClient struct {
+	provider *oidc.Provider
 	config   oauth2.Config
 	verifier *oidc.IDTokenVerifier
+	apple    *appleKey // nil for other providers
 }
 
 // oidcState is a sign-in in progress.
@@ -100,11 +109,20 @@ func (o *OIDC) client(ctx context.Context, id string) (*oidcClient, error) {
 		return nil, fmt.Errorf("auth: discover %s: %w", id, err)
 	}
 	c = &oidcClient{
+		provider: prov,
 		config: oauth2.Config{
 			ClientID: p.ClientID, ClientSecret: p.ClientSecret, Endpoint: prov.Endpoint(),
 			RedirectURL: o.CallbackURL(id), Scopes: []string{oidc.ScopeOpenID, "email", "profile"},
 		},
 		verifier: prov.Verifier(&oidc.Config{ClientID: p.ClientID}),
+	}
+	if p.Key != "" {
+		if c.apple, err = parseAppleKey(p); err != nil {
+			return nil, err
+		}
+		// Apple knows no «profile», and takes the secret in the form only.
+		c.config.Scopes = []string{oidc.ScopeOpenID, "email", "name"}
+		c.config.Endpoint.AuthStyle = oauth2.AuthStyleInParams
 	}
 	o.mu.Lock()
 	if o.clients == nil {
@@ -146,12 +164,19 @@ func (o *OIDC) Start(ctx context.Context, provider, redirect string, link uuid.U
 	}
 	o.states[state] = st
 	o.mu.Unlock()
+	if c.apple != nil {
+		// Apple knows no PKCE (state and nonce bind the answer), and posts it
+		// back when name or e-mail are asked for.
+		return c.config.AuthCodeURL(state, oidc.Nonce(st.nonce), oauth2.SetAuthURLParam("response_mode", "form_post")), state, nil
+	}
 	return c.config.AuthCodeURL(state, oidc.Nonce(st.nonce), oauth2.S256ChallengeOption(st.verifier)), state, nil
 }
 
 // Finish completes a sign-in: state must match the cookie set by Start.
-// It returns the identity, where to go next and the account to link.
-func (o *OIDC) Finish(ctx context.Context, provider, state, cookie, code string) (Identity, string, uuid.UUID, error) {
+// user is what Apple posts besides the code on the first sign-in (JSON with
+// the name). It returns the identity, where to go next and the account to
+// link.
+func (o *OIDC) Finish(ctx context.Context, provider, state, cookie, code, user string) (Identity, string, uuid.UUID, error) {
 	o.mu.Lock()
 	st, ok := o.states[state]
 	delete(o.states, state)
@@ -163,20 +188,40 @@ func (o *OIDC) Finish(ctx context.Context, provider, state, cookie, code string)
 	if err != nil {
 		return Identity{}, "", uuid.Nil, err
 	}
-	tok, err := c.config.Exchange(ctx, code, oauth2.VerifierOption(st.verifier))
+	var tok *oauth2.Token
+	if c.apple != nil {
+		tok, err = c.apple.exchange(ctx, c.config, code)
+	} else {
+		tok, err = c.config.Exchange(ctx, code, oauth2.VerifierOption(st.verifier))
+	}
 	if err != nil {
 		return Identity{}, "", uuid.Nil, fmt.Errorf("%w: %w", ErrOIDC, err)
 	}
+	id, err := identityFrom(ctx, c.verifier, tok, provider, func(n string) bool { return n == st.nonce })
+	if err != nil {
+		return Identity{}, "", uuid.Nil, err
+	}
+	if c.apple != nil {
+		// The username from the name: a hidden address is random letters.
+		id.Name = appleName(user)
+		id.Username = id.Name
+		id.RefreshToken, id.TokenClient = tok.RefreshToken, c.config.ClientID
+	}
+	return id, st.redirect, st.link, nil
+}
+
+// identityFrom checks the ID token in tok and reads who signed in.
+func identityFrom(ctx context.Context, v *oidc.IDTokenVerifier, tok *oauth2.Token, provider string, nonce func(string) bool) (Identity, error) {
 	raw, ok := tok.Extra("id_token").(string)
 	if !ok {
-		return Identity{}, "", uuid.Nil, fmt.Errorf("%w: no id_token", ErrOIDC)
+		return Identity{}, fmt.Errorf("%w: no id_token", ErrOIDC)
 	}
-	idt, err := c.verifier.Verify(ctx, raw)
+	idt, err := v.Verify(ctx, raw)
 	if err != nil {
-		return Identity{}, "", uuid.Nil, fmt.Errorf("%w: %w", ErrOIDC, err)
+		return Identity{}, fmt.Errorf("%w: %w", ErrOIDC, err)
 	}
-	if idt.Nonce != st.nonce {
-		return Identity{}, "", uuid.Nil, fmt.Errorf("%w: nonce", ErrOIDC)
+	if !nonce(idt.Nonce) {
+		return Identity{}, fmt.Errorf("%w: nonce", ErrOIDC)
 	}
 	var claims struct {
 		Email             string `json:"email"`
@@ -185,11 +230,11 @@ func (o *OIDC) Finish(ctx context.Context, provider, state, cookie, code string)
 		PreferredUsername string `json:"preferred_username"`
 	}
 	if err := idt.Claims(&claims); err != nil {
-		return Identity{}, "", uuid.Nil, fmt.Errorf("%w: %w", ErrOIDC, err)
+		return Identity{}, fmt.Errorf("%w: %w", ErrOIDC, err)
 	}
 	verified := claims.EmailVerified == true || claims.EmailVerified == "true"
 	return Identity{
 		Provider: provider, Subject: idt.Subject, Email: strings.TrimSpace(claims.Email), EmailVerified: verified,
 		Name: strings.TrimSpace(claims.Name), Username: claims.PreferredUsername,
-	}, st.redirect, st.link, nil
+	}, nil
 }

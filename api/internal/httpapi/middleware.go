@@ -142,8 +142,11 @@ func withAccessToken(w http.ResponseWriter, r *http.Request, next http.Handler, 
 // app, curl) send neither and authenticate with a bearer token.
 func withOriginCheck(next http.Handler, allowedOrigin string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet, http.MethodHead, http.MethodOptions:
+		switch {
+		case r.Method == http.MethodGet, r.Method == http.MethodHead, r.Method == http.MethodOptions:
+		case r.Method == http.MethodPost && postedCallback(r.URL.Path):
+			// Apple posts its answer from its own site; the sign-in's state
+			// and cookie bind it to this browser instead.
 		default:
 			if r.Header.Get("Sec-Fetch-Site") == "cross-site" {
 				http.Error(w, "cross-site request rejected", http.StatusForbidden)
@@ -156,6 +159,14 @@ func withOriginCheck(next http.Handler, allowedOrigin string) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// postedCallback reports whether path is a provider's callback
+// (/api/v1/auth/oidc/{provider}/callback).
+func postedCallback(path string) bool {
+	rest, ok := strings.CutPrefix(path, "/api/v1/auth/oidc/")
+	provider, ok2 := strings.CutSuffix(rest, "/callback")
+	return ok && ok2 && provider != "" && !strings.Contains(provider, "/")
 }
 
 type statusRecorder struct {

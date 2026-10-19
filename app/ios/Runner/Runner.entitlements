@@ -2,6 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Sign in with Apple (App Store guideline 4.8). -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+	<!-- Universal links: the website's addresses of routes, journeys,
+	     collections and invites open the app
+	     (web/static/.well-known/apple-app-site-association). -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:alvyo.tellbow.ch</string>
+	</array>
 	<!-- Reading hikes recorded with the Apple Watch's Workout app. -->
 	<key>com.apple.developer.healthkit</key>
 	<true/>

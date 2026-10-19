@@ -367,6 +367,18 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **A bug report's screenshot** on «Planen» and a route: the map is in
       the picture (iOS `drawHierarchy`, which the simulator could not show
       reliably).
+- [ ] **Sign in with Apple in the app** (77, after the release with the
+      Apple settings deployed): «Mit Apple fortfahren» shows the system's
+      sheet; a new Apple ID (also with «E-Mail-Adresse verbergen») gets an
+      account named after the person; signing in again opens it; an address
+      with an account already says to connect Apple on the website.
+      Deleting the account: Settings → Apple ID → Sign in with Apple no
+      longer lists Alvyo.
+- [ ] **Universal links** (45, after the release and the website's
+      `apple-app-site-association` deployed): a shared https link to a
+      route, journey, collection or invite opens the app from Messages or
+      Mail, not Safari; the planner and /routes/map open Safari. On the
+      website itself «In der App öffnen» still does it.
 - [ ] **Signing up in the app** with a new address: the form, the e-mail,
       its link confirms the address, then logging in in the app works.
       «Passwort vergessen?» and «Datenschutz» on the login screen open in
@@ -444,6 +456,13 @@ emulator ran the integration tests offline, navigate and journey
 
 ## Web
 
+- [ ] **Sign in with Apple on the website** (77, after the release with
+      the Apple settings deployed): «Mit Apple anmelden» on the login page
+      leads to Apple and back logged in, also in Chrome (Apple posts back
+      from its own site); the name from Apple; «Apple verbinden» on the
+      account page; a mail reaches a hidden address
+      (`…@privaterelay.appleid.com`). Removing Alvyo under Apple ID → Sign in
+      with Apple removes it from «Verbundene Konten» (Apple's notification).
 - [ ] **Google Analytics** (62): after the release, the banner on the
       first visit (also on a phone, not covering the planner's buttons);
       GA's real-time report shows the visit, addresses without `?t=` and

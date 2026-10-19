@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Apple keys (Sign in with Apple, APNs): they go into the deployment's secret
+*.p8
+
 # Go
 /api/bin/
 *.test

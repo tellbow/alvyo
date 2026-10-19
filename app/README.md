@@ -49,6 +49,10 @@ certificate and registers the phone:
 flutter run --release -d <phone>   # a release build also starts without the Mac
 ```
 
+A free Apple ID cannot sign Sign in with Apple and universal links
+(Associated Domains): remove both from `ios/Runner/Runner.entitlements` for
+such a build, without committing it.
+
 If `security find-identity -v -p codesigning` finds no valid identity, the
 keychain lacks Apple's intermediate certificate: install
 <https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer>. The first start

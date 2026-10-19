@@ -51,6 +51,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginUnverified => 'Confirm your e-mail address first. We sent you a new link.';
 
   @override
+  String get appleContinue => 'Continue with Apple';
+
+  @override
+  String get appleExists =>
+      'An account with this e-mail address exists already. Log in with your password and connect Apple on the website under «Account».';
+
+  @override
   String get logoutOthers => 'Log out on all other devices';
 
   @override

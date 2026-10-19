@@ -2,6 +2,9 @@
 package config
 
 import (
+	"crypto/ecdsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -44,13 +47,16 @@ type Config struct {
 	SMTP        mailer.SMTPConfig
 	// OIDC sign-in providers: ALVYO_OIDC_PROVIDERS lists ids (a-z, 0-9),
 	// each with ALVYO_OIDC_<ID>_ISSUER, _CLIENT_ID, _CLIENT_SECRET and
-	// optionally _NAME (the button label).
+	// optionally _NAME (the button label). Sign in with Apple has no fixed
+	// secret: _KEY (the .p8 key, PEM), _KEY_ID and _TEAM_ID sign one, and
+	// _APP_ID is the iOS app's bundle id for the app's own sign-in.
 	OIDC []OIDCProvider
 }
 
 // OIDCProvider is one configured OpenID Connect provider.
 type OIDCProvider struct {
 	ID, Name, Issuer, ClientID, ClientSecret string
+	TeamID, KeyID, Key, AppID                string
 }
 
 var providerID = regexp.MustCompile(`^[a-z0-9]{1,20}$`)
@@ -67,13 +73,38 @@ func oidcProviders() ([]OIDCProvider, error) {
 		}
 		env := "ALVYO_OIDC_" + strings.ToUpper(id) + "_"
 		p := OIDCProvider{ID: id, Name: getenv(env+"NAME", id), Issuer: os.Getenv(env + "ISSUER"),
-			ClientID: os.Getenv(env + "CLIENT_ID"), ClientSecret: os.Getenv(env + "CLIENT_SECRET")}
-		if p.Issuer == "" || p.ClientID == "" || p.ClientSecret == "" {
+			ClientID: os.Getenv(env + "CLIENT_ID"), ClientSecret: os.Getenv(env + "CLIENT_SECRET"),
+			TeamID: os.Getenv(env + "TEAM_ID"), KeyID: os.Getenv(env + "KEY_ID"), Key: os.Getenv(env + "KEY"),
+			AppID: os.Getenv(env + "APP_ID")}
+		if p.Key != "" {
+			if p.Issuer == "" || p.ClientID == "" || p.TeamID == "" || p.KeyID == "" {
+				return nil, fmt.Errorf("OIDC provider %s: with %sKEY, %sISSUER, %sCLIENT_ID, %sTEAM_ID and %sKEY_ID are required", id, env, env, env, env, env)
+			}
+			if err := checkECKey(p.Key); err != nil {
+				return nil, fmt.Errorf("OIDC provider %s: %sKEY: %w", id, env, err)
+			}
+		} else if p.Issuer == "" || p.ClientID == "" || p.ClientSecret == "" {
 			return nil, fmt.Errorf("OIDC provider %s: %sISSUER, %sCLIENT_ID and %sCLIENT_SECRET are required", id, env, env, env)
 		}
 		out = append(out, p)
 	}
 	return out, nil
+}
+
+// checkECKey fails early on a key that cannot sign client secrets.
+func checkECKey(p string) error {
+	block, _ := pem.Decode([]byte(p))
+	if block == nil {
+		return errors.New("not PEM")
+	}
+	k, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		return err
+	}
+	if _, ok := k.(*ecdsa.PrivateKey); !ok {
+		return errors.New("not an EC key")
+	}
+	return nil
 }
 
 // FromEnv loads the configuration from the environment.

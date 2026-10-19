@@ -143,7 +143,7 @@ flowchart LR
   end
 
   subgraph services["Other services"]
-    oidc["OpenID Connect<br/>e.g. Google"]
+    oidc["OpenID Connect<br/>Google, Apple"]
     github["GitHub API"]
     smtp["SMTP server"]
     ga["Google Analytics"]
@@ -181,7 +181,7 @@ In more detail:
 | `download.geofabrik.de` | graph-refresh, graphhopper's first start | OSM extracts for the graph and the places |
 | `tiles.mapterhorn.com` | tile cache | Terrain for the 3D map, the app's peak recognition and its peak pack |
 | AWS Terrain Tiles (skadi) | GraphHopper import | Heights in the graph, for the isochrones' slopes |
-| OpenID Connect providers | API, browser | Optional sign-in, e.g. Google (`ALVYO_OIDC_PROVIDERS`) |
+| OpenID Connect providers | API, browser, app | Optional sign-in: Google, Apple (`ALVYO_OIDC_PROVIDERS`); Apple also in the iOS app, and Apple posts notifications to the API |
 | `api.github.com` | API | Bug reports as issues, only with `ALVYO_GITHUB_TOKEN` |
 | SMTP server | API | Confirmation, password and reminder mails |
 | Google Analytics | browser | Page views on alvyo.tellbow.ch, cookies only after consent |

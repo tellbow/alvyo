@@ -14,6 +14,8 @@
   "routesEmpty": "Noch keine Routen. Plane sie auf der Website.",
   "logout": "Abmelden",
   "loginUnverified": "Bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen neuen Link geschickt.",
+  "appleContinue": "Mit Apple fortfahren",
+  "appleExists": "Es gibt schon ein Konto mit dieser E-Mail-Adresse. Melde dich mit deinem Passwort an und verbinde Apple auf der Website unter «Konto».",
   "logoutOthers": "Auf allen anderen Geräten abmelden",
   "logoutOthersDone": "Die anderen Geräte sind abgemeldet.",
   "offlineSave": "Offline speichern",

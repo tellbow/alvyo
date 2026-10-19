@@ -96,7 +96,8 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<!-- Links from the website («In der App öffnen»): alvyo://open/routes/{id}?t=…
-	     Universal links need a paid developer account (Associated Domains). -->
+	     The website's own addresses open the app as universal links
+	     (Runner.entitlements). -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

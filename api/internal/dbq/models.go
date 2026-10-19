@@ -269,12 +269,14 @@ type Home struct {
 }
 
 type Identity struct {
-	Provider   string
-	Subject    string
-	UserID     uuid.UUID
-	Email      *string
-	CreatedAt  time.Time
-	LastUsedAt *time.Time
+	Provider     string
+	Subject      string
+	UserID       uuid.UUID
+	Email        *string
+	CreatedAt    time.Time
+	LastUsedAt   *time.Time
+	RefreshToken *string
+	TokenClient  *string
 }
 
 type Journey struct {

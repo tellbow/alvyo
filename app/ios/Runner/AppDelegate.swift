@@ -1,4 +1,6 @@
 import AVFoundation
+import AuthenticationServices
+import CryptoKit
 import Flutter
 import UIKit
 import UserNotifications
@@ -7,6 +9,7 @@ import UserNotifications
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private let speech = Speech()
   private let peakMotion = PeakMotion()
+  private let appleSignIn = AppleSignIn()
 
   override func application(
     _ application: UIApplication,
@@ -79,6 +82,17 @@ import UserNotifications
           result(image.pngData().map { FlutterStandardTypedData(bytes: $0) })
         }
     }
+    // Sign in with Apple (lib/apple_sign_in.dart): the system's sheet.
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoAppleSignIn") {
+      FlutterMethodChannel(name: "alvyo/apple-sign-in", binaryMessenger: registrar.messenger())
+        .setMethodCallHandler { [appleSignIn] call, result in
+          guard call.method == "signIn", let nonce = call.arguments as? String else {
+            result(FlutterMethodNotImplemented)
+            return
+          }
+          appleSignIn.start(nonce: nonce, result: result)
+        }
+    }
     // Turn-by-turn prompts.
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoSpeech") {
       let channel = FlutterMethodChannel(name: "alvyo/speech", binaryMessenger: registrar.messenger())
@@ -97,6 +111,57 @@ import UserNotifications
         }
       }
     }
+  }
+}
+
+/// Sign in with Apple: asks for name and e-mail address and hands the
+/// identity token and authorization code to Dart. The token carries the
+/// SHA-256 of the nonce the API checks.
+final class AppleSignIn: NSObject, ASAuthorizationControllerDelegate,
+  ASAuthorizationControllerPresentationContextProviding
+{
+  private var result: FlutterResult?
+
+  func start(nonce: String, result: @escaping FlutterResult) {
+    self.result?(FlutterError(code: "busy", message: nil, details: nil))
+    self.result = result
+    let request = ASAuthorizationAppleIDProvider().createRequest()
+    request.requestedScopes = [.fullName, .email]
+    request.nonce = SHA256.hash(data: Data(nonce.utf8)).map { String(format: "%02x", $0) }.joined()
+    let controller = ASAuthorizationController(authorizationRequests: [request])
+    controller.delegate = self
+    controller.presentationContextProvider = self
+    controller.performRequests()
+  }
+
+  func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+    UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first
+      ?? ASPresentationAnchor()
+  }
+
+  func authorizationController(
+    controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization
+  ) {
+    guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+      let token = credential.identityToken.flatMap({ String(data: $0, encoding: .utf8) }),
+      let code = credential.authorizationCode.flatMap({ String(data: $0, encoding: .utf8) })
+    else {
+      finish(FlutterError(code: "failed", message: "no token", details: nil))
+      return
+    }
+    // The name comes only the first time.
+    let name = credential.fullName.map { PersonNameComponentsFormatter().string(from: $0) } ?? ""
+    finish(["identityToken": token, "authorizationCode": code, "name": name])
+  }
+
+  func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+    let canceled = (error as? ASAuthorizationError)?.code == .canceled
+    finish(FlutterError(code: canceled ? "canceled" : "failed", message: error.localizedDescription, details: nil))
+  }
+
+  private func finish(_ value: Any) {
+    result?(value)
+    result = nil
   }
 }
 

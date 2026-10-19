@@ -36,8 +36,10 @@ var (
 // first.
 func (s *Service) IdentityLogin(ctx context.Context, id Identity, locale, userAgent string, allowNew func() bool) (dbq.User, Session, error) {
 	var userID uuid.UUID
-	err := s.DB.QueryRow(ctx, `UPDATE identities SET last_used_at = now() WHERE provider = $1 AND subject = $2
-		RETURNING user_id`, id.Provider, id.Subject).Scan(&userID)
+	err := s.DB.QueryRow(ctx, `UPDATE identities SET last_used_at = now(),
+			refresh_token = coalesce(nullif($3, ''), refresh_token), token_client = coalesce(nullif($4, ''), token_client)
+		WHERE provider = $1 AND subject = $2
+		RETURNING user_id`, id.Provider, id.Subject, id.RefreshToken, id.TokenClient).Scan(&userID)
 	switch {
 	case err == nil:
 		u, err := s.q().GetUserByID(ctx, userID)
@@ -128,9 +130,7 @@ func (s *Service) createProviderUser(ctx context.Context, id Identity, locale st
 				now := s.now()
 				u.EmailVerifiedAt = &now
 			}
-			_, err = tx.Exec(ctx, `INSERT INTO identities (provider, subject, user_id, email, last_used_at)
-				VALUES ($1, $2, $3, nullif($4, ''), now())`, id.Provider, id.Subject, u.ID, id.Email)
-			return err
+			return insertIdentity(ctx, tx, u.ID, id)
 		})
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -153,8 +153,7 @@ func (s *Service) createProviderUser(ctx context.Context, id Identity, locale st
 
 // LinkIdentity connects a provider account to the logged-in user.
 func (s *Service) LinkIdentity(ctx context.Context, user uuid.UUID, id Identity) error {
-	_, err := s.DB.Exec(ctx, `INSERT INTO identities (provider, subject, user_id, email, last_used_at)
-		VALUES ($1, $2, $3, nullif($4, ''), now())`, id.Provider, id.Subject, user, id.Email)
+	err := insertIdentity(ctx, s.DB, user, id)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		if pgErr.ConstraintName == "identities_pkey" {
@@ -167,6 +166,15 @@ func (s *Service) LinkIdentity(ctx context.Context, user uuid.UUID, id Identity)
 		}
 		return ErrProviderLinked
 	}
+	return err
+}
+
+func insertIdentity(ctx context.Context, db interface {
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+}, user uuid.UUID, id Identity) error {
+	_, err := db.Exec(ctx, `INSERT INTO identities (provider, subject, user_id, email, last_used_at, refresh_token, token_client)
+		VALUES ($1, $2, $3, nullif($4, ''), now(), nullif($5, ''), nullif($6, ''))`,
+		id.Provider, id.Subject, user, id.Email, id.RefreshToken, id.TokenClient)
 	return err
 }
 
@@ -194,16 +202,67 @@ func (s *Service) Identities(ctx context.Context, user uuid.UUID) ([]IdentityInf
 
 // UnlinkIdentity disconnects a provider (not the last way to log in).
 func (s *Service) UnlinkIdentity(ctx context.Context, u dbq.User, provider string) error {
-	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
-		res, err := tx.Exec(ctx, `DELETE FROM identities WHERE user_id = $1 AND provider = $2`, u.ID, provider)
+	var gone []revocable
+	err := pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+		var err error
+		gone, err = deleteIdentities(ctx, tx, `user_id = $1 AND provider = $2`, u.ID, provider)
 		if err != nil {
 			return err
 		}
-		if res.RowsAffected() == 0 {
+		if len(gone) == 0 {
 			return ErrUnknownProvider
 		}
 		return lastLogin(ctx, tx, u)
 	})
+	if err == nil {
+		s.revoke(ctx, gone)
+	}
+	return err
+}
+
+// DropIdentity removes an identity the provider says is gone (the person
+// stopped using it with Alvyo, or deleted their account there). Its tokens
+// are revoked already. The account stays: a password reset by e-mail
+// still opens it.
+func (s *Service) DropIdentity(ctx context.Context, provider, subject string) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM identities WHERE provider = $1 AND subject = $2`, provider, subject)
+	return err
+}
+
+// revocable is a provider's refresh token, to revoke once its identity is
+// gone.
+type revocable struct{ provider, client, token string }
+
+// deleteIdentities deletes the identities matching where and returns them.
+func deleteIdentities(ctx context.Context, tx pgx.Tx, where string, args ...any) ([]revocable, error) {
+	rows, err := tx.Query(ctx, `DELETE FROM identities WHERE `+where+`
+		RETURNING provider, coalesce(token_client, ''), coalesce(refresh_token, '')`, args...)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (revocable, error) {
+		var v revocable
+		err := r.Scan(&v.provider, &v.client, &v.token)
+		return v, err
+	})
+}
+
+// revoke ends the sign-ins at the providers that gave tokens, after the
+// identities are gone; a failure is logged, not shown.
+func (s *Service) revoke(ctx context.Context, gone []revocable) {
+	if s.Revoke == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
+	defer cancel()
+	for _, g := range gone {
+		if g.token == "" {
+			continue
+		}
+		if err := s.Revoke(ctx, g.provider, g.client, g.token); err != nil {
+			slog.ErrorContext(ctx, "revoking a sign-in", "provider", g.provider, "err", err)
+		}
+	}
 }
 
 // lastLogin fails with ErrLastLogin (rolling back tx) if u has no way left

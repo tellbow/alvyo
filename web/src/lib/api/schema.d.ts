@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/auth/apple/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apple's server-to-server notifications
+         * @description Apple tells when someone stops using Sign in with Apple with Alvyo or deletes their Apple account: the identity is removed.
+         */
+        post: operations["apple-notification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/login": {
         parameters: {
             query?: never;
@@ -68,7 +88,31 @@ export interface paths {
          */
         get: operations["oidc-callback"];
         put?: never;
-        post?: never;
+        /**
+         * Where providers post their answer back (Apple)
+         * @description As the GET callback, for providers that post code and state as a form (response_mode=form_post).
+         */
+        post: operations["oidc-callback-post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/oidc/{provider}/native": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log in or sign up with the iOS app's own Apple sign-in
+         * @description Checks the identity token (for the app, with the nonce) and redeems the authorization code. An address that already has an account answers 409: its owner connects Apple on the website first.
+         */
+        post: operations["native-sign-in"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2516,6 +2560,9 @@ export interface components {
             /** @description The ways between the two points, the shortest first; [lon, lat] per point */
             ways: number[][][];
         };
+        AppleNotificationInputBody: {
+            payload: string;
+        };
         Area: {
             /** @description Legally binding; otherwise a recommendation */
             binding: boolean;
@@ -3463,6 +3510,16 @@ export interface components {
             items: components["schemas"]["DiscoverMineItem"][];
             /** @description There are more results than shown: zoom in or narrow the filters */
             more: boolean;
+        };
+        NativeSignInInputBody: {
+            authorization_code: string;
+            identity_token: string;
+            /** @enum {string} */
+            locale?: "de" | "en" | "fr" | "it";
+            /** @description The name Apple gave the app on the first sign-in */
+            name?: string;
+            /** @description The raw nonce whose SHA-256 (hex) the app asked for */
+            nonce: string;
         };
         NearbyPlacesOutputBody: {
             places: components["schemas"]["Place"][];
@@ -4467,6 +4524,37 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "apple-notification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppleNotificationInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     login: {
         parameters: {
             query?: never;
@@ -4586,6 +4674,84 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "oidc-callback-post": {
+        parameters: {
+            query?: never;
+            header?: {
+                "User-Agent"?: string;
+            };
+            path: {
+                provider: string;
+            };
+            cookie?: {
+                alvyo_oidc?: string;
+                PARAGLIDE_LOCALE?: string;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": string;
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    Location?: string;
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "native-sign-in": {
+        parameters: {
+            query?: never;
+            header?: {
+                "User-Agent"?: string;
+            };
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NativeSignInInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionOutputBody"];
+                };
             };
             /** @description Error */
             default: {

@@ -4,8 +4,9 @@
 	import { m } from '#lib/paraglide/messages.js';
 
 	// On an iPhone or iPad, a link that opens this route, journey, collection
-	// or friend's invite (id: its token) in the app (its own scheme: universal
-	// links need a paid developer account); the share token rides along.
+	// or friend's invite (id: its token) in the app, with its own scheme:
+	// a universal link does not leave the site it is on; the share token
+	// rides along.
 	let {
 		kind,
 		id,

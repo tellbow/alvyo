@@ -45,6 +45,34 @@ type oidcCallbackInput struct {
 	Locale    string `cookie:"PARAGLIDE_LOCALE"`
 }
 
+// oidcPostInput is a provider's answer posted back (Apple: form_post):
+// code, state, error and, on the first sign-in, user.
+type oidcPostInput struct {
+	Provider  string `path:"provider"`
+	Cookie    string `cookie:"alvyo_oidc"`
+	UserAgent string `header:"User-Agent"`
+	Locale    string `cookie:"PARAGLIDE_LOCALE"`
+	RawBody   []byte `contentType:"application/x-www-form-urlencoded"`
+}
+
+type nativeSignInInput struct {
+	Provider  string `path:"provider"`
+	UserAgent string `header:"User-Agent"`
+	Body      struct {
+		IdentityToken     string `json:"identity_token" maxLength:"8000"`
+		AuthorizationCode string `json:"authorization_code" maxLength:"1000"`
+		Nonce             string `json:"nonce" maxLength:"200" doc:"The raw nonce whose SHA-256 (hex) the app asked for"`
+		Name              string `json:"name,omitempty" maxLength:"200" doc:"The name Apple gave the app on the first sign-in"`
+		Locale            string `json:"locale,omitempty" enum:"de,en,fr,it"`
+	}
+}
+
+type appleNotificationInput struct {
+	Body struct {
+		Payload string `json:"payload" maxLength:"20000"`
+	}
+}
+
 type redirectOutput struct {
 	Status    int
 	Location  string        `header:"Location"`
@@ -75,8 +103,14 @@ func registerOIDC(api huma.API, d Deps) {
 		d.OIDC = &auth.OIDC{} // no providers: start answers 404
 	}
 	cookie := func(value string, maxAge int) http.Cookie {
+		// Apple posts its answer from its own site: a Lax cookie would stay
+		// behind. Without HTTPS (local development) browsers refuse None.
+		same := http.SameSiteNoneMode
+		if !d.secureCookies() {
+			same = http.SameSiteLaxMode
+		}
 		return http.Cookie{Name: oidcCookie, Value: value, Path: "/api/v1/auth/oidc", MaxAge: maxAge,
-			HttpOnly: true, Secure: d.secureCookies(), SameSite: http.SameSiteLaxMode}
+			HttpOnly: true, Secure: d.secureCookies(), SameSite: same}
 	}
 	// back sends the browser to a page of the web app, with an outcome
 	// the page shows (?oidc=…).
@@ -144,16 +178,13 @@ func registerOIDC(api huma.API, d Deps) {
 			SetCookie: []http.Cookie{cookie(state, int((10 * time.Minute).Seconds()))}}, nil
 	})
 
-	huma.Register(api, huma.Operation{
-		OperationID: "oidc-callback", Method: http.MethodGet, Path: "/auth/oidc/{provider}/callback",
-		Summary:     "Where providers send the browser back",
-		Description: "Logs in, creates an account or connects the provider, then redirects to the web app with ?oidc=<outcome> on problems.",
-		Tags:        tags,
-	}, func(ctx context.Context, in *oidcCallbackInput) (*redirectOutput, error) {
+	// callback finishes a sign-in from the provider's answer: user is the
+	// JSON Apple posts on the first sign-in.
+	callback := func(ctx context.Context, in *oidcCallbackInput, user string) (*redirectOutput, error) {
 		if in.Error != "" {
 			return back("/login", "cancelled"), nil
 		}
-		id, redirect, link, err := d.OIDC.Finish(ctx, in.Provider, in.State, in.Cookie, in.Code)
+		id, redirect, link, err := d.OIDC.Finish(ctx, in.Provider, in.State, in.Cookie, in.Code, user)
 		if err != nil {
 			slog.InfoContext(ctx, "oidc callback", "provider", in.Provider, "err", err)
 			return back("/login", "failed"), nil
@@ -189,6 +220,90 @@ func registerOIDC(api huma.API, d Deps) {
 		}
 		slog.InfoContext(ctx, "oidc login", "provider", in.Provider, "user", u.ID)
 		return back(redirect, "", newSessionCookie(s.Token, s.ExpiresAt, d.secureCookies())), nil
+	}
+
+	huma.Register(api, huma.Operation{
+		OperationID: "oidc-callback", Method: http.MethodGet, Path: "/auth/oidc/{provider}/callback",
+		Summary:     "Where providers send the browser back",
+		Description: "Logs in, creates an account or connects the provider, then redirects to the web app with ?oidc=<outcome> on problems.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *oidcCallbackInput) (*redirectOutput, error) {
+		return callback(ctx, in, "")
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "oidc-callback-post", Method: http.MethodPost, Path: "/auth/oidc/{provider}/callback",
+		Summary:     "Where providers post their answer back (Apple)",
+		Description: "As the GET callback, for providers that post code and state as a form (response_mode=form_post).",
+		Tags:        tags,
+	}, func(ctx context.Context, in *oidcPostInput) (*redirectOutput, error) {
+		f, err := url.ParseQuery(string(in.RawBody))
+		if err != nil {
+			return nil, huma.Error400BadRequest("not a form")
+		}
+		return callback(ctx, &oidcCallbackInput{Provider: in.Provider, Code: f.Get("code"), State: f.Get("state"),
+			Error: f.Get("error"), Cookie: in.Cookie, UserAgent: in.UserAgent, Locale: in.Locale}, f.Get("user"))
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "native-sign-in", Method: http.MethodPost, Path: "/auth/oidc/{provider}/native",
+		Summary:     "Log in or sign up with the iOS app's own Apple sign-in",
+		Description: "Checks the identity token (for the app, with the nonce) and redeems the authorization code. An address that already has an account answers 409: its owner connects Apple on the website first.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *nativeSignInInput) (*sessionOutput, error) {
+		id, err := d.OIDC.AppleNative(ctx, in.Provider, in.Body.IdentityToken, in.Body.AuthorizationCode,
+			in.Body.Nonce, in.Body.Name)
+		switch {
+		case errors.Is(err, auth.ErrUnknownProvider):
+			return nil, huma.Error404NotFound("no such provider")
+		case err != nil:
+			slog.InfoContext(ctx, "native sign-in", "provider", in.Provider, "err", err)
+			return nil, huma.Error401Unauthorized("the provider's answer was not accepted")
+		}
+		locale := in.Body.Locale
+		if locale == "" {
+			locale = "de"
+		}
+		allowNew := func() bool { return d.Limits.SignupIP.Allow(limitKey(ctx)) }
+		u, s, err := d.Auth.IdentityLogin(ctx, id, locale, in.UserAgent, allowNew)
+		switch {
+		case errors.Is(err, auth.ErrSignupLimit):
+			return nil, errTooMany
+		case errors.Is(err, auth.ErrEmailTaken):
+			return nil, huma.Error409Conflict("an account has this e-mail address; connect the provider on the website first")
+		case errors.Is(err, auth.ErrNoEmail):
+			return nil, huma.Error422UnprocessableEntity("the provider gave no e-mail address")
+		case errors.Is(err, auth.ErrBanned):
+			return nil, huma.Error403Forbidden("account banned")
+		case err != nil:
+			return nil, err
+		}
+		slog.InfoContext(ctx, "native login", "provider", in.Provider, "user", u.ID)
+		return d.sessionResponse(u, s), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "apple-notification", Method: http.MethodPost, Path: "/auth/apple/notifications",
+		Summary:     "Apple's server-to-server notifications",
+		Description: "Apple tells when someone stops using Sign in with Apple with Alvyo or deletes their Apple account: the identity is removed.",
+		Tags:        tags, DefaultStatus: http.StatusOK,
+	}, func(ctx context.Context, in *appleNotificationInput) (*struct{}, error) {
+		ev, err := d.OIDC.AppleEvent(ctx, in.Body.Payload)
+		if errors.Is(err, auth.ErrUnknownProvider) {
+			return nil, huma.Error404NotFound("sign in with Apple is not set up")
+		}
+		if err != nil {
+			slog.InfoContext(ctx, "apple notification", "err", err)
+			return nil, huma.Error400BadRequest("not a notification from Apple")
+		}
+		slog.InfoContext(ctx, "apple notification", "type", ev.Type)
+		switch ev.Type {
+		case "consent-revoked", "account-delete":
+			return nil, d.Auth.DropIdentity(ctx, ev.Provider, ev.Subject)
+		}
+		// email-disabled and email-enabled: Apple's relay drops or forwards
+		// our mail itself.
+		return nil, nil
 	})
 
 	huma.Register(api, huma.Operation{

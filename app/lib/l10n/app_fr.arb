@@ -14,6 +14,8 @@
   "routesEmpty": "Pas encore d'itinéraires. Planifie-les sur le site.",
   "logout": "Se déconnecter",
   "loginUnverified": "Confirme d’abord ton adresse e-mail. Nous t’avons envoyé un nouveau lien.",
+  "appleContinue": "Continuer avec Apple",
+  "appleExists": "Un compte avec cette adresse e-mail existe déjà. Connecte-toi avec ton mot de passe et lie Apple sur le site web sous « Compte ».",
   "logoutOthers": "Se déconnecter sur tous les autres appareils",
   "logoutOthersDone": "Les autres appareils sont déconnectés.",
   "offlineSave": "Enregistrer hors ligne",

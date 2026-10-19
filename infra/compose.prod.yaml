@@ -65,6 +65,13 @@ services:
       ALVYO_OIDC_GOOGLE_ISSUER: https://accounts.google.com
       ALVYO_OIDC_GOOGLE_CLIENT_ID: ${OIDC_GOOGLE_CLIENT_ID:-}
       ALVYO_OIDC_GOOGLE_CLIENT_SECRET: ${OIDC_GOOGLE_CLIENT_SECRET:-}
+      ALVYO_OIDC_APPLE_NAME: Apple
+      ALVYO_OIDC_APPLE_ISSUER: https://appleid.apple.com
+      ALVYO_OIDC_APPLE_CLIENT_ID: ${OIDC_APPLE_CLIENT_ID:-}
+      ALVYO_OIDC_APPLE_TEAM_ID: ${OIDC_APPLE_TEAM_ID:-}
+      ALVYO_OIDC_APPLE_KEY_ID: ${OIDC_APPLE_KEY_ID:-}
+      ALVYO_OIDC_APPLE_APP_ID: ${OIDC_APPLE_APP_ID:-}
+      ALVYO_OIDC_APPLE_KEY: ${OIDC_APPLE_KEY:-}
     volumes: [api_cache:/cache, photos:/data/photos]
     depends_on:
       migrate: { condition: service_completed_successfully }

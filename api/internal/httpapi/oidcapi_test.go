@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -22,12 +23,17 @@ import (
 )
 
 // fakeIDP is a minimal OpenID Connect provider: discovery, keys and a token
-// endpoint that checks PKCE. Tests authorize codes directly.
+// endpoint that checks PKCE, or, for codes without a challenge, Apple's
+// signed client secret. Tests authorize codes directly.
 type fakeIDP struct {
 	*httptest.Server
 	key   *rsa.PrivateKey
 	mu    sync.Mutex
 	codes map[string]idpGrant
+	// apple checks client secrets (Sign in with Apple); revoked collects
+	// the refresh tokens revoked with them.
+	apple   *ecdsa.PublicKey
+	revoked []string
 }
 
 type idpGrant struct {
@@ -47,6 +53,7 @@ func newFakeIDP(t *testing.T) *fakeIDP {
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"issuer": idp.URL, "authorization_endpoint": idp.URL + "/authorize", "token_endpoint": idp.URL + "/token",
 			"jwks_uri": idp.URL + "/jwks", "id_token_signing_alg_values_supported": []string{"RS256"},
+			"revocation_endpoint": idp.URL + "/revoke",
 		})
 	})
 	mux.HandleFunc("GET /jwks", func(w http.ResponseWriter, _ *http.Request) {
@@ -60,22 +67,61 @@ func newFakeIDP(t *testing.T) *fakeIDP {
 		delete(idp.codes, r.Form.Get("code"))
 		idp.mu.Unlock()
 		sum := sha256.Sum256([]byte(r.Form.Get("code_verifier")))
-		if !ok || base64.RawURLEncoding.EncodeToString(sum[:]) != g.challenge {
+		if !ok || (g.challenge != "" && base64.RawURLEncoding.EncodeToString(sum[:]) != g.challenge) ||
+			(g.challenge == "" && !idp.appleSecret(r.Form)) {
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(`{"error":"invalid_grant"}`))
 			return
 		}
-		signer, _ := jose.NewSigner(jose.SigningKey{Algorithm: jose.RS256, Key: key},
-			(&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", "k1"))
-		payload, _ := json.Marshal(g.claims)
-		jws, _ := signer.Sign(payload)
-		token, _ := jws.CompactSerialize()
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "at", "token_type": "Bearer", "id_token": token})
+		_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "at", "token_type": "Bearer",
+			"id_token": idp.sign(g.claims), "refresh_token": "rt-" + r.Form.Get("code")})
+	})
+	mux.HandleFunc("POST /revoke", func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		if !idp.appleSecret(r.Form) || r.Form.Get("token_type_hint") != "refresh_token" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		idp.mu.Lock()
+		idp.revoked = append(idp.revoked, r.Form.Get("token"))
+		idp.mu.Unlock()
 	})
 	idp.Server = httptest.NewServer(mux)
 	t.Cleanup(idp.Close)
 	return idp
+}
+
+// sign signs claims with the provider's key.
+func (idp *fakeIDP) sign(claims map[string]any) string {
+	signer, _ := jose.NewSigner(jose.SigningKey{Algorithm: jose.RS256, Key: idp.key},
+		(&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", "k1"))
+	payload, _ := json.Marshal(claims)
+	jws, _ := signer.Sign(payload)
+	token, _ := jws.CompactSerialize()
+	return token
+}
+
+// appleSecret checks a client secret as Apple does: signed with the
+// developer's key, by the team, for the client id in the form.
+func (idp *fakeIDP) appleSecret(f url.Values) bool {
+	if idp.apple == nil {
+		return false
+	}
+	jws, err := jose.ParseSigned(f.Get("client_secret"), []jose.SignatureAlgorithm{jose.ES256})
+	if err != nil || jws.Signatures[0].Header.KeyID != "KEY1" {
+		return false
+	}
+	payload, err := jws.Verify(idp.apple)
+	if err != nil {
+		return false
+	}
+	var c struct {
+		Iss, Sub, Aud string
+		Exp           int64
+	}
+	return json.Unmarshal(payload, &c) == nil && c.Iss == "TEAM1" && c.Sub == f.Get("client_id") &&
+		c.Aud == idp.URL && c.Exp > time.Now().Unix()
 }
 
 // authorize plays the provider's login page: it answers the authorization

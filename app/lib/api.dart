@@ -1370,6 +1370,34 @@ class Api {
       headers: {..._headers, 'Content-Type': 'application/json'},
       body: jsonEncode({'login': login, 'password': password}),
     );
+    return _loggedIn(r);
+  }
+
+  /// Logs in, or signs up, with the iOS app's own Apple sign-in: the
+  /// tokens from the system's sheet and the nonce they were asked with.
+  Future<Me> appleSignIn({
+    required String identityToken,
+    required String authorizationCode,
+    required String nonce,
+    required String name,
+    required String locale,
+  }) async {
+    final r = await _http.post(
+      _uri('/auth/oidc/apple/native'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'identity_token': identityToken,
+        'authorization_code': authorizationCode,
+        'nonce': nonce,
+        if (name.isNotEmpty) 'name': name,
+        'locale': locale,
+      }),
+    );
+    return _loggedIn(r);
+  }
+
+  /// Takes the session from a login's answer.
+  Me _loggedIn(http.Response r) {
     final body = _decode(r) as Map<String, dynamic>;
     final session = RegExp(r'alvyo_session=([^;,\s]+)').firstMatch(r.headers['set-cookie'] ?? '');
     if (session == null) throw ApiException(500, 'no session in the answer');
@@ -1379,6 +1407,12 @@ class Api {
     hikerPace.value = me.speedFactor;
     return me;
   }
+
+  /// The ids of the sign-in providers the server offers, e.g. «apple».
+  Future<List<String>> providers() async => [
+    for (final p in ((await _get('/auth/providers')) as Map<String, dynamic>)['providers'] as List? ?? const [])
+      (p as Map<String, dynamic>)['id'] as String,
+  ];
 
   /// Signs up; the server answers the same for an address with an account
   /// and sends a link to confirm it (or a note how to log in).

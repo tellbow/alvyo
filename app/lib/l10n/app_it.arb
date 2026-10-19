@@ -14,6 +14,8 @@
   "routesEmpty": "Ancora nessun percorso. Pianificali sul sito.",
   "logout": "Esci",
   "loginUnverified": "Conferma prima il tuo indirizzo e-mail. Ti abbiamo inviato un nuovo link.",
+  "appleContinue": "Continua con Apple",
+  "appleExists": "Esiste già un account con questo indirizzo e-mail. Accedi con la tua password e collega Apple sul sito web in «Account».",
   "logoutOthers": "Esci su tutti gli altri dispositivi",
   "logoutOthersDone": "Gli altri dispositivi sono disconnessi.",
   "offlineSave": "Salva offline",

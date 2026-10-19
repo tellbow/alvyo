@@ -52,7 +52,7 @@ terms change, so check again when a source's use changes.
 | Mapterhorn terrain tiles | 3D terrain, the peak pack's height grid | [attribution](https://mapterhorn.com/attribution); sources per region (Copernicus GLO-30, swissALTI3D, neighbouring countries' models: mostly CC BY 4.0 and open government licences) | the 3D map's attribution, the peak camera, About pages, NOTICE |
 | AWS Terrain Tiles (Mapzen, skadi) | heights in the GraphHopper graph (reach areas) | [Mapzen attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md): EU-DEM («produced using Copernicus data and information funded by the European Union»), SRTM (USGS) | the reach areas' attribution, About pages, NOTICE |
 | Google Analytics | page views | consent before cookies; named in the privacy text | About page (privacy) |
-| Google and Apple sign-in | optional login | provider terms; Apple requires Sign in with Apple in the app when another provider is offered (it is) | privacy text |
+| Google and Apple sign-in | optional login | provider terms; Apple requires Sign in with Apple in the app when another provider is offered there (guideline 4.8), its tokens revoked when an account is deleted (5.1.1(v)), and its button as Apple designs it | privacy text |
 | Infomaniak (SMTP) | e-mails | provider terms | privacy text |
 | GitHub API | bug reports as issues | issues in a public repository are public: the report form says so | the report form, privacy text |
 

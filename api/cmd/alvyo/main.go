@@ -171,9 +171,10 @@ func serve(ctx context.Context) error {
 		slog.Warn("relaxed rate limits (ALVYO_RELAXED_LIMITS): for tests only")
 		limits = httpapi.RelaxedLimits()
 	}
+	oidc := oidcProviders(cfg)
 	handler, _ := httpapi.New(httpapi.Deps{
 		DB:          pool,
-		Auth:        &auth.Service{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
+		Auth:        &auth.Service{DB: pool, Mail: sender, PublicURL: cfg.PublicURL, Revoke: oidc.Revoke},
 		Router:      router,
 		Routes:      routeStore,
 		Journeys:    journeyStore,
@@ -191,7 +192,7 @@ func serve(ctx context.Context) error {
 		Community:   &community.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Done:        &done.Store{DB: pool},
 		Photos:      photoStore,
-		OIDC:        oidcProviders(cfg),
+		OIDC:        oidc,
 		Packs:       packService,
 		Planner:     planner,
 		Images:      &og.Renderer{TilesURL: cfg.TilesURL, CacheDir: cfg.CacheDir},

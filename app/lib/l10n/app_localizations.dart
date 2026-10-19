@@ -178,6 +178,18 @@ abstract class AppLocalizations {
   /// **'Bestätige zuerst deine E-Mail-Adresse. Wir haben dir einen neuen Link geschickt.'**
   String get loginUnverified;
 
+  /// No description provided for @appleContinue.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Apple fortfahren'**
+  String get appleContinue;
+
+  /// No description provided for @appleExists.
+  ///
+  /// In de, this message translates to:
+  /// **'Es gibt schon ein Konto mit dieser E-Mail-Adresse. Melde dich mit deinem Passwort an und verbinde Apple auf der Website unter «Konto».'**
+  String get appleExists;
+
   /// No description provided for @logoutOthers.
   ///
   /// In de, this message translates to:

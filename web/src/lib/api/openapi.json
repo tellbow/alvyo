@@ -228,6 +228,19 @@
         ],
         "type": "object"
       },
+      "AppleNotificationInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "maxLength": 20000,
+            "type": "string"
+          }
+        },
+        "required": [
+          "payload"
+        ],
+        "type": "object"
+      },
       "Area": {
         "additionalProperties": false,
         "properties": {
@@ -3062,6 +3075,44 @@
         "required": [
           "items",
           "more"
+        ],
+        "type": "object"
+      },
+      "NativeSignInInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "authorization_code": {
+            "maxLength": 1000,
+            "type": "string"
+          },
+          "identity_token": {
+            "maxLength": 8000,
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "de",
+              "en",
+              "fr",
+              "it"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "description": "The name Apple gave the app on the first sign-in",
+            "maxLength": 200,
+            "type": "string"
+          },
+          "nonce": {
+            "description": "The raw nonce whose SHA-256 (hex) the app asked for",
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "identity_token",
+          "authorization_code",
+          "nonce"
         ],
         "type": "object"
       },
@@ -6189,6 +6240,41 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/auth/apple/notifications": {
+      "post": {
+        "description": "Apple tells when someone stops using Sign in with Apple with Alvyo or deletes their Apple account: the identity is removed.",
+        "operationId": "apple-notification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppleNotificationInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Apple's server-to-server notifications",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "login",
@@ -6388,6 +6474,150 @@
           }
         },
         "summary": "Where providers send the browser back",
+        "tags": [
+          "auth"
+        ]
+      },
+      "post": {
+        "description": "As the GET callback, for providers that post code and state as a form (response_mode=form_post).",
+        "operationId": "oidc-callback-post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "alvyo_oidc",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "User-Agent",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "PARAGLIDE_LOCALE",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "contentMediaType": "application/octet-stream",
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Where providers post their answer back (Apple)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/oidc/{provider}/native": {
+      "post": {
+        "description": "Checks the identity token (for the app, with the nonce) and redeems the authorization code. An address that already has an account answers 409: its owner connects Apple on the website first.",
+        "operationId": "native-sign-in",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "User-Agent",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NativeSignInInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOutputBody"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Log in or sign up with the iOS app's own Apple sign-in",
         "tags": [
           "auth"
         ]

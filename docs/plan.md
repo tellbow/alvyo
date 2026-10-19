@@ -478,14 +478,15 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
 43. **The app's base maps.** National map, grey and aerial photo
     (SWISSIMAGE). The website's vector «Basiskarte» is left out: switching
     to it would reload the style and every screen's own layers.
-45. **Opening what was sent.** The app is signed with a free Apple ID,
-    which cannot use universal links (Associated Domains need a paid
-    developer account). So a shared link opens the website, and there, on
-    an iPhone or iPad, «In der App öffnen» opens the route, journey or
-    collection in the app (`alvyo://open/routes/{id}?t=…`), also when the
-    app was closed or not signed in yet; the link's share token goes along
-    with every call for that item. Universal links once there is a paid
-    account.
+45. **Opening what was sent.** A shared link to a route, journey,
+    collection or invite opens the app on an iPhone or iPad (universal
+    links since 2026-10-19, with the paid developer account: the website's
+    `/.well-known/apple-app-site-association` names the same paths as
+    Android's app links). Where the app is not installed, or on the website
+    itself (Safari does not leave a site for its own links), «In der App
+    öffnen» opens it (`alvyo://open/routes/{id}?t=…`), also when the app
+    was closed or not signed in yet; the link's share token goes along with
+    every call for that item.
 46. **Inviting in the app.** The share sheet of routes and journeys also
     for collections: the link, and people invited by name or e-mail
     address as viewers or editors.
@@ -865,6 +866,24 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     lines and names follow the screen's top (the device's edge pointing
     up) and the camera picture turns with it; on the iPhone it stays
     upright as before.
+
+77. **Sign in with Apple** (feedback issue 2, 2026-10-19). On the
+    website beside Google («Mit Apple anmelden», black with Apple's logo),
+    and in the iOS app with the system's sheet («Mit Apple fortfahren»,
+    App Store guideline 4.8, as Google comes to the app). The client
+    secret is a JWT signed per call with the developer account's key;
+    Apple posts its answer back (`POST …/callback`, past the origin check;
+    the sign-in's cookie is `SameSite=None`), gives the name only the
+    first time (the username comes from it, a hidden address being random
+    letters) and knows no PKCE. The app's identity token is checked for the
+    bundle id and the nonce, its code redeemed (`POST
+    /auth/oidc/apple/native`). Apple's refresh token is kept and revoked
+    when the account is deleted, Apple disconnected or the password reset
+    (guideline 5.1.1(v)); Apple's notifications (`POST
+    /auth/apple/notifications`) remove the identity when someone stops
+    using it with Alvyo or deletes their Apple account. An address that
+    has an account already is not taken over: its owner connects Apple on
+    the website first (the app says so).
 
 ### Open
 

@@ -40,3 +40,13 @@ test('not on a computer', async ({ page }) => {
 	await page.goto('/discover');
 	await expect(page.getByTestId('open-in-app')).toHaveCount(0);
 });
+
+test('iOS learns which addresses open the app (universal links)', async ({ request }) => {
+	const res = await request.get('/.well-known/apple-app-site-association', { maxRedirects: 0 });
+	expect(res.status()).toBe(200);
+	expect(res.headers()['content-type']).toContain('application/json');
+	const [details] = (await res.json()).applinks.details;
+	expect(details.appIDs).toEqual(['HYFKN2HQXF.ch.tellbow.alvyo']);
+	expect(details.components).toContainEqual({ '/': '/routes/????????-*' });
+	expect(details.components).toContainEqual({ '/': '/it/friends/invite/*' });
+});

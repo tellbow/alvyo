@@ -48,6 +48,9 @@ type Service struct {
 	Mail      mailer.Sender
 	PublicURL string // base URL of the web app for links in e-mails
 	Now       func() time.Time
+	// Revoke ends a sign-in at its provider when its identity is removed
+	// (OIDC.Revoke); nil: nothing to revoke.
+	Revoke func(ctx context.Context, provider, client, token string) error
 }
 
 func (s *Service) now() time.Time {
@@ -300,7 +303,18 @@ func (s *Service) DeleteAccount(ctx context.Context, u dbq.User, password, sessi
 	if err := s.Confirm(ctx, u, password, sessionToken); err != nil {
 		return err
 	}
-	return s.q().DeleteUser(ctx, u.ID)
+	var gone []revocable
+	err := pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+		var err error
+		if gone, err = deleteIdentities(ctx, tx, `user_id = $1`, u.ID); err != nil {
+			return err
+		}
+		return dbq.New(tx).DeleteUser(ctx, u.ID)
+	})
+	if err == nil {
+		s.revoke(ctx, gone)
+	}
+	return err
 }
 
 // Logout ends a session.
@@ -330,7 +344,8 @@ func (s *Service) ForgotPassword(ctx context.Context, email string) error {
 // ResetPassword sets a new password with a reset token and ends all sessions.
 // Receiving the e-mail also proves the address, so it counts as verified.
 func (s *Service) ResetPassword(ctx context.Context, token, password string) error {
-	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+	var gone []revocable
+	err := pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
 		q := dbq.New(tx)
 		userID, err := q.UseEmailToken(ctx, dbq.UseEmailTokenParams{TokenHash: hashToken(token), Purpose: "reset"})
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -342,10 +357,11 @@ func (s *Service) ResetPassword(ctx context.Context, token, password string) err
 		// Resetting takes the account over: provider accounts and access
 		// tokens may be a stranger's who signed up with the address,
 		// so they go (the e-mail says so); the owner adds theirs again.
-		for _, table := range []string{"identities", "access_tokens"} {
-			if _, err := tx.Exec(ctx, `DELETE FROM `+table+` WHERE user_id = $1`, userID); err != nil {
-				return err
-			}
+		if gone, err = deleteIdentities(ctx, tx, `user_id = $1`, userID); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM access_tokens WHERE user_id = $1`, userID); err != nil {
+			return err
 		}
 		// Hashed only for a valid token: hashing is costly by design.
 		hash, err := HashPassword(password)
@@ -360,6 +376,10 @@ func (s *Service) ResetPassword(ctx context.Context, token, password string) err
 		}
 		return q.DeleteUserSessions(ctx, userID)
 	})
+	if err == nil {
+		s.revoke(ctx, gone)
+	}
+	return err
 }
 
 func (s *Service) link(path, token string) string {

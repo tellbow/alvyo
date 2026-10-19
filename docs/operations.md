@@ -33,6 +33,7 @@ The API calls these services; allow them if egress is restricted:
 |---|---|
 | `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
 | `api.opentransportdata.swiss` | Connections (OJP), only if `ALVYO_OJP_TOKEN` is set |
+| `accounts.google.com`, `appleid.apple.com` | Sign-in providers (`ALVYO_OIDC_PROVIDERS`): discovery, keys, tokens, and Apple's revocation when an account is deleted |
 | `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for the private `tellbow/alvyo-feedback` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write» and «Contents: read and write» (screenshots are committed under `screenshots/`). Without it reports are only kept in the database, without screenshot. |
 
 The tile cache fetches from `wmts.geo.admin.ch` and `tiles.mapterhorn.com`
@@ -59,6 +60,31 @@ providers you configure, e.g. Google:
    stops the API from starting: the keys go in first.
 3. Check: `GET /api/v1/auth/providers` lists it, the login page shows
    «Mit Google anmelden».
+
+Sign in with Apple (a paid Apple developer account; Certificates,
+Identifiers & Profiles):
+
+1. Identifiers: the App ID `ch.tellbow.alvyo` with «Sign In with Apple»
+   (primary App ID) and «Associated Domains» (universal links); its
+   server-to-server notification endpoint
+   `https://<DOMAIN>/api/v1/auth/apple/notifications`.
+2. Identifiers → Services IDs: one for the website (`ch.tellbow.alvyo.web`)
+   with «Sign In with Apple», domain `<DOMAIN>`, return URL
+   `https://<DOMAIN>/api/v1/auth/oidc/apple/callback`.
+3. Keys: a key with «Sign In with Apple»; the .p8 file can be downloaded
+   once. Services → «Sign in with Apple for Email Communication»: the
+   sender (`ALVYO_MAIL_FROM`), whose domain must pass SPF, or Apple's relay
+   drops mails to hidden addresses.
+4. Configuration: `ALVYO_OIDC_PROVIDERS=google,apple`,
+   `ALVYO_OIDC_APPLE_NAME=Apple`,
+   `ALVYO_OIDC_APPLE_ISSUER=https://appleid.apple.com`,
+   `ALVYO_OIDC_APPLE_CLIENT_ID` (the Services ID), `_TEAM_ID`, `_KEY_ID`,
+   `_APP_ID` (the bundle id, for the app's own sign-in) in `configmap.yaml`;
+   `ALVYO_OIDC_APPLE_KEY` (the .p8 file's contents, PEM) in `alvyo-secret`.
+   No client secret: the API signs one with the key for each call. With
+   Compose: `OIDC_APPLE_CLIENT_ID`, `OIDC_APPLE_TEAM_ID`,
+   `OIDC_APPLE_KEY_ID`, `OIDC_APPLE_APP_ID`, `OIDC_APPLE_KEY` in
+   `infra/.env`.
 
 Other providers (Microsoft, an own Keycloak or Authentik …) work the same with
 their issuer URL; add their variables to `compose.prod.yaml` like Google's.

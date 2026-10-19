@@ -51,6 +51,9 @@ services:
       ALVYO_TILES_URL: http://tilecache:8080
       ALVYO_CACHE_DIR: /cache
       ALVYO_PHOTOS_DIR: /data/photos
+      # swisstopo's heights as tiles (alti-import); until they are there,
+      # and beyond the border, geo.admin's profile service.
+      ALVYO_SWISSALTI3D_DIR: /data/alti
       ALVYO_SMTP_HOST: ${SMTP_HOST}
       ALVYO_SMTP_PORT: ${SMTP_PORT:-587}
       ALVYO_SMTP_USER: ${SMTP_USER:-}
@@ -72,7 +75,7 @@ services:
       ALVYO_OIDC_APPLE_KEY_ID: ${OIDC_APPLE_KEY_ID:-}
       ALVYO_OIDC_APPLE_APP_ID: ${OIDC_APPLE_APP_ID:-}
       ALVYO_OIDC_APPLE_KEY: ${OIDC_APPLE_KEY:-}
-    volumes: [api_cache:/cache, photos:/data/photos]
+    volumes: [api_cache:/cache, photos:/data/photos, ./data/alti:/data/alti:ro]
     depends_on:
       migrate: { condition: service_completed_successfully }
       graphhopper: { condition: service_started }
@@ -208,6 +211,17 @@ services:
       - ./data:/data
       - ./data-import:/scripts:ro
     command: ["sh", "/scripts/import-wanderland.sh"]
+
+  # One-shot: swisstopo's height model for the API (about 5 hours the first
+  # time, then only changed tiles); once a year.
+  alti-import:
+    image: alvyo-data-import
+    build: ./data-import
+    profiles: [data]
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    entrypoint: ["python3", "/scripts/swissalti3d.py"]
 
 volumes:
   caddy_data:

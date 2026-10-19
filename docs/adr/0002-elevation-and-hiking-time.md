@@ -1,6 +1,7 @@
 # ADR-0002: swissALTI3D elevation via geo.admin and the SchweizMobil hiking time
 
-Status: accepted (2026-09-22)
+Status: accepted (2026-09-22); the heights come from our own copy of
+swissALTI3D since ADR-0005, geo.admin only beyond the border
 
 ## Decision
 

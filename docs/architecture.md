@@ -27,6 +27,8 @@ flowchart TB
     gh["graphhopper<br/>routing, alternatives,<br/>isochrones"]
     db[("db<br/>PostGIS")]
     geodata[("geodata volume<br/>OSM extract, graph")]
+    alti[("alti volume<br/>swissALTI3D")]
+    altiimport["alti-import<br/>monthly"]
     backup["db-backup<br/>nightly"]
     refresh["graph-refresh<br/>weekly"]
     imports["tlm-import, places-import<br/>by hand"]
@@ -46,6 +48,8 @@ flowchart TB
 
   api --> db
   api --> gh
+  api -- "heights" --> alti
+  altiimport -- "changed tiles" --> alti
   api -- "offline maps, peaks,<br/>link previews" --> tiles
   gh --> geodata
   refresh -- "OSM extract, new graph" --> geodata
@@ -91,6 +95,9 @@ What each part does, and why it is there:
 - **tlm-import** and **places-import** are suspended CronJobs, started by
   hand: swisstopo's trail network once a year, BAV stops and huts from the
   OSM extract (places-import also runs at the end of every graph refresh).
+- **alti-import** keeps swisstopo's height model swissALTI3D (2 m) as
+  tiles on a volume the API reads ([ADR-0005](adr/0005-own-copy-of-swissalti3d.md));
+  monthly, it fetches the tiles swisstopo renewed.
 - **wanderland-import** loads the official routes of Wanderland Schweiz
   every month into tables of their own; the API makes public routes and
   journeys of them (`api/internal/official`).
@@ -160,7 +167,7 @@ flowchart LR
   browser -- "page views" --> ga
   tiles -- "maps, overlays" --> wmts
   tiles -- "terrain" --> mapterhorn
-  api -- "heights, place search,<br/>areas, closures" --> api3
+  api -- "heights beyond the border,<br/>place search, areas, closures" --> api3
   api -- "hourly" --> forecast
   api -.-> ojp
   api -. "sign-in" .-> oidc
@@ -181,8 +188,8 @@ In more detail:
 |---|---|---|
 | `wmts.geo.admin.ch` | tile cache | National map (colour, grey), aerial images, and the overlays: hiking trails, SchweizMobil routes (ASTRA), slopes over 30°, relief, BAFU wildlife rest areas and hunting reserves |
 | `vectortiles.geo.admin.ch` | browser | The vector base map «Basiskarte»: its style, tiles, sprites and fonts (website only, not through the tile cache; when they fail, the Landeskarte instead) |
-| `api3.geo.admin.ch` | API | Heights of every planned or imported leg (profile service), place search, protected areas (BAFU) and current notices (ASTRA trail closures, VBS shooting) along a line (identify service) |
-| `data.geo.admin.ch` | tlm-import, places-import | swissTLM3D hiking trails, BAV stops |
+| `api3.geo.admin.ch` | API | Heights of legs beyond the border, or all without our swissALTI3D tiles (profile service), place search, protected areas (BAFU) and current notices (ASTRA trail closures, VBS shooting) along a line (identify service) |
+| `data.geo.admin.ch` | tlm-import, places-import, alti-import | swissTLM3D hiking trails, BAV stops, swissALTI3D (2 m tiles, monthly the changed ones) |
 | `data.geo.admin.ch` (ASTRA) | wanderland-import | The official routes of Wanderland Schweiz, monthly |
 | `s3.WAW3-2.cloudferro.com` (EEA, Copernicus) | snow-cover | The daily gap-filled snow cover (HR-WSI GFSC), EEA's public bucket, read without keys |
 | `data.geo.admin.ch` (MeteoSwiss) | API, weather-precip | Local forecast (API, hourly), radar and ICON-CH1 (job). The climate normals are a file in the API, updated once a decade. |
@@ -230,6 +237,8 @@ sequenceDiagram
 Heights come from swisstopo rather than from the graph: swissALTI3D has a
 2 m grid, and with it the hiking times match the official SchweizMobil
 figures ([hiking-time.md](hiking-time.md),
-[ADR-0002](adr/0002-elevation-and-hiking-time.md)). The trail category
+[ADR-0002](adr/0002-elevation-and-hiking-time.md)). The API keeps its own
+copy ([ADR-0005](adr/0005-own-copy-of-swissalti3d.md)) and asks geo.admin
+only beyond the border. The trail category
 comes from the official network, not from OSM, because it decides the SAC
 grade and whether a stretch counts as a hiking trail.

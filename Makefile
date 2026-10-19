@@ -1,7 +1,7 @@
 GO_MODULES := swiss api
 COMPOSE    := docker compose -f infra/compose.yaml
 
-.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import wanderland-import weather-precip snow-cover sqlc api-client scorecard licenses
+.PHONY: test test-go test-web lint lint-go lint-web check fmt build infra-up infra-down osm-fetch tlm-import places-import alti-import wanderland-import weather-precip snow-cover sqlc api-client scorecard licenses
 
 test: test-go test-web
 
@@ -48,6 +48,12 @@ wanderland-import:
 # cluster runs it every 5 minutes.
 weather-precip:
 	$(COMPOSE) run --rm weather-precip
+
+# swisstopo's height model (swissALTI3D, about 6 GB) as tiles into
+# infra/data/alti, for ALVYO_SWISSALTI3D_DIR. All of Switzerland takes about
+# 5 hours, later runs fetch only changed tiles; TILES="2600-1198 ..." for some.
+alti-import:
+	$(COMPOSE) run --rm alti-import $(TILES)
 
 # Snow cover tiles for the map (Copernicus; run `migrate` first). The
 # cluster looks for a new day every 6 hours.

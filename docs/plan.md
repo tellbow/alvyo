@@ -20,7 +20,8 @@ Decisions and their reasons: [ADR 0001](adr/0001-own-app-stack-license.md)
 (our own app rather than extending wanderer; Flutter, SvelteKit, Go,
 PostGIS; AGPL-3.0), [0002](adr/0002-elevation-and-hiking-time.md) elevation
 and hiking time, [0003](adr/0003-graphhopper.md) GraphHopper,
-[0004](adr/0004-offline-maps.md) offline maps. Hiking times match the
+[0004](adr/0004-offline-maps.md) offline maps, [0005](adr/0005-own-copy-of-swissalti3d.md)
+our own copy of swissALTI3D. Hiking times match the
 official figures: [hiking-time.md](hiking-time.md).
 
 ## Milestones

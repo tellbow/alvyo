@@ -7,6 +7,9 @@
 //
 //	go run ./cmd/calibrate -cache /tmp/alvyo-calibrate > report.md
 //
+// With -swissalti3d, they come from swissALTI3D tiles on disk instead
+// (infra/data-import/swissalti3d.py).
+//
 // With -graphhopper, each stage is also planned as a person would: routed
 // through GraphHopper between points of the official line every -anchor-km;
 // and timed by GraphHopper's own profiles for isochrones (hike_time), which
@@ -98,6 +101,7 @@ func main() {
 	cache := flag.String("cache", filepath.Join(os.TempDir(), "alvyo-calibrate"), "elevation cache directory")
 	gh := flag.String("graphhopper", "", "GraphHopper URL, e.g. http://localhost:8989, to also plan each stage")
 	anchorKm := flag.Float64("anchor-km", 5, "distance between planning points along the official line")
+	alti := flag.String("swissalti3d", "", "directory of swissALTI3D tiles to take the heights from instead of geo.admin")
 	flag.Parse()
 
 	var doc struct {
@@ -114,7 +118,11 @@ func main() {
 	if err := os.MkdirAll(*cache, 0o755); err != nil {
 		fail(err)
 	}
-	sampler := &elevation.GeoAdmin{UserAgent: "alvyo-calibrate (+https://github.com/tellbow/alvyo)"}
+	var sampler elevation.Sampler = &elevation.GeoAdmin{UserAgent: "alvyo-calibrate (+https://github.com/tellbow/alvyo)"}
+	source := ""
+	if *alti != "" {
+		sampler, source = &elevation.SwissALTI3D{Dir: *alti}, "swissalti3d-"
+	}
 
 	type prepared struct {
 		s   stage
@@ -124,7 +132,7 @@ func main() {
 	var all []prepared
 	for _, s := range doc.Stages {
 		pts, _ := geo.Densify(decode(s.Line), maxVertexSpacing)
-		ele, err := cachedElevation(*cache, "stage", s, pts, sampler)
+		ele, err := cachedElevation(*cache, source+"stage", s, pts, sampler)
 		if err != nil {
 			fail(fmt.Errorf("stage %d.%d: %w", s.Route, s.Stage, err))
 		}
@@ -185,7 +193,7 @@ func main() {
 			continue
 		}
 		dense, _ := geo.Densify(line, maxVertexSpacing)
-		ele, err := cachedElevation(*cache, "planned", p.s, dense, sampler)
+		ele, err := cachedElevation(*cache, source+"planned", p.s, dense, sampler)
 		if err != nil {
 			fail(err)
 		}
@@ -311,7 +319,7 @@ func route(url string, from, to geo.Point, profile string) ([]geo.Point, float64
 }
 
 // cachedElevation samples pts once and keeps the result in dir.
-func cachedElevation(dir, kind string, s stage, pts []geo.Point, g *elevation.GeoAdmin) ([]float64, error) {
+func cachedElevation(dir, kind string, s stage, pts []geo.Point, g elevation.Sampler) ([]float64, error) {
 	file := filepath.Join(dir, fmt.Sprintf("%s-%d-%02d-%d.json", kind, s.Route, s.Stage, len(pts)))
 	if b, err := os.ReadFile(file); err == nil {
 		var ele []float64

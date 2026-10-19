@@ -128,9 +128,13 @@ func serve(ctx context.Context) error {
 	}
 	routeStore := &routes.Store{DB: pool}
 	journeyStore := &journeys.Store{DB: pool, Routes: routeStore}
+	var heights elevation.Sampler = &elevation.GeoAdmin{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
+	if cfg.SwissALTI3DDir != "" {
+		heights = elevation.Fallback{First: &elevation.SwissALTI3D{Dir: cfg.SwissALTI3DDir}, Second: heights}
+	}
 	router := &routing.Router{
 		GraphHopper: &routing.GraphHopper{URL: cfg.GraphHopper},
-		Elevation:   &elevation.GeoAdmin{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"},
+		Elevation:   heights,
 		Trails:      &routing.TrailMatcher{DB: pool},
 		Outlines:    &routing.Outliner{DB: pool},
 	}

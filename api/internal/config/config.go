@@ -32,6 +32,10 @@ type Config struct {
 	TilesURL      string     // ALVYO_TILES_URL: our tile cache, default http://localhost:8081
 	CacheDir      string     // ALVYO_CACHE_DIR: rendered images etc., default <tmp>/alvyo
 	PhotosDir     string     // ALVYO_PHOTOS_DIR: uploaded photos (keep and back up), default data/photos
+	// SwissALTI3DDir holds swisstopo's height model as tiles
+	// (infra/data-import/swissalti3d.py): ALVYO_SWISSALTI3D_DIR. Heights
+	// come from there and, beyond the border or without it, from geo.admin.
+	SwissALTI3DDir string
 	// OJP (public transport connections): ALVYO_OJP_TOKEN is the
 	// opentransportdata.swiss API key; without it the feature is off.
 	OJPURL   string // ALVYO_OJP_URL, default the OJP 2.0 production endpoint
@@ -135,6 +139,7 @@ func FromEnv() (Config, error) {
 			TLS:      getenv("ALVYO_SMTP_TLS", "none"),
 			From:     getenv("ALVYO_MAIL_FROM", "Alvyo <noreply@localhost>"),
 		},
+		SwissALTI3DDir: os.Getenv("ALVYO_SWISSALTI3D_DIR"),
 	}
 	if c.DatabaseURL == "" {
 		return c, errors.New("ALVYO_DATABASE_URL is required")

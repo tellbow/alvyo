@@ -124,6 +124,17 @@ services:
       - ./data-import:/scripts:ro
     command: ["python3", "/scripts/weather-precip.py"]
 
+  # One-shot: make alti-import (swisstopo's height model as tiles for
+  # ALVYO_SWISSALTI3D_DIR); tile names as arguments for some only.
+  alti-import:
+    image: alvyo-data-import
+    build: ./data-import
+    profiles: [data]
+    volumes:
+      - ./data:/data
+      - ./data-import:/scripts:ro
+    entrypoint: ["python3", "/scripts/swissalti3d.py"]
+
   # One-shot: make snow-cover (Copernicus's snow cover as map tiles).
   snow-cover:
     image: alvyo-data-import

@@ -31,12 +31,13 @@ The API calls these services; allow them if egress is restricted:
 
 | Host | For |
 |---|---|
-| `api3.geo.admin.ch` | Elevation profiles (every planned leg and every import), place search in the planner |
+| `api3.geo.admin.ch` | Elevation profiles (legs beyond the border, or all without `ALVYO_SWISSALTI3D_DIR`), place search in the planner |
 | `api.opentransportdata.swiss` | Connections (OJP), only if `ALVYO_OJP_TOKEN` is set |
 | `accounts.google.com`, `appleid.apple.com` | Sign-in providers (`ALVYO_OIDC_PROVIDERS`): discovery, keys, tokens, and Apple's revocation when an account is deleted |
 | `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for the private `tellbow/alvyo-feedback` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write» and «Contents: read and write» (screenshots are committed under `screenshots/`). Without it reports are only kept in the database, without screenshot. |
 
-The jobs fetch from `data.geo.admin.ch` (weather-precip and the imports),
+The jobs fetch from `data.geo.admin.ch` (weather-precip and the imports,
+alti-import the swissALTI3D tiles),
 `download.geofabrik.de` (graph-refresh) and `s3.WAW3-2.cloudferro.com`
 (snow-cover: Copernicus's snow cover, EEA's public bucket).
 
@@ -209,6 +210,17 @@ Longhorn RecurringJob `filesystem-trim` therefore runs daily at
 04:00 UTC. Weekly, it left the volume's actual size at 88 % for six days
 and fired `LonghornVolumeUsageWarning` (over 80 %). A trim by hand: Longhorn
 UI, the volume, «Trim Filesystem».
+
+The `alti` volume (10 GiB, ReadWriteOnce) holds swissALTI3D as tiles,
+about 6.3 GB ([ADR-0005](adr/0005-own-copy-of-swissalti3d.md)). The API
+mounts it read-only at `/data/alti` (`ALVYO_SWISSALTI3D_DIR`); without tiles
+there it asks geo.admin as before. The CronJob `alti-import` writes it
+monthly and must run on the API's node (pod affinity), as the volume is
+ReadWriteOnce. The first run fetches all 43 650 tiles (about 48 GB, about
+5 hours) and keeps `index.json` along the way, so an interrupted run goes
+on where it stopped; start it by hand: `kubectl create job --from=cronjob/alti-import alti-import-first`.
+Later runs read swisstopo's catalogue (about 5 minutes) and fetch only the
+renewed tiles. No snapshots needed: the import can always build it again.
 
 ## Releases (container images)
 

@@ -3,6 +3,8 @@
 # Updated yearly by swisstopo; re-running replaces the table contents.
 # Needs PG* environment variables for the target database.
 set -eu
+# shellcheck source-path=SCRIPTDIR source=download.sh
+. "$(dirname "$0")/download.sh"
 
 url="https://data.geo.admin.ch/ch.swisstopo.swisstlm3d-wanderwege/swisstlm3d-wanderwege/swisstlm3d-wanderwege_2056_5728.gpkg.zip"
 dir=/data/tlm
@@ -10,7 +12,7 @@ mkdir -p "$dir"
 cd "$dir"
 
 if [ ! -f SWISSTLM3D_WANDERWEGE.gpkg ]; then
-	curl -fL --retry 3 -o wanderwege.gpkg.zip "$url"
+	download "$url" wanderwege.gpkg.zip
 	unzip -o wanderwege.gpkg.zip
 fi
 

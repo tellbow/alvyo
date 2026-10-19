@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/rand/v2"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -29,7 +30,8 @@ type GeoAdmin struct {
 	Client    *http.Client // defaults to a client with a 20 s timeout
 	UserAgent string
 
-	chunkSize int // vertices per request; overridden in tests
+	chunkSize int           // vertices per request; overridden in tests
+	retryBase time.Duration // first wait before a retry, 1 s; overridden in tests
 }
 
 type profilePoint struct {
@@ -142,7 +144,7 @@ func (g *GeoAdmin) fetch(ctx context.Context, coords [][2]float64, nb int) ([]pr
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()
-			case <-time.After(time.Duration(attempt*attempt) * 300 * time.Millisecond):
+			case <-time.After(retryWait(attempt, g.retryBase)):
 			}
 		}
 		profile, retry, err := g.do(ctx, client, u, body)
@@ -152,6 +154,17 @@ func (g *GeoAdmin) fetch(ctx context.Context, coords [][2]float64, nb int) ([]pr
 		lastErr = err
 	}
 	return nil, lastErr
+}
+
+// retryWait is the wait before retry n (1, 2, …): truncated exponential
+// backoff with jitter, as geo.admin asks
+// (https://docs.geo.admin.ch/get-started/retry.html): 1 s, 2 s, 4 s … up to
+// 64 s, each plus up to 1 s at random so that clients do not retry together.
+func retryWait(n int, base time.Duration) time.Duration {
+	if base == 0 {
+		base = time.Second
+	}
+	return min(base<<(n-1), 64*base) + rand.N(base)
 }
 
 // do performs one request; retry reports whether the error is transient.

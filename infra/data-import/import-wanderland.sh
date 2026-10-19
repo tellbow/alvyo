@@ -7,6 +7,8 @@
 # re-running replaces the tables in one transaction, so the API never sees
 # them half loaded. Needs PG* environment variables for the target database.
 set -eu
+# shellcheck source-path=SCRIPTDIR source=download.sh
+. "$(dirname "$0")/download.sh"
 
 url="https://data.geo.admin.ch/ch.astra.wanderland/wanderland/wanderland_2056.gpkg"
 dir=/data/wanderland
@@ -14,11 +16,7 @@ mkdir -p "$dir"
 cd "$dir"
 
 # Downloaded again only when newer than the copy kept from the last run.
-if [ -f wanderland.gpkg ]; then
-	curl -fL --retry 3 -o wanderland.gpkg -z wanderland.gpkg "$url"
-else
-	curl -fL --retry 3 -o wanderland.gpkg "$url"
-fi
+download "$url" wanderland.gpkg
 
 # Into tables of their own first (ogr2ogr cannot join psql's transaction).
 # Three routes have a way back of their own («Rückweg»): only the way there.

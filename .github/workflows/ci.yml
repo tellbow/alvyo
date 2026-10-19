@@ -120,6 +120,10 @@ jobs:
       - run: docker build -t alvyo-data-import infra/data-import
       - name: merge-extracts test (osmium in the data-import image)
         run: docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import sh /scripts/merge-extracts_test.sh
+      - name: download and fetch tests (retries with backoff and jitter)
+        run: |
+          docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import sh /scripts/download_test.sh
+          docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import python3 /scripts/swissalti3d_test.py
 
   # Static analysis with semgrep's default rules. Excluded after a look at
   # each finding (2026-10-08):

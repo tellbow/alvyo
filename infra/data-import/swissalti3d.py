@@ -10,10 +10,12 @@ Source: © swisstopo (free geodata, OGD).
 """
 import json
 import os
+import random
 import re
-import shutil
 import sys
 import tempfile
+import time
+import urllib.error
 import urllib.request
 
 from osgeo import gdal
@@ -25,14 +27,41 @@ OUT = "/data/alti"
 INDEX = os.path.join(OUT, "index.json")  # {tile: "item id updated"} of the PNGs written
 USER_AGENT = "alvyo-data-import (+https://github.com/tellbow/alvyo)"
 ITEM = re.compile(r"swissalti3d_(\d{4})_(\d{4}-\d{4})$")
+# How long a request is retried (geo.admin: "the highest value your use case
+# can support").
+DEADLINE = 600
 
 gdal.SetConfigOption("GDAL_PAM_ENABLED", "NO")  # no .aux.xml next to the PNGs
 
 
-def get(url):
+def fetch(url):
+    """The body of url. Busy or failing servers (429, 5xx, timeouts, lost
+    connections) are asked again with truncated exponential backoff and
+    jitter, as geo.admin asks (https://docs.geo.admin.ch/get-started/retry.html):
+    1, 2, 4 … 64 s plus up to 1 s at random, for at most DEADLINE seconds."""
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)
+    start = time.monotonic()
+    n = 0
+    while True:
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code != 429 and e.code < 500:
+                raise
+            err = e
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            err = e
+        wait = min(2**n, 64) + random.random()
+        if time.monotonic() - start + wait > DEADLINE:
+            raise err
+        print(f"{url}: {err}; again in {wait:.1f} s", flush=True)
+        time.sleep(wait)
+        n += 1
+
+
+def get(url):
+    return json.loads(fetch(url))
 
 
 def newest():
@@ -56,10 +85,8 @@ def newest():
 def convert(url, tile):
     # Downloaded in one request: GDAL reading it over HTTP asks for each
     # block separately (3 s a tile instead of well under 1 s).
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with tempfile.NamedTemporaryFile(suffix=".tif") as tif:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            shutil.copyfileobj(r, tif)
+        tif.write(fetch(url))
         tif.flush()
         tmp = os.path.join(OUT, f".{tile}.png")
         # No data (-9999) clamps to 0. Not marked as no data in the PNG: a

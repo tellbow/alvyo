@@ -36,6 +36,12 @@ The API calls these services; allow them if egress is restricted:
 | `accounts.google.com`, `appleid.apple.com` | Sign-in providers (`ALVYO_OIDC_PROVIDERS`): discovery, keys, tokens, and Apple's revocation when an account is deleted |
 | `api.github.com` | Bug reports («Fehler melden») as issues, only if `ALVYO_GITHUB_TOKEN` is set: a fine-grained token for the private `tellbow/alvyo-feedback` (`ALVYO_GITHUB_REPO` for another) with «Issues: read and write» and «Contents: read and write» (screenshots are committed under `screenshots/`). Without it reports are only kept in the database, without screenshot. |
 
+Requests to geo.admin that fail with 429, 5xx or no answer are retried as
+[geo.admin asks](https://docs.geo.admin.ch/get-started/retry.html):
+truncated exponential backoff (1, 2, 4 … s) with up to 1 s of jitter (the
+API's heights, `swissalti3d.py`, and the imports' `download.sh`; curl's own
+`--retry` has no jitter).
+
 The jobs fetch from `data.geo.admin.ch` (weather-precip and the imports,
 alti-import the swissALTI3D tiles),
 `download.geofabrik.de` (graph-refresh) and `s3.WAW3-2.cloudferro.com`

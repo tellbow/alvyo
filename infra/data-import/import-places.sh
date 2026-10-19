@@ -9,6 +9,8 @@
 # choices; places that disappeared are removed and those stages fall back to
 # the suggestion. Needs PG* environment variables for the target database.
 set -eu
+# shellcheck source-path=SCRIPTDIR source=download.sh
+. "$(dirname "$0")/download.sh"
 
 stops_url="https://data.geo.admin.ch/ch.bav.haltestellen-oev/haltestellen-oev/haltestellen-oev_2056_de.gpkg.zip"
 pbf=/data/osm/ch-fl.osm.pbf
@@ -18,12 +20,8 @@ cd "$dir"
 
 [ -f "$pbf" ] || { echo "missing $pbf: run make osm-fetch first" >&2; exit 1; }
 
-# -z: download only if newer than the local copy.
-if [ -f stops.gpkg.zip ]; then
-	curl -fL --retry 3 -z stops.gpkg.zip -o stops.gpkg.zip "$stops_url"
-else
-	curl -fL --retry 3 -o stops.gpkg.zip "$stops_url"
-fi
+# Downloaded only if newer than the local copy.
+download "$stops_url" stops.gpkg.zip
 unzip -o -q stops.gpkg.zip HaltestellenOeV.gpkg
 
 # Stops: VP = Haltestelle, VPG = Haltestelle und Bedienpunkt. The rest are

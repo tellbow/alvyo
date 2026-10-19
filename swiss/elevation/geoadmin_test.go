@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/tellbow/alvyo/swiss/geo"
 	"github.com/tellbow/alvyo/swiss/lv95"
@@ -159,11 +160,27 @@ func TestSampleRetries(t *testing.T) {
 		fake(w, r)
 	}))
 	defer srv.Close()
-	if _, err := (&GeoAdmin{BaseURL: srv.URL}).Sample(context.Background(), line(3)); err != nil {
+	if _, err := (&GeoAdmin{BaseURL: srv.URL, retryBase: time.Millisecond}).Sample(context.Background(), line(3)); err != nil {
 		t.Fatalf("after retry: %v", err)
 	}
 	if calls.Load() != 2 {
 		t.Errorf("%d calls, want 2", calls.Load())
+	}
+}
+
+func TestRetryWait(t *testing.T) {
+	for n, from := range map[int]time.Duration{1: time.Second, 2: 2 * time.Second, 3: 4 * time.Second, 7: 64 * time.Second, 9: 64 * time.Second} {
+		seen := map[time.Duration]bool{}
+		for range 20 {
+			w := retryWait(n, 0)
+			if w < from || w >= from+time.Second {
+				t.Errorf("retry %d: %v, want %v plus less than 1 s", n, w, from)
+			}
+			seen[w] = true
+		}
+		if len(seen) < 2 {
+			t.Errorf("retry %d: always the same wait %v, want jitter", n, seen)
+		}
 	}
 }
 

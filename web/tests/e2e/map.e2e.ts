@@ -79,6 +79,55 @@ test('the terrain in 3D, from the tile cache, and flat again', async ({ page }) 
 	await expect(on).toBeVisible();
 });
 
+test('the Landeskarte when swisstopo’s vector base map does not answer', async ({ page }) => {
+	// The Basiskarte chosen before; its style, tiles and fonts fail.
+	await page.addInitScript(() =>
+		localStorage.setItem(
+			'alvyo.map',
+			JSON.stringify({ base: 'basemap', overlays: ['wanderwege'], center: [8.2, 46.8], zoom: 9 })
+		)
+	);
+	await page.route(/^https:\/\/vectortiles\d?\.geo\.admin\.ch\//, (r) =>
+		r.fulfill({ status: 503, body: 'no available server' })
+	);
+
+	await page.goto('/plan');
+	const map = page.getByTestId('map');
+	await expect(map).toHaveAttribute('data-layers', /\bbase\b.*\bovl-wanderwege\b/);
+	await expect(page.getByTestId('base-unavailable')).toContainText('Du siehst die Landeskarte');
+	await page.getByRole('button', { name: 'Karten' }).click();
+	await expect(page.getByLabel('Landeskarte', { exact: true })).toBeChecked();
+
+	// Chosen again while it is still down: back to the Landeskarte.
+	await page.getByRole('button', { name: 'Schliessen' }).click();
+	await expect(page.getByTestId('base-unavailable')).toBeHidden();
+	await page.getByRole('button', { name: 'Karten' }).click();
+	await page.getByLabel('Basiskarte').check();
+	await expect(page.getByTestId('base-unavailable')).toBeVisible();
+	await expect(page.getByLabel('Landeskarte', { exact: true })).toBeChecked();
+	await expect(map).toHaveAttribute('data-layers', /\bbase\b.*\bovl-wanderwege\b/);
+});
+
+test('the Landeskarte when the vector base map’s tiles keep failing', async ({ page }) => {
+	// The style loads; its tile servers (vectortiles0–4) answer 503.
+	await page.addInitScript(() =>
+		localStorage.setItem(
+			'alvyo.map',
+			JSON.stringify({ base: 'basemap', overlays: ['wanderwege'], center: [8.2, 46.8], zoom: 9 })
+		)
+	);
+	await page.route(/^https:\/\/vectortiles\d\.geo\.admin\.ch\//, (r) =>
+		r.fulfill({ status: 503, body: 'no available server' })
+	);
+
+	await page.goto('/plan');
+	await expect(page.getByTestId('base-unavailable')).toBeVisible();
+	await expect(page.getByTestId('map')).toHaveAttribute(
+		'data-layers',
+		/\bbase\b.*\bovl-wanderwege\b/
+	);
+});
+
 test('summits and water on the map, with a popup', async ({ page }) => {
 	// Zoomed in on the Reeti above Grindelwald First, the layer chosen before.
 	await page.addInitScript(() =>

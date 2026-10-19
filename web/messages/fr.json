@@ -57,6 +57,7 @@
 	"map_base_landeskarte_grau": "Carte nationale grise",
 	"map_base_luftbild": "Image aérienne",
 	"map_base_basemap": "Carte de base",
+	"map_base_unavailable": "La carte de base n’est pas disponible pour le moment. Tu vois la carte nationale.",
 	"map_ovl_wanderwege": "Chemins de randonnée",
 	"map_ovl_wanderland": "Itinéraires de randonnée SuisseMobile",
 	"map_ovl_hangneigung": "Pentes de plus de 30°",

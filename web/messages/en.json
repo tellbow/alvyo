@@ -57,6 +57,7 @@
 	"map_base_landeskarte_grau": "National map grey",
 	"map_base_luftbild": "Aerial imagery",
 	"map_base_basemap": "Base map (vector)",
+	"map_base_unavailable": "The base map is not available right now. You are seeing the national map.",
 	"map_ovl_wanderwege": "Hiking trails",
 	"map_ovl_wanderland": "SwitzerlandMobility hiking routes",
 	"map_ovl_hangneigung": "Slopes over 30°",

@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent } from 'maplibre-gl';
+	import type {
+		GeoJSONSource,
+		Map as MapLibreMap,
+		MapLayerMouseEvent,
+		StyleSpecification
+	} from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import { api, type Pin } from '#lib/api/client.js';
@@ -21,6 +26,8 @@
 		SWISSTOPO_ATTRIBUTION,
 		TERRAIN_SOURCE,
 		baseStyle,
+		failing,
+		fromVectorBase,
 		keepOwnLayers,
 		overlaySource,
 		terrainSource,
@@ -63,6 +70,13 @@
 	// before its tiles are; isStyleLoaded() would wait for the tiles too.
 	let styleReady = false;
 	let pendingOverlays: OverlayId[] | undefined;
+	// When the vector base map's failed requests (ms) of the last minute; at
+	// five of them (or when its style does not load) the Landeskarte.
+	let vectorErrors: number[] = [];
+	let baseUnavailable = $state(false);
+	// The style before the last switch: its routes and overlays go onto the
+	// Landeskarte when the next style fails to load.
+	let lastStyle: StyleSpecification | undefined;
 
 	// Huts and accommodation share one source, one layer per overlay.
 	const PLACES = OVERLAY_PREFIX + 'places';
@@ -136,6 +150,21 @@
 					.layers.map((l) => l.id)
 					.join(' ');
 			});
+			// The Basiskarte comes from swisstopo directly, not through our
+			// tile cache. Without its style the map would never get ready.
+			m.on('error', (e) => {
+				if (shownBase !== 'basemap') return;
+				if (!styleReady || (fromVectorBase(e) && failing(vectorErrors, Date.now()))) {
+					base = shownBase = 'landeskarte';
+					const own = styleReady ? m.getStyle() : lastStyle;
+					styleReady = false;
+					baseUnavailable = true;
+					// Not with transformStyle: it would wait for the failed style.
+					const next = baseStyle(base, location.origin) as StyleSpecification;
+					m.setStyle(keepOwnLayers(own, next), { diff: false });
+					save();
+				}
+			});
 			m.on('moveend', save);
 			m.on('moveend', loadPlaces);
 			// Registered before the pages' own click handlers, which skip a
@@ -189,6 +218,9 @@
 		if (!map || base === shownBase) return;
 		shownBase = base;
 		styleReady = false;
+		vectorErrors = [];
+		baseUnavailable = false;
+		lastStyle = map.getStyle();
 		map.setStyle(baseStyle(base, location.origin), { transformStyle: keepOwnLayers });
 		save();
 	});
@@ -396,5 +428,20 @@
 	{/if}
 	{#if map && overlays.includes('snow')}
 		<SnowLayer {map} below={overlays.includes('precip')} />
+	{/if}
+	{#if baseUnavailable}
+		<div
+			class="absolute bottom-8 left-1/2 z-10 flex w-max max-w-[calc(100%-1rem)] -translate-x-1/2 items-start gap-2 rounded-md bg-surface/95 p-2 text-xs shadow ring-1 ring-stone-300"
+			role="status"
+			data-testid="base-unavailable"
+		>
+			<p>{msg.map_base_unavailable()}</p>
+			<button
+				type="button"
+				class="w-6 rounded px-1 text-sm hover:bg-stone-100"
+				aria-label={msg.map_ui_close()}
+				onclick={() => (baseUnavailable = false)}>×</button
+			>
+		</div>
 	{/if}
 </div>

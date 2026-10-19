@@ -57,6 +57,7 @@
 	"map_base_landeskarte_grau": "Carta nazionale grigia",
 	"map_base_luftbild": "Immagine aerea",
 	"map_base_basemap": "Carta di base",
+	"map_base_unavailable": "La carta di base non è raggiungibile al momento. Vedi la carta nazionale.",
 	"map_ovl_wanderwege": "Sentieri escursionistici",
 	"map_ovl_wanderland": "Percorsi escursionistici SvizzeraMobile",
 	"map_ovl_hangneigung": "Pendenza oltre 30°",

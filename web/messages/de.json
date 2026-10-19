@@ -57,6 +57,7 @@
 	"map_base_landeskarte_grau": "Landeskarte grau",
 	"map_base_luftbild": "Luftbild",
 	"map_base_basemap": "Basiskarte",
+	"map_base_unavailable": "Die Basiskarte ist gerade nicht erreichbar. Du siehst die Landeskarte.",
 	"map_ovl_wanderwege": "Wanderwege",
 	"map_ovl_wanderland": "SchweizMobil-Wanderrouten",
 	"map_ovl_hangneigung": "Hangneigung über 30°",

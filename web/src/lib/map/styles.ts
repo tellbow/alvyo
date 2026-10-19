@@ -93,7 +93,6 @@ export function baseStyle(id: BaseMapId, origin: string): StyleSpecification | s
 	if (id === 'basemap') return VECTOR_STYLE;
 	return {
 		version: 8,
-		glyphs: 'https://vectortiles.geo.admin.ch/fonts/{fontstack}/{range}.pbf',
 		sources: { base: rasterSource(id, origin) },
 		layers: [{ id: 'base', type: 'raster', source: 'base' }]
 	};
@@ -102,6 +101,29 @@ export function baseStyle(id: BaseMapId, origin: string): StyleSpecification | s
 /** Prefix of sources and layers we add on top of any base map. */
 export const OVERLAY_PREFIX = 'ovl-';
 export const ROUTE_PREFIX = 'route-';
+
+/**
+ * Whether a map error comes from the vector base map, which the browser loads
+ * from swisstopo directly (style, tiles, sprites, fonts), not through our
+ * tile cache: a source of its own, or a request to vectortiles.geo.admin.ch.
+ */
+export function fromVectorBase(e: { error?: object; sourceId?: string }): boolean {
+	if (e.sourceId)
+		return !e.sourceId.startsWith(OVERLAY_PREFIX) && !e.sourceId.startsWith(ROUTE_PREFIX);
+	const url = (e.error as { url?: unknown } | undefined)?.url; // MapLibre's AJAXError
+	return typeof url === 'string' && /^https:\/\/vectortiles\d?\.geo\.admin\.ch\//.test(url);
+}
+
+/**
+ * Records a failure at `now` (ms) in `times`, which keeps only the last
+ * `windowMs`; true once `n` failures fall within it. A stray failed tile
+ * does not count as an outage.
+ */
+export function failing(times: number[], now: number, n = 5, windowMs = 60_000): boolean {
+	times.push(now);
+	while (times[0] <= now - windowMs) times.shift();
+	return times.length >= n;
+}
 
 export function overlaySource(id: RasterOverlayId, origin: string) {
 	return rasterSource(id, origin);

@@ -180,7 +180,7 @@ In more detail:
 | Service | Called by | For |
 |---|---|---|
 | `wmts.geo.admin.ch` | tile cache | National map (colour, grey), aerial images, and the overlays: hiking trails, SchweizMobil routes (ASTRA), slopes over 30°, relief, BAFU wildlife rest areas and hunting reserves |
-| `vectortiles.geo.admin.ch` | browser | The vector base map and the map's fonts (website only) |
+| `vectortiles.geo.admin.ch` | browser | The vector base map «Basiskarte»: its style, tiles, sprites and fonts (website only, not through the tile cache; when they fail, the Landeskarte instead) |
 | `api3.geo.admin.ch` | API | Heights of every planned or imported leg (profile service), place search, protected areas (BAFU) and current notices (ASTRA trail closures, VBS shooting) along a line (identify service) |
 | `data.geo.admin.ch` | tlm-import, places-import | swissTLM3D hiking trails, BAV stops |
 | `data.geo.admin.ch` (ASTRA) | wanderland-import | The official routes of Wanderland Schweiz, monthly |

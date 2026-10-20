@@ -208,8 +208,15 @@ func TestMCP(t *testing.T) {
 	}
 
 	var cond conditionsResult
-	if text, isErr := call(t, sess, "route_conditions", map[string]any{"route_id": mine.ID}, &cond); isErr || len(cond.Areas) != 3 || cond.Weather == nil {
+	if text, isErr := call(t, sess, "route_conditions", map[string]any{"route_id": mine.ID}, &cond); isErr || len(cond.Areas) != 3 || cond.Weather == nil || cond.Snow != nil {
 		t.Errorf("route_conditions: %s", text)
+	}
+	// With snow cover: the snow on the way, the slope unknown here.
+	allSnow(t, s)
+	text, isErr = call(t, sess, "route_conditions", map[string]any{"route_id": mine.ID}, &cond)
+	if sn := cond.Snow; isErr || sn == nil || sn.Date != "2026-10-18" || sn.SnowM < 300 || sn.SteepM != nil || len(sn.Stretches) != 1 ||
+		!strings.Contains(text, "Snow (2026-10-18):") || !strings.Contains(text, "Copernicus") {
+		t.Errorf("route_conditions with snow: %s", text)
 	}
 	if text, isErr := call(t, sess, "route_conditions", map[string]any{"from": "Grindelwald, First", "to": "Bachalpsee"}, &cond); isErr || len(cond.Areas) != 3 {
 		t.Errorf("route_conditions of a planned route: %s", text)

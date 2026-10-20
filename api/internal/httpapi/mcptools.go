@@ -23,6 +23,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/official"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/snow"
 	"github.com/tellbow/alvyo/swiss/geo"
 )
 
@@ -45,7 +46,7 @@ func registerMCPTools(s *mcp.Server, d Deps) {
 		"The areas reached on foot from a place within 2, 4 and 8 hours at the user's pace, timed by slope like the Swiss hiking time; optionally there and back within the hours.",
 		t.reach)
 	addTool(s, "route_conditions", "Conditions along a route",
-		"MeteoSwiss's forecast at the start, highest point and end, closed trails and military shooting from today on, and the protected areas crossed (wildlife rest areas, hunting reserves), for a saved route (route_id) or one planned from places (from, via, to).",
+		"MeteoSwiss's forecast at the start, highest point and end, closed trails and military shooting from today on, the protected areas crossed (wildlife rest areas, hunting reserves), and the snow on the way (satellite, with the part on terrain steeper than 30°), for a saved route (route_id) or one planned from places (from, via, to).",
 		t.routeConditions)
 	addTool(s, "discover", "Discover routes",
 		"Public routes and journeys of Alvyo's users and the official routes of Wanderland Schweiz (SchweizMobil) around a place, the nearest first, at most 50.",
@@ -343,7 +344,26 @@ type conditionsResult struct {
 	Weather []mcpWeatherPlace `json:"weather"`
 	Notices []mcpNotice       `json:"notices" jsonschema:"Closed trails and military shooting on the way, from today on"`
 	Areas   []mcpArea         `json:"areas" jsonschema:"Protected areas crossed"`
+	Snow    *mcpSnow          `json:"snow,omitempty" jsonschema:"Snow on the way, from the newest day of the snow cover; missing while there is none"`
 }
+
+type mcpSnow struct {
+	Date      string           `json:"date" jsonschema:"The day of the snow cover"`
+	SnowM     float64          `json:"snow_m" jsonschema:"In snow (from 50 %), 0 below 100 m"`
+	SteepM    *float64         `json:"steep_m,omitempty" jsonschema:"Of that, on terrain steeper than 30°; missing where the slope is not known (abroad)"`
+	PatchesM  float64          `json:"patches_m" jsonschema:"Elsewhere in patches (15–50 %), 0 below 100 m"`
+	Stretches []mcpSnowStretch `json:"stretches"`
+	Note      string           `json:"note"`
+}
+
+type mcpSnowStretch struct {
+	FromM  float64 `json:"from_m" jsonschema:"From the start"`
+	ToM    float64 `json:"to_m"`
+	SteepM float64 `json:"steep_m"`
+}
+
+// snowNote is what the snow cover cannot say, and its credit.
+const snowNote = "Satellite, 60 m; under clouds up to 7 days old: a short snow field can be missing, depth and hardness are not known. The BFU advises planning hikes so as not to meet snow fields and turning back in doubt. " + snow.Attribution + "."
 
 type mcpWeatherPlace struct {
 	At       []string        `json:"at" jsonschema:"start, top (the highest point), end"`
@@ -424,6 +444,22 @@ func (t mcpTools) routeConditions(ctx context.Context, u dbq.User, in conditions
 	found, notices, err := crossedAreas(ctx, t.d, pts)
 	if err != nil {
 		return out, "", err
+	}
+	if geo.CumulativeDistance(pts)[len(pts)-1] <= snow.MaxLineM {
+		sa, err := t.d.Snow.Along(ctx, pts)
+		if err != nil {
+			return out, "", err
+		}
+		if sa.Date != "" {
+			ms := &mcpSnow{Date: sa.Date, SnowM: sa.SnowM, PatchesM: sa.PatchesM, Stretches: []mcpSnowStretch{}, Note: snowNote}
+			if sa.Slopes {
+				ms.SteepM = &sa.SteepM
+			}
+			for _, st := range sa.Stretches {
+				ms.Stretches = append(ms.Stretches, mcpSnowStretch{FromM: st.FromM, ToM: st.ToM, SteepM: st.SteepM})
+			}
+			out.Snow = ms
+		}
 	}
 	lang := u.Locale
 	out.Weather, out.Notices, out.Areas = []mcpWeatherPlace{}, []mcpNotice{}, []mcpArea{}
@@ -520,6 +556,29 @@ func (c conditionsResult) text() string {
 			fmt.Fprintf(&b, ", %s", a.Period)
 		}
 		b.WriteString("\n")
+	}
+	if sn := c.Snow; sn != nil {
+		fmt.Fprintf(&b, "\nSnow (%s):\n", sn.Date)
+		if sn.SnowM == 0 {
+			b.WriteString("none")
+		} else {
+			fmt.Fprintf(&b, "%.0f m in snow", sn.SnowM)
+			if sn.SteepM != nil {
+				fmt.Fprintf(&b, ", %.0f m of it steeper than 30°", *sn.SteepM)
+			}
+		}
+		if sn.PatchesM > 0 {
+			fmt.Fprintf(&b, "; patches on %.0f m", sn.PatchesM)
+		}
+		b.WriteString("\n")
+		for _, st := range sn.Stretches {
+			fmt.Fprintf(&b, "%.1f–%.1f km", st.FromM/1000, st.ToM/1000)
+			if sn.SteepM != nil && st.SteepM > 0 {
+				fmt.Fprintf(&b, " (%.0f m steep)", st.SteepM)
+			}
+			b.WriteString("\n")
+		}
+		b.WriteString(sn.Note + "\n")
 	}
 	return b.String()
 }

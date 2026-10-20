@@ -61,7 +61,7 @@ ChatGPT) are not supported.
 | `search_places` | Places by name: villages, stops, huts, summits, passes, addresses |
 | `plan_route` | From, via and to (names or `lat,lon`), hike or alpine: distance, ascent, Swiss hiking time (also at one's pace), SAC grade; GPX on request. Places more than 40 km apart are refused |
 | `reach` | How far one gets from a place in 2, 4 and 8 hours, or there and back |
-| `route_conditions` | Weather, closed trails, shooting and protected areas along a saved route or one planned from places |
+| `route_conditions` | Weather, closed trails, shooting, protected areas and snow (with the steep part) along a saved route or one planned from places |
 | `discover` | Public routes and the official routes of Wanderland Schweiz around a place, with filters |
 | `my_routes`, `my_journeys` | One's own and those shared with one |
 | `get_route`, `get_journey` | One route (GPX on request) or journey with its stages |

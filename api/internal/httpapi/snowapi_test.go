@@ -66,21 +66,11 @@ func TestSnowCover(t *testing.T) {
 	}
 }
 
-func TestSnowAlong(t *testing.T) {
-	s := newTestServer(t, Limits{})
+// allSnow puts snow on all of the tile of the test routes (8.0, 46.5), on
+// 2026-10-18.
+func allSnow(t *testing.T, s *testServer) {
+	t.Helper()
 	ctx := context.Background()
-	owner, other := s.client(t), s.client(t)
-	s.signup(owner, "owner@example.ch", "owner")
-	s.signup(other, "other@example.ch", "other")
-	get := func(c *client, method, path string, body any) (int, snow.Along) {
-		t.Helper()
-		code, raw := c.do(method, path, body)
-		var a snow.Along
-		_ = json.Unmarshal(raw, &a)
-		return code, a
-	}
-
-	// All snow in the tile of the test routes (8.0, 46.5).
 	n := math.Exp2(snow.MaxZoom)
 	lat := 46.5 * math.Pi / 180
 	x, y := int((8.0+180)/360*n), int((1-math.Log(math.Tan(lat)+1/math.Cos(lat))/math.Pi)/2*n)
@@ -97,6 +87,22 @@ func TestSnowAlong(t *testing.T) {
 		snow.MaxZoom, x, y, tile.Bytes()); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestSnowAlong(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	owner, other := s.client(t), s.client(t)
+	s.signup(owner, "owner@example.ch", "owner")
+	s.signup(other, "other@example.ch", "other")
+	get := func(c *client, method, path string, body any) (int, snow.Along) {
+		t.Helper()
+		code, raw := c.do(method, path, body)
+		var a snow.Along
+		_ = json.Unmarshal(raw, &a)
+		return code, a
+	}
+
+	allSnow(t, s)
 
 	// A line in the planner: for those logged in.
 	line := [][2]float64{{8.0, 46.5}, {8.004, 46.5}}

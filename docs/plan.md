@@ -794,7 +794,7 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     distance, ascent, Swiss hiking time also at one's pace, SAC grade, GPX
     on request; places more than 40 km apart are refused as likely found
     by mistake), `reach`, `route_conditions` (weather, closures and
-    shooting, protected areas of a saved or a planned route), `discover`
+    shooting, protected areas and snow of a saved or a planned route), `discover`
     (public and official routes around a place), `my_routes`,
     `my_journeys`, `get_route`, `get_journey` (one's own, shared, public,
     or unlisted with the token). Each answers with a text and the same as

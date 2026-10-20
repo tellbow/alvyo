@@ -224,8 +224,10 @@ mounts it read-only at `/data/alti` (`ALVYO_SWISSALTI3D_DIR`); without tiles
 there it asks geo.admin as before. The CronJob `alti-import` writes it
 monthly and must run on the API's node (pod affinity), as the volume is
 ReadWriteOnce. The first run fetches all 43 650 tiles (about 48 GB, about
-5 hours) and keeps `index.json` along the way, so an interrupted run goes
+10 hours) and keeps `index.json` along the way, so an interrupted run goes
 on where it stopped; start it by hand: `kubectl create job --from=cronjob/alti-import alti-import-first`.
+It outlasts the job's 8-hour deadline, so start it once more under a new
+name (`alti-import-second`) to fetch the rest.
 Later runs read swisstopo's catalogue (about 5 minutes) and fetch only the
 renewed tiles. No snapshots needed: the import can always build it again.
 

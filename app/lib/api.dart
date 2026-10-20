@@ -551,6 +551,52 @@ class JourneyWeather {
 /// What lies along a route: protected areas, closures and shooting.
 typedef Along = ({List<ProtectedArea> areas, List<Notice> notices});
 
+/// Lines of [lon, lat]: where a route crosses something, for the map.
+List<List<List<double>>> _parts(Object? v) => [
+  for (final part in v as List? ?? const [])
+    [
+      for (final c in part as List) [for (final x in c as List) (x as num).toDouble()],
+    ],
+];
+
+/// The snow along a route or a journey's stages, from the newest day of the
+/// snow cover (satellite, 60 m).
+class SnowAlong {
+  SnowAlong.fromJson(Map<String, dynamic> j)
+    : date = j['date'] as String?,
+      snowM = (j['snow_m'] as num? ?? 0).toDouble(),
+      steepM = (j['steep_m'] as num? ?? 0).toDouble(),
+      patchesM = (j['patches_m'] as num? ?? 0).toDouble(),
+      slopes = j['slopes'] as bool? ?? false,
+      stretches = [
+        for (final s in j['stretches'] as List? ?? const [])
+          (
+            fromM: ((s as Map<String, dynamic>)['from_m'] as num).toDouble(),
+            toM: (s['to_m'] as num).toDouble(),
+            steepM: (s['steep_m'] as num? ?? 0).toDouble(),
+            line: _parts([s['line']]).first,
+            stage: (s['stage'] as num?)?.toInt(),
+          ),
+      ],
+      attribution = j['attribution'] as String? ?? '';
+
+  /// The day of the snow cover (YYYY-MM-DD); null while there is none.
+  final String? date;
+
+  /// In snow (from 50 %), of that on terrain steeper than 30°, and patches
+  /// elsewhere; each 0 below 100 m.
+  final double snowM, steepM, patchesM;
+
+  /// Whether the terrain's slope is known (Switzerland).
+  final bool slopes;
+
+  /// The stretches in snow, measured from the start (of the stage).
+  final List<({double fromM, double toM, double steepM, List<List<double>> line, int? stage})> stretches;
+
+  /// The credit the data policy asks for.
+  final String attribution;
+}
+
 /// A closed trail or army shooting on the way.
 class Notice {
   Notice.fromJson(Map<String, dynamic> j)
@@ -568,7 +614,8 @@ class Notice {
           ),
       ],
       phone = j['phone'] as String? ?? '',
-      stages = [for (final s in j['stages'] as List? ?? const []) (s as num).toInt()];
+      stages = [for (final s in j['stages'] as List? ?? const []) (s as num).toInt()],
+      where = _parts(j['where']);
 
   static Map<String, String> _texts(Object? m) => {
     for (final e in (m as Map<String, dynamic>? ?? const {}).entries)
@@ -588,6 +635,9 @@ class Notice {
   final List<({String date, String from, String to})> days;
   final String phone;
   final List<int> stages;
+
+  /// The parts of the line concerned, for the map.
+  final List<List<List<double>>> where;
 
   String titleIn(String lang) => title[lang] ?? title['de'] ?? '';
   String reasonIn(String lang) => reason[lang] ?? reason['de'] ?? '';
@@ -612,7 +662,8 @@ class ProtectedArea {
         {'from': final String from, 'to': final String to} => (from: from, to: to),
         _ => null,
       },
-      stages = [for (final s in j['stages'] as List? ?? const []) (s as num).toInt()];
+      stages = [for (final s in j['stages'] as List? ?? const []) (s as num).toInt()],
+      where = _parts(j['where']);
 
   /// wildlife_rest or hunting_reserve.
   final String kind, name;
@@ -626,6 +677,9 @@ class ProtectedArea {
 
   /// The journey stages crossing it (from 1).
   final List<int> stages;
+
+  /// The parts of the line in it, for the map.
+  final List<List<List<double>>> where;
 
   /// The rule in [lang]; German where it has none.
   String ruleIn(String lang) => (rule[lang]?.isNotEmpty ?? false) ? rule[lang]! : rule['de'] ?? '';
@@ -1519,6 +1573,12 @@ class Api {
       areas: [for (final a in j['areas'] as List) ProtectedArea.fromJson(a as Map<String, dynamic>)],
       notices: [for (final n in j['notices'] as List? ?? const []) Notice.fromJson(n as Map<String, dynamic>)],
     );
+  }
+
+  /// The snow along a route, or a journey's stages.
+  Future<SnowAlong> snowAlong({String? routeId, String? journeyId}) async {
+    final j = await _get(routeId != null ? '/routes/$routeId/snow' : '/journeys/$journeyId/snow');
+    return SnowAlong.fromJson(j as Map<String, dynamic>);
   }
 
   Future<List<Turn>> turns(String routeId) async {

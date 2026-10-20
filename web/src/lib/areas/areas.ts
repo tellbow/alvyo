@@ -50,3 +50,11 @@ export function touches(n: Notice, days: string[]): boolean {
 	if (n.kind === 'shooting') return (n.days ?? []).some((d) => days.includes(d.date));
 	return days.some((d) => (!n.from || d >= n.from) && (!n.to || d <= n.to));
 }
+
+/**
+ * A length in snow, to the nearest 50 m: the snow cover's pixels are
+ * 60 m, more would pretend to know better.
+ */
+export function roughly(metres: number): number {
+	return Math.max(50, Math.round(metres / 50) * 50);
+}

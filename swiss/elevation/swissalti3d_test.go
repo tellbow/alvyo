@@ -79,6 +79,23 @@ func TestSwissALTI3D(t *testing.T) {
 	}
 }
 
+func TestSwissALTI3DSlope(t *testing.T) {
+	dir := t.TempDir()
+	pts := line(3)
+	// 1 m up per 1 m east and 1 m per 2 m north: atan(√1.25) ≈ 48.2°.
+	steep := func(e, n float64) *float64 { h := 2000 + (e - 2600000) + (n-1180000)/2; return &h }
+	writeTiles(t, dir, pts, steep)
+	s := &SwissALTI3D{Dir: dir}
+	got, err := s.Slope(pts[1])
+	if want := math.Atan(math.Sqrt(1.25)) * 180 / math.Pi; err != nil || math.Abs(got-want) > 0.1 {
+		t.Errorf("slope %.2f° (%v), want %.2f°", got, err, want)
+	}
+	// Without tiles: unknown.
+	if got, err := (&SwissALTI3D{Dir: t.TempDir()}).Slope(pts[1]); err != nil || !math.IsNaN(got) {
+		t.Errorf("without tiles: %v, %v", got, err)
+	}
+}
+
 func TestSwissALTI3DGapIsNoCoverage(t *testing.T) {
 	dir := t.TempDir()
 	pts := line(40) // three tiles eastwards; the middle one is missing

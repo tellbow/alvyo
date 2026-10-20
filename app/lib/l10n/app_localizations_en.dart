@@ -1512,6 +1512,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get snowLess => 'Less';
 
   @override
+  String get showOnMap => 'Show on the map';
+
+  @override
+  String get snowAlongTitle => 'Snow on the way';
+
+  @override
+  String snowAlongNote(String snow) {
+    return '$snow of snow';
+  }
+
+  @override
+  String snowAlongNoteSteep(String snow, String steep) {
+    return '$snow of snow, $steep steep';
+  }
+
+  @override
+  String snowAlongSummary(String snow) {
+    return 'Crosses $snow of snow.';
+  }
+
+  @override
+  String snowAlongSummarySteep(String snow, String steep) {
+    return 'Crosses $snow of snow, $steep of it steeper than 30°.';
+  }
+
+  @override
+  String snowAlongPatches(String distance) {
+    return 'Patches of snow on another $distance.';
+  }
+
+  @override
+  String snowAlongPatchesOnly(String distance, String date) {
+    return 'Patches of snow on $distance, as of $date.';
+  }
+
+  @override
+  String snowAlongStretch(String at, String length) {
+    return 'After $at: $length of snow';
+  }
+
+  @override
+  String snowAlongStretchSteep(String steep) {
+    return '$steep of it steeper than 30°';
+  }
+
+  @override
+  String get snowAlongLimits =>
+      'Satellite, 60 m; up to 7 days old under clouds. A short snow field can be missing; depth and hardness are not shown. Steep means terrain steeper than 30° (swissALTI3D, Switzerland only).';
+
+  @override
   String get poiFirepit => 'Fire place';
 
   @override

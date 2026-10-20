@@ -378,6 +378,11 @@ Checked so far only in the simulator, with made-up or simulated positions
 - [ ] **Snow in the app** (78, after the release): «Schnee (Satellit)» in
       «Karten» on «Planen», a route and «Entdecken»: the blue areas, the
       box with the day and «Copernicus (EU)» in the map's credit.
+- [ ] **Snow along a route in the app** (79, after the release, in a
+      season with snow): on a route through snow «Schnee unterwegs» with
+      the amount; in its sheet «Auf der Karte zeigen» closes the sheet and
+      the map above goes to the stretch, drawn orange; the same for a
+      protected area. On a journey the map beside it does the same.
 - [x] **Universal links** (45, after the release and the website's
       `apple-app-site-association` deployed): a shared https link to a
       route, journey, collection or invite opens the app from Messages or
@@ -474,6 +479,12 @@ emulator ran the integration tests offline, navigate and journey
       blue areas where the Alps have snow, with yesterday's date and the
       Copernicus credit (box and attribution); zoomed in beyond 11 the
       tiles get coarser, not empty; together with the rain both boxes show.
+- [ ] **Snow along a route** (79, after the release, in a season with
+      snow): a route over a glacier or a pass in snow says «Schnee
+      unterwegs» with an amount that matches the snow layer, and steep
+      parts where the slope map («Hangneigung über 30°») shows them;
+      «Auf der Karte zeigen» goes there. A summer hike at 1500 m says
+      nothing.
 - [ ] **Google Analytics** (62): after the release, the banner on the
       first visit (also on a phone, not covering the planner's buttons);
       GA's real-time report shows the visit, addresses without `?t=` and

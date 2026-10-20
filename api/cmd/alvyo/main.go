@@ -129,8 +129,11 @@ func serve(ctx context.Context) error {
 	routeStore := &routes.Store{DB: pool}
 	journeyStore := &journeys.Store{DB: pool, Routes: routeStore}
 	var heights elevation.Sampler = &elevation.GeoAdmin{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
+	snowStore := &snow.Store{DB: pool}
 	if cfg.SwissALTI3DDir != "" {
-		heights = elevation.Fallback{First: &elevation.SwissALTI3D{Dir: cfg.SwissALTI3DDir}, Second: heights}
+		alti := &elevation.SwissALTI3D{Dir: cfg.SwissALTI3DDir}
+		heights = elevation.Fallback{First: alti, Second: heights}
+		snowStore.Terrain = alti // the slope under snow along routes
 	}
 	router := &routing.Router{
 		GraphHopper: &routing.GraphHopper{URL: cfg.GraphHopper},
@@ -192,7 +195,7 @@ func serve(ctx context.Context) error {
 		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},
 		Precip:      &precip.Store{DB: pool},
-		Snow:        &snow.Store{DB: pool},
+		Snow:        snowStore,
 		Peaks:       peakService,
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},

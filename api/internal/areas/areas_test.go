@@ -147,3 +147,42 @@ func TestPrune(t *testing.T) {
 		t.Errorf("left: %v", keys)
 	}
 }
+
+func TestCrossedWhere(t *testing.T) {
+	// geo.admin's answer with the shapes, for east(10).
+	body, err := os.ReadFile("testdata/identify_where.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if q := r.URL.Query(); q.Get("returnGeometry") != "true" || q.Get("geometryFormat") != "geojson" {
+			t.Errorf("request %s", r.URL.RawQuery)
+		}
+		_, _ = w.Write(body)
+	}))
+	t.Cleanup(srv.Close)
+	f := &Finder{DB: testdb.New(t), URL: srv.URL}
+
+	areas, err := f.Crossed(context.Background(), east(10))
+	if err != nil || len(areas) != 1 {
+		t.Fatalf("%v: %+v", err, areas)
+	}
+	// The line enters the zone at about 8.0047 and ends in it.
+	w := areas[0].Where
+	if len(w) != 1 || w[0][0][0] < 8.0039 || w[0][0][0] > 8.0052 || w[0][len(w[0])-1][0] != 8.0117 {
+		t.Errorf("where: %v", w)
+	}
+}
+
+func TestInside(t *testing.T) {
+	// A square with a square hole.
+	square := [][][2]float64{
+		{{0, 0}, {4, 0}, {4, 4}, {0, 4}, {0, 0}},
+		{{1, 1}, {3, 1}, {3, 3}, {1, 3}, {1, 1}},
+	}
+	for p, want := range map[geo.Point]bool{{Lon: 0.5, Lat: 0.5}: true, {Lon: 2, Lat: 2}: false, {Lon: 5, Lat: 2}: false, {Lon: 3.5, Lat: 3.9}: true} {
+		if inside(p, square) != want {
+			t.Errorf("%v inside: %v", p, !want)
+		}
+	}
+}

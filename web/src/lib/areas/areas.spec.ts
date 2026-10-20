@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inPeriod, noticeText, periodDay, ruleText, shootingDay, touches } from './areas';
+import { inPeriod, noticeText, periodDay, roughly, ruleText, shootingDay, touches } from './areas';
 
 describe('protected areas', () => {
 	it('knows whether a day is in a period over the new year', () => {
@@ -51,5 +51,13 @@ describe('closures and shooting', () => {
 		expect(noticeText(closure.title, 'en')).toBe('Lake wood');
 		expect(noticeText(closure.title, 'fr')).toBe('Seewäldli');
 		expect(shootingDay('2026-09-29', 'de-CH')).toBe('29. Sept.');
+	});
+});
+
+describe('snow along', () => {
+	it('rounds lengths to 50 m, at least 50', () => {
+		expect(roughly(1234)).toBe(1250);
+		expect(roughly(1220)).toBe(1200);
+		expect(roughly(10)).toBe(50);
 	});
 });

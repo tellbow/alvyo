@@ -88,6 +88,9 @@ type Area struct {
 	Link   string  `json:"link,omitempty" doc:"The canton's or BAFU's page on it"`
 	// Stages are the numbers (from 1) of the journey stages crossing it.
 	Stages []int `json:"stages,omitempty"`
+	// Where are the parts of the line in it, [lon, lat]: where the map goes
+	// on a tap.
+	Where [][][2]float64 `json:"where,omitempty"`
 }
 
 // Finder asks geo.admin and caches its answers.
@@ -127,7 +130,7 @@ func (f *Finder) Crossed(ctx context.Context, line []geo.Point) ([]Area, error) 
 	if len(pts) < 2 {
 		return []Area{}, nil
 	}
-	key := lineKey(pts)
+	key := "where:" + lineKey(pts) // answers from before Where are not used
 	var cached []byte
 	err := f.DB.QueryRow(ctx, `SELECT areas FROM area_cache WHERE line_key = $1 AND fetched_at > now() - make_interval(secs => $2)`,
 		key, cacheFor.Seconds()).Scan(&cached)
@@ -149,7 +152,10 @@ func (f *Finder) Crossed(ctx context.Context, line []geo.Point) ([]Area, error) 
 			return nil, err
 		}
 		for _, a := range areas {
-			found[a.Kind+"/"+a.ID] = a
+			if _, seen := found[a.Kind+"/"+a.ID]; !seen {
+				a.Where = where(pts, a.geometry) // on the whole line: an area can span chunks
+				found[a.Kind+"/"+a.ID] = a.Area
+			}
 		}
 	}
 	out := make([]Area, 0, len(found))
@@ -190,12 +196,18 @@ type identifyResult struct {
 	Geometry   json.RawMessage `json:"geometry"`
 }
 
-func (f *Finder) identify(ctx context.Context, pts []geo.Point) ([]Area, error) {
-	r, err := f.ask(ctx, pts, []string{restLayer, reserveLayer}, false)
+// shaped is an area with its shape (GeoJSON).
+type shaped struct {
+	Area
+	geometry json.RawMessage
+}
+
+func (f *Finder) identify(ctx context.Context, pts []geo.Point) ([]shaped, error) {
+	r, err := f.ask(ctx, pts, []string{restLayer, reserveLayer}, true)
 	if err != nil {
 		return nil, err
 	}
-	var out []Area
+	var out []shaped
 	for _, res := range r.Results {
 		s := func(k string) string {
 			v, _ := res.Attributes[k].(string)
@@ -206,20 +218,20 @@ func (f *Finder) identify(ctx context.Context, pts []geo.Point) ([]Area, error) 
 			if s("wrz_name") == "" {
 				continue // an allowed path through a zone, not the zone
 			}
-			out = append(out, Area{
+			out = append(out, shaped{Area{
 				Kind: "wildlife_rest", ID: res.FeatureID.String(), Name: s("wrz_name"),
 				Binding: s("schutzs_de") == "rechtsverbindlich",
 				Rule:    Texts{De: s("best_de"), Fr: s("best_fr"), It: s("best_it")},
 				Note:    s("zusatzinformation"),
 				Period:  parsePeriod(s("schutzzeit")),
 				Link:    s("url_kanton"),
-			})
+			}, res.Geometry})
 		case reserveLayer:
-			out = append(out, Area{
+			out = append(out, shaped{Area{
 				Kind: "hunting_reserve", ID: res.FeatureID.String(), Name: s("gebietsname"), Binding: true,
 				Rule: Texts{De: s("typ_de"), Fr: s("typ_fr"), It: s("typ_it"), En: s("typ_en")},
 				Link: s("refobjblatt"),
-			})
+			}, res.Geometry})
 		}
 	}
 	return out, nil

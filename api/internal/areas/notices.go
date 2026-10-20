@@ -46,6 +46,9 @@ type Notice struct {
 	Link  *Texts        `json:"link,omitempty" doc:"The army's page on the shooting"`
 	// Stages are the numbers (from 1) of the journey stages concerned.
 	Stages []int `json:"stages,omitempty"`
+	// Where are the parts of the line concerned, [lon, lat]: where the map
+	// goes on a tap.
+	Where [][][2]float64 `json:"where,omitempty"`
 }
 
 // ShootingDay is a day with shooting, the hours as «0800» and «1700»,
@@ -63,7 +66,7 @@ func (f *Finder) Notices(ctx context.Context, line []geo.Point, today time.Time)
 	if len(pts) < 2 {
 		return []Notice{}, nil
 	}
-	key := "notices:" + lineKey(pts)
+	key := "notices-where:" + lineKey(pts) // answers from before Where are not used
 	var cached []byte
 	err := f.DB.QueryRow(ctx, `SELECT areas FROM area_cache WHERE line_key = $1 AND fetched_at > now() - make_interval(secs => $2)`,
 		key, noticesFor.Seconds()).Scan(&cached)
@@ -114,6 +117,7 @@ func (f *Finder) fetchNotices(ctx context.Context, pts []geo.Point) ([]Notice, e
 			n, ok := notice(res, pts)
 			key := n.Kind + "/" + n.ID
 			if _, seen := found[key]; ok && !seen {
+				n.Where = where(pts, res.Geometry)
 				found[key] = n
 				order = append(order, key)
 			}

@@ -2848,6 +2848,72 @@ abstract class AppLocalizations {
   /// **'Weniger'**
   String get snowLess;
 
+  /// No description provided for @showOnMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf der Karte zeigen'**
+  String get showOnMap;
+
+  /// No description provided for @snowAlongTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Schnee unterwegs'**
+  String get snowAlongTitle;
+
+  /// No description provided for @snowAlongNote.
+  ///
+  /// In de, this message translates to:
+  /// **'{snow} Schnee'**
+  String snowAlongNote(String snow);
+
+  /// No description provided for @snowAlongNoteSteep.
+  ///
+  /// In de, this message translates to:
+  /// **'{snow} Schnee, {steep} steil'**
+  String snowAlongNoteSteep(String snow, String steep);
+
+  /// No description provided for @snowAlongSummary.
+  ///
+  /// In de, this message translates to:
+  /// **'Führt über {snow} Schnee.'**
+  String snowAlongSummary(String snow);
+
+  /// No description provided for @snowAlongSummarySteep.
+  ///
+  /// In de, this message translates to:
+  /// **'Führt über {snow} Schnee, davon {steep} steiler als 30°.'**
+  String snowAlongSummarySteep(String snow, String steep);
+
+  /// No description provided for @snowAlongPatches.
+  ///
+  /// In de, this message translates to:
+  /// **'Dazu Schneeflecken auf {distance}.'**
+  String snowAlongPatches(String distance);
+
+  /// No description provided for @snowAlongPatchesOnly.
+  ///
+  /// In de, this message translates to:
+  /// **'Schneeflecken auf {distance}, Stand {date}.'**
+  String snowAlongPatchesOnly(String distance, String date);
+
+  /// No description provided for @snowAlongStretch.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach {at}: {length} Schnee'**
+  String snowAlongStretch(String at, String length);
+
+  /// No description provided for @snowAlongStretchSteep.
+  ///
+  /// In de, this message translates to:
+  /// **'davon {steep} steiler als 30°'**
+  String snowAlongStretchSteep(String steep);
+
+  /// No description provided for @snowAlongLimits.
+  ///
+  /// In de, this message translates to:
+  /// **'Satellit, 60 m; bei Wolken bis 7 Tage alt. Ein kurzes Schneefeld kann fehlen, Tiefe und Härte zeigt es nicht. Steil heisst: Gelände steiler als 30° (swissALTI3D, nur in der Schweiz).'**
+  String get snowAlongLimits;
+
   /// No description provided for @poiFirepit.
   ///
   /// In de, this message translates to:

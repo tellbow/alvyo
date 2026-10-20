@@ -1518,6 +1518,56 @@ class AppLocalizationsIt extends AppLocalizations {
   String get snowLess => 'Meno';
 
   @override
+  String get showOnMap => 'Mostra sulla carta';
+
+  @override
+  String get snowAlongTitle => 'Neve lungo il percorso';
+
+  @override
+  String snowAlongNote(String snow) {
+    return '$snow di neve';
+  }
+
+  @override
+  String snowAlongNoteSteep(String snow, String steep) {
+    return '$snow di neve, $steep ripidi';
+  }
+
+  @override
+  String snowAlongSummary(String snow) {
+    return 'Attraversa $snow di neve.';
+  }
+
+  @override
+  String snowAlongSummarySteep(String snow, String steep) {
+    return 'Attraversa $snow di neve, di cui $steep su terreno oltre 30°.';
+  }
+
+  @override
+  String snowAlongPatches(String distance) {
+    return 'Inoltre chiazze di neve su $distance.';
+  }
+
+  @override
+  String snowAlongPatchesOnly(String distance, String date) {
+    return 'Chiazze di neve su $distance, aggiornato al $date.';
+  }
+
+  @override
+  String snowAlongStretch(String at, String length) {
+    return 'Dopo $at: $length di neve';
+  }
+
+  @override
+  String snowAlongStretchSteep(String steep) {
+    return 'di cui $steep oltre 30°';
+  }
+
+  @override
+  String get snowAlongLimits =>
+      'Satellite, 60 m; con nuvole fino a 7 giorni. Un breve nevaio può mancare; spessore e consistenza non sono indicati. Ripido: terreno oltre 30° (swissALTI3D, solo in Svizzera).';
+
+  @override
   String get poiFirepit => 'Focolare';
 
   @override

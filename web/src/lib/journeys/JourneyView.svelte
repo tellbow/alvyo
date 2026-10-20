@@ -13,6 +13,7 @@
 		type Notice,
 		type ProtectedArea,
 		type RouteSummary,
+		type SnowAlong as Snow,
 		type StagePatch,
 		type Trip
 	} from '#lib/api/client.js';
@@ -26,6 +27,8 @@
 	import StatsPanel from '#lib/planner/StatsPanel.svelte';
 	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
 	import Notices from '#lib/areas/Notices.svelte';
+	import SnowAlong from '#lib/areas/SnowAlong.svelte';
+	import LineHighlight from '#lib/map/LineHighlight.svelte';
 	import JourneyWeather from '#lib/weather/JourneyWeather.svelte';
 	import {
 		formatDistance,
@@ -99,6 +102,9 @@
 	let areas = $state<ProtectedArea[]>();
 	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
+	let snow = $state<Snow>();
+	// A part of a stage picked in a list, shown on the map.
+	let picked = $state<number[][][]>([]);
 	// Who comes along (for those who may see it), shown on their stages too.
 	let people = $state<Person[]>([]);
 	// The stages' planned days, to say when an area's rules apply then.
@@ -113,10 +119,14 @@
 		// Not journey itself: every change replaces it.
 		const id = untrack(() => journey.id);
 		let stale = false;
+		const params = { path: { id }, query: token ? { t: token } : {} };
 		api()
-			.GET('/journeys/{id}/areas', {
-				params: { path: { id }, query: token ? { t: token } : {} }
-			})
+			.GET('/journeys/{id}/snow', { params })
+			.then(({ data }) => {
+				if (!stale) snow = data;
+			});
+		api()
+			.GET('/journeys/{id}/areas', { params })
 			.then(({ data }) => {
 				if (stale) return;
 				areas = data?.areas;
@@ -381,6 +391,7 @@
 			<JourneyLayers {map} {lib} {journey} {hover} />
 			<TravelLayers {map} {lib} trips={travelTrips} />
 			<PhotoPins {map} {lib} {gallery} />
+			<LineHighlight {map} {lib} parts={picked} />
 		{/if}
 		{#if profile.coordinates.length > 1}
 			<ProfileDock>
@@ -638,8 +649,14 @@
 			>
 				{#if journey.totals.distance_m > 0}
 					<JourneyWeather id={journey.id} {token} key={routeKey + plannedDays.join()} />
-					<Notices {notices} days={plannedDays} />
-					<ProtectedAreas {areas} failed={areasFailed} days={plannedDays} />
+					<Notices {notices} days={plannedDays} onshow={(p) => (picked = p)} />
+					<ProtectedAreas
+						{areas}
+						failed={areasFailed}
+						days={plannedDays}
+						onshow={(p) => (picked = p)}
+					/>
+					<SnowAlong {snow} onshow={(p) => (picked = p)} />
 				{/if}
 				{#if user}
 					<JourneyPeople

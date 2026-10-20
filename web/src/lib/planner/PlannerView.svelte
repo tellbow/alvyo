@@ -18,6 +18,7 @@
 		type Me,
 		type Notice,
 		type ProtectedArea,
+		type SnowAlong as Snow,
 		type Route
 	} from '#lib/api/client.js';
 	import StageSavePanel from '#lib/journeys/StageSavePanel.svelte';
@@ -30,6 +31,8 @@
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
 	import Notices from '#lib/areas/Notices.svelte';
+	import SnowAlong from '#lib/areas/SnowAlong.svelte';
+	import LineHighlight from '#lib/map/LineHighlight.svelte';
 	import { fetchLeg } from './api';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { Planner, type LegSlot } from './planner.svelte';
@@ -115,24 +118,33 @@
 					: ''
 	);
 
-	// The protected areas the planned line crosses, asked for once the line
-	// has stopped changing for a moment.
+	// The protected areas the planned line crosses and the snow on it, asked
+	// for once the line has stopped changing for a moment.
 	let areas = $state<ProtectedArea[]>();
 	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
+	let snow = $state<Snow>();
+	// A part of the line picked in a list, shown on the map until it changes.
+	let picked = $state<number[][][]>([]);
 	$effect(() => {
 		const line = planner.complete ? planner.line.coordinates.map((c) => [c[0], c[1]]) : [];
+		picked = [];
 		if (line.length < 2) {
 			areas = undefined;
 			notices = undefined;
 			areasFailed = false;
+			snow = undefined;
 			return;
 		}
 		let stale = false;
 		const timer = setTimeout(async () => {
-			const { data } = await api().POST('/routing/areas', {
-				body: { line: line as [number, number][] }
-			});
+			const body = { line: line as [number, number][] };
+			api()
+				.POST('/routing/snow', { body })
+				.then(({ data }) => {
+					if (!stale) snow = data;
+				});
+			const { data } = await api().POST('/routing/areas', { body });
 			if (stale) return;
 			areas = data?.areas;
 			notices = data?.notices;
@@ -241,6 +253,7 @@
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} {ghosts} />
+			<LineHighlight {map} {lib} parts={picked} />
 		{/if}
 		<p class="sr-only" aria-live="polite">{routeStatus}</p>
 		{#if planner.line.coordinates.length > 1}
@@ -376,8 +389,9 @@
 				<p class="text-sm text-stone-600">{m.plan_hint_click()}</p>
 			{:else}
 				<StatsPanel totals={planner.totals} {pace} />
-				<Notices {notices} />
-				<ProtectedAreas {areas} failed={areasFailed} />
+				<Notices {notices} onshow={(p) => (picked = p)} />
+				<ProtectedAreas {areas} failed={areasFailed} onshow={(p) => (picked = p)} />
+				<SnowAlong {snow} onshow={(p) => (picked = p)} />
 
 				<section>
 					<h2 class="mb-1 text-xs font-medium tracking-wide text-stone-500 uppercase">

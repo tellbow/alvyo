@@ -16,7 +16,8 @@
 		/** Said beside the count and highlighted, e.g. «gilt jetzt». */
 		note?: string;
 		testid: string;
-		children: Snippet;
+		/** Gets a function that closes the popup, e.g. to show an entry on the map. */
+		children: Snippet<[() => void]>;
 	} = $props();
 
 	let dialog = $state<HTMLDialogElement>();
@@ -57,6 +58,6 @@
 				aria-label={m.place_close()}>×</button
 			>
 		</div>
-		{@render children()}
+		{@render children(() => dialog?.close())}
 	</div>
 </dialog>

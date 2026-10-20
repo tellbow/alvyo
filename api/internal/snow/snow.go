@@ -49,6 +49,8 @@ var Area = Extent{West: 5.76, South: 45.68, East: 10.70, North: 47.95}
 // Store reads the tiles.
 type Store struct {
 	DB *pgxpool.Pool
+	// Terrain gives the slope along lines; nil where it is not known.
+	Terrain Terrain
 }
 
 // Latest returns the newest day with snow cover; ok is false while there is

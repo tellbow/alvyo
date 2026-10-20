@@ -46,6 +46,7 @@ export type DiscoverItem = components['schemas']['DiscoverItem'];
 export type MyMapItem = components['schemas']['DiscoverMineItem'];
 export type ProtectedArea = components['schemas']['Area'];
 export type Notice = components['schemas']['Notice'];
+export type SnowAlong = components['schemas']['Along'];
 export type RouteWeather = components['schemas']['RouteWeatherOutputBody'];
 export type Climate = components['schemas']['Climate'];
 export type JourneyWeather = components['schemas']['JourneyWeatherOutputBody'];

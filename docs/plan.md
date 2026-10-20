@@ -910,6 +910,24 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     them (`/weather/snow`). SLF's snow depth maps would be better for
     Switzerland but have no open terms; station snow depths and snowshoe
     routes were the other options.
+79. **Snow along a route** (feedback issue 23, 2026-10-20). Routes,
+    journeys (by stage) and the planner say, beside the protected areas,
+    how much of the line lies in snow and how much of that on terrain
+    steeper than 30° («Schnee unterwegs»: «1.8 km Schnee, 300 m steil»),
+    with patches elsewhere in a line of their own; the stretches, the
+    day, what the data cannot show, the BFU's advice and the credit in
+    the popup (website) or sheet (app). Snow is from 50 % («überwiegend»,
+    «geschlossen»), read from the snow layer's zoom-11 tiles along the
+    line every 10 m; gaps under 60 m are bridged; under 100 m nothing is
+    said, and steep parts under 50 m in a stretch neither. The slope is
+    the terrain's (not the path's: a traverse of a steep slope is the
+    dangerous case), from our swissALTI3D over 20 m; abroad it is not
+    known. `GET /routes/{id}/snow`, `GET /journeys/{id}/snow`, `POST
+    /routing/snow`. A tap on «Auf der Karte zeigen» at a snow stretch, a
+    protected area, a closure or shooting closes the list, zooms the map
+    to that part of the line and draws it orange: the areas' and
+    notices' answers carry `where`, the parts of the line in them (the
+    areas now asked from geo.admin with their shapes).
 
 ### Open
 

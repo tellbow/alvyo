@@ -58,6 +58,27 @@ func (s *SwissALTI3D) Sample(ctx context.Context, pts []geo.Point) ([]float64, e
 	return out, nil
 }
 
+// slopeBase is half the distance over which Slope measures: 20 m smooths
+// over single rocks and the cut of a path, as a snow field lies on the
+// slope around them.
+const slopeBase = 10
+
+// Slope returns the terrain's steepness at p in degrees, NaN where there is
+// no data (beyond the border).
+func (s *SwissALTI3D) Slope(p geo.Point) (float64, error) {
+	e, n := lv95.FromWGS84(p.Lon, p.Lat)
+	var h [4]float64
+	for i, d := range [4][2]float64{{slopeBase, 0}, {-slopeBase, 0}, {0, slopeBase}, {0, -slopeBase}} {
+		v, err := s.height(e+d[0], n+d[1])
+		if err != nil {
+			return 0, err
+		}
+		h[i] = v
+	}
+	grad := math.Hypot(h[0]-h[1], h[2]-h[3]) / (2 * slopeBase)
+	return math.Atan(grad) * 180 / math.Pi, nil // NaN stays NaN
+}
+
 // height at an LV95 point, NaN without data.
 func (s *SwissALTI3D) height(e, n float64) (float64, error) {
 	// Pixel i (counted from E 0 eastwards, N 0 northwards) has its centre

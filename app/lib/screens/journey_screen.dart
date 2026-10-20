@@ -61,6 +61,19 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   late final Future<Along> _areas = widget.api
       .areas(journeyId: widget.id)
       .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
+  late final Future<SnowAlong?> _snow = widget.api
+      .snowAlong(journeyId: widget.id)
+      .then<SnowAlong?>((s) => s, onError: (_) => null);
+
+  /// A part of a stage picked in a list, shown on the map.
+  final _picked = ValueNotifier<List<List<List<double>>>>(const []);
+  void _showParts(List<List<List<double>>> parts) => _picked.value = [...parts];
+
+  @override
+  void dispose() {
+    _picked.dispose();
+    super.dispose();
+  }
 
   /// The forecast for the stages' planned days, loaded again when they change.
   (String, Future<JourneyWeather?>)? _weather;
@@ -540,7 +553,12 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                                   const SizedBox(height: 8),
                                 ],
                                 JourneyWeatherView(_weatherFor(j)),
-                                ProtectedAreas(_areas, days: [for (final s in j.stages) ?s.plannedDate]),
+                                ProtectedAreas(
+                                  _areas,
+                                  days: [for (final s in j.stages) ?s.plannedDate],
+                                  onShow: _showParts,
+                                ),
+                                SnowAlongView(_snow, onShow: _showParts),
                                 FutureBuilder(
                                   future: _people,
                                   builder: (context, snap) => switch (snap.data) {
@@ -614,7 +632,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
           // On a wide screen the stages' map beside them (requirement 73).
           if (j.stageLines.isEmpty) return list;
           return MapSplit(
-            map: JourneyMap(api: widget.api, journey: j),
+            map: JourneyMap(api: widget.api, journey: j, picked: _picked),
             panel: list,
           );
         },

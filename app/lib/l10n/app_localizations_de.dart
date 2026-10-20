@@ -1519,6 +1519,56 @@ class AppLocalizationsDe extends AppLocalizations {
   String get snowLess => 'Weniger';
 
   @override
+  String get showOnMap => 'Auf der Karte zeigen';
+
+  @override
+  String get snowAlongTitle => 'Schnee unterwegs';
+
+  @override
+  String snowAlongNote(String snow) {
+    return '$snow Schnee';
+  }
+
+  @override
+  String snowAlongNoteSteep(String snow, String steep) {
+    return '$snow Schnee, $steep steil';
+  }
+
+  @override
+  String snowAlongSummary(String snow) {
+    return 'Führt über $snow Schnee.';
+  }
+
+  @override
+  String snowAlongSummarySteep(String snow, String steep) {
+    return 'Führt über $snow Schnee, davon $steep steiler als 30°.';
+  }
+
+  @override
+  String snowAlongPatches(String distance) {
+    return 'Dazu Schneeflecken auf $distance.';
+  }
+
+  @override
+  String snowAlongPatchesOnly(String distance, String date) {
+    return 'Schneeflecken auf $distance, Stand $date.';
+  }
+
+  @override
+  String snowAlongStretch(String at, String length) {
+    return 'Nach $at: $length Schnee';
+  }
+
+  @override
+  String snowAlongStretchSteep(String steep) {
+    return 'davon $steep steiler als 30°';
+  }
+
+  @override
+  String get snowAlongLimits =>
+      'Satellit, 60 m; bei Wolken bis 7 Tage alt. Ein kurzes Schneefeld kann fehlen, Tiefe und Härte zeigt es nicht. Steil heisst: Gelände steiler als 30° (swissALTI3D, nur in der Schweiz).';
+
+  @override
   String get poiFirepit => 'Feuerstelle';
 
   @override

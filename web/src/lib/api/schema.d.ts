@@ -1046,6 +1046,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journeys/{id}/snow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Snow along a journey's stages
+         * @description Where a line runs over snow (from 50 %; under 100 m nothing), how much of it on terrain steeper than 30°, and patches elsewhere, from the newest day of the snow cover. Stretches name their stage and are measured from its start.
+         */
+        get: operations["journey-snow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journeys/{id}/social": {
         parameters: {
             query?: never;
@@ -2115,6 +2135,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/routes/{id}/snow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Snow along a route
+         * @description Where a line runs over snow (from 50 %; under 100 m nothing), how much of it on terrain steeper than 30°, and patches elsewhere, from the newest day of the snow cover.
+         */
+        get: operations["route-snow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/social": {
         parameters: {
             query?: never;
@@ -2285,6 +2325,26 @@ export interface paths {
          * @description The areas reached on foot within 2, 4 and 8 hours at the user's pace, the ways timed by their slope like the Swiss hiking time. Approximate: an area is the outline around what is reached.
          */
         post: operations["route-reach"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/routing/snow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Snow along a line
+         * @description Where a line runs over snow (from 50 %; under 100 m nothing), how much of it on terrain steeper than 30°, and patches elsewhere, from the newest day of the snow cover.
+         */
+        post: operations["line-snow"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2578,6 +2638,29 @@ export interface components {
             position?: number;
             title?: string;
         };
+        Along: {
+            attribution: string;
+            /** @description The day of the snow cover (YYYY-MM-DD); missing while there is none */
+            date?: string;
+            /**
+             * Format: double
+             * @description Elsewhere in patches (15–50 %), 0 below 100 m
+             */
+            patches_m: number;
+            /** @description Whether the terrain's slope is known (swissALTI3D: Switzerland only) */
+            slopes: boolean;
+            /**
+             * Format: double
+             * @description In snow (from 50 %), 0 below 100 m
+             */
+            snow_m: number;
+            /**
+             * Format: double
+             * @description Of that, on terrain steeper than 30°
+             */
+            steep_m: number;
+            stretches: components["schemas"]["Stretch"][];
+        };
         AlpineWay: {
             /** Format: double */
             distance_m: number;
@@ -2619,6 +2702,7 @@ export interface components {
             /** @description e.g. no entry, or keep to the paths */
             rule: components["schemas"]["Texts"];
             stages?: number[];
+            where?: number[][][];
         };
         AreasOutputBody: {
             areas: components["schemas"]["Area"][];
@@ -3518,6 +3602,10 @@ export interface components {
             /** @description [lon, lat] per point */
             line: number[][];
         };
+        LineSnowInputBody: {
+            /** @description [lon, lat] per point */
+            line: number[][];
+        };
         LivePositionsInputBody: {
             points: components["schemas"]["Fix"][];
         };
@@ -3601,6 +3689,7 @@ export interface components {
             title: components["schemas"]["Texts"];
             /** Format: date */
             to?: string;
+            where?: number[][][];
         };
         PeopleOutputBody: {
             people: components["schemas"]["Person"][];
@@ -4346,6 +4435,23 @@ export interface components {
             state: "missing" | "building" | "ready" | "failed";
             /** Format: int64 */
             total: number;
+        };
+        Stretch: {
+            /**
+             * Format: double
+             * @description From the start of the line (of the stage, for a journey)
+             */
+            from_m: number;
+            line: number[][];
+            /** Format: int64 */
+            stage?: number;
+            /**
+             * Format: double
+             * @description How much of it lies on terrain steeper than 30°
+             */
+            steep_m: number;
+            /** Format: double */
+            to_m: number;
         };
         SuggestJourneysInputBody: {
             /**
@@ -7269,6 +7375,40 @@ export interface operations {
             };
         };
     };
+    "journey-snow": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted journey */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Along"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "get-journey-social": {
         parameters: {
             query?: {
@@ -9882,6 +10022,40 @@ export interface operations {
             };
         };
     };
+    "route-snow": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Along"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "get-route-social": {
         parameters: {
             query?: {
@@ -10241,6 +10415,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReachOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "line-snow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LineSnowInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Along"];
                 };
             };
             /** @description Error */

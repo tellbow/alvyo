@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
@@ -71,9 +72,13 @@ class JourneyMapScreen extends StatelessWidget {
 /// A journey's stages on the map, in their colours, with the layer menu;
 /// also beside a journey on a wide screen.
 class JourneyMap extends StatefulWidget {
-  const JourneyMap({super.key, required this.api, required this.journey, this.map});
+  const JourneyMap({super.key, required this.api, required this.journey, this.map, this.picked});
   final Api api;
   final JourneyDetail journey;
+
+  /// A part of a stage picked in a list (lines of [lon, lat]), shown when
+  /// it changes.
+  final ValueListenable<List<List<List<double>>>>? picked;
 
   /// Replaces the map, in tests.
   final Widget? map;
@@ -84,11 +89,26 @@ class JourneyMap extends StatefulWidget {
 
 class _JourneyMapState extends State<JourneyMap> {
   late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
+  MapController? _map;
+  StyleController? _style;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.picked?.addListener(_show);
+  }
 
   @override
   void dispose() {
+    widget.picked?.removeListener(_show);
     _places.dispose();
     super.dispose();
+  }
+
+  void _show() {
+    if ((_map, _style, widget.picked?.value) case (final map?, final style?, final parts?)) {
+      showParts(map, style, parts).catchError((_) {});
+    }
   }
 
   @override
@@ -107,9 +127,12 @@ class _JourneyMapState extends State<JourneyMap> {
                     initZoom: view.zoom,
                   ),
                   onEvent: _places.onEvent,
+                  onMapCreated: (c) => _map = c,
                   onStyleLoaded: (style) async {
+                    _style = style;
                     await _places.addTo(style);
                     await addStageLines(style, lines);
+                    await addHighlight(style);
                   },
                 );
               },

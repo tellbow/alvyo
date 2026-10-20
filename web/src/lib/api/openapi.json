@@ -160,6 +160,52 @@
         },
         "type": "object"
       },
+      "Along": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution": {
+            "type": "string"
+          },
+          "date": {
+            "description": "The day of the snow cover (YYYY-MM-DD); missing while there is none",
+            "type": "string"
+          },
+          "patches_m": {
+            "description": "Elsewhere in patches (15–50 %), 0 below 100 m",
+            "format": "double",
+            "type": "number"
+          },
+          "slopes": {
+            "description": "Whether the terrain's slope is known (swissALTI3D: Switzerland only)",
+            "type": "boolean"
+          },
+          "snow_m": {
+            "description": "In snow (from 50 %), 0 below 100 m",
+            "format": "double",
+            "type": "number"
+          },
+          "steep_m": {
+            "description": "Of that, on terrain steeper than 30°",
+            "format": "double",
+            "type": "number"
+          },
+          "stretches": {
+            "items": {
+              "$ref": "#/components/schemas/Stretch"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "snow_m",
+          "steep_m",
+          "patches_m",
+          "slopes",
+          "stretches",
+          "attribution"
+        ],
+        "type": "object"
+      },
       "AlpineWay": {
         "additionalProperties": false,
         "properties": {
@@ -281,6 +327,21 @@
             "items": {
               "format": "int64",
               "type": "integer"
+            },
+            "type": "array"
+          },
+          "where": {
+            "items": {
+              "items": {
+                "items": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
             },
             "type": "array"
           }
@@ -2976,6 +3037,30 @@
         ],
         "type": "object"
       },
+      "LineSnowInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "line": {
+            "description": "[lon, lat] per point",
+            "items": {
+              "items": {
+                "format": "double",
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "maxItems": 50000,
+            "minItems": 2,
+            "type": "array"
+          }
+        },
+        "required": [
+          "line"
+        ],
+        "type": "object"
+      },
       "LivePositionsInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -3227,6 +3312,21 @@
           "to": {
             "format": "date",
             "type": "string"
+          },
+          "where": {
+            "items": {
+              "items": {
+                "items": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array"
           }
         },
         "required": [
@@ -5547,6 +5647,48 @@
           "key",
           "done",
           "total"
+        ],
+        "type": "object"
+      },
+      "Stretch": {
+        "additionalProperties": false,
+        "properties": {
+          "from_m": {
+            "description": "From the start of the line (of the stage, for a journey)",
+            "format": "double",
+            "type": "number"
+          },
+          "line": {
+            "items": {
+              "items": {
+                "format": "double",
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "stage": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "steep_m": {
+            "description": "How much of it lies on terrain steeper than 30°",
+            "format": "double",
+            "type": "number"
+          },
+          "to_m": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "from_m",
+          "to_m",
+          "steep_m",
+          "line"
         ],
         "type": "object"
       },
@@ -10496,6 +10638,59 @@
         ]
       }
     },
+    "/journeys/{id}/snow": {
+      "get": {
+        "description": "Where a line runs over snow (from 50 %; under 100 m nothing), how much of it on terrain steeper than 30°, and patches elsewhere, from the newest day of the snow cover. Stretches name their stage and are measured from its start.",
+        "operationId": "journey-snow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted journey",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted journey",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Along"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Snow along a journey's stages",
+        "tags": [
+          "weather"
+        ]
+      }
+    },
     "/journeys/{id}/social": {
       "get": {
         "operationId": "get-journey-social",
@@ -14537,6 +14732,59 @@
         ]
       }
     },
+    "/routes/{id}/snow": {
+      "get": {
+        "description": "Where a line runs over snow (from 50 %; under 100 m nothing), how much of it on terrain steeper than 30°, and patches elsewhere, from the newest day of the snow cover.",
+        "operationId": "route-snow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Along"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Snow along a route",
+        "tags": [
+          "weather"
+        ]
+      }
+    },
     "/routes/{id}/social": {
       "get": {
         "operationId": "get-route-social",
@@ -15067,6 +15315,48 @@
         "summary": "How far one gets from a point",
         "tags": [
           "routing"
+        ]
+      }
+    },
+    "/routing/snow": {
+      "post": {
+        "description": "Where a line runs over snow (from 50 %; under 100 m nothing), how much of it on terrain steeper than 30°, and patches elsewhere, from the newest day of the snow cover.",
+        "operationId": "line-snow",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineSnowInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Along"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Snow along a line",
+        "tags": [
+          "weather"
         ]
       }
     },

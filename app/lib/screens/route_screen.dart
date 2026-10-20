@@ -71,6 +71,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   late final Future<Along> _areas = widget.api
       .areas(routeId: widget.id)
       .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
+  late final Future<SnowAlong?> _snow = widget.api
+      .snowAlong(routeId: widget.id)
+      .then<SnowAlong?>((s) => s, onError: (_) => null);
+  MapController? _map;
+  StyleController? _style;
   late final Future<List<Poi>> _pois = widget.api.pois(widget.id).catchError((_) => <Poi>[]);
   int _poiCount = 0;
   _Tab _tab = _Tab.overview;
@@ -494,6 +499,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
 
   Widget _pane(_Tab tab, Widget child) => tabPane(_tab == tab, child);
 
+  /// A part of the route picked in a list, on the map.
+  void _show(List<List<List<double>>> parts) {
+    if ((_map, _style) case (final map?, final style?)) showParts(map, style, parts).catchError((_) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -551,9 +561,12 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                             initZoom: view.zoom,
                           ),
                           onEvent: _places.onEvent,
+                          onMapCreated: (c) => _map = c,
                           onStyleLoaded: (style) async {
+                            _style = style;
                             await _places.addTo(style);
                             await addRouteLine(style, r.line);
+                            await addHighlight(style);
                             await _places.addAlong(style, await _pois);
                           },
                         );
@@ -590,7 +603,8 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                                 ],
                                 if (offTrail(r.json)) OffTrailWarning(distanceM: r.totals.distanceM),
                                 ElevationProfile.ofLine(r.line),
-                                ProtectedAreas(_areas),
+                                ProtectedAreas(_areas, onShow: _show),
+                                SnowAlongView(_snow, onShow: _show),
                                 RouteWeatherView(
                                   _weather,
                                   later: (date) => widget.api

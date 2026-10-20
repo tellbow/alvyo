@@ -47,6 +47,11 @@ func TestNotices(t *testing.T) {
 		t.Errorf("shooting, from today on: %+v", s)
 	}
 
+	// Where the map goes on a tap: along the closure, in the shooting area.
+	if len(c.Where) == 0 || len(c.Where[0]) < 2 || len(s.Where) == 0 {
+		t.Errorf("where: closure %v, shooting %v", c.Where, s.Where)
+	}
+
 	// Cached for an hour; a later day leaves out what is over by then.
 	later, _ := f.Notices(context.Background(), line, today.AddDate(0, 0, 2))
 	if calls != 1 || len(later) != 1 || later[0].Kind != "closure" {

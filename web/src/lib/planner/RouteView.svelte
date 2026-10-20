@@ -27,6 +27,8 @@
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
 	import Notices from '#lib/areas/Notices.svelte';
+	import SnowAlong from '#lib/areas/SnowAlong.svelte';
+	import LineHighlight from '#lib/map/LineHighlight.svelte';
 	import Pois from '#lib/map/Pois.svelte';
 	import PoiPins from '#lib/map/PoiPins.svelte';
 	import type { Poi } from '#lib/map/places.js';
@@ -36,7 +38,7 @@
 	import TravelLayers from '#lib/travel/TravelLayers.svelte';
 	import { routeEnds } from '#lib/travel/travel.js';
 	import type { Trip } from '#lib/api/client.js';
-	import type { Notice, ProtectedArea } from '#lib/api/client.js';
+	import type { Notice, ProtectedArea, SnowAlong as Snow } from '#lib/api/client.js';
 	import { onMount } from 'svelte';
 	import {
 		actionButton,
@@ -66,10 +68,15 @@
 	let areas = $state<ProtectedArea[]>();
 	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
+	let snow = $state<Snow>();
+	// A part of the line picked in a list, shown on the map.
+	let picked = $state<number[][][]>([]);
 	onMount(async () => {
-		const { data } = await api().GET('/routes/{id}/areas', {
-			params: { path: { id: route.id }, query: token ? { t: token } : {} }
-		});
+		const params = { path: { id: route.id }, query: token ? { t: token } : {} };
+		api()
+			.GET('/routes/{id}/snow', { params })
+			.then(({ data }) => (snow = data));
+		const { data } = await api().GET('/routes/{id}/areas', { params });
 		areas = data?.areas;
 		notices = data?.notices;
 		areasFailed = !data;
@@ -174,6 +181,7 @@
 			{#if gallery}<PhotoPins {map} {lib} {gallery} />{/if}
 			<PoiPins {map} {lib} pois={routePois} highlight={poiHighlight} />
 			<TravelLayers {map} {lib} trips={travelTrips} />
+			<LineHighlight {map} {lib} parts={picked} />
 		{/if}
 		<ProfileDock>
 			<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
@@ -366,8 +374,9 @@
 					</p>
 				</div>
 			{/if}
-			<Notices {notices} />
-			<ProtectedAreas {areas} failed={areasFailed} />
+			<Notices {notices} onshow={(p) => (picked = p)} />
+			<ProtectedAreas {areas} failed={areasFailed} onshow={(p) => (picked = p)} />
+			<SnowAlong {snow} onshow={(p) => (picked = p)} />
 			{#if !revision}<RouteWeather id={route.id} {token} />{/if}
 			{#if route.legs.length > 0}
 				<section class="rounded-xl border border-stone-200 p-3" data-testid="breakdowns">

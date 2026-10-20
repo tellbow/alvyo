@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart';
 import 'package:maplibre/maplibre.dart';
 
 /// The colours of a journey's stages, one after the other, as on the
@@ -50,6 +51,39 @@ Future<void> addStageLines(StyleController style, List<(int, List<List<double>>)
       layout: {'line-cap': 'round', 'line-join': 'round'},
     ),
   );
+}
+
+/// Adds the layer for a part of the route picked in a list (a snow
+/// stretch, a protected area crossed), drawn over the line by [showParts].
+Future<void> addHighlight(StyleController style) async {
+  await style.addSource(GeoJsonSource(id: 'highlight', data: jsonEncode(_nothing)));
+  await style.addLayer(
+    const LineStyleLayer(
+      id: 'highlight',
+      sourceId: 'highlight',
+      paint: {'line-color': '#f28a48', 'line-width': 10, 'line-opacity': 0.75},
+      layout: {'line-cap': 'round', 'line-join': 'round'},
+    ),
+  );
+}
+
+/// Draws [parts] (lines of [lon, lat]) on the layer of [addHighlight] and
+/// moves the map to them.
+Future<void> showParts(MapController map, StyleController style, List<List<List<double>>> parts) async {
+  final points = [
+    for (final part in parts)
+      for (final c in part) Geographic(lon: c[0], lat: c[1]),
+  ];
+  if (points.isEmpty) return;
+  await style.updateGeoJsonSource(
+    id: 'highlight',
+    data: jsonEncode({
+      'type': 'Feature',
+      'properties': {},
+      'geometry': {'type': 'MultiLineString', 'coordinates': parts},
+    }),
+  );
+  await map.fitBounds(bounds: LngLatBounds.fromPoints(points), padding: const EdgeInsets.all(48));
 }
 
 /// Draws a route line (lon, lat[, ele] points) on the map, like the website.

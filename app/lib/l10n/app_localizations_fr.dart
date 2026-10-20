@@ -1521,6 +1521,56 @@ class AppLocalizationsFr extends AppLocalizations {
   String get snowLess => 'Moins';
 
   @override
+  String get showOnMap => 'Afficher sur la carte';
+
+  @override
+  String get snowAlongTitle => 'Neige en chemin';
+
+  @override
+  String snowAlongNote(String snow) {
+    return '$snow de neige';
+  }
+
+  @override
+  String snowAlongNoteSteep(String snow, String steep) {
+    return '$snow de neige, dont $steep raide';
+  }
+
+  @override
+  String snowAlongSummary(String snow) {
+    return 'Passe par $snow de neige.';
+  }
+
+  @override
+  String snowAlongSummarySteep(String snow, String steep) {
+    return 'Passe par $snow de neige, dont $steep sur un terrain de plus de 30°.';
+  }
+
+  @override
+  String snowAlongPatches(String distance) {
+    return 'En plus, des plaques de neige sur $distance.';
+  }
+
+  @override
+  String snowAlongPatchesOnly(String distance, String date) {
+    return 'Plaques de neige sur $distance, état au $date.';
+  }
+
+  @override
+  String snowAlongStretch(String at, String length) {
+    return 'Après $at : $length de neige';
+  }
+
+  @override
+  String snowAlongStretchSteep(String steep) {
+    return 'dont $steep sur plus de 30°';
+  }
+
+  @override
+  String get snowAlongLimits =>
+      'Satellite, 60 m ; jusqu’à 7 jours sous les nuages. Un court névé peut manquer ; ni l’épaisseur ni la dureté ne sont indiquées. Raide : terrain de plus de 30° (swissALTI3D, en Suisse seulement).';
+
+  @override
   String get poiFirepit => 'Place de feu';
 
   @override

@@ -48,6 +48,8 @@ func TestNearby(t *testing.T) {
 		{"by name, wider", Query{Lon: 9.446, Lat: 47.045, Name: "mels"}, []string{"Mels, Dorf"}},
 		{"limit", Query{Lon: 9.446, Lat: 47.045, Limit: 1}, []string{"Sargans"}},
 		{"name within 30 km", Query{Lon: 9.446, Lat: 47.045, Name: "sargans"}, []string{"Sargans", "Sargans, Rose"}},
+		{"% as it is", Query{Lon: 9.446, Lat: 47.045, Name: "%"}, []string{}},
+		{"_ as it is", Query{Lon: 9.446, Lat: 47.045, Name: "Sar_ans"}, []string{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := names(tc.q)

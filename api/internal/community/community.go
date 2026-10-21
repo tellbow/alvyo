@@ -94,14 +94,19 @@ type Social struct {
 func (s *Store) Social(ctx context.Context, t Target, v Viewer) (Social, error) {
 	col := t.Kind.column()
 	out := Social{Comments: []Comment{}}
+	var enabled *bool // nil: the item was deleted since it was loaded
 	err := s.DB.QueryRow(ctx, `SELECT (SELECT count(*) FROM likes WHERE `+col+` = $1),
 		EXISTS (SELECT 1 FROM likes WHERE `+col+` = $1 AND user_id = $2),
 		(SELECT comments_enabled FROM `+t.Kind.table()+` WHERE id = $1),
 		EXISTS (SELECT 1 FROM blocks WHERE blocker_id = $3 AND blocked_id = $2)`, t.ID, v.ID, t.OwnerID).
-		Scan(&out.Likes, &out.Liked, &out.CommentsEnabled, &out.BlockedByOwner)
+		Scan(&out.Likes, &out.Liked, &enabled, &out.BlockedByOwner)
 	if err != nil {
 		return out, fmt.Errorf("community: social: %w", err)
 	}
+	if enabled == nil {
+		return out, ErrNotFound
+	}
+	out.CommentsEnabled = *enabled
 	rows, err := s.DB.Query(ctx, `WITH visible AS (
 			SELECT c.* FROM comments c JOIN users u ON u.id = c.author_id
 			WHERE c.`+col+` = $1 AND u.banned_at IS NULL
@@ -185,8 +190,12 @@ func (s *Store) AddComment(ctx context.Context, t Target, author dbq.User, body 
 	}
 	if err != nil { // nothing inserted: find out why
 		var on bool
-		if qerr := s.DB.QueryRow(ctx, `SELECT comments_enabled FROM `+t.Kind.table()+` WHERE id = $1`, t.ID).Scan(&on); qerr != nil {
-			return fmt.Errorf("community: comment: %w", err)
+		qerr := s.DB.QueryRow(ctx, `SELECT comments_enabled FROM `+t.Kind.table()+` WHERE id = $1`, t.ID).Scan(&on)
+		if errors.Is(qerr, pgx.ErrNoRows) { // the item was deleted since it was loaded
+			return ErrNotFound
+		}
+		if qerr != nil {
+			return fmt.Errorf("community: comment: %w", qerr)
 		}
 		if !on {
 			return ErrCommentsOff

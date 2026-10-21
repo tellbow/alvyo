@@ -408,21 +408,18 @@ func (s *Store) UpdateItem(ctx context.Context, id, itemID uuid.UUID, p ItemPatc
 	})
 }
 
-// DeleteItem removes an item, closing the gap in positions.
+// DeleteItem removes an item. The trigger collection_items_renumber closes
+// the gap in positions.
 func (s *Store) DeleteItem(ctx context.Context, id, itemID uuid.UUID) error {
 	return s.tx(ctx, id, func(tx pgx.Tx) error {
-		var pos int
-		err := tx.QueryRow(ctx, `DELETE FROM collection_items WHERE id = $2 AND collection_id = $1 RETURNING position`,
-			id, itemID).Scan(&pos)
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrItemNotFound
-		}
+		res, err := tx.Exec(ctx, `DELETE FROM collection_items WHERE id = $2 AND collection_id = $1`, id, itemID)
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(ctx, `UPDATE collection_items SET position = position - 1 WHERE collection_id = $1 AND position > $2`,
-			id, pos)
-		return err
+		if res.RowsAffected() == 0 {
+			return ErrItemNotFound
+		}
+		return nil
 	})
 }
 
@@ -431,8 +428,12 @@ func (s *Store) DeleteItem(ctx context.Context, id, itemID uuid.UUID) error {
 // after the other.
 func (s *Store) tx(ctx context.Context, id uuid.UUID, fn func(pgx.Tx) error) error {
 	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(ctx, `UPDATE collections SET updated_at = now() WHERE id = $1`, id); err != nil {
+		res, err := tx.Exec(ctx, `UPDATE collections SET updated_at = now() WHERE id = $1`, id)
+		if err != nil {
 			return err
+		}
+		if res.RowsAffected() == 0 { // deleted since it was loaded
+			return ErrNotFound
 		}
 		return fn(tx)
 	})

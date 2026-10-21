@@ -3,6 +3,7 @@ package routes
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -42,7 +43,11 @@ func (s *Store) Retrail(ctx context.Context, m *routing.TrailMatcher) (int, erro
 func (s *Store) retrail(ctx context.Context, m *routing.TrailMatcher, id uuid.UUID) (bool, error) {
 	var version int
 	var raw []byte
-	if err := s.DB.QueryRow(ctx, `SELECT version, legs FROM routes WHERE id = $1`, id).Scan(&version, &raw); err != nil {
+	err := s.DB.QueryRow(ctx, `SELECT version, legs FROM routes WHERE id = $1`, id).Scan(&version, &raw)
+	if errors.Is(err, pgx.ErrNoRows) { // deleted since the run began
+		return false, nil
+	}
+	if err != nil {
 		return false, err
 	}
 	var legs []routing.Leg
@@ -65,7 +70,7 @@ func (s *Store) retrail(ctx context.Context, m *routing.TrailMatcher, id uuid.UU
 	if !retrailed {
 		return false, nil
 	}
-	raw, err := json.Marshal(legs)
+	raw, err = json.Marshal(legs)
 	if err != nil {
 		return false, err
 	}

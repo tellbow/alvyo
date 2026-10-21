@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/tellbow/alvyo/api/internal/dbq"
 )
@@ -33,29 +34,36 @@ func (s *Store) Relation(ctx context.Context, viewer, other uuid.UUID) (Relation
 	return r, err
 }
 
+// pairTx runs fn in a transaction that holds a lock on the pair a, b: a
+// block, a follow and a friend request between the same two go one after
+// the other, and each sees what the one before wrote.
+func (s *Store) pairTx(ctx context.Context, a, b uuid.UUID, fn func(pgx.Tx) error) error {
+	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext(least($1::text, $2::text) || greatest($1::text, $2::text)))`,
+			a, b); err != nil {
+			return err
+		}
+		return fn(tx)
+	})
+}
+
 // Follow makes follower follow the user with id followed and tells them.
 func (s *Store) Follow(ctx context.Context, follower dbq.User, followed uuid.UUID) error {
 	if follower.ID == followed {
 		return ErrForbidden
 	}
-	tag, err := s.DB.Exec(ctx, `INSERT INTO follows (follower_id, followed_id)
-		SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM blocks
-			WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1))
-		ON CONFLICT DO NOTHING`, follower.ID, followed)
-	if err != nil {
-		return err
-	}
-	if tag.RowsAffected() == 0 {
-		var blocked bool
-		if err := s.DB.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM blocks
-			WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1))`,
-			follower.ID, followed).Scan(&blocked); err != nil {
+	var added bool
+	err := s.pairTx(ctx, follower.ID, followed, func(tx pgx.Tx) error {
+		if err := notBlocked(ctx, tx, follower.ID, followed); err != nil {
 			return err
 		}
-		if blocked {
-			return ErrBlocked
-		}
-		return nil // followed before
+		tag, err := tx.Exec(ctx, `INSERT INTO follows (follower_id, followed_id) VALUES ($1, $2)
+			ON CONFLICT DO NOTHING`, follower.ID, followed)
+		added = tag.RowsAffected() > 0 // or followed before
+		return err
+	})
+	if err != nil || !added {
+		return err
 	}
 	s.notifyFollow(ctx, follower, followed)
 	return nil
@@ -72,23 +80,18 @@ func (s *Store) Block(ctx context.Context, blocker, blocked uuid.UUID) error {
 	if blocker == blocked {
 		return ErrForbidden
 	}
-	tx, err := s.DB.Begin(ctx)
-	if err != nil {
+	return s.pairTx(ctx, blocker, blocked, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, blocker, blocked); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM follows WHERE (follower_id = $1 AND followed_id = $2)
+			OR (follower_id = $2 AND followed_id = $1)`, blocker, blocked); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `DELETE FROM friendships WHERE (requester_id = $1 AND addressee_id = $2)
+			OR (requester_id = $2 AND addressee_id = $1)`, blocker, blocked)
 		return err
-	}
-	defer func() { _ = tx.Rollback(ctx) }()
-	if _, err := tx.Exec(ctx, `INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`, blocker, blocked); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(ctx, `DELETE FROM follows WHERE (follower_id = $1 AND followed_id = $2)
-		OR (follower_id = $2 AND followed_id = $1)`, blocker, blocked); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(ctx, `DELETE FROM friendships WHERE (requester_id = $1 AND addressee_id = $2)
-		OR (requester_id = $2 AND addressee_id = $1)`, blocker, blocked); err != nil {
-		return err
-	}
-	return tx.Commit(ctx)
+	})
 }
 
 // Unblock lifts a block.

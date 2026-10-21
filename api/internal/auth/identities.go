@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -108,9 +109,12 @@ func (s *Service) createProviderUser(ctx context.Context, id Identity, locale st
 	if r := []rune(display); len(r) > 60 {
 		display = string(r[:60])
 	}
-	for i := 1; i <= 20; i++ {
+	for i := 1; i <= 30; i++ {
 		username := base
-		if i > 1 {
+		switch {
+		case i > 20: // a common name ("info", "anna"): a random ending instead
+			username = base[:min(len(base), 25)] + "_" + strings.ToLower(rand.Text()[:4])
+		case i > 1:
 			username = base + strconv.Itoa(i)
 		}
 		var u dbq.User

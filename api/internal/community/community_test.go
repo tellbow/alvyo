@@ -95,4 +95,15 @@ func TestAddCommentErrors(t *testing.T) {
 	if err := s.AddComment(ctx, target, owner, "Hallo", nil); !errors.Is(err, ErrCommentsOff) {
 		t.Errorf("off: %v", err)
 	}
+
+	// The item deleted since the handler loaded it (feedback issue 30).
+	if _, err := pool.Exec(ctx, `DELETE FROM journeys WHERE id = $1`, journey); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.AddComment(ctx, target, owner, "Hallo", nil); !errors.Is(err, ErrNotFound) {
+		t.Errorf("deleted item: %v", err)
+	}
+	if _, err := s.Social(ctx, target, Viewer{ID: fan.ID}); !errors.Is(err, ErrNotFound) {
+		t.Errorf("social of a deleted item: %v", err)
+	}
 }

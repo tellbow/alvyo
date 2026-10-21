@@ -369,3 +369,26 @@ func TestTinyLoopStage(t *testing.T) {
 		t.Errorf("stage route %+v", r)
 	}
 }
+
+// A stage added while the journey is deleted: the journey is gone, not a
+// server error (feedback issue 30). The handler has loaded it already.
+func TestAddStageToDeletedJourney(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	var owner uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('j@example.ch', 'hiker', 'H') RETURNING id`).Scan(&owner); err != nil {
+		t.Fatal(err)
+	}
+	s := &Store{DB: pool, Routes: &routes.Store{DB: pool}}
+	j, err := s.Create(ctx, owner, Meta{Title: "Via Alpina", Visibility: "private"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	jid := uuid.MustParse(j.ID)
+	if err := s.Delete(ctx, jid); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.AddStageID(ctx, jid, owner, NewStage{Title: "s"}); !errors.Is(err, ErrNotFound) {
+		t.Errorf("add stage: %v", err)
+	}
+}

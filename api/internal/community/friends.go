@@ -39,12 +39,17 @@ func (s *Store) FriendState(ctx context.Context, viewer, other uuid.UUID) (Frien
 	return f, err
 }
 
-// blockedEither reports whether one of the two blocked the other.
-func (s *Store) blockedEither(ctx context.Context, a, b uuid.UUID) (bool, error) {
+// notBlocked returns ErrBlocked if one of the two blocked the other.
+func notBlocked(ctx context.Context, tx pgx.Tx, a, b uuid.UUID) error {
 	var blocked bool
-	err := s.DB.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM blocks
-		WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1))`, a, b).Scan(&blocked)
-	return blocked, err
+	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM blocks
+		WHERE (blocker_id = $1 AND blocked_id = $2) OR (blocker_id = $2 AND blocked_id = $1))`, a, b).Scan(&blocked); err != nil {
+		return err
+	}
+	if blocked {
+		return ErrBlocked
+	}
+	return nil
 }
 
 // RequestFriend asks other to be friends and tells them; if other asked
@@ -53,20 +58,23 @@ func (s *Store) RequestFriend(ctx context.Context, from dbq.User, other uuid.UUI
 	if from.ID == other {
 		return ErrForbidden
 	}
-	if blocked, err := s.blockedEither(ctx, from.ID, other); err != nil {
+	var asked bool
+	err := s.pairTx(ctx, from.ID, other, func(tx pgx.Tx) error {
+		if err := notBlocked(ctx, tx, from.ID, other); err != nil {
+			return err
+		}
+		tag, err := tx.Exec(ctx, `UPDATE friendships SET accepted_at = now()
+			WHERE requester_id = $2 AND addressee_id = $1 AND accepted_at IS NULL`, from.ID, other)
+		if err != nil || tag.RowsAffected() > 0 {
+			return err
+		}
+		tag, err = tx.Exec(ctx, `INSERT INTO friendships (requester_id, addressee_id) VALUES ($1, $2)
+			ON CONFLICT DO NOTHING`, from.ID, other)
+		asked = tag.RowsAffected() > 0 // or asked before, or friends already
 		return err
-	} else if blocked {
-		return ErrBlocked
-	}
-	tag, err := s.DB.Exec(ctx, `UPDATE friendships SET accepted_at = now()
-		WHERE requester_id = $2 AND addressee_id = $1 AND accepted_at IS NULL`, from.ID, other)
-	if err != nil || tag.RowsAffected() > 0 {
+	})
+	if err != nil || !asked {
 		return err
-	}
-	tag, err = s.DB.Exec(ctx, `INSERT INTO friendships (requester_id, addressee_id) VALUES ($1, $2)
-		ON CONFLICT DO NOTHING`, from.ID, other)
-	if err != nil || tag.RowsAffected() == 0 {
-		return err // asked before, or friends already
 	}
 	s.notifyFriendRequest(ctx, from, other)
 	return nil
@@ -201,15 +209,15 @@ func (s *Store) AcceptInvite(ctx context.Context, user uuid.UUID, token string) 
 	if inviter == user {
 		return ref, ErrForbidden
 	}
-	if blocked, err := s.blockedEither(ctx, user, inviter); err != nil {
-		return ref, err
-	} else if blocked {
-		return ref, ErrBlocked
-	}
-	_, err = s.DB.Exec(ctx, `INSERT INTO friendships (requester_id, addressee_id, accepted_at) VALUES ($1, $2, now())
-		ON CONFLICT (least(requester_id, addressee_id), greatest(requester_id, addressee_id))
-		DO UPDATE SET accepted_at = coalesce(friendships.accepted_at, now())`, user, inviter)
-	return ref, err
+	return ref, s.pairTx(ctx, user, inviter, func(tx pgx.Tx) error {
+		if err := notBlocked(ctx, tx, user, inviter); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `INSERT INTO friendships (requester_id, addressee_id, accepted_at) VALUES ($1, $2, now())
+			ON CONFLICT (least(requester_id, addressee_id), greatest(requester_id, addressee_id))
+			DO UPDATE SET accepted_at = coalesce(friendships.accepted_at, now())`, user, inviter)
+		return err
+	})
 }
 
 func (s *Store) notifyFriendRequest(ctx context.Context, from dbq.User, to uuid.UUID) {

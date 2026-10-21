@@ -573,8 +573,12 @@ func (s *Store) tx(ctx context.Context, journeyID uuid.UUID, fn func(pgx.Tx) err
 	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
 		// Marking the journey changed first locks it: changes to its stages
 		// (counted, then shifted) go one after the other.
-		if _, err := tx.Exec(ctx, `UPDATE journeys SET updated_at = now() WHERE id = $1`, journeyID); err != nil {
+		res, err := tx.Exec(ctx, `UPDATE journeys SET updated_at = now() WHERE id = $1`, journeyID)
+		if err != nil {
 			return err
+		}
+		if res.RowsAffected() == 0 { // deleted since it was loaded
+			return ErrNotFound
 		}
 		return fn(tx)
 	})

@@ -227,7 +227,7 @@ func registerSocialItem(api huma.API, d Deps, it socialItem) {
 		v, u, loggedIn := communityViewer(ctx)
 		sc, err := d.Community.Social(ctx, t, v)
 		if err != nil {
-			return nil, err
+			return nil, communityError(err)
 		}
 		out := &socialOutput{Body: socialBody{Social: sc}}
 		out.Body.CanComment = loggedIn && u.EmailVerifiedAt != nil && sc.CommentsEnabled && !sc.BlockedByOwner

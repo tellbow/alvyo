@@ -172,6 +172,60 @@ func TestOneShareAtATime(t *testing.T) {
 	}
 }
 
+// Two uploads at once keep one point per Every, not one each (feedback
+// issue 36).
+func TestAddPositionsAtOnce(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	s := &Store{DB: pool, Mail: &mailer.Recorder{}, PublicURL: "https://alvyo.test"}
+	var uid uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name) VALUES ('a@example.ch', 'alone', 'A') RETURNING id`).Scan(&uid); err != nil {
+		t.Fatal(err)
+	}
+	c, err := s.AddContact(ctx, uid, "B", "b@example.ch")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sh, err := s.Start(ctx, Hiker{ID: uid, DisplayName: "A", Email: "a@example.ch"},
+		Start{Title: "T", ExpectedEnd: time.Now().Add(time.Hour), ContactIDs: []uuid.UUID{uuid.MustParse(c.ID)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := uuid.MustParse(sh.ID)
+	at := time.Now().Add(-10 * time.Minute)
+
+	// The first upload holds the share while the second comes in.
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+	if _, err := tx.Exec(ctx, `SELECT 1 FROM live_shares WHERE id = $1 FOR UPDATE`, id); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO live_positions (share_id, at, lon, lat) VALUES ($1, $2, 9.0, 46.7)`, id, at); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error)
+	go func() { done <- s.AddPositions(ctx, uid, id, []Fix{{Lon: 9.001, Lat: 46.7, At: at.Add(time.Minute)}}) }()
+	for waiting := false; !waiting; time.Sleep(20 * time.Millisecond) {
+		if err := pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE wait_event_type = 'Lock')`).
+			Scan(&waiting); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	var n int
+	if err := pool.QueryRow(ctx, `SELECT count(*) FROM live_positions WHERE share_id = $1`, id).Scan(&n); err != nil || n != 1 {
+		t.Errorf("%d points kept, a minute apart (%v)", n, err)
+	}
+}
+
 func TestPublicHidesTheEndsOfOthersHikes(t *testing.T) {
 	ctx := context.Background()
 	pool := testdb.New(t)

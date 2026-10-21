@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -179,5 +181,25 @@ func TestForgotPasswordUnknownEmail(t *testing.T) {
 	}
 	if len(rec.Sent()) != 0 {
 		t.Error("mail sent for unknown address")
+	}
+}
+
+// The 21st sign-in with the same name still gets an account (feedback
+// issue 35).
+func TestIdentityLoginCommonName(t *testing.T) {
+	ctx := context.Background()
+	svc, _, _ := newService(t)
+	allow := func() bool { return true }
+	seen := map[string]bool{}
+	for i := range 23 {
+		id := Identity{Provider: "test", Subject: "s-" + strconv.Itoa(i), Email: "info@example" + strconv.Itoa(i) + ".ch"}
+		u, _, err := svc.IdentityLogin(ctx, id, "de", "", allow)
+		if err != nil {
+			t.Fatalf("sign-in %d: %v", i+1, err)
+		}
+		if seen[u.Username] || !strings.HasPrefix(u.Username, "info") {
+			t.Errorf("sign-in %d: username %q", i+1, u.Username)
+		}
+		seen[u.Username] = true
 	}
 }

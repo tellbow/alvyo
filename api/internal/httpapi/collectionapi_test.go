@@ -187,6 +187,54 @@ func TestCollections(t *testing.T) {
 	}
 }
 
+// Deleting a route deletes its items too; the positions behind them close
+// up, also when one delete takes several (issue 29).
+func TestCollectionDeletedRoutes(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	ctx := context.Background()
+	anna := s.client(t)
+	s.signup(anna, "anna@example.ch", "anna")
+	dc := func(code int, body []byte) collectionResp { t.Helper(); return decodeCollection(t, code, body) }
+	var ids []string
+	for i := range 6 {
+		code, body := anna.do("POST", "/api/v1/routes", newRouteBody("R"+itoa(i), "private"))
+		var r struct {
+			ID string `json:"id"`
+		}
+		if err := json.Unmarshal(body, &r); err != nil || code != http.StatusCreated {
+			t.Fatalf("route: %d %s", code, body)
+		}
+		ids = append(ids, r.ID)
+	}
+	c := dc(anna.do("POST", "/api/v1/collections", map[string]any{"title": "Wishlist"}))
+	base := "/api/v1/collections/" + c.ID
+	for _, id := range ids[:5] {
+		dc(anna.do("POST", base+"/items", map[string]any{"route_id": id}))
+	}
+
+	if code, body := anna.do("DELETE", "/api/v1/routes/"+ids[1], nil); code != http.StatusNoContent {
+		t.Fatalf("delete route: %d %s", code, body)
+	}
+	if _, err := s.db.Exec(ctx, `DELETE FROM routes WHERE id = ANY($1::uuid[])`, []string{ids[2], ids[4]}); err != nil {
+		t.Fatal(err)
+	}
+	c = dc(anna.do("POST", base+"/items", map[string]any{"route_id": ids[5]}))
+	var titles []string
+	for i, it := range c.ItemList {
+		titles = append(titles, it.Title)
+		if it.Position != i {
+			t.Errorf("item %d at position %d", i, it.Position)
+		}
+	}
+	if len(titles) != 3 || titles[0] != "R0" || titles[1] != "R3" || titles[2] != "R5" {
+		t.Errorf("items %v", titles)
+	}
+	c = dc(anna.do("PATCH", base+"/items/"+c.ItemList[2].ID, map[string]any{"position": 1}))
+	if c.ItemList[1].Title != "R5" || c.ItemList[2].Title != "R3" {
+		t.Errorf("after move %+v", c.ItemList)
+	}
+}
+
 func TestCollectionLink(t *testing.T) {
 	s := newTestServer(t, Limits{})
 	anna, anon := s.client(t), s.client(t)

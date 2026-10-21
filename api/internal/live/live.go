@@ -221,9 +221,8 @@ func (s *Store) AddPositions(ctx context.Context, owner, id uuid.UUID, pts []Fix
 	slices.SortFunc(pts, func(a, b Fix) int { return a.At.Compare(b.At) })
 	return pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error {
 		var ended *time.Time
-		var lastKept *time.Time
-		err := tx.QueryRow(ctx, `SELECT ended_at, (SELECT max(at) FROM live_positions WHERE share_id = $1)
-			FROM live_shares WHERE id = $1 AND owner_id = $2 FOR UPDATE`, id, owner).Scan(&ended, &lastKept)
+		err := tx.QueryRow(ctx, `SELECT ended_at FROM live_shares WHERE id = $1 AND owner_id = $2 FOR UPDATE`,
+			id, owner).Scan(&ended)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
 		}
@@ -232,6 +231,13 @@ func (s *Store) AddPositions(ctx context.Context, owner, id uuid.UUID, pts []Fix
 		}
 		if ended != nil {
 			return ErrEnded
+		}
+		// Read after the lock, not with it: a statement sees only what was
+		// committed when it began, and an upload at the same time may just
+		// have kept a point.
+		var lastKept *time.Time
+		if err := tx.QueryRow(ctx, `SELECT max(at) FROM live_positions WHERE share_id = $1`, id).Scan(&lastKept); err != nil {
+			return err
 		}
 		now := s.now()
 		var latest *Fix

@@ -55,4 +55,9 @@ func TestRetrail(t *testing.T) {
 	if n, err := s.Retrail(ctx, m); err != nil || n != 0 {
 		t.Errorf("again: %d changed, %v", n, err)
 	}
+
+	// Deleted while the run goes on: skipped, not an error (feedback issue 37).
+	if ok, err := s.retrail(ctx, m, uuid.New()); ok || err != nil {
+		t.Errorf("a deleted route: %v, %v", ok, err)
+	}
 }

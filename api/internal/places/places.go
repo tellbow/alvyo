@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -56,6 +57,9 @@ type Store struct {
 	Names Names
 }
 
+// likeEscape makes a name filter match % and _ as they are.
+var likeEscape = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+
 // Nearby returns places around a point, nearest first: within 3 km, or 30 km
 // when filtering by name.
 func (s *Store) Nearby(ctx context.Context, q Query) ([]Place, error) {
@@ -76,7 +80,7 @@ func (s *Store) Nearby(ctx context.Context, q Query) ([]Place, error) {
 			AND ($4 = '' OR p.name ILIKE '%' || $4 || '%')
 			AND (coalesce(cardinality($5::text[]), 0) = 0 OR p.kind = ANY($5))
 		ORDER BY p.geom <-> here.g
-		LIMIT $6`, q.Lon, q.Lat, radius, q.Name, q.Kinds, limit)
+		LIMIT $6`, q.Lon, q.Lat, radius, likeEscape.Replace(q.Name), q.Kinds, limit)
 	if err != nil {
 		return nil, fmt.Errorf("places: nearby: %w", err)
 	}

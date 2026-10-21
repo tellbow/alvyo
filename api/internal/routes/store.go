@@ -261,10 +261,26 @@ func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c
 			return Route{}, eerr
 		}
 		t := a.totals
-		// The line replaced is kept (a second save of the same version
-		// finds it there and then fails on the version), the oldest beyond
-		// MaxRevisions go.
-		res, err = s.DB.Exec(ctx, `WITH kept AS (
+		// The row is locked at the version first: a statement that only
+		// found out in its UPDATE that another change came first would
+		// already have kept and pruned revisions.
+		tx, terr := s.DB.Begin(ctx)
+		if terr != nil {
+			return Route{}, fmt.Errorf("routes: update: %w", terr)
+		}
+		defer tx.Rollback(ctx) //nolint:errcheck // after Commit, a no-op
+		var current int
+		err = tx.QueryRow(ctx, `SELECT version FROM routes WHERE id = $1 FOR UPDATE`, id).Scan(&current)
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return Route{}, ErrNotFound
+		case err != nil:
+			return Route{}, fmt.Errorf("routes: update: %w", err)
+		case current != version:
+			return Route{}, ErrVersion
+		}
+		// The line replaced is kept, the oldest beyond MaxRevisions go.
+		res, err = tx.Exec(ctx, `WITH kept AS (
 				INSERT INTO route_revisions (route_id, version, profile, anchors, legs, distance_m, ascent_m, duration_s,
 					saved_at, saved_by)
 				SELECT id, version, profile, anchors, legs, distance_m, ascent_m, duration_s, content_at, coalesce(content_by, owner_id)
@@ -285,6 +301,9 @@ func (s *Store) Update(ctx context.Context, id uuid.UUID, version int, m Meta, c
 			id, version, m.Title, m.Description, m.Visibility, c.Profile, anchors, legs, a.wkt,
 			round(t.DistanceM), round(t.AscentM), round(t.DescentM), t.DurationS, t.DurationReverseS,
 			round(t.EleMinM), round(t.EleMaxM), t.SACGrade, t.SACMax, NewShareToken(), m.Tags, by, MaxRevisions-1)
+		if err == nil {
+			err = tx.Commit(ctx)
+		}
 	}
 	if err != nil {
 		return Route{}, fmt.Errorf("routes: update: %w", err)

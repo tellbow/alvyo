@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -41,11 +42,52 @@ func TestAddCommentErrors(t *testing.T) {
 	if err := s.AddComment(ctx, target, fan, strings.Repeat("x", 2001), nil); err == nil || errors.Is(err, ErrBlocked) || errors.Is(err, ErrCommentsOff) {
 		t.Errorf("too long: %v", err)
 	}
+
+	// A reply to a comment deleted while it is written: the comment is gone
+	// (feedback issue 27).
+	var first uuid.UUID
+	if err := pool.QueryRow(ctx, `SELECT id FROM comments WHERE author_id = $1`, owner.ID).Scan(&first); err != nil {
+		t.Fatal(err)
+	}
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+	if _, err := tx.Exec(ctx, `DELETE FROM comments WHERE id = $1`, first); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error)
+	go func() { done <- s.AddComment(ctx, target, fan, "Antwort", &first) }()
+	for waiting := false; !waiting; time.Sleep(20 * time.Millisecond) {
+		if err := pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE wait_event_type = 'Lock')`).
+			Scan(&waiting); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; !errors.Is(err, ErrNotFound) {
+		t.Errorf("reply to a deleted comment: %v", err)
+	}
+
+	if err := s.AddComment(ctx, target, fan, "Hallo", nil); err != nil {
+		t.Fatal(err)
+	}
+	var fans uuid.UUID
+	if err := pool.QueryRow(ctx, `SELECT id FROM comments WHERE author_id = $1`, fan.ID).Scan(&fans); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := pool.Exec(ctx, `INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2)`, owner.ID, fan.ID); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.AddComment(ctx, target, fan, "Hallo", nil); !errors.Is(err, ErrBlocked) {
 		t.Errorf("blocked: %v", err)
+	}
+	// Nor can an earlier comment change once blocked (feedback issue 28).
+	if err := s.EditComment(ctx, target, fans, fan.ID, "anders"); !errors.Is(err, ErrBlocked) {
+		t.Errorf("blocked edit: %v", err)
 	}
 	if err := s.SetCommentsEnabled(ctx, target, false); err != nil {
 		t.Fatal(err)

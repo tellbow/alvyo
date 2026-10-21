@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/tellbow/alvyo/api/internal/dbq"
@@ -175,6 +176,10 @@ func (s *Store) AddComment(ctx context.Context, t Target, author dbq.User, body 
 		WHERE i.id = $2 AND i.comments_enabled
 			AND NOT EXISTS (SELECT 1 FROM blocks WHERE blocker_id = i.owner_id AND blocked_id = $1)
 		RETURNING id`, author.ID, t.ID, body, parent).Scan(&id)
+	// The comment replied to was deleted since it was looked up.
+	if pgErr := (*pgconn.PgError)(nil); errors.As(err, &pgErr) && pgErr.Code == "23503" { // foreign_key_violation
+		return ErrNotFound
+	}
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return fmt.Errorf("community: comment: %w", err)
 	}
@@ -197,12 +202,13 @@ func (s *Store) AddComment(ctx context.Context, t Target, author dbq.User, body 
 	return nil
 }
 
-// EditComment changes the text of a comment on t; only its author may, and
-// only while comments are on.
+// EditComment changes the text of a comment on t; only its author may, only
+// while comments are on and the owner hasn't blocked them.
 func (s *Store) EditComment(ctx context.Context, t Target, id uuid.UUID, author uuid.UUID, body string) error {
 	res, err := s.DB.Exec(ctx, `UPDATE comments c SET body = $4, edited_at = now()
 		FROM `+t.Kind.table()+` i
-		WHERE c.id = $1 AND c.`+t.Kind.column()+` = $2 AND c.author_id = $3 AND i.id = $2 AND i.comments_enabled`,
+		WHERE c.id = $1 AND c.`+t.Kind.column()+` = $2 AND c.author_id = $3 AND i.id = $2 AND i.comments_enabled
+			AND NOT EXISTS (SELECT 1 FROM blocks WHERE blocker_id = i.owner_id AND blocked_id = $3)`,
 		id, t.ID, author, strings.TrimSpace(body))
 	if err != nil {
 		return fmt.Errorf("community: edit comment: %w", err)
@@ -220,8 +226,10 @@ func (s *Store) EditComment(ctx context.Context, t Target, id uuid.UUID, author 
 		return err
 	case !mine:
 		return ErrForbidden
+	case !on:
+		return ErrCommentsOff
 	}
-	return ErrCommentsOff
+	return ErrBlocked
 }
 
 // DeleteComment removes a comment on t. Its author, t's owner and

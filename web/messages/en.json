@@ -172,6 +172,7 @@
 	"nav_about": "About",
 	"about_title": "About Alvyo",
 	"about_news_title": "What's new",
+	"news_1_10_0": "Links to the home page, «Discover» and profiles now show a preview image when shared. And fixed: two people asking each other to be friends at the same moment are now friends, and a collection can be added to again after one of its routes was deleted.",
 	"news_1_9_0": "New on routes, multi-day hikes and in the planner: «Snow on the way» says how much of the way lies in snow and how much of it is steeper than 30°. And «Show on the map» takes the map to the spot, also for protected areas, closures and shooting.",
 	"news_1_8_0": "Planning now works even when swisstopo's elevation service is down: Alvyo has Switzerland's heights itself. And when the base map does not load, the map shows the national map.",
 	"news_1_7_1": "The snow box on the map is smaller: the day and the colours, more with ⓘ. In the app the list of data sources closes again.",

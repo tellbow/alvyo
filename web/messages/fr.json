@@ -172,6 +172,7 @@
 	"nav_about": "À propos",
 	"about_title": "À propos d'Alvyo",
 	"about_news_title": "Quoi de neuf",
+	"news_1_10_0": "Les liens vers la page d’accueil, « Découvrir » et les profils affichent maintenant une image d’aperçu quand on les partage. Et corrigé : deux personnes qui se demandent en ami au même moment sont maintenant amies, et on peut de nouveau compléter une collection après la suppression d’un de ses itinéraires.",
 	"news_1_9_0": "Nouveau pour les itinéraires, les randonnées en étapes et dans le planificateur : « Neige en chemin » indique quelle part du chemin est enneigée et combien est plus raide que 30°. Et « Afficher sur la carte » amène la carte à l’endroit, aussi pour les zones protégées, les fermetures et les tirs.",
 	"news_1_8_0": "La planification fonctionne désormais même quand le service d’altitudes de swisstopo est en panne : Alvyo a lui-même les altitudes de la Suisse. Et si la carte de base ne se charge pas, la carte affiche la carte nationale.",
 	"news_1_7_1": "L’encadré de la neige sur la carte est plus petit : le jour et les couleurs, davantage avec ⓘ. Dans l’app, la liste des sources de données se ferme à nouveau.",

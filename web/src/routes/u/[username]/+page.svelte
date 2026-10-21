@@ -49,6 +49,9 @@
 <Seo
 	title={profile.display_name}
 	description={m.seo_profile_description({ name: profile.display_name })}
+	image={profile.routes.length || profile.journeys.length
+		? `/api/v1/users/${encodeURIComponent(profile.username)}/og.png`
+		: undefined}
 />
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">

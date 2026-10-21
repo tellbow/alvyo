@@ -35,7 +35,7 @@
 	}
 </script>
 
-<Seo title="Alvyo – {m.seo_home_title()}" description={m.seo_home_description()} />
+<Seo title="Alvyo – {m.seo_home_title()}" description={m.seo_home_description()} image="/og.jpg" />
 
 <main class="relative flex-1 overflow-y-auto">
 	<!-- Contour lines and a route, as on a map. -->

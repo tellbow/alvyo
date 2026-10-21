@@ -242,12 +242,14 @@ func registerRoutes(api huma.API, d Deps) {
 		if len(line) == 0 {
 			return nil, huma.Error404NotFound("no line to show")
 		}
-		b, err := d.Images.PNG(fmt.Sprintf("%s-%d", r.ID, r.Version), og.Card{
-			Title: r.Title,
-			Stats: cardStats(r.Totals),
-			Lines: [][][2]float64{lonLat(line)},
-			Ends:  true,
-		})
+		card := og.Card{
+			Title:  r.Title,
+			Stats:  cardStats(r.Totals),
+			Lines:  [][][2]float64{lonLat(line)},
+			Ends:   true,
+			Credit: officialCredit(r.OwnerUsername),
+		}
+		b, err := d.Images.PNG(imageKey(r.ID, card), card)
 		if err != nil {
 			return nil, err
 		}
@@ -398,8 +400,17 @@ func lonLat(line [][3]float64) [][2]float64 {
 // change with their stages and items, not only with their own version.
 func imageKey(id string, card og.Card) string {
 	h := fnv.New64a()
-	_, _ = fmt.Fprintf(h, "%d\x00%s\x00%s\x00%v", og.Style, card.Title, card.Stats, card.Lines)
+	_, _ = fmt.Fprintf(h, "%d\x00%s\x00%s\x00%s\x00%v", og.Style, card.Title, card.Stats, card.Credit, card.Lines)
 	return fmt.Sprintf("%s-%x", id, h.Sum64())
+}
+
+// officialCredit is the source to name on images of the official routes
+// (opendata.swiss: «source required»).
+func officialCredit(owner string) string {
+	if owner == official.Username {
+		return "ASTRA / SchweizMobil"
+	}
+	return ""
 }
 
 func routeError(err error) error {

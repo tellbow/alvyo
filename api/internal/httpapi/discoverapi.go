@@ -14,6 +14,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/discover"
 	"github.com/tellbow/alvyo/api/internal/grants"
 	"github.com/tellbow/alvyo/api/internal/journeys"
+	"github.com/tellbow/alvyo/api/internal/og"
 	"github.com/tellbow/alvyo/api/internal/routes"
 )
 
@@ -179,6 +180,34 @@ func registerDiscover(api huma.API, d Deps) {
 			return nil, notFound
 		}
 		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-profile-image", Method: http.MethodGet, Path: "/users/{username}/og.png",
+		Summary:     "Preview image of a public profile for link previews (1200×630)",
+		Description: "The lines of the user's public routes and journeys; 404 for a profile that is not public or has none.",
+		Tags:        []string{"discover"},
+	}, func(ctx context.Context, in *profileInput) (*imageOutput, error) {
+		u, err := d.Discover.User(ctx, in.Username)
+		if errors.Is(err, discover.ErrNotFound) || err == nil && !u.Public {
+			return nil, huma.Error404NotFound("no such profile")
+		}
+		if err != nil {
+			return nil, err
+		}
+		card := og.Card{Title: u.DisplayName, Stats: "@" + u.Username}
+		if card.Lines, err = d.Discover.ProfileLines(ctx, u.ID); err != nil {
+			return nil, err
+		}
+		if len(card.Lines) == 0 {
+			return nil, huma.Error404NotFound("no public route or journey")
+		}
+		card.Credit = officialCredit(u.Username)
+		b, err := d.Images.PNG(imageKey(u.ID.String(), card), card)
+		if err != nil {
+			return nil, err
+		}
+		return &imageOutput{ContentType: "image/png", CacheControl: "public, max-age=3600", Body: b}, nil
 	})
 }
 

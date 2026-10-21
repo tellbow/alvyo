@@ -9,8 +9,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
+
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 func tileServer(t *testing.T) (*httptest.Server, *atomic.Int32) {
@@ -94,5 +98,42 @@ func TestDuration(t *testing.T) {
 		if got := Duration(in); got != want {
 			t.Errorf("Duration(%d) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+// Lines across all of Switzerland: zoom 8, not further out than the
+// swisstopo map reaches.
+func TestRenderSwitzerland(t *testing.T) {
+	tile := image.NewRGBA(image.Rect(0, 0, 256, 256))
+	var buf bytes.Buffer
+	_ = jpeg.Encode(&buf, tile, nil)
+	var zooms sync.Map
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		zooms.Store(strings.Split(strings.TrimPrefix(r.URL.Path, "/tiles/wmts/ch.swisstopo.pixelkarte-farbe/"), "/")[0], true)
+		w.Header().Set("Content-Type", "image/jpeg")
+		_, _ = w.Write(buf.Bytes())
+	}))
+	t.Cleanup(srv.Close)
+	r := &Renderer{TilesURL: srv.URL, CacheDir: t.TempDir()}
+	card := Card{Title: "Schweiz", Lines: [][][2]float64{{{5.96, 46.13}, {8.6, 47.8}, {9.0, 45.82}, {10.49, 46.6}}}, Credit: "ASTRA / SchweizMobil"}
+	if _, err := r.PNG("ch-1", card); err != nil {
+		t.Fatal(err)
+	}
+	zooms.Range(func(z, _ any) bool {
+		if z != "8" {
+			t.Errorf("tiles at zoom %s", z)
+		}
+		return true
+	})
+}
+
+// The credit's font has «©» (the map library's has not).
+func TestCreditFontHasCopyright(t *testing.T) {
+	f, err := face(goregular.TTF, 15)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := f.GlyphAdvance('©'); !ok {
+		t.Error("no ©")
 	}
 }

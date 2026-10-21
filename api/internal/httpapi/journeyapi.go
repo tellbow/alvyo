@@ -243,7 +243,7 @@ func registerJourneys(api huma.API, d Deps) {
 		if err != nil {
 			return nil, err
 		}
-		card := og.Card{Title: j.Title, Stats: cardStats(j.Totals), Ends: true}
+		card := og.Card{Title: j.Title, Stats: cardStats(j.Totals), Ends: true, Credit: officialCredit(j.OwnerUsername)}
 		for _, s := range j.StageList {
 			if s.Route != nil {
 				card.Lines = append(card.Lines, s.Route.Line)

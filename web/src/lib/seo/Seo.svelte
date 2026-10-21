@@ -29,6 +29,8 @@
 	const OG_LOCALE: Record<Locale, string> = { de: 'de_CH', en: 'en_GB', fr: 'fr_CH', it: 'it_CH' };
 	const shown = $derived(index && !page.url.searchParams.has('t'));
 	const text = $derived(description && shorten(description.replace(/\s+/g, ' ').trim(), 200));
+	// Link previews need an absolute address; pages may pass a path.
+	const imageUrl = $derived(image && new URL(image, page.url.origin).href);
 
 	function shorten(s: string, max: number) {
 		if (s.length <= max) return s;
@@ -55,8 +57,8 @@
 	<meta property="og:title" content={title} />
 	{#if text}<meta property="og:description" content={text} />{/if}
 	<meta property="og:url" content={shown ? url : page.url.href} />
-	{#if image}
-		<meta property="og:image" content={image} />
+	{#if imageUrl}
+		<meta property="og:image" content={imageUrl} />
 		<meta property="og:image:width" content="1200" />
 		<meta property="og:image:height" content="630" />
 		<meta name="twitter:card" content="summary_large_image" />

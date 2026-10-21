@@ -189,6 +189,39 @@ func (s *Store) User(ctx context.Context, username string) (User, error) {
 	return u, err
 }
 
+// maxProfileLines bounds the routes drawn on a profile's preview image.
+const maxProfileLines = 100
+
+// ProfileLines returns the (lon, lat) lines of a user's public routes and of
+// the stages of their public journeys as others see them, the most recently
+// changed first, simplified for a map of all Switzerland.
+func (s *Store) ProfileLines(ctx context.Context, user uuid.UUID) ([][][2]float64, error) {
+	rows, err := s.DB.Query(ctx, `SELECT ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(r.shown_geom), 0.0005)), 5)
+		FROM routes r LEFT JOIN journeys j ON j.id = r.journey_id
+		WHERE r.owner_id = $1 AND r.shown_geom IS NOT NULL
+			AND CASE WHEN r.journey_id IS NULL THEN r.visibility = 'public' ELSE j.visibility = 'public' END
+		ORDER BY coalesce(j.updated_at, r.updated_at) DESC, r.id LIMIT $2`, user, maxProfileLines)
+	if err != nil {
+		return nil, fmt.Errorf("discover: profile lines: %w", err)
+	}
+	defer rows.Close()
+	var out [][][2]float64
+	for rows.Next() {
+		var line string
+		if err := rows.Scan(&line); err != nil {
+			return nil, err
+		}
+		var g struct {
+			Coordinates [][][2]float64 `json:"coordinates"`
+		}
+		if err := json.Unmarshal([]byte(line), &g); err != nil {
+			return nil, fmt.Errorf("discover: profile lines: %w", err)
+		}
+		out = append(out, g.Coordinates...)
+	}
+	return out, rows.Err()
+}
+
 // SitemapEntry is a public page for search engines.
 type SitemapEntry struct {
 	Kind      string    `json:"kind" enum:"route,journey,collection,profile"`

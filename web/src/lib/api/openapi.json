@@ -15750,6 +15750,61 @@
         ]
       }
     },
+    "/users/{username}/og.png": {
+      "get": {
+        "description": "The lines of the user's public routes and journeys; 404 for a profile that is not public or has none.",
+        "operationId": "get-profile-image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "contentEncoding": "base64",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Preview image of a public profile for link previews (1200×630)",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
     "/version": {
       "get": {
         "operationId": "get-version",

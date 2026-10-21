@@ -35,9 +35,11 @@ const (
 
 var routeColor = color.RGBA{0xa2, 0x1c, 0xaf, 0xff}
 
+const mapCredit = "© swisstopo, © OpenStreetMap contributors"
+
 // Style is part of the cache key of the images: raise it when their look
 // changes, so no image drawn before is served again.
-const Style = 2
+const Style = 3
 
 // The text band in the colours of the website's dark mode.
 var (
@@ -54,6 +56,9 @@ type Card struct {
 	Lines [][][2]float64
 	// Ends marks the start of the first line and the end of the last.
 	Ends bool
+	// Credit names the source of the lines after the map's, e.g.
+	// "ASTRA / SchweizMobil" for the official routes.
+	Credit string
 }
 
 // Renderer draws cards and caches them as PNG files.
@@ -108,7 +113,7 @@ func (r *Renderer) render(card Card) ([]byte, error) {
 	ctx.SetUserAgent("alvyo-og")
 	ctx.SetTileProvider(&sm.TileProvider{
 		Name:        "swisstopo",
-		Attribution: "© swisstopo, © OpenStreetMap contributors",
+		Attribution: mapCredit,
 		TileSize:    256,
 		URLPattern:  strings.TrimSuffix(r.TilesURL, "/") + "/tiles/wmts/ch.swisstopo.pixelkarte-farbe/%[2]d/%[3]d/%[4]d.jpeg",
 	})
@@ -139,6 +144,13 @@ func (r *Renderer) render(card Card) ([]byte, error) {
 		ctx.AddObject(sm.NewMarker(last[len(last)-1], routeColor, 18))
 	}
 
+	// Drawn by drawCredit: the library's font has no «©».
+	ctx.OverrideAttribution("")
+	// Further out than zoom 8 the map shows more than swisstopo's covers
+	// (lines across all of Switzerland): zoom 8, their ends cut off.
+	if t, err := ctx.Transformer(); err == nil && t.Rect().Size().Lng.Degrees() > 7 {
+		ctx.SetZoom(8)
+	}
 	mapImg, err := ctx.Render()
 	if err != nil {
 		return nil, fmt.Errorf("og: map: %w", err)
@@ -147,6 +159,13 @@ func (r *Renderer) render(card Card) ([]byte, error) {
 	img := image.NewRGBA(image.Rect(0, 0, Width, Height))
 	draw.Draw(img, img.Bounds(), image.NewUniform(ground), image.Point{}, draw.Src)
 	draw.Draw(img, image.Rect(0, 0, Width, Height-bandH), mapImg, image.Point{}, draw.Src)
+	credit := mapCredit
+	if card.Credit != "" {
+		credit += ", " + card.Credit
+	}
+	if err := drawCredit(img, credit); err != nil {
+		return nil, err
+	}
 	if err := drawText(img, card); err != nil {
 		return nil, err
 	}
@@ -156,6 +175,21 @@ func (r *Renderer) render(card Card) ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+// drawCredit writes the sources at the foot of the map, light on a dark
+// strip.
+func drawCredit(img *image.RGBA, credit string) error {
+	small, err := face(goregular.TTF, 15)
+	if err != nil {
+		return err
+	}
+	bottom := Height - bandH
+	strip := image.Rect(0, bottom-22, Width, bottom)
+	draw.Draw(img, strip, image.NewUniform(color.RGBA{0, 0, 0, 0x80}), image.Point{}, draw.Over)
+	(&font.Drawer{Dst: img, Src: image.NewUniform(color.RGBA{0xff, 0xff, 0xff, 0xff}), Face: small,
+		Dot: fixed.P(6, bottom-6)}).DrawString(credit)
+	return nil
 }
 
 func drawText(img *image.RGBA, card Card) error {

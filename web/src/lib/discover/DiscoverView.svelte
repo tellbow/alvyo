@@ -131,7 +131,7 @@
 	}
 </script>
 
-<Seo title={m.discover_title()} description={m.seo_discover_description()} />
+<Seo title={m.discover_title()} description={m.seo_discover_description()} image="/og.jpg" />
 
 <main class="flex min-h-0 flex-1 flex-col md:flex-row">
 	<section class="relative h-[50dvh] shrink-0 md:h-auto md:flex-1 md:shrink">

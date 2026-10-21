@@ -240,6 +240,9 @@ func registerCollections(api huma.API, d Deps) {
 		card := og.Card{Title: c.Title, Stats: "@" + c.OwnerUsername}
 		for _, it := range c.ItemList {
 			card.Lines = append(card.Lines, it.Lines...)
+			if credit := officialCredit(it.OwnerUsername); credit != "" {
+				card.Credit = credit
+			}
 		}
 		if len(card.Lines) == 0 {
 			return nil, huma.Error404NotFound("no item has a line")

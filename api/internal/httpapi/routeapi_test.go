@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"image"
 	"image/jpeg"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -310,6 +311,32 @@ func TestRouteImage(t *testing.T) {
 	}
 }
 
+// An official route's image names its source (opendata.swiss: «source
+// required»).
+func TestOfficialRouteImageCredit(t *testing.T) {
+	s, owner, _ := imageServer(t)
+	_, body := owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "public"))
+	var r savedRoute
+	_ = json.Unmarshal(body, &r)
+	png := func() []byte {
+		t.Helper()
+		resp, err := s.client(t).http.Get(s.URL + "/api/v1/routes/" + r.ID + "/og.png")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+		b, _ := io.ReadAll(resp.Body)
+		return b
+	}
+	before := png()
+	if _, err := s.db.Exec(context.Background(), `UPDATE routes SET owner_id = (SELECT id FROM users WHERE username = 'wanderland')`); err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Equal(before, png()) {
+		t.Error("the same image with the official source")
+	}
+}
+
 func TestJourneyAndCollectionImages(t *testing.T) {
 	s, owner, image := imageServer(t)
 	anon := s.client(t)
@@ -350,5 +377,24 @@ func TestJourneyAndCollectionImages(t *testing.T) {
 	}
 	if code, _, cache := image(anon, "collections/"+c.ID); code != http.StatusOK || !strings.HasPrefix(cache, "private,") {
 		t.Errorf("collection sharing its owner's private route: %d %q", code, cache)
+	}
+}
+
+func TestProfileImage(t *testing.T) {
+	s, owner, image := imageServer(t)
+	anon := s.client(t)
+	owner.do("POST", "/api/v1/routes", newRouteBody("Geheim", "private"))
+	if code, _, _ := image(anon, "users/owner"); code != http.StatusNotFound {
+		t.Errorf("only a private route: %d", code)
+	}
+	owner.do("POST", "/api/v1/routes", newRouteBody("Gratweg", "public"))
+	if code, ctype, cache := image(anon, "users/owner"); code != http.StatusOK || ctype != "image/png" || !strings.HasPrefix(cache, "public,") {
+		t.Errorf("a public route: %d %s %q", code, ctype, cache)
+	}
+	if _, err := s.db.Exec(context.Background(), `UPDATE users SET profile_public = false`); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, _ := image(anon, "users/owner"); code != http.StatusNotFound {
+		t.Errorf("a profile for friends: %d", code)
 	}
 }

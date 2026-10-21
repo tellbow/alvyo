@@ -2,7 +2,7 @@ module github.com/tellbow/alvyo/api
 
 go 1.26.0
 
-toolchain go1.26.9
+toolchain go1.26.10
 
 require (
 	github.com/danielgtaylor/huma/v2 v2.39.1

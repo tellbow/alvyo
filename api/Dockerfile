@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -tags nodynamic -tr
 # Writable for the nonroot user; new Docker volumes mounted there take this owner.
 RUN mkdir -p /out/cache /out/data/photos
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab
 COPY --from=build /alvyo /alvyo
 COPY --from=build --chown=65532:65532 /out/ /
 EXPOSE 8080

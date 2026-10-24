@@ -1,7 +1,7 @@
 # Tools for preparing reference data: OSM extracts (osmium) and swisstopo
 # vector data (GDAL/ogr2ogr); MeteoSwiss's radar (HDF5) and forecasts (GRIB2)
 # for the rain on the map (weather-precip.py).
-FROM debian:trixie-slim
+FROM debian:trixie-slim@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad
 RUN apt-get update \
  && apt-get install -y --no-install-recommends osmium-tool gdal-bin postgresql-client curl unzip ca-certificates \
     python3 python3-gdal python3-h5py python3-numpy python3-scipy python3-eccodes python3-psycopg \

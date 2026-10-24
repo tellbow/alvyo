@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:25-jre@sha256:dbb43d81099eec91e0800226ed2296d03146ee7857165b95112372ad0d67e87f
 ARG GH_VERSION=11.0
 ARG GH_SHA1=4cba3d3bbdc8572f7bc6ecd6ffebf8ff6d394ce4
 RUN apt-get update \

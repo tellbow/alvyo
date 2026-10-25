@@ -92,10 +92,10 @@
 	],
 	"customManagers": [
 		{
-			"description": "The Flutter SDK of CI (subosito/flutter-action's flutter-version)",
+			"description": "The Flutter SDK of CI and releases (subosito/flutter-action's flutter-version)",
 			"customType": "regex",
 			"managerFilePatterns": [
-				"/^\\.github/workflows/ci\\.yml$/"
+				"/^\\.github/workflows/(ci|release)\\.yml$/"
 			],
 			"matchStrings": [
 				"flutter-version: (?<currentValue>\\d+\\.\\d+\\.\\d+)"

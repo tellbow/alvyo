@@ -102,7 +102,9 @@ test('the Landeskarte when swisstopo’s vector base map does not answer', async
 	await page.getByRole('button', { name: 'Schliessen' }).click();
 	await expect(page.getByTestId('base-unavailable')).toBeHidden();
 	await page.getByRole('button', { name: 'Karten' }).click();
-	await page.getByLabel('Basiskarte').check();
+	// click, not check: the choice may already be back on the Landeskarte when
+	// check() looks, and it fails then.
+	await page.getByLabel('Basiskarte').click();
 	await expect(page.getByTestId('base-unavailable')).toBeVisible();
 	await expect(page.getByLabel('Landeskarte', { exact: true })).toBeChecked();
 	await expect(map).toHaveAttribute('data-layers', /\bbase\b.*\bovl-wanderwege\b/);

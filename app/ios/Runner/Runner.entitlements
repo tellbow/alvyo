@@ -9,10 +9,12 @@
 	</array>
 	<!-- Universal links: the website's addresses of routes, journeys,
 	     collections and invites open the app
-	     (web/static/.well-known/apple-app-site-association). -->
+	     (web/static/.well-known/apple-app-site-association); its passwords
+	     are the website's, so iOS offers to save them at sign-up. -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:alvyo.tellbow.ch</string>
+		<string>webcredentials:alvyo.tellbow.ch</string>
 	</array>
 	<!-- Reading hikes recorded with the Apple Watch's Workout app. -->
 	<key>com.apple.developer.healthkit</key>

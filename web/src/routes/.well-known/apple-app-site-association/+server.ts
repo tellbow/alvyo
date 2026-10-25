@@ -5,7 +5,8 @@ import type { RequestHandler } from './$types';
 // bundle id) instead of Safari, as Android does with assetlinks.json and
 // the same paths (AndroidManifest.xml): a route, journey or collection by
 // its id (not /routes/map or /journeys/plan), and invites; also in English,
-// French and Italian.
+// French and Italian. webcredentials: the app's passwords are this
+// site's, so iOS offers to save them at sign-up and fills them in either.
 const kinds = [
 	'/routes/????????-*',
 	'/journeys/????????-*',
@@ -25,7 +26,8 @@ export const GET: RequestHandler = () =>
 						)
 					}
 				]
-			}
+			},
+			webcredentials: { apps: ['HYFKN2HQXF.ch.tellbow.alvyo'] }
 		},
 		{ headers: { 'cache-control': 'public, max-age=3600' } }
 	);

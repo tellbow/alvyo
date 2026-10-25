@@ -393,6 +393,12 @@ Checked so far only in the simulator, with made-up or simulated positions
       its link confirms the address, then logging in in the app works.
       «Passwort vergessen?» and «Datenschutz» on the login screen open in
       a Safari view inside the app, «Fertig» leads back to the login.
+- [ ] **Passwords saved** (feedback issue 39, after the release and the
+      website's `apple-app-site-association` with `webcredentials`
+      deployed; Apple's CDN can take a day): the password field when
+      signing up offers a strong password, and after «Registrieren» iOS
+      asks to save it for alvyo.tellbow.ch; the login screen then offers
+      it above the keyboard, and Safari on the website does too.
 
 ## App on the iPad (release build)
 

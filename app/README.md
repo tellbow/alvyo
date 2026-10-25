@@ -66,6 +66,7 @@ every commit (`pubspec.yaml`'s `0.1.0+1` is only the fallback; `flutter
 run` cannot set them):
 
 ```sh
+FIREBASE_ANALYTICS_WITHOUT_ADID=true \
 flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') \
   --build-number=$(git rev-list --count HEAD) \
   --dart-define=ALVYO_VERSION=$(git describe --tags --always)

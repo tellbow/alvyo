@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../bug_report.dart';
 import '../drag_ways.dart';
@@ -108,6 +109,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('planner');
     if (widget.edit case final r?) {
       _planner.load(r.profile, r.anchors, r.legs);
     } else if (widget.start case final p?) {

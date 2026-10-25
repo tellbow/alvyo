@@ -620,6 +620,18 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     tokens, password resets) and with the token of live location and
     invitation links masked, the route's pattern as title (not the titles
     of tours). The privacy text says so instead of «no tracking».
+    In the app (feedback issues 6 and 7, started 2026-10-25): Firebase
+    Analytics on the same property, iOS and Android. A sheet at the first
+    start asks («Akzeptieren / Ablehnen», kept in the Keychain, changeable
+    under Profil › Einstellungen › Statistik); before «Akzeptieren»
+    nothing is sent at all (collection and consent off in Info.plist and
+    AndroidManifest.xml), «Ablehnen» later deletes the analytics id. No
+    advertising id (`FirebaseAnalyticsCore`: `FIREBASE_ANALYTICS_WITHOUT_ADID`
+    in every iOS build, checked before uploading), no automatic screen
+    names: the main screens report their kind («route», «journey», the
+    tabs). Only release builds with `lib/firebase_options.dart` filled in
+    measure. Open: the Firebase project and the app's settings in
+    `firebase_options.dart`, the App Store privacy labels.
 63. **A point along the way on the map.** On the website, the pointer on a
     line of «Unterwegs» rings its point (or the points it groups) on the
     route's map, which moves there when none is in view; in the app a tap
@@ -940,7 +952,7 @@ Garmin. 44 is from the project owner on 2026-09-29.
 #### 72. The Android app (issue 8, started)
 
 The app on Android as on iOS, its APK with every GitHub Release, later in
-the Play Store; Google Analytics as for iOS (issue 9) comes after.
+the Play Store; Google Analytics as on iOS (62).
 
 Done (2026-10-12): the app builds and runs (minimum Android 8, the iOS
 icon as adaptive and themed icon); recording and navigation with the

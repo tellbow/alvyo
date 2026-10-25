@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../route_layers.dart';
 import '../format.dart';
@@ -92,6 +93,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('journey_plan');
     _paceLoaded.then((p) {
       if (mounted) setState(() => _pace = p);
     });

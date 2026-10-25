@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/live.dart';
@@ -14,6 +15,7 @@ import 'plan_tab.dart';
 import 'profile_tab.dart';
 import 'record_screen.dart';
 import 'route_screen.dart';
+import 'statistics_sheet.dart';
 import 'tours_tab.dart';
 import 'watch_screen.dart';
 import 'wide.dart';
@@ -27,6 +29,7 @@ class HomeScreen extends StatefulWidget {
     required this.api,
     required this.onLogout,
     this.settings,
+    this.analytics,
     this.record,
     @visibleForTesting this.planModes,
     @visibleForTesting this.watch,
@@ -36,6 +39,9 @@ class HomeScreen extends StatefulWidget {
 
   /// The app's; tests pass their own.
   final AppSettings? settings;
+
+  /// The app's; tests pass their own.
+  final Analytics? analytics;
 
   /// For tests: stands in for the recording screen (GPS and map).
   final Widget Function()? record;
@@ -62,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _plan = GlobalKey<PlanTabState>();
 
   late final _settings = widget.settings ?? AppSettings.instance;
+  late final _analytics = widget.analytics ?? Analytics.instance;
   late final _watch = widget.watch ?? WatchImporter(widget.api);
   DateTime? _watchChecked;
 
@@ -72,6 +79,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _checkSession();
     _uploadHikes();
     WidgetsBinding.instance.addPostFrameCallback((_) => _importWatch());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _askStatistics());
+    _analytics.screen(_tab.name);
+  }
+
+  /// Once, at the first start of a build that measures (statistics_sheet.dart).
+  Future<void> _askStatistics() async {
+    await _analytics.loaded;
+    if (!mounted || !_analytics.active || _analytics.consent.value != null) return;
+    await askStatistics(context, _analytics, widget.api.server);
   }
 
   @override
@@ -165,10 +181,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _select(HomeTab tab) => setState(() {
-    _tab = tab;
-    _shown.add(tab);
-  });
+  void _select(HomeTab tab) {
+    if (tab != _tab) _analytics.screen(tab.name);
+    setState(() {
+      _tab = tab;
+      _shown.add(tab);
+    });
+  }
 
   /// Opens Planen in one of its modes («Wie weit komme ich?» on Entdecken).
   void _planIn(PlanMode mode) {
@@ -249,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     HomeTab.profile => SafeArea(
       bottom: false,
       child: Readable(
-        child: ProfileTab(api: widget.api, onLogout: widget.onLogout, settings: _settings),
+        child: ProfileTab(api: widget.api, onLogout: widget.onLogout, settings: _settings, analytics: _analytics),
       ),
     ),
   };

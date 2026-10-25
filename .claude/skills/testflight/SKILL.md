@@ -19,12 +19,20 @@ in TestFlight is the one in production.
    `app/ios/ExportOptions-upload.plist`.
 2. **Archive** (about two minutes), in `app/`:
    ```sh
+   FIREBASE_ANALYTICS_WITHOUT_ADID=true \
    flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') \
      --build-number=$(git rev-list --count HEAD) \
      --dart-define=ALVYO_VERSION=$(git describe --tags --always)
    ```
    An error at the end while creating the IPA does not matter: the
    archive in `build/ios/archive/Runner.xcarchive` is what counts.
+   `FIREBASE_ANALYTICS_WITHOUT_ADID` takes Google Analytics without the
+   advertising id (no tracking prompt, App Store privacy labels). Check it
+   before uploading; any output stops the release (`flutter clean`, build
+   again):
+   ```sh
+   grep -rl AdSupport build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app
+   ```
 3. **Sign and upload**: signed on this Mac with the «Apple Distribution»
    certificate (in the keychain) and the App Store profile «Alvyo App
    Store» (`ios/ExportOptions-upload.plist`), uploaded with the App Store

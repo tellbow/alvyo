@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../settings.dart';
@@ -10,6 +11,7 @@ import 'about_screen.dart';
 import 'account_screens.dart';
 import 'devices_screen.dart';
 import 'friends_screen.dart';
+import 'statistics_sheet.dart';
 import 'tab_header.dart';
 import 'user_screen.dart';
 import 'wide.dart';
@@ -18,10 +20,13 @@ import 'wide.dart';
 /// settings, the account (homes, contacts, blocked), logging out and
 /// deleting it.
 class ProfileTab extends StatefulWidget {
-  const ProfileTab({super.key, required this.api, required this.onLogout, required this.settings});
+  const ProfileTab({super.key, required this.api, required this.onLogout, required this.settings, this.analytics});
   final Api api;
   final VoidCallback onLogout;
   final AppSettings settings;
+
+  /// The app's; tests pass their own.
+  final Analytics? analytics;
 
   @override
   State<ProfileTab> createState() => _ProfileTabState();
@@ -249,6 +254,20 @@ class _ProfileTabState extends State<ProfileTab> {
                       value: me?.profilePublic ?? true,
                       onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(profilePublic: v)),
                     ),
+                    if ((widget.analytics ?? Analytics.instance) case final analytics when analytics.active)
+                      ValueListenableBuilder(
+                        valueListenable: analytics.consent,
+                        builder: (context, granted, _) => ListTile(
+                          key: const Key('statistics'),
+                          title: Text(t.statisticsTitle),
+                          trailing: switch (granted) {
+                            true => value(t.statisticsGranted),
+                            false => value(t.statisticsDenied),
+                            null => null,
+                          },
+                          onTap: () => askStatistics(context, analytics, widget.api.server),
+                        ),
+                      ),
                     ListTile(
                       key: const Key('notifications'),
                       title: Text(t.accountNotifications),

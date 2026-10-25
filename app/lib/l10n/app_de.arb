@@ -1385,5 +1385,11 @@
       }
     }
   },
-  "errorTooMany": "Zu viele Versuche. Bitte warte einen Moment."
+  "errorTooMany": "Zu viele Versuche. Bitte warte einen Moment.",
+  "statisticsTitle": "Statistik",
+  "statisticsAsk": "Dürfen wir mit Google Analytics messen, welche Bereiche der App genutzt werden? Google erfährt nur die Art des Bildschirms (etwa «Route»), keine Titel, Orte oder Links, und keine Werbe-ID. Ohne deine Zustimmung erhält Google nichts.",
+  "statisticsAccept": "Akzeptieren",
+  "statisticsDecline": "Ablehnen",
+  "statisticsGranted": "Zugestimmt",
+  "statisticsDenied": "Abgelehnt"
 }

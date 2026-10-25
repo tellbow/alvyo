@@ -399,6 +399,13 @@ Checked so far only in the simulator, with made-up or simulated positions
       signing up offers a strong password, and after «Registrieren» iOS
       asks to save it for alvyo.tellbow.ch; the login screen then offers
       it above the keyboard, and Safari on the website does too.
+- [ ] **Statistics in the app** (62, a release build with
+      `lib/firebase_options.dart` filled in): the first start asks
+      «Statistik»; with «Akzeptieren», Google Analytics › Realtime shows the
+      app's stream with screens such as `route` and `journey` (nothing with
+      titles or ids); with «Ablehnen» (Profil › Einstellungen) it stops. No
+      tracking prompt (App Tracking Transparency) at any time. The same on
+      the Android phone.
 
 ## App on the iPad (release build)
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart' show Geographic;
 
 import 'error_state.dart';
+import '../analytics.dart';
 import '../api.dart';
 import '../bug_report.dart';
 import '../elevation_profile.dart';
@@ -46,6 +47,12 @@ class JourneyScreen extends StatefulWidget {
 }
 
 class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<JourneyScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Analytics.instance.screen('journey');
+  }
+
   @override
   String get place => '/journeys/${widget.id}';
 

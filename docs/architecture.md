@@ -124,6 +124,7 @@ maps, weather and peaks through the API and the tile cache.
 ```mermaid
 flowchart LR
   browser["Website in the browser"]
+  app["iOS and Android app"]
   api["api"]
   tiles["tilecache"]
   refresh["graph-refresh,<br/>graphhopper's first start"]
@@ -165,6 +166,7 @@ flowchart LR
 
   browser -- "base map, fonts" --> vt
   browser -- "page views" --> ga
+  app -. "screens, with consent" .-> ga
   tiles -- "maps, overlays" --> wmts
   tiles -- "terrain" --> mapterhorn
   api -- "heights beyond the border,<br/>place search, areas, closures" --> api3
@@ -200,7 +202,7 @@ In more detail:
 | OpenID Connect providers | API, browser, app | Optional sign-in: Google, Apple (`ALVYO_OIDC_PROVIDERS`); Apple also in the iOS app, and Apple posts notifications to the API |
 | `api.github.com` | API | Bug reports as issues, only with `ALVYO_GITHUB_TOKEN` |
 | SMTP server | API | Confirmation, password and reminder mails |
-| Google Analytics | browser | Page views on alvyo.tellbow.ch, cookies only after consent |
+| Google Analytics | browser, app | Page views on alvyo.tellbow.ch, cookies only after consent; in the app (Firebase) the kinds of screens opened, only after consent, without the advertising id |
 
 ## Planning a route
 

@@ -6,3 +6,7 @@ useDefault = true
 [[allowlists]]
 description = "Passwords and tokens made up for tests"
 paths = ['''_test\.go$''', '''^web/tests/''', '''\.spec\.ts$''', '''^app/(test|integration_test)/''']
+
+[[allowlists]]
+description = "The app's Firebase settings: in every installed app, the API key restricted to the app in Google Cloud"
+paths = ['''(^|/)app/lib/firebase_options\.dart$''']

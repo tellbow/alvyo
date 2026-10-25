@@ -4575,6 +4575,42 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Zu viele Versuche. Bitte warte einen Moment.'**
   String get errorTooMany;
+
+  /// No description provided for @statisticsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistik'**
+  String get statisticsTitle;
+
+  /// No description provided for @statisticsAsk.
+  ///
+  /// In de, this message translates to:
+  /// **'Dürfen wir mit Google Analytics messen, welche Bereiche der App genutzt werden? Google erfährt nur die Art des Bildschirms (etwa «Route»), keine Titel, Orte oder Links, und keine Werbe-ID. Ohne deine Zustimmung erhält Google nichts.'**
+  String get statisticsAsk;
+
+  /// No description provided for @statisticsAccept.
+  ///
+  /// In de, this message translates to:
+  /// **'Akzeptieren'**
+  String get statisticsAccept;
+
+  /// No description provided for @statisticsDecline.
+  ///
+  /// In de, this message translates to:
+  /// **'Ablehnen'**
+  String get statisticsDecline;
+
+  /// No description provided for @statisticsGranted.
+  ///
+  /// In de, this message translates to:
+  /// **'Zugestimmt'**
+  String get statisticsGranted;
+
+  /// No description provided for @statisticsDenied.
+  ///
+  /// In de, this message translates to:
+  /// **'Abgelehnt'**
+  String get statisticsDenied;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

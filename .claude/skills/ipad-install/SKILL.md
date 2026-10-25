@@ -24,7 +24,7 @@ that need new API endpoints work only after a release. Its wide layout
    (cable) both do. If no physical iPad is listed, or it is
    «unavailable», stop and report that the one-time pairing below
    is needed, or that the iPad must be unlocked and on the same Wi-Fi.
-2. `flutter run --release --no-resident -d <id> --dart-define=ALVYO_VERSION=$(git describe --tags --always)`
+2. `FIREBASE_ANALYTICS_WITHOUT_ADID=true flutter run --release --no-resident -d <id> --dart-define=ALVYO_VERSION=$(git describe --tags --always)`
    builds (about a minute), installs and starts the app; bug reports from
    the app name that version.
 3. If it ends with «Could not run build/ios/iphoneos/Runner.app»: the build is

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'wide.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
@@ -32,6 +33,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('connections');
     _search();
   }
 

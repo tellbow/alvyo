@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:maplibre/maplibre.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../camera.dart';
 import '../elevation_profile.dart';
@@ -145,6 +146,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('navigate');
     NavigateScreen.running = true;
     _tracker.speedFactor = hikerPace.value; // as last known, also offline
     widget.api

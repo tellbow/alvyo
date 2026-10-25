@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'error_state.dart';
+import '../analytics.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import 'friends_screen.dart';
@@ -21,6 +22,12 @@ class UserScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Analytics.instance.screen('user');
+  }
+
   late Future<Profile> _profile = widget.api.profile(widget.username);
   bool _busy = false;
 

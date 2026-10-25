@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../camera.dart';
 import '../l10n/app_localizations.dart';
@@ -81,6 +82,7 @@ class ReachScreenState extends State<ReachScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('reach');
     widget.api.me().then((me) {
       if (mounted) setState(() => _pace = me.speedFactor);
     }, onError: (Object _) {});

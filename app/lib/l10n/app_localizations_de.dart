@@ -2479,4 +2479,23 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get errorTooMany => 'Zu viele Versuche. Bitte warte einen Moment.';
+
+  @override
+  String get statisticsTitle => 'Statistik';
+
+  @override
+  String get statisticsAsk =>
+      'Dürfen wir mit Google Analytics messen, welche Bereiche der App genutzt werden? Google erfährt nur die Art des Bildschirms (etwa «Route»), keine Titel, Orte oder Links, und keine Werbe-ID. Ohne deine Zustimmung erhält Google nichts.';
+
+  @override
+  String get statisticsAccept => 'Akzeptieren';
+
+  @override
+  String get statisticsDecline => 'Ablehnen';
+
+  @override
+  String get statisticsGranted => 'Zugestimmt';
+
+  @override
+  String get statisticsDenied => 'Abgelehnt';
 }

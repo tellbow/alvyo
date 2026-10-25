@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import 'error_state.dart';
+import '../analytics.dart';
 import '../api.dart';
 import '../camera.dart';
 import '../format.dart';
@@ -161,6 +162,7 @@ class _TravelScreenState extends State<TravelScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('travel');
     _homes.then((_) => _search(), onError: (Object _) {});
   }
 

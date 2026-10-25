@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../analytics.dart';
 import '../errors.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
@@ -84,6 +85,12 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Analytics.instance.screen('friends');
+  }
+
   late Future<FriendLists> _lists = widget.api.friends();
   late Future<String> _token = widget.api.friendLink();
   final _query = TextEditingController();

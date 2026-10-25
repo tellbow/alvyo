@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
 import 'error_state.dart';
+import '../analytics.dart';
 import '../api.dart';
 import '../breakdown.dart';
 import '../bug_report.dart';
@@ -98,6 +99,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('route');
     Recording.defaultRoot().then(Recording.active).then((rec) {
       final resume = Recording.before(rec, widget.id, widget.api.userId) == Before.resume;
       if (mounted && resume) setState(() => _resumable = true);

@@ -64,6 +64,10 @@ The Android app contains Google's desugar_jdk_libs (parts of OpenJDK,
 GPL-2.0 with the Classpath Exception; source at
 https://github.com/google/desugar_jdk_libs).
 
+The app contains Firebase (Apache-2.0, https://github.com/firebase) and
+Google's measurement libraries for Google Analytics, which are closed
+source under Google's terms (https://firebase.google.com/terms).
+
 Fonts: Figtree and Bricolage Grotesque, SIL Open Font License 1.1
 (app/assets/fonts/OFL-*.txt; on the website from @fontsource-variable).
 

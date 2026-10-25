@@ -33,6 +33,13 @@ terms change, so check again when a source's use changes.
   `desugar_jdk_libs` (parts of OpenJDK, GPL-2.0 with the Classpath
   Exception: allowed in an AGPL app, credited in NOTICE; checked
   2026-10-12 on its Maven POM). The ktlint Gradle plugin (MIT) only builds.
+  Google Analytics in the app (2026-10-25): `firebase_core` and
+  `firebase_analytics` are BSD-3-Clause, the Firebase iOS SDK Apache-2.0
+  (Swift Package Manager), but Google's measurement code inside them
+  (GoogleAppMeasurement on iOS, play-services-measurement on Android) is
+  closed source under Google's terms: fine in the app we publish, though
+  the app is then not entirely free software; a fork without
+  `lib/firebase_options.dart`'s values collects nothing.
 - **Commercial use** is allowed by the AGPL and by every data source below
   except as noted (opentransportdata.swiss above its free quota, geo.admin
   services beyond fair use).
@@ -53,7 +60,7 @@ terms change, so check again when a source's use changes.
 | OpenStreetMap (Geofabrik extracts) | routing graph, huts, accommodation, places, points of interest, the peak pack's summits | [ODbL](https://www.openstreetmap.org/copyright); [attribution guidelines](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines): «© OpenStreetMap contributors» linked to /copyright, visible without a tap (may collapse after interaction); databases derived from it and used publicly must be offered under the ODbL — Alvyo's are made by the public scripts in `infra/data-import` | every map on the website (attribution control, linked), `MapCredit` in the app, print sheet (with the address), OG images, GPX metadata, the peak camera, About pages |
 | Mapterhorn terrain tiles | 3D terrain, the peak pack's height grid | [attribution](https://mapterhorn.com/attribution); sources per region (Copernicus GLO-30, swissALTI3D, neighbouring countries' models: mostly CC BY 4.0 and open government licences) | the 3D map's attribution, the peak camera, About pages, NOTICE |
 | AWS Terrain Tiles (Mapzen, skadi) | heights in the GraphHopper graph (reach areas) | [Mapzen attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md): EU-DEM («produced using Copernicus data and information funded by the European Union»), SRTM (USGS) | the reach areas' attribution, About pages, NOTICE |
-| Google Analytics | page views | consent before cookies; named in the privacy text | About page (privacy) |
+| Google Analytics | page views; in the app (Firebase, the same property) the kinds of screens opened | [Terms](https://marketingplatform.google.com/about/analytics/terms/us/) (checked 2026-10-25, free, apps through the SDK too): disclose its use and how it collects data, including device identifiers, in the privacy policy; consent where the law requires it; nothing Google could recognise as personal. [Firebase terms](https://firebase.google.com/terms) (2026-09-24) accepted in the console. Website: cookies only after consent; app: nothing sent before consent, no advertising id (`FirebaseAnalyticsCore`, `FIREBASE_ANALYTICS_WITHOUT_ADID`), the analytics id deleted on refusal | About page (privacy), the app's consent sheet; App Store privacy labels: Usage Data and Identifiers, not linked, no tracking |
 | Google and Apple sign-in | optional login | provider terms; Apple requires Sign in with Apple in the app when another provider is offered there (guideline 4.8), its tokens revoked when an account is deleted (5.1.1(v)), and its button as Apple designs it | privacy text |
 | Infomaniak (SMTP) | e-mails | provider terms | privacy text |
 | GitHub API | bug reports as issues | issues in a public repository are public: the report form says so | the report form, privacy text |

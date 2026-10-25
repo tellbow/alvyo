@@ -746,5 +746,11 @@
   "signupDisplayNameMissing": "Indique un nom.",
   "signupPasswordHint": "Au moins 10 caractères",
   "signupSent": "Presque fini : nous t’avons envoyé un e-mail à {email}. Confirme ton adresse dans cet e-mail, puis tu pourras te connecter ici. Si tu as déjà un compte, l’e-mail t’explique comment y accéder.",
-  "errorTooMany": "Trop de tentatives. Merci de patienter un instant."
+  "errorTooMany": "Trop de tentatives. Merci de patienter un instant.",
+  "statisticsTitle": "Statistiques",
+  "statisticsAsk": "Pouvons-nous mesurer avec Google Analytics quelles parties de l’app sont utilisées ? Google n’apprend que le type d’écran (par exemple « Itinéraire »), sans titres, lieux ni liens, et sans identifiant publicitaire. Sans ton accord, Google ne reçoit rien.",
+  "statisticsAccept": "Accepter",
+  "statisticsDecline": "Refuser",
+  "statisticsGranted": "Accepté",
+  "statisticsDenied": "Refusé"
 }

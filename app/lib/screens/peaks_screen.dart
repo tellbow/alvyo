@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/gps.dart';
@@ -62,6 +63,7 @@ class _PeaksScreenState extends State<PeaksScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('peaks');
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _open();
     if (widget.camera == null && defaultTargetPlatform == TargetPlatform.iOS) _askCamera();

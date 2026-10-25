@@ -746,5 +746,11 @@
   "signupDisplayNameMissing": "Enter a name.",
   "signupPasswordHint": "At least 10 characters",
   "signupSent": "Almost there: we sent an e-mail to {email}. Confirm your address in it, then you can log in here. If you already have an account, the e-mail says how to get in.",
-  "errorTooMany": "Too many attempts. Please wait a moment."
+  "errorTooMany": "Too many attempts. Please wait a moment.",
+  "statisticsTitle": "Statistics",
+  "statisticsAsk": "May we measure with Google Analytics which parts of the app are used? Google learns only the kind of screen (such as «Route»), no titles, places or links, and no advertising ID. Without your consent Google receives nothing.",
+  "statisticsAccept": "Accept",
+  "statisticsDecline": "Decline",
+  "statisticsGranted": "Accepted",
+  "statisticsDenied": "Declined"
 }

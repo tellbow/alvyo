@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
@@ -135,6 +136,7 @@ class _RecordScreenState extends State<RecordScreen> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.screen('record');
     _listen();
     _clock = Timer.periodic(const Duration(seconds: 30), (_) => setState(() {})); // elapsed time
   }

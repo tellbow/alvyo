@@ -1018,9 +1018,9 @@ with `integration_test/watch_test.dart` over WatchConnectivity.
 
 The App ID `ch.tellbow.alvyo.watchkitapp` and the App Store profile «Alvyo
 Watch App Store» exist (2026-10-25; a local export signs both apps).
+The App Store pictures for the Watch are made by `app/store/watch.sh`.
 
-Open: App Store screenshots for the Watch; the manual
-tests on a real Watch ([manual-tests.md](manual-tests.md)). Later: the
+Open: the manual tests on a real Watch ([manual-tests.md](manual-tests.md)). Later: the
 watch on its own (its GPS and a workout, a route sent to it for offline
 use); Wear OS (a Kotlin/Compose app, Health Connect import first, 72);
 Garmin (14).

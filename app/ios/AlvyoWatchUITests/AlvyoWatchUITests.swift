@@ -2,7 +2,8 @@ import XCTest
 
 /// The watch app's buttons, tapped in the watch simulator (in German).
 ///
-/// `testButtons` runs on its own, with a made-up phone (`-fakePhone`).
+/// `testButtons` runs on its own, with a made-up phone (`-fakePhone`);
+/// `testStoreScreenshots` takes the App Store pictures (app/store/watch.sh).
 /// `testWithPhone` drives a hike on the paired iPhone simulator over
 /// WatchConnectivity; it runs only with `TEST_RUNNER_ALVYO_PHONE=1` while
 /// the phone's `integration_test/watch_test.dart` runs with
@@ -60,6 +61,42 @@ final class AlvyoWatchUITests: XCTestCase {
     XCTAssertTrue(waitFor(pause, label: "Pause", timeout: 20), "the phone did not carry on")
     stop(app)
     XCTAssertTrue(app.buttons["record"].waitForExistence(timeout: 30), "the phone did not finish")
+  }
+
+  /// The App Store pictures (app/store/watch.sh): the tours, a hike, its
+  /// whole route and the controls, from the state in ALVYO_STORE, in the
+  /// language ALVYO_LANG; kept as the test's attachments.
+  func testStoreScreenshots() throws {
+    let env = ProcessInfo.processInfo.environment
+    guard let file = env["ALVYO_STORE"], let lang = env["ALVYO_LANG"] else {
+      throw XCTSkip("for app/store/watch.sh")
+    }
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchArguments = ["-fakePhone", "-AppleLanguages", "(\(lang))", "-AppleLocale", "\(lang)_CH"]
+    app.launchEnvironment["ALVYO_FAKE_PHONE"] = try String(contentsOfFile: file, encoding: .utf8)
+    app.launch()
+    XCTAssertTrue(app.buttons["record"].waitForExistence(timeout: 10))
+    shot("01-tours")
+    app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'tour-'")).firstMatch.tap()
+    let map = app.descendants(matching: .any)["map"]
+    XCTAssertTrue(map.waitForExistence(timeout: 5))
+    shot("02-hike")
+    map.tap()
+    shot("03-route")
+    app.swipeUp()
+    let pause = app.buttons["pause"]
+    XCTAssertTrue(pause.waitForExistence(timeout: 5))
+    app.scrollViews.firstMatch.swipeUp()  // down to the buttons
+    shot("04-controls")
+  }
+
+  private func shot(_ name: String) {
+    sleep(1)  // the page settled
+    let a = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    a.name = name
+    a.lifetime = .keepAlways
+    add(a)
   }
 
   private func waitFor(_ e: XCUIElement, label: String, timeout: TimeInterval = 5) -> Bool {

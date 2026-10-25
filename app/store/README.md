@@ -8,6 +8,7 @@ language): the scripts below make them.
 |---|---|---|
 | `01-route.jpg` … `06-discover.jpg` | Bildschirmfotos, iPhone with Dynamic Island (medium display) | 1206 × 2622 |
 | `ipad/01-route.jpg` … `ipad/06-discover.jpg` | Bildschirmfotos, iPad 13-inch (the smaller iPads are scaled from it) | 2064 × 2752 |
+| `watch/01-tours.png` … `watch/04-controls.png` | Bildschirmfotos, Apple Watch (Series 12, 46 mm; App Store Connect scales them for the others) | 416 × 496 |
 | `header.png` | Kopfzeile (product page header, 21:9) | 3840 × 1646 |
 | `search.png` | Suchergebnisse (search result, 3:2) | 3840 × 2560 |
 
@@ -40,6 +41,22 @@ English afterwards. Four languages take about 10 minutes per device.
 
 The headlines and the header's text, in every language, are in
 `render.mjs`. Longer ones are set smaller until they fit.
+
+### Apple Watch
+
+```sh
+app/store/watch.sh                         # → app/store/<language>/watch/, about half a minute per language
+```
+
+Needs the Apple Watch Series 12 (46mm) simulator and, for the state it
+shows, the API, the web dev server and `seed.sh`'s account:
+`watch-state.mjs` makes the tours and a hike on the Eiger Trail a third of
+the way along, as the phone would send them. The watch app's UI test
+(`testStoreScreenshots`) shows it with a made-up phone and takes the
+pictures, without a frame or headline (Apple shows Watch screenshots
+plain). The clock is the Mac's time: watchOS simulators take no status bar
+override. The controls are shown scrolled to the buttons, the title cut at
+the top.
 
 Apple's rules: <https://developer.apple.com/app-store/asset-best-practices/>
 (no prices, URLs, logos or awards; short text in every language; key

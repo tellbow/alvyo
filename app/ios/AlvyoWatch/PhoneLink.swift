@@ -89,13 +89,26 @@ final class PhoneLink: NSObject, ObservableObject, WCSessionDelegate {
   /// The answer to the last start, while there is no hike yet.
   @Published var started: Answer?
 
-  /// UI tests without a phone (AlvyoWatchUITests): a made-up one.
+  /// UI tests without a phone (AlvyoWatchUITests): a made-up one, with
+  /// the tours and the hike of ALVYO_FAKE_PHONE (JSON, as the phone sends
+  /// them; the App Store pictures) or a small one.
   private let fake = ProcessInfo.processInfo.arguments.contains("-fakePhone")
+  private lazy var fakeContext: [String: Any] =
+    ProcessInfo.processInfo.environment["ALVYO_FAKE_PHONE"]
+    .flatMap { try? JSONSerialization.jsonObject(with: Data($0.utf8)) as? [String: Any] }
+    ?? [
+      "tours": [["id": "r1", "title": "Napf", "distanceM": 11100, "durationS": 14100]],
+      "hike": [
+        "title": "Napf", "elapsedS": 600, "line": [8.0, 47.0, 8.005, 47.002, 8.01, 47.001],
+        "position": [8.004, 47.0016], "doneM": 400, "remainingM": 10700, "remainingS": 13500,
+        "ascentRemainingM": 700, "turn": "left", "turnInM": 120,
+      ],
+    ]
 
   func activate() {
     if fake {
       reachable = true
-      apply(["tours": [["id": "r1", "title": "Napf", "distanceM": 11100, "durationS": 14100]]])
+      apply(["tours": fakeContext["tours"] ?? []])
       return
     }
     guard WCSession.isSupported() else { return }
@@ -130,18 +143,13 @@ final class PhoneLink: NSObject, ObservableObject, WCSessionDelegate {
 
   /// What the made-up phone does with a button: as the app would, at once.
   private func fakeAnswer(_ command: String, _ args: [String: Any]) -> Answer {
-    var hike: [String: Any] = [
-      "title": args["title"] as? String ?? "Napf", "elapsedS": 600, "at": Date().timeIntervalSince1970 * 1000,
-      "line": [8.0, 47.0, 8.005, 47.002, 8.01, 47.001], "position": [8.004, 47.0016],
-      "doneM": 400, "remainingM": 10700, "remainingS": 13500, "ascentRemainingM": 700,
-      "turn": "left", "turnInM": 120,
-    ]
-    let tours = (self.tours.map { ["id": $0.id, "title": $0.title, "distanceM": $0.distanceM, "durationS": $0.durationS] })
+    var hike = fakeContext["hike"] as? [String: Any] ?? [:]
+    hike["at"] = Date().timeIntervalSince1970 * 1000
+    let tours = fakeContext["tours"] ?? []
     switch command {
     case "start": break
     case "pause", "resume":
-      guard let current = self.hike else { return .none }
-      hike["title"] = current.title
+      guard self.hike != nil else { return .none }
       hike["paused"] = command == "pause"
     case "stop":
       guard self.hike != nil else { return .none }

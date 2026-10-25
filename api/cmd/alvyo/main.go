@@ -128,7 +128,10 @@ func serve(ctx context.Context) error {
 	}
 	routeStore := &routes.Store{DB: pool}
 	journeyStore := &journeys.Store{DB: pool, Routes: routeStore}
-	var heights elevation.Sampler = &elevation.GeoAdmin{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
+	var heights elevation.Sampler = &elevation.GeoAdmin{
+		BaseURL:   cfg.ElevationURL,
+		UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)",
+	}
 	snowStore := &snow.Store{DB: pool}
 	if cfg.SwissALTI3DDir != "" {
 		alti := &elevation.SwissALTI3D{Dir: cfg.SwissALTI3DDir}
@@ -159,7 +162,7 @@ func serve(ctx context.Context) error {
 	go liveStore.CheckEvery(ctx, time.Minute) // overdue hikes, old positions
 	reminderStore := &reminders.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
 	go reminderStore.CheckEvery(ctx, 15*time.Minute) // before journeys start
-	areaFinder := &areas.Finder{DB: pool, UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
+	areaFinder := &areas.Finder{DB: pool, URL: cfg.AreasURL, UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
 	go areaFinder.PruneEvery(ctx, 24*time.Hour) // old answers from geo.admin
 	forecast := &weather.Forecast{UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)"}
 	go forecast.Keep(ctx, time.Hour) // MeteoSwiss updates hourly

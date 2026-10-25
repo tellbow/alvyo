@@ -63,6 +63,7 @@ Environment variables of `alvyo serve` (defaults match the dev stack):
 | `ALVYO_CACHE_DIR` | `$TMPDIR/alvyo` (rendered preview images) |
 | `ALVYO_PHOTOS_DIR` | `data/photos`, relative to where the API runs (uploaded photos; git-ignored) |
 | `ALVYO_SWISSALTI3D_DIR` | unset — swisstopo's height model as tiles (`make alti-import`: `infra/data/alti`); without it, or beyond the border, heights come from geo.admin's profile service |
+| `ALVYO_ELEVATION_URL`, `ALVYO_AREAS_URL` | unset — geo.admin's profile and identify services; the end-to-end tests point them at `web/tests/e2e/fake-geoadmin.mjs` |
 | `ALVYO_SMTP_HOST` / `_PORT` / `_USER` / `_PASSWORD` / `_TLS` | Mailpit: `localhost` / `1025` / – / – / `none` |
 | `ALVYO_MAIL_FROM` | `Alvyo <noreply@localhost>` |
 | `ALVYO_LOG_LEVEL` | `info` (`debug` logs every request) |

@@ -36,7 +36,7 @@
 			"allowedVersions": "<7"
 		},
 		{
-			"description": "Flutter's Android template: the app is built for iOS only",
+			"description": "Android's Gradle, AGP and Kotlin: by hand with Flutter, which supports only certain versions",
 			"matchFileNames": [
 				"app/android/**"
 			],

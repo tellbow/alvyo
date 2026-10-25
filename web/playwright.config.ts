@@ -36,12 +36,20 @@ export default defineConfig({
 				ALVYO_OIDC_E2E_NAME: 'Test-ID',
 				ALVYO_OIDC_E2E_ISSUER: 'http://localhost:18090',
 				ALVYO_OIDC_E2E_CLIENT_ID: 'alvyo',
-				ALVYO_OIDC_E2E_CLIENT_SECRET: 'e2e-secret'
+				ALVYO_OIDC_E2E_CLIENT_SECRET: 'e2e-secret',
+				// the fake geo.admin below: its outages no longer stop a release
+				ALVYO_ELEVATION_URL: 'http://localhost:18091/rest/services/profile.json',
+				ALVYO_AREAS_URL: 'http://localhost:18091/rest/services/api/MapServer/identify'
 			}
 		},
 		{
 			command: 'node tests/e2e/fake-idp.mjs',
 			url: 'http://localhost:18090/.well-known/openid-configuration',
+			reuseExistingServer: !process.env.CI
+		},
+		{
+			command: 'node tests/e2e/fake-geoadmin.mjs',
+			url: 'http://localhost:18091/rest/services/api/MapServer/identify?layers=all:x&geometry={"paths":[[[8,46]]]}',
 			reuseExistingServer: !process.env.CI
 		},
 		{

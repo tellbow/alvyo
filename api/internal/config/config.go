@@ -36,6 +36,11 @@ type Config struct {
 	// (infra/data-import/swissalti3d.py): ALVYO_SWISSALTI3D_DIR. Heights
 	// come from there and, beyond the border or without it, from geo.admin.
 	SwissALTI3DDir string
+	// geo.admin's profile and identify services, replaced by a fake in the
+	// end-to-end tests: ALVYO_ELEVATION_URL, ALVYO_AREAS_URL; empty for
+	// geo.admin.
+	ElevationURL string
+	AreasURL     string
 	// OJP (public transport connections): ALVYO_OJP_TOKEN is the
 	// opentransportdata.swiss API key; without it the feature is off.
 	OJPURL   string // ALVYO_OJP_URL, default the OJP 2.0 production endpoint
@@ -140,6 +145,8 @@ func FromEnv() (Config, error) {
 			From:     getenv("ALVYO_MAIL_FROM", "Alvyo <noreply@localhost>"),
 		},
 		SwissALTI3DDir: os.Getenv("ALVYO_SWISSALTI3D_DIR"),
+		ElevationURL:   os.Getenv("ALVYO_ELEVATION_URL"),
+		AreasURL:       os.Getenv("ALVYO_AREAS_URL"),
 	}
 	if c.DatabaseURL == "" {
 		return c, errors.New("ALVYO_DATABASE_URL is required")

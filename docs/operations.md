@@ -331,7 +331,11 @@ trace («Trace»). Metrics are served for
 Prometheus on their own port when `ALVYO_METRICS_LISTEN` (API, e.g. `:9464`)
 and `METRICS_PORT` (web) are set; kube-prometheus-stack scrapes them through
 a ServiceMonitor (`http_server_request_duration_seconds`
-of the API, `http_server_request_duration` of the web, `db_client_*`, `go_*`).
+of the API, `http_server_request_duration` of the web, `db_client_*`, `go_*`;
+with traces on, also `http_client_request_duration_seconds` of the API's
+calls by `server_address`). The deployment repository's PrometheusRule
+`alvyo` warns when more than a fifth of the calls to one outside service
+fail (5xx or no answer) over 10 minutes (`AlvyoOutsideServiceFailing`).
 Logs are JSON on stderr; the collector reads them into VictoriaLogs (the
 JSON stays in `_msg`); lines of a request carry `trace_id`. Locally: `docker run -p 4318:4318
 otel/opentelemetry-collector-contrib` with a debug exporter shows the traces.

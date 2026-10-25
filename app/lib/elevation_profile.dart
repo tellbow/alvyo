@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:maplibre/maplibre.dart';
 
 import 'format.dart';
 import 'l10n/app_localizations.dart';
@@ -28,6 +29,21 @@ double heightAt(List<double> distances, List<double> elevations, double m) {
   return elevations[i - 1] + t * (elevations[i] - elevations[i - 1]);
 }
 
+/// The place [m] metres along [points] (lon, lat, … per point, with
+/// [distances] along them), between its samples. Where the distance does
+/// not grow (a gap between a journey's stages), the earlier point.
+Geographic pointAt(List<double> distances, List<List<double>> points, double m) {
+  final i = distances.indexWhere((d) => d >= m);
+  if (i <= 0) {
+    final p = points[i < 0 ? points.length - 1 : 0];
+    return Geographic(lon: p[0], lat: p[1]);
+  }
+  final span = distances[i] - distances[i - 1];
+  final t = span == 0 ? 0.0 : (m - distances[i - 1]) / span;
+  final a = points[i - 1], b = points[i];
+  return Geographic(lon: a[0] + t * (b[0] - a[0]), lat: a[1] + t * (b[1] - a[1]));
+}
+
 /// The height axis of a profile: from a little below the lowest to a little
 /// above the highest point (at least 100 m, so that flat routes look flat),
 /// with grid lines every [step] metres within.
@@ -52,7 +68,8 @@ double _niceStep(double raw) {
 }
 
 /// Height over distance of a route or journey. A finger on it reads the
-/// distance and height there; [markerM] marks a place (where the hiker is).
+/// distance and height there, and [onPoint] shows the place on the map;
+/// [markerM] marks a place (where the hiker is).
 class ElevationProfile extends StatefulWidget {
   const ElevationProfile({
     super.key,
@@ -61,17 +78,26 @@ class ElevationProfile extends StatefulWidget {
     this.markerM,
     this.breaks = const [],
     this.height = 110,
+    this.points,
+    this.onPoint,
   });
 
   /// Of a line of lon, lat, elevation per point.
-  factory ElevationProfile.ofLine(List<List<double>> line, {Key? key, double? markerM, double height = 110}) =>
-      ElevationProfile(
-        key: key,
-        distances: cumulativeM(line),
-        elevations: [for (final p in line) p.length > 2 ? p[2] : 0],
-        markerM: markerM,
-        height: height,
-      );
+  factory ElevationProfile.ofLine(
+    List<List<double>> line, {
+    Key? key,
+    double? markerM,
+    double height = 110,
+    ValueChanged<Geographic?>? onPoint,
+  }) => ElevationProfile(
+    key: key,
+    distances: cumulativeM(line),
+    elevations: [for (final p in line) p.length > 2 ? p[2] : 0],
+    markerM: markerM,
+    height: height,
+    points: line,
+    onPoint: onPoint,
+  );
 
   final List<double> distances, elevations;
   final double? markerM;
@@ -79,6 +105,12 @@ class ElevationProfile extends StatefulWidget {
   /// Indexes where a stage starts (journeys), drawn as thin lines.
   final List<int> breaks;
   final double height;
+
+  /// The samples' places (lon, lat, …), for [onPoint].
+  final List<List<double>>? points;
+
+  /// Where the finger is on the profile, as a place; null when it is lifted.
+  final ValueChanged<Geographic?>? onPoint;
 
   @override
   State<ElevationProfile> createState() => _ElevationProfileState();
@@ -95,6 +127,14 @@ class _ElevationProfileState extends State<ElevationProfile> {
     final plot = _ProfilePainter.plotRect(Size(width, widget.height));
     final m = ((local.dx - plot.left) / plot.width).clamp(0.0, 1.0) * _lengthM;
     setState(() => _touchM = m);
+    if (widget.points case final points? when points.length == widget.distances.length) {
+      widget.onPoint?.call(pointAt(widget.distances, points, m));
+    }
+  }
+
+  void _lift() {
+    setState(() => _touchM = null);
+    widget.onPoint?.call(null);
   }
 
   double _eleAt(double m) => heightAt(widget.distances, widget.elevations, m);
@@ -120,8 +160,9 @@ class _ElevationProfileState extends State<ElevationProfile> {
         onTapDown: (d) => _touch(d.localPosition, size.maxWidth),
         onHorizontalDragStart: (d) => _touch(d.localPosition, size.maxWidth),
         onHorizontalDragUpdate: (d) => _touch(d.localPosition, size.maxWidth),
-        onHorizontalDragEnd: (_) => setState(() => _touchM = null),
-        onTapUp: (_) => setState(() => _touchM = null),
+        onHorizontalDragEnd: (_) => _lift(),
+        onHorizontalDragCancel: _lift,
+        onTapUp: (_) => _lift(),
         child: Stack(
           children: [
             Semantics(

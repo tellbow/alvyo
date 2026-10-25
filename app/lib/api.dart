@@ -391,11 +391,15 @@ class JourneyDetail {
     ];
   }
 
-  ({List<double> distances, List<double> elevations, List<int> breaks}) get profile {
+  ({List<double> distances, List<List<double>> points, List<double> elevations, List<int> breaks}) get profile {
     final p = json['profile'] as Map<String, dynamic>? ?? const {};
+    final points = [
+      for (final pt in p['points'] as List? ?? const []) [for (final v in pt as List) (v as num).toDouble()],
+    ];
     return (
       distances: [for (final d in p['distance'] as List? ?? const []) (d as num).toDouble()],
-      elevations: [for (final pt in p['points'] as List? ?? const []) ((pt as List)[2] as num).toDouble()],
+      points: points,
+      elevations: [for (final pt in points) pt[2]],
       breaks: [for (final b in p['breaks'] as List? ?? const []) (b as num).toInt()],
     );
   }

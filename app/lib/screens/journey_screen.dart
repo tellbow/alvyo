@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:maplibre/maplibre.dart' show Geographic;
 
 import 'error_state.dart';
 import '../api.dart';
@@ -68,10 +69,12 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   /// A part of a stage picked in a list, shown on the map.
   final _picked = ValueNotifier<List<List<List<double>>>>(const []);
   void _showParts(List<List<List<double>>> parts) => _picked.value = [...parts];
+  final _profilePoint = ValueNotifier<Geographic?>(null);
 
   @override
   void dispose() {
     _picked.dispose();
+    _profilePoint.dispose();
     super.dispose();
   }
 
@@ -546,10 +549,17 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                                 const SizedBox(height: 8),
                                 if (j.profile case (
                                   :final distances,
+                                  :final points,
                                   :final elevations,
                                   :final breaks,
                                 ) when distances.length > 1 && distances.length == elevations.length) ...[
-                                  ElevationProfile(distances: distances, elevations: elevations, breaks: breaks),
+                                  ElevationProfile(
+                                    distances: distances,
+                                    elevations: elevations,
+                                    breaks: breaks,
+                                    points: points,
+                                    onPoint: (at) => _profilePoint.value = at,
+                                  ),
                                   const SizedBox(height: 8),
                                 ],
                                 JourneyWeatherView(_weatherFor(j)),
@@ -632,7 +642,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
           // On a wide screen the stages' map beside them (requirement 73).
           if (j.stageLines.isEmpty) return list;
           return MapSplit(
-            map: JourneyMap(api: widget.api, journey: j, picked: _picked),
+            map: JourneyMap(api: widget.api, journey: j, picked: _picked, profilePoint: _profilePoint),
             panel: list,
           );
         },

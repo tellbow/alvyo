@@ -160,3 +160,25 @@ Future<void> addPositionDot(StyleController style, double? lon, double? lat) asy
     ),
   );
 }
+
+/// The place under the finger on the elevation profile, a dot as on the
+/// website; moved by [showProfilePoint].
+Future<void> addProfilePoint(StyleController style) async {
+  await style.addSource(GeoJsonSource(id: 'profile-point', data: positionJson(null, null)));
+  await style.addLayer(
+    const CircleStyleLayer(
+      id: 'profile-point',
+      sourceId: 'profile-point',
+      paint: {
+        'circle-radius': 6,
+        'circle-color': '#7e22ce',
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 2,
+      },
+    ),
+  );
+}
+
+/// Moves the dot of [addProfilePoint] to [at], or hides it.
+Future<void> showProfilePoint(StyleController style, Geographic? at) =>
+    style.updateGeoJsonSource(id: 'profile-point', data: positionJson(at?.lon, at?.lat));

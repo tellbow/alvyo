@@ -504,6 +504,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     if ((_map, _style) case (final map?, final style?)) showParts(map, style, parts).catchError((_) {});
   }
 
+  /// The place under the finger on the elevation profile, on the map.
+  void _profilePoint(Geographic? at) {
+    if (_style case final style?) showProfilePoint(style, at).catchError((_) {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -567,6 +572,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                             await _places.addTo(style);
                             await addRouteLine(style, r.line);
                             await addHighlight(style);
+                            await addProfilePoint(style);
                             await _places.addAlong(style, await _pois);
                           },
                         );
@@ -602,7 +608,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                                   const SizedBox(height: 8),
                                 ],
                                 if (offTrail(r.json)) OffTrailWarning(distanceM: r.totals.distanceM),
-                                ElevationProfile.ofLine(r.line),
+                                ElevationProfile.ofLine(r.line, onPoint: _profilePoint),
                                 ProtectedAreas(_areas, onShow: _show),
                                 SnowAlongView(_snow, onShow: _show),
                                 RouteWeatherView(

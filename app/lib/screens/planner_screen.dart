@@ -16,6 +16,7 @@ import '../map_style.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import '../planner.dart';
+import '../route_layers.dart';
 import 'plan_sheet.dart';
 import 'route_screen.dart';
 
@@ -393,6 +394,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
           },
         ),
       );
+      await addProfilePoint(style);
       _style = style;
       _placeHandles();
     },
@@ -787,7 +789,12 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
           style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        ElevationProfile.ofLine(line),
+        ElevationProfile.ofLine(
+          line,
+          onPoint: (at) {
+            if (_style case final style?) showProfilePoint(style, at).catchError((_) {});
+          },
+        ),
       ],
       if (points.length > 1) ...[
         const SizedBox(height: 12),

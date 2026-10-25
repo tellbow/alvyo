@@ -72,13 +72,16 @@ class JourneyMapScreen extends StatelessWidget {
 /// A journey's stages on the map, in their colours, with the layer menu;
 /// also beside a journey on a wide screen.
 class JourneyMap extends StatefulWidget {
-  const JourneyMap({super.key, required this.api, required this.journey, this.map, this.picked});
+  const JourneyMap({super.key, required this.api, required this.journey, this.map, this.picked, this.profilePoint});
   final Api api;
   final JourneyDetail journey;
 
   /// A part of a stage picked in a list (lines of [lon, lat]), shown when
   /// it changes.
   final ValueListenable<List<List<List<double>>>>? picked;
+
+  /// The place under the finger on the elevation profile.
+  final ValueListenable<Geographic?>? profilePoint;
 
   /// Replaces the map, in tests.
   final Widget? map;
@@ -96,11 +99,13 @@ class _JourneyMapState extends State<JourneyMap> {
   void initState() {
     super.initState();
     widget.picked?.addListener(_show);
+    widget.profilePoint?.addListener(_showProfilePoint);
   }
 
   @override
   void dispose() {
     widget.picked?.removeListener(_show);
+    widget.profilePoint?.removeListener(_showProfilePoint);
     _places.dispose();
     super.dispose();
   }
@@ -109,6 +114,10 @@ class _JourneyMapState extends State<JourneyMap> {
     if ((_map, _style, widget.picked?.value) case (final map?, final style?, final parts?)) {
       showParts(map, style, parts).catchError((_) {});
     }
+  }
+
+  void _showProfilePoint() {
+    if (_style case final style?) showProfilePoint(style, widget.profilePoint?.value).catchError((_) {});
   }
 
   @override
@@ -133,6 +142,7 @@ class _JourneyMapState extends State<JourneyMap> {
                     await _places.addTo(style);
                     await addStageLines(style, lines);
                     await addHighlight(style);
+                    await addProfilePoint(style);
                   },
                 );
               },

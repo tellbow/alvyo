@@ -6,14 +6,16 @@
 	<key>destination</key><string>upload</string>
 	<key>teamID</key><string>HYFKN2HQXF</string>
 	<!-- Signed on this Mac with the «Apple Distribution» certificate and the
-	     App Store profile «Alvyo App Store» (renewed once a year in the
-	     developer portal); the upload uses an App Store Connect API key
-	     (the testflight skill). -->
+	     App Store profiles «Alvyo App Store» and, for the watch app inside,
+	     «Alvyo Watch App Store» (renewed once a year in the developer
+	     portal); the upload uses an App Store Connect API key (the
+	     testflight skill). -->
 	<key>signingStyle</key><string>manual</string>
 	<key>signingCertificate</key><string>Apple Distribution</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>ch.tellbow.alvyo</key><string>Alvyo App Store</string>
+		<key>ch.tellbow.alvyo.watchkitapp</key><string>Alvyo Watch App Store</string>
 	</dict>
 	<key>manageAppVersionAndBuildNumber</key><false/>
 	<key>uploadSymbols</key><true/>

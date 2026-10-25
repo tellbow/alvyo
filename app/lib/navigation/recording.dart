@@ -43,6 +43,32 @@ class Recording {
   String? liveId;
   DateTime? expectedEnd;
 
+  /// Paused since then (no positions recorded), and the pauses before.
+  DateTime? pausedAt;
+  Duration paused = Duration.zero;
+
+  /// The time hiked up to [now], without the pauses.
+  Duration elapsed(DateTime now) {
+    final since = pausedAt;
+    final pausing = since != null && now.isAfter(since) ? now.difference(since) : Duration.zero;
+    final d = now.difference(started) - paused - pausing;
+    return d.isNegative ? Duration.zero : d;
+  }
+
+  Future<void> pause({DateTime? now}) async {
+    if (pausedAt != null) return;
+    pausedAt = (now ?? DateTime.now()).toUtc();
+    await _writeMeta();
+  }
+
+  Future<void> resume({DateTime? now}) async {
+    final since = pausedAt;
+    if (since == null) return;
+    paused += (now ?? DateTime.now()).difference(since);
+    pausedAt = null;
+    await _writeMeta();
+  }
+
   /// Keeps the live share with the recording, for a resumed hike.
   Future<void> setLive(String id, DateTime end) async {
     liveId = id;
@@ -81,7 +107,12 @@ class Recording {
           ..expectedEnd = switch (m['expected_end']) {
             final String e => DateTime.parse(e),
             _ => null,
-          };
+          }
+          ..pausedAt = switch (m['paused_at']) {
+            final String p => DateTime.parse(p),
+            _ => null,
+          }
+          ..paused = Duration(seconds: (m['paused_s'] as num?)?.round() ?? 0);
     await r._endLine();
     return r;
   }
@@ -135,6 +166,8 @@ class Recording {
     'owner': ?owner,
     'live_id': ?liveId,
     if (expectedEnd case final e?) 'expected_end': e.toUtc().toIso8601String(),
+    if (pausedAt case final p?) 'paused_at': p.toUtc().toIso8601String(),
+    if (paused > Duration.zero) 'paused_s': paused.inSeconds,
   };
 
   /// Whether it belongs to someone else than [user] (both known).

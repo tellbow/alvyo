@@ -123,7 +123,7 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
    a hike linked to the route, turns shown and spoken.
 5. **Tracking with a watch** (0.3.0). Hikes recorded with the Apple Watch's
    Workout app are imported from Apple Health (works with a free Apple ID).
-   A watchOS app of our own remains an option.
+   A watchOS app of our own: 80.
 6. **A GPX file into a stage** (0.5.0). In the journey editor, «Datei
    importieren» gives a stage its route from a GPX, KML, TCX or FIT file in
    one step (`POST /journeys/{id}/stages/{stage}/import`, several tracks
@@ -985,6 +985,44 @@ watch import through Health Connect, hidden on Android until then; the
 Play Store (developer account, listing, data
 safety form, an AAB); the manual tests on a real phone
 ([manual-tests.md](manual-tests.md)).
+
+#### 80. The app on the wrist (feedback issue 15, started)
+
+Decided on 2026-10-19: a watchOS app first; Wear OS and Garmin later.
+
+Done (2026-10-25): an Apple Watch app (`app/ios/AlvyoWatch`, SwiftUI,
+watchOS 10) inside the iOS app. The phone keeps navigating and recording;
+the watch shows and controls, over WatchConnectivity
+(`ios/Runner/WatchBridge.swift`, channel `alvyo/watch`,
+`lib/navigation/watch.dart`). On a route: the next turn with its distance,
+the route line and one's position drawn without map tiles (around one,
+or the whole line on a tap), what is still to go; without a route the
+track and the distance; then the time underway, pause and «Beenden»
+(asked on the watch, so the phone does not ask again). A haptic warning
+when leaving the route while the watch app is on screen (else the phone's
+notification reaches the wrist while it is locked). With no hike, the
+watch offers to record without a tour or to follow one of the tours the
+record button offers (one's routes not hiked yet and shared ones, else the
+saved ones); the phone opens it as «Los» would, without its questions (it
+is not shared with contacts; another hike in progress is kept for
+uploading). iOS starts the GPS only while the app is open, so a start
+from the watch while the phone is locked waits until Alvyo is opened (10
+minutes at most); the watch says so. Pause is in the phone app too
+(navigation and recording): no positions recorded, the time underway
+stops, nothing said or warned; the contacts of a shared hike still see
+where one is. Texts in de/en/fr/it (the watch's `Localizable.strings`).
+The watch's buttons are tested in the simulator by a UI test
+(`ios/AlvyoWatchUITests`): alone against a made-up phone, and together
+with `integration_test/watch_test.dart` over WatchConnectivity.
+
+The App ID `ch.tellbow.alvyo.watchkitapp` and the App Store profile «Alvyo
+Watch App Store» exist (2026-10-25; a local export signs both apps).
+
+Open: App Store screenshots for the Watch; the manual
+tests on a real Watch ([manual-tests.md](manual-tests.md)). Later: the
+watch on its own (its GPS and a workout, a route sent to it for offline
+use); Wear OS (a Kotlin/Compose app, Health Connect import first, 72);
+Garmin (14).
 
 #### 44. 3D in the app (blocked)
 

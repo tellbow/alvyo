@@ -13,6 +13,7 @@ import '../map_style.dart';
 import '../navigation/gps.dart';
 import '../navigation/recording.dart';
 import '../navigation/tracker.dart';
+import '../navigation/watch.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
@@ -24,15 +25,29 @@ import 'tiles.dart';
 /// position and the track so far on the map, how far and how long. Once
 /// uploaded, the hike is a route like any other.
 class RecordScreen extends StatefulWidget {
-  const RecordScreen({super.key, required this.api, this.positions, this.recordings, this.map});
+  const RecordScreen({
+    super.key,
+    required this.api,
+    this.start = false,
+    this.positions,
+    this.recordings,
+    this.map,
+    this.watch,
+  });
 
   final Api api;
+
+  /// Starts recording at once (asked on the watch).
+  final bool start;
 
   /// For tests: positions instead of the GPS, where recordings are kept,
   /// and what stands in for the map.
   final Stream<Fix> Function()? positions;
   final Directory? recordings;
   final Widget? map;
+
+  /// For tests: stands in for the Apple Watch.
+  final WatchLink? watch;
 
   @override
   State<RecordScreen> createState() => _RecordScreenState();
@@ -55,6 +70,11 @@ class _RecordScreenState extends State<RecordScreen> {
   static const _followZoom = 15.0;
   Timer? _clock;
   late final _places = PlaceLayer(widget.api, onTap: (p) => showPlace(context, p));
+  late final WatchLink _watch = widget.watch ?? WatchLink.instance;
+  late final _controls = HikeControls(pause: _pause, resume: _resume, stop: () => _finish(ask: false));
+
+  /// «Beenden?» is being asked.
+  bool _asking = false;
 
   /// The tour to follow (requirement 69): started on its page, as «Los».
   RouteSummary? _tour;
@@ -64,20 +84,7 @@ class _RecordScreenState extends State<RecordScreen> {
   Future<void> _chooseTour() async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    // With the owner for shared ones.
-    List<(RouteSummary, String?)> routes;
-    try {
-      final own = await widget.api.routes();
-      final shared = await widget.api.shared().then((s) => s.routes, onError: (Object _) => <RouteSummary>[]);
-      routes = [
-        for (final r in own)
-          if (r.doneOn == null) (r, null),
-        for (final r in shared) (r, r.owner),
-      ];
-    } on Object {
-      final saved = await (await PackStore.open()).savedRoutes().catchError((_) => <RouteDetail>[]);
-      routes = [for (final r in saved) (r, null)];
-    }
+    final routes = await toursToFollow(widget.api);
     if (!mounted) return;
     if (routes.isEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(t.recordNoTours)));
@@ -153,15 +160,62 @@ class _RecordScreenState extends State<RecordScreen> {
     if (rec != null && Recording.before(rec, null, widget.api.userId) == Before.resume) {
       _fixes.addAll(await rec.fixes());
       _recording = rec;
+      _watch.controls = _controls;
     }
     if (!mounted) return;
     setState(() {});
+    _toWatch();
     _sub = (widget.positions ?? () => gpsFixes(AppLocalizations.of(context)))().listen(
       _onFix,
       onError: (Object e) {
-        if (mounted) setState(() => _gps = gpsProblem(e));
+        if (!mounted) return;
+        setState(() => _gps = gpsProblem(e));
+        _toWatch();
       },
     );
+    if (widget.start && _recording == null) await _start();
+  }
+
+  bool get _paused => _recording?.pausedAt != null;
+
+  Future<void> _pause() async {
+    await _recording?.pause().catchError((Object _) => _saveFailed());
+    if (!mounted) return;
+    setState(() {});
+    _toWatch();
+  }
+
+  Future<void> _resume() async {
+    await _recording?.resume().catchError((Object _) => _saveFailed());
+    if (!mounted) return;
+    setState(() {});
+    _toWatch();
+  }
+
+  /// What the watch shows: after every position and change.
+  void _toWatch() {
+    final rec = _recording;
+    if (rec == null) return;
+    unawaited(
+      _watch.show(
+        WatchHike(
+          title: rec.title,
+          paused: rec.pausedAt != null,
+          elapsed: rec.elapsed(DateTime.now()),
+          line: simplifyLine(_track(), WatchLink.maxPoints),
+          position: _fix,
+          doneM: trackLengthM(_fixes),
+          gps: _gps,
+        ),
+      ),
+    );
+  }
+
+  /// The watch no longer shows this hike.
+  void _endWatch() {
+    if (!identical(_watch.controls, _controls)) return;
+    _watch.controls = null;
+    unawaited(_watch.show(null));
   }
 
   Future<void> _start() async {
@@ -183,6 +237,7 @@ class _RecordScreenState extends State<RecordScreen> {
       messenger.showSnackBar(SnackBar(content: Text(t.errorGeneric)));
       return;
     }
+    _watch.controls = _controls;
     if (!mounted) return;
     setState(() {
       _recording = rec;
@@ -190,6 +245,7 @@ class _RecordScreenState extends State<RecordScreen> {
         ..clear()
         ..addAll([?_fix]);
     });
+    _toWatch();
   }
 
   /// Saving a fix failed (the phone's storage full): said once, the hike
@@ -204,7 +260,8 @@ class _RecordScreenState extends State<RecordScreen> {
 
   Future<void> _onFix(Fix fix) async {
     final rec = _recording;
-    if (rec != null) {
+    // Paused: the position shows, but is not recorded.
+    if (rec != null && !_paused) {
       try {
         await rec.add(fix);
       } on Object {
@@ -217,6 +274,7 @@ class _RecordScreenState extends State<RecordScreen> {
       _fix = fix;
       _gps = null;
     });
+    _toWatch();
     await _style?.updateGeoJsonSource(id: 'me', data: positionJson(fix.lon, fix.lat));
     if (rec != null) await _style?.updateGeoJsonSource(id: 'route', data: lineJson(_track()));
     if (_follow) {
@@ -246,35 +304,46 @@ class _RecordScreenState extends State<RecordScreen> {
     _style = style;
   }
 
-  Future<void> _finish() async {
+  /// Ends the hike; [ask] first, unless the watch asked already.
+  Future<void> _finish({bool ask = true}) async {
     final rec = _recording;
     if (rec == null) {
       Navigator.of(context).pop();
       return;
     }
-    final t = AppLocalizations.of(context);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text(t.navFinishQuestion),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.navContinue)),
-          FilledButton(
-            key: const Key('nav-finish-confirm'),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(t.navFinish),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
+    if (_asking) {
+      // Asked on the phone and stopped on the watch: as «Beenden».
+      if (!ask) Navigator.of(context).pop(true);
+      return;
+    }
+    if (ask) {
+      final t = AppLocalizations.of(context);
+      _asking = true;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(t.navFinishQuestion),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.navContinue)),
+            FilledButton(
+              key: const Key('nav-finish-confirm'),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(t.navFinish),
+            ),
+          ],
+        ),
+      );
+      _asking = false;
+      if (ok != true || !mounted) return;
+    }
+    _endWatch();
     await _sub?.cancel();
     _sub = null;
     final fixes = await rec.fixes();
     await rec.finish();
     final summary = HikeSummary(
       trackLengthM(fixes),
-      fixes.isEmpty ? Duration.zero : fixes.last.time.difference(rec.started),
+      fixes.isEmpty ? Duration.zero : rec.elapsed(fixes.last.time),
       rec.started.toIso8601String(),
     );
     if (mounted) Navigator.of(context).pop(summary);
@@ -282,6 +351,7 @@ class _RecordScreenState extends State<RecordScreen> {
 
   @override
   void dispose() {
+    _endWatch();
     _sub?.cancel();
     _clock?.cancel();
     _places.dispose();
@@ -305,6 +375,13 @@ class _RecordScreenState extends State<RecordScreen> {
           centerTitle: true,
           title: Text(t.navRecord),
           actions: [
+            if (rec != null)
+              IconButton(
+                key: const Key('nav-pause'),
+                onPressed: _paused ? _resume : _pause,
+                icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+                tooltip: _paused ? t.navUnpause : t.navPause,
+              ),
             if (rec != null) TextButton(key: const Key('nav-finish'), onPressed: _finish, child: Text(t.navFinish)),
           ],
         ),
@@ -347,6 +424,14 @@ class _RecordScreenState extends State<RecordScreen> {
                 color: Theme.of(context).colorScheme.errorContainer,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Text(gpsText(t, problem), style: Theme.of(context).textTheme.titleSmall),
+              )
+            else if (_paused)
+              Container(
+                key: const Key('nav-paused'),
+                width: double.infinity,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Text(t.navPaused, style: Theme.of(context).textTheme.titleSmall),
               ),
             SafeArea(
               top: false,
@@ -396,7 +481,7 @@ class _RecordScreenState extends State<RecordScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _Stat(t.navDone, formatDistance(trackLengthM(_fixes))),
-                          _Stat(t.navElapsed, formatDuration(DateTime.now().difference(rec.started).inSeconds)),
+                          _Stat(t.navElapsed, formatDuration(rec.elapsed(DateTime.now()).inSeconds)),
                         ],
                       ),
               ),
@@ -421,5 +506,22 @@ class _Stat extends StatelessWidget {
         Text(value, style: theme.titleMedium),
       ],
     );
+  }
+}
+
+/// Tours to follow: one's routes not hiked yet and those shared (with
+/// their owner), else the saved ones without a connection.
+Future<List<(RouteSummary, String?)>> toursToFollow(Api api) async {
+  try {
+    final own = await api.routes();
+    final shared = await api.shared().then((s) => s.routes, onError: (Object _) => <RouteSummary>[]);
+    return [
+      for (final r in own)
+        if (r.doneOn == null) (r, null),
+      for (final r in shared) (r, r.owner),
+    ];
+  } on Object {
+    final saved = await (await PackStore.open()).savedRoutes().catchError((_) => <RouteDetail>[]);
+    return [for (final r in saved) (r, null)];
   }
 }

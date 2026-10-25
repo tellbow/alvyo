@@ -10,6 +10,7 @@ import UserNotifications
   private let speech = Speech()
   private let peakMotion = PeakMotion()
   private let appleSignIn = AppleSignIn()
+  private let watch = WatchBridge()
 
   override func application(
     _ application: UIApplication,
@@ -17,6 +18,7 @@ import UserNotifications
   ) -> Bool {
     // Off-route warnings are local notifications (flutter_local_notifications).
     UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+    watch.activate()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -92,6 +94,10 @@ import UserNotifications
           }
           appleSignIn.start(nonce: nonce, result: result)
         }
+    }
+    // The Apple Watch app (WatchBridge.swift).
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoWatch") {
+      watch.attach(registrar.messenger())
     }
     // Turn-by-turn prompts.
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "AlvyoSpeech") {

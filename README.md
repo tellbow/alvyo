@@ -9,7 +9,7 @@ comes next: [docs/plan.md](docs/plan.md); deployment: [docs/operations.md](docs/
 - **Planning:** routes on the swisstopo map with Swiss hiking time ([matching SchweizMobil](docs/hiking-time.md)), SAC grade, elevation profile, weather, closures and how far one gets in 2, 4 and 8 hours.
 - **Journeys:** multi-week stage journeys planned from start, destination and days, with huts for the nights and public transport.
 - **Sharing and community:** public, by link or invitation; collections, a discovery map, friends, a feed, likes, comments and photos.
-- **App:** iOS, with the national map offline, spoken navigation, recording and Apple Watch import ([app/README.md](app/README.md)).
+- **App:** iOS, with the national map offline, spoken navigation, recording, an Apple Watch app and the Watch's hikes imported ([app/README.md](app/README.md)).
 - **AI assistants and the command line:** an MCP server and `alvyo-cli` with a personal access token, read-only ([docs/mcp.md](docs/mcp.md)).
 - **Data and privacy:** GPX export, import from GPX, KML, TCX and FIT, privacy zones; in German, English, French and Italian.
 

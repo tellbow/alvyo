@@ -316,6 +316,24 @@ abstract class AppLocalizations {
   /// **'Weitergehen'**
   String get navContinue;
 
+  /// No description provided for @navPause.
+  ///
+  /// In de, this message translates to:
+  /// **'Pause'**
+  String get navPause;
+
+  /// No description provided for @navUnpause.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiter'**
+  String get navUnpause;
+
+  /// No description provided for @navPaused.
+  ///
+  /// In de, this message translates to:
+  /// **'Pausiert: Es wird nichts aufgezeichnet'**
+  String get navPaused;
+
   /// No description provided for @navNoPermission.
   ///
   /// In de, this message translates to:

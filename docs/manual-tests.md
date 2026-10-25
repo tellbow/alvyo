@@ -407,6 +407,37 @@ Checked so far only in the simulator, with made-up or simulated positions
       tracking prompt (App Tracking Transparency) at any time. The same on
       the Android phone.
 
+## Apple Watch app (release build, feedback issue 15)
+
+Checked in the simulator only (2026-10-25, iPhone 17 Pro iOS 26.5 paired
+with an Apple Watch Series 12 watchOS 27.0, `integration_test/watch_test.dart`):
+the tours, a hike on «Sargans–Weisstannen» with its next turn, line and
+position, the pause set on the phone, and the tours again after the hike;
+the watch's pause, «Weiter» and «Beenden» tapped by its UI test act on the
+phone's hike (`testWithPhone`), also with the watch app installed only
+after the hike started.
+
+- [ ] **Installed with the app**: TestFlight installs the watch app too (or
+      the Watch app on the iPhone offers it); it opens and lists the tours.
+- [ ] **Start from the watch**, the iPhone app open: a tour and «Ohne Tour
+      aufzeichnen» each start on the phone, without its questions.
+- [ ] **Start from the watch, the iPhone locked**: the watch says to open
+      Alvyo; once it is opened (within 10 minutes), the hike starts.
+- [ ] **On a hike**: the next turn and its distance, the line and the dot
+      follow one; a tap on the map shows the whole route; the numbers match
+      the phone's.
+- [ ] **Off the route**: the wrist is tapped while the watch app is on
+      screen; with the phone locked and the watch app not on screen, the
+      phone's notification arrives on the watch.
+- [ ] **Pause, carry on and «Beenden» on the watch**: the phone follows
+      (paused banner, the time underway stops; finished and uploaded as
+      from the phone); «Beenden» while the phone asks «Beenden?» ends it.
+- [ ] **A whole hike with the phone in the pocket**: the watch keeps up
+      (WatchConnectivity's delays), and how long it stays on screen
+      (Settings → General → Return to Clock on the watch; «Alvyo» there can
+      keep it).
+- [ ] **No watch paired**: the app works as before.
+
 ## App on the iPad (release build)
 
 Checked in the iPad Pro 13-inch simulator (iOS 26.5) upright on

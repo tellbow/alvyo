@@ -47,9 +47,12 @@ in TestFlight is the one in production.
      -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_<key id>.p8 \
      -authenticationKeyID <key id> -authenticationKeyIssuerID <issuer id>
    ```
-   «Provisioning profile … not found» or «expired»: the profile is renewed
-   once a year in the developer portal (Profiles → «Alvyo App Store» →
-   Edit → Generate; download and double-click), by the user.
+   The Apple Watch app inside (`ios/AlvyoWatch`) is signed with its own
+   profile «Alvyo Watch App Store» (App ID `ch.tellbow.alvyo.watchkitapp`).
+   «Provisioning profile … not found» or «expired»: the profiles are renewed
+   once a year in the developer portal (Profiles → «Alvyo App Store» or
+   «Alvyo Watch App Store» → Edit → Generate; download and double-click),
+   by the user.
    «Upload succeeded» and «EXPORT SUCCEEDED» mean it is in App Store
    Connect, processing (5–30 minutes until TestFlight shows it). The
    warning that MapLibre.framework has no dSYM is harmless: only crashes

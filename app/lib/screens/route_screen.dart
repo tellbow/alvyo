@@ -46,6 +46,7 @@ class RouteScreen extends StatefulWidget {
     required this.title,
     this.map,
     this.startHike = false,
+    this.fromWatch = false,
   });
   final Api api;
   final String id;
@@ -54,6 +55,11 @@ class RouteScreen extends StatefulWidget {
   /// Starts following the route once loaded, as «Los» does (a tour chosen
   /// on Aufzeichnen).
   final bool startHike;
+
+  /// Started on the watch: nobody looks at the phone to answer its
+  /// questions, so another hike in progress is ended (kept for uploading)
+  /// and the hike is not shared.
+  final bool fromWatch;
 
   /// Stands in for the map in widget tests.
   @visibleForTesting
@@ -144,7 +150,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     final messenger = ScaffoldMessenger.of(context);
     final active = await Recording.active(await Recording.defaultRoot());
     if (!mounted) return;
-    if (Recording.before(active, r.id, widget.api.userId) == Before.ask) {
+    if (Recording.before(active, r.id, widget.api.userId) == Before.ask && !widget.fromWatch) {
       final ok = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -170,7 +176,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     }
     // A new hike (not one resumed) can be shared with contacts.
     LiveShare? live;
-    if (Recording.before(active, r.id, widget.api.userId) != Before.resume) {
+    if (Recording.before(active, r.id, widget.api.userId) != Before.resume && !widget.fromWatch) {
       final root = await Recording.defaultRoot();
       if (!mounted) {
         _hiking = false;

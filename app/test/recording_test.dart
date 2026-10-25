@@ -44,6 +44,22 @@ void main() {
     );
   });
 
+  test('pauses are kept with the recording and left out of the time hiked', () async {
+    final rec = await Recording.start(root, routeId: 'r1', title: 'Gratweg', now: t0);
+    await rec.pause(now: t0.add(const Duration(minutes: 10)));
+    expect(rec.elapsed(t0.add(const Duration(minutes: 30))), const Duration(minutes: 10));
+
+    // The app is started again during the pause.
+    final resumed = (await Recording.active(root))!;
+    expect(resumed.pausedAt, t0.add(const Duration(minutes: 10)));
+    await resumed.resume(now: t0.add(const Duration(minutes: 40)));
+    await resumed.pause(now: t0.add(const Duration(minutes: 50)));
+    await resumed.resume(now: t0.add(const Duration(minutes: 55)));
+    expect(resumed.pausedAt, isNull);
+    expect(resumed.elapsed(t0.add(const Duration(minutes: 60))), const Duration(minutes: 25));
+    expect((await Recording.active(root))!.paused, const Duration(minutes: 35));
+  });
+
   test('positions written at the same moment all arrive whole', () async {
     final rec = await Recording.start(root, routeId: 'r1', title: 'Gratweg', now: t0);
     final other = (await Recording.active(root))!; // a second screen on the same hike

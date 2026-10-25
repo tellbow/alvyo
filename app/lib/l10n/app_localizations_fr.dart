@@ -123,6 +123,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navContinue => 'Continuer';
 
   @override
+  String get navPause => 'Pause';
+
+  @override
+  String get navUnpause => 'Reprendre';
+
+  @override
+  String get navPaused => 'En pause : rien n\'est enregistré';
+
+  @override
   String get navNoPermission => 'L\'app a besoin de ta position. Autorise-la dans les réglages.';
 
   @override

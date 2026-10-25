@@ -123,6 +123,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navContinue => 'Keep going';
 
   @override
+  String get navPause => 'Pause';
+
+  @override
+  String get navUnpause => 'Carry on';
+
+  @override
+  String get navPaused => 'Paused: nothing is being recorded';
+
+  @override
   String get navNoPermission => 'This needs your location. Allow it in Settings.';
 
   @override

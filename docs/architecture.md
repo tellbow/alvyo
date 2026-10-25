@@ -18,6 +18,7 @@ outside services are in the next diagram.
 flowchart TB
   browser["Website in the browser<br/>SvelteKit, web/"]
   app["iOS app<br/>Flutter, app/"]
+  watch["Apple Watch app<br/>SwiftUI, app/ios/AlvyoWatch"]
 
   subgraph cluster["Kubernetes, namespace alvyo"]
     ingress["Ingress<br/>alvyo.tellbow.ch"]
@@ -41,6 +42,7 @@ flowchart TB
 
   browser --> ingress
   app --> ingress
+  watch <-- "WatchConnectivity" --> app
   ingress -- "/" --> web
   ingress -- "/api" --> api
   ingress -- "/tiles" --> tiles

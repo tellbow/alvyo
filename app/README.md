@@ -18,6 +18,19 @@ Hikes recorded with the Apple Watch's Workout app («Hiking» or «Outdoor Walk�
 are imported from Apple Health the same way (the watch button in the list;
 HealthKit works with a free Apple ID).
 
+The Apple Watch app (`ios/AlvyoWatch`, SwiftUI, watchOS 10, inside the iOS
+app) shows the hike the phone navigates or records: the next turn, the
+route line (or the track) with one's position, what is still to go, the
+time underway; it pauses and stops the hike, starts one (on a tour, or
+without), and taps the wrist when one leaves the route while it is on
+screen. The phone does the GPS, recording and upload; the two talk over
+WatchConnectivity (`ios/Runner/WatchBridge.swift`, channel `alvyo/watch`,
+`lib/navigation/watch.dart`). iOS starts the GPS only while the app is open,
+so a start asked for on the watch while the phone is locked waits until
+Alvyo is opened (up to 10 minutes). The watch's texts are in its own
+`Localizable.strings` (German keys); building it needs the watchOS platform
+in Xcode (Settings → Components).
+
 Android (issue 8) has all of this except «Berge erkennen» (no camera view
 yet) and the watch import (Health Connect to come); both are hidden there.
 Recording goes on with the screen locked through a foreground service with
@@ -74,8 +87,9 @@ flutter build ipa --build-name=$(git describe --tags --abbrev=0 | sed 's/^v//') 
 
 Uploading that build: `xcodebuild -exportArchive` with
 `ios/ExportOptions-upload.plist` signs it with an «Apple Distribution»
-certificate in the Mac's keychain and the App Store profile «Alvyo App
-Store», and sends it to App Store Connect with an App Store Connect API key
+certificate in the Mac's keychain and the App Store profiles «Alvyo App
+Store» and «Alvyo Watch App Store» (the watch app, App ID
+`ch.tellbow.alvyo.watchkitapp`), and sends it to App Store Connect with an App Store Connect API key
 (the `testflight` skill has the steps). Another Mac needs its own
 distribution certificate, a profile with it and a key.
 
@@ -148,6 +162,12 @@ The integration tests expect the API and the web dev server (:5173) from
   changes the route's description, likes and comments on it, adds it to a
   new collection, changes a stage's accommodation and opens the feed and
   the map of one's tours, putting everything back;
+- `watch_test.dart` sends the tours and a hike through the native watch
+  bridge and pauses it on the phone; with a watch simulator paired
+  (`xcrun simctl pair <watch> <phone>`) and
+  `build/ios/Debug-watchsimulator/AlvyoWatch.app` installed on it while the
+  test runs (`--dart-define=WATCH_HOLD=30` holds each state), the watch
+  shows them;
 - `gps_test.dart` uses the real GPS path and needs the simulator to grant the
   location and move along the route, started once the test app is installed:
 
@@ -155,6 +175,24 @@ The integration tests expect the API and the web dev server (:5173) from
   xcrun simctl privacy <simulator> grant location ch.tellbow.alvyo
   xcrun simctl location <simulator> start --speed=30 <lat,lon> <lat,lon> …
   ```
+
+The watch app's buttons are tapped by its UI test (`ios/AlvyoWatchUITests`,
+scheme `AlvyoWatch`, in German). `testButtons` runs on its own against a
+made-up phone:
+
+```sh
+cd ios && xcodebuild test -project Runner.xcodeproj -scheme AlvyoWatch \
+  -destination 'platform=watchOS Simulator,name=Apple Watch Series 12 (46mm)' \
+  -only-testing:AlvyoWatchUITests/AlvyoWatchUITests/testButtons
+```
+
+`testWithPhone` pauses, carries on and finishes a hike on the paired iPhone
+simulator over WatchConnectivity: start `flutter test
+integration_test/watch_test.dart -d <phone> --dart-define=WATCH_FROM_WATCH=true`,
+and once it prints «waiting for the watch», the same `xcodebuild test` with
+`TEST_RUNNER_ALVYO_PHONE=1` and `-only-testing:…/testWithPhone` (build it
+first with `build-for-testing`, then `test-without-building`, so the phone
+does not wait for the build).
 
 On the Android emulator the same tests run with `-d emulator-5554` after
 `adb reverse tcp:5173 tcp:5173` (offline, navigate and journey checked

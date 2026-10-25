@@ -20,6 +20,7 @@ import '../navigation/recording.dart';
 import '../navigation/speech.dart';
 import '../navigation/tracker.dart';
 import '../navigation/turns.dart';
+import '../navigation/watch.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
@@ -63,6 +64,7 @@ class NavigateScreen extends StatefulWidget {
     this.alerts,
     this.speech,
     this.live,
+    this.watch,
   });
 
   final Api api;
@@ -83,6 +85,9 @@ class NavigateScreen extends StatefulWidget {
   /// The hike was just shared with contacts (see [LiveShare]).
   final LiveShare? live;
 
+  /// For tests: stands in for the Apple Watch.
+  final WatchLink? watch;
+
   @override
   State<NavigateScreen> createState() => _NavigateScreenState();
 }
@@ -96,6 +101,9 @@ class _NavigateScreenState extends State<NavigateScreen> {
   late final Alerts _alerts = widget.alerts ?? Alerts();
   late final Speech _speech = widget.speech ?? Speech();
   late TurnGuide? _guide = widget.turns == null ? null : TurnGuide(widget.turns!);
+  late final WatchLink _watch = widget.watch ?? WatchLink.instance;
+  late final _watchLine = simplifyLine(widget.route.line, WatchLink.maxPoints);
+  late final _controls = HikeControls(pause: _pause, resume: _resume, stop: () => _finish(ask: false));
   bool _voice = true;
   Recording? _recording;
   LiveSender? _live;
@@ -111,6 +119,12 @@ class _NavigateScreenState extends State<NavigateScreen> {
   /// position.
   GpsProblem? _gps;
   bool _saveWarned = false; // said once that fixes cannot be saved
+
+  /// The off-route warning is out (not while paused).
+  bool _warnedOff = false;
+
+  /// «Beenden?» is being asked.
+  bool _asking = false;
 
   /// While following the position; panning or zooming stops following.
   static const _followZoom = 15.0;
@@ -190,10 +204,14 @@ class _NavigateScreenState extends State<NavigateScreen> {
     }
     if (!mounted) return;
     setState(() => _recording = rec);
+    _watch.controls = _controls;
+    _toWatch();
     _sub = (widget.positions ?? () => gpsFixes(AppLocalizations.of(context)))().listen(
       _onFix,
       onError: (Object e) {
-        if (mounted) setState(() => _gps = gpsProblem(e));
+        if (!mounted) return;
+        setState(() => _gps = gpsProblem(e));
+        _toWatch();
       },
     );
     unawaited(_alerts.init()); // asks for notifications without holding up the GPS
@@ -209,14 +227,57 @@ class _NavigateScreenState extends State<NavigateScreen> {
     );
   }
 
+  bool get _paused => _recording?.pausedAt != null;
+
+  Future<void> _pause() async {
+    await _recording?.pause().catchError((Object _) => _saveFailed());
+    if (!mounted) return;
+    setState(() {});
+    _toWatch();
+  }
+
+  Future<void> _resume() async {
+    await _recording?.resume().catchError((Object _) => _saveFailed());
+    if (!mounted) return;
+    setState(() {});
+    _toWatch();
+  }
+
+  /// What the watch shows: after every position and change.
+  void _toWatch() {
+    final rec = _recording;
+    if (rec == null) return;
+    final p = _progress;
+    unawaited(
+      _watch.show(
+        WatchHike(
+          title: widget.route.title,
+          routeId: widget.route.id,
+          paused: rec.pausedAt != null,
+          elapsed: rec.elapsed(DateTime.now()),
+          line: _watchLine,
+          position: _fix,
+          progress: p,
+          turn: switch (p == null ? null : _guide?.next(p.doneM)) {
+            (final turn, final inM)? => (turn.kind, inM),
+            null => null,
+          },
+          gps: _gps,
+        ),
+      ),
+    );
+  }
+
   Future<void> _onFix(Fix fix) async {
-    try {
-      await _recording?.add(fix);
-    } on Object {
-      _saveFailed();
+    // Paused: the position shows, but is not recorded.
+    if (!_paused) {
+      try {
+        await _recording?.add(fix);
+      } on Object {
+        _saveFailed();
+      }
     }
-    unawaited(_live?.add(fix));
-    final wasOff = _progress?.offRoute ?? false;
+    unawaited(_live?.add(fix)); // contacts see where one is, also during a pause
     final p = _tracker.update(fix);
     if (!mounted) return;
     setState(() {
@@ -224,6 +285,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
       _progress = p ?? _progress;
       _gps = null;
     });
+    _toWatch();
     await _style?.updateGeoJsonSource(id: 'me', data: positionJson(fix.lon, fix.lat));
     if (_follow) {
       // A short glide rather than a jump to each position.
@@ -238,11 +300,14 @@ class _NavigateScreenState extends State<NavigateScreen> {
     }
     if (p == null || !mounted) return;
     final t = AppLocalizations.of(context);
-    if (_guide?.prompt(p) case final prompt? when _voice) {
+    // Nothing said or warned during a pause (the way to the restaurant).
+    if (_guide?.prompt(p) case final prompt? when _voice && !_paused) {
       await _speech.say(_promptText(t, prompt), Localizations.localeOf(context).languageCode);
     }
-    if (p.offRoute == wasOff || !mounted) return;
-    if (p.offRoute) {
+    final off = p.offRoute && !_paused;
+    if (off == _warnedOff || !mounted) return;
+    _warnedOff = off;
+    if (off) {
       await HapticFeedback.vibrate();
       await _alerts.offRoute(t.navOffRouteTitle, t.navOffRoute(p.distanceToRouteM.round()));
     } else {
@@ -259,23 +324,34 @@ class _NavigateScreenState extends State<NavigateScreen> {
     _style = style;
   }
 
-  Future<void> _finish() async {
-    final t = AppLocalizations.of(context);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text(t.navFinishQuestion),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.navContinue)),
-          FilledButton(
-            key: const Key('nav-finish-confirm'),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(t.navFinish),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
+  /// Ends the hike; [ask] first, unless the watch asked already.
+  Future<void> _finish({bool ask = true}) async {
+    if (_asking) {
+      // Asked on the phone and stopped on the watch: as «Beenden».
+      if (!ask) Navigator.of(context).pop(true);
+      return;
+    }
+    if (ask) {
+      final t = AppLocalizations.of(context);
+      _asking = true;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(t.navFinishQuestion),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.navContinue)),
+            FilledButton(
+              key: const Key('nav-finish-confirm'),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(t.navFinish),
+            ),
+          ],
+        ),
+      );
+      _asking = false;
+      if (ok != true || !mounted) return;
+    }
+    _endWatch();
     await _sub?.cancel();
     _sub = null;
     await _alerts.clear();
@@ -290,7 +366,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
       await rec.finish();
       summary = HikeSummary(
         trackLengthM(fixes),
-        fixes.isEmpty ? Duration.zero : fixes.last.time.difference(rec.started),
+        fixes.isEmpty ? Duration.zero : rec.elapsed(fixes.last.time),
         rec.started.toIso8601String(),
       );
     }
@@ -317,9 +393,17 @@ class _NavigateScreenState extends State<NavigateScreen> {
     }
   }
 
+  /// The watch no longer shows this hike.
+  void _endWatch() {
+    if (!identical(_watch.controls, _controls)) return;
+    _watch.controls = null;
+    unawaited(_watch.show(null));
+  }
+
   @override
   void dispose() {
     NavigateScreen.running = false;
+    _endWatch();
     _sub?.cancel();
     _clock?.cancel();
     _places.dispose();
@@ -340,6 +424,13 @@ class _NavigateScreenState extends State<NavigateScreen> {
         appBar: AppBar(
           title: Text(r.title),
           actions: [
+            if (_recording != null)
+              IconButton(
+                key: const Key('nav-pause'),
+                onPressed: _paused ? _resume : _pause,
+                icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+                tooltip: _paused ? t.navUnpause : t.navPause,
+              ),
             IconButton(
               key: const Key('nav-voice'),
               onPressed: () => setState(() => _voice = !_voice),
@@ -405,6 +496,13 @@ class _NavigateScreenState extends State<NavigateScreen> {
                 color: Theme.of(context).colorScheme.errorContainer,
                 text: gpsText(t, problem),
               )
+            else if (_paused)
+              _Banner(
+                key: const Key('nav-paused'),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                icon: Icons.pause,
+                text: t.navPaused,
+              )
             else if (p != null && p.offRoute)
               _Banner(
                 key: const Key('nav-off-route'),
@@ -446,10 +544,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
                                 '↑\u00a0${formatHeight(p.ascentRemainingM)}',
                               ),
                               if (_recording != null)
-                                _Stat(
-                                  t.navElapsed,
-                                  formatDuration(DateTime.now().difference(_recording!.started).inSeconds),
-                                ),
+                                _Stat(t.navElapsed, formatDuration(_recording!.elapsed(DateTime.now()).inSeconds)),
                             ],
                           ),
                         ],

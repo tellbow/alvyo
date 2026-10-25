@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../analytics.dart';
 import '../api.dart';
+import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/live.dart';
 import '../navigation/recording.dart';
 import '../navigation/uploads.dart';
+import '../navigation/watch.dart';
 import '../settings.dart';
 import '../watch/importer.dart';
 import 'bottom_bar.dart';
@@ -33,6 +37,7 @@ class HomeScreen extends StatefulWidget {
     this.record,
     @visibleForTesting this.planModes,
     @visibleForTesting this.watch,
+    @visibleForTesting this.watchLink,
   });
   final Api api;
   final VoidCallback onLogout;
@@ -52,6 +57,9 @@ class HomeScreen extends StatefulWidget {
   /// For tests: imports from a fake Apple Health.
   final WatchImporter? watch;
 
+  /// For tests: stands in for the Apple Watch app.
+  final WatchLink? watchLink;
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -70,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final _settings = widget.settings ?? AppSettings.instance;
   late final _analytics = widget.analytics ?? Analytics.instance;
   late final _watch = widget.watch ?? WatchImporter(widget.api);
+  late final _watchLink = widget.watchLink ?? WatchLink.instance;
   DateTime? _watchChecked;
 
   @override
@@ -78,6 +87,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _checkSession();
     _uploadHikes();
+    _watchLink.onStart = _startFromWatch;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _watchLink.startPending());
+    _toursToWatch();
     WidgetsBinding.instance.addPostFrameCallback((_) => _importWatch());
     WidgetsBinding.instance.addPostFrameCallback((_) => _askStatistics());
     _analytics.screen(_tab.name);
@@ -93,12 +105,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (_watchLink.onStart == _startFromWatch) _watchLink.onStart = null;
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _importWatch();
+    if (state != AppLifecycleState.resumed) return;
+    _importWatch();
+    _watchLink.startPending();
+    _toursToWatch();
+  }
+
+  /// The tours the watch offers, as the record button's list.
+  Future<void> _toursToWatch() async {
+    if (!_watchLink.enabled) return;
+    try {
+      final tours = await toursToFollow(widget.api);
+      await _watchLink.tours([for (final (r, _) in tours) r], hikerPace.value);
+    } on Object {
+      // the watch keeps the last list
+    }
+  }
+
+  /// A hike started on the watch: on a tour as «Los» on its page, or
+  /// recorded without one.
+  Future<void> _startFromWatch(String? routeId, String title) async {
+    if (!mounted) return;
+    if (routeId == null) return _record(start: true);
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RouteScreen(api: widget.api, id: routeId, title: title, startHike: true, fromWatch: true),
+      ),
+    );
+    if (mounted) _tours.currentState?.reload();
+    unawaited(_toursToWatch()); // hiked now
   }
 
   /// New Apple Watch hikes become routes when the app opens, if switched
@@ -142,8 +183,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   /// Records a hike; one on a route still being recorded goes on there.
-  /// The finished hike is uploaded and opened as a route.
-  Future<void> _record() async {
+  /// The finished hike is uploaded and opened as a route. [start]: at once,
+  /// asked on the watch.
+  Future<void> _record({bool start = false}) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
@@ -160,7 +202,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       return;
     }
     final summary = await navigator.push<HikeSummary>(
-      MaterialPageRoute(builder: (_) => widget.record?.call() ?? RecordScreen(api: widget.api)),
+      MaterialPageRoute(
+        builder: (_) => widget.record?.call() ?? RecordScreen(api: widget.api, start: start),
+      ),
     );
     if (summary == null || !mounted) return;
     final routes = await uploadHikes(widget.api, root).catchError((_) => <String, String?>{});

@@ -149,6 +149,9 @@ uvx semgrep scan --config p/default --metrics=off                     # static a
 docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.0 git /repo --redact -c /repo/.gitleaks.toml
 ```
 
+Advisories that do not reach Alvyo are ignored in `web/osv-scanner.toml`,
+each with its reason and a date to look again.
+
 Actions are pinned to commit SHAs. Renovate (`renovate.json`) opens grouped
 pull requests on Mondays for Go, web, app (not its unused Android
 template), images and actions, for releases at least 7 days old; patches

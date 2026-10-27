@@ -172,6 +172,7 @@
 	"nav_about": "À propos",
 	"about_title": "À propos d'Alvyo",
 	"about_news_title": "Quoi de neuf",
+	"news_1_13_0": "Chaque carte montre maintenant où tu es, dans l’app et sur le site, dès que tu autorises la position. Un tap sur «Ma position» y amène la carte. Et «Signaler un bug» fonctionne de nouveau aussi sur une carte.",
 	"news_1_12_0": "Nouveau : Alvyo sur l'Apple Watch. Elle montre le prochain virage, l'itinéraire avec ta position et ce qui reste à parcourir, te tapote le poignet quand tu quittes l'itinéraire, et démarre, met en pause et termine ta randonnée. Tu peux maintenant aussi faire une pause dans l'app sur ton téléphone.",
 	"news_1_11_0": "Dans l'app, un doigt sur le profil altimétrique montre l'endroit sur la carte, et l'iPhone enregistre ton mot de passe pour Alvyo. Nouveau : l'app demande une fois si elle peut envoyer des statistiques d'utilisation – sans ton accord, rien n'est envoyé.",
 	"news_1_10_0": "Les liens vers la page d’accueil, « Découvrir » et les profils affichent maintenant une image d’aperçu quand on les partage. Et corrigé : deux personnes qui se demandent en ami au même moment sont maintenant amies, et on peut de nouveau compléter une collection après la suppression d’un de ses itinéraires.",

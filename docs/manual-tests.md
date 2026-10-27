@@ -406,6 +406,12 @@ Checked so far only in the simulator, with made-up or simulated positions
       titles or ids); with «Ablehnen» (Profil › Einstellungen) it stops. No
       tracking prompt (App Tracking Transparency) at any time. The same on
       the Android phone.
+- [ ] **One's position on the maps** (81): with the location allowed, the
+      blue dot on Planen, a route, a journey, Entdecken and Reichweite
+      without a tap; «Mein Standort» moves the map there. Not allowed yet:
+      the button asks; refused for good: it opens the settings.
+- [ ] **«Fehler melden» on a map** (feedback issue 40): a report from
+      Planen with the screenshot of the national map (aerial too) is sent.
 
 ## Apple Watch app (release build, feedback issue 15)
 
@@ -507,6 +513,8 @@ emulator ran the integration tests offline, navigate and journey
   «Link senden …» and importing a GPX file.
 - [ ] **Look and size**: the icon (also themed), the status bar in light and
   dark, the back gesture, the keyboard over fields, large text.
+- [ ] **One's position on the maps and «Fehler melden» on a map** (81,
+  feedback issue 40): as on the iPhone.
 
 ## Web
 

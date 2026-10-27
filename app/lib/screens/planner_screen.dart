@@ -14,6 +14,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../my_location.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import '../planner.dart';
@@ -333,6 +334,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
     },
     onStyleLoaded: (style) async {
       await _places.addTo(style);
+      await showMyLocation(_map);
       // The other ways while a leg is dragged, under the route.
       await style.addSource(GeoJsonSource(id: 'plan-alts', data: _waysJson(const [])));
       await style.addLayer(
@@ -651,6 +653,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
             ),
             Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
             const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+            Positioned(top: 64, right: 12, child: MyLocationButton(map: () => _map)),
           ],
         ),
         panelKey: const Key('planner-panel'),

@@ -412,6 +412,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mapLayers => 'Cartes';
 
   @override
+  String get mapMyLocation => 'Ma position';
+
+  @override
   String get mapHuts => 'Cabanes';
 
   @override

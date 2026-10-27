@@ -12,6 +12,7 @@ import '../journey_ways.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../my_location.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import 'journey_screen.dart';
@@ -380,6 +381,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     },
     onStyleLoaded: (style) async {
       await _places.addTo(style);
+      await showMyLocation(_map);
       await style.addSource(GeoJsonSource(id: 'jplan-ways', data: _waysJson()));
       await style.addSource(GeoJsonSource(id: 'jplan-days', data: _daysJson()));
       await style.addSource(GeoJsonSource(id: 'jplan-points', data: _pointsJson()));
@@ -549,6 +551,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
               Positioned.fill(child: _mapView),
               Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
               const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+              Positioned(top: 64, right: 12, child: MyLocationButton(map: () => _map)),
             ] else
               const Positioned.fill(child: ColoredBox(color: Colors.black12)),
           ],

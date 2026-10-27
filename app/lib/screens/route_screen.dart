@@ -14,6 +14,7 @@ import '../weather.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../my_location.dart';
 import '../navigation/recording.dart';
 import '../navigation/uploads.dart';
 import '../offline/downloads.dart';
@@ -578,6 +579,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                           onStyleLoaded: (style) async {
                             _style = style;
                             await _places.addTo(style);
+                            await showMyLocation(_map);
                             await addRouteLine(style, r.line);
                             await addHighlight(style);
                             await addProfilePoint(style);
@@ -588,6 +590,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                     ),
                 Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
                 const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+                Positioned(top: 64, right: 12, child: MyLocationButton(map: () => _map)),
               ],
             ),
             panel: CustomScrollView(

@@ -81,7 +81,7 @@ import UserNotifications
           let image = UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
           }
-          result(image.pngData().map { FlutterStandardTypedData(bytes: $0) })
+          result(screenshotData(image).map { FlutterStandardTypedData(bytes: $0) })
         }
     }
     // Sign in with Apple (lib/apple_sign_in.dart): the system's sheet.
@@ -123,6 +123,12 @@ import UserNotifications
 /// Sign in with Apple: asks for name and e-mail address and hands the
 /// identity token and authorization code to Dart. The token carries the
 /// SHA-256 of the nonce the API checks.
+/// A bug report's screenshot as a JPEG: a PNG of a map filling the screen
+/// can exceed the 4 MB the API takes (feedback issue 40).
+func screenshotData(_ image: UIImage) -> Data? {
+  image.jpegData(compressionQuality: 0.8)
+}
+
 final class AppleSignIn: NSObject, ASAuthorizationControllerDelegate,
   ASAuthorizationControllerPresentationContextProviding
 {

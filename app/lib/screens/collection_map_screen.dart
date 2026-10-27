@@ -6,6 +6,7 @@ import '../camera.dart';
 import '../format.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../my_location.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
 import 'collections_screen.dart';
@@ -88,6 +89,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
                       onEvent: _onEvent,
                       onStyleLoaded: (style) async {
                         await _places.addTo(style);
+                        await showMyLocation(_map);
                         await addStageLines(style, lines);
                       },
                     );
@@ -95,6 +97,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
                 ),
             Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
             const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+            Positioned(top: 64, right: 12, child: MyLocationButton(map: () => _map)),
           ],
         ),
         panel: ListView(

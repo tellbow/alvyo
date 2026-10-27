@@ -820,6 +820,12 @@ abstract class AppLocalizations {
   /// **'Karten'**
   String get mapLayers;
 
+  /// No description provided for @mapMyLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Mein Standort'**
+  String get mapMyLocation;
+
   /// No description provided for @mapHuts.
   ///
   /// In de, this message translates to:

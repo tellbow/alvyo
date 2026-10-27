@@ -16,6 +16,7 @@
 	import SnowLayer from './SnowLayer.svelte';
 	import { drawPoiIcon } from './poiIcons';
 	import { poiShown } from './poiKinds.svelte';
+	import { LocateControl } from './locate';
 	import { liveMaps } from './registry';
 	import {
 		CH_CENTER,
@@ -123,8 +124,6 @@
 					'NavigationControl.ZoomIn': msg.map_ui_zoom_in(),
 					'NavigationControl.ZoomOut': msg.map_ui_zoom_out(),
 					'NavigationControl.ResetBearing': msg.map_ui_north(),
-					'GeolocateControl.FindMyLocation': msg.map_ui_locate(),
-					'GeolocateControl.LocationNotAvailable': msg.map_ui_no_location(),
 					'AttributionControl.ToggleAttribution': msg.map_ui_attribution(),
 					'FullscreenControl.Enter': msg.map_ui_fullscreen(),
 					'FullscreenControl.Exit': msg.map_ui_fullscreen_exit(),
@@ -136,7 +135,10 @@
 				new ml.AttributionControl({ customAttribution: SWISSTOPO_ATTRIBUTION, compact: false })
 			);
 			m.addControl(new ml.NavigationControl(), 'top-right');
-			m.addControl(new ml.GeolocateControl({ trackUserLocation: true }), 'top-right');
+			m.addControl(
+				new LocateControl(ml, msg.map_ui_locate(), msg.map_ui_no_location()),
+				'top-right'
+			);
 			m.addControl(
 				new ml.TerrainControl({ source: TERRAIN_SOURCE, exaggeration: 1.2 }),
 				'top-right'

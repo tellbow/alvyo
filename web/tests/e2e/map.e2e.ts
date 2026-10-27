@@ -233,3 +233,33 @@ test('rain: the radar, then the forecast, on a timeline', async ({ page }) => {
 	await expect(map).not.toHaveAttribute('data-layers', /\bovl-precip\b/);
 	await expect(card).toHaveCount(0);
 });
+
+test.describe('with the location allowed', () => {
+	const zermatt = { longitude: 7.7491, latitude: 46.0207 };
+	test.use({ permissions: ['geolocation'], geolocation: zermatt });
+
+	test('the position shows at once, and the button moves the map there', async ({ page }) => {
+		await page.goto('/plan');
+		await expect(page.locator('.maplibregl-user-location-dot')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Meinen Standort finden' }).click();
+		await expect
+			.poll(async () => {
+				const saved = await page.evaluate(() =>
+					JSON.parse(localStorage.getItem('alvyo.map') ?? '{}')
+				);
+				const [lon, lat] = saved.center ?? [0, 0];
+				return (
+					Math.abs(lon - zermatt.longitude) < 0.001 && Math.abs(lat - zermatt.latitude) < 0.001
+				);
+			})
+			.toBe(true);
+	});
+});
+
+test('without the location no position, and the button says so when refused', async ({ page }) => {
+	await page.goto('/plan');
+	await page.getByRole('button', { name: 'Meinen Standort finden' }).click();
+	await expect(page.getByRole('button', { name: 'Standort nicht verfügbar' })).toBeVisible();
+	await expect(page.locator('.maplibregl-user-location-dot')).toHaveCount(0);
+});

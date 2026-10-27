@@ -54,8 +54,8 @@ class _BugReportFrameState extends State<BugReportFrame> {
   Future<Uint8List?> _screenshot() async {
     try {
       await WidgetsBinding.instance.endOfFrame; // the bug button hidden
-      final png = await const MethodChannel('alvyo/screenshot').invokeMethod<Uint8List>('window');
-      if (png != null) return png;
+      final jpeg = await const MethodChannel('alvyo/screenshot').invokeMethod<Uint8List>('window');
+      if (jpeg != null) return jpeg;
     } on Object {
       // no channel
     }

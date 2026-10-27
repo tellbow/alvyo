@@ -46,13 +46,14 @@ class MainActivity : FlutterFragmentActivity() {
                 result.notImplemented()
                 return@setMethodCallHandler
             }
-            screenshot { png -> runOnUiThread { result.success(png) } }
+            screenshot { jpeg -> runOnUiThread { result.success(jpeg) } }
         }
     }
 
     /**
-     * Flutter's surface as a PNG at twice its size in dp, as the Flutter
-     * picture was; null if the copy fails. Flutter draws into a surface of
+     * Flutter's surface as a JPEG at twice its size in dp, as the Flutter
+     * picture was; null if the copy fails. Not a PNG: one of a map filling
+     * the screen can exceed the 4 MB the API takes (feedback issue 40). Flutter draws into a surface of
      * its own, which a copy of the window leaves out; the maps are drawn
      * into it too (texture layer platform views).
      */
@@ -63,15 +64,15 @@ class MainActivity : FlutterFragmentActivity() {
         val thread = HandlerThread("screenshot").apply { start() }
         PixelCopy.request(view, full, { code ->
             val scale = 2 / resources.displayMetrics.density
-            val png =
+            val jpeg =
                 if (code != PixelCopy.SUCCESS) {
                     null
                 } else {
                     val small = Bitmap.createScaledBitmap(full, (full.width * scale).toInt(), (full.height * scale).toInt(), true)
-                    ByteArrayOutputStream().also { small.compress(Bitmap.CompressFormat.PNG, 100, it) }.toByteArray()
+                    ByteArrayOutputStream().also { small.compress(Bitmap.CompressFormat.JPEG, 80, it) }.toByteArray()
                 }
             thread.quitSafely()
-            done(png)
+            done(jpeg)
         }, Handler(thread.looper))
     }
 

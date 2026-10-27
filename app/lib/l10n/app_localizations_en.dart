@@ -411,6 +411,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapLayers => 'Maps';
 
   @override
+  String get mapMyLocation => 'My location';
+
+  @override
   String get mapHuts => 'Huts';
 
   @override

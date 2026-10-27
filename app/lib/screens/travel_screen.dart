@@ -11,6 +11,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../my_location.dart';
 import '../place_search.dart';
 import '../route_layers.dart';
 import '../travel.dart';
@@ -517,11 +518,13 @@ class _TravelScreenState extends State<TravelScreen> {
                               onStyleLoaded: (style) async {
                                 await addRouteLine(style, at.line);
                                 await _addLayers(style);
+                                await showMyLocation(_map);
                               },
                             );
                           },
                         ),
                     const Positioned(top: 12, left: 12, right: 12, child: MapCredit()),
+                    Positioned(right: 12, bottom: 12, child: MyLocationButton(map: () => _map)),
                   ],
                 ),
                 panel: choice,

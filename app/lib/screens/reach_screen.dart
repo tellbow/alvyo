@@ -10,6 +10,7 @@ import '../camera.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../my_location.dart';
 import '../navigation/gps.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
@@ -286,6 +287,7 @@ class ReachScreenState extends State<ReachScreen> {
 
   Future<void> _addLayers(StyleController style) async {
     await _places.addTo(style);
+    await showMyLocation(_map);
     // The largest underneath; a white edge under each outline, as the
     // trails are yellow and red too.
     for (final h in [8, 4, 2]) {
@@ -353,6 +355,7 @@ class ReachScreenState extends State<ReachScreen> {
             Positioned.fill(child: _mapView),
             Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
             const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+            Positioned(top: 64, right: 12, child: MyLocationButton(map: () => _map)),
             if (_busy)
               Positioned(
                 // Below the rain's bar.

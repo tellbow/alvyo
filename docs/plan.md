@@ -944,6 +944,17 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     to that part of the line and draws it orange: the areas' and
     notices' answers carry `where`, the parts of the line in them (the
     areas now asked from geo.admin with their shapes).
+81. **One's position on every map** (feedback issue 40, 2026-10-27).
+    Every map in the app and on the website shows where one is, a blue
+    dot as in Apple's and Google's maps, once the location is allowed
+    (the website asks only on a tap), and «Mein Standort» moves the map
+    there, asking first or opening the settings. In the app it is
+    MapLibre's own dot: geolocator has one position stream for the whole
+    app, and a map's settings must not become a hike's. Navigation and
+    recording keep their dot and «Meiner Position folgen». From the same
+    issue: bug reports' screenshots are JPEGs, as a PNG of a map filling
+    an iPhone's screen went over the API's 4 MB and «Fehler melden»
+    failed.
 
 ### Open
 

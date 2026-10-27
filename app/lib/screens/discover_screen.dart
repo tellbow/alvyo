@@ -10,6 +10,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../my_location.dart';
 import '../navigation/gps.dart';
 import '../place_layer.dart';
 import 'details.dart';
@@ -483,6 +484,7 @@ class _DiscoverMapState extends State<_DiscoverMap> {
                 onEvent: _onEvent,
                 onStyleLoaded: (style) async {
                   await _places.addTo(style);
+                  await showMyLocation(_map);
                   await style.addSource(GeoJsonSource(id: _source, data: _geojson(widget.items)));
                   await style.addLayer(
                     const LineStyleLayer(
@@ -512,6 +514,7 @@ class _DiscoverMapState extends State<_DiscoverMap> {
           ),
           Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
           const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
+          Positioned(top: 64, right: 12, child: MyLocationButton(map: () => _map)),
         ],
       );
     },

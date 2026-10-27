@@ -48,4 +48,5 @@ features the minor one.
      `tlm-import` cron jobs are suspended, so run the changed one by hand,
      e.g. `kubectl --context <context> -n alvyo create job --from=cronjob/places-import places-import-X-Y-Z`
 7. **Afterwards:** if the app changed, offer the `iphone-install` and
-   `android-install` skills, and the `testflight` skill for TestFlight.
+   `android-install` skills, the `testflight` skill for TestFlight and
+   then the `app-store` skill for the App Store.

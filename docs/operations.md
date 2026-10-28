@@ -208,14 +208,16 @@ volume belongs to uid 1000; Longhorn does not apply `fsGroup` to
 ReadWriteMany volumes, so a pod writing to it must run as 1000. The nginx
 configurations keep their pid file and temp files in `/tmp`.
 
-The `geodata` volume (15 GiB) holds about 7.5 GB (2026-10-12): OSM 4.9 GB,
+The `geodata` volume (20 GiB) holds about 7.5 GB (2026-10-12): OSM 4.9 GB,
 the graph and its rollback copy 0.7 GB each, swissTLM3D 0.6 GB, the
 elevation cache 0.2 GB, Wanderland and places 0.2 GB. The weekly
 `graph-refresh` (Monday 02:00 UTC) rewrites about 6 GB of it, and Longhorn
 counts freed blocks as used until the filesystem is trimmed: the
 Longhorn RecurringJob `filesystem-trim` therefore runs daily at
 04:00 UTC. Weekly, it left the volume's actual size at 88 % for six days
-and fired `LonghornVolumeUsageWarning` (over 80 %). A trim by hand: Longhorn
+and fired `LonghornVolumeUsageWarning` (over 80 %); with the trim, still
+89 % of 15 GiB for an hour or two after each refresh, so it has 20 GiB
+since 2026-10-28. A trim by hand: Longhorn
 UI, the volume, «Trim Filesystem».
 
 The `alti` volume (10 GiB, ReadWriteOnce) holds swissALTI3D as tiles,

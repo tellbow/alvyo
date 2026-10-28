@@ -124,6 +124,10 @@ jobs:
         run: |
           docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import sh /scripts/download_test.sh
           docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import python3 /scripts/swissalti3d_test.py
+      - name: snow-cover and weather-precip tests (missing tiles, unfinished forecast items)
+        run: |
+          docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import python3 /scripts/snow-cover_test.py
+          docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import python3 /scripts/weather-precip_test.py
 
   # Static analysis with semgrep's default rules. Excluded after a look at
   # each finding (2026-10-08):

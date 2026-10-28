@@ -146,6 +146,8 @@ def icon_run(now):
             items = json.load(r)["features"]
         hours = {}
         for it in items:
+            if not it["assets"]:  # listed before its file is up
+                continue
             m = re.fullmatch(r"P(\d+)DT(\d+)H.*", it["properties"]["forecast:horizon"])
             hours[int(m.group(1)) * 24 + int(m.group(2))] = next(iter(it["assets"].values()))["href"]
         offset = int((first - run).total_seconds()) // 3600

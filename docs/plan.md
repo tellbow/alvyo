@@ -923,8 +923,10 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     issue 21; it covered the whole screen).
     The snow-cover job (every 6 hours; a day is converted once) reads the
     11 tiles from EEA's public bucket, merges and colours them into tiles
-    for zoom 6–11 (only those with snow) in the database; the API serves
-    them (`/weather/snow`). SLF's snow depth maps would be better for
+    for zoom 6–11 (only those with snow) in the database; a tile missing
+    on the newest day keeps its last one of the 6 days before, or is left
+    out (Copernicus skipped 32TLT for a week in October 2026); the API
+    serves them (`/weather/snow`). SLF's snow depth maps would be better for
     Switzerland but have no open terms; station snow depths and snowshoe
     routes were the other options.
 79. **Snow along a route** (feedback issue 23, 2026-10-20). Routes,

@@ -51,26 +51,30 @@ def listing(prefix):
     return [p for p in re.findall(r"<Prefix>([^<]*)</Prefix>", xml) if p != prefix]
 
 
-def products(day):
-    """{tile: URL of its GF layer} for day, or None while a tile is missing."""
-    found = {}
-    for tile in TILES:
-        dirs = listing(f"GFSC/{tile}/{day:%Y/%m/%d}/")
-        if not dirs:
-            return None
-        name = dirs[-1].rstrip("/").rsplit("/", 1)[-1]  # the newest version
-        found[tile] = f"{BUCKET}/{dirs[-1]}{name}_GF.tif"
-    return found
+def product(tile, day):
+    """The URL of a tile's GF layer of day, or None."""
+    dirs = listing(f"GFSC/{tile}/{day:%Y/%m/%d}/")
+    if not dirs:
+        return None
+    name = dirs[-1].rstrip("/").rsplit("/", 1)[-1]  # the newest version
+    return f"{BUCKET}/{dirs[-1]}{name}_GF.tif"
 
 
-def newest():
-    """The newest day with all tiles, and their GF layers."""
-    today = date.today()
+def newest(today):
+    """The newest day with a tile, and {tile: (day, URL of its GF layer)}.
+    A tile missing that day keeps its newest earlier one (the product fills
+    gaps over 7 days itself); one missing in all DAYS_BACK is left out.
+    Copernicus skips single tiles for days, 32TLT for a week in October 2026."""
+    found, newest_day = {}, None
     for back in range(1, DAYS_BACK + 1):
         day = today - timedelta(days=back)
-        if (urls := products(day)) is not None:
-            return day, urls
-    return None, {}
+        for tile in TILES:
+            if tile not in found and (url := product(tile, day)):
+                found[tile] = (day, url)
+                newest_day = newest_day or day
+        if len(found) == len(TILES):
+            break
+    return newest_day, found
 
 
 def snow_only(url):
@@ -171,14 +175,17 @@ def tiles(a, origin):
 
 def main():
     with psycopg.connect() as db:
-        day, urls = newest()
+        day, found = newest(date.today())
         if day is None:
-            print(f"snow: no day with all {len(TILES)} tiles in the last {DAYS_BACK} days", file=sys.stderr)
+            print(f"snow: no tile in the last {DAYS_BACK} days", file=sys.stderr)
             sys.exit(1)
         if db.execute("SELECT 1 FROM snow_days WHERE day = %s", (day,)).fetchone():
             print(f"snow: {day} already there")
             return
-        a, origin = mosaic([snow_only(u) for u in urls.values()])
+        for tile in TILES:
+            if tile not in found or found[tile][0] != day:
+                print(f"snow: {tile} {found[tile][0] if tile in found else 'missing'}", file=sys.stderr)
+        a, origin = mosaic([snow_only(u) for _, u in found.values()])
         db.execute("INSERT INTO snow_days (day) VALUES (%s)", (day,))
         n = 0
         for z, x, y, img in tiles(a, origin):

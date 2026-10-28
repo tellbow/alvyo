@@ -997,9 +997,12 @@ twice at most): it says which and opens the settings where only they help.
 
 Open: «Berge erkennen» (a CameraX view and the rotation sensor) and the
 watch import through Health Connect, hidden on Android until then; the
-Play Store (developer account, listing, data
-safety form, an AAB); the manual tests on a real phone
-([manual-tests.md](manual-tests.md)).
+Play Store: started on 2026-10-28 (the app bundle without the advertising
+id, the listing in four languages, its pictures and the app content
+answers in [google-play.md](../app/store/google-play.md), the
+`play-store` skill for releases through the API), open the closed test
+(a personal account: 12 testers for 14 days) and production; the manual
+tests on a real phone ([manual-tests.md](manual-tests.md)).
 
 #### 80. The app on the wrist (feedback issue 15, started)
 

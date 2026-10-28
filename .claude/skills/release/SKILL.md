@@ -49,4 +49,5 @@ features the minor one.
      e.g. `kubectl --context <context> -n alvyo create job --from=cronjob/places-import places-import-X-Y-Z`
 7. **Afterwards:** if the app changed, offer the `iphone-install` and
    `android-install` skills, the `testflight` skill for TestFlight and
-   then the `app-store` skill for the App Store.
+   then the `app-store` skill for the App Store, and the `play-store`
+   skill for Google Play.

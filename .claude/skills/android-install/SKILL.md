@@ -48,7 +48,9 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
    `$ADB -s <serial> install -r build/app/outputs/flutter-apk/app-release.apk`,
    then `$ADB -s <serial> shell am start -n ch.tellbow.alvyo/.MainActivity`.
    - `INSTALL_FAILED_UPDATE_INCOMPATIBLE`: the installed app has another
-     key than `key.properties` names. Report it; do not uninstall.
+     key than `key.properties` names, most likely the app from Google Play
+     (signed by Google). Report it; do not uninstall: that phone gets new
+     versions from Play's internal test (the `play-store` skill).
    - `INSTALL_FAILED_VERSION_DOWNGRADE`: the phone has a newer build
      (another branch or a later release). Report both version codes
      (`$ADB -s <serial> shell dumpsys package ch.tellbow.alvyo | grep versionCode`).

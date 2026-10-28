@@ -5,7 +5,11 @@
 // <language>/ipad/. The header and search result are PNG: App Store Connect
 // refuses a JPEG header, although Apple's specification lists it. Needs the
 // web dev server and seed.sh's account.
-// Usage: bun app/store/render.mjs [de,en,fr,it] [iphone,ipad]
+// For Google Play (play): the iPhone screenshots in 9:16 (1242 × 2208; Play
+// takes no side longer than twice the other) without the iOS status bar,
+// and the feature graphic (1024 × 500, JPEG: no alpha) on the header's map,
+// in <language>/play/.
+// Usage: bun app/store/render.mjs [de,en,fr,it] [iphone,ipad,play]
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -87,7 +91,9 @@ const texts = {
 // 1646 × 661, search 2168 × 1030, centred. The rest may be cut off.
 const heroes = [
 	{ name: 'header', w: 1920, h: 823, safe: { w: 823, h: 331 }, font: 46, phoneH: 400 },
-	{ name: 'search', w: 1920, h: 1280, safe: { w: 1084, h: 515 }, font: 60, phoneH: 560 }
+	{ name: 'search', w: 1920, h: 1280, safe: { w: 1084, h: 515 }, font: 60, phoneH: 560 },
+	// Google Play's feature graphic, on the header's map.
+	{ name: 'feature', map: 'header', w: 512, h: 250, safe: { w: 460, h: 210 }, font: 25, phoneH: 200 }
 ];
 const heroPhones = ['route', 'nav'];
 
@@ -101,7 +107,9 @@ const raw = (lang, n, device = 'iphone') =>
 // place below it (its height follows from the width).
 const frames = {
 	iphone: { w: 1206, h: 2622, side: 90, top: 150, font: 104, shot: { left: 103, top: 640, width: 1000, radius: 64 } },
-	ipad: { w: 2064, h: 2752, side: 160, top: 130, font: 112, shot: { left: 252, top: 520, width: 1560, radius: 48 } }
+	ipad: { w: 2064, h: 2752, side: 160, top: 130, font: 112, shot: { left: 252, top: 520, width: 1560, radius: 48 } },
+	// The iPhone capture without its status bar (186 of 1206 pixels: 62 points).
+	play: { w: 1242, h: 2208, side: 90, top: 130, font: 96, crop: 186 / 1206, shot: { left: 191, top: 560, width: 860, radius: 56 } }
 };
 
 const framed = (img, text, f) => `<!doctype html><html><head><meta charset="utf-8"><style>${fontFaces}
@@ -112,14 +120,14 @@ h1 { position: absolute; left: ${f.side}px; right: ${f.side}px; top: ${f.top}px;
 em { font-style: normal; color: #FFA66B; }
 .shot { position: absolute; left: ${f.shot.left}px; top: ${f.shot.top}px; width: ${f.shot.width}px;
 	border-radius: ${f.shot.radius}px; overflow: hidden; box-shadow: 0 0 0 10px #2E3D35, 0 40px 120px rgba(0,0,0,.45); }
-.shot img { display: block; width: 100%; }
+.shot img { display: block; width: 100%; margin-top: ${-(f.crop ?? 0) * 100}%; }
 </style></head><body><h1>${text}</h1><div class="shot"><img src="${img}"></div></body></html>`;
 
 // The national map, darker in the middle for the text; © swisstopo is a
 // condition of its free use, also here.
 const hero = (a, lang) => `<!doctype html><html><head><meta charset="utf-8"><style>${fontFaces}
 html, body { margin: 0; width: ${a.w}px; height: ${a.h}px; overflow: hidden; background: #0E1512; }
-.map { position: absolute; inset: 0; background: url(file://${work}/web/${a.name}.png) center / cover; }
+.map { position: absolute; inset: 0; background: url(file://${work}/web/${a.map ?? a.name}.png) center / cover; }
 .shade { position: absolute; inset: 0; background: radial-gradient(ellipse ${a.safe.w * 0.95}px ${a.safe.h * 1.25}px at 50% 50%,
 	rgba(14,21,18,.94) 0%, rgba(14,21,18,.86) 55%, rgba(14,21,18,.12) 100%); }
 .safe { position: absolute; left: ${(a.w - a.safe.w) / 2}px; top: ${(a.h - a.safe.h) / 2}px; width: ${a.safe.w}px;
@@ -167,7 +175,7 @@ async function render(browser, html, w, h, scale, path) {
 const browser = await chromium.launch();
 
 // The website's map of the Eiger Trail, without the page around it.
-for (const a of heroes) {
+for (const a of devices.includes('iphone') ? heroes.filter((a) => !a.map) : []) {
 	const page = await browser.newPage({ viewport: { width: a.w, height: a.h }, deviceScaleFactor: 2, locale: 'de-CH' });
 	await page.goto(`${web}/login`);
 	await page.getByLabel(/Benutzername|E-Mail/).first().fill('storeshots');
@@ -192,8 +200,8 @@ for (const a of heroes) {
 for (const lang of langs) {
 	for (const device of devices) {
 		const f = frames[device];
-		if (!f) throw new Error(`unknown device ${device} (iphone or ipad)`);
-		const out = device === 'ipad' ? join(store, lang, 'ipad') : join(store, lang);
+		if (!f) throw new Error(`unknown device ${device} (iphone, ipad or play)`);
+		const out = device === 'iphone' ? join(store, lang) : join(store, lang, device);
 		mkdirSync(out, { recursive: true });
 		for (const [i, [name, shot]] of shots.entries()) {
 			// A missing capture would show as a broken image.
@@ -204,9 +212,13 @@ for (const lang of langs) {
 	}
 	// The header and search result show iPhone screenshots.
 	if (devices.includes('iphone')) {
-		for (const a of heroes) {
+		for (const a of heroes.filter((a) => !a.map)) {
 			await render(browser, hero(a, lang), a.w, a.h, 2, join(store, lang, `${a.name}.png`));
 		}
+	}
+	if (devices.includes('play')) {
+		const a = heroes.find((a) => a.name === 'feature');
+		await render(browser, hero(a, lang), a.w, a.h, 2, join(store, lang, 'play', 'feature.jpg'));
 	}
 }
 await browser.close();

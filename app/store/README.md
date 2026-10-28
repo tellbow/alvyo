@@ -11,6 +11,8 @@ language): the scripts below make them.
 | `watch/01-tours.png` … `watch/04-controls.png` | Bildschirmfotos, Apple Watch (Series 12, 46 mm; App Store Connect scales them for the others) | 416 × 496 |
 | `header.png` | Kopfzeile (product page header, 21:9) | 3840 × 1646 |
 | `search.png` | Suchergebnisse (search result, 3:2) | 3840 × 2560 |
+| `play/01-route.jpg` … `play/06-discover.jpg` | Google Play, Smartphone-Screenshots (the iPhone captures without the iOS status bar, 9:16) | 1242 × 2208 |
+| `play/feature.jpg` | Google Play, Vorstellungsgrafik | 1024 × 500 |
 
 They show the real app and website with the local dev stack: copies of
 official routes (Wanderland Schweiz) in a local account «storeshots», the
@@ -57,6 +59,19 @@ pictures, without a frame or headline (Apple shows Watch screenshots
 plain). The clock is the Mac's time: watchOS simulators take no status bar
 override. The controls are shown scrolled to the buttons, the title cut at
 the top.
+
+### Google Play
+
+`bun app/store/render.mjs de,en,fr,it play` makes `<language>/play/` from
+the iPhone captures and the header's map (no dev stack needed once
+`work/web/header.png` exists). The icon, the same in every language, as
+a 32-bit PNG:
+
+```sh
+uv run --with pillow python -I -c "from PIL import Image; Image.open('app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png').convert('RGBA').resize((512, 512), Image.LANCZOS).save('app/store/work/play-icon.png')"
+```
+
+Where each goes, and the listing's texts: [google-play.md](google-play.md).
 
 Apple's rules: <https://developer.apple.com/app-store/asset-best-practices/>
 (no prices, URLs, logos or awards; short text in every language; key

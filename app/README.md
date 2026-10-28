@@ -38,10 +38,12 @@ a notification, started while the app is open, so the app needs no
 background location. The native pieces are in `MainActivity.kt` (spoken
 turns with Android's text-to-speech); offline maps and the login stay out of
 backups by `res/xml/*_rules.xml`. Links to alvyo.tellbow.ch's routes,
-journeys, collections and invites open the app (app links: the release
-key's fingerprint is in `web/static/.well-known/assetlinks.json`; a new key
-needs it changed there). The APK of each release is on GitHub; the
-Play Store is to come.
+journeys, collections and invites open the app (app links: the fingerprints of the release
+key and of Google Play's app signing key are in
+`web/static/.well-known/assetlinks.json`; a new key needs it changed
+there). The APK of each release is on GitHub; Google Play signs its own
+builds with its key (`app/store/google-play.md`), so a phone has the one
+or the other: they cannot update each other.
 
 ## Run
 

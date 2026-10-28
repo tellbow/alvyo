@@ -870,14 +870,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get myMapEmpty => 'Rien dans cette vue ne correspond aux filtres.';
 
   @override
-  String get feedIntro => 'Les nouvelles randonnées publiques des personnes que tu suis.';
+  String get feedIntro =>
+      'Ce que tes ami·e·s randonnent et publient, les nouvelles randonnées des personnes que tu suis et les commentaires sur tes randonnées.';
 
   @override
   String get feedEmpty =>
-      'Rien pour l’instant – suis les personnes dont les randonnées t’intéressent. Tu les trouves sous Découvrir.';
+      'Rien pour l\'instant. Ajoute des ami·e·s ou suis des personnes dont les randonnées t\'intéressent.';
 
   @override
   String get feedMore => 'Charger les plus anciennes';
+
+  @override
+  String get feedHiked => 'a fait une randonnée';
+
+  @override
+  String get feedPublishedRoute => 'a publié un itinéraire';
+
+  @override
+  String get feedPublishedJourney => 'a publié une randonnée par étapes';
+
+  @override
+  String get feedCommented => 'a commenté';
+
+  @override
+  String get feedHikePrivate => 'Un itinéraire personnel';
 
   @override
   String profileSince(String date) {
@@ -1864,6 +1880,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les autres te trouvent dans la recherche. Un profil privé n\'est visible que par tes ami·e·s.';
 
   @override
+  String get shareHikes => 'Partager mes randonnées avec mes ami·e·s';
+
+  @override
+  String get shareHikesHint =>
+      'Tes ami·e·s voient dans leurs actualités quand tu as fait une randonnée, avec la distance et la durée.';
+
+  @override
   String get doneMark => 'Marquer comme faite';
 
   @override
@@ -2093,14 +2116,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get discoverPeaksHint => 'Caméra vers l’horizon';
 
   @override
-  String get discoverFollowing => 'Des personnes que tu suis';
+  String get discoverFollowing => 'Actualités';
 
   @override
   String get discoverAll => 'Tout';
 
   @override
   String get discoverFollowingEmpty =>
-      'Rien encore des personnes que tu suis. Suis des amis pour voir leurs nouvelles randonnées ici.';
+      'Rien pour l\'instant. Ajoute des ami·e·s ou suis des personnes dont les randonnées t\'intéressent.';
 
   @override
   String get discoverNearby => 'Près de toi';

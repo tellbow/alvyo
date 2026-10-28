@@ -254,6 +254,14 @@ class _ProfileTabState extends State<ProfileTab> {
                       value: me?.profilePublic ?? true,
                       onChanged: me == null ? null : (v) => _update(() => widget.api.updateMe(profilePublic: v)),
                     ),
+                    if (me?.shareHikes case final share?)
+                      SwitchListTile(
+                        key: const Key('share-hikes'),
+                        title: Text(t.shareHikes),
+                        subtitle: Text(t.shareHikesHint),
+                        value: share,
+                        onChanged: (v) => _update(() => widget.api.updateMe(shareHikes: v)),
+                      ),
                     if ((widget.analytics ?? Analytics.instance) case final analytics when analytics.active)
                       ValueListenableBuilder(
                         valueListenable: analytics.consent,

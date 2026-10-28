@@ -101,6 +101,7 @@ type Me struct {
 	NotifyComments bool `json:"notify_comments" doc:"E-mail on comments on my routes and journeys"`
 	NotifyFollows  bool `json:"notify_follows" doc:"E-mail when someone follows me or asks to be friends"`
 	ProfilePublic  bool `json:"profile_public" doc:"Found by the user search; else seen by friends only"`
+	ShareHikes     bool `json:"share_hikes" doc:"Friends see my hikes in their news"`
 	FriendRequests int  `json:"friend_requests" doc:"Friend requests waiting for an answer (on GET and PATCH /me)"`
 }
 
@@ -120,6 +121,7 @@ func toMe(u dbq.User) Me {
 		NotifyComments: u.NotifyComments,
 		NotifyFollows:  u.NotifyFollows,
 		ProfilePublic:  u.ProfilePublic,
+		ShareHikes:     u.ShareHikes,
 	}
 }
 

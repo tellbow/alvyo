@@ -36,6 +36,7 @@
 		notify_follows?: boolean;
 		speed_factor?: number;
 		profile_public?: boolean;
+		share_hikes?: boolean;
 	}) {
 		const { response } = await api().PATCH('/me', { body });
 		if (response.ok) await refreshAll();
@@ -98,6 +99,16 @@
 						data-testid="profile-public"
 					/>
 					{m.account_profile_public()}
+				</label>
+				<label class="flex items-center gap-2">
+					<input
+						type="checkbox"
+						checked={data.user?.share_hikes}
+						disabled={!hydrated.value}
+						onchange={(e) => notify({ share_hikes: e.currentTarget.checked })}
+						data-testid="share-hikes"
+					/>
+					{m.account_share_hikes()}
 				</label>
 				<label class="flex flex-wrap items-center gap-x-3 gap-y-1">
 					<span class="font-medium">{m.account_pace()}</span>

@@ -868,13 +868,29 @@ class AppLocalizationsIt extends AppLocalizations {
   String get myMapEmpty => 'In questa vista nulla corrisponde ai filtri.';
 
   @override
-  String get feedIntro => 'Le nuove escursioni pubbliche delle persone che segui.';
+  String get feedIntro =>
+      'Cosa percorrono e pubblicano i tuoi amici, le nuove escursioni delle persone che segui e i commenti alle tue escursioni.';
 
   @override
-  String get feedEmpty => 'Ancora niente – segui le persone le cui escursioni ti interessano. Le trovi in Scopri.';
+  String get feedEmpty => 'Ancora niente. Aggiungi amici o segui persone le cui escursioni ti interessano.';
 
   @override
   String get feedMore => 'Carica le precedenti';
+
+  @override
+  String get feedHiked => 'ha fatto un\'escursione';
+
+  @override
+  String get feedPublishedRoute => 'ha pubblicato un percorso';
+
+  @override
+  String get feedPublishedJourney => 'ha pubblicato un trekking a tappe';
+
+  @override
+  String get feedCommented => 'ha commentato';
+
+  @override
+  String get feedHikePrivate => 'Un percorso personale';
 
   @override
   String profileSince(String date) {
@@ -1860,6 +1876,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gli altri ti trovano nella ricerca. Un profilo privato è visibile solo ai tuoi amici.';
 
   @override
+  String get shareHikes => 'Condividi le escursioni con gli amici';
+
+  @override
+  String get shareHikesHint =>
+      'I tuoi amici vedono nelle loro novità quando hai fatto un\'escursione, con lunghezza e durata.';
+
+  @override
   String get doneMark => 'Segna come fatta';
 
   @override
@@ -2089,14 +2112,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get discoverPeaksHint => 'Fotocamera sull’orizzonte';
 
   @override
-  String get discoverFollowing => 'Dalle persone che segui';
+  String get discoverFollowing => 'Novità';
 
   @override
   String get discoverAll => 'Tutto';
 
   @override
   String get discoverFollowingEmpty =>
-      'Ancora niente dalle persone che segui. Segui degli amici per vedere qui le loro nuove escursioni.';
+      'Ancora niente. Aggiungi amici o segui persone le cui escursioni ti interessano.';
 
   @override
   String get discoverNearby => 'Vicino a te';

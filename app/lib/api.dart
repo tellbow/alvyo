@@ -45,6 +45,7 @@ class Me {
     this.notifyFollows = false,
     this.emailVerified = true,
     this.profilePublic = true,
+    this.shareHikes,
     this.friendRequests = 0,
   });
   factory Me.fromJson(Map<String, dynamic> j) => Me(
@@ -59,6 +60,7 @@ class Me {
     notifyFollows: j['notify_follows'] as bool? ?? false,
     emailVerified: j['email_verified'] as bool? ?? true,
     profilePublic: j['profile_public'] as bool? ?? true,
+    shareHikes: j['share_hikes'] as bool?,
     friendRequests: (j['friend_requests'] as num?)?.toInt() ?? 0,
   );
   final String id, username;
@@ -81,6 +83,9 @@ class Me {
 
   /// Found by the user search; a private profile is seen by friends only.
   final bool profilePublic;
+
+  /// Friends see one's hikes in their news; null from older servers.
+  final bool? shareHikes;
 
   /// Friend requests waiting for an answer.
   final int friendRequests;
@@ -1079,10 +1084,13 @@ class Grant {
   final String username, displayName, email;
 }
 
-/// A public route or journey of someone the user follows.
+/// Something in the user's news: a route or journey someone published, a
+/// friend's hike or a comment on one's own.
 class FeedItem {
   FeedItem.fromJson(Map<String, dynamic> j)
     : kind = j['kind'] as String,
+      // Older servers send published routes and journeys only.
+      target = j['target'] as String? ?? j['kind'] as String,
       id = j['id'] as String,
       title = j['title'] as String,
       owner = j['owner_username'] as String,
@@ -1093,11 +1101,28 @@ class FeedItem {
       durationS = (j['duration_s'] as num).toInt(),
       sacGrade = (j['sac_grade'] as num).toInt(),
       sacMax = (j['sac_max'] as num).toInt(),
-      stages = (j['stages'] as num?)?.toInt() ?? 0;
+      stages = (j['stages'] as num?)?.toInt() ?? 0,
+      doneOn = j['done_on'] as String?,
+      excerpt = j['excerpt'] as String? ?? '';
 
-  /// route or journey.
-  final String kind, id, title, owner, ownerName;
+  /// route, journey (published), hike or comment.
+  final String kind;
+
+  /// What it is about: route or journey.
+  final String target;
+
+  /// Empty for a hike on something the user may not see, with the title.
+  final String id, title;
+
+  /// Who published, hiked or commented.
+  final String owner, ownerName;
+
+  /// When it happened; a hike's day is [doneOn].
   final DateTime publishedAt;
+  final String? doneOn;
+
+  /// A comment's beginning.
+  final String excerpt;
   final double distanceM, ascentM;
   final int durationS, sacGrade, sacMax, stages;
 }
@@ -1973,6 +1998,7 @@ class Api {
     bool? notifyFollows,
     double? speedFactor,
     bool? profilePublic,
+    bool? shareHikes,
   }) async {
     final me = Me.fromJson(
       await _send('PATCH', '/me', {
@@ -1981,6 +2007,7 @@ class Api {
             'notify_follows': ?notifyFollows,
             'speed_factor': ?speedFactor,
             'profile_public': ?profilePublic,
+            'share_hikes': ?shareHikes,
           })
           as Map<String, dynamic>,
     );
@@ -2197,8 +2224,7 @@ class Api {
   /// first; [before] the previous page's next.
   Future<FeedPage> feed({DateTime? before}) async {
     final j =
-        await _get('/feed', before == null ? null : {'before': before.toUtc().toIso8601String()})
-            as Map<String, dynamic>;
+        await _get('/feed', {'activity': 'true', 'before': ?before?.toUtc().toIso8601String()}) as Map<String, dynamic>;
     return (
       items: [for (final i in j['items'] as List) FeedItem.fromJson(i as Map<String, dynamic>)],
       next: switch (j['next']) {

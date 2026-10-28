@@ -866,13 +866,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myMapEmpty => 'Nothing in this view matches the filters.';
 
   @override
-  String get feedIntro => 'New public hikes of the people you follow.';
+  String get feedIntro =>
+      'What your friends hike and publish, new hikes of the people you follow, and comments on your hikes.';
 
   @override
-  String get feedEmpty => 'Nothing yet – follow people whose tours interest you. You find them under Discover.';
+  String get feedEmpty => 'Nothing yet. Add friends or follow people whose hikes interest you.';
 
   @override
   String get feedMore => 'Load older';
+
+  @override
+  String get feedHiked => 'went hiking';
+
+  @override
+  String get feedPublishedRoute => 'published a route';
+
+  @override
+  String get feedPublishedJourney => 'published a journey';
+
+  @override
+  String get feedCommented => 'commented';
+
+  @override
+  String get feedHikePrivate => 'A route of their own';
 
   @override
   String profileSince(String date) {
@@ -1853,6 +1869,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePublicHint => 'Others find you in the search. A private profile is seen by your friends only.';
 
   @override
+  String get shareHikes => 'Share hikes with friends';
+
+  @override
+  String get shareHikesHint => 'Your friends see in their news when you went hiking, with distance and time.';
+
+  @override
   String get doneMark => 'Mark as hiked';
 
   @override
@@ -2082,14 +2104,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discoverPeaksHint => 'Camera on the horizon';
 
   @override
-  String get discoverFollowing => 'From people you follow';
+  String get discoverFollowing => 'News';
 
   @override
   String get discoverAll => 'All';
 
   @override
-  String get discoverFollowingEmpty =>
-      'Nothing yet from people you follow. Follow friends to see their new tours here.';
+  String get discoverFollowingEmpty => 'Nothing yet. Add friends or follow people whose hikes interest you.';
 
   @override
   String get discoverNearby => 'Near you';

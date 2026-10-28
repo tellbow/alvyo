@@ -59,7 +59,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, username, display_name, password_hash, locale)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token
+RETURNING id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token, share_hikes
 `
 
 type CreateUserParams struct {
@@ -95,6 +95,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.NotifyFollows,
 		&i.ProfilePublic,
 		&i.FriendToken,
+		&i.ShareHikes,
 	)
 	return i, err
 }
@@ -143,7 +144,7 @@ func (q *Queries) ExtendSession(ctx context.Context, arg ExtendSessionParams) er
 }
 
 const getSessionUser = `-- name: GetSessionUser :one
-SELECT users.id, users.email, users.email_verified_at, users.password_hash, users.username, users.display_name, users.locale, users.speed_factor, users.role, users.banned_at, users.created_at, users.notify_comments, users.notify_follows, users.profile_public, users.friend_token, sessions.expires_at AS session_expires_at
+SELECT users.id, users.email, users.email_verified_at, users.password_hash, users.username, users.display_name, users.locale, users.speed_factor, users.role, users.banned_at, users.created_at, users.notify_comments, users.notify_follows, users.profile_public, users.friend_token, users.share_hikes, sessions.expires_at AS session_expires_at
 FROM sessions JOIN users ON users.id = sessions.user_id
 WHERE sessions.token_hash = $1 AND sessions.expires_at > now()
 `
@@ -172,13 +173,14 @@ func (q *Queries) GetSessionUser(ctx context.Context, tokenHash []byte) (GetSess
 		&i.User.NotifyFollows,
 		&i.User.ProfilePublic,
 		&i.User.FriendToken,
+		&i.User.ShareHikes,
 		&i.SessionExpiresAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token FROM users WHERE email = $1
+SELECT id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token, share_hikes FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -200,12 +202,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.NotifyFollows,
 		&i.ProfilePublic,
 		&i.FriendToken,
+		&i.ShareHikes,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token FROM users WHERE id = $1
+SELECT id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token, share_hikes FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -227,12 +230,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.NotifyFollows,
 		&i.ProfilePublic,
 		&i.FriendToken,
+		&i.ShareHikes,
 	)
 	return i, err
 }
 
 const getUserByLogin = `-- name: GetUserByLogin :one
-SELECT id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token FROM users WHERE email = $1 OR username = $1
+SELECT id, email, email_verified_at, password_hash, username, display_name, locale, speed_factor, role, banned_at, created_at, notify_comments, notify_follows, profile_public, friend_token, share_hikes FROM users WHERE email = $1 OR username = $1
 `
 
 // Login accepts either the e-mail address or the username (both citext).
@@ -255,6 +259,7 @@ func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error
 		&i.NotifyFollows,
 		&i.ProfilePublic,
 		&i.FriendToken,
+		&i.ShareHikes,
 	)
 	return i, err
 }

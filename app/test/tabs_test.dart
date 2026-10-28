@@ -12,6 +12,7 @@ import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/navigation/gps.dart';
 import 'package:alvyo/screens/discover_tab.dart';
+import 'package:alvyo/screens/feed_tab.dart';
 import 'package:alvyo/screens/plan_tab.dart';
 import 'package:alvyo/screens/tours_tab.dart';
 
@@ -202,6 +203,61 @@ void main() {
     await until(tester, find.text('1408 m'));
     expect(find.text('1408 m'), findsOneWidget);
     expect(find.text('Feed 0'), findsNothing);
+  });
+
+  testWidgets('Neuigkeiten: a friend\'s hikes, one on a route one may not see, and a comment', (tester) async {
+    Uri? asked;
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        asked = req.url;
+        return _json({
+          'items': [
+            {
+              'kind': 'comment',
+              'target': 'route',
+              'id': 'r1',
+              'title': 'Rundweg',
+              'owner_username': 'tom',
+              'owner_name': 'Tom Huber',
+              'published_at': '2026-10-28T10:00:00Z',
+              ..._totals,
+              'excerpt': 'Wie steil ist der Grat?',
+            },
+            {
+              'kind': 'hike',
+              'target': 'route',
+              'id': 'r2',
+              'title': 'Höhenweg',
+              'owner_username': 'bea',
+              'owner_name': 'Bea Keller',
+              'published_at': '2026-10-28T09:00:00Z',
+              'done_on': '2026-10-27',
+              ..._totals,
+            },
+            {
+              'kind': 'hike',
+              'target': 'route',
+              'id': '',
+              'title': '',
+              'owner_username': 'bea',
+              'owner_name': 'Bea Keller',
+              'published_at': '2026-10-27T09:00:00Z',
+              'done_on': '2026-10-25',
+              ..._totals,
+            },
+          ],
+        });
+      }),
+    );
+    await tester.pumpWidget(_app(Scaffold(body: FeedTab(api: api))));
+    await until(tester, find.text('Höhenweg'));
+    expect(asked?.queryParameters['activity'], 'true');
+    expect(find.text('«Wie steil ist der Grat?»'), findsOneWidget);
+    expect(find.textContaining('ist gewandert'), findsNWidgets(2));
+    expect(find.textContaining('27.10.2026'), findsOneWidget); // the day hiked, not when marked
+    expect(find.text('Eine eigene Route'), findsOneWidget);
   });
 
   group('Entdecken without a position', () {

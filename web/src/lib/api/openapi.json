@@ -1648,18 +1648,29 @@
             "format": "double",
             "type": "number"
           },
+          "done_on": {
+            "description": "Hikes: the day",
+            "format": "date",
+            "type": "string"
+          },
           "duration_s": {
             "format": "int64",
             "type": "integer"
           },
+          "excerpt": {
+            "description": "Comments: the beginning",
+            "type": "string"
+          },
           "id": {
-            "format": "uuid",
+            "description": "The route's or journey's id; empty for a hike on one the user may not see",
             "type": "string"
           },
           "kind": {
             "enum": [
               "route",
-              "journey"
+              "journey",
+              "hike",
+              "comment"
             ],
             "type": "string"
           },
@@ -1667,9 +1678,11 @@
             "type": "string"
           },
           "owner_username": {
+            "description": "Who did it: published, hiked or commented",
             "type": "string"
           },
           "published_at": {
+            "description": "When it happened",
             "format": "date-time",
             "type": "string"
           },
@@ -1686,12 +1699,22 @@
             "format": "int64",
             "type": "integer"
           },
+          "target": {
+            "description": "What the item is about",
+            "enum": [
+              "route",
+              "journey"
+            ],
+            "type": "string"
+          },
           "title": {
+            "description": "Empty with the id",
             "type": "string"
           }
         },
         "required": [
           "kind",
+          "target",
           "id",
           "title",
           "owner_username",
@@ -3163,6 +3186,10 @@
             ],
             "type": "string"
           },
+          "share_hikes": {
+            "description": "Friends see my hikes in their news",
+            "type": "boolean"
+          },
           "speed_factor": {
             "description": "Personal pace multiplier applied to hiking times",
             "format": "float",
@@ -3186,6 +3213,7 @@
           "notify_comments",
           "notify_follows",
           "profile_public",
+          "share_hikes",
           "friend_requests"
         ],
         "type": "object"
@@ -5109,6 +5137,10 @@
           },
           "profile_public": {
             "description": "Found by the user search; else seen by friends only",
+            "type": "boolean"
+          },
+          "share_hikes": {
+            "description": "Friends see my hikes in their news",
             "type": "boolean"
           },
           "speed_factor": {
@@ -8275,6 +8307,16 @@
               "format": "date-time",
               "type": "string"
             }
+          },
+          {
+            "description": "Also friends' publications and hikes, and comments on my items",
+            "explode": false,
+            "in": "query",
+            "name": "activity",
+            "schema": {
+              "description": "Also friends' publications and hikes, and comments on my items",
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -8299,7 +8341,7 @@
             "description": "Error"
           }
         },
-        "summary": "Public routes and journeys of the people I follow, newest first",
+        "summary": "My news: public routes and journeys of the people I follow, with activity also my friends' and their hikes, and comments on mine",
         "tags": [
           "community"
         ]

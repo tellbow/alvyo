@@ -1657,13 +1657,13 @@ abstract class AppLocalizations {
   /// No description provided for @feedIntro.
   ///
   /// In de, this message translates to:
-  /// **'Neue öffentliche Touren der Leute, denen du folgst.'**
+  /// **'Was deine Freunde wandern und veröffentlichen, neue Touren der Leute, denen du folgst, und Kommentare zu deinen Touren.'**
   String get feedIntro;
 
   /// No description provided for @feedEmpty.
   ///
   /// In de, this message translates to:
-  /// **'Noch nichts – folge Leuten, deren Touren dich interessieren. Du findest sie beim Entdecken.'**
+  /// **'Noch nichts. Füge Freunde hinzu oder folge Leuten, deren Touren dich interessieren.'**
   String get feedEmpty;
 
   /// No description provided for @feedMore.
@@ -1671,6 +1671,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ältere laden'**
   String get feedMore;
+
+  /// No description provided for @feedHiked.
+  ///
+  /// In de, this message translates to:
+  /// **'ist gewandert'**
+  String get feedHiked;
+
+  /// No description provided for @feedPublishedRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'hat eine Route veröffentlicht'**
+  String get feedPublishedRoute;
+
+  /// No description provided for @feedPublishedJourney.
+  ///
+  /// In de, this message translates to:
+  /// **'hat eine Etappentour veröffentlicht'**
+  String get feedPublishedJourney;
+
+  /// No description provided for @feedCommented.
+  ///
+  /// In de, this message translates to:
+  /// **'hat kommentiert'**
+  String get feedCommented;
+
+  /// No description provided for @feedHikePrivate.
+  ///
+  /// In de, this message translates to:
+  /// **'Eine eigene Route'**
+  String get feedHikePrivate;
 
   /// No description provided for @profileSince.
   ///
@@ -3460,6 +3490,18 @@ abstract class AppLocalizations {
   /// **'Andere finden dich in der Suche. Ein privates Profil sehen nur deine Freunde.'**
   String get profilePublicHint;
 
+  /// No description provided for @shareHikes.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderungen mit Freunden teilen'**
+  String get shareHikes;
+
+  /// No description provided for @shareHikesHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Deine Freunde sehen in ihren Neuigkeiten, wann du gewandert bist, mit Länge und Zeit.'**
+  String get shareHikesHint;
+
   /// No description provided for @doneMark.
   ///
   /// In de, this message translates to:
@@ -3889,7 +3931,7 @@ abstract class AppLocalizations {
   /// No description provided for @discoverFollowing.
   ///
   /// In de, this message translates to:
-  /// **'Von Leuten, denen du folgst'**
+  /// **'Neuigkeiten'**
   String get discoverFollowing;
 
   /// No description provided for @discoverAll.
@@ -3901,7 +3943,7 @@ abstract class AppLocalizations {
   /// No description provided for @discoverFollowingEmpty.
   ///
   /// In de, this message translates to:
-  /// **'Noch nichts von Leuten, denen du folgst. Folge Freunden, um ihre neuen Touren hier zu sehen.'**
+  /// **'Noch nichts. Füge Freunde hinzu oder folge Leuten, deren Touren dich interessieren.'**
   String get discoverFollowingEmpty;
 
   /// No description provided for @discoverNearby.

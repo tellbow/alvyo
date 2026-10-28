@@ -6,6 +6,7 @@ import 'error_state.dart';
 import '../analytics.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
+import 'feed_tab.dart';
 import 'friends_screen.dart';
 import 'item_card.dart';
 import 'outline.dart';
@@ -121,7 +122,7 @@ class _UserScreenState extends State<UserScreen> {
                                 radius: 30,
                                 backgroundColor: theme.colorScheme.primaryContainer,
                                 child: Text(
-                                  _initials(p.displayName),
+                                  initials(p.displayName),
                                   style: theme.textTheme.titleLarge?.copyWith(
                                     color: theme.colorScheme.primary,
                                     fontWeight: FontWeight.w700,
@@ -220,9 +221,6 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 }
-
-String _initials(String name) =>
-    name.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).take(2).map((w) => w.characters.first.toUpperCase()).join();
 
 Widget? _outline(Profile p, String id) => switch (p.outlines[id]) {
   final lines? when lines.isNotEmpty => Padding(padding: const EdgeInsets.only(left: 8), child: Outline(lines)),

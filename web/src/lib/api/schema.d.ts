@@ -486,7 +486,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Public routes and journeys of the people I follow, newest first */
+        /** My news: public routes and journeys of the people I follow, with activity also my friends' and their hikes, and comments on mine */
         get: operations["get-feed"];
         put?: never;
         post?: never;
@@ -3188,15 +3188,26 @@ export interface components {
             ascent_m: number;
             /** Format: double */
             distance_m: number;
+            /**
+             * Format: date
+             * @description Hikes: the day
+             */
+            done_on?: string;
             /** Format: int64 */
             duration_s: number;
-            /** Format: uuid */
+            /** @description Comments: the beginning */
+            excerpt?: string;
+            /** @description The route's or journey's id; empty for a hike on one the user may not see */
             id: string;
             /** @enum {string} */
-            kind: "route" | "journey";
+            kind: "route" | "journey" | "hike" | "comment";
             owner_name: string;
+            /** @description Who did it: published, hiked or commented */
             owner_username: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description When it happened
+             */
             published_at: string;
             /** Format: int64 */
             sac_grade: number;
@@ -3207,6 +3218,12 @@ export interface components {
              * @description Journeys only
              */
             stages: number;
+            /**
+             * @description What the item is about
+             * @enum {string}
+             */
+            target: "route" | "journey";
+            /** @description Empty with the id */
             title: string;
         };
         FeedOutputBody: {
@@ -3666,6 +3683,8 @@ export interface components {
             profile_public: boolean;
             /** @enum {string} */
             role: "user" | "moderator" | "admin";
+            /** @description Friends see my hikes in their news */
+            share_hikes: boolean;
             /**
              * Format: float
              * @description Personal pace multiplier applied to hiking times
@@ -4289,6 +4308,8 @@ export interface components {
             notify_follows?: boolean;
             /** @description Found by the user search; else seen by friends only */
             profile_public?: boolean;
+            /** @description Friends see my hikes in their news */
+            share_hikes?: boolean;
             /**
              * Format: double
              * @description Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)
@@ -5851,6 +5872,8 @@ export interface operations {
             query?: {
                 /** @description Continue after this published_at (from the previous page) */
                 before?: string;
+                /** @description Also friends' publications and hikes, and comments on my items */
+                activity?: boolean;
             };
             header?: never;
             path?: never;

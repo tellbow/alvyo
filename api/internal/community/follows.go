@@ -125,46 +125,102 @@ func (s *Store) Blocked(ctx context.Context, blocker uuid.UUID) ([]UserRef, erro
 	return out, rows.Err()
 }
 
-// FeedItem is a route or journey someone the user follows published.
+// FeedItem is something in the user's news: a route or journey someone
+// published, or (with activity) a friend's hike or a comment on one's own
+// item.
 type FeedItem struct {
-	Kind          string    `json:"kind" enum:"route,journey"`
-	ID            string    `json:"id" format:"uuid"`
-	Title         string    `json:"title"`
-	OwnerUsername string    `json:"owner_username"`
+	Kind          string    `json:"kind" enum:"route,journey,hike,comment"`
+	Target        string    `json:"target" enum:"route,journey" doc:"What the item is about"`
+	ID            string    `json:"id" doc:"The route's or journey's id; empty for a hike on one the user may not see"`
+	Title         string    `json:"title" doc:"Empty with the id"`
+	OwnerUsername string    `json:"owner_username" doc:"Who did it: published, hiked or commented"`
 	OwnerName     string    `json:"owner_name"`
-	PublishedAt   time.Time `json:"published_at"`
+	PublishedAt   time.Time `json:"published_at" doc:"When it happened"`
 	DistanceM     float64   `json:"distance_m"`
 	AscentM       float64   `json:"ascent_m"`
 	DurationS     int       `json:"duration_s"`
 	SACGrade      int       `json:"sac_grade"`
 	SACMax        int       `json:"sac_max"`
 	Stages        int       `json:"stages" doc:"Journeys only"`
+	DoneOn        *string   `json:"done_on,omitempty" format:"date" doc:"Hikes: the day"`
+	Excerpt       string    `json:"excerpt,omitempty" doc:"Comments: the beginning"`
 }
 
-// Feed returns what the people user follows published before before,
-// newest first.
-func (s *Store) Feed(ctx context.Context, user uuid.UUID, before time.Time, limit int) ([]FeedItem, error) {
-	rows, err := s.DB.Query(ctx, `SELECT * FROM (
-		SELECT 'route' AS kind, r.id, r.title, u.username, u.display_name, r.published_at,
-			r.distance_m::float8, r.ascent_m::float8, r.duration_s, r.sac_grade::int, r.sac_max::int, 0
-		FROM follows f
-		JOIN users u ON u.id = f.followed_id AND u.banned_at IS NULL
-		JOIN routes r ON r.owner_id = f.followed_id AND r.visibility = 'public' AND r.journey_id IS NULL
-		WHERE f.follower_id = $1 AND r.published_at < $2
+// A journey's totals over its stage routes, for j.
+const journeySums = `CROSS JOIN LATERAL (
+	SELECT count(st.id)::int AS stages, coalesce(sum(sr.distance_m), 0)::float8 AS distance_m,
+		coalesce(sum(sr.ascent_m), 0)::float8 AS ascent_m, coalesce(sum(sr.duration_s), 0)::int AS duration_s,
+		coalesce(max(sr.sac_grade), 0)::int AS sac_grade, coalesce(max(sr.sac_max), 0)::int AS sac_max
+	FROM stages st LEFT JOIN routes sr ON sr.id = st.route_id WHERE st.journey_id = j.id
+) js`
+
+// What $1 may see without a link: their own, public ones and those shared
+// with them (a stage route through its journey).
+const (
+	seesRoute = `(r.owner_id = $1 OR CASE WHEN r.journey_id IS NULL THEN r.visibility = 'public' ELSE
+		EXISTS (SELECT FROM journeys rj WHERE rj.id = r.journey_id AND (rj.owner_id = $1 OR rj.visibility = 'public'))
+		OR EXISTS (SELECT FROM grants g WHERE g.journey_id = r.journey_id AND g.user_id = $1) END
+		OR EXISTS (SELECT FROM grants g WHERE g.route_id = r.id AND g.user_id = $1))`
+	seesJourney = `(j.owner_id = $1 OR j.visibility = 'public'
+		OR EXISTS (SELECT FROM grants g WHERE g.journey_id = j.id AND g.user_id = $1))`
+)
+
+// Feed returns the user's news from before before, newest first: what the
+// people they follow published; with activity also what their friends
+// published and hiked (unless they switched that off) and comments on the
+// user's routes and journeys. Nothing from banned users or across a block.
+func (s *Store) Feed(ctx context.Context, user uuid.UUID, before time.Time, limit int, activity bool) ([]FeedItem, error) {
+	rows, err := s.DB.Query(ctx, `WITH friends AS (
+		SELECT CASE WHEN f.requester_id = $1 THEN f.addressee_id ELSE f.requester_id END AS id
+		FROM friendships f WHERE f.accepted_at IS NOT NULL AND $4 AND (f.requester_id = $1 OR f.addressee_id = $1)
+	), people AS (
+		SELECT followed_id AS id FROM follows WHERE follower_id = $1 UNION SELECT id FROM friends
+	), apart AS (
+		SELECT blocked_id AS id FROM blocks WHERE blocker_id = $1 UNION SELECT blocker_id FROM blocks WHERE blocked_id = $1
+	), actors AS (
+		SELECT u.id, u.username, u.display_name, u.share_hikes AND u.id IN (SELECT id FROM friends) AS hikes
+		FROM users u WHERE u.banned_at IS NULL AND u.id NOT IN (SELECT id FROM apart)
+	)
+	SELECT * FROM (
+		SELECT 'route' AS kind, 'route' AS target, r.id, r.title, a.username, a.display_name, r.published_at AS at,
+			r.distance_m::float8, r.ascent_m::float8, r.duration_s, r.sac_grade::int, r.sac_max::int, 0, NULL::date, ''
+		FROM people p JOIN actors a ON a.id = p.id
+		JOIN routes r ON r.owner_id = p.id AND r.visibility = 'public' AND r.journey_id IS NULL
+		WHERE r.published_at < $2
 		UNION ALL
-		SELECT 'journey', j.id, j.title, u.username, u.display_name, j.published_at,
-			js.distance_m, js.ascent_m, js.duration_s, js.sac_grade, js.sac_max, js.stages
-		FROM follows f
-		JOIN users u ON u.id = f.followed_id AND u.banned_at IS NULL
-		JOIN journeys j ON j.owner_id = f.followed_id AND j.visibility = 'public'
-		CROSS JOIN LATERAL (
-			SELECT count(st.id)::int AS stages, coalesce(sum(sr.distance_m), 0)::float8 AS distance_m,
-				coalesce(sum(sr.ascent_m), 0)::float8 AS ascent_m, coalesce(sum(sr.duration_s), 0)::int AS duration_s,
-				coalesce(max(sr.sac_grade), 0)::int AS sac_grade, coalesce(max(sr.sac_max), 0)::int AS sac_max
-			FROM stages st LEFT JOIN routes sr ON sr.id = st.route_id WHERE st.journey_id = j.id
-		) js
-		WHERE f.follower_id = $1 AND j.published_at < $2
-	) feed ORDER BY published_at DESC, id LIMIT $3`, user, before, limit)
+		SELECT 'journey', 'journey', j.id, j.title, a.username, a.display_name, j.published_at,
+			js.distance_m, js.ascent_m, js.duration_s, js.sac_grade, js.sac_max, js.stages, NULL, ''
+		FROM people p JOIN actors a ON a.id = p.id
+		JOIN journeys j ON j.owner_id = p.id AND j.visibility = 'public' `+journeySums+`
+		WHERE j.published_at < $2
+		UNION ALL
+		-- Hikes: marked as hiked, or recorded in the app.
+		SELECT 'hike', 'route', CASE WHEN `+seesRoute+` THEN r.id END, CASE WHEN `+seesRoute+` THEN r.title ELSE '' END,
+			a.username, a.display_name, d.created_at,
+			r.distance_m::float8, r.ascent_m::float8, r.duration_s, r.sac_grade::int, r.sac_max::int, 0, d.done_on, ''
+		FROM actors a JOIN done_marks d ON d.user_id = a.id JOIN routes r ON r.id = d.route_id
+		WHERE a.hikes AND d.created_at < $2
+		UNION ALL
+		SELECT 'hike', 'journey', CASE WHEN `+seesJourney+` THEN j.id END, CASE WHEN `+seesJourney+` THEN j.title ELSE '' END,
+			a.username, a.display_name, d.created_at,
+			js.distance_m, js.ascent_m, js.duration_s, js.sac_grade, js.sac_max, js.stages, d.done_on, ''
+		FROM actors a JOIN done_marks d ON d.user_id = a.id JOIN journeys j ON j.id = d.journey_id `+journeySums+`
+		WHERE a.hikes AND d.created_at < $2
+		UNION ALL
+		SELECT 'hike', 'route', CASE WHEN `+seesRoute+` THEN r.id END, CASE WHEN `+seesRoute+` THEN r.title ELSE '' END,
+			a.username, a.display_name, r.hiked_at,
+			r.distance_m::float8, r.ascent_m::float8, r.duration_s, r.sac_grade::int, r.sac_max::int, 0,
+			(r.hiked_at AT TIME ZONE 'Europe/Zurich')::date, ''
+		FROM actors a JOIN routes r ON r.owner_id = a.id AND r.source = 'recorded'
+		WHERE a.hikes AND r.hiked_at < $2
+		UNION ALL
+		-- On the user's own routes and journeys.
+		SELECT 'comment', CASE WHEN c.route_id IS NULL THEN 'journey' ELSE 'route' END, coalesce(c.route_id, c.journey_id),
+			coalesce(r.title, j.title), a.username, a.display_name, c.created_at, 0, 0, 0, 0, 0, 0, NULL, left(c.body, 160)
+		FROM comments c JOIN actors a ON a.id = c.author_id
+		LEFT JOIN routes r ON r.id = c.route_id LEFT JOIN journeys j ON j.id = c.journey_id
+		WHERE $4 AND c.author_id <> $1 AND coalesce(r.owner_id, j.owner_id) = $1 AND c.created_at < $2
+	) feed WHERE $4 OR kind IN ('route', 'journey') ORDER BY at DESC, id LIMIT $3`, user, before, limit, activity)
 	if err != nil {
 		return nil, fmt.Errorf("community: feed: %w", err)
 	}
@@ -172,12 +228,19 @@ func (s *Store) Feed(ctx context.Context, user uuid.UUID, before time.Time, limi
 	out := []FeedItem{}
 	for rows.Next() {
 		var it FeedItem
-		var id uuid.UUID
-		if err := rows.Scan(&it.Kind, &id, &it.Title, &it.OwnerUsername, &it.OwnerName, &it.PublishedAt,
-			&it.DistanceM, &it.AscentM, &it.DurationS, &it.SACGrade, &it.SACMax, &it.Stages); err != nil {
+		var id *uuid.UUID
+		var doneOn *time.Time
+		if err := rows.Scan(&it.Kind, &it.Target, &id, &it.Title, &it.OwnerUsername, &it.OwnerName, &it.PublishedAt,
+			&it.DistanceM, &it.AscentM, &it.DurationS, &it.SACGrade, &it.SACMax, &it.Stages, &doneOn, &it.Excerpt); err != nil {
 			return nil, err
 		}
-		it.ID = id.String()
+		if id != nil {
+			it.ID = id.String()
+		}
+		if doneOn != nil {
+			d := doneOn.Format(time.DateOnly)
+			it.DoneOn = &d
+		}
 		out = append(out, it)
 	}
 	return out, rows.Err()

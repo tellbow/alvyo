@@ -870,13 +870,29 @@ class AppLocalizationsDe extends AppLocalizations {
   String get myMapEmpty => 'In diesem Ausschnitt passt nichts zu den Filtern.';
 
   @override
-  String get feedIntro => 'Neue öffentliche Touren der Leute, denen du folgst.';
+  String get feedIntro =>
+      'Was deine Freunde wandern und veröffentlichen, neue Touren der Leute, denen du folgst, und Kommentare zu deinen Touren.';
 
   @override
-  String get feedEmpty => 'Noch nichts – folge Leuten, deren Touren dich interessieren. Du findest sie beim Entdecken.';
+  String get feedEmpty => 'Noch nichts. Füge Freunde hinzu oder folge Leuten, deren Touren dich interessieren.';
 
   @override
   String get feedMore => 'Ältere laden';
+
+  @override
+  String get feedHiked => 'ist gewandert';
+
+  @override
+  String get feedPublishedRoute => 'hat eine Route veröffentlicht';
+
+  @override
+  String get feedPublishedJourney => 'hat eine Etappentour veröffentlicht';
+
+  @override
+  String get feedCommented => 'hat kommentiert';
+
+  @override
+  String get feedHikePrivate => 'Eine eigene Route';
 
   @override
   String profileSince(String date) {
@@ -1861,6 +1877,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profilePublicHint => 'Andere finden dich in der Suche. Ein privates Profil sehen nur deine Freunde.';
 
   @override
+  String get shareHikes => 'Wanderungen mit Freunden teilen';
+
+  @override
+  String get shareHikesHint => 'Deine Freunde sehen in ihren Neuigkeiten, wann du gewandert bist, mit Länge und Zeit.';
+
+  @override
   String get doneMark => 'Als gewandert markieren';
 
   @override
@@ -2090,14 +2112,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get discoverPeaksHint => 'Kamera auf den Horizont';
 
   @override
-  String get discoverFollowing => 'Von Leuten, denen du folgst';
+  String get discoverFollowing => 'Neuigkeiten';
 
   @override
   String get discoverAll => 'Alle';
 
   @override
   String get discoverFollowingEmpty =>
-      'Noch nichts von Leuten, denen du folgst. Folge Freunden, um ihre neuen Touren hier zu sehen.';
+      'Noch nichts. Füge Freunde hinzu oder folge Leuten, deren Touren dich interessieren.';
 
   @override
   String get discoverNearby => 'In deiner Nähe';

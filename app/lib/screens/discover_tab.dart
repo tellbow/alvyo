@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 
 import '../errors.dart';
 import '../api.dart';
-import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/gps.dart';
 import 'discover_screen.dart';
@@ -242,21 +241,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
             }
             return Column(
               children: [
-                for (final i in snap.data!.take(_shown))
-                  OtherTile(
-                    key: Key('feed-${i.id}'),
-                    journey: i.kind == 'journey',
-                    title: i.title,
-                    owner: i.ownerName,
-                    extra: formatDate(i.publishedAt),
-                    distanceM: i.distanceM,
-                    durationS: i.durationS,
-                    ascentM: i.ascentM,
-                    sacGrade: i.sacGrade,
-                    sacMax: i.sacMax,
-                    stages: i.stages,
-                    onTap: () => openItem(context, widget.api, journey: i.kind == 'journey', id: i.id, title: i.title),
-                  ),
+                for (final (n, i) in snap.data!.take(_shown).indexed)
+                  FeedEntry(key: Key('feed-$n'), api: widget.api, item: i),
               ],
             );
           },

@@ -571,6 +571,7 @@ type User struct {
 	NotifyFollows   bool
 	ProfilePublic   bool
 	FriendToken     *string
+	ShareHikes      bool
 }
 
 type WanderlandImport struct {

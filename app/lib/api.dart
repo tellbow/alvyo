@@ -1118,7 +1118,15 @@ class Profile {
       blocked = j['blocked'] as bool,
       friend = j['friend'] as String? ?? 'none',
       routes = [for (final r in j['routes'] as List) RouteSummary.fromJson(r as Map<String, dynamic>)],
-      journeys = [for (final r in j['journeys'] as List) JourneySummary.fromJson(r as Map<String, dynamic>)];
+      journeys = [for (final r in j['journeys'] as List) JourneySummary.fromJson(r as Map<String, dynamic>)],
+      // Missing from older servers.
+      outlines = {
+        for (final MapEntry(:key, :value) in (j['outlines'] as Map<String, dynamic>? ?? const {}).entries)
+          key: [
+            for (final line in value as List)
+              [for (final p in line as List) (lon: ((p as List)[0] as num).toDouble(), lat: (p[1] as num).toDouble())],
+          ],
+      };
   final String username, displayName;
 
   /// The month the account was made, e.g. 2026-09.
@@ -1135,6 +1143,9 @@ class Profile {
   final String friend;
   final List<RouteSummary> routes;
   final List<JourneySummary> journeys;
+
+  /// The lines of each route and journey by its id, for a thumbnail.
+  final Map<String, List<List<LonLat>>> outlines;
 }
 
 /// Someone the user blocked.

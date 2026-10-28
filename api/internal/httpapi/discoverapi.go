@@ -62,11 +62,12 @@ type profileInput struct {
 
 type profileOutput struct {
 	Body struct {
-		Username    string             `json:"username"`
-		DisplayName string             `json:"display_name"`
-		Since       time.Time          `json:"since" doc:"Month the account was created"`
-		Routes      []routes.Summary   `json:"routes"`
-		Journeys    []journeys.Summary `json:"journeys"`
+		Username    string                    `json:"username"`
+		DisplayName string                    `json:"display_name"`
+		Since       time.Time                 `json:"since" doc:"Month the account was created"`
+		Routes      []routes.Summary          `json:"routes"`
+		Journeys    []journeys.Summary        `json:"journeys"`
+		Outlines    map[string][][][2]float64 `json:"outlines" doc:"The (lon, lat) lines of each public route and journey by its id, simplified for a thumbnail"`
 		community.Relation
 		Self bool `json:"self" doc:"This is the viewer's own profile"`
 	}
@@ -166,6 +167,9 @@ func registerDiscover(api huma.API, d Deps) {
 			return nil, err
 		}
 		if out.Body.Journeys, err = d.Journeys.ListPublicByOwner(ctx, u.ID); err != nil {
+			return nil, err
+		}
+		if out.Body.Outlines, err = d.Discover.ProfileOutlines(ctx, u.ID); err != nil {
 			return nil, err
 		}
 		v, _, _ := communityViewer(ctx)

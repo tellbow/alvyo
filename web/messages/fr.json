@@ -453,14 +453,9 @@
 	"report_send": "Signaler",
 	"report_cancel": "Annuler",
 	"report_thanks": "Merci, nous allons regarder.",
-	"profile_followers": [
-		{
-			"declarations": ["input n", "local nPlural = n: plural"],
-			"selectors": ["nPlural"],
-			"match": { "nPlural=one": "{n} abonné", "nPlural=other": "{n} abonnés" }
-		}
-	],
-	"profile_following": "suit {n}",
+	"profile_edit": "Modifier le profil",
+	"profile_stat_followers": "Abonnés",
+	"profile_stat_following": "Abonnements",
 	"profile_follow": "Suivre",
 	"profile_unfollow": "Ne plus suivre",
 	"profile_block": "Bloquer",

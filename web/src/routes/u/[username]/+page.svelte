@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
+	import { actionButton, mainAction } from '#lib/components/actions.js';
+	import ShareButton from '#lib/components/ShareButton.svelte';
+	import TabBar from '#lib/components/TabBar.svelte';
 	import FriendButton from '#lib/community/FriendButton.svelte';
+	import { outline } from '#lib/discover/outline.js';
 	import ReportButton from '#lib/community/ReportButton.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import Seo from '#lib/seo/Seo.svelte';
@@ -37,6 +41,23 @@
 		if (r) relation = r;
 	}
 	const pace = $derived(data.user?.speed_factor ?? 1);
+
+	// No pictures yet: the first letters of the name.
+	const initials = $derived(
+		profile.display_name
+			.split(/\s+/)
+			.filter(Boolean)
+			.slice(0, 2)
+			.map((w) => w[0].toUpperCase())
+			.join('')
+	);
+	const tabs = $derived(
+		[
+			profile.routes.length ? { id: 'routes', label: m.profile_routes() } : undefined,
+			profile.journeys.length ? { id: 'journeys', label: m.nav_journeys() } : undefined
+		].filter((t) => t !== undefined)
+	);
+	let tab = $derived(profile.routes.length ? 'routes' : 'journeys');
 	const since = $derived(
 		new Intl.DateTimeFormat(intlLocale(), {
 			month: 'long',
@@ -55,103 +76,146 @@
 />
 
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
-	<h1 class="text-2xl font-semibold">{profile.display_name}</h1>
-	<p class="mt-1 text-stone-600">@{profile.username} · {m.profile_since({ date: since })}</p>
-	<p class="mt-1 text-sm text-stone-600" data-testid="profile-counts">
-		{m.profile_followers({ n: relation.followers })} · {m.profile_following({
-			n: relation.following
-		})}
-	</p>
-	{#if data.user && !profile.self}
-		<div class="mt-4 flex flex-wrap items-center gap-3 text-sm">
-			{#if !relation.blocked}
+	<section class="rounded-xl border border-stone-200 bg-surface p-5 sm:p-6">
+		<div class="flex flex-wrap items-center gap-4">
+			<div
+				class="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent-soft font-display text-2xl font-bold text-accent-ink"
+				aria-hidden="true"
+			>
+				{initials}
+			</div>
+			<div class="min-w-0 flex-1">
+				<h1 class="text-2xl font-semibold">{profile.display_name}</h1>
+				<p class="text-stone-600">@{profile.username} · {m.profile_since({ date: since })}</p>
+			</div>
+			<div class="flex flex-wrap items-center gap-2 text-sm">
+				{#if profile.self}
+					<a href={resolve('/account')} class={actionButton}>{m.profile_edit()}</a>
+				{:else if data.user && !relation.blocked}
+					<button
+						type="button"
+						disabled={busy}
+						onclick={() => set('follow', !relation.followed)}
+						class={actionButton}
+					>
+						{relation.followed ? m.profile_unfollow() : m.profile_follow()}
+					</button>
+					{#key profile.username}
+						<FriendButton
+							username={profile.username}
+							friend={profile.friend}
+							primary={mainAction}
+						/>
+					{/key}
+				{/if}
+				<ShareButton title={profile.display_name} testid="profile-share" />
+			</div>
+		</div>
+
+		<dl class="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="profile-counts">
+			{#each [[m.profile_routes(), profile.routes.length], [m.nav_journeys(), profile.journeys.length], [m.profile_stat_followers(), relation.followers], [m.profile_stat_following(), relation.following]] as [label, n] (label)}
+				<div class="flex flex-col-reverse rounded-lg bg-stone-100 px-3 py-2">
+					<dt class="text-xs text-stone-600">{label}</dt>
+					<dd class="font-display text-xl font-semibold tabular-nums">{n}</dd>
+				</div>
+			{/each}
+		</dl>
+
+		{#if data.user && !profile.self}
+			<div class="mt-4 flex flex-wrap items-center gap-3 text-xs">
 				<button
 					type="button"
 					disabled={busy}
-					onclick={() => set('follow', !relation.followed)}
-					class={relation.followed
-						? 'rounded-md px-3 py-1.5 ring-1 ring-stone-300'
-						: 'rounded-md bg-accent px-3 py-1.5 text-on-accent hover:bg-accent-hover'}
+					class="text-stone-500 underline"
+					onclick={() => set('block', !relation.blocked)}
 				>
-					{relation.followed ? m.profile_unfollow() : m.profile_follow()}
+					{relation.blocked ? m.profile_unblock() : m.profile_block()}
 				</button>
-				{#key profile.username}
-					<FriendButton username={profile.username} friend={profile.friend} />
-				{/key}
+				<ReportButton target={{ kind: 'user', username: profile.username }} />
+			</div>
+			{#if relation.blocked}
+				<p class="mt-2 text-xs text-stone-500">{m.profile_blocked_note()}</p>
 			{/if}
-			<button
-				type="button"
-				disabled={busy}
-				class="text-stone-500 underline"
-				onclick={() => set('block', !relation.blocked)}
-			>
-				{relation.blocked ? m.profile_unblock() : m.profile_block()}
-			</button>
-			<ReportButton target={{ kind: 'user', username: profile.username }} />
-		</div>
-		{#if relation.blocked}
-			<p class="mt-2 text-xs text-stone-500">{m.profile_blocked_note()}</p>
 		{/if}
-	{/if}
+	</section>
 
-	{#if profile.journeys.length > 0}
-		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.nav_journeys()}</h2>
-		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
-			data-testid="profile-journeys"
-		>
-			{#each profile.journeys as j (j.id)}
-				<li>
-					<a
-						href={resolve('/journeys/[id]', { id: j.id })}
-						class="flex items-center gap-4 px-4 py-3 hover:bg-stone-50"
-					>
-						<span class="flex-1 font-medium">{j.title}</span>
-						<span class="text-sm text-stone-600">{m.collection_stages({ n: j.stages })}</span>
-						<span class="w-20 text-sm text-stone-600 tabular-nums"
-							>{formatDistance(j.distance_m)}</span
-						>
-						<span class="w-24 text-sm text-stone-600 tabular-nums"
-							>{formatDuration(j.duration_s, pace)}</span
-						>
-					</a>
-				</li>
-			{/each}
-		</ul>
+	{#snippet thumb(id: string)}
+		<svg width="100%" height="64" viewBox="0 0 280 64" aria-hidden="true" class="mb-3">
+			<path
+				d={outline(profile.outlines[id] ?? [], 280, 64, 4)}
+				fill="none"
+				class="stroke-accent"
+				stroke-width="2.5"
+				stroke-linejoin="round"
+				stroke-linecap="round"
+			/>
+		</svg>
+	{/snippet}
+
+	{#if tabs.length}
+		<!-- A card as the others: rounded and outlined, without the bar's own line. -->
+		<div class="mt-8 overflow-hidden rounded-xl border border-stone-200 [&>div]:border-b-0">
+			<TabBar {tabs} bind:current={tab} />
+		</div>
 	{/if}
 
 	{#if profile.routes.length > 0}
-		<h2 class="mt-8 mb-2 text-lg font-semibold">{m.profile_routes()}</h2>
-		<ul
-			class="divide-y divide-stone-200 rounded-md border border-stone-200 bg-surface"
-			data-testid="profile-routes"
+		<div role="tabpanel" id="pane-routes" aria-labelledby="tab-routes" hidden={tab !== 'routes'}>
+			<ul class="mt-4 grid gap-3 sm:grid-cols-2" data-testid="profile-routes">
+				{#each profile.routes as r (r.id)}
+					<li>
+						<a
+							href={resolve('/routes/[id]', { id: r.id })}
+							class="block h-full rounded-xl border border-stone-200 bg-surface p-4 hover:border-stone-300 hover:bg-stone-50"
+						>
+							{@render thumb(r.id)}
+							<div class="flex items-start gap-2">
+								<span class="min-w-0 flex-1 truncate font-semibold">{r.title}</span>
+								<span
+									class="shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold"
+									style:background={sacBackground(r.totals.sac_grade)}
+									style:color={sacInk(r.totals.sac_grade)}
+								>
+									{formatSAC(r.totals.sac_grade, r.totals.sac_max)}
+								</span>
+							</div>
+							<div class="mt-1 text-[13px] text-stone-600 tabular-nums">
+								{formatDistance(r.totals.distance_m)} · {formatDuration(r.totals.duration_s, pace)} ·
+								↑&nbsp;{formatHeight(r.totals.ascent_m)}
+							</div>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
+
+	{#if profile.journeys.length > 0}
+		<div
+			role="tabpanel"
+			id="pane-journeys"
+			aria-labelledby="tab-journeys"
+			hidden={tab !== 'journeys'}
 		>
-			{#each profile.routes as r (r.id)}
-				<li>
-					<a
-						href={resolve('/routes/[id]', { id: r.id })}
-						class="flex items-center gap-4 px-4 py-3 hover:bg-stone-50"
-					>
-						<span class="flex-1 font-medium">{r.title}</span>
-						<span class="text-sm text-stone-600 tabular-nums"
-							>{formatDistance(r.totals.distance_m)}</span
+			<ul class="mt-4 grid gap-3 sm:grid-cols-2" data-testid="profile-journeys">
+				{#each profile.journeys as j (j.id)}
+					<li>
+						<a
+							href={resolve('/journeys/[id]', { id: j.id })}
+							class="block h-full rounded-xl border border-stone-200 bg-surface p-4 hover:border-stone-300 hover:bg-stone-50"
 						>
-						<span class="w-24 text-sm text-stone-600 tabular-nums"
-							>{formatDuration(r.totals.duration_s, pace)}</span
-						>
-						<span class="w-20 text-sm text-stone-600 tabular-nums"
-							>↑&nbsp;{formatHeight(r.totals.ascent_m)}</span
-						>
-						<span
-							class="w-16 rounded px-1.5 py-0.5 text-center text-xs font-semibold"
-							style:background={sacBackground(r.totals.sac_grade)}
-							style:color={sacInk(r.totals.sac_grade)}
-						>
-							{formatSAC(r.totals.sac_grade, r.totals.sac_max)}
-						</span>
-					</a>
-				</li>
-			{/each}
-		</ul>
+							{@render thumb(j.id)}
+							<div class="truncate font-semibold">{j.title}</div>
+							<div class="mt-1 text-[13px] text-stone-600 tabular-nums">
+								{m.collection_stages({ n: j.stages })} · {formatDistance(j.distance_m)} · {formatDuration(
+									j.duration_s,
+									pace
+								)}
+							</div>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
 	{/if}
 </main>

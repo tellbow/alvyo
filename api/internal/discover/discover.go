@@ -222,6 +222,36 @@ func (s *Store) ProfileLines(ctx context.Context, user uuid.UUID) ([][][2]float6
 	return out, rows.Err()
 }
 
+// ProfileOutlines returns the (lon, lat) lines of a user's public routes and
+// public journeys by the item's id (a journey's of all its stages), as
+// others see them, simplified for a thumbnail.
+func (s *Store) ProfileOutlines(ctx context.Context, user uuid.UUID) (map[string][][][2]float64, error) {
+	rows, err := s.DB.Query(ctx, `SELECT coalesce(r.journey_id, r.id)::text,
+			ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(r.shown_geom), 0.0002)), 5)
+		FROM routes r LEFT JOIN journeys j ON j.id = r.journey_id
+		WHERE r.owner_id = $1 AND r.shown_geom IS NOT NULL
+			AND CASE WHEN r.journey_id IS NULL THEN r.visibility = 'public' ELSE j.visibility = 'public' END`, user)
+	if err != nil {
+		return nil, fmt.Errorf("discover: profile outlines: %w", err)
+	}
+	defer rows.Close()
+	out := map[string][][][2]float64{}
+	for rows.Next() {
+		var id, line string
+		if err := rows.Scan(&id, &line); err != nil {
+			return nil, err
+		}
+		var g struct {
+			Coordinates [][][2]float64 `json:"coordinates"`
+		}
+		if err := json.Unmarshal([]byte(line), &g); err != nil {
+			return nil, fmt.Errorf("discover: profile outlines: %w", err)
+		}
+		out[id] = append(out[id], g.Coordinates...)
+	}
+	return out, rows.Err()
+}
+
 // SitemapEntry is a public page for search engines.
 type SitemapEntry struct {
 	Kind      string    `json:"kind" enum:"route,journey,collection,profile"`

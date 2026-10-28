@@ -1678,17 +1678,17 @@ abstract class AppLocalizations {
   /// **'dabei seit {date}'**
   String profileSince(String date);
 
-  /// No description provided for @profileFollowers.
+  /// No description provided for @profileStatFollowers.
   ///
   /// In de, this message translates to:
-  /// **'{n} Follower'**
-  String profileFollowers(int n);
+  /// **'Follower'**
+  String get profileStatFollowers;
 
-  /// No description provided for @profileFollowing.
+  /// No description provided for @profileStatFollowing.
   ///
   /// In de, this message translates to:
-  /// **'folgt {n}'**
-  String profileFollowing(int n);
+  /// **'Folgt'**
+  String get profileStatFollowing;
 
   /// No description provided for @profileFollow.
   ///

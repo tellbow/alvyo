@@ -522,22 +522,8 @@
       }
     }
   },
-  "profileFollowers": "{n} Follower",
-  "@profileFollowers": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "profileFollowing": "folgt {n}",
-  "@profileFollowing": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
+  "profileStatFollowers": "Follower",
+  "profileStatFollowing": "Folgt",
   "profileFollow": "Folgen",
   "profileUnfollow": "Nicht mehr folgen",
   "profileBlock": "Blockieren",

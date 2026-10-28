@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'error_state.dart';
 import '../analytics.dart';
 import '../api.dart';
 import '../l10n/app_localizations.dart';
 import 'friends_screen.dart';
+import 'item_card.dart';
+import 'outline.dart';
 import 'report_dialog.dart';
 import 'tiles.dart';
 import 'wide.dart';
@@ -30,6 +33,9 @@ class _UserScreenState extends State<UserScreen> {
 
   late Future<Profile> _profile = widget.api.profile(widget.username);
   bool _busy = false;
+
+  /// The journeys shown instead of the routes (the tabs).
+  bool? _journeys;
 
   Future<void> _set(Future<void> Function() call) async {
     final t = AppLocalizations.of(context);
@@ -61,8 +67,17 @@ class _UserScreenState extends State<UserScreen> {
         final p = snap.data;
         return Scaffold(
           appBar: AppBar(
-            title: Text(p?.displayName ?? '@${widget.username}'),
+            // The name is in the card below once loaded.
+            title: p == null ? Text('@${widget.username}') : null,
             actions: [
+              if (p != null)
+                IconButton(
+                  key: const Key('profile-share'),
+                  tooltip: t.shareAction,
+                  icon: const Icon(Icons.ios_share),
+                  onPressed: () =>
+                      SharePlus.instance.share(ShareParams(uri: Uri.parse('${widget.api.server}/u/${p.username}'))),
+                ),
               if (p != null && !p.self)
                 PopupMenuButton<String>(
                   key: const Key('user-menu'),
@@ -89,64 +104,169 @@ class _UserScreenState extends State<UserScreen> {
               ),
               _ when p == null => const Center(child: CircularProgressIndicator()),
               _ => ListView(
-                padding: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.only(top: 8, bottom: 24),
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 4,
-                      children: [
-                        Text(
-                          '@${p.username} · '
-                          '${t.profileSince(DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(DateTime.parse(p.since)))}',
-                        ),
-                        Text(
-                          key: const Key('profile-counts'),
-                          '${t.profileFollowers(p.followers)} · ${t.profileFollowing(p.following)}',
-                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                        ),
-                        if (p.blocked) Text(t.profileBlockedNote),
-                        if (!p.self && !p.blocked) ...[
-                          const SizedBox(height: 8),
-                          FriendButton(
-                            key: Key('friend-${p.friend}'),
-                            api: widget.api,
-                            username: p.username,
-                            friend: p.friend,
-                          ),
-                          const SizedBox(height: 8),
-                          p.followed
-                              ? OutlinedButton(
-                                  key: const Key('unfollow'),
-                                  onPressed: _busy ? null : () => _set(() => widget.api.follow(p.username, false)),
-                                  child: Text(t.profileUnfollow),
-                                )
-                              : FilledButton(
-                                  key: const Key('follow'),
-                                  onPressed: _busy ? null : () => _set(() => widget.api.follow(p.username, true)),
-                                  child: Text(t.profileFollow),
+                  ItemCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 12,
+                        children: [
+                          Row(
+                            spacing: 14,
+                            children: [
+                              // No pictures yet: the first letters of the name.
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: theme.colorScheme.primaryContainer,
+                                child: Text(
+                                  _initials(p.displayName),
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      p.displayName,
+                                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                                    ),
+                                    Text(
+                                      '@${p.username} · '
+                                      '${t.profileSince(DateFormat.yMMMM(Localizations.localeOf(context).toString()).format(DateTime.parse(p.since)))}',
+                                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (!p.self && !p.blocked)
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                OutlinedButton(
+                                  key: Key(p.followed ? 'unfollow' : 'follow'),
+                                  onPressed: _busy
+                                      ? null
+                                      : () => _set(() => widget.api.follow(p.username, !p.followed)),
+                                  child: Text(p.followed ? t.profileUnfollow : t.profileFollow),
+                                ),
+                                FriendButton(
+                                  key: Key('friend-${p.friend}'),
+                                  api: widget.api,
+                                  username: p.username,
+                                  friend: p.friend,
+                                ),
+                              ],
+                            ),
+                          if (p.blocked) Text(t.profileBlockedNote),
+                          _Stats(
+                            key: const Key('profile-counts'),
+                            stats: [
+                              (t.profileRoutes, p.routes.length),
+                              (t.profileJourneys, p.journeys.length),
+                              (t.profileStatFollowers, p.followers),
+                              (t.profileStatFollowing, p.following),
+                            ],
+                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                  if (p.routes.isNotEmpty) ListHeading(t.profileRoutes),
-                  for (final r in p.routes)
-                    RouteTile(
-                      route: r,
-                      onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
-                    ),
-                  if (p.journeys.isNotEmpty) ListHeading(t.profileJourneys),
-                  for (final j in p.journeys)
-                    JourneyTile(
-                      journey: j,
-                      onTap: () => openItem(context, widget.api, journey: true, id: j.id, title: j.title),
-                    ),
+                  if (p.routes.isNotEmpty && p.journeys.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                      child: SegmentedButton<bool>(
+                        key: const Key('profile-tabs'),
+                        showSelectedIcon: false,
+                        segments: [
+                          ButtonSegment(value: false, label: Text(t.profileRoutes)),
+                          ButtonSegment(value: true, label: Text(t.profileJourneys)),
+                        ],
+                        selected: {_journeys ?? false},
+                        onSelectionChanged: (s) => setState(() => _journeys = s.first),
+                      ),
+                    )
+                  else
+                    const SizedBox(height: 8),
+                  if (!(_journeys ?? p.routes.isEmpty))
+                    for (final r in p.routes)
+                      RouteTile(
+                        route: r,
+                        trailing: _outline(p, r.id),
+                        onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
+                      )
+                  else
+                    for (final j in p.journeys)
+                      JourneyTile(
+                        journey: j,
+                        trailing: _outline(p, j.id),
+                        onTap: () => openItem(context, widget.api, journey: true, id: j.id, title: j.title),
+                      ),
                 ],
               ),
             },
           ),
+        );
+      },
+    );
+  }
+}
+
+String _initials(String name) =>
+    name.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).take(2).map((w) => w.characters.first.toUpperCase()).join();
+
+Widget? _outline(Profile p, String id) => switch (p.outlines[id]) {
+  final lines? when lines.isNotEmpty => Padding(padding: const EdgeInsets.only(left: 8), child: Outline(lines)),
+  _ => null,
+};
+
+/// The profile's numbers as small tiles, two or four in a row.
+class _Stats extends StatelessWidget {
+  const _Stats({super.key, required this.stats});
+  final List<(String, int)> stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Widget tile((String, int) s) => Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${s.$2}', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              s.$1,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+    return LayoutBuilder(
+      builder: (context, c) {
+        final perRow = c.maxWidth >= 480 ? 4 : 2;
+        return Column(
+          spacing: 8,
+          children: [
+            for (var i = 0; i < stats.length; i += perRow)
+              Row(spacing: 8, children: [for (final s in stats.skip(i).take(perRow)) tile(s)]),
+          ],
         );
       },
     );

@@ -11,6 +11,7 @@ import 'package:alvyo/api.dart';
 import 'package:alvyo/format.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/screens/collections_screen.dart';
+import 'package:alvyo/screens/outline.dart';
 import 'package:alvyo/screens/photos.dart';
 import 'package:alvyo/screens/profile_tab.dart';
 import 'package:alvyo/screens/social.dart';
@@ -233,7 +234,7 @@ void main() {
     expect(tester.getTopLeft(find.text('Danke dir')).dx, greaterThan(tester.getTopLeft(find.text('Schöne Tour')).dx));
   });
 
-  testWidgets('following someone', (tester) async {
+  testWidgets('following someone: the profile\'s card, numbers and tabs', (tester) async {
     var followed = false;
     final server = _Server((req) {
       if (req.url.path.endsWith('/follow')) {
@@ -249,8 +250,42 @@ void main() {
         'following': 3,
         'followed': followed,
         'blocked': false,
-        'routes': <Object>[],
-        'journeys': <Object>[],
+        'routes': [
+          {
+            'id': 'r1',
+            'title': 'Gratweg',
+            'owner_username': 'anna',
+            'visibility': 'public',
+            'version': 1,
+            'totals': {
+              'distance_m': 5000.0,
+              'ascent_m': 300.0,
+              'descent_m': 300.0,
+              'duration_s': 7200,
+              'sac_grade': 2,
+              'sac_max': 2,
+            },
+          },
+        ],
+        'journeys': [
+          {
+            'id': 'j1',
+            'title': 'Via Alpina',
+            'stages': 3,
+            'stages_done': 0,
+            'distance_m': 40000.0,
+            'ascent_m': 2000.0,
+            'duration_s': 50000,
+          },
+        ],
+        'outlines': {
+          'r1': [
+            [
+              [8.0, 46.6],
+              [8.01, 46.61],
+            ],
+          ],
+        },
       });
     });
     await tester.pumpWidget(
@@ -268,11 +303,28 @@ void main() {
     );
     await _settle(tester);
     expect(find.text('@anna · dabei seit September 2026'), findsOneWidget);
-    expect(find.text('0 Follower · folgt 3'), findsOneWidget);
+    expect(find.text('A'), findsOneWidget); // the initial
+    Finder stat(String label) => find.descendant(
+      of: find.ancestor(of: find.text(label), matching: find.byType(Column)).first,
+      matching: find.byType(Text),
+    );
+    final counts = find.byKey(const Key('profile-counts'));
+    expect(find.descendant(of: counts, matching: find.text('Follower')), findsOneWidget);
+    expect(tester.widget<Text>(stat('Follower').first).data, '0');
+    expect(tester.widget<Text>(stat('Folgt').first).data, '3');
+    // Routes first, with the thumbnail; the journeys in the other tab.
+    expect(find.text('Gratweg'), findsOneWidget);
+    expect(find.byType(Outline), findsOneWidget);
+    expect(find.text('Via Alpina'), findsNothing);
+    await tester.tap(find.descendant(of: find.byKey(const Key('profile-tabs')), matching: find.text('Etappentouren')));
+    await _settle(tester);
+    expect(find.text('Via Alpina'), findsOneWidget);
+    expect(find.text('Gratweg'), findsNothing);
+
     await tester.tap(find.byKey(const Key('follow')));
     await _settle(tester);
     expect(server.calls, contains('PUT /api/v1/users/anna/follow'));
-    expect(find.text('1 Follower · folgt 3'), findsOneWidget);
+    expect(tester.widget<Text>(stat('Follower').first).data, '1');
     expect(find.byKey(const Key('unfollow')), findsOneWidget);
   });
 

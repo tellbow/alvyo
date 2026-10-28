@@ -45,7 +45,9 @@ test('like, comment and follow; the owner hears about it by e-mail', async ({ pa
 	// Follow the owner; their public routes appear in the fan's news.
 	await fanPage.goto(`/u/${owner}`);
 	await fanPage.getByRole('button', { name: 'Folgen' }).click();
-	await expect(fanPage.getByTestId('profile-counts')).toContainText('1 Follower');
+	await expect(
+		fanPage.getByTestId('profile-counts').getByText('Follower', { exact: true }).locator('..')
+	).toContainText('1');
 	await mailMatching(`${owner}@example.ch`, /Fritz Fan \(@fan\w+\) folgt dir jetzt/);
 	await fanPage.getByRole('link', { name: 'Neuigkeiten' }).click();
 	await expect(fanPage.getByTestId('feed')).toContainText(`Höhenweg ${s}`);

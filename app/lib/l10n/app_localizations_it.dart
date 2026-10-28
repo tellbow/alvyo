@@ -882,14 +882,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String profileFollowers(int n) {
-    return '$n follower';
-  }
+  String get profileStatFollowers => 'Follower';
 
   @override
-  String profileFollowing(int n) {
-    return 'segue $n';
-  }
+  String get profileStatFollowing => 'Seguiti';
 
   @override
   String get profileFollow => 'Segui';

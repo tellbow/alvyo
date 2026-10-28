@@ -3927,6 +3927,10 @@ export interface components {
              */
             friend: "none" | "requested" | "incoming" | "friends";
             journeys: components["schemas"]["JourneySummary"][];
+            /** @description The (lon, lat) lines of each public route and journey by its id, simplified for a thumbnail */
+            outlines: {
+                [key: string]: number[][][];
+            };
             routes: components["schemas"]["RouteSummary"][];
             /** @description This is the viewer's own profile */
             self: boolean;

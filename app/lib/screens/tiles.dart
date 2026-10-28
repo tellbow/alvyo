@@ -25,10 +25,11 @@ Future<void> openItem(
 
 /// A route as a card of a list; [owner] shown for others' routes.
 class RouteTile extends StatelessWidget {
-  const RouteTile({super.key, required this.route, required this.onTap, this.owner});
+  const RouteTile({super.key, required this.route, required this.onTap, this.owner, this.trailing});
   final RouteSummary route;
   final VoidCallback onTap;
   final String? owner;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +50,7 @@ class RouteTile extends StatelessWidget {
           ? '✓ ${doneText(t, r.doneOn!)}'
           : null,
       tags: r.tags,
+      trailing: trailing,
       onTap: onTap,
     );
   }
@@ -56,10 +58,11 @@ class RouteTile extends StatelessWidget {
 
 /// A journey as a card of a list; [owner] shown for others' journeys.
 class JourneyTile extends StatelessWidget {
-  const JourneyTile({super.key, required this.journey, required this.onTap, this.owner});
+  const JourneyTile({super.key, required this.journey, required this.onTap, this.owner, this.trailing});
   final JourneySummary journey;
   final VoidCallback onTap;
   final String? owner;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +80,7 @@ class JourneyTile extends StatelessWidget {
       stagesDone: j.stagesDone,
       note: j.doneOn != null ? '✓ ${doneText(t, j.doneOn!)}' : null,
       tags: j.tags,
+      trailing: trailing,
       onTap: onTap,
     );
   }

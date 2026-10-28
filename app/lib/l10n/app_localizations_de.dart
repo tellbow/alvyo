@@ -884,14 +884,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String profileFollowers(int n) {
-    return '$n Follower';
-  }
+  String get profileStatFollowers => 'Follower';
 
   @override
-  String profileFollowing(int n) {
-    return 'folgt $n';
-  }
+  String get profileStatFollowing => 'Folgt';
 
   @override
   String get profileFollow => 'Folgen';

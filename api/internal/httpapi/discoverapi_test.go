@@ -144,12 +144,18 @@ func TestDiscover(t *testing.T) {
 			Title string `json:"title"`
 		} `json:"routes"`
 		Journeys []struct {
+			ID    string `json:"id"`
 			Title string `json:"title"`
 		} `json:"journeys"`
+		Outlines map[string][][][2]float64 `json:"outlines"`
 	}
 	_ = json.Unmarshal(body, &p)
 	if code != http.StatusOK || p.Username != "wanderer" || len(p.Routes) != 3 || len(p.Journeys) != 1 || p.Journeys[0].Title != "Reise" {
 		t.Fatalf("profile: %d %s", code, body)
+	}
+	// A thumbnail for each item listed, none for the private or unlisted ones.
+	if len(p.Outlines) != 4 || len(p.Outlines[p.Journeys[0].ID]) != 1 || len(p.Outlines[p.Journeys[0].ID][0]) < 2 {
+		t.Errorf("outlines: %v", p.Outlines)
 	}
 	if strings.Contains(string(body), "@example.ch") {
 		t.Error("the profile shows the e-mail address")

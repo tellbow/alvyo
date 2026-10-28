@@ -25,9 +25,10 @@ in TestFlight is the one in production.
      .claude/skills/testflight/upload.sh <scratchpad>/export [<main's app/ios/ExportOptions-upload.plist>]
    ```
    It archives with the tag's version and the commit count as build
-   number, stops if the archive has AdSupport (Google Analytics must come
-   without the advertising id: no tracking prompt, App Store privacy
-   labels), and signs on this Mac with the «Apple Distribution»
+   number, stops if the archive reads the advertising id (`ASIdentifierManager`
+   or AdSupport linked; Google Analytics must come without it: no
+   tracking prompt, App Store privacy labels; the word «AdSupport» alone
+   is in GoogleAppMeasurement's log messages in every variant), and signs on this Mac with the «Apple Distribution»
    certificate (in the keychain) and the App Store profile «Alvyo App
    Store» (`ios/ExportOptions-upload.plist`), uploaded with the App Store
    Connect API key («App Manager»). Xcode's own Apple ID session is not

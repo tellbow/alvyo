@@ -19,6 +19,7 @@ REVIEWED = {
     "lightningcss-darwin-arm64": "MPL-2.0, build tool only",
     "argparse": "Python-2.0, dev tool only",
     "@lix-js/sdk-darwin-arm64": "no license field, inlang dev tool only",
+    "svelte-toolbelt": "no license field; its LICENSE file is MIT (bits-ui, checked 2026-10-28)",
     "@fontsource-variable/figtree": "OFL-1.1, the font's license",
     "@fontsource-variable/bricolage-grotesque": "OFL-1.1, the font's license",
     "dbus": "MPL-2.0, Linux only, not in the iOS app",

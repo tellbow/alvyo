@@ -8,9 +8,13 @@
 	import { page } from '$app/state';
 	import { api } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import { choose } from '#lib/util/choose.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
-	import { parseTheme, setTheme, themes, type Theme } from '#lib/util/theme.js';
+	import { setTheme, themes, type Theme } from '#lib/util/theme.js';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
+	import Globe from '@lucide/svelte/icons/globe';
+	import Moon from '@lucide/svelte/icons/moon';
+	import Sun from '@lucide/svelte/icons/sun';
+	import SunMoon from '@lucide/svelte/icons/sun-moon';
 	import {
 		deLocalizeUrl,
 		getLocale,
@@ -47,6 +51,14 @@
 		light: m.theme_light,
 		dark: m.theme_dark
 	};
+	const themeIcons = { system: SunMoon, light: Sun, dark: Moon };
+	// The server's cookie value until one is chosen here.
+	let theme = $derived(data.theme);
+	function chooseTheme(t: Theme) {
+		theme = t;
+		setTheme(t);
+	}
+	const ThemeIcon = $derived(themeIcons[theme]);
 
 	// The page's section in the navigation, whatever the language prefix.
 	const here = $derived(deLocalizeUrl(page.url.href).pathname);
@@ -124,31 +136,79 @@
 	>
 {/snippet}
 
+<!-- Round and outlined, as the bug report button beside them. -->
 {#snippet settings()}
-	<select
-		class="rounded-full border border-stone-400 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
-		aria-label={m.nav_language()}
-		value={getLocale()}
-		disabled={!hydrated.value}
-		use:choose={(v) => language(v as Locale)}
-		data-testid="language"
+	<div class="flex items-center gap-2">
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger
+				class="flex h-10 items-center gap-1.5 rounded-full border border-stone-300 bg-surface px-3 text-stone-900 uppercase hover:bg-stone-100 disabled:opacity-50"
+				aria-label={m.nav_language()}
+				title={m.nav_language()}
+				disabled={!hydrated.value}
+				data-testid="language"
+			>
+				<Globe class="size-4" aria-hidden="true" />{getLocale()}
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content align="end" class="w-auto min-w-36">
+				<DropdownMenu.RadioGroup value={getLocale()} onValueChange={(v) => language(v as Locale)}>
+					{#each locales as l (l)}
+						<DropdownMenu.RadioItem value={l} lang={l} closeOnSelect
+							>{languages[l]}</DropdownMenu.RadioItem
+						>
+					{/each}
+				</DropdownMenu.RadioGroup>
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger
+				class="flex size-10 items-center justify-center rounded-full border border-stone-300 bg-surface text-stone-900 hover:bg-stone-100 disabled:opacity-50"
+				aria-label="{m.nav_theme()}: {themeNames[theme]()}"
+				title="{m.nav_theme()}: {themeNames[theme]()}"
+				disabled={!hydrated.value}
+				data-testid="theme"
+			>
+				<ThemeIcon class="size-4" aria-hidden="true" />
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content align="end" class="w-auto min-w-36">
+				<DropdownMenu.RadioGroup value={theme} onValueChange={(v) => chooseTheme(v as Theme)}>
+					{#each themes as t (t)}
+						{@const Icon = themeIcons[t]}
+						<DropdownMenu.RadioItem value={t} closeOnSelect>
+							<Icon aria-hidden="true" />{themeNames[t]()}
+						</DropdownMenu.RadioItem>
+					{/each}
+				</DropdownMenu.RadioGroup>
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
+	</div>
+{/snippet}
+
+<!-- In the phone menu: each choice in a row of its own, all visible. -->
+{#snippet segmented<T extends string>(
+	label: string,
+	options: readonly T[],
+	value: T,
+	name: (o: T) => string,
+	pick: (o: T) => void
+)}
+	<div
+		role="radiogroup"
+		aria-label={label}
+		class="flex w-full rounded-full border border-stone-300 bg-surface p-1"
 	>
-		{#each locales as l (l)}
-			<option value={l}>{languages[l]}</option>
+		{#each options as o (o)}
+			<button
+				type="button"
+				role="radio"
+				aria-checked={o === value}
+				disabled={!hydrated.value}
+				class="flex-1 rounded-full px-2 py-1.5 text-center {o === value
+					? 'bg-stone-900 text-stone-50 dark:bg-stone-200 dark:text-stone-900'
+					: 'hover:bg-stone-100'}"
+				onclick={() => pick(o)}>{name(o)}</button
+			>
 		{/each}
-	</select>
-	<select
-		class="rounded-full border border-stone-400 bg-surface py-1 pr-2 pl-3 text-stone-900 hover:bg-stone-100"
-		aria-label={m.nav_theme()}
-		value={data.theme}
-		disabled={!hydrated.value}
-		use:choose={(v) => setTheme(parseTheme(v))}
-		data-testid="theme"
-	>
-		{#each themes as t (t)}
-			<option value={t}>{themeNames[t]()}</option>
-		{/each}
-	</select>
+	</div>
 {/snippet}
 
 {#snippet account()}
@@ -252,8 +312,15 @@
 				<nav class="flex flex-col items-start gap-1 font-medium">
 					{@render links()}
 				</nav>
-				<div class="flex flex-wrap items-center gap-3 border-t border-stone-200 pt-4 text-sm">
-					{@render settings()}
+				<div class="flex flex-col gap-2 border-t border-stone-200 pt-4 text-sm">
+					{@render segmented(
+						m.nav_language(),
+						locales,
+						getLocale(),
+						(l) => languages[l],
+						(l) => language(l)
+					)}
+					{@render segmented(m.nav_theme(), themes, theme, (t) => themeNames[t](), chooseTheme)}
 				</div>
 				<div class="flex flex-col items-start gap-3 border-t border-stone-200 pt-4 font-medium">
 					{@render account()}

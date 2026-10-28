@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/figtree';
 @import '@fontsource-variable/bricolage-grotesque';
+@import 'tw-animate-css';
 
 /*
  * The Alvyo palette, light and dark after the system setting unless one
@@ -30,6 +31,7 @@
 	--alvyo-accent-hover: #e57a36;
 	--alvyo-accent-ink: #a94c18;
 	--alvyo-accent-soft: #fdeee3;
+	--alvyo-destructive: #b91c1c; /* red-700 */
 	--alvyo-map-icons: none;
 }
 
@@ -53,6 +55,7 @@
 		--alvyo-accent-hover: #ffb885;
 		--alvyo-accent-ink: #ffa66b;
 		--alvyo-accent-soft: #2b1f16;
+		--alvyo-destructive: #f87171; /* red-400 */
 		--alvyo-map-icons: invert(1);
 		--alvyo-map-icons: invert(1);
 	}
@@ -78,6 +81,7 @@
 	--alvyo-accent-hover: #ffb885;
 	--alvyo-accent-ink: #ffa66b;
 	--alvyo-accent-soft: #2b1f16;
+	--alvyo-destructive: #f87171;
 }
 
 :root[data-theme='light'] {
@@ -118,6 +122,28 @@
 	--color-accent-ink: var(--alvyo-accent-ink);
 	--color-accent-soft: var(--alvyo-accent-soft);
 	--color-on-accent: #1a0f08;
+
+	/*
+	 * shadcn-svelte's names (#lib/components/ui), on the palette above. Its
+	 * «accent» (a hover ground) is ours for orange, so the copied
+	 * components use muted for that instead.
+	 */
+	--color-background: var(--alvyo-ground);
+	--color-foreground: var(--alvyo-stone-900);
+	--color-card: var(--alvyo-surface);
+	--color-card-foreground: var(--alvyo-stone-900);
+	--color-popover: var(--alvyo-surface);
+	--color-popover-foreground: var(--alvyo-stone-900);
+	--color-primary: var(--alvyo-accent);
+	--color-primary-foreground: #1a0f08;
+	--color-secondary: var(--alvyo-stone-100);
+	--color-secondary-foreground: var(--alvyo-stone-900);
+	--color-muted: var(--alvyo-stone-100);
+	--color-muted-foreground: var(--alvyo-stone-500);
+	--color-destructive: var(--alvyo-destructive);
+	--color-border: var(--alvyo-stone-200);
+	--color-input: var(--alvyo-stone-300);
+	--color-ring: var(--alvyo-accent-ink);
 
 	/* Rounder than Tailwind's, and in order: sm < md < lg < xl < 2xl. */
 	--radius-md: 0.75rem;

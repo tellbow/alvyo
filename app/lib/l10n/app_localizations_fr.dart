@@ -1818,10 +1818,44 @@ class AppLocalizationsFr extends AppLocalizations {
   String get friendsTitle => 'Ami·e·s';
 
   @override
+  String get friendsIntro =>
+      'Les ami·e·s voient mutuellement leurs profils, même privés, et leurs randonnées dans les actualités. Des personnes que tu suis, tu ne vois que les randonnées publiques.';
+
+  @override
+  String get friendsInvite => 'Inviter des ami·e·s';
+
+  @override
+  String get friendsSuggestions => 'Personnes que tu connais peut-être';
+
+  @override
+  String get friendsDismiss => 'Ne pas suggérer';
+
+  @override
+  String get friendsDiscover => 'Découvrir des profils';
+
+  @override
+  String friendsMutual(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n ami·e·s en commun',
+      one: '$n ami·e en commun',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String friendsTours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(n, locale: localeName, other: '$n randonnées', one: '$n randonnée');
+    return '$_temp0';
+  }
+
+  @override
   String get friendsSearch => 'Chercher des personnes';
 
   @override
-  String get friendsSearchHint => 'Nom d\'utilisateur ou nom ; seuls les profils publics sont trouvés.';
+  String get friendsSearchHint =>
+      'Nom d\'utilisateur ou nom. Sans recherche : qui a publié des randonnées en dernier. Profils publics uniquement.';
 
   @override
   String get friendsNoneFound => 'Personne trouvé.';
@@ -1836,7 +1870,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get friendsList => 'Tes ami·e·s';
 
   @override
-  String get friendsEmpty => 'Pas encore d\'ami·e·s. Cherche des personnes ou envoie ton lien d\'invitation.';
+  String get friendsEmpty =>
+      'Pas encore d\'ami·e·s. Invite les personnes avec qui tu randonnes : le lien fait de vous des ami·e·s, même avec un profil privé.';
 
   @override
   String get friendAdd => 'Ajouter comme ami·e';
@@ -1860,14 +1895,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get friendRemove => 'Retirer des ami·e·s';
 
   @override
-  String get friendsLinkTitle => 'Ton lien d\'invitation';
-
-  @override
   String get friendsLinkHint =>
       'Qui ouvre ce lien devient ton ami·e – même si ton profil est privé. Envoie-le seulement à des personnes que tu connais.';
-
-  @override
-  String get friendsLinkShare => 'Envoyer le lien';
 
   @override
   String get friendsLinkRenew => 'Créer un nouveau lien';

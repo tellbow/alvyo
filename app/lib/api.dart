@@ -1187,8 +1187,13 @@ class FriendRef {
   FriendRef.fromJson(Map<String, dynamic> j)
     : username = j['username'] as String,
       displayName = j['display_name'] as String,
-      friend = j['friend'] as String;
+      friend = j['friend'] as String,
+      tours = (j['tours'] as num?)?.toInt() ?? 0,
+      mutual = (j['mutual'] as num?)?.toInt() ?? 0;
   final String username, displayName, friend;
+
+  /// Public routes and journeys, and friends in common (only how many).
+  final int tours, mutual;
 }
 
 /// One's friends and the open requests.
@@ -2243,11 +2248,22 @@ class Api {
   Future<void> block(String username, bool on) =>
       _send(on ? 'PUT' : 'DELETE', '/users/${Uri.encodeComponent(username)}/block');
 
-  /// Public profiles by the start of the username or a part of the name.
-  Future<List<FriendRef>> searchUsers(String q) async {
-    final j = await _get('/users?q=${Uri.encodeQueryComponent(q)}') as Map<String, dynamic>;
+  /// Public profiles by the start of the username or a part of the name;
+  /// without [q], those who published lately and are no friends yet.
+  Future<List<FriendRef>> searchUsers([String q = '']) async {
+    final j = await _get('/users', q.isEmpty ? null : {'q': q}) as Map<String, dynamic>;
     return [for (final u in j['users'] as List) FriendRef.fromJson(u as Map<String, dynamic>)];
   }
+
+  /// Friends of friends the user might know, most in common first.
+  Future<List<FriendRef>> friendSuggestions() async {
+    final j = await _get('/me/friend-suggestions') as Map<String, dynamic>;
+    return [for (final u in j['users'] as List) FriendRef.fromJson(u as Map<String, dynamic>)];
+  }
+
+  /// «Nicht vorschlagen»: [username] is not suggested again.
+  Future<void> dismissSuggestion(String username) =>
+      _send('DELETE', '/me/friend-suggestions/${Uri.encodeComponent(username)}');
 
   /// Asks to be friends or accepts ([on]), or ends a friendship, withdraws
   /// or declines; the state afterwards.

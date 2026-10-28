@@ -841,13 +841,33 @@
 	"journey_tab_stages": "Tappe",
 	"nav_friends": "Amici",
 	"friends_title": "Amici",
+	"friends_intro": "Gli amici vedono a vicenda i loro profili, anche privati, e le loro escursioni nelle novità. Delle persone che segui vedi solo le escursioni pubbliche.",
+	"friends_invite": "Invita amici",
+	"friends_link_copied": "Link copiato",
+	"friends_suggestions": "Persone che potresti conoscere",
+	"friends_dismiss": "Non suggerire",
+	"friends_discover": "Scopri profili",
+	"friends_mutual": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} amico in comune", "nPlural=other": "{n} amici in comune" }
+		}
+	],
+	"friends_tours": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} escursione", "nPlural=other": "{n} escursioni" }
+		}
+	],
 	"friends_search": "Cerca persone",
-	"friends_search_hint": "Nome utente o nome; si trovano solo i profili pubblici.",
+	"friends_search_hint": "Nome utente o nome. Senza ricerca: chi ha pubblicato escursioni per ultimo. Solo profili pubblici.",
 	"friends_none_found": "Nessuno trovato.",
 	"friends_incoming": "Richieste ricevute",
 	"friends_outgoing": "Le tue richieste",
 	"friends_list": "I tuoi amici",
-	"friends_empty": "Ancora nessun amico. Cerca persone o invia il tuo link di invito.",
+	"friends_empty": "Ancora nessun amico. Invita le persone con cui fai escursioni: con il link diventate amici, anche con un profilo privato.",
 	"friend_add": "Aggiungi come amico",
 	"friend_requested": "Richiesta inviata",
 	"friend_withdraw": "Ritira",
@@ -856,7 +876,6 @@
 	"friend_friends": "Amici",
 	"friend_remove": "Rimuovi dagli amici",
 	"friend_incoming": "vorrebbe essere tuo amico",
-	"friends_link_title": "Il tuo link di invito",
 	"friends_link_hint": "Chi apre questo link diventa tuo amico, anche se il tuo profilo è privato. Invialo solo a persone che conosci.",
 	"friend_invite_title": "{name} ti invita",
 	"friend_invite_text": "Diventate amici su Alvyo: vedete i vostri profili, anche quelli privati.",

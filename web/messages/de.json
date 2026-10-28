@@ -841,13 +841,36 @@
 	"journey_tab_stages": "Etappen",
 	"nav_friends": "Freunde",
 	"friends_title": "Freunde",
+	"friends_intro": "Freunde sehen gegenseitig ihre Profile, auch private, und ihre Wanderungen in den Neuigkeiten. Wem du folgst, von dem siehst du nur die öffentlichen Touren.",
+	"friends_invite": "Freunde einladen",
+	"friends_link_copied": "Link kopiert",
+	"friends_suggestions": "Leute, die du kennen könntest",
+	"friends_dismiss": "Nicht vorschlagen",
+	"friends_discover": "Profile entdecken",
+	"friends_mutual": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": {
+				"nPlural=one": "{n} gemeinsamer Freund",
+				"nPlural=other": "{n} gemeinsame Freunde"
+			}
+		}
+	],
+	"friends_tours": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} Tour", "nPlural=other": "{n} Touren" }
+		}
+	],
 	"friends_search": "Personen suchen",
-	"friends_search_hint": "Benutzername oder Name; gefunden werden nur öffentliche Profile.",
+	"friends_search_hint": "Benutzername oder Name. Ohne Suche: wer zuletzt Touren veröffentlicht hat. Nur öffentliche Profile.",
 	"friends_none_found": "Niemand gefunden.",
 	"friends_incoming": "Anfragen an dich",
 	"friends_outgoing": "Deine Anfragen",
 	"friends_list": "Deine Freunde",
-	"friends_empty": "Noch keine Freunde. Suche nach Personen oder schicke deinen Einladungslink.",
+	"friends_empty": "Noch keine Freunde. Lade Leute ein, mit denen du wanderst: über den Link werdet ihr Freunde, auch mit privatem Profil.",
 	"friend_add": "Als Freund hinzufügen",
 	"friend_requested": "Anfrage gesendet",
 	"friend_withdraw": "Zurückziehen",
@@ -856,7 +879,6 @@
 	"friend_friends": "Befreundet",
 	"friend_remove": "Freundschaft beenden",
 	"friend_incoming": "möchte mit dir befreundet sein",
-	"friends_link_title": "Dein Einladungslink",
 	"friends_link_hint": "Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.",
 	"friend_invite_title": "{name} lädt dich ein",
 	"friend_invite_text": "Werdet Freunde auf Alvyo: ihr seht eure Profile, auch private.",

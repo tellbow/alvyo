@@ -3370,6 +3370,48 @@ abstract class AppLocalizations {
   /// **'Freunde'**
   String get friendsTitle;
 
+  /// No description provided for @friendsIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Freunde sehen gegenseitig ihre Profile, auch private, und ihre Wanderungen in den Neuigkeiten. Wem du folgst, von dem siehst du nur die öffentlichen Touren.'**
+  String get friendsIntro;
+
+  /// No description provided for @friendsInvite.
+  ///
+  /// In de, this message translates to:
+  /// **'Freunde einladen'**
+  String get friendsInvite;
+
+  /// No description provided for @friendsSuggestions.
+  ///
+  /// In de, this message translates to:
+  /// **'Leute, die du kennen könntest'**
+  String get friendsSuggestions;
+
+  /// No description provided for @friendsDismiss.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht vorschlagen'**
+  String get friendsDismiss;
+
+  /// No description provided for @friendsDiscover.
+  ///
+  /// In de, this message translates to:
+  /// **'Profile entdecken'**
+  String get friendsDiscover;
+
+  /// No description provided for @friendsMutual.
+  ///
+  /// In de, this message translates to:
+  /// **'{n, plural, =1{{n} gemeinsamer Freund} other{{n} gemeinsame Freunde}}'**
+  String friendsMutual(int n);
+
+  /// No description provided for @friendsTours.
+  ///
+  /// In de, this message translates to:
+  /// **'{n, plural, =1{{n} Tour} other{{n} Touren}}'**
+  String friendsTours(int n);
+
   /// No description provided for @friendsSearch.
   ///
   /// In de, this message translates to:
@@ -3379,7 +3421,7 @@ abstract class AppLocalizations {
   /// No description provided for @friendsSearchHint.
   ///
   /// In de, this message translates to:
-  /// **'Benutzername oder Name; gefunden werden nur öffentliche Profile.'**
+  /// **'Benutzername oder Name. Ohne Suche: wer zuletzt Touren veröffentlicht hat. Nur öffentliche Profile.'**
   String get friendsSearchHint;
 
   /// No description provided for @friendsNoneFound.
@@ -3409,7 +3451,7 @@ abstract class AppLocalizations {
   /// No description provided for @friendsEmpty.
   ///
   /// In de, this message translates to:
-  /// **'Noch keine Freunde. Suche nach Personen oder schicke deinen Einladungslink.'**
+  /// **'Noch keine Freunde. Lade Leute ein, mit denen du wanderst: über den Link werdet ihr Freunde, auch mit privatem Profil.'**
   String get friendsEmpty;
 
   /// No description provided for @friendAdd.
@@ -3454,23 +3496,11 @@ abstract class AppLocalizations {
   /// **'Freundschaft beenden'**
   String get friendRemove;
 
-  /// No description provided for @friendsLinkTitle.
-  ///
-  /// In de, this message translates to:
-  /// **'Dein Einladungslink'**
-  String get friendsLinkTitle;
-
   /// No description provided for @friendsLinkHint.
   ///
   /// In de, this message translates to:
   /// **'Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.'**
   String get friendsLinkHint;
-
-  /// No description provided for @friendsLinkShare.
-  ///
-  /// In de, this message translates to:
-  /// **'Link senden'**
-  String get friendsLinkShare;
 
   /// No description provided for @friendsLinkRenew.
   ///

@@ -1397,6 +1397,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/friend-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** People the user might know: friends of friends with a public profile, at most 10 */
+        get: operations["list-friend-suggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/friend-suggestions/{username}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Do not suggest this user again */
+        delete: operations["dismiss-friend-suggestion"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/friends": {
         parameters: {
             query?: never;
@@ -2395,7 +2429,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Find public profiles by username or name, at most 20 */
+        /** Find public profiles by username or name, or browse those who published lately; at most 30 */
         get: operations["search-users"];
         put?: never;
         post?: never;
@@ -3314,10 +3348,20 @@ export interface components {
             /** @enum {string} */
             friend: "none" | "requested" | "incoming" | "friends";
             /**
+             * Format: int64
+             * @description Friends in common with the viewer; who they are stays hidden
+             */
+            mutual: number;
+            /**
              * Format: date-time
              * @description When they became friends, or were asked
              */
             since: string;
+            /**
+             * Format: int64
+             * @description Public routes and journeys
+             */
+            tours: number;
             username: string;
         };
         Grant: {
@@ -8286,6 +8330,64 @@ export interface operations {
             };
         };
     };
+    "list-friend-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSearchOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "dismiss-friend-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "list-friends": {
         parameters: {
             query?: never;
@@ -10569,7 +10671,7 @@ export interface operations {
     "search-users": {
         parameters: {
             query?: {
-                /** @description Start of a username or part of a name */
+                /** @description Start of a username or part of a name; without it, who published lately */
                 q?: string;
             };
             header?: never;

@@ -52,8 +52,8 @@ test('find someone, ask, be accepted; a private profile through its invite link'
 	await beatPage.getByTestId('profile-public').uncheck();
 	expect((await saved).ok()).toBe(true);
 	await expect(beatPage.getByTestId('profile-public')).not.toBeChecked();
-	await beatPage.goto('/friends');
-	const link = await beatPage.getByTestId('friend-link').locator('input').inputValue();
+	const { token } = await (await beatPage.request.get('/api/v1/me/friend-link')).json();
+	const link = `/friends/invite/${token}`;
 
 	const carlaContext = await browser.newContext();
 	const carlaPage = await carlaContext.newPage();
@@ -67,6 +67,18 @@ test('find someone, ask, be accepted; a private profile through its invite link'
 	await expect(carlaPage.getByRole('status')).toHaveText('Ihr seid jetzt Freunde.');
 	await carlaPage.goto('/friends');
 	await expect(carlaPage.getByTestId('friends-list')).toContainText(`Beat ${s}`);
+
+	// Anna is Beat's friend too: suggested to Carla by the number in common
+	// only, until Carla does not want her suggested.
+	const suggested = carlaPage.getByTestId('friends-suggested').getByTestId('suggested');
+	await expect(suggested).toContainText(`Anna ${s}`);
+	await expect(suggested).toContainText('1 gemeinsamer Freund');
+	await expect(suggested).not.toContainText('Beat');
+	await suggested.getByRole('button', { name: 'Nicht vorschlagen' }).click();
+	await expect(carlaPage.getByTestId('friends-suggested')).toHaveCount(0);
+	await carlaPage.reload();
+	await expect(carlaPage.getByTestId('friends-list')).toContainText(`Beat ${s}`);
+	await expect(carlaPage.getByTestId('friends-suggested')).toHaveCount(0);
 	await beatContext.close();
 	await carlaContext.close();
 });

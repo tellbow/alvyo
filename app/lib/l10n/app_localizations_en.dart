@@ -1808,10 +1808,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendsTitle => 'Friends';
 
   @override
+  String get friendsIntro =>
+      'Friends see each other’s profiles, private ones too, and each other’s hikes in their news. Of the people you follow, you see only the public hikes.';
+
+  @override
+  String get friendsInvite => 'Invite friends';
+
+  @override
+  String get friendsSuggestions => 'People you may know';
+
+  @override
+  String get friendsDismiss => 'Don’t suggest';
+
+  @override
+  String get friendsDiscover => 'Discover profiles';
+
+  @override
+  String friendsMutual(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n friends in common',
+      one: '$n friend in common',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String friendsTours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(n, locale: localeName, other: '$n hikes', one: '$n hike');
+    return '$_temp0';
+  }
+
+  @override
   String get friendsSearch => 'Find people';
 
   @override
-  String get friendsSearchHint => 'Username or name; only public profiles are found.';
+  String get friendsSearchHint => 'Username or name. Without a search: who published hikes last. Public profiles only.';
 
   @override
   String get friendsNoneFound => 'Nobody found.';
@@ -1826,7 +1859,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendsList => 'Your friends';
 
   @override
-  String get friendsEmpty => 'No friends yet. Find people or send your invite link.';
+  String get friendsEmpty =>
+      'No friends yet. Invite the people you hike with: the link makes you friends, also with a private profile.';
 
   @override
   String get friendAdd => 'Add as friend';
@@ -1850,14 +1884,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendRemove => 'Unfriend';
 
   @override
-  String get friendsLinkTitle => 'Your invite link';
-
-  @override
   String get friendsLinkHint =>
       'Whoever opens this link becomes your friend – even when your profile is private. Send it only to people you know.';
-
-  @override
-  String get friendsLinkShare => 'Send the link';
 
   @override
   String get friendsLinkRenew => 'Make a new link';

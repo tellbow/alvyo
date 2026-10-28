@@ -1814,10 +1814,44 @@ class AppLocalizationsIt extends AppLocalizations {
   String get friendsTitle => 'Amici';
 
   @override
+  String get friendsIntro =>
+      'Gli amici vedono a vicenda i loro profili, anche privati, e le loro escursioni nelle novità. Delle persone che segui vedi solo le escursioni pubbliche.';
+
+  @override
+  String get friendsInvite => 'Invita amici';
+
+  @override
+  String get friendsSuggestions => 'Persone che potresti conoscere';
+
+  @override
+  String get friendsDismiss => 'Non suggerire';
+
+  @override
+  String get friendsDiscover => 'Scopri profili';
+
+  @override
+  String friendsMutual(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n amici in comune',
+      one: '$n amico in comune',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String friendsTours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(n, locale: localeName, other: '$n escursioni', one: '$n escursione');
+    return '$_temp0';
+  }
+
+  @override
   String get friendsSearch => 'Cerca persone';
 
   @override
-  String get friendsSearchHint => 'Nome utente o nome; si trovano solo i profili pubblici.';
+  String get friendsSearchHint =>
+      'Nome utente o nome. Senza ricerca: chi ha pubblicato escursioni per ultimo. Solo profili pubblici.';
 
   @override
   String get friendsNoneFound => 'Nessuno trovato.';
@@ -1832,7 +1866,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get friendsList => 'I tuoi amici';
 
   @override
-  String get friendsEmpty => 'Ancora nessun amico. Cerca persone o invia il tuo link di invito.';
+  String get friendsEmpty =>
+      'Ancora nessun amico. Invita le persone con cui fai escursioni: con il link diventate amici, anche con un profilo privato.';
 
   @override
   String get friendAdd => 'Aggiungi come amico';
@@ -1856,14 +1891,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get friendRemove => 'Rimuovi dagli amici';
 
   @override
-  String get friendsLinkTitle => 'Il tuo link di invito';
-
-  @override
   String get friendsLinkHint =>
       'Chi apre questo link diventa tuo amico, anche se il tuo profilo è privato. Invialo solo a persone che conosci.';
-
-  @override
-  String get friendsLinkShare => 'Invia il link';
 
   @override
   String get friendsLinkRenew => 'Crea un nuovo link';

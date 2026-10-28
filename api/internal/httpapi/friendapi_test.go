@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -154,5 +155,90 @@ func TestFriends(t *testing.T) {
 	}
 	if code, _ := dora.do("PUT", "/api/v1/users/dora/friend", nil); code != http.StatusUnprocessableEntity {
 		t.Errorf("befriending oneself: %d", code)
+	}
+}
+
+func TestFriendSuggestions(t *testing.T) {
+	s := newTestServer(t, RelaxedLimits()) // six accounts
+	ctx := context.Background()
+	signup := func(name string) *client {
+		c := s.client(t)
+		s.signup(c, name+"@example.ch", name)
+		if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now() WHERE username = $1`, name); err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	ich, bea, tom, mia, eve, pia := signup("ich"), signup("bea"), signup("tom"), signup("mia"), signup("eve"), signup("pia")
+	befriend := func(a, b *client, an, bn string) {
+		t.Helper()
+		a.do("PUT", "/api/v1/users/"+bn+"/friend", nil)
+		if code, body := b.do("PUT", "/api/v1/users/"+an+"/friend", nil); code != http.StatusOK {
+			t.Fatalf("befriend %s %s: %d %s", an, bn, code, body)
+		}
+	}
+	// ich–bea, ich–tom; mia is friends with both, eve with bea, pia (private) with both.
+	befriend(ich, bea, "ich", "bea")
+	befriend(ich, tom, "ich", "tom")
+	befriend(mia, bea, "mia", "bea")
+	befriend(mia, tom, "mia", "tom")
+	befriend(eve, bea, "eve", "bea")
+	befriend(pia, bea, "pia", "bea")
+	befriend(pia, tom, "pia", "tom")
+	pia.do("PATCH", "/api/v1/me", map[string]any{"profile_public": false})
+	refs := func(c *client, path string) string {
+		t.Helper()
+		code, body := c.do("GET", path, nil)
+		if code != http.StatusOK {
+			t.Fatalf("%s: %d %s", path, code, body)
+		}
+		var r struct {
+			Users []struct {
+				Username      string
+				Tours, Mutual int
+			}
+		}
+		_ = json.Unmarshal(body, &r)
+		var out []string
+		for _, u := range r.Users {
+			out = append(out, fmt.Sprintf("%s:%d:%d", u.Username, u.Mutual, u.Tours))
+		}
+		return strings.Join(out, ",")
+	}
+
+	// Most friends in common first; not a private profile, not friends already.
+	if got := refs(ich, "/api/v1/me/friend-suggestions"); got != "mia:2:0,eve:1:0" {
+		t.Errorf("suggestions: %s", got)
+	}
+	// A request takes them out, so does «Nicht vorschlagen» and a block.
+	ich.do("PUT", "/api/v1/users/eve/friend", nil)
+	if got := refs(ich, "/api/v1/me/friend-suggestions"); got != "mia:2:0" {
+		t.Errorf("after asking eve: %s", got)
+	}
+	if code, _ := ich.do("DELETE", "/api/v1/me/friend-suggestions/mia", nil); code != http.StatusNoContent {
+		t.Fatalf("dismiss: %d", code)
+	}
+	if got := refs(ich, "/api/v1/me/friend-suggestions"); got != "" {
+		t.Errorf("after dismissing mia: %s", got)
+	}
+	if code, _ := ich.do("DELETE", "/api/v1/me/friend-suggestions/pia", nil); code != http.StatusNotFound {
+		t.Errorf("dismissing a private profile: %d", code)
+	}
+
+	// Browsing without a term: who published lately and is no friend yet,
+	// with the numbers; the search finds friends too.
+	for _, c := range []*client{tom, mia, tom} {
+		if code, body := c.do("POST", "/api/v1/routes", newRouteBody("Weg", "public")); code != http.StatusCreated {
+			t.Fatalf("route: %d %s", code, body)
+		}
+	}
+	if got := refs(ich, "/api/v1/users"); got != "mia:2:1" {
+		t.Errorf("browse: %s", got)
+	}
+	if got := refs(ich, "/api/v1/users?q=tom"); got != "tom:0:2" {
+		t.Errorf("search: %s", got)
+	}
+	if code, _ := ich.do("GET", "/api/v1/users?q=t", nil); code != http.StatusUnprocessableEntity {
+		t.Errorf("one letter: %d", code)
 	}
 }

@@ -841,13 +841,33 @@
 	"journey_tab_stages": "Étapes",
 	"nav_friends": "Ami·e·s",
 	"friends_title": "Ami·e·s",
+	"friends_intro": "Les ami·e·s voient mutuellement leurs profils, même privés, et leurs randonnées dans les actualités. Des personnes que tu suis, tu ne vois que les randonnées publiques.",
+	"friends_invite": "Inviter des ami·e·s",
+	"friends_link_copied": "Lien copié",
+	"friends_suggestions": "Personnes que tu connais peut-être",
+	"friends_dismiss": "Ne pas suggérer",
+	"friends_discover": "Découvrir des profils",
+	"friends_mutual": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} ami·e en commun", "nPlural=other": "{n} ami·e·s en commun" }
+		}
+	],
+	"friends_tours": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} randonnée", "nPlural=other": "{n} randonnées" }
+		}
+	],
 	"friends_search": "Chercher des personnes",
-	"friends_search_hint": "Nom d'utilisateur ou nom ; seuls les profils publics sont trouvés.",
+	"friends_search_hint": "Nom d'utilisateur ou nom. Sans recherche : qui a publié des randonnées en dernier. Profils publics uniquement.",
 	"friends_none_found": "Personne trouvé.",
 	"friends_incoming": "Demandes reçues",
 	"friends_outgoing": "Tes demandes",
 	"friends_list": "Tes ami·e·s",
-	"friends_empty": "Pas encore d'ami·e·s. Cherche des personnes ou envoie ton lien d'invitation.",
+	"friends_empty": "Pas encore d'ami·e·s. Invite les personnes avec qui tu randonnes : le lien fait de vous des ami·e·s, même avec un profil privé.",
 	"friend_add": "Ajouter comme ami·e",
 	"friend_requested": "Demande envoyée",
 	"friend_withdraw": "Retirer",
@@ -856,7 +876,6 @@
 	"friend_friends": "Ami·e·s",
 	"friend_remove": "Retirer des ami·e·s",
 	"friend_incoming": "aimerait être ton ami·e",
-	"friends_link_title": "Ton lien d'invitation",
 	"friends_link_hint": "Qui ouvre ce lien devient ton ami·e – même si ton profil est privé. Envoie-le seulement à des personnes que tu connais.",
 	"friend_invite_title": "{name} t'invite",
 	"friend_invite_text": "Devenez ami·e·s sur Alvyo : vous voyez vos profils, même privés.",

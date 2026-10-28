@@ -847,13 +847,33 @@
 	"journey_tab_stages": "Stages",
 	"nav_friends": "Friends",
 	"friends_title": "Friends",
+	"friends_intro": "Friends see each other’s profiles, private ones too, and each other’s hikes in their news. Of the people you follow, you see only the public hikes.",
+	"friends_invite": "Invite friends",
+	"friends_link_copied": "Link copied",
+	"friends_suggestions": "People you may know",
+	"friends_dismiss": "Don’t suggest",
+	"friends_discover": "Discover profiles",
+	"friends_mutual": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} friend in common", "nPlural=other": "{n} friends in common" }
+		}
+	],
+	"friends_tours": [
+		{
+			"declarations": ["input n", "local nPlural = n: plural"],
+			"selectors": ["nPlural"],
+			"match": { "nPlural=one": "{n} hike", "nPlural=other": "{n} hikes" }
+		}
+	],
 	"friends_search": "Find people",
-	"friends_search_hint": "Username or name; only public profiles are found.",
+	"friends_search_hint": "Username or name. Without a search: who published hikes last. Public profiles only.",
 	"friends_none_found": "Nobody found.",
 	"friends_incoming": "Requests to you",
 	"friends_outgoing": "Your requests",
 	"friends_list": "Your friends",
-	"friends_empty": "No friends yet. Find people or send your invite link.",
+	"friends_empty": "No friends yet. Invite the people you hike with: the link makes you friends, also with a private profile.",
 	"friend_add": "Add as friend",
 	"friend_requested": "Request sent",
 	"friend_withdraw": "Withdraw",
@@ -862,7 +882,6 @@
 	"friend_friends": "Friends",
 	"friend_remove": "Unfriend",
 	"friend_incoming": "would like to be friends",
-	"friends_link_title": "Your invite link",
 	"friends_link_hint": "Whoever opens this link becomes your friend – even when your profile is private. Send it only to people you know.",
 	"friend_invite_title": "{name} invites you",
 	"friend_invite_text": "Become friends on Alvyo: you see each other's profiles, private ones too.",

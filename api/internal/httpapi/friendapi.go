@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/danielgtaylor/huma/v2"
 
@@ -13,7 +14,14 @@ import (
 )
 
 type userSearchInput struct {
-	Q string `query:"q" minLength:"2" maxLength:"60" doc:"Start of a username or part of a name"`
+	Q string `query:"q" maxLength:"60" doc:"Start of a username or part of a name; without it, who published lately"`
+}
+
+func (in *userSearchInput) Resolve(huma.Context) []error {
+	if q := strings.TrimSpace(in.Q); q != "" && len([]rune(q)) < 2 {
+		return []error{&huma.ErrorDetail{Location: "query.q", Message: "at least 2 characters", Value: in.Q}}
+	}
+	return nil
 }
 
 type userSearchOutput struct {
@@ -43,7 +51,7 @@ func registerFriends(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "search-users", Method: http.MethodGet, Path: "/users",
-		Summary: "Find public profiles by username or name, at most 20", Tags: tags,
+		Summary: "Find public profiles by username or name, or browse those who published lately; at most 30", Tags: tags,
 	}, func(ctx context.Context, in *userSearchInput) (*userSearchOutput, error) {
 		u, err := requireUser(ctx)
 		if err != nil {
@@ -113,6 +121,37 @@ func registerFriends(api huma.API, d Deps) {
 		}
 		l, err := d.Community.FriendLists(ctx, u.ID)
 		return &friendListsOutput{Body: l}, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "list-friend-suggestions", Method: http.MethodGet, Path: "/me/friend-suggestions",
+		Summary: "People the user might know: friends of friends with a public profile, at most 10", Tags: tags,
+	}, func(ctx context.Context, _ *struct{}) (*userSearchOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out := &userSearchOutput{}
+		out.Body.Users, err = d.Community.Suggestions(ctx, u.ID)
+		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "dismiss-friend-suggestion", Method: http.MethodDelete, Path: "/me/friend-suggestions/{username}",
+		Summary: "Do not suggest this user again", Tags: tags, DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *usernameInput) (*struct{}, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		o, err := d.Discover.User(ctx, in.Username)
+		if errors.Is(err, discover.ErrNotFound) || err == nil && !o.Public {
+			return nil, huma.Error404NotFound("no such user")
+		}
+		if err != nil {
+			return nil, err
+		}
+		return nil, d.Community.Dismiss(ctx, u.ID, o.ID)
 	})
 
 	huma.Register(api, huma.Operation{

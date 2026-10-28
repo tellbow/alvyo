@@ -93,6 +93,30 @@ type FriendRef struct {
 	DisplayName string    `json:"display_name"`
 	Friend      Friend    `json:"friend" enum:"none,requested,incoming,friends"`
 	Since       time.Time `json:"since" doc:"When they became friends, or were asked"`
+	Tours       int       `json:"tours" doc:"Public routes and journeys"`
+	Mutual      int       `json:"mutual" doc:"Friends in common with the viewer; who they are stays hidden"`
+}
+
+// refNumbers is the SQL for a FriendRef's tours and mutual friends of u,
+// seen by $1.
+const refNumbers = `(SELECT count(*) FROM routes r WHERE r.owner_id = u.id AND r.visibility = 'public' AND r.journey_id IS NULL)
+		+ (SELECT count(*) FROM journeys j WHERE j.owner_id = u.id AND j.visibility = 'public'),
+	(SELECT count(*) FROM friendships a JOIN friendships b
+		ON CASE WHEN a.requester_id = $1 THEN a.addressee_id ELSE a.requester_id END
+			= CASE WHEN b.requester_id = u.id THEN b.addressee_id ELSE b.requester_id END
+		JOIN users c ON c.id = CASE WHEN a.requester_id = $1 THEN a.addressee_id ELSE a.requester_id END AND c.banned_at IS NULL
+		WHERE a.accepted_at IS NOT NULL AND b.accepted_at IS NOT NULL
+			AND $1 IN (a.requester_id, a.addressee_id) AND u.id IN (b.requester_id, b.addressee_id))`
+
+// apart is the SQL for a block between $1 and u, either way.
+const apart = `EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = $1 AND b.blocked_id = u.id)
+		OR (b.blocker_id = u.id AND b.blocked_id = $1))`
+
+func collectRefs(rows pgx.Rows) ([]FriendRef, error) {
+	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (FriendRef, error) {
+		var f FriendRef
+		return f, r.Scan(&f.Username, &f.DisplayName, &f.Friend, &f.Since, &f.Tours, &f.Mutual)
+	})
 }
 
 // FriendLists are a user's friends and open requests.
@@ -107,7 +131,7 @@ type FriendLists struct {
 func (s *Store) FriendLists(ctx context.Context, user uuid.UUID) (FriendLists, error) {
 	rows, err := s.DB.Query(ctx, `SELECT u.username, u.display_name,
 			CASE WHEN f.accepted_at IS NOT NULL THEN 'friends' WHEN f.requester_id = $1 THEN 'requested' ELSE 'incoming' END,
-			coalesce(f.accepted_at, f.created_at)
+			coalesce(f.accepted_at, f.created_at), `+refNumbers+`
 		FROM friendships f
 		JOIN users u ON u.id = CASE WHEN f.requester_id = $1 THEN f.addressee_id ELSE f.requester_id END
 		WHERE (f.requester_id = $1 OR f.addressee_id = $1) AND u.banned_at IS NULL
@@ -115,10 +139,7 @@ func (s *Store) FriendLists(ctx context.Context, user uuid.UUID) (FriendLists, e
 	if err != nil {
 		return FriendLists{}, err
 	}
-	refs, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (FriendRef, error) {
-		var f FriendRef
-		return f, r.Scan(&f.Username, &f.DisplayName, &f.Friend, &f.Since)
-	})
+	refs, err := collectRefs(rows)
 	if err != nil {
 		return FriendLists{}, err
 	}
@@ -146,23 +167,58 @@ func (s *Store) IncomingRequests(ctx context.Context, user uuid.UUID) (int, erro
 
 // SearchUsers finds public profiles by the start of the username or a part
 // of the display name, without the viewer, banned users and those either
-// blocked; at most 20, by username.
+// blocked; at most 30, by username. Without q: those with public tours
+// who are not friends yet, who published last first.
 func (s *Store) SearchUsers(ctx context.Context, viewer uuid.UUID, q string) ([]FriendRef, error) {
 	like := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(strings.TrimPrefix(strings.TrimSpace(q), "@"))
-	rows, err := s.DB.Query(ctx, `SELECT u.username, u.display_name, `+strings.ReplaceAll(friendState, "$2", "u.id")+`, u.created_at
+	rows, err := s.DB.Query(ctx, `SELECT u.username, u.display_name, `+strings.ReplaceAll(friendState, "$2", "u.id")+`, u.created_at,
+			`+refNumbers+`
 		FROM users u
-		WHERE u.profile_public AND u.banned_at IS NULL AND u.id <> $1
-			AND (u.username ILIKE $2 || '%' OR u.display_name ILIKE '%' || $2 || '%')
-			AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = $1 AND b.blocked_id = u.id)
-				OR (b.blocker_id = u.id AND b.blocked_id = $1))
-		ORDER BY u.username LIMIT 20`, viewer, like)
+		CROSS JOIN LATERAL (SELECT max(at) AS at FROM (
+			SELECT published_at AS at FROM routes WHERE owner_id = u.id AND visibility = 'public' AND journey_id IS NULL
+			UNION ALL SELECT published_at FROM journeys WHERE owner_id = u.id AND visibility = 'public') p) active
+		WHERE u.profile_public AND u.banned_at IS NULL AND u.id <> $1 AND NOT `+apart+`
+			AND CASE WHEN $2 = '' THEN active.at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM friendships f
+					WHERE f.accepted_at IS NOT NULL AND ((f.requester_id = $1 AND f.addressee_id = u.id)
+						OR (f.requester_id = u.id AND f.addressee_id = $1)))
+				ELSE u.username ILIKE $2 || '%' OR u.display_name ILIKE '%' || $2 || '%' END
+		ORDER BY CASE WHEN $2 = '' THEN active.at END DESC NULLS LAST, u.username LIMIT 30`, viewer, like)
 	if err != nil {
 		return nil, err
 	}
-	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (FriendRef, error) {
-		var f FriendRef
-		return f, r.Scan(&f.Username, &f.DisplayName, &f.Friend, &f.Since)
-	})
+	return collectRefs(rows)
+}
+
+// Suggestions are friends of the user's friends they might know: public
+// profiles only, most friends in common first, without anyone already
+// asked or asking, dismissed, blocked or banned.
+func (s *Store) Suggestions(ctx context.Context, user uuid.UUID) ([]FriendRef, error) {
+	rows, err := s.DB.Query(ctx, `WITH mine AS (
+		SELECT CASE WHEN f.requester_id = $1 THEN f.addressee_id ELSE f.requester_id END AS id
+		FROM friendships f JOIN users c ON c.id = CASE WHEN f.requester_id = $1 THEN f.addressee_id ELSE f.requester_id END
+		WHERE f.accepted_at IS NOT NULL AND $1 IN (f.requester_id, f.addressee_id) AND c.banned_at IS NULL
+	), theirs AS (
+		SELECT DISTINCT CASE WHEN f.requester_id = m.id THEN f.addressee_id ELSE f.requester_id END AS id
+		FROM mine m JOIN friendships f ON f.accepted_at IS NOT NULL AND m.id IN (f.requester_id, f.addressee_id)
+	)
+	SELECT u.username, u.display_name, 'none', u.created_at, `+refNumbers+` AS mutual
+	FROM theirs t JOIN users u ON u.id = t.id
+	WHERE u.profile_public AND u.banned_at IS NULL AND u.id <> $1 AND NOT `+apart+`
+		AND NOT EXISTS (SELECT 1 FROM friendships f WHERE (f.requester_id = $1 AND f.addressee_id = u.id)
+			OR (f.requester_id = u.id AND f.addressee_id = $1))
+		AND NOT EXISTS (SELECT 1 FROM suggestion_dismissals d WHERE d.user_id = $1 AND d.dismissed_id = u.id)
+	ORDER BY mutual DESC, u.username LIMIT 10`, user)
+	if err != nil {
+		return nil, err
+	}
+	return collectRefs(rows)
+}
+
+// Dismiss keeps other out of the user's suggestions.
+func (s *Store) Dismiss(ctx context.Context, user, other uuid.UUID) error {
+	_, err := s.DB.Exec(ctx, `INSERT INTO suggestion_dismissals (user_id, dismissed_id) VALUES ($1, $2)
+		ON CONFLICT DO NOTHING`, user, other)
+	return err
 }
 
 // FriendToken returns user's invite link token, made the first time.

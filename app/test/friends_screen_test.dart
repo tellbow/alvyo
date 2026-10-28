@@ -14,9 +14,12 @@ http.Response _json(Object body) =>
 
 void main() {
   // A request waiting, a search, asking and accepting.
-  testWidgets('friends: search and ask, accept a request', (tester) async {
+  testWidgets('friends: search and ask, accept a request, a suggestion not wanted', (tester) async {
+    tester.view.physicalSize = const Size(400, 2400); // all of it at once
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final calls = <String>[];
-    var annaAccepted = false;
+    var annaAccepted = false, miaDismissed = false;
     final client = MockClient((req) async {
       calls.add('${req.method} ${req.url.path}${req.url.hasQuery ? '?${req.url.query}' : ''}');
       return switch ((req.method, req.url.path)) {
@@ -37,6 +40,23 @@ void main() {
             {'username': 'beat', 'display_name': 'Beat Berg', 'friend': 'none', 'since': '2026-09-01T10:00:00Z'},
           ],
         }),
+        ('GET', '/api/v1/me/friend-suggestions') => _json({
+          'users': [
+            if (!miaDismissed)
+              {
+                'username': 'mia',
+                'display_name': 'Mia Gerber',
+                'friend': 'none',
+                'since': '2026-09-01T10:00:00Z',
+                'tours': 3,
+                'mutual': 2,
+              },
+          ],
+        }),
+        ('DELETE', '/api/v1/me/friend-suggestions/mia') => () {
+          miaDismissed = true;
+          return http.Response('', 204);
+        }(),
         ('PUT', '/api/v1/users/beat/friend') => _json({'friend': 'requested'}),
         ('PUT', '/api/v1/users/anna/friend') => () {
           annaAccepted = true;
@@ -62,7 +82,15 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Anfragen an dich'), findsOneWidget);
-    expect(find.text('Noch keine Freunde. Suche nach Personen oder schicke deinen Einladungslink.'), findsOneWidget);
+    expect(find.byKey(const Key('friends-empty')), findsOneWidget);
+    // Profiles to discover before searching; a suggestion with only the number in common.
+    expect(calls, contains('GET /api/v1/users'));
+    expect(find.text('Leute, die du kennen könntest'), findsOneWidget);
+    expect(find.text('3 Touren · 2 gemeinsame Freunde'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('dismiss-mia')));
+    await tester.pumpAndSettle();
+    expect(calls, contains('DELETE /api/v1/me/friend-suggestions/mia'));
+    expect(find.text('Mia Gerber'), findsNothing);
 
     await tester.enterText(find.byKey(const Key('friends-search')), 'Beat');
     await tester.pump(const Duration(milliseconds: 400));

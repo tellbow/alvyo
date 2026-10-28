@@ -1988,10 +1988,20 @@
             ],
             "type": "string"
           },
+          "mutual": {
+            "description": "Friends in common with the viewer; who they are stays hidden",
+            "format": "int64",
+            "type": "integer"
+          },
           "since": {
             "description": "When they became friends, or were asked",
             "format": "date-time",
             "type": "string"
+          },
+          "tours": {
+            "description": "Public routes and journeys",
+            "format": "int64",
+            "type": "integer"
           },
           "username": {
             "type": "string"
@@ -2001,7 +2011,9 @@
           "username",
           "display_name",
           "friend",
-          "since"
+          "since",
+          "tours",
+          "mutual"
         ],
         "type": "object"
       },
@@ -11950,6 +11962,71 @@
         ]
       }
     },
+    "/me/friend-suggestions": {
+      "get": {
+        "operationId": "list-friend-suggestions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSearchOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "People the user might know: friends of friends with a public profile, at most 10",
+        "tags": [
+          "community"
+        ]
+      }
+    },
+    "/me/friend-suggestions/{username}": {
+      "delete": {
+        "operationId": "dismiss-friend-suggestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Do not suggest this user again",
+        "tags": [
+          "community"
+        ]
+      }
+    },
     "/me/friends": {
       "get": {
         "operationId": "list-friends",
@@ -15490,14 +15567,13 @@
         "operationId": "search-users",
         "parameters": [
           {
-            "description": "Start of a username or part of a name",
+            "description": "Start of a username or part of a name; without it, who published lately",
             "explode": false,
             "in": "query",
             "name": "q",
             "schema": {
-              "description": "Start of a username or part of a name",
+              "description": "Start of a username or part of a name; without it, who published lately",
               "maxLength": 60,
-              "minLength": 2,
               "type": "string"
             }
           }
@@ -15524,7 +15600,7 @@
             "description": "Error"
           }
         },
-        "summary": "Find public profiles by username or name, at most 20",
+        "summary": "Find public profiles by username or name, or browse those who published lately; at most 30",
         "tags": [
           "community"
         ]

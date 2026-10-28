@@ -31,8 +31,7 @@
 	}
 </script>
 
-<h2 class="mt-8 text-lg font-semibold">{m.signin_title()}</h2>
-<div class="mt-2 flex flex-col gap-3 text-sm" data-testid="signin-methods">
+<div class="flex flex-col gap-3 text-sm" data-testid="signin-methods">
 	<p class="text-stone-600">
 		{user.has_password ? m.signin_password_set() : m.signin_password_none()}
 	</p>

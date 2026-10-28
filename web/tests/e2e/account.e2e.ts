@@ -111,6 +111,9 @@ test('an access token: shown once, reads, revoked', async ({ page, playwright, b
 		}
 	});
 	await page.goto('/account');
+	// Collapsed until opened: most people never need it.
+	await expect(page.getByTestId('mcp-url')).toBeHidden();
+	await page.getByTestId('developers').getByText('Für Entwickler').click();
 	await expect(page.getByTestId('mcp-url')).toHaveText(`${baseURL}/api/v1/mcp`);
 	await page.getByTestId('token-name').fill('Claude Desktop');
 	await page.getByTestId('token-create').click();
@@ -129,6 +132,7 @@ test('an access token: shown once, reads, revoked', async ({ page, playwright, b
 
 	// Shown once: not after loading the page again.
 	await page.reload();
+	await page.getByTestId('developers').getByText('Für Entwickler').click();
 	await expect(page.getByTestId('token-value')).toHaveCount(0);
 	await expect(page.getByTestId('tokens')).toContainText('zuletzt benutzt');
 

@@ -39,9 +39,7 @@
 	}
 </script>
 
-<h2 class="mt-8 text-lg font-semibold">{m.homes_title()}</h2>
-<p class="mt-1 text-sm text-stone-600">{m.homes_intro()}</p>
-<ul class="mt-2 flex flex-col gap-1 text-sm" data-testid="homes">
+<ul class="flex flex-col gap-1 text-sm" data-testid="homes">
 	{#each homes as h (h.id)}
 		<li class="flex items-center gap-3">
 			<span class="flex-1">{h.name} <span class="text-stone-500">{h.address}</span></span>

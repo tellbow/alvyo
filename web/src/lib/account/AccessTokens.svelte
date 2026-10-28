@@ -51,8 +51,7 @@
 	}
 </script>
 
-<h2 class="mt-8 text-lg font-semibold">{m.tokens_title()}</h2>
-<p class="mt-1 text-sm text-stone-600">{m.tokens_intro()}</p>
+<p class="text-sm text-stone-600">{m.tokens_intro()}</p>
 <p class="mt-1 text-sm text-stone-600">
 	{m.tokens_mcp()} <code class="break-all" data-testid="mcp-url">{mcpUrl}</code>
 </p>

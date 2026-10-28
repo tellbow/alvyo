@@ -12,6 +12,7 @@
 	import Contacts from '#lib/account/Contacts.svelte';
 	import Homes from '#lib/account/Homes.svelte';
 	import AccessTokens from '#lib/account/AccessTokens.svelte';
+	import Card from '#lib/account/Card.svelte';
 	import { choose } from '#lib/util/choose.js';
 
 	let { data } = $props();
@@ -70,122 +71,152 @@
 
 <Seo title={m.account_title()} index={false} />
 
-<!-- A content page like the others, wider than the login's card. -->
-<main class="mx-auto w-full max-w-2xl overflow-y-auto px-4 py-8">
-	<h1 class="mb-6 text-2xl font-semibold text-stone-900">{m.account_title()}</h1>
+<!-- Cards in the groups and order of the app's profile tab. -->
+<main class="mx-auto w-full max-w-5xl overflow-y-auto px-4 py-8">
+	<h1 class="text-2xl font-semibold text-stone-900">{m.account_title()}</h1>
+	<p class="mt-1 mb-6 text-stone-600">{data.user?.username} · {data.user?.email}</p>
 	<OidcNotice />
-	<p class="text-stone-600">{data.user?.username} · {data.user?.email}</p>
 
-	{#if data.user}<SignInMethods user={data.user} />{/if}
-
-	<h2 class="mt-8 text-lg font-semibold">{m.account_sessions_title()}</h2>
-	<p class="mt-1 text-sm text-stone-600">{m.account_sessions_hint()}</p>
-	<div class="mt-2 flex flex-wrap items-center gap-3">
-		<button
-			type="button"
-			class="rounded-md border border-stone-400 px-3 py-1.5 text-sm hover:bg-stone-100"
-			onclick={logoutOthers}
-			data-testid="logout-others">{m.account_logout_others()}</button
+	<div class="grid items-start gap-4 lg:grid-cols-2">
+		<Card
+			title={m.account_profile()}
+			info={[m.account_profile_public_hint(), m.account_pace_hint()]}
 		>
-		<p role="status" class="text-sm text-accent-ink">
-			{loggedOut ? m.account_logout_others_done() : ''}
-		</p>
-	</div>
-
-	<AccessTokens />
-
-	<h2 class="mt-8 text-lg font-semibold">{m.account_pace()}</h2>
-	<p class="mt-1 text-sm text-stone-600">{m.account_pace_hint()}</p>
-	<select
-		class="mt-2 rounded-md border border-stone-400 bg-surface px-2 py-1.5 text-sm"
-		aria-label={m.account_pace()}
-		data-testid="pace"
-		value={pace}
-		disabled={!hydrated.value}
-		use:choose={(v) => notify({ speed_factor: Number(v) })}
-	>
-		{#each paces as p (p)}
-			<option value={p}>{p === 1 ? m.account_pace_signposts() : `${Math.round(p * 100)} %`}</option>
-		{/each}
-	</select>
-
-	<h2 class="mt-8 text-lg font-semibold">{m.account_profile()}</h2>
-	<label class="mt-2 flex items-center gap-2 text-sm">
-		<input
-			type="checkbox"
-			checked={data.user?.profile_public}
-			disabled={!hydrated.value}
-			onchange={(e) => notify({ profile_public: e.currentTarget.checked })}
-			data-testid="profile-public"
-		/>
-		{m.account_profile_public()}
-	</label>
-	<p class="mt-1 text-xs text-stone-500">{m.account_profile_public_hint()}</p>
-
-	<h2 class="mt-8 text-lg font-semibold">{m.account_notifications()}</h2>
-	<div class="mt-2 flex flex-col gap-2 text-sm" data-testid="notifications">
-		<label class="flex items-center gap-2">
-			<input
-				type="checkbox"
-				checked={data.user?.notify_comments}
-				disabled={!hydrated.value}
-				onchange={(e) => notify({ notify_comments: e.currentTarget.checked })}
-			/>
-			{m.account_notify_comments()}
-		</label>
-		<label class="flex items-center gap-2">
-			<input
-				type="checkbox"
-				checked={data.user?.notify_follows}
-				disabled={!hydrated.value}
-				onchange={(e) => notify({ notify_follows: e.currentTarget.checked })}
-			/>
-			{m.account_notify_follows()}
-		</label>
-	</div>
-
-	<Contacts />
-
-	<Homes />
-
-	{#if blocked.length > 0}
-		<h2 class="mt-8 text-lg font-semibold">{m.account_blocked()}</h2>
-		<ul class="mt-2 flex flex-col gap-1 text-sm" data-testid="blocked">
-			{#each blocked as b (b.username)}
-				<li class="flex items-center gap-3">
-					<span class="flex-1"
-						>{b.display_name} <span class="text-stone-500">@{b.username}</span></span
+			<div class="flex flex-col gap-4 text-sm">
+				{#if data.user}
+					<a
+						href={resolve('/u/[username]', { username: data.user.username })}
+						class="text-accent-ink underline">{m.account_view_profile()}</a
 					>
-					<button type="button" class="text-stone-500 underline" onclick={() => unblock(b.username)}
-						>{m.profile_unblock()}</button
+				{/if}
+				<label class="flex items-center gap-2">
+					<input
+						type="checkbox"
+						checked={data.user?.profile_public}
+						disabled={!hydrated.value}
+						onchange={(e) => notify({ profile_public: e.currentTarget.checked })}
+						data-testid="profile-public"
+					/>
+					{m.account_profile_public()}
+				</label>
+				<label class="flex flex-wrap items-center gap-x-3 gap-y-1">
+					<span class="font-medium">{m.account_pace()}</span>
+					<select
+						class="rounded-md border border-stone-400 bg-surface px-2 py-1.5"
+						aria-label={m.account_pace()}
+						data-testid="pace"
+						value={pace}
+						disabled={!hydrated.value}
+						use:choose={(v) => notify({ speed_factor: Number(v) })}
 					>
-				</li>
-			{/each}
-		</ul>
-	{/if}
+						{#each paces as p (p)}
+							<option value={p}
+								>{p === 1 ? m.account_pace_signposts() : `${Math.round(p * 100)} %`}</option
+							>
+						{/each}
+					</select>
+				</label>
+			</div>
+		</Card>
 
-	<h2 class="mt-8 text-lg font-semibold text-red-800 dark:text-red-300">
-		{m.account_delete_title()}
-	</h2>
-	<p class="mt-1 mb-4 text-sm text-stone-600">{m.account_delete_text()}</p>
-	<form method="post" onsubmit={remove} class="flex flex-col gap-3">
-		{#if data.user?.has_password}
-			<Field
-				label={m.field_password()}
-				name="password"
-				type="password"
-				autocomplete="current-password"
-				required
-				bind:value={password}
-			/>
-		{:else}
-			<p class="text-sm text-stone-600">{m.account_delete_recent()}</p>
+		<Card title={m.account_notifications()}>
+			<div class="flex flex-col gap-2 text-sm" data-testid="notifications">
+				<label class="flex items-center gap-2">
+					<input
+						type="checkbox"
+						checked={data.user?.notify_comments}
+						disabled={!hydrated.value}
+						onchange={(e) => notify({ notify_comments: e.currentTarget.checked })}
+					/>
+					{m.account_notify_comments()}
+				</label>
+				<label class="flex items-center gap-2">
+					<input
+						type="checkbox"
+						checked={data.user?.notify_follows}
+						disabled={!hydrated.value}
+						onchange={(e) => notify({ notify_follows: e.currentTarget.checked })}
+					/>
+					{m.account_notify_follows()}
+				</label>
+			</div>
+		</Card>
+
+		<Card title={m.account_security()} info={m.account_sessions_hint()}>
+			<div class="flex flex-col gap-5">
+				{#if data.user}
+					<div>
+						<h3 class="mb-1 font-medium">{m.signin_title()}</h3>
+						<SignInMethods user={data.user} />
+					</div>
+				{/if}
+				<div class="text-sm">
+					<h3 class="font-medium">{m.account_sessions_title()}</h3>
+					<div class="mt-2 flex flex-wrap items-center gap-3">
+						<button
+							type="button"
+							class="rounded-md border border-stone-400 px-3 py-1.5 hover:bg-stone-100"
+							onclick={logoutOthers}
+							data-testid="logout-others">{m.account_logout_others()}</button
+						>
+						<p role="status" class="text-accent-ink">
+							{loggedOut ? m.account_logout_others_done() : ''}
+						</p>
+					</div>
+				</div>
+			</div>
+		</Card>
+
+		<Card title={m.homes_title()} info={m.homes_intro()}><Homes /></Card>
+
+		<Card title={m.contacts_title()} info={m.contacts_intro()}><Contacts /></Card>
+
+		{#if blocked.length > 0}
+			<Card title={m.account_blocked()}>
+				<ul class="flex flex-col gap-1 text-sm" data-testid="blocked">
+					{#each blocked as b (b.username)}
+						<li class="flex items-center gap-3">
+							<span class="flex-1"
+								>{b.display_name} <span class="text-stone-500">@{b.username}</span></span
+							>
+							<button
+								type="button"
+								class="text-stone-500 underline"
+								onclick={() => unblock(b.username)}>{m.profile_unblock()}</button
+							>
+						</li>
+					{/each}
+				</ul>
+			</Card>
 		{/if}
-		{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
-		<button
-			disabled={!hydrated.value}
-			class="rounded-md bg-red-700 px-4 py-2 text-white hover:bg-red-800"
-			>{m.account_delete_submit()}</button
-		>
-	</form>
+
+		<Card title={m.account_developers()} collapsed testid="developers" class="lg:col-span-2">
+			<h3 class="mb-1 text-sm font-medium">{m.tokens_title()}</h3>
+			<AccessTokens />
+		</Card>
+
+		<Card title={m.account_delete_title()} danger class="lg:col-span-2">
+			<p class="mb-4 text-sm text-stone-600">{m.account_delete_text()}</p>
+			<form method="post" onsubmit={remove} class="flex max-w-md flex-col gap-3">
+				{#if data.user?.has_password}
+					<Field
+						label={m.field_password()}
+						name="password"
+						type="password"
+						autocomplete="current-password"
+						required
+						bind:value={password}
+					/>
+				{:else}
+					<p class="text-sm text-stone-600">{m.account_delete_recent()}</p>
+				{/if}
+				{#if error}<p role="alert" class="text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
+				<button
+					disabled={!hydrated.value}
+					class="rounded-md bg-red-700 px-4 py-2 text-white hover:bg-red-800"
+					>{m.account_delete_submit()}</button
+				>
+			</form>
+		</Card>
+	</div>
 </main>

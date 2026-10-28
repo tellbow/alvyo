@@ -302,13 +302,6 @@ class _ProfileTabState extends State<ProfileTab> {
                       onTap: () => _push(ContactsScreen(api: widget.api)),
                     ),
                     ListTile(
-                      key: const Key('tokens'),
-                      leading: const Icon(Icons.key_outlined),
-                      title: Text(t.tokensTitle),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _push(AccessTokensScreen(api: widget.api)),
-                    ),
-                    ListTile(
                       key: const Key('blocked'),
                       leading: const Icon(Icons.block),
                       title: Text(t.blockedTitle),
@@ -316,6 +309,15 @@ class _ProfileTabState extends State<ProfileTab> {
                       onTap: () => _push(BlockedScreen(api: widget.api)),
                     ),
                   ]),
+                  // Tokens are for programs on a computer: copying one on a phone is awkward.
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Text(
+                      t.tokensOnWebsite,
+                      key: const Key('tokens-on-website'),
+                      style: muted.copyWith(fontSize: 12),
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   group([
                     ListTile(

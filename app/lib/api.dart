@@ -1285,22 +1285,6 @@ class Home {
   final double lon, lat;
 }
 
-/// A personal access token for AI assistants and alvyo-cli, without the
-/// token itself: it only reads.
-class AccessToken {
-  AccessToken.fromJson(Map<String, dynamic> j)
-    : id = j['id'] as String,
-      name = j['name'] as String,
-      createdAt = DateTime.parse(j['created_at'] as String),
-      lastUsedAt = switch (j['last_used_at']) {
-        final String at => DateTime.parse(at),
-        _ => null,
-      };
-  final String id, name;
-  final DateTime createdAt;
-  final DateTime? lastUsedAt;
-}
-
 /// Where a way starts or ends that is not a home: a place found by the search.
 typedef TravelPlace = ({String name, double lon, double lat});
 
@@ -2349,21 +2333,6 @@ class Api {
   );
 
   Future<void> deleteHome(String id) => _send('DELETE', '/me/homes/$id');
-
-  /// The personal access tokens, the newest first.
-  Future<List<AccessToken>> accessTokens() async {
-    final j = await _get('/me/tokens') as Map<String, dynamic>;
-    return [for (final t in j['tokens'] as List) AccessToken.fromJson(t as Map<String, dynamic>)];
-  }
-
-  /// Creates an access token; the token itself comes with this answer only
-  /// (at most 20: 422).
-  Future<({AccessToken info, String token})> createAccessToken(String name) async {
-    final j = await _send('POST', '/me/tokens', {'name': name}) as Map<String, dynamic>;
-    return (info: AccessToken.fromJson(j), token: j['token'] as String);
-  }
-
-  Future<void> revokeAccessToken(String id) => _send('DELETE', '/me/tokens/$id');
 
   /// The user's own travel for a journey.
   Future<Travel> travel(String journeyId) async =>

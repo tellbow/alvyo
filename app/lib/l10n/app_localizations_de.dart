@@ -2316,56 +2316,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get copyFailed => 'Das Kopieren hat nicht geklappt. Versuche es nochmals.';
 
   @override
-  String get tokensTitle => 'Zugriffstoken';
-
-  @override
-  String get tokensIntro =>
-      'Mit einem Zugriffstoken lesen KI-Assistenten wie Claude und das Kommandozeilenprogramm alvyo‑cli in deinem Konto: Sie planen Routen, suchen Orte, fragen Wetter und Sperrungen ab und sehen deine Routen und Etappentouren. Ändern können sie nichts. Gib ein Token nur Programmen, denen du vertraust.';
-
-  @override
-  String get tokensMcp => 'Adresse für KI-Assistenten (MCP):';
-
-  @override
-  String get tokensName => 'Wofür?';
-
-  @override
-  String get tokensNamePlaceholder => 'z. B. Claude Desktop';
-
-  @override
-  String get tokensCreate => 'Token erstellen';
-
-  @override
-  String get tokensCreated => 'Kopiere das Token jetzt: Es wird nur dieses eine Mal angezeigt.';
-
-  @override
-  String get tokensCopy => 'Kopieren';
-
-  @override
-  String get tokensCopied => 'Token kopiert';
-
-  @override
-  String tokensCreatedOn(String date) {
-    return 'erstellt am $date';
-  }
-
-  @override
-  String tokensUsedOn(String date) {
-    return 'zuletzt benutzt am $date';
-  }
-
-  @override
-  String get tokensNeverUsed => 'noch nie benutzt';
-
-  @override
-  String get tokensRevoke => 'Widerrufen';
-
-  @override
-  String tokensRevokeConfirm(String name) {
-    return '«$name» widerrufen? Programme mit diesem Token kommen dann nicht mehr in dein Konto.';
-  }
-
-  @override
-  String get tokensFull => 'Du hast schon 20 Token. Widerrufe zuerst eines.';
+  String get tokensOnWebsite => 'Zugriffstoken für KI-Assistenten verwaltest du auf alvyo.tellbow.ch.';
 
   @override
   String get aboutTitle => 'Über Alvyo';

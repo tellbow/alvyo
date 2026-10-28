@@ -799,7 +799,8 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
 
 71. **AI assistants and the command line** (issue 28; read-only,
     personal access tokens rather than OAuth, the CLI also on its own).
-    «Zugriffstoken» under «Konto» on the website and in the app: named,
+    «Zugriffstoken» under «Konto» on the website (the app only points
+    there: tokens are for programs on a computer; feedback issue 55): named,
     with when they were made and last used (within the hour), at most 20,
     revoked at once; the token (`alvyo_pat_…`) is shown once, only its
     SHA-256 is kept, and a password reset removes them all. With a token

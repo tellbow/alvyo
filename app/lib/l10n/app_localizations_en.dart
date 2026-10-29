@@ -2144,9 +2144,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importTitle => 'Import';
 
   @override
-  String get importAction => 'Import';
-
-  @override
   String get importWatchHint => 'Hikes you recorded with your watch';
 
   @override

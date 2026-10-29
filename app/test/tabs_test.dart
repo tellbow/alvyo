@@ -13,6 +13,7 @@ import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/navigation/gps.dart';
 import 'package:alvyo/screens/discover_tab.dart';
 import 'package:alvyo/screens/feed_tab.dart';
+import 'package:alvyo/screens/import_tile.dart';
 import 'package:alvyo/screens/plan_tab.dart';
 import 'package:alvyo/screens/tours_tab.dart';
 
@@ -314,7 +315,7 @@ void main() {
     });
   });
 
-  testWidgets('Planen: three modes and «Importieren»', (tester) async {
+  testWidgets('Planen: three modes', (tester) async {
     await tester.pumpWidget(
       _app(PlanTab(api: Api('https://alvyo.test'), modes: (mode, saved) => Text('mode ${mode.name}'))),
     );
@@ -325,29 +326,28 @@ void main() {
     await tester.tap(find.text('Reichweite'));
     await tester.pump();
     expect(find.text('mode reach'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('plan-import')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('import-watch')), findsOneWidget);
+    expect(find.byKey(const Key('plan-import')), findsNothing, reason: 'in the profile now (feedback issue 47)');
   });
 
-  testWidgets('Planen › Importieren › Datei: what the server cannot use is said', (tester) async {
+  testWidgets('Profil › Importieren › Datei: what the server cannot use is said', (tester) async {
     var answer = http.Response('{"detail":"this is not a GPX, KML, TCX or FIT file"}', 422);
     final api = Api('https://alvyo.test', token: 't', client: MockClient((req) async => answer));
     var saved = 0;
     await tester.pumpWidget(
       _app(
-        PlanTab(
-          api: api,
-          modes: (mode, saved) => const SizedBox(),
-          onSaved: () => saved++,
-          pickFile: () async => XFile.fromData(utf8.encode('<gpx/>'), name: 'tour.gpx'),
+        Scaffold(
+          body: ImportTile(
+            api: api,
+            onImported: () => saved++,
+            pickFile: () async => XFile.fromData(utf8.encode('<gpx/>'), name: 'tour.gpx'),
+          ),
         ),
       ),
     );
     Future<void> importIt() async {
-      await tester.tap(find.byKey(const Key('plan-import')));
+      await tester.tap(find.byKey(const Key('profile-import')));
       await tester.pumpAndSettle();
+      expect(find.byKey(const Key('import-watch')), findsOneWidget);
       await tester.tap(find.byKey(const Key('import-file')));
       await tester.pumpAndSettle();
       await until(tester, find.byType(SnackBar));

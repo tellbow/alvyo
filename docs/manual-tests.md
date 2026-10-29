@@ -570,7 +570,7 @@ emulator ran the integration tests offline, navigate and journey
       release, as it talks to production.
 - [ ] **The new navigation** (69) on the iPhone: the four tabs and the
       record button; «In deiner Nähe» where one is; a GPX file from the
-      Files app or a mail imported under Planen › Importieren; a planned
+      Files app or a mail imported under Profil › Importieren; a planned
       «Rundtour» hiked; «Einer Tour folgen» on Aufzeichnen starts following
       at once; with «Neue Wanderungen automatisch importieren» on, a hike
       recorded on the Apple Watch becomes a route when the app opens.

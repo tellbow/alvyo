@@ -10,6 +10,7 @@ import '../settings.dart';
 import 'about_screen.dart';
 import 'account_screens.dart';
 import 'devices_screen.dart';
+import 'import_tile.dart';
 import 'friends_screen.dart';
 import 'statistics_sheet.dart';
 import 'tab_header.dart';
@@ -20,10 +21,20 @@ import 'wide.dart';
 /// settings, the account (homes, contacts, blocked), logging out and
 /// deleting it.
 class ProfileTab extends StatefulWidget {
-  const ProfileTab({super.key, required this.api, required this.onLogout, required this.settings, this.analytics});
+  const ProfileTab({
+    super.key,
+    required this.api,
+    required this.onLogout,
+    required this.settings,
+    this.analytics,
+    this.onImported,
+  });
   final Api api;
   final VoidCallback onLogout;
   final AppSettings settings;
+
+  /// Tours were imported: the tours load again.
+  final VoidCallback? onImported;
 
   /// The app's; tests pass their own.
   final Analytics? analytics;
@@ -184,6 +195,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         }
                       },
                     ),
+                    ImportTile(api: widget.api, onImported: widget.onImported),
                     // Apple Watch only; Health Connect on Android is to come (issue 8).
                     if (!Platform.isAndroid)
                       ListTile(

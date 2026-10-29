@@ -646,7 +646,6 @@
   "accountPaceShort": "Hiking times relative to the signposts",
   "devicesWatchImported": "{count, plural, =1{1 hike imported from the Apple Watch} other{{count} hikes imported from the Apple Watch}}",
   "importTitle": "Import",
-  "importAction": "Import",
   "importWatchHint": "Hikes you recorded with your watch",
   "planDay": "Day tour",
   "planMulti": "Several days",

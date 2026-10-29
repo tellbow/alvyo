@@ -312,7 +312,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     HomeTab.profile => SafeArea(
       bottom: false,
       child: Readable(
-        child: ProfileTab(api: widget.api, onLogout: widget.onLogout, settings: _settings, analytics: _analytics),
+        child: ProfileTab(
+          api: widget.api,
+          onLogout: widget.onLogout,
+          settings: _settings,
+          analytics: _analytics,
+          onImported: () => _tours.currentState?.reload(),
+        ),
       ),
     ),
   };

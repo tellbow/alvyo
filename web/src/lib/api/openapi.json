@@ -5988,6 +5988,19 @@
             "description": "Entirely within Switzerland, Liechtenstein and 15 km around (else it cannot be imported)",
             "type": "boolean"
           },
+          "line": {
+            "description": "[lon, lat, height] per point; heights 0 where unknown",
+            "items": {
+              "items": {
+                "format": "double",
+                "type": "number"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            "type": "array"
+          },
           "name": {
             "type": "string"
           },
@@ -6006,7 +6019,8 @@
           "points",
           "distance_m",
           "inside",
-          "nights"
+          "nights",
+          "line"
         ],
         "type": "object"
       },

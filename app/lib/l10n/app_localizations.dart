@@ -3970,12 +3970,6 @@ abstract class AppLocalizations {
   /// **'Importieren'**
   String get importTitle;
 
-  /// No description provided for @importAction.
-  ///
-  /// In de, this message translates to:
-  /// **'Importieren'**
-  String get importAction;
-
   /// No description provided for @importWatchHint.
   ///
   /// In de, this message translates to:

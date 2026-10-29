@@ -26,8 +26,9 @@ function track(name: string, lon: number, lat: number, n = 30) {
 
 test('a GPX file with several tracks becomes a journey', async ({ page }) => {
 	await signup(page, 'importer');
-	await page.goto('/routes');
-	await page.getByRole('link', { name: 'Importieren' }).click();
+	// From the account (feedback issue 47).
+	await page.goto('/account');
+	await page.getByTestId('account-import').click();
 	await expect(page).toHaveURL(/\/import$/);
 
 	const gpx = `<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">${track('Tag 1', 9.3, 46.99)}${track('Tag 2', 9.33, 46.99)}${track('Mailand', 9.19, 45.46)}</gpx>`;
@@ -43,6 +44,11 @@ test('a GPX file with several tracks becomes a journey', async ({ page }) => {
 	const tracks = page.getByTestId('import-tracks');
 	await expect(tracks.getByRole('listitem')).toHaveCount(3);
 	await expect(tracks.getByRole('listitem').nth(2)).toContainText('ausserhalb CH/FL');
+	// The tracks on a map before anything is saved.
+	await expect(page.getByTestId('import-preview').getByTestId('map')).toHaveAttribute(
+		'data-layers',
+		/route-collection-line/
+	);
 
 	const submit = page.getByTestId('file-import').getByRole('button', { name: 'Importieren' });
 	await expect(submit).toBeDisabled(); // the mode must be chosen
@@ -123,6 +129,10 @@ test('a recording of three days becomes a journey of three stages, after a previ
 	const stages = dialog.getByTestId('import-stages').getByRole('listitem');
 	await expect(stages).toHaveCount(3, { timeout: 30_000 });
 	await expect(stages.nth(2).getByTestId('import-stage-end')).toContainText('bis zum Ziel');
+	await expect(dialog.getByTestId('import-preview').getByTestId('map')).toHaveAttribute(
+		'data-layers',
+		/route-collection-line/
+	);
 	const journeys = await page.request.get('/api/v1/journeys');
 	expect((await journeys.json()).journeys).toHaveLength(0);
 

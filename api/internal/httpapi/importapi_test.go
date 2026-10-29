@@ -102,7 +102,8 @@ func TestImportFile(t *testing.T) {
 	_ = json.Unmarshal(body, &preview)
 	if code != http.StatusOK || preview.Format != "gpx" || len(preview.Tracks) != 3 ||
 		preview.Tracks[0].Name != "Tag 1" || !preview.Tracks[0].Inside || preview.Tracks[2].Inside ||
-		preview.Tracks[0].DistanceM < 2100 || preview.Tracks[0].DistanceM > 2300 {
+		preview.Tracks[0].DistanceM < 2100 || preview.Tracks[0].DistanceM > 2300 ||
+		len(preview.Tracks[0].Line) < 2 || len(preview.Tracks[2].Line) < 2 {
 		t.Fatalf("preview: %d %s", code, body)
 	}
 	if code, body := c.upload("/api/v1/imports/preview", "notes.gpx", "hello"); code != http.StatusUnprocessableEntity {

@@ -4648,6 +4648,8 @@ export interface components {
             distance_m: number;
             /** @description Entirely within Switzerland, Liechtenstein and 15 km around (else it cannot be imported) */
             inside: boolean;
+            /** @description [lon, lat, height] per point; heights 0 where unknown */
+            line: number[][];
             name: string;
             /**
              * Format: int64

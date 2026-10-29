@@ -37,7 +37,7 @@ class TabHeader extends StatelessWidget {
   );
 }
 
-/// A header action with a word (no icon alone): «Importieren», «Alle».
+/// A header action with a word (no icon alone): «Alle».
 class HeaderAction extends StatelessWidget {
   const HeaderAction({super.key, required this.label, required this.onPressed, this.icon});
   final String label;

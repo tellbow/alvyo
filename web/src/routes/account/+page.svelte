@@ -3,6 +3,7 @@
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { goto, refreshAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { api } from '#lib/api/client.js';
 	import Field from '#lib/components/Field.svelte';
 	import { m } from '#lib/paraglide/messages.js';
@@ -178,6 +179,14 @@
 			</div>
 		</Card>
 
+		<Card title={m.import_title()}>
+			<p class="text-sm text-stone-600">{m.import_intro()}</p>
+			<a
+				href={resolve('/import')}
+				class="{primaryButtonSmall} mt-3 inline-block"
+				data-testid="account-import">{m.import_link()}</a
+			>
+		</Card>
 		<Card title={m.homes_title()} info={m.homes_intro()}><Homes /></Card>
 
 		<Card title={m.contacts_title()} info={m.contacts_intro()}><Contacts /></Card>

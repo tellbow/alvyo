@@ -138,6 +138,14 @@ export function combine(legs: Leg[]): Profile3 {
 	return { coordinates, distance, sac };
 }
 
+/** The profile of a plain line ([lon, lat, elevation]), one grey run. */
+export function lineProfile(coordinates: number[][]): Profile3 {
+	const distance: number[] = coordinates.map(() => 0);
+	for (let i = 1; i < coordinates.length; i++)
+		distance[i] = distance[i - 1] + haversine(coordinates[i - 1], coordinates[i]);
+	return { coordinates, distance, sac: [{ from: 0, to: coordinates.length - 1, value: '' }] };
+}
+
 function haversine(a: number[], b: number[]): number {
 	const rad = Math.PI / 180;
 	const dLat = (b[1] - a[1]) * rad;

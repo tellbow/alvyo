@@ -2157,9 +2157,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get importTitle => 'Importer';
 
   @override
-  String get importAction => 'Importer';
-
-  @override
   String get importWatchHint => 'Randonnées enregistrées avec ta montre';
 
   @override

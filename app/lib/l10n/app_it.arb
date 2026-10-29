@@ -646,7 +646,6 @@
   "accountPaceShort": "Tempi di marcia rispetto ai segnavia",
   "devicesWatchImported": "{count, plural, =1{1 escursione importata dall’Apple Watch} other{{count} escursioni importate dall’Apple Watch}}",
   "importTitle": "Importa",
-  "importAction": "Importa",
   "importWatchHint": "Escursioni registrate con l’orologio",
   "planDay": "Giornata",
   "planMulti": "Più giorni",

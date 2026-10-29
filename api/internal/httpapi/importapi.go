@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"math"
 	"net/http"
 	"slices"
 	"strings"
@@ -48,6 +49,9 @@ type trackSummary struct {
 	DistanceM float64 `json:"distance_m"`
 	Inside    bool    `json:"inside" doc:"Entirely within Switzerland, Liechtenstein and 15 km around (else it cannot be imported)"`
 	Nights    int     `json:"nights" doc:"Pauses of 5 hours or more in a recording: it can become a stage per day"`
+	// Line is the track simplified to about 10 m, for the preview's map and
+	// elevation profile.
+	Line [][3]float64 `json:"line" doc:"[lon, lat, height] per point; heights 0 where unknown"`
 }
 
 type stagesImportInput struct {
@@ -132,6 +136,7 @@ func registerImports(api huma.API, d Deps) {
 				DistanceM: float64(int(geo.CumulativeDistance(t.Points)[len(t.Points)-1])),
 				Inside:    inside(t.Points),
 				Nights:    len(imports.Nights(t)) - 1,
+				Line:      previewLine(ctx, d, t.Points),
 			})
 		}
 		return out, nil
@@ -331,4 +336,22 @@ func inside(pts []geo.Point) bool {
 		}
 	}
 	return true
+}
+
+// previewLine is pts simplified, with heights where they can be had: a
+// preview without its profile is still a preview.
+func previewLine(ctx context.Context, d Deps, pts []geo.Point) [][3]float64 {
+	pts = geo.Simplify(pts, 10)
+	var heights []float64
+	if d.Importer != nil && d.Importer.Router != nil && d.Importer.Router.Elevation != nil && inside(pts) {
+		heights, _ = d.Importer.Router.Elevation.Sample(ctx, pts)
+	}
+	out := make([][3]float64, len(pts))
+	for i, p := range pts {
+		out[i] = [3]float64{math.Round(p.Lon*1e5) / 1e5, math.Round(p.Lat*1e5) / 1e5, 0}
+		if len(heights) == len(pts) {
+			out[i][2] = math.Round(heights[i]*10) / 10
+		}
+	}
+	return out
 }

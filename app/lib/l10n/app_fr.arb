@@ -646,7 +646,6 @@
   "accountPaceShort": "Temps de marche par rapport aux indicateurs",
   "devicesWatchImported": "{count, plural, =1{1 randonnée importée de l’Apple Watch} other{{count} randonnées importées de l’Apple Watch}}",
   "importTitle": "Importer",
-  "importAction": "Importer",
   "importWatchHint": "Randonnées enregistrées avec ta montre",
   "planDay": "Journée",
   "planMulti": "Plusieurs jours",

@@ -5,8 +5,15 @@
 	import { api, type Proposal } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import { formatDistance, formatDuration, formatHeight } from '#lib/planner/route.js';
+	import {
+		combine,
+		formatDistance,
+		formatDuration,
+		formatHeight,
+		lineProfile
+	} from '#lib/planner/route.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
+	import ImportPreview from './ImportPreview.svelte';
 	import ImportResult from './ImportResult.svelte';
 
 	type Preview = components['schemas']['ImportPreviewOutputBody'];
@@ -31,6 +38,38 @@
 	const importable = $derived(preview?.tracks.filter((t) => t.inside).length ?? 0);
 	// Nights of a recording: as many stages as days split there.
 	const nights = $derived(preview?.tracks.reduce((n, t) => n + t.nights, 0) ?? 0);
+
+	// On the map and the profile: the stages once proposed, else the tracks.
+	const shown = $derived.by(() => {
+		if (stages) {
+			const legs = stages.stages.flatMap((st) => st.legs);
+			const breaks: number[] = [];
+			let n = 0;
+			for (const st of stages.stages) {
+				breaks.push(Math.max(n - 1, 0));
+				for (const l of st.legs) n += n === 0 ? l.coordinates.length : l.coordinates.length - 1;
+			}
+			return {
+				lines: stages.stages.map((st) => st.legs.flatMap((l) => l.coordinates)),
+				profile: combine(legs),
+				breaks
+			};
+		}
+		const tracks = preview?.tracks.filter((t) => t.inside && t.line.length > 1) ?? [];
+		const breaks: number[] = [];
+		let n = 0;
+		for (const t of tracks) {
+			breaks.push(n);
+			n += t.line.length;
+		}
+		return {
+			lines: tracks.map((t) => t.line),
+			profile: lineProfile(tracks.flatMap((t) => t.line)),
+			breaks
+		};
+	});
+	// Each day's end can move to the place before or after it, when all have one.
+	const movable = $derived(!!stages?.stages.slice(0, -1).every((st) => st.end_place));
 
 	function form(f: File, fields: Record<string, string | undefined> = {}) {
 		const fd = new FormData();
@@ -66,11 +105,13 @@
 	}
 
 	/** Proposes the stages; nothing is created before the hiker agrees. */
-	async function proposeStages(f: File) {
-		const atNights = nights > 0 && stageCount === nights + 1;
+	async function proposeStages(f: File, ends?: string[]) {
+		const atNights = !ends && nights > 0 && stageCount === nights + 1;
+		busy = true;
 		const { data, response } = await api().POST('/imports/stages', {
 			body: { file: '' },
-			bodySerializer: () => form(f, { days: atNights ? undefined : String(stageCount) })
+			bodySerializer: () =>
+				form(f, { days: atNights ? undefined : String(stageCount), ends: ends?.join(',') })
 		});
 		busy = false;
 		if (!data) {
@@ -79,6 +120,15 @@
 		}
 		stages = data as Proposal;
 		if (!title) title = data.title;
+	}
+
+	/** Ends day i at another place, the other days where they are. */
+	function endAt(i: number, placeId: string) {
+		if (!stages || !file) return;
+		const ends = stages.stages.slice(0, -1).map((st) => st.end_place!.id);
+		ends[i] = placeId;
+		stageCount = stages.stages.length;
+		void proposeStages(file, ends);
 	}
 
 	async function createJourney(e: SubmitEvent) {
@@ -166,6 +216,9 @@
 	/>
 
 	{#if preview}
+		{#if shown.lines.length > 0}
+			<ImportPreview lines={shown.lines} profile={shown.profile} breaks={shown.breaks} />
+		{/if}
 		<ul class="mt-3 divide-y divide-stone-100 text-sm" data-testid="import-tracks">
 			{#each preview.tracks as t, i (i)}
 				<li class="flex gap-3 py-1.5">
@@ -239,6 +292,30 @@
 						<span class="ml-auto" data-testid="import-stage-end"
 							>→ {st.end_place ? st.end_place.name : m.jplan_to_end()}</span
 						>
+						{#if movable && (st.earlier || st.later)}
+							<span class="flex w-full flex-wrap gap-2 text-xs">
+								{#if st.earlier}
+									<button
+										type="button"
+										class="underline"
+										disabled={busy}
+										data-testid="import-stage-earlier"
+										onclick={() => endAt(i, st.earlier!.id)}
+										>{m.jplan_earlier({ place: st.earlier.name })}</button
+									>
+								{/if}
+								{#if st.later}
+									<button
+										type="button"
+										class="underline"
+										disabled={busy}
+										data-testid="import-stage-later"
+										onclick={() => endAt(i, st.later!.id)}
+										>{m.jplan_later({ place: st.later.name })}</button
+									>
+								{/if}
+							</span>
+						{/if}
 					</li>
 				{/each}
 			</ol>

@@ -34,14 +34,24 @@
 	<p class="mt-3">{m.about_intro()}</p>
 
 	<h2 class="mt-8 text-lg font-semibold" id="news">{m.about_news_title()}</h2>
-	<ul class="mt-2 flex flex-col gap-3" data-testid="news">
-		{#each releases as r (r.version)}
-			<li>
-				<p class="text-sm text-stone-600">{r.version} · {day(r.date)}</p>
-				<p>{r.text()}</p>
-			</li>
-		{/each}
+	{#snippet release(r: (typeof releases)[number])}
+		<li>
+			<p class="text-sm font-medium text-stone-600">{r.version} · {day(r.date)}</p>
+			<!-- One change per line (feedback issue 44); older releases are one paragraph. -->
+			<ul class="mt-1 flex list-disc flex-col gap-0.5 pl-5">
+				{#each r.text().split('\n') as line, i (i)}<li>{line}</li>{/each}
+			</ul>
+		</li>
+	{/snippet}
+	<ul class="mt-2 flex flex-col gap-4" data-testid="news">
+		{#each releases.slice(0, 5) as r (r.version)}{@render release(r)}{/each}
 	</ul>
+	<details class="mt-4">
+		<summary class="cursor-pointer text-sm text-accent-ink">{m.about_news_older()}</summary>
+		<ul class="mt-3 flex flex-col gap-4" data-testid="news-older">
+			{#each releases.slice(5) as r (r.version)}{@render release(r)}{/each}
+		</ul>
+	</details>
 
 	<h2 class="mt-8 text-lg font-semibold" id="data">{m.about_data_title()}</h2>
 	<p class="mt-2">{m.about_data_intro()}</p>

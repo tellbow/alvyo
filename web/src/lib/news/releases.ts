@@ -1,9 +1,11 @@
 import { m } from '#lib/paraglide/messages.js';
 
 /**
- * «Was ist neu»: one line per release for the people who use Alvyo, newest
- * first, in their language (the release table in docs/plan.md is the
- * developers' account). The `release` skill adds the line of a new version.
+ * «Was ist neu»: per release 2–4 short lines, one change each and separated
+ * by a newline, for the people who use Alvyo, newest first, in their language
+ * (the release table in docs/plan.md is the developers' account). The
+ * `release` skill adds the lines of a new version; the store skills send them
+ * as the release notes.
  */
 export const releases: { version: string; date: string; text: () => string }[] = [
 	{ version: '1.14.0', date: '2026-10-28', text: m.news_1_14_0 },

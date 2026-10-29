@@ -17,8 +17,9 @@ features the minor one.
 2. **Record first:** in `docs/plan.md`, the «next» row becomes the X.Y.Z
    row with today's date, and «Was ist neu» gets a line for the people
    using Alvyo: `web/src/lib/news/releases.ts` and `news_X_Y_Z` in all four
-   `web/messages/*.json` (what changed for them, in their words; skip
-   releases with nothing they notice). Commit and push, and tag that
+   `web/messages/*.json` (what changed for them, in their words: 2–4
+   short lines, one change each, separated by `\n`; skip releases with
+   nothing they notice). Commit and push, and tag that
    commit. The `release` workflow takes the row as the GitHub Release's
    notes.
 3. **Tag:**

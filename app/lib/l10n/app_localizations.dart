@@ -1870,6 +1870,18 @@ abstract class AppLocalizations {
   /// **'Mit Link'**
   String get visibilityByLink;
 
+  /// No description provided for @steepAlong.
+  ///
+  /// In de, this message translates to:
+  /// **'{distance} im Gelände steiler als 30°'**
+  String steepAlong(String distance);
+
+  /// No description provided for @steepBand.
+  ///
+  /// In de, this message translates to:
+  /// **'Hangneigung unter dem Höhenprofil:'**
+  String get steepBand;
+
   /// No description provided for @visibilityPrivateHint.
   ///
   /// In de, this message translates to:

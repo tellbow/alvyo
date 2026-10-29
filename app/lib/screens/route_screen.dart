@@ -79,6 +79,9 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   late final Future<Along> _areas = widget.api
       .areas(routeId: widget.id)
       .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
+  late final Future<Steepness?> _steep = widget.api
+      .steepness(widget.id)
+      .then<Steepness?>((s) => s, onError: (_) => null);
   late final Future<SnowAlong?> _snow = widget.api
       .snowAlong(routeId: widget.id)
       .then<SnowAlong?>((s) => s, onError: (_) => null);
@@ -625,7 +628,23 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                                   const SizedBox(height: 8),
                                 ],
                                 if (offTrail(r.json)) OffTrailWarning(distanceM: r.totals.distanceM),
-                                ElevationProfile.ofLine(r.line, onPoint: _profilePoint),
+                                FutureBuilder(
+                                  future: _steep,
+                                  builder: (context, snap) {
+                                    final steep = snap.data?.known == true ? snap.data : null;
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        ElevationProfile.ofLine(
+                                          r.line,
+                                          onPoint: _profilePoint,
+                                          steep: steep?.stretches,
+                                        ),
+                                        if (steep != null) SteepLegend(steep),
+                                      ],
+                                    );
+                                  },
+                                ),
                                 ProtectedAreas(_areas, onShow: _show),
                                 SnowAlongView(_snow, onShow: _show),
                                 RouteWeatherView(

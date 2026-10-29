@@ -62,3 +62,7 @@ export const WAY_COLOR: Record<string, string> = {
 	steps: '#7c3aed',
 	unknown: '#dce3dc'
 };
+
+/** Terrain from 25°, 30° and 35° (steepness classes 1–3), as on avalanche maps. */
+export const STEEP_COLORS = ['', '#facc15', '#f97316', '#dc2626'];
+export const STEEP_FROM = ['', '25°', '30°', '35°'];

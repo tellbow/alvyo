@@ -580,6 +580,12 @@ List<List<List<double>>> _parts(Object? v) => [
 
 /// The snow along a route or a journey's stages, from the newest day of the
 /// snow cover (satellite, 60 m).
+/// A stretch of terrain from 25° (class 1), 30° (2) or 35° (3).
+typedef SteepStretch = ({double fromM, double toM, int steepClass});
+
+/// The stretches of steep terrain along a route, and how much is over 30°.
+typedef Steepness = ({bool known, double steepM, List<SteepStretch> stretches});
+
 class SnowAlong {
   SnowAlong.fromJson(Map<String, dynamic> j)
     : date = j['date'] as String?,
@@ -1622,6 +1628,23 @@ class Api {
   Future<SnowAlong> snowAlong({String? routeId, String? journeyId}) async {
     final j = await _get(routeId != null ? '/routes/$routeId/snow' : '/journeys/$journeyId/snow');
     return SnowAlong.fromJson(j as Map<String, dynamic>);
+  }
+
+  /// How steep the terrain is along a route; known in Switzerland only.
+  Future<Steepness> steepness(String routeId) async {
+    final j = await _get('/routes/$routeId/steepness') as Map<String, dynamic>;
+    return (
+      known: j['known'] as bool? ?? false,
+      steepM: (j['steep_m'] as num? ?? 0).toDouble(),
+      stretches: [
+        for (final s in j['stretches'] as List? ?? const [])
+          (
+            fromM: ((s as Map<String, dynamic>)['from_m'] as num).toDouble(),
+            toM: (s['to_m'] as num).toDouble(),
+            steepClass: (s['class'] as num).toInt(),
+          ),
+      ],
+    );
   }
 
   Future<List<Turn>> turns(String routeId) async {

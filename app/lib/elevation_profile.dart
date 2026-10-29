@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
+import 'api.dart';
 import 'format.dart';
 import 'l10n/app_localizations.dart';
 
@@ -80,6 +81,7 @@ class ElevationProfile extends StatefulWidget {
     this.height = 110,
     this.points,
     this.onPoint,
+    this.steep,
   });
 
   /// Of a line of lon, lat, elevation per point.
@@ -89,6 +91,7 @@ class ElevationProfile extends StatefulWidget {
     double? markerM,
     double height = 110,
     ValueChanged<Geographic?>? onPoint,
+    List<SteepStretch>? steep,
   }) => ElevationProfile(
     key: key,
     distances: cumulativeM(line),
@@ -97,6 +100,7 @@ class ElevationProfile extends StatefulWidget {
     height: height,
     points: line,
     onPoint: onPoint,
+    steep: steep,
   );
 
   final List<double> distances, elevations;
@@ -112,6 +116,9 @@ class ElevationProfile extends StatefulWidget {
   /// Where the finger is on the profile, as a place; null when it is lifted.
   final ValueChanged<Geographic?>? onPoint;
 
+  /// Steep terrain along the line: a band under the profile (feedback issue 61).
+  final List<SteepStretch>? steep;
+
   @override
   State<ElevationProfile> createState() => _ElevationProfileState();
 }
@@ -124,7 +131,7 @@ class _ElevationProfileState extends State<ElevationProfile> {
 
   void _touch(Offset local, double width) {
     if (_lengthM <= 0) return;
-    final plot = _ProfilePainter.plotRect(Size(width, widget.height));
+    final plot = _ProfilePainter.plotRect(Size(width, widget.height), band: widget.steep != null);
     final m = ((local.dx - plot.left) / plot.width).clamp(0.0, 1.0) * _lengthM;
     setState(() => _touchM = m);
     if (widget.points case final points? when points.length == widget.distances.length) {
@@ -174,6 +181,7 @@ class _ElevationProfileState extends State<ElevationProfile> {
                   distances: widget.distances,
                   elevations: widget.elevations,
                   breaks: widget.breaks,
+                  steep: widget.steep,
                   markerM: widget.markerM,
                   touchM: touchM,
                   line: scheme.primary,
@@ -206,6 +214,7 @@ class _ProfilePainter extends CustomPainter {
     required this.distances,
     required this.elevations,
     required this.breaks,
+    required this.steep,
     required this.markerM,
     required this.touchM,
     required this.line,
@@ -217,16 +226,19 @@ class _ProfilePainter extends CustomPainter {
 
   final List<double> distances, elevations;
   final List<int> breaks;
+  final List<SteepStretch>? steep;
   final double? markerM, touchM;
   final Color line, fill, grid, marker;
   final TextStyle label;
 
-  /// Room for the height labels on the left and the distance below.
-  static Rect plotRect(Size size) => Rect.fromLTRB(48, 14, size.width - 4, size.height - 14);
+  /// Room for the height labels on the left and the distance (and the band of
+  /// steep terrain) below.
+  static Rect plotRect(Size size, {bool band = false}) =>
+      Rect.fromLTRB(48, 14, size.width - 4, size.height - (band ? 24 : 14));
 
   @override
   void paint(Canvas canvas, Size size) {
-    final plot = plotRect(size);
+    final plot = plotRect(size, band: steep != null);
     final length = distances.last;
     final (:lo, :hi, :step) = profileAxis(elevations.reduce(min), elevations.reduce(max));
     double x(double m) => plot.left + (length == 0 ? 0 : m / length) * plot.width;
@@ -239,12 +251,23 @@ class _ProfilePainter extends CustomPainter {
       canvas.drawLine(Offset(plot.left, y(e)), Offset(plot.right, y(e)), gridPaint);
       _text(canvas, formatHeight(e), Offset(plot.left - 4, y(e)), align: Alignment.centerRight);
     }
+    final below = steep == null ? plot.bottom + 2 : plot.bottom + 12;
+    if (steep case final stretches?) {
+      final top = plot.bottom + 3;
+      canvas.drawRect(Rect.fromLTRB(plot.left, top, plot.right, top + 6), Paint()..color = grid);
+      for (final s in stretches) {
+        canvas.drawRect(
+          Rect.fromLTRB(x(s.fromM), top, max(x(s.toM), x(s.fromM) + 1), top + 6),
+          Paint()..color = steepColors[s.steepClass],
+        );
+      }
+    }
     for (final (m, align) in [
       (0.0, Alignment.topLeft),
       (length / 2, Alignment.topCenter),
       (length, Alignment.topRight),
     ]) {
-      _text(canvas, formatDistance(m), Offset(x(m), plot.bottom + 2), align: align);
+      _text(canvas, formatDistance(m), Offset(x(m), below), align: align);
     }
 
     // At most one sample per pixel column, keeping the highest and lowest.
@@ -312,6 +335,48 @@ class _ProfilePainter extends CustomPainter {
   bool shouldRepaint(_ProfilePainter old) =>
       old.markerM != markerM ||
       old.touchM != touchM ||
+      !identical(old.steep, steep) ||
       !identical(old.distances, distances) ||
       !identical(old.elevations, elevations);
+}
+
+/// Terrain from 25°, 30° and 35° (steepness classes 1–3), as on the website.
+const steepColors = [Colors.transparent, Color(0xFFFACC15), Color(0xFFF97316), Color(0xFFDC2626)];
+
+/// «2.1 km im Gelände steiler als 30°» and what the band's colours mean.
+class SteepLegend extends StatelessWidget {
+  const SteepLegend(this.steepness, {super.key});
+  final Steepness steepness;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final small = Theme.of(context).textTheme.bodySmall;
+    return Padding(
+      key: const Key('steep-along'),
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          if (steepness.steepM >= 100)
+            Text(
+              t.steepAlong(formatDistance(steepness.steepM)),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          Text(t.steepBand, style: small),
+          for (final (c, from) in [(1, 25), (2, 30), (3, 35)])
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                Container(width: 16, height: 6, color: steepColors[c]),
+                Text('≥ $from°', style: small),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
 }

@@ -841,6 +841,8 @@
 	"route_share": "Partager",
 	"stat_heights": "Dénivelé",
 	"off_trail_title": "Pas un chemin de randonnée officiel",
+	"steep_along": "{distance} sur un terrain de plus de 30°",
+	"steep_band": "Pente sous le profil altimétrique :",
 	"off_trail_all": "Tout l'itinéraire ({distance}) passe hors des chemins de randonnée balisés.",
 	"breakdown_title": "Nature du chemin",
 	"breakdown_other": "Autres",

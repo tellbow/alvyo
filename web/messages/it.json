@@ -841,6 +841,8 @@
 	"route_share": "Condividi",
 	"stat_heights": "Dislivello",
 	"off_trail_title": "Nessun sentiero escursionistico ufficiale",
+	"steep_along": "{distance} su terreno più ripido di 30°",
+	"steep_band": "Pendenza sotto il profilo altimetrico:",
 	"off_trail_all": "L'intero percorso ({distance}) si snoda fuori dai sentieri segnalati.",
 	"breakdown_title": "Fondo del sentiero",
 	"breakdown_other": "Altro",

@@ -979,6 +979,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get visibilityByLink => 'By link';
 
   @override
+  String steepAlong(String distance) {
+    return '$distance on terrain steeper than 30°';
+  }
+
+  @override
+  String get steepBand => 'Slope under the elevation profile:';
+
+  @override
   String get visibilityPrivateHint => 'Only you and whoever you invite';
 
   @override

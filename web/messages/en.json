@@ -847,6 +847,8 @@
 	"route_share": "Share",
 	"stat_heights": "Ascent/descent",
 	"off_trail_title": "No official trail",
+	"steep_along": "{distance} on terrain steeper than 30°",
+	"steep_band": "Slope under the elevation profile:",
 	"off_trail_all": "The whole route ({distance}) runs off marked hiking trails.",
 	"breakdown_title": "Trail conditions",
 	"breakdown_other": "Other",

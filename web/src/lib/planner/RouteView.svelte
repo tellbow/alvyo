@@ -38,7 +38,7 @@
 	import TravelLayers from '#lib/travel/TravelLayers.svelte';
 	import { routeEnds } from '#lib/travel/travel.js';
 	import type { Trip } from '#lib/api/client.js';
-	import type { Notice, ProtectedArea, SnowAlong as Snow } from '#lib/api/client.js';
+	import type { Notice, ProtectedArea, SnowAlong as Snow, Steepness } from '#lib/api/client.js';
 	import { onMount } from 'svelte';
 	import { mainAction, menuItem, primaryButtonSmall } from '#lib/components/actions.js';
 	import MoreMenu from '#lib/components/MoreMenu.svelte';
@@ -49,7 +49,7 @@
 	import CommentsButton from '#lib/community/CommentsButton.svelte';
 	import LikeButton from '#lib/community/LikeButton.svelte';
 	import DoneButton from '#lib/done/DoneButton.svelte';
-	import { TRAIL_COLOR } from './colors';
+	import { STEEP_COLORS, STEEP_FROM, TRAIL_COLOR } from './colors';
 	import { Planner } from './planner.svelte';
 	import { formatDistance, formatHeight, formatDuration, formatSAC, type Profile } from './route';
 
@@ -65,6 +65,7 @@
 	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
 	let snow = $state<Snow>();
+	let steepness = $state<Steepness>();
 	// A part of the line picked in a list, shown on the map.
 	let picked = $state<number[][][]>([]);
 	onMount(async () => {
@@ -72,6 +73,9 @@
 		api()
 			.GET('/routes/{id}/snow', { params })
 			.then(({ data }) => (snow = data));
+		api()
+			.GET('/routes/{id}/steepness', { params })
+			.then(({ data }) => (steepness = data));
 		const { data } = await api().GET('/routes/{id}/areas', { params });
 		areas = data?.areas;
 		notices = data?.notices;
@@ -189,7 +193,11 @@
 			<LineHighlight {map} {lib} parts={picked} />
 		{/if}
 		<ProfileDock>
-			<ElevationProfile line={planner.line} bind:hover={hoverIndex} />
+			<ElevationProfile
+				line={planner.line}
+				bind:hover={hoverIndex}
+				steep={steepness?.known ? steepness.stretches : undefined}
+			/>
 		</ProfileDock>
 	</section>
 
@@ -374,6 +382,22 @@
 						>
 					</p>
 				</div>
+			{/if}
+			{#if steepness?.known}
+				<!-- How much is steep, and what the band under the profile means. -->
+				<p
+					class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-600"
+					data-testid="steep-along"
+				>
+					{#if steepness.steep_m >= 100}<span class="font-medium text-stone-800"
+							>{m.steep_along({ distance: formatDistance(steepness.steep_m) })}</span
+						>{/if}
+					<span class="text-xs">{m.steep_band()}</span>
+					{#each [1, 2, 3] as c (c)}<span class="inline-flex items-center gap-1 text-xs"
+							><span class="inline-block h-1.5 w-4 rounded-sm" style:background={STEEP_COLORS[c]}
+							></span>≥ {STEEP_FROM[c]}</span
+						>{/each}
+				</p>
 			{/if}
 			<Notices {notices} onshow={(p) => (picked = p)} />
 			<ProtectedAreas {areas} failed={areasFailed} onshow={(p) => (picked = p)} />

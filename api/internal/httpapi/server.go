@@ -36,6 +36,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/snow"
+	"github.com/tellbow/alvyo/api/internal/steep"
 	"github.com/tellbow/alvyo/api/internal/telemetry"
 	"github.com/tellbow/alvyo/api/internal/travel"
 	"github.com/tellbow/alvyo/api/internal/weather"
@@ -62,6 +63,7 @@ type Deps struct {
 	Weather     *weather.Forecast
 	Precip      *precip.Store  // rain on the map
 	Snow        *snow.Store    // snow cover on the map
+	Terrain     steep.Terrain  // the terrain's slope (swissALTI3D); nil without
 	Peaks       *peaks.Service // the pack for recognising mountains
 	Live        *live.Store    // hikes shared with contacts
 	Travel      *travel.Store  // homes and the way to and from journeys
@@ -138,6 +140,7 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerWeather(api, d)
 	registerPrecip(api, d)
 	registerSnow(api, d)
+	registerSteep(api, d)
 	registerPeaks(api, d)
 	registerLive(api, d)
 	registerRoutes(api, d)

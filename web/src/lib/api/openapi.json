@@ -3385,6 +3385,33 @@
         ],
         "type": "object"
       },
+      "Part": {
+        "additionalProperties": false,
+        "properties": {
+          "class": {
+            "description": "1: 25–30°, 2: 30–35°, 3: steeper",
+            "format": "int64",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "from_m": {
+            "description": "From the start of the line",
+            "format": "double",
+            "type": "number"
+          },
+          "to_m": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "from_m",
+          "to_m",
+          "class"
+        ],
+        "type": "object"
+      },
       "PeopleOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -5720,6 +5747,32 @@
           "key",
           "done",
           "total"
+        ],
+        "type": "object"
+      },
+      "Steepness": {
+        "additionalProperties": false,
+        "properties": {
+          "known": {
+            "description": "Whether the terrain's slope is known (swissALTI3D: Switzerland only)",
+            "type": "boolean"
+          },
+          "steep_m": {
+            "description": "On terrain steeper than 30°",
+            "format": "double",
+            "type": "number"
+          },
+          "stretches": {
+            "items": {
+              "$ref": "#/components/schemas/Part"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "known",
+          "steep_m",
+          "stretches"
         ],
         "type": "object"
       },
@@ -15032,6 +15085,59 @@
         "summary": "Switch comments on or off (owner or moderator)",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/routes/{id}/steepness": {
+      "get": {
+        "description": "The stretches on terrain from 25°, 30° and 35° (swissALTI3D, measured over 20 m every 10 m) and how much is steeper than 30°; known in Switzerland only.",
+        "operationId": "route-steepness",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Steepness"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "How steep the terrain is along a route",
+        "tags": [
+          "routes"
         ]
       }
     },

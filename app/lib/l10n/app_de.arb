@@ -554,6 +554,15 @@
   "visibilityUnlisted": "Mit Link teilen",
   "visibilityPublic": "Öffentlich",
   "visibilityByLink": "Mit Link",
+  "steepAlong": "{distance} im Gelände steiler als 30°",
+  "@steepAlong": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "steepBand": "Hangneigung unter dem Höhenprofil:",
   "visibilityPrivateHint": "Nur du und wen du einlädst",
   "visibilityUnlistedHint": "Alle, die den Link haben",
   "visibilityPublicHint": "Alle, auch ohne Konto, und auffindbar",

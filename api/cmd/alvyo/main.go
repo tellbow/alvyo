@@ -50,6 +50,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/snow"
+	"github.com/tellbow/alvyo/api/internal/steep"
 	"github.com/tellbow/alvyo/api/internal/telemetry"
 	"github.com/tellbow/alvyo/api/internal/travel"
 	"github.com/tellbow/alvyo/api/internal/weather"
@@ -133,10 +134,12 @@ func serve(ctx context.Context) error {
 		UserAgent: "alvyo/" + version + " (+https://github.com/tellbow/alvyo)",
 	}
 	snowStore := &snow.Store{DB: pool}
+	var terrain steep.Terrain
 	if cfg.SwissALTI3DDir != "" {
 		alti := &elevation.SwissALTI3D{Dir: cfg.SwissALTI3DDir}
 		heights = elevation.Fallback{First: alti, Second: heights}
 		snowStore.Terrain = alti // the slope under snow along routes
+		terrain = alti
 	}
 	router := &routing.Router{
 		GraphHopper: &routing.GraphHopper{URL: cfg.GraphHopper},
@@ -199,6 +202,7 @@ func serve(ctx context.Context) error {
 		Collections: &collections.Store{DB: pool},
 		Precip:      &precip.Store{DB: pool},
 		Snow:        snowStore,
+		Terrain:     terrain,
 		Peaks:       peakService,
 		Discover:    &discover.Store{DB: pool},
 		Community:   &community.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},

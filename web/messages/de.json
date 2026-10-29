@@ -841,6 +841,8 @@
 	"route_share": "Teilen",
 	"stat_heights": "Höhenmeter",
 	"off_trail_title": "Kein offizieller Wanderweg",
+	"steep_along": "{distance} im Gelände steiler als 30°",
+	"steep_band": "Hangneigung unter dem Höhenprofil:",
 	"off_trail_all": "Die ganze Route ({distance}) verläuft abseits markierter Wanderwege.",
 	"breakdown_title": "Wegbeschaffenheit",
 	"breakdown_other": "Andere",

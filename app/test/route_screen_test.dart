@@ -116,6 +116,15 @@ void main() {
               },
             ],
           });
+        case '/api/v1/routes/r1/steepness':
+          return _json({
+            'known': true,
+            'steep_m': 2100,
+            'stretches': [
+              {'from_m': 100, 'to_m': 300, 'class': 1},
+              {'from_m': 300, 'to_m': 500, 'class': 3},
+            ],
+          });
         case '/api/v1/routes/r1/social':
           return _json({
             'likes': 0,
@@ -218,6 +227,8 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    // How much is steep, under the profile (feedback issue 61).
+    expect(find.text('2.1\u00a0km im Gelände steiler als 30°'), findsOneWidget);
     // Along the way in a tab of its own, with its count; one kind alone by its chip.
     expect(find.text('1.2\u00a0km · Trinkwasser'), findsNothing);
     await tester.tap(find.text('Unterwegs 2'));

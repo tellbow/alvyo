@@ -2207,6 +2207,26 @@ export interface paths {
         patch: operations["update-route-social"];
         trace?: never;
     };
+    "/routes/{id}/steepness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How steep the terrain is along a route
+         * @description The stretches on terrain from 25°, 30° and 35° (swissALTI3D, measured over 20 m every 10 m) and how much is steeper than 30°; known in Switzerland only.
+         */
+        get: operations["route-steepness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/travel": {
         parameters: {
             query?: never;
@@ -3778,6 +3798,20 @@ export interface components {
             to?: string;
             where?: number[][][];
         };
+        Part: {
+            /**
+             * Format: int64
+             * @description 1: 25–30°, 2: 30–35°, 3: steeper
+             */
+            class: number;
+            /**
+             * Format: double
+             * @description From the start of the line
+             */
+            from_m: number;
+            /** Format: double */
+            to_m: number;
+        };
         PeopleOutputBody: {
             people: components["schemas"]["Person"][];
         };
@@ -4528,6 +4562,16 @@ export interface components {
             state: "missing" | "building" | "ready" | "failed";
             /** Format: int64 */
             total: number;
+        };
+        Steepness: {
+            /** @description Whether the terrain's slope is known (swissALTI3D: Switzerland only) */
+            known: boolean;
+            /**
+             * Format: double
+             * @description On terrain steeper than 30°
+             */
+            steep_m: number;
+            stretches: components["schemas"]["Part"][];
         };
         Stretch: {
             /**
@@ -10265,6 +10309,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "route-steepness": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Steepness"];
                 };
             };
             /** @description Error */

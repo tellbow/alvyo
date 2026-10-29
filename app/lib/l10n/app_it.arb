@@ -296,6 +296,8 @@
   "visibilityUnlisted": "Condividi con link",
   "visibilityPublic": "Pubblico",
   "visibilityByLink": "Con link",
+  "steepAlong": "{distance} su terreno più ripido di 30°",
+  "steepBand": "Pendenza sotto il profilo altimetrico:",
   "visibilityPrivateHint": "Solo tu e chi inviti",
   "visibilityUnlistedHint": "Chiunque abbia il link",
   "visibilityPublicHint": "Tutti, anche senza account, e trovabile",

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { m } from '#lib/paraglide/messages.js';
-	import { SAC_COLOR } from './colors';
+	import { SAC_COLOR, STEEP_COLORS, STEEP_FROM } from './colors';
 	import { formatDistance, formatHeight, gradeAt, type Profile3 } from './route';
 
 	let {
@@ -8,6 +8,7 @@
 		hover = $bindable(),
 		colors = SAC_COLOR,
 		breaks = [],
+		steep,
 		height = 140
 	}: {
 		line: Profile3;
@@ -16,12 +17,14 @@
 		colors?: Record<string, string>;
 		/** coordinate indices where a new stage starts (vertical separators) */
 		breaks?: number[];
+		/** stretches of steep terrain: a band under the profile (feedback issue 61) */
+		steep?: { from_m: number; to_m: number; class: number }[];
 		/** in pixels */
 		height?: number;
 	} = $props();
 
 	let width = $state(600);
-	const pad = { l: 44, r: 12, t: 18, b: 20 };
+	const pad = $derived({ l: 44, r: 12, t: 18, b: steep ? 28 : 20 });
 
 	const total = $derived(line.distance.at(-1) ?? 0);
 	const range = $derived.by(() => {
@@ -114,6 +117,25 @@
 				/>
 			{/each}
 
+			{#if steep}
+				<rect
+					x={x(0)}
+					y={height - pad.b + 3}
+					width={x(total) - x(0)}
+					height="6"
+					class="fill-stone-200"
+				/>
+				{#each steep as s (s.from_m)}
+					<rect
+						x={x(s.from_m)}
+						y={height - pad.b + 3}
+						width={Math.max(x(s.to_m) - x(s.from_m), 1)}
+						height="6"
+						fill={STEEP_COLORS[s.class]}
+						data-testid="steep-band"><title>≥ {STEEP_FROM[s.class]}</title></rect
+					>
+				{/each}
+			{/if}
 			<g class="fill-stone-500 text-[10px]">
 				<text x={pad.l - 6} y={y(range.hi) + 4} text-anchor="end">{range.hi} m</text>
 				<text x={pad.l - 6} y={y(range.lo)} text-anchor="end">{range.lo} m</text>

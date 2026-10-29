@@ -296,6 +296,8 @@
   "visibilityUnlisted": "Partager par lien",
   "visibilityPublic": "Public",
   "visibilityByLink": "Par lien",
+  "steepAlong": "{distance} sur un terrain de plus de 30°",
+  "steepBand": "Pente sous le profil altimétrique :",
   "visibilityPrivateHint": "Toi seul et les personnes que tu invites",
   "visibilityUnlistedHint": "Toute personne qui a le lien",
   "visibilityPublicHint": "Tout le monde, même sans compte, et trouvable",

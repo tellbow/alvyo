@@ -8,6 +8,7 @@ import { m } from '#lib/paraglide/messages.js';
  * as the release notes.
  */
 export const releases: { version: string; date: string; text: () => string }[] = [
+	{ version: '1.15.0', date: '2026-10-29', text: m.news_1_15_0 },
 	{ version: '1.14.0', date: '2026-10-28', text: m.news_1_14_0 },
 	{ version: '1.13.0', date: '2026-10-27', text: m.news_1_13_0 },
 	{ version: '1.12.0', date: '2026-10-25', text: m.news_1_12_0 },

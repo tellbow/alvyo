@@ -2448,7 +2448,7 @@ export interface paths {
         };
         /**
          * A user's public profile with their public routes and journeys
-         * @description A public profile is shown once it has published something; a private one to friends only. Friends and the user see it always.
+         * @description A public profile is shown to signed-in users, and to everyone once it has published something; a private one to friends and to those it asked to be friends. The user sees it always.
          */
         get: operations["get-profile"];
         put?: never;
@@ -2869,6 +2869,10 @@ export interface components {
             ascent_m: number;
             /** Format: double */
             distance_m: number;
+            /** @description By the viewer's own mark, which can be taken back */
+            done_marked: boolean;
+            /** Format: date */
+            done_on?: string;
             /** Format: int64 */
             duration_s: number;
             /** Format: uuid */

@@ -15,7 +15,9 @@
 		token,
 		doneOn,
 		marked,
-		by
+		by,
+		testid = 'done',
+		onchange
 	}: {
 		kind: 'routes' | 'journeys';
 		id: string;
@@ -23,6 +25,9 @@
 		doneOn?: string;
 		marked: boolean;
 		by: 'hike' | 'stages';
+		/** Several on a page (a collection's rows) need their own. */
+		testid?: string;
+		onchange?: (doneOn: string | undefined) => void;
 	} = $props();
 
 	const today = swissToday();
@@ -54,12 +59,13 @@
 		on = data.done_on;
 		isMarked = data.done_marked;
 		day = on ?? today;
+		onchange?.(on);
 		close();
 	}
 </script>
 
 <MoreMenu
-	testid="done"
+	{testid}
 	left
 	label={on ? `✓ ${doneDate(on)}` : `✓ ${m.done_button()}`}
 	ariaLabel={on ? m.done_on({ date: doneDate(on) }) : m.done_button()}
@@ -73,7 +79,7 @@
 				max={today}
 				bind:value={day}
 				class="min-w-0 flex-1 rounded-md border border-stone-400 px-1.5 py-1"
-				data-testid="done-day"
+				data-testid="{testid}-day"
 			/>
 		</label>
 		<button
@@ -81,14 +87,14 @@
 			class="{menuItem} font-medium"
 			disabled={!day || day > today}
 			onclick={() => set(true, close)}
-			data-testid="done-save">✓ {m.done_button()}</button
+			data-testid="{testid}-save">✓ {m.done_button()}</button
 		>
 		{#if on && isMarked}
 			<button
 				type="button"
 				class="{menuItem} text-red-700 dark:text-red-400"
 				onclick={() => set(false, close)}
-				data-testid="done-remove">{m.done_remove()}</button
+				data-testid="{testid}-remove">{m.done_remove()}</button
 			>
 		{:else if on}
 			<p class="px-2.5 py-1 text-xs text-stone-500">

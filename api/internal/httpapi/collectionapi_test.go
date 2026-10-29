@@ -22,6 +22,8 @@ type collectionResp struct {
 		Position int            `json:"position"`
 		Stages   int            `json:"stages"`
 		Lines    [][][2]float64 `json:"lines"`
+		DoneOn   *string        `json:"done_on"`
+		Marked   bool           `json:"done_marked"`
 	} `json:"item_list"`
 }
 
@@ -79,6 +81,22 @@ func TestCollections(t *testing.T) {
 	if len(c.ItemList) != 3 || c.ItemList[0].Note != "some day" || c.ItemList[2].Kind != "journey" ||
 		c.ItemList[2].Stages != 1 || len(c.ItemList[2].Lines) != 1 || len(c.ItemList[0].Lines) != 1 {
 		t.Fatalf("items %+v", c.ItemList)
+	}
+
+	// Each item says when the viewer hiked it (feedback issue 59).
+	if code, body := bea.do("PUT", "/api/v1/routes/"+annaPublic+"/done", map[string]any{"done_on": "2026-08-01"}); code != http.StatusOK {
+		t.Fatalf("mark: %d %s", code, body)
+	}
+	if code, body := bea.do("PUT", "/api/v1/journeys/"+journey.ID+"/done", map[string]any{"done_on": "2026-08-02"}); code != http.StatusOK {
+		t.Fatalf("mark journey: %d %s", code, body)
+	}
+	seen := dc(bea.do("GET", base, nil))
+	if it := seen.ItemList; len(it) != 3 || it[0].DoneOn != nil || it[1].DoneOn == nil || *it[1].DoneOn != "2026-08-01" ||
+		!it[1].Marked || it[2].DoneOn == nil || *it[2].DoneOn != "2026-08-02" || !it[2].Marked {
+		t.Errorf("bea's marks: %+v", it)
+	}
+	if it := dc(anna.do("GET", base, nil)).ItemList; it[1].DoneOn != nil || it[1].Marked {
+		t.Errorf("anna sees bea's mark: %+v", it[1])
 	}
 
 	for _, tc := range []struct {

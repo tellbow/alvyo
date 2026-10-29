@@ -390,6 +390,7 @@
   "collectionDelete": "Delete collection",
   "collectionDeleteConfirm": "Delete the collection? Routes and journeys stay.",
   "collectionMap": "Map of the collection",
+  "collectionDone": "{done} of {n} hiked",
   "collectionStages": "{n} stages",
   "myMapKindHike": "Hiked",
   "connectionsFromHere": "Connections from here to the start",

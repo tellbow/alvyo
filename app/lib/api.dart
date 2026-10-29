@@ -1230,7 +1230,8 @@ class CollectionItem {
       sacGrade = (j['sac_grade'] as num).toInt(),
       sacMax = (j['sac_max'] as num).toInt(),
       stages = (j['stages'] as num?)?.toInt() ?? 0,
-      lines = [for (final l in j['lines'] as List? ?? const []) _line(l)];
+      lines = [for (final l in j['lines'] as List? ?? const []) _line(l)],
+      done = (doneOn: j['done_on'] as String?, marked: j['done_marked'] as bool? ?? false);
 
   /// The item in the collection; [targetId] the route or journey.
   final String id;
@@ -1242,6 +1243,9 @@ class CollectionItem {
 
   /// [lon, lat] per point; a journey has one line per routed stage.
   final List<List<List<double>>> lines;
+
+  /// When the user hiked it, as loaded.
+  final DoneState done;
 }
 
 /// A collection with its routes and journeys.

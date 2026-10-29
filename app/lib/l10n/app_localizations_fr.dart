@@ -1296,6 +1296,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get collectionMap => 'Carte de la collection';
 
   @override
+  String collectionDone(int done, int n) {
+    return '$done sur $n parcourus';
+  }
+
+  @override
   String collectionStages(int n) {
     return '$n étapes';
   }

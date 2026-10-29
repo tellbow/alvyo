@@ -2434,6 +2434,12 @@ abstract class AppLocalizations {
   /// **'Karte der Sammlung'**
   String get collectionMap;
 
+  /// No description provided for @collectionDone.
+  ///
+  /// In de, this message translates to:
+  /// **'{done} von {n} gewandert'**
+  String collectionDone(int done, int n);
+
   /// No description provided for @collectionStages.
   ///
   /// In de, this message translates to:

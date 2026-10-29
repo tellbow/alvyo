@@ -6,6 +6,7 @@ import '../api.dart';
 import '../bug_report.dart';
 import '../l10n/app_localizations.dart';
 import 'collection_map_screen.dart';
+import 'done.dart';
 import 'details.dart';
 import 'item_menu.dart';
 import 'item_card.dart';
@@ -129,6 +130,9 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
 
   late Future<Collection> _collection = widget.api.collection(widget.id);
 
+  /// Items marked or unmarked here since the collection was loaded.
+  final _done = <String, DoneState>{};
+
   Future<void> _remove(CollectionItem i) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -247,6 +251,17 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                           ),
                         ),
                       ),
+                    if (c.items.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                        child: Text(
+                          key: const Key('collection-done'),
+                          t.collectionDone(
+                            c.items.where((i) => (_done[i.id] ?? i.done).doneOn != null).length,
+                            c.items.length,
+                          ),
+                        ),
+                      ),
                     if (c.hidden > 0)
                       ListTile(key: const Key('collection-hidden'), title: Text(t.collectionHidden(c.hidden)))
                     else if (c.items.isEmpty)
@@ -264,14 +279,28 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                         sacMax: i.sacMax,
                         stages: i.stages,
                         extra: i.note.isEmpty ? null : i.note,
-                        trailing: c.canEdit
-                            ? IconButton(
+                        // Hiked without opening each one (feedback issue 59).
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.api.token != null)
+                              DoneMenuButton(
+                                key: Key('item-done-${i.id}'),
+                                api: widget.api,
+                                id: i.targetId,
+                                journey: i.kind == 'journey',
+                                state: _done[i.id] ?? i.done,
+                                onDone: (s) => setState(() => _done[i.id] = s),
+                              ),
+                            if (c.canEdit)
+                              IconButton(
                                 key: Key('item-remove-${i.id}'),
                                 tooltip: t.collectionRemoveItem,
                                 icon: const Icon(Icons.remove_circle_outline),
                                 onPressed: () => _remove(i),
-                              )
-                            : null,
+                              ),
+                          ],
+                        ),
                         onTap: () => openCollectionItem(context, widget.api, c, i),
                       ),
                   ],

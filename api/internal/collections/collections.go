@@ -76,6 +76,9 @@ type Item struct {
 	Stages    int     `json:"stages" doc:"Journeys only"`
 	// Lines are simplified (lon, lat) lines for the overview map.
 	Lines [][][2]float64 `json:"lines"`
+	// DoneOn is when the viewer hiked it, as on the route and journey pages.
+	DoneOn     *string `json:"done_on,omitempty" format:"date"`
+	DoneMarked bool    `json:"done_marked" doc:"By the viewer's own mark, which can be taken back"`
 }
 
 // Collection is a collection with the items the viewer may see.
@@ -210,7 +213,10 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID, v Viewer) (Collection, er
 			coalesce(r.sac_max, js.sac_max, 0), coalesce(js.stages, 0),
 			-- others' recorded hikes without their start and end
 			coalesce(ST_AsGeoJSON(ST_Simplify(ST_Force2D(
-				CASE WHEN r.hiked_at IS NULL OR r.owner_id = $2 THEN r.geom ELSE shown_line(r.geom) END), 0.0002), 5), js.lines)
+				CASE WHEN r.hiked_at IS NULL OR r.owner_id = $2 THEN r.geom ELSE shown_line(r.geom) END), 0.0002), 5), js.lines),
+			to_char(CASE WHEN ci.route_id IS NOT NULL THEN route_done_on(r, $2) ELSE journey_done_on(j.id, $2) END, 'YYYY-MM-DD'),
+			EXISTS (SELECT 1 FROM done_marks dm WHERE dm.user_id = $2
+				AND (dm.route_id = ci.route_id OR dm.journey_id = ci.journey_id))
 		FROM collection_items ci
 		LEFT JOIN routes r ON r.id = ci.route_id
 		LEFT JOIN journeys j ON j.id = ci.journey_id
@@ -233,7 +239,8 @@ func (s *Store) Get(ctx context.Context, id uuid.UUID, v Viewer) (Collection, er
 		var itemID, targetID uuid.UUID
 		var geom *string
 		if err := rows.Scan(&itemID, &it.Position, &it.Note, &it.Kind, &targetID, &it.Title, &it.OwnerUsername,
-			&it.Visibility, &it.DistanceM, &it.AscentM, &it.DurationS, &it.SACGrade, &it.SACMax, &it.Stages, &geom); err != nil {
+			&it.Visibility, &it.DistanceM, &it.AscentM, &it.DurationS, &it.SACGrade, &it.SACMax, &it.Stages, &geom,
+			&it.DoneOn, &it.DoneMarked); err != nil {
 			return c, err
 		}
 		it.ID, it.TargetID = itemID.String(), targetID.String()

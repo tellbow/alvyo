@@ -346,6 +346,7 @@
 	"collection_delete": "Delete collection",
 	"collection_delete_confirm": "Delete the collection? Routes and journeys stay.",
 	"collection_description_placeholder": "Description",
+	"collection_done": "{done} of {n} hiked, faded on the map",
 	"collection_stages": [
 		{
 			"declarations": ["input n", "local nPlural = n: plural"],

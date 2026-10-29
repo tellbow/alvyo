@@ -80,3 +80,42 @@ List<MenuAction> doneActions(
     if (state.marked) MenuAction('undone', Icons.highlight_off, t.doneRemove, () => set(false)),
   ];
 }
+
+/// «Gewandert» on a list row: the state as an icon, [doneActions] behind it.
+class DoneMenuButton extends StatelessWidget {
+  const DoneMenuButton({
+    super.key,
+    required this.api,
+    required this.id,
+    required this.journey,
+    required this.state,
+    required this.onDone,
+  });
+  final Api api;
+  final String id;
+  final bool journey;
+  final DoneState state;
+  final ValueChanged<DoneState> onDone;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final on = state.doneOn;
+    return PopupMenuButton<MenuAction>(
+      tooltip: on == null ? t.doneMark : doneText(t, on),
+      icon: Icon(
+        on == null ? Icons.check_circle_outline : Icons.check_circle,
+        color: on == null ? null : Theme.of(context).colorScheme.primary,
+      ),
+      itemBuilder: (context) => [
+        for (final a in doneActions(context, api, id: id, journey: journey, state: state, onDone: onDone))
+          PopupMenuItem(
+            key: Key('done-${a.key}'),
+            value: a,
+            child: ListTile(leading: Icon(a.icon), title: Text(a.label), contentPadding: EdgeInsets.zero),
+          ),
+      ],
+      onSelected: (a) => a.onTap(),
+    );
+  }
+}

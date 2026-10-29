@@ -72,6 +72,23 @@ test('collect routes and a journey, reorder and annotate them', async ({ page })
 		'Früh starten'
 	);
 	await expect(page.getByTestId('map')).toHaveAttribute('data-layers', /route-collection-line/);
+
+	// Hiked from the list, without opening it (feedback issue 59).
+	await expect(page.getByTestId('collection-done')).toHaveText(
+		'0 von 2 gewandert, blass auf der Karte'
+	);
+	const route = page.getByTestId('collection-item').nth(1);
+	await route.getByTestId('done-1').click();
+	await route.getByTestId('done-1-day').fill('2026-08-01');
+	await route.getByTestId('done-1-save').click();
+	await expect(route.getByTestId('done-1')).toHaveText('✓ 1.8.2026');
+	await expect(page.getByTestId('collection-done')).toHaveText(
+		'1 von 2 gewandert, blass auf der Karte'
+	);
+	await page.reload();
+	await expect(page.getByTestId('collection-item').nth(1).getByTestId('done-1')).toHaveText(
+		'✓ 1.8.2026'
+	);
 	await page.waitForLoadState('networkidle');
 	await page.screenshot({ path: 'test-results/collection.png' });
 

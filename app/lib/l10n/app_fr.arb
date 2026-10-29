@@ -390,6 +390,7 @@
   "collectionDelete": "Supprimer la collection",
   "collectionDeleteConfirm": "Supprimer la collection ? Les itinéraires et randonnées restent.",
   "collectionMap": "Carte de la collection",
+  "collectionDone": "{done} sur {n} parcourus",
   "collectionStages": "{n} étapes",
   "myMapKindHike": "Randonnées faites",
   "connectionsFromHere": "Correspondances d’ici au départ",

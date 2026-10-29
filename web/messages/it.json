@@ -346,6 +346,7 @@
 	"collection_delete": "Elimina raccolta",
 	"collection_delete_confirm": "Eliminare la raccolta? Percorsi e trekking restano.",
 	"collection_description_placeholder": "Descrizione",
+	"collection_done": "{done} di {n} percorsi, sbiaditi sulla mappa",
 	"collection_stages": [
 		{
 			"declarations": ["input n", "local nPlural = n: plural"],

@@ -742,6 +742,17 @@
   "collectionDelete": "Sammlung löschen",
   "collectionDeleteConfirm": "Sammlung löschen? Routen und Etappentouren bleiben.",
   "collectionMap": "Karte der Sammlung",
+  "collectionDone": "{done} von {n} gewandert",
+  "@collectionDone": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "collectionStages": "{n} Etappen",
   "@collectionStages": {
     "placeholders": {

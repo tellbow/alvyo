@@ -346,6 +346,7 @@
 	"collection_delete": "Supprimer la collection",
 	"collection_delete_confirm": "Supprimer la collection ? Les itinéraires et randonnées restent.",
 	"collection_description_placeholder": "Description",
+	"collection_done": "{done} sur {n} parcourus, pâles sur la carte",
 	"collection_stages": [
 		{
 			"declarations": ["input n", "local nPlural = n: plural"],

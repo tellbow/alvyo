@@ -390,6 +390,7 @@
   "collectionDelete": "Elimina raccolta",
   "collectionDeleteConfirm": "Eliminare la raccolta? Percorsi e trekking restano.",
   "collectionMap": "Mappa della raccolta",
+  "collectionDone": "{done} di {n} percorsi",
   "collectionStages": "{n} tappe",
   "myMapKindHike": "Escursioni fatte",
   "connectionsFromHere": "Collegamenti da qui alla partenza",

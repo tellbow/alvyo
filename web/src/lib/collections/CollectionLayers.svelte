@@ -15,7 +15,7 @@
 	}: {
 		map: MapLibreMap;
 		/** Collection items, or anything else with an id and lines (discovery). */
-		items: Pick<CollectionItem, 'id' | 'lines'>[];
+		items: (Pick<CollectionItem, 'id' | 'lines'> & { done_on?: string })[];
 		highlight?: string;
 		/** Called with the id of a clicked line. */
 		onclick?: (id: string) => void;
@@ -33,7 +33,12 @@
 			type: 'FeatureCollection',
 			features: items.map((it, i) => ({
 				type: 'Feature',
-				properties: { id: it.id, color: color(i), highlight: it.id === highlight },
+				properties: {
+					id: it.id,
+					color: color(i),
+					highlight: it.id === highlight,
+					done: !!it.done_on
+				},
 				geometry: { type: 'MultiLineString', coordinates: it.lines }
 			}))
 		};
@@ -81,7 +86,9 @@
 			layout: { 'line-join': 'round', 'line-cap': 'round' },
 			paint: {
 				'line-color': ['get', 'color'],
-				'line-width': ['case', ['get', 'highlight'], 6, 4]
+				'line-width': ['case', ['get', 'highlight'], 6, 4],
+				// Hiked ones faded: what is left stands out.
+				'line-opacity': ['case', ['get', 'done'], 0.35, 1]
 			}
 		});
 		map.addSource(STARTS, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });

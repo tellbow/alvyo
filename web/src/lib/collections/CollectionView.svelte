@@ -21,6 +21,7 @@
 	import AddItems from './AddItems.svelte';
 	import CollectionLayers from './CollectionLayers.svelte';
 	import { choose } from '#lib/util/choose.js';
+	import DoneButton from '#lib/done/DoneButton.svelte';
 
 	let { collection: initial, user }: { collection: Collection; user: Me | null } = $props();
 
@@ -210,6 +211,14 @@
 				<p class="text-sm text-stone-600">{m.collection_empty()}</p>
 			{/if}
 		{:else}
+			{#if user}
+				<p class="text-sm text-stone-600" data-testid="collection-done">
+					{m.collection_done({
+						done: collection.item_list.filter((it) => it.done_on).length,
+						n: collection.item_list.length
+					})}
+				</p>
+			{/if}
 			<ol class="flex flex-col gap-2" data-testid="collection-items">
 				{#each collection.item_list as it, i (it.id)}
 					<li
@@ -245,10 +254,24 @@
 								>
 							{/if}
 						</div>
-						{#if it.kind === 'journey'}
-							<p class="mt-1 text-xs text-stone-500">
-								{m.collection_stages({ n: it.stages })}
-							</p>
+						{#if it.kind === 'journey' || user}
+							<div class="mt-1 flex items-center gap-2 text-xs text-stone-500">
+								{#if it.kind === 'journey'}<span>{m.collection_stages({ n: it.stages })}</span>{/if}
+								{#if user}
+									<!-- Hiked without opening each one (feedback issue 59). -->
+									<span class="ml-auto">
+										<DoneButton
+											kind={it.kind === 'route' ? 'routes' : 'journeys'}
+											id={it.target_id}
+											doneOn={it.done_on}
+											marked={it.done_marked}
+											by={it.kind === 'route' ? 'hike' : 'stages'}
+											testid="done-{i}"
+											onchange={(on) => (it.done_on = on)}
+										/>
+									</span>
+								{/if}
+							</div>
 						{/if}
 						{#if canEdit}
 							<div class="mt-2 flex items-center gap-2 text-xs">

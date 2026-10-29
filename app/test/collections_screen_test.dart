@@ -176,6 +176,32 @@ void main() {
     expect(deleted, ['/api/v1/collections/$_collection/items/i1']);
   });
 
+  testWidgets('a tour is marked as hiked from the list', (tester) async {
+    final calls = <String>[];
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        if (req.url.path.endsWith('/done')) {
+          calls.add('${req.method} ${req.url.path}');
+          return _json({'done_on': '2026-08-01', 'done_marked': true});
+        }
+        return _json(_body(visibility: 'private', role: 'viewer'));
+      }),
+    );
+    await tester.pumpWidget(_app(CollectionScreen(api: api, id: _collection, title: '')));
+    await tester.pumpAndSettle();
+    expect(find.text('0 von 1 gewandert'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('item-done-i1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('done-done')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK')); // the day: today
+    await tester.pumpAndSettle();
+    expect(calls, ['PUT /api/v1/routes/$_route/done']);
+    expect(find.text('1 von 1 gewandert'), findsOneWidget);
+  });
+
   const line = [
     [7.9, 46.6],
     [7.95, 46.65],

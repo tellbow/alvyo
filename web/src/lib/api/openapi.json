@@ -652,6 +652,14 @@
             "format": "double",
             "type": "number"
           },
+          "done_marked": {
+            "description": "By the viewer's own mark, which can be taken back",
+            "type": "boolean"
+          },
+          "done_on": {
+            "format": "date",
+            "type": "string"
+          },
           "duration_s": {
             "format": "int64",
             "type": "integer"
@@ -737,7 +745,8 @@
           "sac_grade",
           "sac_max",
           "stages",
-          "lines"
+          "lines",
+          "done_marked"
         ],
         "type": "object"
       },
@@ -15608,7 +15617,7 @@
     },
     "/users/{username}": {
       "get": {
-        "description": "A public profile is shown once it has published something; a private one to friends only. Friends and the user see it always.",
+        "description": "A public profile is shown to signed-in users, and to everyone once it has published something; a private one to friends and to those it asked to be friends. The user sees it always.",
         "operationId": "get-profile",
         "parameters": [
           {

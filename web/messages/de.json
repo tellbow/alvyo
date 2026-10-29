@@ -346,6 +346,7 @@
 	"collection_delete": "Sammlung löschen",
 	"collection_delete_confirm": "Sammlung löschen? Routen und Etappentouren bleiben.",
 	"collection_description_placeholder": "Beschreibung",
+	"collection_done": "{done} von {n} gewandert, blass auf der Karte",
 	"collection_stages": [
 		{
 			"declarations": ["input n", "local nPlural = n: plural"],

@@ -14,9 +14,7 @@ test('the home page: a place leads to the hikes around it', async ({ page }) => 
 	expect(signup.status()).toBe(200);
 
 	await page.goto('/');
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-		'Wandern, bis die Karte aufhört.'
-	);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plane deine nächste Wanderung');
 	await expect(page.getByTestId('language')).toBeEnabled(); // hydrated
 
 	await page.getByLabel('Region, Gipfel oder Hütte').fill('Gitschenen');

@@ -8,9 +8,7 @@ test('an unknown address says so in the reader’s language, with a way back', a
 	expect(res?.status()).toBe(404);
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Diese Seite gibt es nicht');
 	await page.getByRole('link', { name: 'Zur Startseite' }).click();
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-		'Wandern, bis die Karte aufhört.'
-	);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Plane deine nächste Wanderung');
 
 	const context = await browser.newContext({ locale: 'fr-CH' });
 	const fr = await context.newPage();

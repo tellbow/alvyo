@@ -1758,6 +1758,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get peopleTitle => 'Chi viene';
 
   @override
+  String get peopleTab => 'Persone';
+
+  @override
+  String peopleWith(String names) {
+    return 'con $names';
+  }
+
+  @override
+  String get peopleInvite => 'Invita persone';
+
+  @override
   String get peopleNone => 'Ancora nessuno. Chi viene vede il trekking e le tappe a cui partecipa.';
 
   @override

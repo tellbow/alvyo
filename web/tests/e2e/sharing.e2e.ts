@@ -35,7 +35,7 @@ test('invite a friend to plan a journey along, and a newcomer by e-mail', async 
 
 	// Invite the friend by username as editor.
 	await page.goto(`/journeys/${id}`);
-	await page.getByTestId('tab-share').click();
+	await page.getByTestId('tab-people').click();
 	const panel = page.getByTestId('share-panel');
 	await panel.getByLabel('Benutzername oder E-Mail-Adresse').fill(friend);
 	await panel.getByLabel('Rolle').selectOption('editor');
@@ -47,7 +47,7 @@ test('invite a friend to plan a journey along, and a newcomer by e-mail', async 
 	await friendPage.getByTestId('shared-journeys').getByRole('link', { name: 'Gemeinsam' }).click();
 	await expect(friendPage.getByTestId('journey-title')).toHaveText('Gemeinsam');
 	await expect(friendPage.getByText(`Gehört ${owner} – du planst mit.`)).toBeVisible();
-	await expect(friendPage.getByTestId('tab-share')).toHaveCount(0);
+	await expect(friendPage.getByTestId('share-panel')).toHaveCount(0);
 	const saved = friendPage.waitForResponse((r) => r.request().method() === 'PATCH');
 	await friendPage.getByTestId('stage').first().getByLabel('Titel').fill('Tag 1');
 	await friendPage.getByTestId('stage').first().getByLabel('Titel').press('Tab');

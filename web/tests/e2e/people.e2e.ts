@@ -43,8 +43,10 @@ test('who comes along, on which stages, and reminders before the start', async (
 	await signup(friendPage.request, friend);
 
 	// The friend comes along, only on the second stage.
+	// «Leute einladen» at the top opens the people tab (feedback issue 50).
 	await page.goto(`/journeys/${id}`);
-	await page.getByTestId('tab-overview').click();
+	await page.getByTestId('people-invite').click();
+	await expect(page.getByTestId('people-who')).toBeFocused();
 	const people = page.getByTestId('journey-people');
 	await people.getByTestId('people-who').fill(friend);
 	await people.getByTestId('people-add').click();
@@ -60,6 +62,8 @@ test('who comes along, on which stages, and reminders before the start', async (
 		`Mit Name ${friend}`
 	);
 	await expect(page.getByTestId('stage').first().getByTestId('stage-people')).toHaveCount(0);
+	await expect(page.getByTestId('people-row')).toContainText(`mit Name ${friend}`);
+	await expect(page.getByTestId('tab-people')).toContainText('1');
 
 	// Reminders: on, three to come; turned off, kept off.
 	await page.getByTestId('tab-overview').click();
@@ -73,7 +77,7 @@ test('who comes along, on which stages, and reminders before the start', async (
 
 	// The friend sees who comes along; a stranger on the public journey does not.
 	await friendPage.goto(`/journeys/${id}`);
-	await friendPage.getByTestId('tab-overview').click();
+	await friendPage.getByTestId('tab-people').click();
 	await expect(friendPage.getByTestId('journey-people').getByTestId('person')).toContainText(
 		`Name ${friend}`
 	);

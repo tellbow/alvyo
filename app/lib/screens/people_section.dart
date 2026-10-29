@@ -13,11 +13,15 @@ class PeopleSection extends StatefulWidget {
     required this.journey,
     required this.people,
     required this.onChanged,
+    this.focus,
   });
   final Api api;
   final JourneyDetail journey;
   final List<Person> people;
   final void Function(List<Person> people) onChanged;
+
+  /// Focused by «Leute einladen» at the top of the journey.
+  final FocusNode? focus;
 
   @override
   State<PeopleSection> createState() => _PeopleSectionState();
@@ -149,6 +153,7 @@ class _PeopleSectionState extends State<PeopleSection> {
                 child: TextField(
                   key: const Key('people-who'),
                   controller: _who,
+                  focusNode: widget.focus,
                   decoration: InputDecoration(labelText: t.peopleWho, isDense: true),
                   autocorrect: false,
                   keyboardType: TextInputType.emailAddress,

@@ -2,7 +2,7 @@
 	import OpenInApp from '#lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -51,7 +51,7 @@
 	import PhotoPins from '#lib/photos/PhotoPins.svelte';
 	import Photos from '#lib/photos/Photos.svelte';
 	import SharePanel from '#lib/sharing/SharePanel.svelte';
-	import { menuItem, primaryButtonSmall } from '#lib/components/actions.js';
+	import { actionButton, menuItem, primaryButtonSmall } from '#lib/components/actions.js';
 	import MoreMenu from '#lib/components/MoreMenu.svelte';
 	import CopyButton from '#lib/official/CopyButton.svelte';
 	import OfficialCredit from '#lib/official/OfficialCredit.svelte';
@@ -63,7 +63,7 @@
 	import StageCard from './StageCard.svelte';
 	import JourneyPeople from './JourneyPeople.svelte';
 	import JourneyReminders from './JourneyReminders.svelte';
-	import { stagePeople } from './people';
+	import { initials, personName, stagePeople } from './people';
 	import type { Person } from '#lib/api/client.js';
 	import Travel from '#lib/travel/Travel.svelte';
 	import TravelLayers from '#lib/travel/TravelLayers.svelte';
@@ -188,9 +188,20 @@
 			user && { id: 'travel', label: m.route_tab_travel() },
 			{ id: 'photos', label: m.photos_title(), n: gallery.photos.length },
 			{ id: 'comments', label: m.comments_tab(), n: community.social?.comments.length },
-			isOwner && { id: 'share', label: m.route_share() }
+			user &&
+				(isOwner || people.length > 0) && {
+					id: 'people',
+					label: m.people_tab(),
+					n: people.length
+				}
 		].filter((t) => !!t)
 	);
+	async function invitePeople() {
+		tab = 'people';
+		await tick();
+		document.getElementById('tab-people')?.scrollIntoView({ block: 'nearest' });
+		document.querySelector<HTMLInputElement>('[data-testid="people-who"]')?.focus();
+	}
 	function openComments() {
 		tab = 'comments';
 		document.getElementById('tab-comments')?.scrollIntoView({ block: 'nearest' });
@@ -437,6 +448,40 @@
 							{/if}
 						</p>
 					{/if}
+					<!-- Who comes along, on every tab. -->
+					{#if user && (people.length > 0 || isOwner)}
+						<div class="mt-2 flex flex-wrap items-center gap-2 text-sm" data-testid="people-row">
+							{#if people.length > 0}
+								<button
+									type="button"
+									class="flex items-center gap-2 hover:underline"
+									onclick={() => (tab = 'people')}
+								>
+									<span class="flex -space-x-2" aria-hidden="true">
+										{#each people.slice(0, 3) as p (p.id)}
+											<span
+												class="flex size-7 items-center justify-center rounded-full bg-accent-soft font-display text-[11px] font-bold text-accent-ink ring-2 ring-surface"
+												>{initials(personName(p))}</span
+											>
+										{/each}
+									</span>
+									{m.people_with({
+										names:
+											people.slice(0, 2).map(personName).join(', ') +
+											(people.length > 2 ? ` +${people.length - 2}` : '')
+									})}
+								</button>
+							{/if}
+							{#if isOwner}
+								<button
+									type="button"
+									class={actionButton}
+									onclick={invitePeople}
+									data-testid="people-invite">{m.people_invite()}</button
+								>
+							{/if}
+						</div>
+					{/if}
 				</div>
 				{#if user || hasRoutes}
 					<!-- What is done now and then: GPX, collections, the app, deleting. -->
@@ -664,13 +709,6 @@
 					<SnowAlong {snow} onshow={(p) => (picked = p)} />
 				{/if}
 				{#if user}
-					<JourneyPeople
-						id={journey.id}
-						stages={journey.stage_list}
-						{isOwner}
-						{canEdit}
-						bind:people
-					/>
 					<JourneyReminders id={journey.id} key={plannedDays.join()} />
 				{/if}
 			</div>
@@ -711,43 +749,53 @@
 		>
 			<Social {community} {user} />
 		</div>
-		{#if isOwner}
+		{#if user}
+			<!-- Who comes along, invitations, and (the owner) how it is shared. -->
 			<div
 				class="flex flex-col gap-3 p-4"
 				role="tabpanel"
-				id="pane-share"
-				aria-labelledby="tab-share"
-				hidden={tab !== 'share'}
+				id="pane-people"
+				aria-labelledby="tab-people"
+				hidden={tab !== 'people'}
 			>
-				<section class="flex flex-col gap-2 rounded-md border border-stone-200 p-3 text-sm">
-					<h2 class="font-medium">{m.journey_settings()}</h2>
-					<label class="flex flex-col gap-1">
-						<span>{m.field_visibility()}</span>
-						<select
-							class="rounded-md border border-stone-400 px-2 py-1.5"
-							value={journey.visibility}
-							use:choose={(v) => setVisibility(v as 'private' | 'unlisted' | 'public')}
-						>
-							<option value="private">{m.visibility_private()}</option>
-							<option value="unlisted" disabled={!user?.email_verified}
-								>{m.visibility_unlisted()}</option
+				<JourneyPeople
+					id={journey.id}
+					stages={journey.stage_list}
+					{isOwner}
+					{canEdit}
+					bind:people
+				/>
+				{#if isOwner}
+					<section class="flex flex-col gap-2 rounded-md border border-stone-200 p-3 text-sm">
+						<h2 class="font-medium">{m.journey_settings()}</h2>
+						<label class="flex flex-col gap-1">
+							<span>{m.field_visibility()}</span>
+							<select
+								class="rounded-md border border-stone-400 px-2 py-1.5"
+								value={journey.visibility}
+								use:choose={(v) => setVisibility(v as 'private' | 'unlisted' | 'public')}
 							>
-							<option value="public" disabled={!user?.email_verified}
-								>{m.visibility_public()}</option
-							>
-						</select>
-					</label>
-					{#if shareUrl && journey.visibility === 'unlisted'}
-						<input
-							readonly
-							aria-label={m.share_link()}
-							value={shareUrl}
-							class="rounded-md border border-stone-400 px-1.5 py-1 text-xs"
-							data-testid="journey-share-link"
-						/>
-					{/if}
-				</section>
-				<SharePanel kind="journeys" id={journey.id} verified={!!user?.email_verified} />
+								<option value="private">{m.visibility_private()}</option>
+								<option value="unlisted" disabled={!user?.email_verified}
+									>{m.visibility_unlisted()}</option
+								>
+								<option value="public" disabled={!user?.email_verified}
+									>{m.visibility_public()}</option
+								>
+							</select>
+						</label>
+						{#if shareUrl && journey.visibility === 'unlisted'}
+							<input
+								readonly
+								aria-label={m.share_link()}
+								value={shareUrl}
+								class="rounded-md border border-stone-400 px-1.5 py-1 text-xs"
+								data-testid="journey-share-link"
+							/>
+						{/if}
+					</section>
+					<SharePanel kind="journeys" id={journey.id} verified={!!user?.email_verified} />
+				{/if}
 			</div>
 		{/if}
 	</aside>

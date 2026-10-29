@@ -1018,6 +1018,16 @@
     }
   },
   "peopleTitle": "Wer kommt mit",
+  "peopleTab": "Leute",
+  "peopleWith": "mit {names}",
+  "peopleInvite": "Leute einladen",
+  "@peopleWith": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
   "peopleNone": "Noch niemand. Wer mitkommt, sieht die Etappentour und die Etappen, auf denen er oder sie dabei ist.",
   "peopleInvited": "Eingeladen",
   "peopleRemove": "Kommt nicht mit",

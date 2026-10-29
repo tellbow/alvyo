@@ -85,7 +85,41 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   void dispose() {
     _picked.dispose();
     _profilePoint.dispose();
+    _inviteFocus.dispose();
     super.dispose();
+  }
+
+  /// Who comes along, at the top of every tab, and «Leute einladen» for the
+  /// owner (feedback issue 50).
+  Widget _peopleRow(AppLocalizations t, JourneyDetail j) {
+    final theme = Theme.of(context);
+    final names = [for (final p in _peopleNow) p.name.isEmpty ? t.peopleInvited : p.name];
+    return Wrap(
+      key: const Key('people-row'),
+      spacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (names.isNotEmpty)
+          TextButton.icon(
+            onPressed: () => setState(() => _tab = 'people'),
+            icon: const Icon(Icons.group_outlined, size: 18),
+            label: Text(
+              t.peopleWith(names.take(2).join(', ') + (names.length > 2 ? ' +${names.length - 2}' : '')),
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
+          ),
+        if (j.isOwner)
+          OutlinedButton.icon(
+            key: const Key('people-invite'),
+            onPressed: () {
+              setState(() => _tab = 'people');
+              WidgetsBinding.instance.addPostFrameCallback((_) => _inviteFocus.requestFocus());
+            },
+            icon: const Icon(Icons.person_add_alt, size: 18),
+            label: Text(t.peopleInvite),
+          ),
+      ],
+    );
   }
 
   /// The forecast for the stages' planned days, loaded again when they change.
@@ -101,6 +135,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   /// Who comes along (null: not ours to see, or offline).
   late Future<List<Person>?> _people = _loadPeople();
   List<Person> _peopleNow = const [];
+  final _inviteFocus = FocusNode();
   Future<List<Person>?> _loadPeople() => widget.api.people(widget.id).then<List<Person>?>((p) {
     if (mounted) setState(() => _peopleNow = p);
     return p;
@@ -403,6 +438,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
             (id: 'travel', label: t.routeTabTravel),
             (id: 'photos', label: _photoCount == null ? t.photosTitle : '${t.photosTitle} $_photoCount'),
             (id: 'comments', label: _commentCount == null ? t.commentsTab : '${t.commentsTab} $_commentCount'),
+            if (j.isOwner || _peopleNow.isNotEmpty) (id: 'people', label: '${t.peopleTab} ${_peopleNow.length}'),
           ];
           final list = RefreshIndicator(
             onRefresh: () async {
@@ -446,6 +482,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                         else if (!j.isOwner && j.owner.isNotEmpty)
                           OwnerLine(api: widget.api, owner: j.owner, open: true),
                         if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
+                        if (j.isOwner || _peopleNow.isNotEmpty) _peopleRow(t, j),
                         if (_commentCount case final n? when n > 0)
                           CommentsCount(count: n, onTap: () => setState(() => _tab = 'comments')),
                         if (j.stageLines.isNotEmpty && !isWide(context))
@@ -583,21 +620,6 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                                 ),
                                 SnowAlongView(_snow, onShow: _showParts),
                                 FutureBuilder(
-                                  future: _people,
-                                  builder: (context, snap) => switch (snap.data) {
-                                    final people? when people.isNotEmpty || j.isOwner => PeopleSection(
-                                      api: widget.api,
-                                      journey: j,
-                                      people: people,
-                                      onChanged: (p) => setState(() {
-                                        _people = Future.value(p);
-                                        _peopleNow = p;
-                                      }),
-                                    ),
-                                    _ => const SizedBox.shrink(),
-                                  },
-                                ),
-                                FutureBuilder(
                                   future: _remindersFor(j),
                                   builder: (context, snap) => switch (snap.data) {
                                     (:final on, start: _?) => SwitchListTile(
@@ -640,6 +662,51 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                                   journey: true,
                                   onCount: (n) => setState(() => _photoCount = n),
                                 ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Who comes along and, for the owner, how it is shared.
+                        tabPane(
+                          _tab == 'people',
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                FutureBuilder(
+                                  future: _people,
+                                  builder: (context, snap) => switch (snap.data) {
+                                    final people? when people.isNotEmpty || j.isOwner => PeopleSection(
+                                      api: widget.api,
+                                      journey: j,
+                                      people: people,
+                                      focus: _inviteFocus,
+                                      onChanged: (p) => setState(() {
+                                        _people = Future.value(p);
+                                        _peopleNow = p;
+                                      }),
+                                    ),
+                                    _ => const SizedBox.shrink(),
+                                  },
+                                ),
+                                if (j.isOwner)
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TextButton.icon(
+                                      key: const Key('people-share'),
+                                      onPressed: () => shareSheet(
+                                        context,
+                                        widget.api,
+                                        id: j.id,
+                                        journey: true,
+                                        visibility: j.visibility,
+                                        token: j.shareToken,
+                                      ),
+                                      icon: const Icon(Icons.share_outlined),
+                                      label: Text(t.shareAction),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),

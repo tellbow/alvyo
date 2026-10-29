@@ -3268,6 +3268,24 @@ abstract class AppLocalizations {
   /// **'Wer kommt mit'**
   String get peopleTitle;
 
+  /// No description provided for @peopleTab.
+  ///
+  /// In de, this message translates to:
+  /// **'Leute'**
+  String get peopleTab;
+
+  /// No description provided for @peopleWith.
+  ///
+  /// In de, this message translates to:
+  /// **'mit {names}'**
+  String peopleWith(String names);
+
+  /// No description provided for @peopleInvite.
+  ///
+  /// In de, this message translates to:
+  /// **'Leute einladen'**
+  String get peopleInvite;
+
   /// No description provided for @peopleNone.
   ///
   /// In de, this message translates to:

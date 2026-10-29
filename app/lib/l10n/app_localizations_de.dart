@@ -1759,6 +1759,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get peopleTitle => 'Wer kommt mit';
 
   @override
+  String get peopleTab => 'Leute';
+
+  @override
+  String peopleWith(String names) {
+    return 'mit $names';
+  }
+
+  @override
+  String get peopleInvite => 'Leute einladen';
+
+  @override
   String get peopleNone =>
       'Noch niemand. Wer mitkommt, sieht die Etappentour und die Etappen, auf denen er oder sie dabei ist.';
 

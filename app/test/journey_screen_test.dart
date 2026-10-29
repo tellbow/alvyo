@@ -104,6 +104,13 @@ class FakeServer {
       s1Status = b['status'] as String;
       s1Version++;
     }
+    if (p == '/journeys/j1/people') {
+      return _json({
+        'people': [
+          {'id': 'pe1', 'username': 'anna', 'display_name': 'Anna', 'stages': <String>[]},
+        ],
+      });
+    }
     if (p == '/journeys/j1' || p == '/journeys/j1/stages/s1') {
       return _json({
         'id': 'j1',
@@ -335,6 +342,20 @@ void main() {
     expect(find.text('Via Alpina'), findsNothing, reason: 'back in the list, without it');
     expect(await tester.runAsync(() => store.savedJourney('j1')), isNull);
     expect(await tester.runAsync(() => store.saved('r1')), isNull);
+  });
+
+  testWidgets('who comes along at the top; «Leute einladen» opens their tab', (tester) async {
+    final server = FakeServer()..role = 'owner';
+    final api = Api('https://alvyo.test', token: 't', client: server.client);
+    await pumpList(tester, api, find.text('Via Alpina'));
+    await tester.tap(find.text('Via Alpina'));
+    await until(tester, find.text('mit Anna'));
+    expect(find.text('Leute 1'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('people-invite')));
+    await tester.pump();
+    await tester.pump();
+    final who = tester.widget<TextField>(find.byKey(const Key('people-who')));
+    expect(who.focusNode?.hasFocus, isTrue);
   });
 
   testWidgets('only the owner can delete a journey', (tester) async {

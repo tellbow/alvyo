@@ -503,6 +503,7 @@
 	"moderation_delete_comment": "Elimina commento",
 	"moderation_ban": "Blocca l'account",
 	"photos_title": "Foto",
+	"comments_tab": "Commenti",
 	"photos_open": "Apri la foto",
 	"photos_add": "Aggiungi foto",
 	"photos_uploading": "{done} di {total} caricate …",

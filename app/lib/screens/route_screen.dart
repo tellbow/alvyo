@@ -93,6 +93,9 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
 
   /// How many photos there are, once loaded (the «Fotos» tab says so).
   int? _photoCount;
+
+  /// How many comments there are, once loaded («Kommentare» and the count above).
+  int? _commentCount;
   late final Future<RouteWeather?> _weather = widget.api
       .routeWeather(widget.id)
       .then<RouteWeather?>((w) => w, onError: (_) => null);
@@ -416,6 +419,8 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         StatsStrip(r.totals),
+        if (_commentCount case final n? when n > 0)
+          CommentsCount(count: n, onTap: () => setState(() => _tab = _Tab.comments)),
         if ((_done ?? (doneOn: r.doneOn, marked: r.doneMarked)) case (doneOn: final on?, :final marked)) ...[
           const SizedBox(height: 4),
           Text(
@@ -499,6 +504,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
             _Tab.along => '${t.poisTitle} $_poiCount',
             _Tab.travel => t.routeTabTravel,
             _Tab.photos => _photoCount == null ? t.photosTitle : '${t.photosTitle} $_photoCount',
+            _Tab.comments => _commentCount == null ? t.commentsTab : '${t.commentsTab} $_commentCount',
           },
         ),
     ],
@@ -552,7 +558,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
             // A stage's way there and back is its journey's; its photos and
             // comments are on its journey too.
             if (r.line.length >= 2 && r.journeyId == null) _Tab.travel,
-            if (r.journeyId == null) _Tab.photos,
+            if (r.journeyId == null) ...[_Tab.photos, _Tab.comments],
           ];
           return MapSplit(
             // Half the screen on a phone, so the panel keeps its height
@@ -655,9 +661,14 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                                     id: r.id,
                                     onCount: (n) => setState(() => _photoCount = n),
                                   ),
-                                  SocialPanel(api: widget.api, id: r.id),
                                 ],
                               ),
+                            ),
+                          // Likes go with the comments.
+                          if (tabs.contains(_Tab.comments))
+                            _pane(
+                              _Tab.comments,
+                              SocialPanel(api: widget.api, id: r.id, onCount: (n) => setState(() => _commentCount = n)),
                             ),
                         ],
                       ),
@@ -673,4 +684,4 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   }
 }
 
-enum _Tab { overview, along, travel, photos }
+enum _Tab { overview, along, travel, photos, comments }

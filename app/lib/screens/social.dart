@@ -9,10 +9,13 @@ import 'report_dialog.dart';
 /// one level deep, editing and deleting one's own; the owner switches
 /// comments off. Nothing shows offline.
 class SocialPanel extends StatefulWidget {
-  const SocialPanel({super.key, required this.api, required this.id, this.journey = false});
+  const SocialPanel({super.key, required this.api, required this.id, this.journey = false, this.onCount});
   final Api api;
   final String id;
   final bool journey;
+
+  /// The number of comments, whenever it is loaded or changes (for the tab).
+  final ValueChanged<int>? onCount;
 
   @override
   State<SocialPanel> createState() => _SocialPanelState();
@@ -30,7 +33,10 @@ class _SocialPanelState extends State<SocialPanel> {
   void initState() {
     super.initState();
     widget.api.social(widget.id, journey: widget.journey).then((s) {
-      if (mounted) setState(() => _social = s);
+      if (mounted) {
+        setState(() => _social = s);
+        widget.onCount?.call(s.comments.length);
+      }
       // Else blocked by the owner: then nothing is said.
       if (!s.canComment && s.commentsEnabled) {
         widget.api.me().then((m) {
@@ -48,7 +54,10 @@ class _SocialPanelState extends State<SocialPanel> {
     });
     try {
       final s = await call;
-      if (mounted) setState(() => _social = s);
+      if (mounted) {
+        setState(() => _social = s);
+        widget.onCount?.call(s.comments.length);
+      }
       return true;
     } on ApiException catch (e) {
       final error = switch (e.status) {
@@ -182,9 +191,11 @@ class _SocialPanelState extends State<SocialPanel> {
               selectedIcon: Icon(Icons.favorite, color: theme.colorScheme.primary),
               onPressed: _busy ? null : () => _run(widget.api.like(widget.id, !s.liked, journey: widget.journey)),
             ),
-            Text(key: const Key('likes'), t.communityLikes(s.likes)),
-            const Spacer(),
-            Text(t.communityComments(s.comments.length), style: muted),
+            // Both may shrink: large text on a narrow phone.
+            Flexible(child: Text(key: const Key('likes'), t.communityLikes(s.likes))),
+            Expanded(
+              child: Text(t.communityComments(s.comments.length), style: muted, textAlign: TextAlign.end),
+            ),
           ],
         ),
         if (s.canModerate)
@@ -234,4 +245,23 @@ class _SocialPanelState extends State<SocialPanel> {
       ],
     );
   }
+}
+
+/// The comments' count at the top of a route or journey; a tap opens their
+/// tab (feedback issue 46).
+class CommentsCount extends StatelessWidget {
+  const CommentsCount({super.key, required this.count, required this.onTap});
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: TextButton.icon(
+      key: const Key('comments-count'),
+      onPressed: onTap,
+      icon: const Icon(Icons.chat_bubble_outline, size: 18),
+      label: Text('$count', semanticsLabel: AppLocalizations.of(context).communityComments(count)),
+    ),
+  );
 }

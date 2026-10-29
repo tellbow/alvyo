@@ -57,6 +57,7 @@
 	import OfficialCredit from '#lib/official/OfficialCredit.svelte';
 	import ShareButton from '#lib/components/ShareButton.svelte';
 	import TabBar from '#lib/components/TabBar.svelte';
+	import CommentsButton from '#lib/community/CommentsButton.svelte';
 	import LikeButton from '#lib/community/LikeButton.svelte';
 	import DoneButton from '#lib/done/DoneButton.svelte';
 	import StageCard from './StageCard.svelte';
@@ -186,9 +187,14 @@
 			overview && { id: 'overview', label: m.route_tab_overview() },
 			user && { id: 'travel', label: m.route_tab_travel() },
 			{ id: 'photos', label: m.photos_title(), n: gallery.photos.length },
+			{ id: 'comments', label: m.comments_tab(), n: community.social?.comments.length },
 			isOwner && { id: 'share', label: m.route_share() }
 		].filter((t) => !!t)
 	);
+	function openComments() {
+		tab = 'comments';
+		document.getElementById('tab-comments')?.scrollIntoView({ block: 'nearest' });
+	}
 
 	/** Index in stage_list of the k-th stage that has a route. */
 	function routedStageIndex(k: number): number {
@@ -483,6 +489,7 @@
 					<CopyButton kind="journeys" id={journey.id} {token} {user} />
 				{/if}
 				<LikeButton {community} {user} testid="journey-like" />
+				<CommentsButton {community} onclick={openComments} />
 				<!-- As loaded: changes answer with the journey, not when one hiked it. -->
 				{#if user}
 					<DoneButton
@@ -693,6 +700,15 @@
 			hidden={tab !== 'photos'}
 		>
 			<Photos {gallery} loggedIn={!!user} />
+		</div>
+		<!-- Likes go with the comments; mounted while hidden, so the counts load. -->
+		<div
+			class="flex flex-col gap-3 p-4"
+			role="tabpanel"
+			id="pane-comments"
+			aria-labelledby="tab-comments"
+			hidden={tab !== 'comments'}
+		>
 			<Social {community} {user} />
 		</div>
 		{#if isOwner}

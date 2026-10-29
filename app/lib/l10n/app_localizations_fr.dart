@@ -1071,6 +1071,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get photosTitle => 'Photos';
 
   @override
+  String get commentsTab => 'Commentaires';
+
+  @override
   String get photosAdd => 'Ajouter des photos';
 
   @override

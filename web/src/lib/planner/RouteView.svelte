@@ -46,6 +46,7 @@
 	import OfficialCredit from '#lib/official/OfficialCredit.svelte';
 	import ShareButton from '#lib/components/ShareButton.svelte';
 	import TabBar from '#lib/components/TabBar.svelte';
+	import CommentsButton from '#lib/community/CommentsButton.svelte';
 	import LikeButton from '#lib/community/LikeButton.svelte';
 	import DoneButton from '#lib/done/DoneButton.svelte';
 	import { TRAIL_COLOR } from './colors';
@@ -137,9 +138,18 @@
 			{ id: 'overview', label: m.route_tab_overview() },
 			routePois.length > 0 && { id: 'along', label: m.pois_title(), n: routePois.length },
 			travel && { id: 'travel', label: m.route_tab_travel() },
-			gallery && { id: 'photos', label: m.photos_title(), n: gallery.photos.length }
+			gallery && { id: 'photos', label: m.photos_title(), n: gallery.photos.length },
+			community && {
+				id: 'comments',
+				label: m.comments_tab(),
+				n: community.social?.comments.length
+			}
 		].filter((t) => !!t)
 	);
+	function openComments() {
+		tab = 'comments';
+		document.getElementById('tab-comments')?.scrollIntoView({ block: 'nearest' });
+	}
 	// Off marked trails all the way: said in words, not as a bar of one colour.
 	const offTrail = $derived.by(() => {
 		const parts = breakdownParts(planner.totals.trails, Object.keys(TRAIL_COLOR));
@@ -314,7 +324,10 @@
 						<!-- Someone else's planned route: one's own copy to change. -->
 						<CopyButton kind="routes" id={route.id} {token} {user} />
 					{/if}
-					{#if community}<LikeButton {community} {user} testid="route-like" />{/if}
+					{#if community}
+						<LikeButton {community} {user} testid="route-like" />
+						<CommentsButton {community} onclick={openComments} />
+					{/if}
 					{#if user && !route.journey_id}
 						<DoneButton
 							kind="routes"
@@ -422,6 +435,15 @@
 				hidden={tab !== 'photos'}
 			>
 				<Photos {gallery} loggedIn={!!user} />
+			</div>
+			<!-- Likes go with the comments; mounted while hidden, so the counts load. -->
+			<div
+				class="flex flex-col gap-3 p-4"
+				role="tabpanel"
+				id="pane-comments"
+				aria-labelledby="tab-comments"
+				hidden={tab !== 'comments'}
+			>
 				<Social {community} {user} />
 			</div>
 		{/if}

@@ -2038,6 +2038,12 @@ abstract class AppLocalizations {
   /// **'Fotos'**
   String get photosTitle;
 
+  /// No description provided for @commentsTab.
+  ///
+  /// In de, this message translates to:
+  /// **'Kommentare'**
+  String get commentsTab;
+
   /// No description provided for @photosAdd.
   ///
   /// In de, this message translates to:

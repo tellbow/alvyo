@@ -65,6 +65,9 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   /// How many photos there are, once loaded (the «Fotos» tab says so).
   int? _photoCount;
 
+  /// How many comments there are, once loaded («Kommentare» and the count above).
+  int? _commentCount;
+
   late Future<JourneyDetail> _journey = _load();
   late final Future<Along> _areas = widget.api
       .areas(journeyId: widget.id)
@@ -399,6 +402,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
             (id: 'overview', label: t.routeTabOverview),
             (id: 'travel', label: t.routeTabTravel),
             (id: 'photos', label: _photoCount == null ? t.photosTitle : '${t.photosTitle} $_photoCount'),
+            (id: 'comments', label: _commentCount == null ? t.commentsTab : '${t.commentsTab} $_commentCount'),
           ];
           final list = RefreshIndicator(
             onRefresh: () async {
@@ -442,6 +446,8 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                         else if (!j.isOwner && j.owner.isNotEmpty)
                           OwnerLine(api: widget.api, owner: j.owner, open: true),
                         if (j.tags.isNotEmpty) ...[const SizedBox(height: 4), TagChips(j.tags)],
+                        if (_commentCount case final n? when n > 0)
+                          CommentsCount(count: n, onTap: () => setState(() => _tab = 'comments')),
                         if (j.stageLines.isNotEmpty && !isWide(context))
                           Align(
                             alignment: Alignment.centerLeft,
@@ -634,8 +640,20 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
                                   journey: true,
                                   onCount: (n) => setState(() => _photoCount = n),
                                 ),
-                                SocialPanel(api: widget.api, id: j.id, journey: true),
                               ],
+                            ),
+                          ),
+                        ),
+                        // Likes go with the comments.
+                        tabPane(
+                          _tab == 'comments',
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                            child: SocialPanel(
+                              api: widget.api,
+                              id: j.id,
+                              journey: true,
+                              onCount: (n) => setState(() => _commentCount = n),
                             ),
                           ),
                         ),

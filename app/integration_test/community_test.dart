@@ -114,8 +114,8 @@ void main() {
     );
     expect((await api.route(route.id)).description, note);
 
-    // Likes, photos and comments in their tab.
-    await tester.tap(find.byKey(const Key('tab-photos')));
+    // Likes and comments in their tab.
+    await tester.tap(find.byKey(const Key('tab-comments')));
     await settle(tester);
     await scrollTo(tester, find.byKey(const Key('like')));
     final likes = (await api.social(route.id)).likes;

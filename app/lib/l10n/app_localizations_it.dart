@@ -1068,6 +1068,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get photosTitle => 'Foto';
 
   @override
+  String get commentsTab => 'Commenti';
+
+  @override
   String get photosAdd => 'Aggiungi foto';
 
   @override

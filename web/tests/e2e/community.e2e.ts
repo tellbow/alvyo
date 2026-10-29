@@ -31,7 +31,7 @@ test('like, comment and follow; the owner hears about it by e-mail', async ({ pa
 	await member(fanPage.request, fan, 'Fritz Fan');
 
 	await fanPage.goto(`/routes/${id}`);
-	await fanPage.getByTestId('tab-photos').click();
+	await fanPage.getByTestId('tab-comments').click();
 	const social = fanPage.getByTestId('social');
 	// «Merken» at the top and the count with the comments are the same like.
 	await fanPage.getByTestId('route-like').click();
@@ -40,6 +40,12 @@ test('like, comment and follow; the owner hears about it by e-mail', async ({ pa
 	await social.getByLabel('Kommentar schreiben …').fill('Wunderbare Aussicht!');
 	await social.getByRole('button', { name: 'Kommentieren' }).click();
 	await expect(social.getByTestId('comment')).toContainText('Wunderbare Aussicht!');
+	// Their own tab with the count, and the count at the top opens it (feedback issue 46).
+	await expect(fanPage.getByTestId('tab-comments')).toContainText('1');
+	await fanPage.getByTestId('tab-overview').click();
+	await expect(fanPage.getByTestId('comments-count')).toHaveText('1');
+	await fanPage.getByTestId('comments-count').click();
+	await expect(social).toBeVisible();
 	await mailMatching(`${owner}@example.ch`, /Fritz Fan \(@fan\w+\) hat deine Route/);
 
 	// Follow the owner; their public routes appear in the fan's news.
@@ -54,14 +60,14 @@ test('like, comment and follow; the owner hears about it by e-mail', async ({ pa
 
 	// The owner sees the comment with a delete button and can switch comments off.
 	await page.goto(`/routes/${id}`);
-	await page.getByTestId('tab-photos').click();
+	await page.getByTestId('tab-comments').click();
 	const own = page.getByTestId('social');
 	await expect(own.getByTestId('comment')).toContainText('Wunderbare Aussicht!');
 	await expect(own.getByRole('button', { name: 'Löschen' })).toBeVisible();
 	await own.getByLabel('Kommentare erlauben').uncheck();
 	await expect(own).toContainText('Kommentare sind ausgeschaltet.');
 	await fanPage.goto(`/routes/${id}`);
-	await fanPage.getByTestId('tab-photos').click();
+	await fanPage.getByTestId('tab-comments').click();
 	await expect(fanPage.getByTestId('social')).toContainText('Kommentare sind ausgeschaltet.');
 	await expect(fanPage.getByTestId('comment')).toHaveCount(0);
 	await fanContext.close();
@@ -86,7 +92,7 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 	await trollContext.close();
 
 	await page.goto(`/routes/${id}`);
-	await page.getByTestId('tab-photos').click();
+	await page.getByTestId('tab-comments').click();
 	const comment = page.getByTestId('comment').filter({ hasText: s });
 	await comment.getByRole('button', { name: 'Melden' }).click();
 	await page.getByTestId('report-form').getByRole('button', { name: 'Melden' }).click();
@@ -114,7 +120,7 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 	await modContext.close();
 
 	await page.reload();
-	await page.getByTestId('tab-photos').click();
+	await page.getByTestId('tab-comments').click();
 	await expect(page.getByTestId('comment').filter({ hasText: s })).toHaveCount(0);
 });
 
@@ -132,7 +138,7 @@ test('reply to a comment, and edit one', async ({ page, browser }) => {
 	await member(ask.request, asker, 'Anna Asker');
 
 	await ask.goto(`/routes/${id}`);
-	await ask.getByTestId('tab-photos').click();
+	await ask.getByTestId('tab-comments').click();
 	const social = ask.getByTestId('social');
 	await social.getByLabel('Kommentar schreiben …').fill('Wie steil ist das?');
 	await social.getByRole('button', { name: 'Kommentieren' }).click();
@@ -140,7 +146,7 @@ test('reply to a comment, and edit one', async ({ page, browser }) => {
 
 	// The owner answers under the question; the asker hears of it.
 	await page.goto(`/routes/${id}`);
-	await page.getByTestId('tab-photos').click();
+	await page.getByTestId('tab-comments').click();
 	const own = page.getByTestId('social');
 	await own.getByTestId('comment').getByRole('button', { name: 'Antworten' }).click();
 	await own.getByLabel('Deine Antwort …').fill('T3, mit Ketten.');
@@ -150,7 +156,7 @@ test('reply to a comment, and edit one', async ({ page, browser }) => {
 
 	// The asker edits the question; it says so.
 	await ask.reload();
-	await ask.getByTestId('tab-photos').click();
+	await ask.getByTestId('tab-comments').click();
 	const question = social.getByTestId('comment').first();
 	await question.getByRole('button', { name: 'Bearbeiten' }).click();
 	await question.getByLabel('Bearbeiten').fill('Wie steil ist das nach dem Gipfel?');
@@ -159,7 +165,7 @@ test('reply to a comment, and edit one', async ({ page, browser }) => {
 	await expect(question).toContainText('bearbeitet');
 	// Nobody else can edit it.
 	await page.reload();
-	await page.getByTestId('tab-photos').click();
+	await page.getByTestId('tab-comments').click();
 	await expect(own.getByRole('button', { name: 'Bearbeiten' })).toHaveCount(1); // the owner's reply
 	await askContext.close();
 });

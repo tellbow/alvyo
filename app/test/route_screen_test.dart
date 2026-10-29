@@ -116,6 +116,25 @@ void main() {
               },
             ],
           });
+        case '/api/v1/routes/r1/social':
+          return _json({
+            'likes': 0,
+            'liked': false,
+            'can_comment': true,
+            'can_moderate': false,
+            'comments_enabled': true,
+            'comments': [
+              {
+                'id': 'c1',
+                'author_username': 'anna',
+                'author_name': 'Anna',
+                'body': 'Schön!',
+                'created_at': '2026-09-27T10:00:00Z',
+                'can_edit': false,
+                'can_delete': false,
+              },
+            ],
+          });
         case '/api/v1/routes/r1/pois':
           return _json({
             'pois': [
@@ -205,9 +224,21 @@ void main() {
     await tester.pump();
     expect(find.text('1.2\u00a0km · Trinkwasser'), findsOneWidget);
     expect(find.text('5.3\u00a0km · Gonzen · Gipfel · 1830\u00a0m'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('pois-peak')));
+    await tester.pump(); // ensureVisible only scrolls
     await tester.tap(find.byKey(const Key('pois-peak')));
     await tester.pump();
     expect(find.text('1.2\u00a0km · Trinkwasser'), findsNothing);
+    await tester.tap(find.byKey(const Key('tab-overview')));
+    await tester.pump();
+    // Comments in their own tab with the count, and the count above opens it (feedback issue 46).
+    expect(find.text('Kommentare 1'), findsOneWidget);
+    expect(find.text('Schön!'), findsNothing);
+    await tester.ensureVisible(find.byKey(const Key('comments-count')));
+    await tester.pump(); // ensureVisible only scrolls
+    await tester.tap(find.byKey(const Key('comments-count')));
+    await tester.pump();
+    expect(find.text('Schön!'), findsOneWidget);
     await tester.tap(find.byKey(const Key('tab-overview')));
     await tester.pump();
     // Closures and areas: a line with how many, the list in a sheet.

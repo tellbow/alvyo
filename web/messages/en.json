@@ -509,6 +509,7 @@
 	"moderation_delete_comment": "Delete comment",
 	"moderation_ban": "Ban",
 	"photos_title": "Photos",
+	"comments_tab": "Comments",
 	"photos_open": "Open photo",
 	"photos_add": "Add photos",
 	"photos_uploading": "{done} of {total} uploaded …",

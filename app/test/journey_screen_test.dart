@@ -234,13 +234,17 @@ void main() {
     await until(tester, find.text('Gaflei – Sargans'));
     expect(find.text('Gaflei – Sargans'), findsOneWidget);
     expect(
-      find.text('18.5\u00a0km · 4\u00a0h 45\u00a0min · ↑\u00a0101\u00a0m · T2–T3\nGaflei, Klinik → Sargans'),
+      find.text(
+        '18.5\u00a0km · 4\u00a0h 45\u00a0min · ↑\u00a0101\u00a0m · T2–T3\nGaflei, Klinik → Sargans',
+        findRichText: true,
+      ),
       findsOneWidget,
     );
     expect(
       find.text(
         '02.10.2026 · 18.5\u00a0km · 4\u00a0h 45\u00a0min · ↑\u00a0101\u00a0m · T2–T3\n'
-        'Überbrückt mit öffentlichem Verkehr\nUnterkunft: Gasthaus Alpenhof · gebucht',
+        'Überbrückt mit öffentlichem Verkehr\n\uFFFC Gasthaus Alpenhof · gebucht', // the bed, then the name
+        findRichText: true,
       ),
       findsOneWidget,
     );

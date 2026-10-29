@@ -708,8 +708,6 @@ class _StageTile extends StatelessWidget {
         })
       else if (s.gapStatus == 'warning' || s.gapStatus == 'gap')
         t.gapWarning(formatDistance(s.gapM)),
-      if (s.accommodation.isNotEmpty)
-        '${t.stageAccommodation(s.accommodation)}${s.booked ? ' · ${t.stageBooked}' : ''}',
       if (people.isNotEmpty) t.peopleOnStage(people.join(', ')),
     ];
     return ListTile(
@@ -721,8 +719,15 @@ class _StageTile extends StatelessWidget {
         },
       ),
       title: Text(s.title.isEmpty ? t.journeyStage(n) : s.title),
-      subtitle: Text(lines.join('\n')),
-      isThreeLine: lines.length > 1,
+      subtitle: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: lines.join('\n')),
+            if (s.accommodation.isNotEmpty) ...[const TextSpan(text: '\n'), accommodationSpan(t, s)],
+          ],
+        ),
+      ),
+      isThreeLine: lines.length > 1 || s.accommodation.isNotEmpty,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

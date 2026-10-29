@@ -155,8 +155,7 @@ class _StageSheetState extends State<_StageSheet> {
                 ..._form(t)
               else ...[
                 if (s.plannedDate case final d?) Text(t.labelled(t.stageDate, formatDate(d))),
-                if (s.accommodation.isNotEmpty)
-                  Text('${t.stageAccommodation(s.accommodation)}${s.booked ? ' · ${t.stageBooked}' : ''}'),
+                if (s.accommodation.isNotEmpty) Text.rich(accommodationSpan(t, s)),
                 if (s.notes.isNotEmpty) Text(key: const Key('stage-notes'), s.notes),
                 if (widget.journey.canEdit)
                   Align(
@@ -294,3 +293,15 @@ class _StageSheetState extends State<_StageSheet> {
     FilledButton(key: const Key('stage-save'), onPressed: _busy ? null : _save, child: Text(t.save)),
   ];
 }
+
+/// A stage's accommodation behind a bed, as the website shows it (feedback
+/// issue 48).
+InlineSpan accommodationSpan(AppLocalizations t, Stage s) => TextSpan(
+  children: [
+    WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Icon(Icons.bed_outlined, size: 16, semanticLabel: t.stageAccommodationLabel),
+    ),
+    TextSpan(text: ' ${s.accommodation}${s.booked ? ' · ${t.stageBooked}' : ''}'),
+  ],
+);

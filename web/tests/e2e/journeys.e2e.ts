@@ -92,19 +92,27 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 
 	// Accommodation and notes are kept.
 	await first.getByText('Unterkunft & Notizen').click();
-	await first.getByLabel('Unterkunft').fill('Berggasthaus First');
-	await first.getByLabel('Unterkunft').press('Tab');
+	await first.getByLabel('Unterkunft', { exact: true }).fill('Berggasthaus First');
+	await first.getByLabel('Unterkunft', { exact: true }).press('Tab');
 	const saved = page.waitForResponse(
 		(r) => r.request().method() === 'PATCH' && !!r.request().postData()?.includes('booked')
 	);
-	await first.getByLabel('Gebucht').check();
+	await first.getByLabel('Gebucht', { exact: true }).check();
 	expect((await saved).status()).toBe(200);
-	await expect(page.getByTestId('stage').first().getByLabel('Gebucht')).toBeChecked();
+	await expect(
+		page.getByTestId('stage').first().getByLabel('Gebucht', { exact: true })
+	).toBeChecked();
 	await page.reload();
-	await expect(page.getByTestId('stage').first().getByLabel('Unterkunft')).toHaveValue(
-		'Berggasthaus First'
-	);
-	await expect(page.getByTestId('stage').first().getByLabel('Gebucht')).toBeChecked();
+	await expect(
+		page.getByTestId('stage').first().getByLabel('Unterkunft', { exact: true })
+	).toHaveValue('Berggasthaus First');
+	await expect(
+		page.getByTestId('stage').first().getByLabel('Gebucht', { exact: true })
+	).toBeChecked();
+	// Beside the end, as an icon (feedback issue 48).
+	await expect(
+		page.getByTestId('stage').first().getByTestId('stage-accommodation')
+	).toHaveAttribute('aria-label', 'Unterkunft: Berggasthaus First (Gebucht)');
 	await page.screenshot({ path: 'test-results/journey.png' });
 
 	// Delete stage 2.

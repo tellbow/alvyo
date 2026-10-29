@@ -12,6 +12,8 @@
 	import PlacePicker from './PlacePicker.svelte';
 	import { placeDetail } from './places';
 	import { sbbTimetableUrl } from './sbb';
+	import BedDouble from '@lucide/svelte/icons/bed-double';
+	import TrainFront from '@lucide/svelte/icons/train-front';
 
 	let {
 		journeyId,
@@ -60,6 +62,11 @@
 	const placesTitle = $derived(
 		s.start_place && s.end_place ? `${s.start_place.name} – ${s.end_place.name}` : ''
 	);
+
+	// Timetable and accommodation as small icons beside the place: with
+	// several stages, text links made the cards long.
+	const icon =
+		'mx-0.5 inline-flex size-6 items-center justify-center rounded-full border border-stone-300 align-middle text-accent-ink';
 
 	function sbbUrl(which: 'start' | 'end'): string | undefined {
 		const p = which === 'start' ? s.start_place : s.end_place;
@@ -175,6 +182,45 @@
 				<dd data-testid="stage-{e.which}">
 					{#if e.place}
 						<span class="font-medium">{e.place.name}</span>
+						{#if sbbUrl(e.which)}
+							{@const label = e.which === 'start' ? m.sbb_to_start() : m.sbb_from_end()}
+							<!-- External timetable link: resolve() does not apply. -->
+							<!-- eslint-disable svelte/no-navigation-without-resolve -->
+							<a
+								href={sbbUrl(e.which)}
+								target="_blank"
+								rel="noopener noreferrer"
+								class={icon}
+								aria-label={label}
+								title={label}
+								data-testid="sbb-{e.which}"><TrainFront class="size-3.5" /></a
+							>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
+						{/if}
+						{#if e.which === 'end' && s.accommodation}
+							{@const label = `${m.stage_accommodation()}: ${s.accommodation}${s.accommodation_booked ? ` (${m.stage_booked()})` : ''}`}
+							{@const link = s.accommodation.match(/https?:\/\/\S+/)?.[0]}
+							{#if link}
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+								<a
+									href={link}
+									target="_blank"
+									rel="noopener noreferrer"
+									class={icon}
+									aria-label={label}
+									title={label}
+									data-testid="stage-accommodation"><BedDouble class="size-3.5" /></a
+								>
+							{:else}
+								<span
+									class={icon}
+									role="img"
+									aria-label={label}
+									title={label}
+									data-testid="stage-accommodation"><BedDouble class="size-3.5" /></span
+								>
+							{/if}
+						{/if}
 						<span class="text-stone-500">
 							· {placeDetail(e.place)}{#if e.place.suggested && canEdit}
 								· {m.place_suggested()}{/if}
@@ -190,20 +236,6 @@
 						>
 							{e.place ? m.place_change() : m.place_choose()}
 						</button>
-					{/if}
-					{#if sbbUrl(e.which)}
-						<!-- External timetable link: resolve() does not apply. -->
-						<!-- eslint-disable svelte/no-navigation-without-resolve -->
-						<a
-							href={sbbUrl(e.which)}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="block text-accent-ink underline"
-							data-testid="sbb-{e.which}"
-						>
-							{e.which === 'start' ? m.sbb_to_start() : m.sbb_from_end()} ↗
-						</a>
-						<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{/if}
 				</dd>
 			{/each}

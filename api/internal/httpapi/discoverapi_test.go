@@ -165,6 +165,24 @@ func TestDiscover(t *testing.T) {
 			t.Errorf("profile %s: %d, want 404", name, code)
 		}
 	}
+	// Signed in, a public profile shows without anything published: the
+	// search finds it.
+	if code, body := hiker.do("GET", "/api/v1/users/quiet", nil); code != http.StatusOK {
+		t.Errorf("quiet signed in: %d %s", code, body)
+	}
+	// A private one only to whom it asked to be friends.
+	if _, err := s.db.Exec(ctx, `UPDATE users SET profile_public = false WHERE username = 'quiet'`); err != nil {
+		t.Fatal(err)
+	}
+	if code, _ := hiker.do("GET", "/api/v1/users/quiet", nil); code != http.StatusNotFound {
+		t.Errorf("quiet private: %d, want 404", code)
+	}
+	if code, body := quiet.do("PUT", "/api/v1/users/wanderer/friend", nil); code != http.StatusOK {
+		t.Fatalf("quiet asks: %d %s", code, body)
+	}
+	if code, body := hiker.do("GET", "/api/v1/users/quiet", nil); code != http.StatusOK {
+		t.Errorf("quiet private, asking: %d %s", code, body)
+	}
 
 	// The sitemap: public items of users not banned, and their profiles;
 	// no stage routes, nothing private or unlisted.

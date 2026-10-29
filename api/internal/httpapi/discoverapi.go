@@ -150,7 +150,7 @@ func registerDiscover(api huma.API, d Deps) {
 	huma.Register(api, huma.Operation{
 		OperationID: "get-profile", Method: http.MethodGet, Path: "/users/{username}",
 		Summary:     "A user's public profile with their public routes and journeys",
-		Description: "A public profile is shown once it has published something; a private one to friends only. Friends and the user see it always.",
+		Description: "A public profile is shown to signed-in users, and to everyone once it has published something; a private one to friends and to those it asked to be friends. The user sees it always.",
 		Tags:        []string{"discover"},
 	}, func(ctx context.Context, in *profileInput) (*profileOutput, error) {
 		notFound := huma.Error404NotFound("no such profile")
@@ -172,15 +172,16 @@ func registerDiscover(api huma.API, d Deps) {
 		if out.Body.Outlines, err = d.Discover.ProfileOutlines(ctx, u.ID); err != nil {
 			return nil, err
 		}
-		v, _, _ := communityViewer(ctx)
+		v, _, signedIn := communityViewer(ctx)
 		out.Body.Self = v.ID == u.ID
 		if out.Body.Relation, err = d.Community.Relation(ctx, v.ID, u.ID); err != nil {
 			return nil, err
 		}
-		// A private profile is for friends; a public one for all once it has
-		// something to show. One's own and a friend's always.
-		friend := out.Body.Self || out.Body.Friend == community.Friends
-		if !friend && (!u.Public || len(out.Body.Routes) == 0 && len(out.Body.Journeys) == 0) {
+		// A private profile is for friends and for whom it asks to be one; a
+		// public one for the signed-in (the search finds it), and for all once
+		// it has something to show. One's own always.
+		friend := out.Body.Self || out.Body.Friend == community.Friends || out.Body.Friend == community.Incoming
+		if !friend && (!u.Public || !signedIn && len(out.Body.Routes) == 0 && len(out.Body.Journeys) == 0) {
 			return nil, notFound
 		}
 		return out, nil

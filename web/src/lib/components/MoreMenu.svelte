@@ -1,12 +1,13 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { tick, type Snippet } from 'svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { actionButton } from './actions';
 
 	// «⋯»: what is done now and then (printing, collections, deleting …);
 	// closes on a click beside it or Escape. With another label and button
-	// style a small popover of its own (opening at the button's left edge).
+	// style a small popover of its own (opening at the button's left edge, or at
+	// its right one where the row leaves no room).
 	let {
 		testid,
 		label = '⋯',
@@ -30,10 +31,23 @@
 	let open = $state(false);
 	let box = $state<HTMLElement>();
 	let trigger = $state<HTMLButtonElement>();
+	let items = $state<HTMLElement>();
+	let flip = $state(false);
 
 	function close() {
 		open = false;
 		onclose?.();
+	}
+
+	async function toggle() {
+		if (open) return close();
+		flip = false;
+		open = true;
+		if (!left) return;
+		// Near the row's right end the popover would be cut off: open it to the left.
+		await tick();
+		const row = box?.parentElement?.getBoundingClientRect();
+		flip = !!row && !!items && items.getBoundingClientRect().right > row.right;
 	}
 </script>
 
@@ -59,12 +73,14 @@
 		aria-expanded={open}
 		aria-controls="{testid}-items"
 		disabled={!hydrated.value}
-		onclick={() => (open ? close() : (open = true))}
+		onclick={toggle}
 		data-testid={testid}>{label}</button
 	>
 	<div
+		bind:this={items}
 		id="{testid}-items"
-		class="absolute top-11 z-20 flex w-64 flex-col rounded-xl border border-stone-200 bg-surface p-1.5 text-sm shadow-lg {left
+		class="absolute top-11 z-20 flex w-64 flex-col rounded-xl border border-stone-200 bg-surface p-1.5 text-sm shadow-lg {left &&
+		!flip
 			? 'left-0'
 			: 'right-0'}"
 		hidden={!open}

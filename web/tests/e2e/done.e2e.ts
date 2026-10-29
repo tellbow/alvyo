@@ -27,6 +27,14 @@ test('mark a route as hiked; the list and the map tell planned from hiked', asyn
 	await page.getByTestId('done-day').fill('2026-08-01');
 	await page.getByTestId('done-save').click();
 	await expect(page.getByTestId('done')).toHaveText('✓ 1.8.2026');
+	// Opened again, the popover stays inside the panel, also when the button
+	// sits near the row's right end (feedback issue 57): on a phone here.
+	await page.setViewportSize({ width: 440, height: 900 });
+	await page.getByTestId('done').click();
+	const row = (await page.getByTestId('done').locator('../..').boundingBox())!;
+	const items = (await page.locator('#done-items').boundingBox())!;
+	expect(items.x + items.width).toBeLessThanOrEqual(row.x + row.width + 1);
+	await page.keyboard.press('Escape');
 
 	await page.goto('/routes');
 	const list = page.getByTestId('route-list');

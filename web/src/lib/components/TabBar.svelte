@@ -32,8 +32,9 @@
 	}
 </script>
 
+<!-- Wraps rather than scrolls: a hidden tab past the edge was not found (a journey has six). -->
 <div
-	class="sticky top-0 z-10 flex shrink-0 [scrollbar-width:none] gap-1 overflow-x-auto overflow-y-hidden border-b border-stone-200 bg-surface px-3 text-sm"
+	class="sticky top-0 z-10 flex shrink-0 flex-wrap gap-x-1 border-b border-stone-200 bg-surface px-3 text-sm"
 	role="tablist"
 	aria-label={m.route_sections()}
 	tabindex="-1"

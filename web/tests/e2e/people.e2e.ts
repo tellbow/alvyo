@@ -64,6 +64,12 @@ test('who comes along, on which stages, and reminders before the start', async (
 	await expect(page.getByTestId('stage').first().getByTestId('stage-people')).toHaveCount(0);
 	await expect(page.getByTestId('people-row')).toContainText(`mit Name ${friend}`);
 	await expect(page.getByTestId('tab-people')).toContainText('1');
+	// All six tabs within the panel, none past its edge.
+	const bar = (await page.getByRole('tablist').boundingBox())!;
+	for (const tab of await page.getByRole('tab').all()) {
+		const b = (await tab.boundingBox())!;
+		expect(b.x + b.width).toBeLessThanOrEqual(bar.x + bar.width);
+	}
 
 	// Reminders: on, three to come; turned off, kept off.
 	await page.getByTestId('tab-overview').click();

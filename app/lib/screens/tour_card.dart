@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../format.dart';
+import '../l10n/app_localizations.dart';
 import '../theme.dart';
 import 'item_card.dart';
 import 'tag_chips.dart';
@@ -25,6 +26,7 @@ class TourCard extends StatelessWidget {
     this.note,
     this.tags = const [],
     this.trailing,
+    this.visibility,
   });
 
   /// «Route», «Etappentour · 6 Etappen»: in capitals above the title; a
@@ -47,6 +49,9 @@ class TourCard extends StatelessWidget {
   final List<String> tags;
   final Widget? trailing;
   final VoidCallback onTap;
+
+  /// One's own: private, unlisted or public, as a badge.
+  final String? visibility;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +95,7 @@ class TourCard extends StatelessWidget {
                     ),
                     Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                     Text(figures, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+                    if (visibility case final v?) VisibilityBadge(v),
                     if (note case final n?) Text(n, style: theme.textTheme.bodySmall),
                     if (stagesDone case final done? when stages > 0) ...[
                       const SizedBox(height: 4),
@@ -139,6 +145,40 @@ class StageBar extends StatelessWidget {
         const SizedBox(width: 12),
         Text('$done / $total', style: Theme.of(context).textTheme.bodySmall),
       ],
+    );
+  }
+}
+
+/// Who sees one's route or journey: an icon and a word, the rest on a long
+/// press (feedback issue 45).
+class VisibilityBadge extends StatelessWidget {
+  const VisibilityBadge(this.visibility, {super.key});
+  final String visibility;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final (icon, label, hint) = switch (visibility) {
+      'public' => (Icons.public, t.visibilityPublic, t.visibilityPublicHint),
+      'unlisted' => (Icons.link, t.visibilityByLink, t.visibilityUnlistedHint),
+      _ => (Icons.lock_outline, t.visibilityPrivate, t.visibilityPrivateHint),
+    };
+    return Tooltip(
+      message: hint,
+      child: Container(
+        key: const Key('visibility'),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4,
+          children: [
+            Icon(icon, size: 14, color: scheme.onSurfaceVariant),
+            Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant)),
+          ],
+        ),
+      ),
     );
   }
 }

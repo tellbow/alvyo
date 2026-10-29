@@ -1864,6 +1864,30 @@ abstract class AppLocalizations {
   /// **'Öffentlich'**
   String get visibilityPublic;
 
+  /// No description provided for @visibilityByLink.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Link'**
+  String get visibilityByLink;
+
+  /// No description provided for @visibilityPrivateHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur du und wen du einlädst'**
+  String get visibilityPrivateHint;
+
+  /// No description provided for @visibilityUnlistedHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle, die den Link haben'**
+  String get visibilityUnlistedHint;
+
+  /// No description provided for @visibilityPublicHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle, auch ohne Konto, und auffindbar'**
+  String get visibilityPublicHint;
+
   /// No description provided for @visibilityNeedsVerify.
   ///
   /// In de, this message translates to:

@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Reply from '@lucide/svelte/icons/reply';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { focused } from '#lib/util/focus.js';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { api, type Me } from '#lib/api/client.js';
@@ -24,6 +28,9 @@
 	// The comment being replied to or edited, and the text typed for it.
 	let replyTo = $state<string>();
 	let editing = $state<string>();
+	let deleting = $state<string>(); // the comment asked about before deleting
+	const commentAction =
+		'inline-flex items-center gap-1 rounded-md px-1.5 py-1 hover:bg-stone-200 pointer-coarse:py-2';
 	let draft = $state('');
 
 	/** Comments with their replies below them; replies whose comment is not shown are left out. */
@@ -120,21 +127,38 @@
 		{:else}
 			<p class="whitespace-pre-line">{c.body}</p>
 		{/if}
-		<div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-stone-500">
+		<!-- Real buttons, deleting asked again (feedback issue 45). -->
+		<div class="mt-1 flex flex-wrap items-center gap-1 text-xs text-stone-600">
 			{#if social?.can_comment && editing !== c.id}
-				<button type="button" class="underline" onclick={() => startReply(thread)}
-					>{m.community_reply()}</button
+				<button type="button" class={commentAction} onclick={() => startReply(thread)}
+					><Reply class="size-3.5" aria-hidden="true" />{m.community_reply()}</button
 				>
 			{/if}
 			{#if c.can_edit && social?.comments_enabled && editing !== c.id}
-				<button type="button" class="underline" onclick={() => startEdit(c)}
-					>{m.community_edit()}</button
+				<button type="button" class={commentAction} onclick={() => startEdit(c)}
+					><Pencil class="size-3.5" aria-hidden="true" />{m.community_edit()}</button
 				>
 			{/if}
 			{#if c.can_delete}
-				<button type="button" class="underline" onclick={() => remove(c.id)}
-					>{m.community_comment_delete()}</button
-				>
+				{#if deleting === c.id}
+					<button
+						type="button"
+						class="inline-flex items-center gap-1 rounded-md bg-red-700 px-1.5 py-1 text-white hover:bg-red-800 pointer-coarse:py-2"
+						use:focused
+						onblur={() => (deleting = undefined)}
+						onclick={() => {
+							deleting = undefined;
+							remove(c.id);
+						}}><Trash2 class="size-3.5" aria-hidden="true" />{m.route_delete_confirm()}</button
+					>
+				{:else}
+					<button
+						type="button"
+						class="{commentAction} text-red-700 dark:text-red-400"
+						onclick={() => (deleting = c.id)}
+						><Trash2 class="size-3.5" aria-hidden="true" />{m.community_comment_delete()}</button
+					>
+				{/if}
 			{/if}
 			{#if user && c.author_username !== user.username}
 				<ReportButton target={{ kind: 'comment', id: c.id }} />

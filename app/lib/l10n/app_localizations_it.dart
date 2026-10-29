@@ -978,6 +978,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get visibilityPublic => 'Pubblico';
 
   @override
+  String get visibilityByLink => 'Con link';
+
+  @override
+  String get visibilityPrivateHint => 'Solo tu e chi inviti';
+
+  @override
+  String get visibilityUnlistedHint => 'Chiunque abbia il link';
+
+  @override
+  String get visibilityPublicHint => 'Tutti, anche senza account, e trovabile';
+
+  @override
   String get visibilityNeedsVerify => 'Conferma il tuo indirizzo e-mail per pubblicare percorsi.';
 
   @override

@@ -116,9 +116,13 @@ class RouteSummary {
         {'at': final String at} => DateTime.parse(at),
         _ => null,
       },
-      doneOn = j['done_on'] as String?;
+      doneOn = j['done_on'] as String?,
+      visibility = j['visibility'] as String? ?? 'private';
   final String id, title, owner;
   final Totals totals;
+
+  /// private, unlisted or public.
+  final String visibility;
 
   /// When the user hiked it (YYYY-MM-DD): marked, or recorded with the app.
   final String? doneOn;
@@ -200,7 +204,8 @@ class RouteDetail extends RouteSummary {
 
   String get description => json['description'] as String? ?? '';
 
-  /// private, unlisted or public.
+  /// private, unlisted or public; read from [json], which changes.
+  @override
   String get visibility => json['visibility'] as String? ?? 'private';
 
   /// Sent along when changing the route, so as not to overwrite others.
@@ -256,7 +261,8 @@ class JourneySummary {
       durationS = (j['duration_s'] as num).toInt(),
       tags = _tags(j['tags']),
       owner = j['owner_username'] as String? ?? '',
-      doneOn = j['done_on'] as String?;
+      doneOn = j['done_on'] as String?,
+      visibility = j['visibility'] as String? ?? 'private';
 
   /// The summary of a journey saved offline.
   JourneySummary.of(JourneyDetail j)
@@ -269,9 +275,13 @@ class JourneySummary {
       ascentM = j.totals.ascentM,
       durationS = j.totals.durationS,
       tags = j.tags,
-      doneOn = j.doneOn;
+      doneOn = j.doneOn,
+      visibility = j.visibility;
   final String id, title, owner;
   final int stages, stagesDone, durationS;
+
+  /// private, unlisted or public.
+  final String visibility;
 
   /// When the user finished it (YYYY-MM-DD): marked, or all stages ticked off.
   final String? doneOn;

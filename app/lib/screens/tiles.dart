@@ -50,6 +50,7 @@ class RouteTile extends StatelessWidget {
           ? '✓ ${doneText(t, r.doneOn!)}'
           : null,
       tags: r.tags,
+      visibility: owner == null ? r.visibility : null,
       trailing: trailing,
       onTap: onTap,
     );
@@ -80,6 +81,7 @@ class JourneyTile extends StatelessWidget {
       stagesDone: j.stagesDone,
       note: j.doneOn != null ? '✓ ${doneText(t, j.doneOn!)}' : null,
       tags: j.tags,
+      visibility: owner == null ? j.visibility : null,
       trailing: trailing,
       onTap: onTap,
     );

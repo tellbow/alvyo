@@ -10,6 +10,8 @@
 	import TagFilter from '#lib/tags/TagFilter.svelte';
 	import { hasTag } from '#lib/tags/tags.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
+	import RowMenu from '#lib/lists/RowMenu.svelte';
+	import VisibilityBadge from '#lib/lists/VisibilityBadge.svelte';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();
@@ -38,7 +40,7 @@
 
 <Seo title={m.collections_title()} index={false} />
 
-<main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
+<main class="mx-auto w-full max-w-4xl flex-1 overflow-y-auto px-4 py-8">
 	<h1 class="text-2xl font-semibold">{m.collections_title()}</h1>
 	<p class="mt-1 text-stone-600">{m.collections_intro()}</p>
 
@@ -75,6 +77,7 @@
 						<TagChips tags={c.tags} href={byTag} />
 					</span>
 					<span class="text-sm text-stone-600">{m.collection_items_count({ n: c.items })}</span>
+					<span class="sm:w-28"><VisibilityBadge visibility={c.visibility} /></span>
 				</li>
 			{/each}
 		</ul>
@@ -93,12 +96,8 @@
 						class="flex-1 font-medium hover:underline">{c.title}</a
 					>
 					<span class="text-sm text-stone-600">{m.shared_by({ user: c.owner_username })}</span>
-					<span class="w-28 text-xs text-stone-500"
-						>{c.role === 'editor' ? m.role_editor() : m.role_viewer()}</span
-					>
-					<button type="button" class="text-xs text-stone-500 underline" onclick={() => leave(c.id)}
-						>{m.shared_leave()}</button
-					>
+					<span class="sm:w-28"><VisibilityBadge role={c.role} owner={c.owner_username} /></span>
+					<RowMenu testid="shared-row" title={c.title} leave onremove={() => leave(c.id)} />
 				</li>
 			{/each}
 		</ul>

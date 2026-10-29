@@ -980,6 +980,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get visibilityPublic => 'Öffentlich';
 
   @override
+  String get visibilityByLink => 'Mit Link';
+
+  @override
+  String get visibilityPrivateHint => 'Nur du und wen du einlädst';
+
+  @override
+  String get visibilityUnlistedHint => 'Alle, die den Link haben';
+
+  @override
+  String get visibilityPublicHint => 'Alle, auch ohne Konto, und auffindbar';
+
+  @override
   String get visibilityNeedsVerify => 'Bestätige deine E-Mail-Adresse, um Routen zu veröffentlichen.';
 
   @override

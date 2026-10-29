@@ -44,6 +44,17 @@ test('mark a route as hiked; the list and the map tell planned from hiked', asyn
 	await expect(list).toContainText('Noch geplant');
 	await expect(list).not.toContainText('Schon gewandert');
 
+	// Who sees it, and deleting from the row's menu, asked again (feedback issue 45).
+	const planned = list.locator(':scope > li', { hasText: 'Noch geplant' });
+	await expect(planned.getByTestId('visibility')).toHaveAttribute(
+		'title',
+		'Nur du und wen du einlädst'
+	);
+	await planned.getByRole('button', { name: 'Mehr: Noch geplant' }).click();
+	await planned.getByTestId('route-row-delete').click();
+	await planned.getByTestId('route-row-delete-confirm').click();
+	await expect(page.getByText('Nichts in dieser Auswahl.')).toBeVisible();
+
 	// On the map of one's hikes too.
 	await page.goto('/routes/map?done=done');
 	await expect(

@@ -72,9 +72,11 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 	await page.getByTestId('stage').first().getByLabel('Status').selectOption('done');
 	await expect(page.getByTestId('journey-progress')).toHaveText('1 von 2 Etappen');
 	await expect(page.getByTestId('elevation-profile')).toBeVisible();
-	const zip = await page.request.get(
-		journeyUrl.replace('/journeys/', '/api/v1/journeys/') + '/gpx'
-	);
+	// In the «⋯» menu (feedback issue 49).
+	await page.getByTestId('journey-menu').click();
+	const gpxLink = page.getByRole('link', { name: 'Alle Etappen als GPX (ZIP)' });
+	const zip = await page.request.get((await gpxLink.getAttribute('href'))!);
+	await page.keyboard.press('Escape');
 	expect(zip.status()).toBe(200);
 	expect(zip.headers()['content-type']).toBe('application/zip');
 

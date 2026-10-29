@@ -40,12 +40,7 @@
 	import type { Trip } from '#lib/api/client.js';
 	import type { Notice, ProtectedArea, SnowAlong as Snow } from '#lib/api/client.js';
 	import { onMount } from 'svelte';
-	import {
-		actionButton,
-		mainAction,
-		menuItem,
-		primaryButtonSmall
-	} from '#lib/components/actions.js';
+	import { mainAction, menuItem, primaryButtonSmall } from '#lib/components/actions.js';
 	import MoreMenu from '#lib/components/MoreMenu.svelte';
 	import CopyButton from '#lib/official/CopyButton.svelte';
 	import OfficialCredit from '#lib/official/OfficialCredit.svelte';
@@ -237,7 +232,7 @@
 					{/if}
 				</div>
 				{#if !revision}
-					<!-- What is done now and then: printing, collections, versions, deleting. -->
+					<!-- What is done now and then: printing, GPX, collections, versions, deleting. -->
 					<MoreMenu testid="route-menu" onclose={() => (confirmDelete = false)}>
 						{#if route.legs.length > 0}
 							<!-- The share token rides along; resolve() cannot express query strings. -->
@@ -248,6 +243,9 @@
 								data-testid="sheet-link">{m.sheet_link()}</a
 							>
 						{/if}
+						<!-- API download, not a page: resolve() does not apply. -->
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+						<a href="/api/v1/routes/{route.id}/gpx" download class={menuItem}>{m.route_gpx()}</a>
 						<OpenInApp kind="routes" id={route.id} class={menuItem} />
 						{#if user && !route.journey_id}
 							<div class="px-1.5 py-1"><AddToCollection kind="route" id={route.id} /></div>
@@ -316,16 +314,6 @@
 						<!-- Someone else's planned route: one's own copy to change. -->
 						<CopyButton kind="routes" id={route.id} {token} {user} />
 					{/if}
-					<!-- API download, not a page: resolve() does not apply. -->
-					<!-- eslint-disable svelte/no-navigation-without-resolve -->
-					<a
-						href="/api/v1/routes/{route.id}/gpx"
-						download
-						class={actionButton}
-						aria-label={m.route_gpx()}
-						title={m.route_gpx()}>↓ GPX</a
-					>
-					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{#if community}<LikeButton {community} {user} testid="route-like" />{/if}
 					{#if user && !route.journey_id}
 						<DoneButton

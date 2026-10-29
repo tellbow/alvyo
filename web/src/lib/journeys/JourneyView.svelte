@@ -51,7 +51,7 @@
 	import PhotoPins from '#lib/photos/PhotoPins.svelte';
 	import Photos from '#lib/photos/Photos.svelte';
 	import SharePanel from '#lib/sharing/SharePanel.svelte';
-	import { actionButton, menuItem, primaryButtonSmall } from '#lib/components/actions.js';
+	import { menuItem, primaryButtonSmall } from '#lib/components/actions.js';
 	import MoreMenu from '#lib/components/MoreMenu.svelte';
 	import CopyButton from '#lib/official/CopyButton.svelte';
 	import OfficialCredit from '#lib/official/OfficialCredit.svelte';
@@ -85,6 +85,7 @@
 	const hydrated = new Hydrated();
 	const canEdit = $derived(journey.can_edit);
 	const isOwner = $derived(journey.role === 'owner');
+	const hasRoutes = $derived(journey.stage_list.some((s) => s.route));
 
 	let base = $state<BaseMapId>('landeskarte');
 	// The connections from and to home shown on the map.
@@ -431,11 +432,20 @@
 						</p>
 					{/if}
 				</div>
-				{#if user}
-					<!-- What is done now and then: collections, the app, deleting. -->
+				{#if user || hasRoutes}
+					<!-- What is done now and then: GPX, collections, the app, deleting. -->
 					<MoreMenu testid="journey-menu" onclose={() => (confirming = false)}>
-						<OpenInApp kind="journeys" id={journey.id} class={menuItem} />
-						<div class="px-1.5 py-1"><AddToCollection kind="journey" id={journey.id} /></div>
+						{#if hasRoutes}
+							<!-- API download, not a page: resolve() does not apply. -->
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+							<a href="/api/v1/journeys/{journey.id}/gpx{q}" download class={menuItem}
+								>{m.journey_gpx()}</a
+							>
+						{/if}
+						{#if user}
+							<OpenInApp kind="journeys" id={journey.id} class={menuItem} />
+							<div class="px-1.5 py-1"><AddToCollection kind="journey" id={journey.id} /></div>
+						{/if}
 						{#if isOwner}
 							<hr class="my-1 border-stone-200" />
 							{#if confirming}
@@ -469,20 +479,8 @@
 			<!-- The stages are changed in place: no main action for those who may,
 			     one's own copy for the others. -->
 			<div class="flex flex-wrap gap-2 text-sm">
-				{#if !canEdit && journey.stage_list.some((s) => s.route)}
+				{#if !canEdit && hasRoutes}
 					<CopyButton kind="journeys" id={journey.id} {token} {user} />
-				{/if}
-				{#if journey.stage_list.some((s) => s.route)}
-					<!-- API download, not a page: resolve() does not apply. -->
-					<!-- eslint-disable svelte/no-navigation-without-resolve -->
-					<a
-						href="/api/v1/journeys/{journey.id}/gpx{q}"
-						download
-						class={actionButton}
-						aria-label={m.journey_gpx()}
-						title={m.journey_gpx()}>↓ GPX</a
-					>
-					<!-- eslint-enable svelte/no-navigation-without-resolve -->
 				{/if}
 				<LikeButton {community} {user} testid="journey-like" />
 				<!-- As loaded: changes answer with the journey, not when one hiked it. -->

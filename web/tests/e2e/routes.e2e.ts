@@ -74,13 +74,17 @@ test('save a planned route, reopen and edit it, then delete it', async ({ page, 
 
 	const [download] = await Promise.all([
 		page.waitForEvent('download'),
-		page.getByRole('link', { name: 'GPX herunterladen' }).click()
+		page
+			.getByTestId('route-menu')
+			.click()
+			.then(() => page.getByRole('link', { name: 'GPX herunterladen' }).click())
 	]);
 	expect(download.suggestedFilename()).toBe('bachalpsee-runde.gpx');
 	const gpx = await (await import('node:fs/promises')).readFile((await download.path())!, 'utf8');
 	expect(gpx).toContain('<trkpt');
 	expect(gpx).toContain('<ele>');
 
+	await page.keyboard.press('Escape'); // the menu stays open after the download
 	await page.getByTestId('route-menu').click();
 	await page.getByRole('button', { name: 'Löschen' }).click();
 	await page.getByRole('button', { name: 'Wirklich löschen?' }).click();

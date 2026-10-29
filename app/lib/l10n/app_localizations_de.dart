@@ -1894,7 +1894,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get friendsLinkHint =>
-      'Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.';
+      'Wer den Link öffnet und annimmt, wird dein Freund – auch wenn dein Profil privat ist. In Alvyo kommt dabei keine Anfrage an: Schick den Link selbst, nur an Leute, die du kennst.';
+
+  @override
+  String get friendsInviteShare => 'Lass uns auf Alvyo Freunde sein. Öffne den Link und tippe auf «Annehmen»:';
 
   @override
   String get friendsLinkRenew => 'Neuen Link erzeugen';
@@ -2007,14 +2010,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String inviteTitle(String name) {
-    return '$name lädt dich ein';
+    return '$name möchte mit dir befreundet sein';
   }
 
   @override
   String get inviteText => 'Werdet Freunde auf Alvyo: ihr seht eure Profile, auch private.';
 
   @override
-  String get inviteAccept => 'Freunde werden';
+  String get inviteAccept => 'Annehmen';
 
   @override
   String get inviteDone => 'Ihr seid jetzt Freunde.';

@@ -1885,7 +1885,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get friendsLinkHint =>
-      'Whoever opens this link becomes your friend – even when your profile is private. Send it only to people you know.';
+      'Whoever opens the link and accepts becomes your friend – even when your profile is private. No request shows up in Alvyo: send the link yourself, only to people you know.';
+
+  @override
+  String get friendsInviteShare => 'Let\'s be friends on Alvyo. Open the link and tap «Accept»:';
 
   @override
   String get friendsLinkRenew => 'Make a new link';
@@ -1998,14 +2001,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inviteTitle(String name) {
-    return '$name invites you';
+    return '$name would like to be friends';
   }
 
   @override
   String get inviteText => 'Become friends on Alvyo: you see each other\'s profiles, private ones too.';
 
   @override
-  String get inviteAccept => 'Become friends';
+  String get inviteAccept => 'Accept';
 
   @override
   String get inviteDone => 'You are friends now.';

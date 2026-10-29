@@ -3499,8 +3499,14 @@ abstract class AppLocalizations {
   /// No description provided for @friendsLinkHint.
   ///
   /// In de, this message translates to:
-  /// **'Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.'**
+  /// **'Wer den Link öffnet und annimmt, wird dein Freund – auch wenn dein Profil privat ist. In Alvyo kommt dabei keine Anfrage an: Schick den Link selbst, nur an Leute, die du kennst.'**
   String get friendsLinkHint;
+
+  /// No description provided for @friendsInviteShare.
+  ///
+  /// In de, this message translates to:
+  /// **'Lass uns auf Alvyo Freunde sein. Öffne den Link und tippe auf «Annehmen»:'**
+  String get friendsInviteShare;
 
   /// No description provided for @friendsLinkRenew.
   ///
@@ -3715,7 +3721,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteTitle.
   ///
   /// In de, this message translates to:
-  /// **'{name} lädt dich ein'**
+  /// **'{name} möchte mit dir befreundet sein'**
   String inviteTitle(String name);
 
   /// No description provided for @inviteText.
@@ -3727,7 +3733,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteAccept.
   ///
   /// In de, this message translates to:
-  /// **'Freunde werden'**
+  /// **'Annehmen'**
   String get inviteAccept;
 
   /// No description provided for @inviteDone.

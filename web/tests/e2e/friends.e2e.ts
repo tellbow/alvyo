@@ -54,6 +54,17 @@ test('find someone, ask, be accepted; a private profile through its invite link'
 	await expect(beatPage.getByTestId('profile-public')).not.toBeChecked();
 	const { token } = await (await beatPage.request.get('/api/v1/me/friend-link')).json();
 	const link = `/friends/invite/${token}`;
+	// The link goes out with a sentence saying what to do with it (feedback issue 63).
+	await beatPage.addInitScript(() => {
+		navigator.share = async (d) => {
+			(window as unknown as { shared: ShareData }).shared = d!;
+		};
+	});
+	await beatPage.goto('/friends');
+	await beatPage.getByTestId('friend-invite-link').click();
+	const shared = await beatPage.evaluate(() => (window as unknown as { shared: ShareData }).shared);
+	expect(shared.text).toContain('tippe auf «Annehmen»');
+	expect(shared.url).toMatch(new RegExp(`${link}$`));
 
 	const carlaContext = await browser.newContext();
 	const carlaPage = await carlaContext.newPage();
@@ -62,7 +73,9 @@ test('find someone, ask, be accepted; a private profile through its invite link'
 	await carlaPage.getByTestId('friends-search').fill(`Beat ${s}`);
 	await expect(carlaPage.getByText('Niemand gefunden.')).toBeVisible();
 	await carlaPage.goto(link);
-	await expect(carlaPage.getByTestId('friend-invite')).toContainText(`Beat ${s} lädt dich ein`);
+	await expect(carlaPage.getByTestId('friend-invite')).toContainText(
+		`Beat ${s} möchte mit dir befreundet sein`
+	);
 	await carlaPage.getByTestId('friend-invite-accept').click();
 	await expect(carlaPage.getByRole('status')).toHaveText('Ihr seid jetzt Freunde.');
 	await carlaPage.goto('/friends');

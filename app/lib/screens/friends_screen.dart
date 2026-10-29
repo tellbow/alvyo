@@ -151,8 +151,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
-  void _invite(String token) =>
-      SharePlus.instance.share(ShareParams(uri: Uri.parse('${widget.api.server}/friends/invite/$token')));
+  // With a sentence: a bare link in a mail read as a request waiting in Alvyo.
+  void _invite(String token) => SharePlus.instance.share(
+    ShareParams(text: '${AppLocalizations.of(context).friendsInviteShare} ${widget.api.server}/friends/invite/$token'),
+  );
 
   Widget _person(FriendRef f, {bool suggested = false}) {
     final t = AppLocalizations.of(context);

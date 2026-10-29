@@ -45,12 +45,13 @@
 	let token = $state(data.token);
 	let copied = $state(false);
 	const link = $derived(token ? `${page.url.origin}/friends/invite/${token}` : '');
+	// With a sentence: a bare link in a mail read as a request waiting in Alvyo.
 	async function invite() {
 		if (navigator.share) {
-			await navigator.share({ url: link }).catch(() => {});
+			await navigator.share({ text: m.friends_invite_share(), url: link }).catch(() => {});
 			return;
 		}
-		await navigator.clipboard.writeText(link);
+		await navigator.clipboard.writeText(`${m.friends_invite_share()} ${link}`);
 		copied = true;
 	}
 	async function rotate() {

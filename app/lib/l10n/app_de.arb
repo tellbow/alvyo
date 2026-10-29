@@ -1084,7 +1084,8 @@
   "friendDecline": "Ablehnen",
   "friendFriends": "Befreundet",
   "friendRemove": "Freundschaft beenden",
-  "friendsLinkHint": "Wer diesen Link öffnet, wird dein Freund – auch wenn dein Profil privat ist. Schick ihn nur Leuten, die du kennst.",
+  "friendsLinkHint": "Wer den Link öffnet und annimmt, wird dein Freund – auch wenn dein Profil privat ist. In Alvyo kommt dabei keine Anfrage an: Schick den Link selbst, nur an Leute, die du kennst.",
+  "friendsInviteShare": "Lass uns auf Alvyo Freunde sein. Öffne den Link und tippe auf «Annehmen»:",
   "friendsLinkRenew": "Neuen Link erzeugen",
   "profilePublic": "Öffentliches Profil",
   "profilePublicHint": "Andere finden dich in der Suche. Ein privates Profil sehen nur deine Freunde.",
@@ -1134,7 +1135,7 @@
       }
     }
   },
-  "inviteTitle": "{name} lädt dich ein",
+  "inviteTitle": "{name} möchte mit dir befreundet sein",
   "@inviteTitle": {
     "placeholders": {
       "name": {
@@ -1143,7 +1144,7 @@
     }
   },
   "inviteText": "Werdet Freunde auf Alvyo: ihr seht eure Profile, auch private.",
-  "inviteAccept": "Freunde werden",
+  "inviteAccept": "Annehmen",
   "inviteDone": "Ihr seid jetzt Freunde.",
   "inviteInvalid": "Dieser Einladungslink gilt nicht mehr.",
   "inviteSelf": "Das ist dein eigener Link.",

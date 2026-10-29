@@ -138,7 +138,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Beat Berg lädt dich ein'), findsOneWidget);
+    expect(find.text('Beat Berg möchte mit dir befreundet sein'), findsOneWidget);
     await tester.tap(find.byKey(const Key('friend-invite-accept')));
     await tester.pumpAndSettle();
     expect(calls, contains('POST /api/v1/friend-invites/$token'));

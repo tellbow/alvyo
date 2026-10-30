@@ -165,7 +165,11 @@ func graphDate(ctx context.Context, base string) (time.Time, error) {
 func newestFile(dir string) (time.Time, int64, error) {
 	var newest time.Time
 	var n int64
-	err := filepath.WalkDir(dir, func(_ string, e os.DirEntry, err error) error {
+	err := filepath.WalkDir(dir, func(path string, e os.DirEntry, err error) error {
+		// Below dir, what is not ours to read (the volume's lost+found) is skipped.
+		if err != nil && path != dir && e != nil && e.IsDir() {
+			return filepath.SkipDir
+		}
 		if err != nil || e.IsDir() {
 			return err
 		}

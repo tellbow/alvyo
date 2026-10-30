@@ -15,6 +15,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/tellbow/alvyo/api/internal/admin"
 	"github.com/tellbow/alvyo/api/internal/auth"
 	"github.com/tellbow/alvyo/api/internal/collections"
 	"github.com/tellbow/alvyo/api/internal/community"
@@ -69,6 +70,7 @@ func newTestServerWith(t *testing.T, adjust func(*Deps)) *testServer {
 		Photos:      &photos.Store{DB: pool, Files: &photos.Files{Dir: t.TempDir()}},
 		Travel:      &travel.Store{DB: pool},
 		Reminders:   &reminders.Store{DB: pool, Mail: rec, PublicURL: origin},
+		Admin:       &admin.Store{DB: pool},
 		Version:     "test",
 		PublicURL:   origin,
 	}

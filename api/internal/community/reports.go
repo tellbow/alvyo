@@ -133,29 +133,44 @@ func (s *Store) Resolve(ctx context.Context, id, moderator uuid.UUID, resolution
 	if err != nil {
 		return err
 	}
+	// For «Verlauf»: what was done, and how to undo it where that is possible.
+	labels := map[string]string{"comment": "Kommentar", "photo": "Foto", "route": "Route", "journey": "Etappentour", "user": "Person"}
+	entry := admin.Entry{Area: "meldungen", Title: "Meldung zu " + labels[kind] + " verworfen", TargetKind: kind, TargetID: target}
 	if resolution == "removed" {
 		switch kind {
 		case "comment":
+			entry.Title = "Kommentar gelöscht"
 			_, err = tx.Exec(ctx, `DELETE FROM comments WHERE id = $1`, target)
 		case "photo": // its files go with the next trash sweep
+			entry.Title = "Foto gelöscht"
 			_, err = tx.Exec(ctx, `DELETE FROM photos WHERE id = $1`, target)
 		case "route", "journey":
-			_, err = tx.Exec(ctx, `UPDATE `+kind+`s SET visibility = 'private', version = version + 1, updated_at = now()
-				WHERE id = $1`, target)
+			var before admin.Change
+			if before, err = admin.Snapshot(ctx, tx, kind+"s", target, "visibility"); err == nil {
+				entry.Title, entry.Undo = labels[kind]+" privat gemacht", []admin.Change{before}
+				_, err = tx.Exec(ctx, `UPDATE `+kind+`s SET visibility = 'private', version = version + 1, updated_at = now()
+					WHERE id = $1`, target)
+			}
 		case "user":
 			// A moderator banning an admin (or another moderator) would
 			// leave only the CLI to undo it.
-			var role string
-			if err = tx.QueryRow(ctx, `SELECT role FROM users WHERE id = $1`, target).Scan(&role); err == nil {
+			var role, name string
+			if err = tx.QueryRow(ctx, `SELECT role, username FROM users WHERE id = $1`, target).Scan(&role, &name); err == nil {
 				if role != "user" {
 					return ErrStaff
 				}
-				err = admin.BanUser(ctx, tx, target)
+				entry.Title = "@" + name + " gesperrt"
+				if entry.Undo, err = admin.BanSnapshot(ctx, tx, target); err == nil {
+					err = admin.BanUser(ctx, tx, target)
+				}
 			}
 		}
 		if err != nil {
 			return err
 		}
+	}
+	if _, err := admin.Record(ctx, tx, moderator, entry); err != nil {
+		return err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE reports SET resolved_at = now(), resolved_by = $2, resolution = $3
 		WHERE target_id = $1 AND resolved_at IS NULL`, target, moderator, resolution); err != nil {

@@ -218,6 +218,11 @@ func TestCommunity(t *testing.T) {
 	if _, sc := fan.social("GET", r+"/social", nil); sc.authors() != "fan,owner" {
 		t.Errorf("after removal: %s", sc.authors())
 	}
+	// In «Verlauf» (feedback issue 72); a deletion cannot be undone.
+	if _, body := s.onAdmin(mod).do("GET", "/admin-api/v1/admin/log?area=meldungen", nil); !strings.Contains(string(body), `"title":"Kommentar gelöscht"`) ||
+		!strings.Contains(string(body), `"undoable":false`) {
+		t.Errorf("log after removal: %s", body)
+	}
 	_, body = s.onAdmin(mod).do("GET", "/admin-api/v1/moderation/reports", nil)
 	if !strings.Contains(string(body), `"reports":[]`) {
 		t.Errorf("queue after resolving: %s", body)

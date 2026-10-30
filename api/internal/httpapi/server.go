@@ -15,6 +15,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/tellbow/alvyo/api/internal/admin"
 	"github.com/tellbow/alvyo/api/internal/areas"
 	"github.com/tellbow/alvyo/api/internal/auth"
 	"github.com/tellbow/alvyo/api/internal/bugs"
@@ -83,6 +84,7 @@ type Deps struct {
 	Importer    *imports.Importer
 	Images      *og.Renderer
 	Bugs        *bugs.Store
+	Admin       *admin.Store // the admin portal's actions and log (NewAdmin)
 	Reminders   *reminders.Store
 	Version     string // git SHA or release tag, shown for the AGPL source link
 	PublicURL   string // origin of the web app: CSRF check and cookie Secure flag

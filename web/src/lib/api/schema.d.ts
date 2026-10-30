@@ -4,6 +4,176 @@
  */
 
 export interface paths {
+    "/admin/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Routes, journeys and collections by id, link, owner or title (moderators) */
+        get: operations["admin-items"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/items/{kind}/{id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make a route, journey or collection private */
+        post: operations["admin-unpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The admin portal's actions, newest first (moderators) */
+        get: operations["admin-log"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/log/{id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo an action, unless changed again since (a change of role: admins) */
+        post: operations["admin-undo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accounts by name or e-mail address, newest first (moderators) */
+        get: operations["admin-users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/ban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ban a user: no login, their items private */
+        post: operations["admin-ban"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End all of a user's sessions */
+        post: operations["admin-logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Give a user a role (admins; not themselves) */
+        put: operations["admin-role"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/unban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Let a banned user log in again */
+        post: operations["admin-unban"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a new confirmation e-mail */
+        post: operations["admin-verification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/apple/notifications": {
         parameters: {
             query?: never;
@@ -2712,6 +2882,23 @@ export interface components {
             position?: number;
             title?: string;
         };
+        AdminDoneOutputBody: {
+            /** Format: uuid */
+            log_id: string;
+        };
+        AdminItemsOutputBody: {
+            items: components["schemas"]["Item"][];
+        };
+        AdminLogOutputBody: {
+            entries: components["schemas"]["LogEntry"][];
+        };
+        AdminRoleInputBody: {
+            /** @enum {string} */
+            role: "user" | "moderator" | "admin";
+        };
+        AdminUsersOutputBody: {
+            users: components["schemas"]["User"][];
+        };
         Along: {
             attribution: string;
             /** @description The day of the snow cover (YYYY-MM-DD); missing while there is none */
@@ -3473,6 +3660,18 @@ export interface components {
             /** @description Invite an account (either this or email) */
             username?: string;
         };
+        Item: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "route" | "journey" | "collection";
+            owner: string;
+            title: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** @enum {string} */
+            visibility: "private" | "unlisted" | "public";
+        };
         JourneyBody: {
             /** Format: double */
             ascent_m: number;
@@ -3713,6 +3912,24 @@ export interface components {
         };
         LivePositionsInputBody: {
             points: components["schemas"]["Fix"][];
+        };
+        LogEntry: {
+            /** @description Username; empty when the account is gone */
+            actor: string;
+            /** @enum {string} */
+            area: "meldungen" | "nutzer" | "inhalte";
+            /** Format: date-time */
+            at: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            target_id: string;
+            target_kind: string;
+            title: string;
+            /** @description It can be undone, unless changed again since */
+            undoable: boolean;
+            /** Format: date-time */
+            undone_at?: string;
         };
         LoginInputBody: {
             /** @description E-mail address or username */
@@ -4781,6 +4998,33 @@ export interface components {
             /** Format: uuid */
             id: string;
         };
+        User: {
+            /** Format: date-time */
+            banned_at?: string;
+            /** Format: int64 */
+            collections: number;
+            /** Format: date-time */
+            created_at: string;
+            display_name: string;
+            email: string;
+            email_verified: boolean;
+            /** Format: uuid */
+            id: string;
+            /** Format: int64 */
+            journeys: number;
+            /**
+             * Format: date-time
+             * @description Last request of any of their sessions
+             */
+            last_seen_at?: string;
+            /** @enum {string} */
+            role: "user" | "moderator" | "admin";
+            /** Format: int64 */
+            routes: number;
+            /** Format: int64 */
+            sessions: number;
+            username: string;
+        };
         UserRef: {
             display_name: string;
             username: string;
@@ -4845,6 +5089,322 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "admin-items": {
+        parameters: {
+            query?: {
+                /** @description Name, e-mail address, id, link or a word of the title */
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminItemsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "route" | "journey" | "collection";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-log": {
+        parameters: {
+            query?: {
+                /** @description Only this area; all if left out */
+                area?: "meldungen" | "nutzer" | "inhalte";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminLogOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-users": {
+        parameters: {
+            query?: {
+                /** @description Name, e-mail address, id, link or a word of the title */
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUsersOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-ban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminRoleInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-unban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDoneOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "apple-notification": {
         parameters: {
             query?: never;

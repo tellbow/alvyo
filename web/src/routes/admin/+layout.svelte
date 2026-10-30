@@ -12,7 +12,10 @@
 	const hydrated = new Hydrated(); // for the end-to-end tests
 	const staff = $derived(data.user && data.user.role !== 'user');
 	const pages = [
-		{ route: '/admin/(portal)/meldungen', path: '/admin/meldungen', label: 'Meldungen' }
+		{ route: '/admin/(portal)/meldungen', path: '/admin/meldungen', label: 'Meldungen' },
+		{ route: '/admin/(portal)/nutzer', path: '/admin/nutzer', label: 'Nutzer' },
+		{ route: '/admin/(portal)/inhalte', path: '/admin/inhalte', label: 'Inhalte' },
+		{ route: '/admin/(portal)/verlauf', path: '/admin/verlauf', label: 'Verlauf' }
 	] as const;
 
 	async function logout() {

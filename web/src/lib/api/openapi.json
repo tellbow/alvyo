@@ -160,6 +160,81 @@
         },
         "type": "object"
       },
+      "AdminDoneOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "log_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "log_id"
+        ],
+        "type": "object"
+      },
+      "AdminItemsOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "AdminLogOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/LogEntry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "type": "object"
+      },
+      "AdminRoleInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "user",
+              "moderator",
+              "admin"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "type": "object"
+      },
+      "AdminUsersOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/User"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "users"
+        ],
+        "type": "object"
+      },
       "Along": {
         "additionalProperties": false,
         "properties": {
@@ -2320,6 +2395,50 @@
         ],
         "type": "object"
       },
+      "Item": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "route",
+              "journey",
+              "collection"
+            ],
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "visibility": {
+            "enum": [
+              "private",
+              "unlisted",
+              "public"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "title",
+          "owner",
+          "visibility",
+          "updated_at"
+        ],
+        "type": "object"
+      },
       "JourneyBody": {
         "additionalProperties": false,
         "properties": {
@@ -3119,6 +3238,60 @@
         },
         "required": [
           "points"
+        ],
+        "type": "object"
+      },
+      "LogEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "description": "Username; empty when the account is gone",
+            "type": "string"
+          },
+          "area": {
+            "enum": [
+              "meldungen",
+              "nutzer",
+              "inhalte"
+            ],
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "target_kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "undoable": {
+            "description": "It can be undone, unless changed again since",
+            "type": "boolean"
+          },
+          "undone_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "actor",
+          "area",
+          "title",
+          "target_kind",
+          "target_id",
+          "undoable"
         ],
         "type": "object"
       },
@@ -6423,6 +6596,78 @@
         ],
         "type": "object"
       },
+      "User": {
+        "additionalProperties": false,
+        "properties": {
+          "banned_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "collections": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "journeys": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "last_seen_at": {
+            "description": "Last request of any of their sessions",
+            "format": "date-time",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "moderator",
+              "admin"
+            ],
+            "type": "string"
+          },
+          "routes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "sessions": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "display_name",
+          "email",
+          "email_verified",
+          "role",
+          "created_at",
+          "routes",
+          "journeys",
+          "collections",
+          "sessions"
+        ],
+        "type": "object"
+      },
       "UserRef": {
         "additionalProperties": false,
         "properties": {
@@ -6620,6 +6865,452 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/admin/items": {
+      "get": {
+        "operationId": "admin-items",
+        "parameters": [
+          {
+            "description": "Name, e-mail address, id, link or a word of the title",
+            "explode": false,
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Name, e-mail address, id, link or a word of the title",
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminItemsOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Routes, journeys and collections by id, link, owner or title (moderators)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/items/{kind}/{id}/unpublish": {
+      "post": {
+        "operationId": "admin-unpublish",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "route",
+                "journey",
+                "collection"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Make a route, journey or collection private",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/log": {
+      "get": {
+        "operationId": "admin-log",
+        "parameters": [
+          {
+            "description": "Only this area; all if left out",
+            "explode": false,
+            "in": "query",
+            "name": "area",
+            "schema": {
+              "description": "Only this area; all if left out",
+              "enum": [
+                "meldungen",
+                "nutzer",
+                "inhalte"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminLogOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The admin portal's actions, newest first (moderators)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/log/{id}/undo": {
+      "post": {
+        "operationId": "admin-undo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Undo an action, unless changed again since (a change of role: admins)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "operationId": "admin-users",
+        "parameters": [
+          {
+            "description": "Name, e-mail address, id, link or a word of the title",
+            "explode": false,
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Name, e-mail address, id, link or a word of the title",
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUsersOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Accounts by name or e-mail address, newest first (moderators)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/ban": {
+      "post": {
+        "operationId": "admin-ban",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Ban a user: no login, their items private",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/logout": {
+      "post": {
+        "operationId": "admin-logout",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "End all of a user's sessions",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/role": {
+      "put": {
+        "operationId": "admin-role",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRoleInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Give a user a role (admins; not themselves)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/unban": {
+      "post": {
+        "operationId": "admin-unban",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Let a banned user log in again",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/users/{id}/verification": {
+      "post": {
+        "operationId": "admin-verification",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Send a new confirmation e-mail",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/auth/apple/notifications": {
       "post": {
         "description": "Apple tells when someone stops using Sign in with Apple with Alvyo or deletes their Apple account: the identity is removed.",

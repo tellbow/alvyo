@@ -78,6 +78,9 @@ func Unpublish(ctx context.Context, db *pgxpool.Pool, routeID string) error {
 }
 
 func notFound(err error) error {
+	if err == nil {
+		return nil
+	}
 	if errors.Is(err, pgx.ErrNoRows) {
 		return ErrNotFound
 	}

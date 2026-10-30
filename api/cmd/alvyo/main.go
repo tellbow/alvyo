@@ -213,6 +213,7 @@ func serve(ctx context.Context) error {
 		Planner:     planner,
 		Images:      &og.Renderer{TilesURL: cfg.TilesURL, CacheDir: cfg.CacheDir},
 		Bugs:        bugStore,
+		Admin:       &admin.Store{DB: pool},
 		Reminders:   reminderStore,
 		Version:     version,
 		PublicURL:   cfg.PublicURL,

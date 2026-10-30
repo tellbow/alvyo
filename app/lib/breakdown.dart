@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'format.dart';
 import 'l10n/app_localizations.dart';
+import 'trail_mark.dart';
 
 /// A share of a route's metres of one kind (surface, way type, trail).
 typedef BreakdownPart = ({String key, double metres, double share});
@@ -188,7 +189,11 @@ class TrailConditions extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         spacing: 4,
                         children: [
-                          Icon(Icons.circle, size: 8, color: b.colors[p.key]),
+                          // The official trails' markings (feedback issue 71).
+                          if (identical(b.colors, _trailColors) && p.key != 'none')
+                            TrailMark(p.key)
+                          else
+                            Icon(Icons.circle, size: 8, color: b.colors[p.key]),
                           Text('${b.labels[p.key] ?? p.key} ${percent(p.share)}', style: theme.textTheme.bodySmall),
                         ],
                       ),

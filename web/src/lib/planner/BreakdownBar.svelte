@@ -3,17 +3,21 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { legendParts, type breakdownParts } from './breakdown';
 	import { formatDistance } from './route';
+	import TrailMark from './TrailMark.svelte';
 
 	let {
 		title,
 		parts,
 		colors,
-		labels
+		labels,
+		trail = false
 	}: {
 		title: string;
 		parts: ReturnType<typeof breakdownParts>;
 		colors: Record<string, string>;
 		labels: Record<string, () => string>;
+		/** the official trails: their markings instead of dots (feedback issue 71) */
+		trail?: boolean;
 	} = $props();
 
 	// The three largest as shares; the metres are in the tooltips and the details.
@@ -36,8 +40,12 @@
 		<ul class="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-stone-600">
 			{#each legend.top as p (p.key)}
 				<li class="flex items-center gap-1.5" title={formatDistance(p.metres)}>
-					<span class="inline-block size-2 shrink-0 rounded-full" style:background={colors[p.key]}
-					></span>
+					{#if trail && p.key !== 'none'}
+						<TrailMark trail={p.key} />
+					{:else}
+						<span class="inline-block size-2 shrink-0 rounded-full" style:background={colors[p.key]}
+						></span>
+					{/if}
 					{labels[p.key]?.() ?? p.key}
 					<span class="font-semibold text-stone-900 tabular-nums">{share(p.share)}</span>
 				</li>

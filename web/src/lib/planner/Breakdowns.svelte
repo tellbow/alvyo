@@ -11,6 +11,7 @@
 
 	type Bar = {
 		title: string;
+		trail?: boolean;
 		colors: Record<string, string>;
 		labels: Record<string, () => string>;
 		parts: ReturnType<typeof breakdownParts>;
@@ -18,6 +19,7 @@
 	const bars = $derived<Bar[]>([
 		{
 			title: m.breakdown_trail(),
+			trail: true,
 			colors: TRAIL_COLOR,
 			labels: {
 				Wanderweg: m.trail_Wanderweg,
@@ -61,7 +63,13 @@
 
 <div class={className}>
 	{#each bars as b (b.title)}
-		<BreakdownBar title={b.title} parts={b.parts} colors={b.colors} labels={b.labels} />
+		<BreakdownBar
+			title={b.title}
+			parts={b.parts}
+			colors={b.colors}
+			labels={b.labels}
+			trail={b.trail}
+		/>
 	{/each}
 	{#if metres.length > 0}
 		<details class="mt-2 text-xs text-stone-600 print:hidden">

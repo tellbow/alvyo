@@ -3,7 +3,8 @@ import { adminApi } from '#lib/api/client.js';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, url }) => {
-	const { data, response } = await adminApi(fetch, url.origin).GET('/admin/system');
-	if (!data) error(response.status === 403 ? 403 : 500);
-	return { system: data };
+	const api = adminApi(fetch, url.origin);
+	const [system, jobs] = await Promise.all([api.GET('/admin/system'), api.GET('/admin/jobs')]);
+	if (!system.data || !jobs.data) error(system.response.status === 403 ? 403 : 500);
+	return { system: system.data, jobs: jobs.data };
 };

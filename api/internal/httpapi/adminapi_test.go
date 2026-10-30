@@ -3,6 +3,8 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -242,5 +244,89 @@ func TestAdminSystemAndStats(t *testing.T) {
 	}
 	if code, _ := s.client(t).do("GET", "/api/v1/admin/stats", nil); code != http.StatusNotFound {
 		t.Errorf("stats on the public API: %d, want 404", code)
+	}
+}
+
+// Cron jobs started by hand from «System»: only the allowed ones, by
+// admins, built from the cron job's template.
+func TestAdminJobs(t *testing.T) {
+	const cron = `{"metadata": {"name": "%s", "uid": "0199a000-0000-7000-8000-0000000000%s"},
+		"spec": {"schedule": "*/5 * * * *", "jobTemplate": {"metadata": {"labels": {"app": "%s"}},
+			"spec": {"backoffLimit": 1, "template": {"spec": {"containers": [{"name": "run", "image": "ghcr.io/tellbow/alvyo-data-import:1"}]}}}}},
+		"status": {"lastScheduleTime": "2026-10-30T10:00:00Z", "lastSuccessfulTime": "2026-10-30T10:01:00Z"}}`
+	var posted []byte
+	var auth string
+	kube := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		auth = r.Header.Get("Authorization")
+		switch r.Method + " " + r.URL.Path {
+		case "GET /apis/batch/v1/namespaces/alvyo/cronjobs":
+			_, _ = fmt.Fprintf(w, `{"items": [`+cron+`, `+cron+`, `+cron+`]}`,
+				"db-backup", "01", "db-backup", "graph-refresh", "02", "graph-refresh", "weather-precip", "03", "weather-precip")
+		case "GET /apis/batch/v1/namespaces/alvyo/cronjobs/weather-precip":
+			_, _ = fmt.Fprintf(w, cron, "weather-precip", "03", "weather-precip")
+		case "POST /apis/batch/v1/namespaces/alvyo/jobs":
+			posted, _ = io.ReadAll(r.Body)
+			_, _ = w.Write([]byte(`{"metadata": {"name": "weather-precip-manual-x"}}`))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	t.Cleanup(kube.Close)
+	s := newTestServerWith(t, func(d *Deps) {
+		d.Admin.Kube = &admin.Kube{URL: kube.URL, Namespace: "alvyo", Client: kube.Client(),
+			Token: func() (string, error) { return "sa-token", nil }, Allowed: []string{"weather-precip", "graph-refresh"}}
+	})
+	ctx := context.Background()
+	mod, adm := s.client(t), s.client(t)
+	s.signup(mod, "mod@example.ch", "mod")
+	s.signup(adm, "adm@example.ch", "adm")
+	if _, err := s.db.Exec(ctx, `UPDATE users SET role = CASE username WHEN 'mod' THEN 'moderator' ELSE 'admin' END`); err != nil {
+		t.Fatal(err)
+	}
+	m, a := s.onAdmin(mod), s.onAdmin(adm)
+
+	var jobs struct {
+		Available bool
+		Jobs      []struct {
+			Name         string
+			LastFinished bool `json:"last_finished"`
+		}
+	}
+	_, body := m.do("GET", "/admin-api/v1/admin/jobs", nil)
+	_ = json.Unmarshal(body, &jobs)
+	if !jobs.Available || len(jobs.Jobs) != 2 || jobs.Jobs[0].Name != "weather-precip" || jobs.Jobs[1].Name != "graph-refresh" ||
+		!jobs.Jobs[0].LastFinished || auth != "Bearer sa-token" {
+		t.Fatalf("jobs: %s (auth %q)", body, auth)
+	}
+	if code, _ := m.do("POST", "/admin-api/v1/admin/jobs/weather-precip/run", nil); code != http.StatusForbidden {
+		t.Errorf("moderator runs a job: %d, want 403", code)
+	}
+	if code, _ := a.do("POST", "/admin-api/v1/admin/jobs/db-backup/run", nil); code != http.StatusNotFound || posted != nil {
+		t.Errorf("a job not allowed: %d", code)
+	}
+	code, body := a.do("POST", "/admin-api/v1/admin/jobs/weather-precip/run", nil)
+	if code != http.StatusOK || !strings.Contains(string(body), `"job":"weather-precip-manual-x"`) {
+		t.Fatalf("run: %d %s", code, body)
+	}
+	var job struct {
+		Metadata struct {
+			Name            string
+			Labels          map[string]string
+			Annotations     map[string]string
+			OwnerReferences []struct{ Kind, Name, UID string } `json:"ownerReferences"`
+		}
+		Spec struct {
+			BackoffLimit int `json:"backoffLimit"`
+		}
+	}
+	_ = json.Unmarshal(posted, &job)
+	if !strings.HasPrefix(job.Metadata.Name, "weather-precip-manual-") || job.Metadata.Labels["app"] != "weather-precip" ||
+		job.Metadata.Annotations["cronjob.kubernetes.io/instantiate"] != "manual" || len(job.Metadata.OwnerReferences) != 1 ||
+		job.Metadata.OwnerReferences[0].Kind != "CronJob" || job.Metadata.OwnerReferences[0].UID != "0199a000-0000-7000-8000-000000000003" ||
+		job.Spec.BackoffLimit != 1 {
+		t.Errorf("job: %s", posted)
+	}
+	if _, body := a.do("GET", "/admin-api/v1/admin/log?area=system", nil); !strings.Contains(string(body), "weather-precip von Hand gestartet") {
+		t.Errorf("log: %s", body)
 	}
 }

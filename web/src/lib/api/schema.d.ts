@@ -38,6 +38,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The cron jobs: schedule, last start and success (moderators) */
+        get: operations["admin-jobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/jobs/{name}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a cron job now, as `kubectl create job --from=cronjob/…` (admins) */
+        post: operations["admin-run-job"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/log": {
         parameters: {
             query?: never;
@@ -2923,6 +2957,17 @@ export interface components {
         AdminItemsOutputBody: {
             items: components["schemas"]["Item"][];
         };
+        AdminJobOutputBody: {
+            /** @description The Job started */
+            job: string;
+            /** Format: uuid */
+            log_id: string;
+        };
+        AdminJobsOutputBody: {
+            /** @description Jobs can be started: in the cluster, with ALVYO_ADMIN_JOBS */
+            available: boolean;
+            jobs: components["schemas"]["CronJob"][];
+        };
         AdminLogOutputBody: {
             entries: components["schemas"]["LogEntry"][];
         };
@@ -3305,6 +3350,19 @@ export interface components {
              * @enum {string}
              */
             visibility: "private" | "unlisted" | "public";
+        };
+        CronJob: {
+            /** @description The last start ended well */
+            last_finished: boolean;
+            /** Format: date-time */
+            last_start?: string;
+            /** Format: date-time */
+            last_success?: string;
+            name: string;
+            running: boolean;
+            schedule: string;
+            /** @description Runs only when started by hand */
+            suspended: boolean;
         };
         DataSet: {
             /**
@@ -3977,7 +4035,7 @@ export interface components {
             /** @description Username; empty when the account is gone */
             actor: string;
             /** @enum {string} */
-            area: "meldungen" | "nutzer" | "inhalte";
+            area: "meldungen" | "nutzer" | "inhalte" | "system";
             /** Format: date-time */
             at: string;
             /** Format: uuid */
@@ -5121,7 +5179,7 @@ export interface components {
             journeys: number;
             /**
              * Format: date-time
-             * @description Last request of any of their sessions
+             * @description When one of their sessions was last used, to a day
              */
             last_seen_at?: string;
             /** @enum {string} */
@@ -5285,11 +5343,71 @@ export interface operations {
             };
         };
     };
+    "admin-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminJobsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-run-job": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminJobOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "admin-log": {
         parameters: {
             query?: {
                 /** @description Only this area; all if left out */
-                area?: "meldungen" | "nutzer" | "inhalte";
+                area?: "meldungen" | "nutzer" | "inhalte" | "system";
             };
             header?: never;
             path?: never;

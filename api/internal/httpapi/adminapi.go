@@ -53,7 +53,7 @@ type adminItemsOutput struct {
 }
 
 type adminLogInput struct {
-	Area string `query:"area" enum:"meldungen,nutzer,inhalte" doc:"Only this area; all if left out"`
+	Area string `query:"area" enum:"meldungen,nutzer,inhalte,system" doc:"Only this area; all if left out"`
 }
 
 type adminLogOutput struct {
@@ -97,6 +97,8 @@ func adminError(err error) error {
 		return huma.Error409Conflict("nothing to change")
 	case errors.Is(err, admin.ErrUndo):
 		return huma.Error409Conflict("cannot be undone")
+	case errors.Is(err, admin.ErrJob):
+		return huma.Error404NotFound("not a job the admin portal runs")
 	case errors.Is(err, admin.ErrLater):
 		return huma.Error409Conflict("changed again since: undo the later change first")
 	}
@@ -108,6 +110,24 @@ type adminSystemOutput struct {
 		admin.System
 		Services []admin.Service `json:"services"`
 		Version  string          `json:"version"`
+	}
+}
+
+type adminJobsOutput struct {
+	Body struct {
+		Available bool            `json:"available" doc:"Jobs can be started: in the cluster, with ALVYO_ADMIN_JOBS"`
+		Jobs      []admin.CronJob `json:"jobs"`
+	}
+}
+
+type adminJobInput struct {
+	Name string `path:"name" maxLength:"63"`
+}
+
+type adminJobOutput struct {
+	Body struct {
+		Job   string `json:"job" doc:"The Job started"`
+		LogID string `json:"log_id" format:"uuid"`
 	}
 }
 
@@ -298,5 +318,43 @@ func registerAdmin(api huma.API, d Deps) {
 		var err error
 		out.Body, err = d.Admin.Stats(ctx, 12)
 		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "admin-jobs", Method: http.MethodGet, Path: "/admin/jobs",
+		Summary: "The cron jobs: schedule, last start and success (moderators)", Tags: tags,
+	}, func(ctx context.Context, _ *struct{}) (*adminJobsOutput, error) {
+		if _, err := moderator(ctx); err != nil {
+			return nil, err
+		}
+		out := &adminJobsOutput{}
+		out.Body.Jobs = []admin.CronJob{}
+		if d.Admin.Kube == nil {
+			return out, nil
+		}
+		out.Body.Available = true
+		var err error
+		out.Body.Jobs, err = d.Admin.Kube.CronJobs(ctx)
+		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "admin-run-job", Method: http.MethodPost, Path: "/admin/jobs/{name}/run",
+		Summary: "Start a cron job now, as `kubectl create job --from=cronjob/…` (admins)", Tags: tags,
+	}, func(ctx context.Context, in *adminJobInput) (*adminJobOutput, error) {
+		u, err := moderator(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if u.Role != "admin" {
+			return nil, huma.Error403Forbidden("for admins")
+		}
+		job, id, err := d.Admin.RunLogged(ctx, u.ID, in.Name)
+		if err != nil {
+			return nil, adminError(err)
+		}
+		out := &adminJobOutput{}
+		out.Body.Job, out.Body.LogID = job, id.String()
+		return out, nil
 	})
 }

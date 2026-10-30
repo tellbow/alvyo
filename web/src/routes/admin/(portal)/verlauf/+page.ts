@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import { adminApi } from '#lib/api/client.js';
 import type { PageLoad } from './$types';
 
-const areas = ['meldungen', 'nutzer', 'inhalte'] as const;
+const areas = ['meldungen', 'nutzer', 'inhalte', 'system'] as const;
 
 export const load: PageLoad = async ({ fetch, url }) => {
 	const a = url.searchParams.get('area');

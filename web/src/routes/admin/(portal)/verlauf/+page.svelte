@@ -11,7 +11,8 @@
 		['', 'Alle'],
 		['meldungen', 'Meldungen'],
 		['nutzer', 'Nutzer'],
-		['inhalte', 'Inhalte']
+		['inhalte', 'Inhalte'],
+		['system', 'System']
 	] as const;
 
 	async function undo(e: LogEntry) {

@@ -77,4 +77,5 @@ test('admin portal: users, items and the log with undo', async ({ page, browser 
 	await page.getByRole('link', { name: 'System' }).click();
 	await expect(page.getByTestId('admin-services')).toContainText('GraphHopper');
 	await expect(page.getByTestId('admin-data')).toContainText('Routing-Graph');
+	await expect(page.getByText('Nur im Cluster')).toBeVisible();
 });

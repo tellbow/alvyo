@@ -188,6 +188,10 @@ func serve(ctx context.Context) error {
 		limits = httpapi.RelaxedLimits()
 	}
 	oidc := oidcProviders(cfg)
+	kube, err := admin.InCluster(cfg.AdminJobs)
+	if err != nil {
+		return err
+	}
 	deps := httpapi.Deps{
 		DB:          pool,
 		Auth:        &auth.Service{DB: pool, Mail: sender, PublicURL: cfg.PublicURL, Revoke: oidc.Revoke},
@@ -222,7 +226,7 @@ func serve(ctx context.Context) error {
 			{Name: "MeteoSwiss (data.geo.admin.ch)", URL: "https://data.geo.admin.ch/api/stac/v1/collections/ch.meteoschweiz.ogd-local-forecasting"},
 			{Name: "OJP (Verbindungen)", URL: cfg.OJPURL},
 			{Name: "Mailserver", URL: "tcp://" + net.JoinHostPort(cfg.SMTP.Host, strconv.Itoa(cfg.SMTP.Port))},
-		}},
+		}, Kube: kube},
 		Reminders:  reminderStore,
 		Version:    version,
 		PublicURL:  cfg.PublicURL,

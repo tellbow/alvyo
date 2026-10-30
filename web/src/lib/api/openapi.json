@@ -188,6 +188,44 @@
         ],
         "type": "object"
       },
+      "AdminJobOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "job": {
+            "description": "The Job started",
+            "type": "string"
+          },
+          "log_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job",
+          "log_id"
+        ],
+        "type": "object"
+      },
+      "AdminJobsOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "description": "Jobs can be started: in the cluster, with ALVYO_ADMIN_JOBS",
+            "type": "boolean"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/CronJob"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "available",
+          "jobs"
+        ],
+        "type": "object"
+      },
       "AdminLogOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -1333,6 +1371,44 @@
           "profile",
           "anchors",
           "legs"
+        ],
+        "type": "object"
+      },
+      "CronJob": {
+        "additionalProperties": false,
+        "properties": {
+          "last_finished": {
+            "description": "The last start ended well",
+            "type": "boolean"
+          },
+          "last_start": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "last_success": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "suspended": {
+            "description": "Runs only when started by hand",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "schedule",
+          "suspended",
+          "running",
+          "last_finished"
         ],
         "type": "object"
       },
@@ -3322,7 +3398,8 @@
             "enum": [
               "meldungen",
               "nutzer",
-              "inhalte"
+              "inhalte",
+              "system"
             ],
             "type": "string"
           },
@@ -6801,7 +6878,7 @@
             "type": "integer"
           },
           "last_seen_at": {
-            "description": "Last request of any of their sessions",
+            "description": "When one of their sessions was last used, to a day",
             "format": "date-time",
             "type": "string"
           },
@@ -7198,6 +7275,79 @@
         ]
       }
     },
+    "/admin/jobs": {
+      "get": {
+        "operationId": "admin-jobs",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminJobsOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The cron jobs: schedule, last start and success (moderators)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/jobs/{name}/run": {
+      "post": {
+        "operationId": "admin-run-job",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "maxLength": 63,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminJobOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Start a cron job now, as `kubectl create job --from=cronjob/…` (admins)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/log": {
       "get": {
         "operationId": "admin-log",
@@ -7212,7 +7362,8 @@
               "enum": [
                 "meldungen",
                 "nutzer",
-                "inhalte"
+                "inhalte",
+                "system"
               ],
               "type": "string"
             }

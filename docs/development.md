@@ -72,6 +72,7 @@ Environment variables of `alvyo serve` (defaults match the dev stack):
 | `ALVYO_OIDC_PROVIDERS` | unset — comma-separated ids of OpenID Connect sign-in providers, e.g. `google`; each needs `ALVYO_OIDC_<ID>_ISSUER`, `_CLIENT_ID`, `_CLIENT_SECRET` and optionally `_NAME` (button label). Register `<ALVYO_PUBLIC_URL>/api/v1/auth/oidc/<id>/callback` as redirect URI at the provider. Playwright runs a fake provider (`web/tests/e2e/fake-idp.mjs`) |
 | `ALVYO_ADMIN_LISTEN` | `:8082` — the API with the admin portal's endpoints under `/admin-api/v1`; for the internal admin host only, never behind the public ingress |
 | `ALVYO_ADMIN_URL` | `ALVYO_PUBLIC_URL` — origin of the admin portal (`https://admin.alvyo.tellbow.ch` on the cluster) |
+| `ALVYO_ADMIN_JOBS` | unset — comma-separated cron jobs the admin portal's «System» lists and starts by hand («Jetzt ausführen», admins); only in the cluster, where the API's service account may create Jobs (limited by a ValidatingAdmissionPolicy in the deployment repository) |
 | `ALVYO_RELAXED_LIMITS` | unset — `true` lifts the per-IP signup limit (5 per 10 min); Playwright sets it, never use it in production |
 
 The web app reads `API_INTERNAL_URL` (default `http://localhost:8080`) for

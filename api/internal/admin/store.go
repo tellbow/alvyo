@@ -31,6 +31,7 @@ type Store struct {
 	GraphHopper string
 	AltiDir     string
 	Probes      []Probe
+	Kube        *Kube // starts cron jobs; nil outside the cluster
 }
 
 // Change is a row as it was before an action: what an undo writes back.
@@ -87,7 +88,7 @@ func BanSnapshot(ctx context.Context, tx pgx.Tx, user uuid.UUID) ([]Change, erro
 
 // Entry is one action in the log.
 type Entry struct {
-	Area       string // meldungen, nutzer or inhalte
+	Area       string // meldungen, nutzer, inhalte or system
 	Title      string // in plain German, for «Verlauf»
 	TargetKind string // user, route, journey, collection, comment, photo
 	TargetID   uuid.UUID
@@ -312,7 +313,7 @@ type LogEntry struct {
 	ID         string     `json:"id" format:"uuid"`
 	At         time.Time  `json:"at"`
 	Actor      string     `json:"actor" doc:"Username; empty when the account is gone"`
-	Area       string     `json:"area" enum:"meldungen,nutzer,inhalte"`
+	Area       string     `json:"area" enum:"meldungen,nutzer,inhalte,system"`
 	Title      string     `json:"title"`
 	TargetKind string     `json:"target_kind"`
 	TargetID   string     `json:"target_id" format:"uuid"`

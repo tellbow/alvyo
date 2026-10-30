@@ -28,7 +28,10 @@ type Config struct {
 	// AdminPrefix, for the internal admin host only (never behind the public
 	// ingress): ALVYO_ADMIN_LISTEN, default ":8082".
 	AdminListen string
-	AdminURL    string     // ALVYO_ADMIN_URL: origin of the admin portal, default PublicURL
+	AdminURL    string // ALVYO_ADMIN_URL: origin of the admin portal, default PublicURL
+	// AdminJobs are the cron jobs the admin portal shows and starts by hand
+	// (ALVYO_ADMIN_JOBS, comma-separated); in the cluster only.
+	AdminJobs   []string
 	DatabaseURL string     // ALVYO_DATABASE_URL (required)
 	LogLevel    slog.Level // ALVYO_LOG_LEVEL: debug, info, warn, error
 	PublicURL   string     // ALVYO_PUBLIC_URL: origin of the web app, default http://localhost:5173
@@ -169,6 +172,11 @@ func FromEnv() (Config, error) {
 		return c, err
 	}
 	c.AdminURL = strings.TrimSuffix(getenv("ALVYO_ADMIN_URL", c.PublicURL), "/")
+	for _, j := range strings.Split(os.Getenv("ALVYO_ADMIN_JOBS"), ",") {
+		if j = strings.TrimSpace(j); j != "" {
+			c.AdminJobs = append(c.AdminJobs, j)
+		}
+	}
 	return c, nil
 }
 

@@ -133,6 +133,8 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
   /// Items marked or unmarked here since the collection was loaded.
   final _done = <String, DoneState>{};
 
+  DoneFilter _filter = DoneFilter.all;
+
   Future<void> _remove(CollectionItem i) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -163,6 +165,58 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
           _collection = Future.value(c);
         });
       }
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
+  }
+
+  /// Picks one of the user's routes or journeys, or one shared with them,
+  /// and adds it, as on the website.
+  Future<void> _add(Collection c) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final List<(String, bool, String, String?)> all;
+    try {
+      final shared = widget.api.shared();
+      final (routes, journeys) = (await widget.api.routes(), await widget.api.journeys());
+      final s = await shared;
+      all = [
+        for (final r in routes) (r.id, false, r.title, null),
+        for (final j in journeys) (j.id, true, j.title, null),
+        for (final r in s.routes) (r.id, false, r.title, r.owner),
+        for (final j in s.journeys) (j.id, true, j.title, j.owner),
+      ];
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+      return;
+    }
+    final taken = {for (final i in c.items) i.targetId};
+    if (!mounted) return;
+    final chosen = await showModalBottomSheet<(String, bool, String, String?)>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(title: Text(t.collectionAddItem, style: Theme.of(context).textTheme.titleMedium)),
+            for (final it in all)
+              if (!taken.contains(it.$1))
+                ListTile(
+                  key: Key('add-${it.$1}'),
+                  leading: Icon(it.$2 ? Icons.layers_outlined : Icons.route_outlined),
+                  title: Text(it.$3),
+                  subtitle: it.$4 == null ? null : Text(t.ownerBy(it.$4!)),
+                  onTap: () => Navigator.pop(context, it),
+                ),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null) return;
+    try {
+      final next = await widget.api.addToCollection(c.id, chosen.$1, journey: chosen.$2);
+      if (mounted) setState(() => _collection = Future.value(next));
     } on Object {
       messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
     }
@@ -262,47 +316,63 @@ class _CollectionScreenState extends State<CollectionScreen> with ReportsPlace<C
                           ),
                         ),
                       ),
+                    if (c.items.isNotEmpty && widget.api.token != null)
+                      DoneFilterBar(value: _filter, onChanged: (f) => setState(() => _filter = f)),
                     if (c.hidden > 0)
                       ListTile(key: const Key('collection-hidden'), title: Text(t.collectionHidden(c.hidden)))
                     else if (c.items.isEmpty)
                       ListTile(title: Text(t.collectionEmpty)),
-                    for (final i in c.items)
-                      OtherTile(
-                        key: Key('item-${i.id}'),
-                        journey: i.kind == 'journey',
-                        title: i.title,
-                        owner: i.owner,
-                        distanceM: i.distanceM,
-                        durationS: i.durationS,
-                        ascentM: i.ascentM,
-                        sacGrade: i.sacGrade,
-                        sacMax: i.sacMax,
-                        stages: i.stages,
-                        extra: i.note.isEmpty ? null : i.note,
-                        // Hiked without opening each one (feedback issue 59).
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (widget.api.token != null)
-                              DoneMenuButton(
-                                key: Key('item-done-${i.id}'),
-                                api: widget.api,
-                                id: i.targetId,
-                                journey: i.kind == 'journey',
-                                state: _done[i.id] ?? i.done,
-                                onDone: (s) => setState(() => _done[i.id] = s),
-                              ),
-                            if (c.canEdit)
-                              IconButton(
-                                key: Key('item-remove-${i.id}'),
-                                tooltip: t.collectionRemoveItem,
-                                icon: const Icon(Icons.remove_circle_outline),
-                                onPressed: () => _remove(i),
-                              ),
-                          ],
+                    if (c.canEdit && widget.api.token != null)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: TextButton.icon(
+                            key: const Key('collection-add'),
+                            onPressed: () => _add(c),
+                            icon: const Icon(Icons.add),
+                            label: Text(t.collectionAddItem),
+                          ),
                         ),
-                        onTap: () => openCollectionItem(context, widget.api, c, i),
                       ),
+                    for (final i in c.items)
+                      if (passesDone(_filter, (_done[i.id] ?? i.done).doneOn))
+                        OtherTile(
+                          key: Key('item-${i.id}'),
+                          journey: i.kind == 'journey',
+                          title: i.title,
+                          owner: i.owner,
+                          distanceM: i.distanceM,
+                          durationS: i.durationS,
+                          ascentM: i.ascentM,
+                          sacGrade: i.sacGrade,
+                          sacMax: i.sacMax,
+                          stages: i.stages,
+                          extra: i.note.isEmpty ? null : i.note,
+                          // Hiked without opening each one (feedback issue 59).
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (widget.api.token != null)
+                                DoneMenuButton(
+                                  key: Key('item-done-${i.id}'),
+                                  api: widget.api,
+                                  id: i.targetId,
+                                  journey: i.kind == 'journey',
+                                  state: _done[i.id] ?? i.done,
+                                  onDone: (s) => setState(() => _done[i.id] = s),
+                                ),
+                              if (c.canEdit)
+                                IconButton(
+                                  key: Key('item-remove-${i.id}'),
+                                  tooltip: t.collectionRemoveItem,
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                  onPressed: () => _remove(i),
+                                ),
+                            ],
+                          ),
+                          onTap: () => openCollectionItem(context, widget.api, c, i),
+                        ),
                   ],
                 ),
               ),
@@ -332,7 +402,9 @@ Future<void> addToCollection(BuildContext context, Api api, String id, {required
   final messenger = ScaffoldMessenger.of(context);
   final List<CollectionSummary> mine;
   try {
-    mine = await api.collections();
+    // Also those shared for editing (feedback issue 69).
+    final shared = api.shared().then((s) => s.collections, onError: (Object _) => <CollectionSummary>[]);
+    mine = [...await api.collections(), ...(await shared).where((c) => c.role == 'editor')];
   } on Object {
     messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
     return;
@@ -351,7 +423,7 @@ Future<void> addToCollection(BuildContext context, Api api, String id, {required
               key: Key('pick-${c.id}'),
               leading: const Icon(Icons.collections_bookmark_outlined),
               title: Text(c.title),
-              subtitle: Text(t.collectionItemsCount(c.items)),
+              subtitle: Text([if (c.role != 'owner') t.ownerBy(c.owner), t.collectionItemsCount(c.items)].join(' · ')),
               onTap: () => Navigator.pop(context, c.id),
             ),
           ListTile(

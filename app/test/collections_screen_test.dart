@@ -14,6 +14,14 @@ import 'package:alvyo/screens/collections_screen.dart';
 
 const _collection = '0199a000-0000-7000-8000-00000000000c';
 const _route = '0199a000-0000-7000-8000-00000000000a';
+const _totals = {
+  'distance_m': 6000.0,
+  'ascent_m': 300.0,
+  'descent_m': 300.0,
+  'duration_s': 7200,
+  'sac_grade': 1,
+  'sac_max': 1,
+};
 
 http.Response _json(Object body) =>
     http.Response(jsonEncode(body), 200, headers: {'content-type': 'application/json; charset=utf-8'});
@@ -200,6 +208,58 @@ void main() {
     await tester.pumpAndSettle();
     expect(calls, ['PUT /api/v1/routes/$_route/done']);
     expect(find.text('1 von 1 gewandert'), findsOneWidget);
+    // Feedback issue 65: only the planned, only the hiked.
+    await tester.tap(find.text('Geplant'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bachalpsee'), findsNothing);
+    await tester.tap(find.text('Gewandert'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bachalpsee'), findsOneWidget);
+  });
+
+  testWidgets('an editor adds a route of their own (feedback issue 69)', (tester) async {
+    final posted = <String>[];
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async {
+        switch ((req.method, req.url.path)) {
+          case ('GET', '/api/v1/routes'):
+            return _json({
+              'routes': [
+                {'id': _route, 'title': 'Bachalpsee', 'owner_username': 'anna', 'totals': _totals},
+                {'id': 'r2', 'title': 'Gratweg', 'owner_username': 'anna', 'totals': _totals},
+              ],
+            });
+          case ('GET', '/api/v1/journeys'):
+            return _json({'journeys': <Object>[]});
+          case ('GET', '/api/v1/shared'):
+            return _json({'routes': <Object>[], 'journeys': <Object>[], 'collections': <Object>[]});
+          case ('POST', _):
+            posted.add('${req.url.path} ${req.body}');
+        }
+        return _json(_body(visibility: 'private', role: 'editor'));
+      }),
+    );
+    await tester.pumpWidget(_app(CollectionScreen(api: api, id: _collection, title: '')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('collection-add')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('add-$_route')), findsNothing, reason: 'already in it');
+    await tester.tap(find.byKey(const Key('add-r2')));
+    await tester.pumpAndSettle();
+    expect(posted, ['/api/v1/collections/$_collection/items {"route_id":"r2"}']);
+  });
+
+  testWidgets('a viewer adds nothing', (tester) async {
+    final api = Api(
+      'https://alvyo.test',
+      token: 't',
+      client: MockClient((req) async => _json(_body(visibility: 'private', role: 'viewer'))),
+    );
+    await tester.pumpWidget(_app(CollectionScreen(api: api, id: _collection, title: '')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('collection-add')), findsNothing);
   });
 
   const line = [

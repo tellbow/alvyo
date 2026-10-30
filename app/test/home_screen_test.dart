@@ -40,7 +40,13 @@ void main() {
       '/api/v1/journeys' => {'journeys': <Object>[]},
       '/api/v1/feed' => {'items': <Object>[]},
       '/api/v1/shared' => {'routes': <Object>[], 'journeys': <Object>[], 'collections': <Object>[]},
-      '/api/v1/me' => {'id': 'u1', 'username': 'wodan', 'display_name': 'Wodan', 'speed_factor': 1},
+      '/api/v1/me' => {
+        'id': 'u1',
+        'username': 'wodan',
+        'display_name': 'Wodan',
+        'email': 'wodan@alvyo.test',
+        'speed_factor': 1,
+      },
       _ => null,
     };
     if (body == null) return http.Response('', 404);
@@ -123,7 +129,7 @@ void main() {
       await tester.scrollUntilVisible(find.byKey(const Key('logout')), 200, scrollable: list);
       await tester.drag(list, const Offset(0, -300));
       await tester.pumpAndSettle();
-      expect(find.text('Server: alvyo.test'), findsOneWidget);
+      expect(find.text('wodan@alvyo.test'), findsOneWidget);
       await tester.tap(find.byKey(const Key('logout')));
       expect(loggedOut, isTrue);
     });

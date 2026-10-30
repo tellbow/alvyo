@@ -22,6 +22,8 @@
 	import CollectionLayers from './CollectionLayers.svelte';
 	import { choose } from '#lib/util/choose.js';
 	import DoneButton from '#lib/done/DoneButton.svelte';
+	import DoneFilter from '#lib/done/DoneFilter.svelte';
+	import { passes, readDone } from '#lib/done/done.js';
 
 	let { collection: initial, user }: { collection: Collection; user: Me | null } = $props();
 
@@ -31,6 +33,7 @@
 	const canEdit = $derived(collection.can_edit);
 	const isOwner = $derived(collection.role === 'owner');
 	const pace = $derived(user?.speed_factor ?? 1);
+	const done = $derived(readDone(page.url.searchParams));
 
 	let base = $state<BaseMapId>('landeskarte');
 	let overlays = $state<OverlayId[]>(['wanderwege']);
@@ -218,119 +221,123 @@
 						n: collection.item_list.length
 					})}
 				</p>
+				<DoneFilter />
 			{/if}
 			<ol class="flex flex-col gap-2" data-testid="collection-items">
 				{#each collection.item_list as it, i (it.id)}
-					<li
-						class="rounded-md border border-stone-200 p-2 text-sm"
-						data-testid="collection-item"
-						onmouseenter={() => (highlight = it.id)}
-						onmouseleave={() => (highlight = undefined)}
-					>
-						<div class="flex items-center gap-2">
-							<span class="inline-block size-3 rounded-full" style:background={stageColor(i)}
-							></span>
-							<a href="{href(it)}{pass}" class="flex-1 font-medium hover:underline">{it.title}</a>
-							<span class="text-xs text-stone-500"
-								>{it.kind === 'route'
-									? m.collection_kind_route()
-									: m.collection_kind_journey()}</span
-							>
-						</div>
-						<div class="mt-1 flex items-center gap-2 text-xs text-stone-600 tabular-nums">
-							<span>{m.shared_by({ user: it.owner_username })}</span>
-							{#if it.distance_m > 0}
-								<span class="ml-auto"
-									>{formatDistance(it.distance_m)} · {formatDuration(it.duration_s, pace)} · ↑&nbsp;{formatHeight(
-										it.ascent_m
-									)}</span
+					{#if passes(done, it.done_on)}
+						<li
+							class="rounded-md border border-stone-200 p-2 text-sm"
+							data-testid="collection-item"
+							onmouseenter={() => (highlight = it.id)}
+							onmouseleave={() => (highlight = undefined)}
+						>
+							<div class="flex items-center gap-2">
+								<span class="inline-block size-3 rounded-full" style:background={stageColor(i)}
+								></span>
+								<a href="{href(it)}{pass}" class="flex-1 font-medium hover:underline">{it.title}</a>
+								<span class="text-xs text-stone-500"
+									>{it.kind === 'route'
+										? m.collection_kind_route()
+										: m.collection_kind_journey()}</span
 								>
-							{/if}
-							{#if it.sac_grade > 0}
-								<span
-									class="rounded px-1 font-semibold"
-									style:background={sacBackground(it.sac_grade)}
-									style:color={sacInk(it.sac_grade)}>{formatSAC(it.sac_grade, it.sac_max)}</span
-								>
-							{/if}
-						</div>
-						{#if it.kind === 'journey' || user}
-							<div class="mt-1 flex items-center gap-2 text-xs text-stone-500">
-								{#if it.kind === 'journey'}<span>{m.collection_stages({ n: it.stages })}</span>{/if}
-								{#if user}
-									<!-- Hiked without opening each one (feedback issue 59). -->
-									<span class="ml-auto">
-										<DoneButton
-											kind={it.kind === 'route' ? 'routes' : 'journeys'}
-											id={it.target_id}
-											doneOn={it.done_on}
-											marked={it.done_marked}
-											by={it.kind === 'route' ? 'hike' : 'stages'}
-											testid="done-{i}"
-											onchange={(on) => (it.done_on = on)}
-										/>
-									</span>
+							</div>
+							<div class="mt-1 flex items-center gap-2 text-xs text-stone-600 tabular-nums">
+								<span>{m.shared_by({ user: it.owner_username })}</span>
+								{#if it.distance_m > 0}
+									<span class="ml-auto"
+										>{formatDistance(it.distance_m)} · {formatDuration(it.duration_s, pace)} · ↑&nbsp;{formatHeight(
+											it.ascent_m
+										)}</span
+									>
+								{/if}
+								{#if it.sac_grade > 0}
+									<span
+										class="rounded px-1 font-semibold"
+										style:background={sacBackground(it.sac_grade)}
+										style:color={sacInk(it.sac_grade)}>{formatSAC(it.sac_grade, it.sac_max)}</span
+									>
 								{/if}
 							</div>
-						{/if}
-						{#if canEdit}
-							<div class="mt-2 flex items-center gap-2 text-xs">
-								<input
-									class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1"
-									value={it.note}
-									maxlength="1000"
-									placeholder={m.collection_note_placeholder()}
-									aria-label={m.collection_note_placeholder()}
-									onchange={(e) => patchItem(it, { note: e.currentTarget.value })}
-								/>
-								<button
-									type="button"
-									class="px-1"
-									disabled={i === 0}
-									aria-label={m.journey_move_up()}
-									onclick={() => patchItem(it, { position: collection.item_list[i - 1].position })}
-									>↑</button
-								>
-								<button
-									type="button"
-									class="px-1"
-									disabled={i === collection.item_list.length - 1}
-									aria-label={m.journey_move_down()}
-									onclick={() => patchItem(it, { position: collection.item_list[i + 1].position })}
-									>↓</button
-								>
-								<button
-									type="button"
-									class="text-stone-500 underline"
-									onclick={() => (removing = it.id)}>{m.collection_remove_item()}</button
-								>
-							</div>
-							{#if removing === it.id}
-								<div
-									class="mt-2 flex flex-wrap items-center gap-2 text-xs"
-									data-testid="remove-confirm"
-								>
-									<span class="flex-1">{m.collection_remove_confirm({ title: it.title })}</span>
+							{#if it.kind === 'journey' || user}
+								<div class="mt-1 flex items-center gap-2 text-xs text-stone-500">
+									{#if it.kind === 'journey'}<span>{m.collection_stages({ n: it.stages })}</span
+										>{/if}
+									{#if user}
+										<!-- Hiked without opening each one (feedback issue 59). -->
+										<span class="ml-auto">
+											<DoneButton
+												kind={it.kind === 'route' ? 'routes' : 'journeys'}
+												id={it.target_id}
+												doneOn={it.done_on}
+												marked={it.done_marked}
+												by={it.kind === 'route' ? 'hike' : 'stages'}
+												testid="done-{i}"
+												onchange={(on) => (it.done_on = on)}
+											/>
+										</span>
+									{/if}
+								</div>
+							{/if}
+							{#if canEdit}
+								<div class="mt-2 flex items-center gap-2 text-xs">
+									<input
+										class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1"
+										value={it.note}
+										maxlength="1000"
+										placeholder={m.collection_note_placeholder()}
+										aria-label={m.collection_note_placeholder()}
+										onchange={(e) => patchItem(it, { note: e.currentTarget.value })}
+									/>
 									<button
 										type="button"
-										class="rounded bg-red-700 px-2 py-1 text-white"
-										use:focused
-										onclick={() => {
-											removing = undefined;
-											removeItem(it);
-										}}>{m.collection_remove_item()}</button
+										class="px-1"
+										disabled={i === 0}
+										aria-label={m.journey_move_up()}
+										onclick={() =>
+											patchItem(it, { position: collection.item_list[i - 1].position })}>↑</button
+									>
+									<button
+										type="button"
+										class="px-1"
+										disabled={i === collection.item_list.length - 1}
+										aria-label={m.journey_move_down()}
+										onclick={() =>
+											patchItem(it, { position: collection.item_list[i + 1].position })}>↓</button
 									>
 									<button
 										type="button"
 										class="text-stone-500 underline"
-										onclick={() => (removing = undefined)}>{m.collection_remove_cancel()}</button
+										onclick={() => (removing = it.id)}>{m.collection_remove_item()}</button
 									>
 								</div>
+								{#if removing === it.id}
+									<div
+										class="mt-2 flex flex-wrap items-center gap-2 text-xs"
+										data-testid="remove-confirm"
+									>
+										<span class="flex-1">{m.collection_remove_confirm({ title: it.title })}</span>
+										<button
+											type="button"
+											class="rounded bg-red-700 px-2 py-1 text-white"
+											use:focused
+											onclick={() => {
+												removing = undefined;
+												removeItem(it);
+											}}>{m.collection_remove_item()}</button
+										>
+										<button
+											type="button"
+											class="text-stone-500 underline"
+											onclick={() => (removing = undefined)}>{m.collection_remove_cancel()}</button
+										>
+									</div>
+								{/if}
+							{:else if it.note}
+								<p class="mt-1 text-xs text-stone-600">{it.note}</p>
 							{/if}
-						{:else if it.note}
-							<p class="mt-1 text-xs text-stone-600">{it.note}</p>
-						{/if}
-					</li>
+						</li>
+					{/if}
 				{/each}
 			</ol>
 		{/if}

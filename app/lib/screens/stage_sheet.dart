@@ -6,6 +6,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../navigation/gps.dart';
 import '../sbb.dart';
+import 'collections_screen.dart';
 import 'connections_screen.dart';
 
 /// A stage's day, accommodation and notes, how to get there and back by
@@ -65,6 +66,49 @@ class _StageSheetState extends State<_StageSheet> {
       builder: (_) => ConnectionsScreen(api: widget.api, from: from, to: to, day: _day),
     ),
   );
+
+  /// Picks another of the user's journeys and copies the stage's route
+  /// [routeId] into it as its last stage.
+  Future<void> _toJourney(String routeId) async {
+    final t = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final List<JourneySummary> mine;
+    try {
+      mine = [
+        for (final j in await widget.api.journeys())
+          if (j.id != widget.journey.id) j,
+      ];
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+      return;
+    }
+    if (!mounted) return;
+    final chosen = await showModalBottomSheet<JourneySummary>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(title: Text(t.journeyAddTo, style: Theme.of(context).textTheme.titleMedium)),
+            for (final j in mine)
+              ListTile(
+                key: Key('pick-journey-${j.id}'),
+                leading: const Icon(Icons.layers_outlined),
+                title: Text(j.title),
+                onTap: () => Navigator.pop(context, j),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null) return;
+    try {
+      await widget.api.addStage(chosen.id, copyRouteId: routeId);
+      messenger.showSnackBar(SnackBar(content: Text(t.collectionAdded(chosen.title))));
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
+    }
+  }
 
   /// From the stop nearest to the phone to the stage's start.
   Future<void> _fromHere(Place to) async {
@@ -166,6 +210,24 @@ class _StageSheetState extends State<_StageSheet> {
                       label: Text(t.stageEdit),
                       onPressed: () => setState(() => _editing = true),
                     ),
+                  ),
+                // The stage's route elsewhere, without opening it (feedback issue 67).
+                if (s.routeId case final id? when widget.api.token != null)
+                  ListTile(
+                    key: const Key('stage-to-collection'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.collections_bookmark_outlined),
+                    title: Text(t.collectionAddTo),
+                    onTap: () => addToCollection(context, widget.api, id, journey: false),
+                  ),
+                // Only the owner's routes can be copied into a stage.
+                if (s.routeId case final id? when widget.journey.isOwner)
+                  ListTile(
+                    key: const Key('stage-to-journey'),
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.playlist_add),
+                    title: Text(t.journeyAddTo),
+                    onTap: () => _toJourney(id),
                   ),
                 const Divider(),
                 if (transferFrom != null && transferFrom.ref.isNotEmpty && s.start!.ref.isNotEmpty)

@@ -9,9 +9,12 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/google/uuid"
 
+	"github.com/tellbow/alvyo/api/internal/collections"
 	"github.com/tellbow/alvyo/api/internal/community"
 	"github.com/tellbow/alvyo/api/internal/discover"
+	"github.com/tellbow/alvyo/api/internal/done"
 	"github.com/tellbow/alvyo/api/internal/grants"
 	"github.com/tellbow/alvyo/api/internal/journeys"
 	"github.com/tellbow/alvyo/api/internal/og"
@@ -65,9 +68,10 @@ type profileOutput struct {
 		Username    string                    `json:"username"`
 		DisplayName string                    `json:"display_name"`
 		Since       time.Time                 `json:"since" doc:"Month the account was created"`
-		Routes      []routes.Summary          `json:"routes"`
-		Journeys    []journeys.Summary        `json:"journeys"`
-		Outlines    map[string][][][2]float64 `json:"outlines" doc:"The (lon, lat) lines of each public route and journey by its id, simplified for a thumbnail"`
+		Routes      []routes.Summary          `json:"routes" doc:"The user's routes the viewer may open and, for friends, others' routes the user hiked; done_on is when the user hiked it, for friends only"`
+		Journeys    []journeys.Summary        `json:"journeys" doc:"As routes"`
+		Collections []collections.Summary     `json:"collections" doc:"The user's collections the viewer may open"`
+		Outlines    map[string][][][2]float64 `json:"outlines" doc:"The (lon, lat) lines of each route and journey listed by its id, simplified for a thumbnail"`
 		community.Relation
 		Self bool `json:"self" doc:"This is the viewer's own profile"`
 	}
@@ -149,7 +153,7 @@ func registerDiscover(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-profile", Method: http.MethodGet, Path: "/users/{username}",
-		Summary:     "A user's public profile with their public routes and journeys",
+		Summary:     "A user's profile with the routes, journeys and collections the viewer may see",
 		Description: "A public profile is shown to signed-in users, and to everyone once it has published something; a private one to friends and to those it asked to be friends. The user sees it always.",
 		Tags:        []string{"discover"},
 	}, func(ctx context.Context, in *profileInput) (*profileOutput, error) {
@@ -163,18 +167,43 @@ func registerDiscover(api huma.API, d Deps) {
 		}
 		out := &profileOutput{}
 		out.Body.Username, out.Body.DisplayName, out.Body.Since = u.Username, u.DisplayName, u.Since
-		if out.Body.Routes, err = d.Routes.ListPublicByOwner(ctx, u.ID, maxProfileRoutes); err != nil {
-			return nil, err
-		}
-		if out.Body.Journeys, err = d.Journeys.ListPublicByOwner(ctx, u.ID); err != nil {
-			return nil, err
-		}
-		if out.Body.Outlines, err = d.Discover.ProfileOutlines(ctx, u.ID); err != nil {
-			return nil, err
-		}
-		v, _, signedIn := communityViewer(ctx)
+		v, viewer, signedIn := communityViewer(ctx)
 		out.Body.Self = v.ID == u.ID
 		if out.Body.Relation, err = d.Community.Relation(ctx, v.ID, u.ID); err != nil {
+			return nil, err
+		}
+		// Hikes, as in the news: for friends, unless switched off (feedback
+		// issue 58). Only what the viewer may open is listed.
+		hikes := out.Body.Self || out.Body.Friend == community.Friends && u.ShareHikes
+		vid, email := grants.Grantee(viewer)
+		if out.Body.Routes, err = d.Routes.ListForProfile(ctx, u.ID, vid, email, hikes, maxProfileRoutes); err != nil {
+			return nil, err
+		}
+		if out.Body.Journeys, err = d.Journeys.ListForProfile(ctx, u.ID, vid, email, hikes); err != nil {
+			return nil, err
+		}
+		if out.Body.Collections, err = d.Collections.ListForProfile(ctx, u.ID, collections.Viewer{UserID: vid, VerifiedEmail: email}); err != nil {
+			return nil, err
+		}
+		rs, js := out.Body.Routes, out.Body.Journeys
+		if hikes {
+			if err := doneDays(ctx, d, u.ID, done.Route, len(rs), func(i int) string { return rs[i].ID },
+				func(i int, on *string) { rs[i].DoneOn = on }); err != nil {
+				return nil, err
+			}
+			if err := doneDays(ctx, d, u.ID, done.Journey, len(js), func(i int) string { return js[i].ID },
+				func(i int, on *string) { js[i].DoneOn = on }); err != nil {
+				return nil, err
+			}
+		}
+		var routeIDs, journeyIDs []uuid.UUID
+		for _, r := range rs {
+			routeIDs = append(routeIDs, uuid.MustParse(r.ID))
+		}
+		for _, j := range js {
+			journeyIDs = append(journeyIDs, uuid.MustParse(j.ID))
+		}
+		if out.Body.Outlines, err = d.Discover.ProfileOutlines(ctx, routeIDs, journeyIDs); err != nil {
 			return nil, err
 		}
 		// A private profile is for friends and for whom it asks to be one; a

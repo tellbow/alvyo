@@ -389,6 +389,8 @@
   "collectionEmpty": "Ancora vuota. Aggiungi percorsi e trekking a tappe dal loro menu: «Aggiungi a una raccolta …».",
   "collectionHidden": "Elementi privati che non puoi vedere: {n}",
   "collectionAddTo": "Aggiungi a una raccolta …",
+  "journeyAddTo": "Aggiungi a un trekking a tappe …",
+  "collectionAddItem": "Aggiungi un percorso o un trekking a tappe",
   "collectionAdded": "Aggiunto a «{title}»",
   "collectionAlready": "Già in «{title}»",
   "collectionRemoveItem": "Rimuovi",

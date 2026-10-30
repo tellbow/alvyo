@@ -144,16 +144,25 @@ func (s *Store) ListByOwner(ctx context.Context, ownerID uuid.UUID, limit int) (
 	return s.list(ctx, `r.owner_id = $1 AND r.journey_id IS NULL`, ownerID, limit)
 }
 
-// ListPublicByOwner returns a user's public routes (not journey stages),
-// newest first.
-func (s *Store) ListPublicByOwner(ctx context.Context, ownerID uuid.UUID, limit int) ([]Summary, error) {
-	return s.list(ctx, `r.owner_id = $1 AND r.journey_id IS NULL AND r.visibility = 'public'`, ownerID, limit)
+// ListForProfile returns the routes a user's profile shows viewer (uuid.Nil
+// when signed out; viewerEmail their verified address or ""): the user's own
+// that are public or shared with viewer and, with hikes, those of others
+// the user hiked that viewer may open.
+func (s *Store) ListForProfile(ctx context.Context, ownerID, viewer uuid.UUID, viewerEmail string, hikes bool, limit int) ([]Summary, error) {
+	return s.list(ctx, `r.journey_id IS NULL AND u.banned_at IS NULL
+		AND (r.owner_id = $1 OR ($5 AND r.id IN (
+			SELECT route_id FROM done_marks WHERE user_id = $1
+			UNION SELECT planned_route_id FROM routes WHERE owner_id = $1 AND hiked_at IS NOT NULL)))
+		AND (r.visibility = 'public' OR (r.owner_id = $3 AND r.owner_id <> $1)
+			OR r.id IN (SELECT route_id FROM grants WHERE user_id = $3 OR (email = $4 AND $4 <> '')))`,
+		ownerID, limit, viewer, viewerEmail, hikes)
 }
 
-func (s *Store) list(ctx context.Context, where string, ownerID uuid.UUID, limit int) ([]Summary, error) {
+// list returns the routes that match where ($1 ownerID, $2 limit, $3… more).
+func (s *Store) list(ctx context.Context, where string, ownerID uuid.UUID, limit int, more ...any) ([]Summary, error) {
 	rows, err := s.DB.Query(ctx, `SELECT `+summaryColumns+`
 		FROM routes r JOIN users u ON u.id = r.owner_id
-		WHERE `+where+` ORDER BY r.updated_at DESC LIMIT $2`, ownerID, limit)
+		WHERE `+where+` ORDER BY r.updated_at DESC LIMIT $2`, append([]any{ownerID, limit}, more...)...)
 	if err != nil {
 		return nil, fmt.Errorf("routes: list: %w", err)
 	}

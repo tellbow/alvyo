@@ -727,6 +727,8 @@
     }
   },
   "collectionAddTo": "Zur Sammlung hinzufügen …",
+  "journeyAddTo": "Zu einer Etappentour hinzufügen …",
+  "collectionAddItem": "Route oder Etappentour hinzufügen",
   "collectionAdded": "Hinzugefügt zu «{title}»",
   "@collectionAdded": {
     "placeholders": {

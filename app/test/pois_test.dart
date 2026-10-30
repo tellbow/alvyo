@@ -81,5 +81,7 @@ void main() {
     expect([for (final p in tapped!) p.alongM], [71.0, 256.0]);
     await tester.tap(find.textContaining('Gonzen'));
     expect([for (final p in tapped!) p.name], ['Gonzen']);
+    await tester.tap(find.textContaining('Gonzen'));
+    expect(tapped, isEmpty);
   });
 }

@@ -39,7 +39,7 @@ class PoiList extends StatefulWidget {
   final Future<List<Poi>> pois;
 
   /// Given the points of a line tapped (one, or those it groups), e.g. to
-  /// show them on the map.
+  /// show them on the map; none when the mark is taken back.
   final ValueChanged<List<Poi>>? onTap;
 
   @override
@@ -91,6 +91,7 @@ class _PoiListState extends State<PoiList> {
                       onSelected: (_) => setState(() {
                         _only = null;
                         _tapped = null;
+                        widget.onTap?.call([]);
                       }),
                       visualDensity: VisualDensity.compact,
                     ),
@@ -103,6 +104,7 @@ class _PoiListState extends State<PoiList> {
                         onSelected: (_) => setState(() {
                           _only = kind;
                           _tapped = null;
+                          widget.onTap?.call([]);
                         }),
                         visualDensity: VisualDensity.compact,
                       ),
@@ -115,10 +117,13 @@ class _PoiListState extends State<PoiList> {
                 onTap: widget.onTap == null
                     ? null
                     : () {
-                        setState(() => _tapped = first);
+                        // A second tap takes the mark back (feedback issue 64).
+                        final again = identical(_tapped, first);
+                        setState(() => _tapped = again ? null : first);
                         widget.onTap!([
-                          for (final p in pois)
-                            if (p.kind == first.kind && p.alongM >= first.alongM && p.alongM <= toM) p,
+                          if (!again)
+                            for (final p in pois)
+                              if (p.kind == first.kind && p.alongM >= first.alongM && p.alongM <= toM) p,
                         ]);
                       },
                 child: Container(

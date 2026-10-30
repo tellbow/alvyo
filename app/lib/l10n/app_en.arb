@@ -389,6 +389,8 @@
   "collectionEmpty": "Still empty. Add routes and journeys from their menu: «Add to collection …».",
   "collectionHidden": "Private items you cannot see: {n}",
   "collectionAddTo": "Add to collection …",
+  "journeyAddTo": "Add to a journey …",
+  "collectionAddItem": "Add a route or journey",
   "collectionAdded": "Added to “{title}”",
   "collectionAlready": "Already in “{title}”",
   "collectionRemoveItem": "Remove",

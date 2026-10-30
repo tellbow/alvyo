@@ -1288,6 +1288,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get collectionAddTo => 'Zur Sammlung hinzufügen …';
 
   @override
+  String get journeyAddTo => 'Zu einer Etappentour hinzufügen …';
+
+  @override
+  String get collectionAddItem => 'Route oder Etappentour hinzufügen';
+
+  @override
   String collectionAdded(String title) {
     return 'Hinzugefügt zu «$title»';
   }

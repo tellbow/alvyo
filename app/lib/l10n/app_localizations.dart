@@ -2428,6 +2428,18 @@ abstract class AppLocalizations {
   /// **'Zur Sammlung hinzufügen …'**
   String get collectionAddTo;
 
+  /// No description provided for @journeyAddTo.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu einer Etappentour hinzufügen …'**
+  String get journeyAddTo;
+
+  /// No description provided for @collectionAddItem.
+  ///
+  /// In de, this message translates to:
+  /// **'Route oder Etappentour hinzufügen'**
+  String get collectionAddItem;
+
   /// No description provided for @collectionAdded.
   ///
   /// In de, this message translates to:

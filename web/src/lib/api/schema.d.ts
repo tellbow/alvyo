@@ -2467,7 +2467,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * A user's public profile with their public routes and journeys
+         * A user's profile with the routes, journeys and collections the viewer may see
          * @description A public profile is shown to signed-in users, and to everyone once it has published something; a private one to friends and to those it asked to be friends. The user sees it always.
          */
         get: operations["get-profile"];
@@ -4015,6 +4015,8 @@ export interface components {
         ProfileOutputBody: {
             /** @description The viewer blocked this user */
             blocked: boolean;
+            /** @description The user's collections the viewer may open */
+            collections: components["schemas"]["CollectionSummary"][];
             display_name: string;
             /** @description The viewer follows this user */
             followed: boolean;
@@ -4027,11 +4029,13 @@ export interface components {
              * @enum {string}
              */
             friend: "none" | "requested" | "incoming" | "friends";
+            /** @description As routes */
             journeys: components["schemas"]["JourneySummary"][];
-            /** @description The (lon, lat) lines of each public route and journey by its id, simplified for a thumbnail */
+            /** @description The (lon, lat) lines of each route and journey listed by its id, simplified for a thumbnail */
             outlines: {
                 [key: string]: number[][][];
             };
+            /** @description The user's routes the viewer may open and, for friends, others' routes the user hiked; done_on is when the user hiked it, for friends only */
             routes: components["schemas"]["RouteSummary"][];
             /** @description This is the viewer's own profile */
             self: boolean;

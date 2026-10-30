@@ -1289,6 +1289,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get collectionAddTo => 'Ajouter à une collection …';
 
   @override
+  String get journeyAddTo => 'Ajouter à une randonnée par étapes …';
+
+  @override
+  String get collectionAddItem => 'Ajouter un itinéraire ou une randonnée par étapes';
+
+  @override
   String collectionAdded(String title) {
     return 'Ajouté à « $title »';
   }

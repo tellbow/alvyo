@@ -176,13 +176,14 @@ type User struct {
 	DisplayName string
 	Since       time.Time // month the account was created
 	Public      bool      // the profile: found by the search, seen by all
+	ShareHikes  bool      // friends see the user's hikes
 }
 
 // User looks up an account that is not banned.
 func (s *Store) User(ctx context.Context, username string) (User, error) {
 	var u User
-	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, date_trunc('month', created_at), profile_public
-		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Since, &u.Public)
+	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, date_trunc('month', created_at), profile_public, share_hikes
+		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Since, &u.Public, &u.ShareHikes)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return u, ErrNotFound
 	}
@@ -222,15 +223,14 @@ func (s *Store) ProfileLines(ctx context.Context, user uuid.UUID) ([][][2]float6
 	return out, rows.Err()
 }
 
-// ProfileOutlines returns the (lon, lat) lines of a user's public routes and
-// public journeys by the item's id (a journey's of all its stages), as
+// ProfileOutlines returns the (lon, lat) lines of the routes and journeys
+// listed on a profile by the item's id (a journey's of all its stages), as
 // others see them, simplified for a thumbnail.
-func (s *Store) ProfileOutlines(ctx context.Context, user uuid.UUID) (map[string][][][2]float64, error) {
+func (s *Store) ProfileOutlines(ctx context.Context, routeIDs, journeyIDs []uuid.UUID) (map[string][][][2]float64, error) {
 	rows, err := s.DB.Query(ctx, `SELECT coalesce(r.journey_id, r.id)::text,
 			ST_AsGeoJSON(ST_Multi(ST_Simplify(ST_Force2D(r.shown_geom), 0.0002)), 5)
-		FROM routes r LEFT JOIN journeys j ON j.id = r.journey_id
-		WHERE r.owner_id = $1 AND r.shown_geom IS NOT NULL
-			AND CASE WHEN r.journey_id IS NULL THEN r.visibility = 'public' ELSE j.visibility = 'public' END`, user)
+		FROM routes r
+		WHERE (r.id = ANY($1) OR r.journey_id = ANY($2)) AND r.shown_geom IS NOT NULL`, routeIDs, journeyIDs)
 	if err != nil {
 		return nil, fmt.Errorf("discover: profile outlines: %w", err)
 	}

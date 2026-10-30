@@ -389,6 +389,8 @@
   "collectionEmpty": "Encore vide. Ajoute des itinéraires et des randonnées par étapes depuis leur menu : «Ajouter à une collection …».",
   "collectionHidden": "Éléments privés que tu ne peux pas voir : {n}",
   "collectionAddTo": "Ajouter à une collection …",
+  "journeyAddTo": "Ajouter à une randonnée par étapes …",
+  "collectionAddItem": "Ajouter un itinéraire ou une randonnée par étapes",
   "collectionAdded": "Ajouté à « {title} »",
   "collectionAlready": "Déjà dans « {title} »",
   "collectionRemoveItem": "Retirer",

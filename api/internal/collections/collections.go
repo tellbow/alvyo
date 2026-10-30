@@ -139,6 +139,18 @@ func (s *Store) ListByOwner(ctx context.Context, ownerID uuid.UUID) ([]Summary, 
 	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (Summary, error) { return scanSummary(r) })
 }
 
+// ListForProfile returns the collections of owner that are public or
+// shared with v.
+func (s *Store) ListForProfile(ctx context.Context, ownerID uuid.UUID, v Viewer) ([]Summary, error) {
+	rows, err := s.DB.Query(ctx, fmt.Sprintf(summarySQL, "", `WHERE c.owner_id = $1 AND (c.visibility = 'public'
+		OR c.id IN (SELECT collection_id FROM grants WHERE user_id = $2 OR (email = $3 AND $3 <> '')))`),
+		ownerID, v.UserID, v.VerifiedEmail)
+	if err != nil {
+		return nil, fmt.Errorf("collections: profile: %w", err)
+	}
+	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (Summary, error) { return scanSummary(r) })
+}
+
 // ListSharedWith returns collections shared with the user.
 func (s *Store) ListSharedWith(ctx context.Context, v Viewer) ([]Shared, error) {
 	rows, err := s.DB.Query(ctx, fmt.Sprintf(summarySQL, ", mine.role", `

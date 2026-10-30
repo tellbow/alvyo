@@ -377,17 +377,11 @@ class _ProfileTabState extends State<ProfileTab> {
                       onPressed: () => deleteAccount(context, widget.api, me, onDeleted: widget.onLogout),
                       child: Text(t.accountDeleteTitle),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      [
-                        if (me != null && me.email.isNotEmpty) me.email,
-                        '${t.server}: ${Uri.parse(widget.api.server).host}',
-                      ].join(' · '),
-                      textAlign: TextAlign.center,
-                      style: muted.copyWith(fontSize: 12),
+                  if (me != null && me.email.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(me.email, textAlign: TextAlign.center, style: muted.copyWith(fontSize: 12)),
                     ),
-                  ),
                 ],
               ),
             ),

@@ -120,13 +120,24 @@ func (s *Store) ListByOwner(ctx context.Context, ownerID uuid.UUID) ([]Summary, 
 	return s.listByOwner(ctx, "WHERE j.owner_id = $1", ownerID)
 }
 
-// ListPublicByOwner returns a user's public journeys.
-func (s *Store) ListPublicByOwner(ctx context.Context, ownerID uuid.UUID) ([]Summary, error) {
-	return s.listByOwner(ctx, "WHERE j.owner_id = $1 AND j.visibility = 'public'", ownerID)
+// ListForProfile returns the journeys a user's profile shows viewer
+// (uuid.Nil when signed out; viewerEmail their verified address or ""): the
+// user's own that are public or shared with viewer and, with hikes, those of
+// others the user hiked that viewer may open.
+func (s *Store) ListForProfile(ctx context.Context, ownerID, viewer uuid.UUID, viewerEmail string, hikes bool) ([]Summary, error) {
+	return s.listByOwner(ctx, `WHERE u.banned_at IS NULL
+		AND (j.owner_id = $1 OR ($4 AND j.id IN (
+			SELECT journey_id FROM done_marks WHERE user_id = $1
+			UNION SELECT journey_id FROM grants WHERE user_id = $1 AND role = 'editor')
+			AND journey_done_on(j.id, $1) IS NOT NULL))
+		AND (j.visibility = 'public' OR (j.owner_id = $2 AND j.owner_id <> $1)
+			OR j.id IN (SELECT journey_id FROM grants WHERE user_id = $2 OR (email = $3 AND $3 <> '')))`,
+		ownerID, viewer, viewerEmail, hikes)
 }
 
-func (s *Store) listByOwner(ctx context.Context, where string, ownerID uuid.UUID) ([]Summary, error) {
-	rows, err := s.DB.Query(ctx, fmt.Sprintf(listSQL, "", where, ""), ownerID)
+// listByOwner returns the journeys that match where ($1 ownerID, $2… more).
+func (s *Store) listByOwner(ctx context.Context, where string, ownerID uuid.UUID, more ...any) ([]Summary, error) {
+	rows, err := s.DB.Query(ctx, fmt.Sprintf(listSQL, "", where, ""), append([]any{ownerID}, more...)...)
 	if err != nil {
 		return nil, fmt.Errorf("journeys: list: %w", err)
 	}

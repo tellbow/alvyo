@@ -4041,6 +4041,13 @@
             "description": "The viewer blocked this user",
             "type": "boolean"
           },
+          "collections": {
+            "description": "The user's collections the viewer may open",
+            "items": {
+              "$ref": "#/components/schemas/CollectionSummary"
+            },
+            "type": "array"
+          },
           "display_name": {
             "type": "string"
           },
@@ -4067,6 +4074,7 @@
             "type": "string"
           },
           "journeys": {
+            "description": "As routes",
             "items": {
               "$ref": "#/components/schemas/JourneySummary"
             },
@@ -4088,10 +4096,11 @@
               },
               "type": "array"
             },
-            "description": "The (lon, lat) lines of each public route and journey by its id, simplified for a thumbnail",
+            "description": "The (lon, lat) lines of each route and journey listed by its id, simplified for a thumbnail",
             "type": "object"
           },
           "routes": {
+            "description": "The user's routes the viewer may open and, for friends, others' routes the user hiked; done_on is when the user hiked it, for friends only",
             "items": {
               "$ref": "#/components/schemas/RouteSummary"
             },
@@ -4116,6 +4125,7 @@
           "since",
           "routes",
           "journeys",
+          "collections",
           "outlines",
           "self",
           "followers",
@@ -15771,7 +15781,7 @@
             "description": "Error"
           }
         },
-        "summary": "A user's public profile with their public routes and journeys",
+        "summary": "A user's profile with the routes, journeys and collections the viewer may see",
         "tags": [
           "discover"
         ]

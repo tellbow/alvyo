@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'collections_screen.dart';
+import 'done.dart';
 import 'error_state.dart';
 import '../analytics.dart';
 import '../api.dart';
@@ -14,8 +16,8 @@ import 'report_dialog.dart';
 import 'tiles.dart';
 import 'wide.dart';
 
-/// Someone's public profile: their public routes and journeys, following
-/// and blocking them.
+/// Someone's profile: their routes, journeys and collections one may open,
+/// what they hiked (for friends), following and blocking them.
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key, required this.api, required this.username});
   final Api api;
@@ -35,8 +37,10 @@ class _UserScreenState extends State<UserScreen> {
   late Future<Profile> _profile = widget.api.profile(widget.username);
   bool _busy = false;
 
-  /// The journeys shown instead of the routes (the tabs).
-  bool? _journeys;
+  /// The tab shown; at first the first with something in it.
+  _Tab? _tab;
+
+  DoneFilter _done = DoneFilter.all;
 
   Future<void> _set(Future<void> Function() call) async {
     final t = AppLocalizations.of(context);
@@ -66,6 +70,13 @@ class _UserScreenState extends State<UserScreen> {
       future: _profile,
       builder: (context, snap) {
         final p = snap.data;
+        final tabs = [
+          if (p?.routes.isNotEmpty ?? false) _Tab.routes,
+          if (p?.journeys.isNotEmpty ?? false) _Tab.journeys,
+          if (p?.collections.isNotEmpty ?? false) _Tab.collections,
+        ];
+        final tab = tabs.contains(_tab) ? _tab! : tabs.firstOrNull;
+        final hiked = [...?p?.routes.map((r) => r.doneOn), ...?p?.journeys.map((j) => j.doneOn)].nonNulls.length;
         return Scaffold(
           appBar: AppBar(
             // The name is in the card below once loaded.
@@ -174,6 +185,7 @@ class _UserScreenState extends State<UserScreen> {
                             stats: [
                               (t.profileRoutes, p.routes.length),
                               (t.profileJourneys, p.journeys.length),
+                              if (hiked > 0) (t.doneFilterDone, hiked),
                               (t.profileStatFollowers, p.followers),
                               (t.profileStatFollowing, p.following),
                             ],
@@ -182,35 +194,87 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                     ),
                   ),
-                  if (p.routes.isNotEmpty && p.journeys.isNotEmpty)
+                  if (tabs.length > 1)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                      child: SegmentedButton<bool>(
+                      child: SegmentedButton<_Tab>(
                         key: const Key('profile-tabs'),
                         showSelectedIcon: false,
                         segments: [
-                          ButtonSegment(value: false, label: Text(t.profileRoutes)),
-                          ButtonSegment(value: true, label: Text(t.profileJourneys)),
+                          for (final (tab, label) in [
+                            (_Tab.routes, t.profileRoutes),
+                            (_Tab.journeys, t.profileJourneys),
+                            (_Tab.collections, t.collectionsTitle),
+                          ])
+                            if (tabs.contains(tab)) ButtonSegment(value: tab, label: Text(label)),
                         ],
-                        selected: {_journeys ?? false},
-                        onSelectionChanged: (s) => setState(() => _journeys = s.first),
+                        selected: {tab!},
+                        onSelectionChanged: (s) => setState(() => _tab = s.first),
                       ),
                     )
                   else
                     const SizedBox(height: 8),
-                  if (!(_journeys ?? p.routes.isEmpty))
+                  // Planned or hiked (feedback issue 58).
+                  if (hiked > 0 && tab != _Tab.collections)
+                    DoneFilterBar(value: _done, onChanged: (f) => setState(() => _done = f)),
+                  if (tab == _Tab.routes)
                     for (final r in p.routes)
-                      RouteTile(
-                        route: r,
-                        trailing: _outline(p, r.id),
-                        onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
-                      )
-                  else
+                      if (passesDone(_done, r.doneOn))
+                        r.owner == p.username
+                            ? RouteTile(
+                                route: r,
+                                trailing: _outline(p, r.id),
+                                onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
+                              )
+                            : OtherTile(
+                                journey: false,
+                                title: r.title,
+                                owner: r.owner,
+                                distanceM: r.totals.distanceM,
+                                durationS: r.totals.durationS,
+                                ascentM: r.totals.ascentM,
+                                sacGrade: r.totals.sacGrade,
+                                sacMax: r.totals.sacMax,
+                                stages: 0,
+                                extra: r.doneOn == null ? null : '✓ ${doneText(t, r.doneOn!)}',
+                                trailing: _outline(p, r.id),
+                                onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
+                              ),
+                  if (tab == _Tab.journeys)
                     for (final j in p.journeys)
-                      JourneyTile(
-                        journey: j,
-                        trailing: _outline(p, j.id),
-                        onTap: () => openItem(context, widget.api, journey: true, id: j.id, title: j.title),
+                      if (passesDone(_done, j.doneOn))
+                        j.owner == p.username
+                            ? JourneyTile(
+                                journey: j,
+                                trailing: _outline(p, j.id),
+                                onTap: () => openItem(context, widget.api, journey: true, id: j.id, title: j.title),
+                              )
+                            : OtherTile(
+                                journey: true,
+                                title: j.title,
+                                owner: j.owner,
+                                distanceM: j.distanceM,
+                                durationS: j.durationS,
+                                ascentM: j.ascentM,
+                                sacGrade: 0,
+                                sacMax: 0,
+                                stages: j.stages,
+                                extra: j.doneOn == null ? null : '✓ ${doneText(t, j.doneOn!)}',
+                                trailing: _outline(p, j.id),
+                                onTap: () => openItem(context, widget.api, journey: true, id: j.id, title: j.title),
+                              ),
+                  if (tab == _Tab.collections)
+                    for (final c in p.collections)
+                      ListTile(
+                        key: Key('profile-collection-${c.id}'),
+                        leading: const Icon(Icons.collections_bookmark_outlined),
+                        title: Text(c.title),
+                        subtitle: Text(t.collectionItemsCount(c.items)),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => CollectionScreen(api: widget.api, id: c.id, title: c.title),
+                          ),
+                        ),
                       ),
                 ],
               ),
@@ -221,6 +285,8 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 }
+
+enum _Tab { routes, journeys, collections }
 
 Widget? _outline(Profile p, String id) => switch (p.outlines[id]) {
   final lines? when lines.isNotEmpty => Padding(padding: const EdgeInsets.only(left: 8), child: Outline(lines)),

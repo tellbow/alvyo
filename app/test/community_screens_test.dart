@@ -266,6 +266,26 @@ void main() {
               'sac_max': 2,
             },
           },
+          // Bossm8's route Anna hiked (feedback issue 58).
+          {
+            'id': 'r2',
+            'title': 'Säntis',
+            'owner_username': 'bossm8',
+            'visibility': 'public',
+            'version': 1,
+            'done_on': '2026-08-01',
+            'totals': {
+              'distance_m': 9000.0,
+              'ascent_m': 900.0,
+              'descent_m': 900.0,
+              'duration_s': 14400,
+              'sac_grade': 3,
+              'sac_max': 3,
+            },
+          },
+        ],
+        'collections': [
+          {'id': 'c1', 'title': 'Gipfel', 'owner_username': 'anna', 'items': 4, 'visibility': 'public'},
         ],
         'journeys': [
           {
@@ -312,11 +332,26 @@ void main() {
     expect(find.descendant(of: counts, matching: find.text('Follower')), findsOneWidget);
     expect(tester.widget<Text>(stat('Follower').first).data, '0');
     expect(tester.widget<Text>(stat('Folgt').first).data, '3');
+    expect(tester.widget<Text>(stat('Gewandert').first).data, '1');
     // Routes first, with the thumbnail; the journeys in the other tab.
     expect(find.text('Gratweg'), findsOneWidget);
     expect(find.byType(Outline), findsOneWidget);
     expect(find.text('Via Alpina'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Säntis'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.textContaining('bossm8', findRichText: true), findsOneWidget);
+    expect(find.textContaining('✓'), findsOneWidget);
+    // Only the hiked.
+    await tester.tap(find.descendant(of: find.byKey(const Key('done-filter')), matching: find.text('Gewandert')));
+    await _settle(tester);
+    expect(find.text('Gratweg'), findsNothing);
+    expect(find.text('Säntis'), findsOneWidget);
+    await tester.tap(find.descendant(of: find.byKey(const Key('profile-tabs')), matching: find.text('Sammlungen')));
+    await _settle(tester);
+    expect(find.byKey(const Key('profile-collection-c1')), findsOneWidget);
+    expect(find.byKey(const Key('done-filter')), findsNothing);
     await tester.tap(find.descendant(of: find.byKey(const Key('profile-tabs')), matching: find.text('Etappentouren')));
+    await _settle(tester);
+    await tester.tap(find.descendant(of: find.byKey(const Key('done-filter')), matching: find.text('Alle')));
     await _settle(tester);
     expect(find.text('Via Alpina'), findsOneWidget);
     expect(find.text('Gratweg'), findsNothing);
@@ -424,6 +459,46 @@ void main() {
       expect(find.byKey(const Key('connections-none')), findsOneWidget);
       expect(server.calls.single, startsWith('GET /api/v1/connections'));
     });
+
+    testWidgets('its route is copied into another journey (feedback issue 67)', (tester) async {
+      final server = _Server(
+        (req) => req.method == 'GET'
+            ? _json({
+                'journeys': [
+                  for (final (id, title) in [('j1', 'Via Alpina'), ('j2', 'Gotthard')])
+                    {
+                      'id': id,
+                      'title': title,
+                      'stages': 0,
+                      'stages_done': 0,
+                      'distance_m': 0,
+                      'ascent_m': 0,
+                      'duration_s': 0,
+                    },
+                ],
+              })
+            : _json(journey()),
+      );
+      await _pump(
+        tester,
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showStage(context, server.api, JourneyDetail.fromJson(journey()), 1),
+            child: const Text('open'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('stage-to-collection')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('stage-to-journey')));
+      await _settle(tester);
+      expect(find.byKey(const Key('pick-journey-j1')), findsNothing, reason: 'not into itself');
+      await tester.tap(find.byKey(const Key('pick-journey-j2')));
+      await _settle(tester);
+      expect(server.calls.last, 'POST /api/v1/journeys/j2/stages {"copy_route_id":"r-s2"}');
+      expect(find.text('Hinzugefügt zu «Gotthard»'), findsOneWidget);
+    });
   });
 
   testWidgets('adding to a collection, and once more', (tester) async {
@@ -439,6 +514,31 @@ void main() {
           'role': 'owner',
           'can_edit': true,
           'item_list': <Object>[],
+        });
+      }
+      if (req.url.path == '/api/v1/shared') {
+        // Feedback issue 69: one shared for editing is offered too, one to view not.
+        return _json({
+          'routes': <Object>[],
+          'journeys': <Object>[],
+          'collections': [
+            {
+              'id': 'c2',
+              'title': 'Gotthard',
+              'owner_username': 'anna',
+              'items': 1,
+              'visibility': 'private',
+              'role': 'editor',
+            },
+            {
+              'id': 'c3',
+              'title': 'Jura',
+              'owner_username': 'anna',
+              'items': 1,
+              'visibility': 'private',
+              'role': 'viewer',
+            },
+          ],
         });
       }
       return _json({
@@ -459,6 +559,8 @@ void main() {
     for (final message in ['Hinzugefügt zu «Herbst»', 'Schon in «Herbst»']) {
       await tester.tap(find.text('add'));
       await _settle(tester);
+      expect(find.byKey(const Key('pick-c2')), findsOneWidget);
+      expect(find.byKey(const Key('pick-c3')), findsNothing);
       await tester.tap(find.byKey(const Key('pick-c1')));
       await _settle(tester);
       expect(find.text(message), findsOneWidget);

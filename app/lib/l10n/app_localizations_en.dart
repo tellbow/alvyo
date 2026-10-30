@@ -1282,6 +1282,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectionAddTo => 'Add to collection …';
 
   @override
+  String get journeyAddTo => 'Add to a journey …';
+
+  @override
+  String get collectionAddItem => 'Add a route or journey';
+
+  @override
   String collectionAdded(String title) {
     return 'Added to “$title”';
   }

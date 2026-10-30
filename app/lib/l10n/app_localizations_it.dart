@@ -1286,6 +1286,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get collectionAddTo => 'Aggiungi a una raccolta …';
 
   @override
+  String get journeyAddTo => 'Aggiungi a un trekking a tappe …';
+
+  @override
+  String get collectionAddItem => 'Aggiungi un percorso o un trekking a tappe';
+
+  @override
   String collectionAdded(String title) {
     return 'Aggiunto a «$title»';
   }

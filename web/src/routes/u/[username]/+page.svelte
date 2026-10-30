@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
+	import { page } from '$app/state';
 	import { actionButton, mainAction } from '#lib/components/actions.js';
+	import DoneFilter from '#lib/done/DoneFilter.svelte';
+	import { doneDate, passes, readDone } from '#lib/done/done.js';
 	import ShareButton from '#lib/components/ShareButton.svelte';
 	import TabBar from '#lib/components/TabBar.svelte';
 	import FriendButton from '#lib/community/FriendButton.svelte';
@@ -54,10 +57,18 @@
 	const tabs = $derived(
 		[
 			profile.routes.length ? { id: 'routes', label: m.profile_routes() } : undefined,
-			profile.journeys.length ? { id: 'journeys', label: m.nav_journeys() } : undefined
+			profile.journeys.length ? { id: 'journeys', label: m.nav_journeys() } : undefined,
+			profile.collections.length ? { id: 'collections', label: m.collections_title() } : undefined
 		].filter((t) => t !== undefined)
 	);
-	let tab = $derived(profile.routes.length ? 'routes' : 'journeys');
+	let tab = $derived(tabs[0]?.id ?? 'routes');
+	// Planned or hiked (feedback issue 58); dates are sent to friends only.
+	const done = $derived(readDone(page.url.searchParams));
+	const hiked = $derived(
+		[...profile.routes, ...profile.journeys].filter((it) => it.done_on).length
+	);
+	const routes = $derived(profile.routes.filter((r) => passes(done, r.done_on)));
+	const journeys = $derived(profile.journeys.filter((j) => passes(done, j.done_on)));
 	const since = $derived(
 		new Intl.DateTimeFormat(intlLocale(), {
 			month: 'long',
@@ -112,8 +123,11 @@
 			</div>
 		</div>
 
-		<dl class="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="profile-counts">
-			{#each [[m.profile_routes(), profile.routes.length], [m.nav_journeys(), profile.journeys.length], [m.profile_stat_followers(), relation.followers], [m.profile_stat_following(), relation.following]] as [label, n] (label)}
+		<dl
+			class="mt-5 grid grid-cols-2 gap-2 {hiked ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}"
+			data-testid="profile-counts"
+		>
+			{#each [[m.profile_routes(), profile.routes.length], [m.nav_journeys(), profile.journeys.length], ...(hiked ? [[m.done_filter_done(), hiked]] : []), [m.profile_stat_followers(), relation.followers], [m.profile_stat_following(), relation.following]] as [label, n] (label)}
 				<div class="flex flex-col-reverse rounded-lg bg-stone-100 px-3 py-2">
 					<dt class="text-xs text-stone-600">{label}</dt>
 					<dd class="font-display text-xl font-semibold tabular-nums">{n}</dd>
@@ -152,17 +166,28 @@
 		</svg>
 	{/snippet}
 
+	{#snippet byline(owner: string, doneOn: string | undefined)}
+		{@const line = [
+			doneOn ? `✓ ${m.done_on({ date: doneDate(doneOn) })}` : '',
+			owner !== profile.username ? m.collection_add_shared({ owner }) : ''
+		]
+			.filter(Boolean)
+			.join(' · ')}
+		{#if line}<div class="mt-1 text-xs text-stone-500" data-testid="byline">{line}</div>{/if}
+	{/snippet}
+
 	{#if tabs.length}
 		<!-- A card as the others: rounded and outlined, without the bar's own line. -->
 		<div class="mt-8 overflow-hidden rounded-xl border border-stone-200 [&>div]:border-b-0">
 			<TabBar {tabs} bind:current={tab} />
 		</div>
+		{#if hiked && tab !== 'collections'}<div class="mt-4"><DoneFilter /></div>{/if}
 	{/if}
 
 	{#if profile.routes.length > 0}
 		<div role="tabpanel" id="pane-routes" aria-labelledby="tab-routes" hidden={tab !== 'routes'}>
 			<ul class="mt-4 grid gap-3 sm:grid-cols-2" data-testid="profile-routes">
-				{#each profile.routes as r (r.id)}
+				{#each routes as r (r.id)}
 					<li>
 						<a
 							href={resolve('/routes/[id]', { id: r.id })}
@@ -183,6 +208,7 @@
 								{formatDistance(r.totals.distance_m)} · {formatDuration(r.totals.duration_s, pace)} ·
 								↑&nbsp;{formatHeight(r.totals.ascent_m)}
 							</div>
+							{@render byline(r.owner_username, r.done_on)}
 						</a>
 					</li>
 				{/each}
@@ -198,7 +224,7 @@
 			hidden={tab !== 'journeys'}
 		>
 			<ul class="mt-4 grid gap-3 sm:grid-cols-2" data-testid="profile-journeys">
-				{#each profile.journeys as j (j.id)}
+				{#each journeys as j (j.id)}
 					<li>
 						<a
 							href={resolve('/journeys/[id]', { id: j.id })}
@@ -211,6 +237,32 @@
 									j.duration_s,
 									pace
 								)}
+							</div>
+							{@render byline(j.owner_username, j.done_on)}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
+
+	{#if profile.collections.length > 0}
+		<div
+			role="tabpanel"
+			id="pane-collections"
+			aria-labelledby="tab-collections"
+			hidden={tab !== 'collections'}
+		>
+			<ul class="mt-4 grid gap-3 sm:grid-cols-2" data-testid="profile-collections">
+				{#each profile.collections as c (c.id)}
+					<li>
+						<a
+							href={resolve('/collections/[id]', { id: c.id })}
+							class="block h-full rounded-xl border border-stone-200 bg-surface p-4 hover:border-stone-300 hover:bg-stone-50"
+						>
+							<div class="truncate font-semibold">{c.title}</div>
+							<div class="mt-1 text-[13px] text-stone-600">
+								{m.collection_items_count({ n: c.items })}
 							</div>
 						</a>
 					</li>

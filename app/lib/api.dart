@@ -1161,6 +1161,9 @@ class Profile {
       routes = [for (final r in j['routes'] as List) RouteSummary.fromJson(r as Map<String, dynamic>)],
       journeys = [for (final r in j['journeys'] as List) JourneySummary.fromJson(r as Map<String, dynamic>)],
       // Missing from older servers.
+      collections = [
+        for (final c in j['collections'] as List? ?? const []) CollectionSummary.fromJson(c as Map<String, dynamic>),
+      ],
       outlines = {
         for (final MapEntry(:key, :value) in (j['outlines'] as Map<String, dynamic>? ?? const {}).entries)
           key: [
@@ -1182,8 +1185,12 @@ class Profile {
 
   /// none, requested (by the user), incoming (to the user) or friends.
   final String friend;
+
+  /// Those the viewer may open and, for friends, others' the user hiked;
+  /// doneOn is when the user hiked it, for friends only.
   final List<RouteSummary> routes;
   final List<JourneySummary> journeys;
+  final List<CollectionSummary> collections;
 
   /// The lines of each route and journey by its id, for a thumbnail.
   final Map<String, List<List<LonLat>>> outlines;
@@ -1225,10 +1232,14 @@ class CollectionSummary {
       title = j['title'] as String,
       owner = j['owner_username'] as String,
       items = (j['items'] as num).toInt(),
-      visibility = j['visibility'] as String;
+      visibility = j['visibility'] as String,
+      role = j['role'] as String? ?? 'owner';
   final String id, title, owner;
   final int items;
   final String visibility;
+
+  /// owner, or for one shared with the user viewer or editor.
+  final String role;
 }
 
 /// A route or journey in a collection.
@@ -1861,8 +1872,9 @@ class Api {
   }
 
   /// Adds a stage at the end of a journey, without a route yet.
-  Future<JourneyDetail> addStage(String journeyId) async =>
-      JourneyDetail.fromJson(await _send('POST', '/journeys/$journeyId/stages', {}) as Map<String, dynamic>);
+  Future<JourneyDetail> addStage(String journeyId, {String? copyRouteId}) async => JourneyDetail.fromJson(
+    await _send('POST', '/journeys/$journeyId/stages', {'copy_route_id': ?copyRouteId}) as Map<String, dynamic>,
+  );
 
   /// Gives a stage without a route its planned route.
   Future<JourneyDetail> createStageRoute(

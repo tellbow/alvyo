@@ -41,4 +41,23 @@ describe('palette', () => {
 			.map(([path]) => path);
 		expect(offenders).toEqual([]);
 	});
+
+	// The stone scale turns over in dark mode, white does not: white text on
+	// a stone ground vanishes there (the admin portal's tabs), unless dark
+	// mode sets its own text colour. stone-50 turns over with the ground.
+	it('puts no white text on a stone ground', () => {
+		const pages = import.meta.glob<string>('/src/**/*.svelte', {
+			query: '?raw',
+			import: 'default',
+			eager: true
+		});
+		const offenders = Object.entries(pages)
+			.filter(([, src]) =>
+				[...src.matchAll(/class(?::[\w-]+)?="([^"]*)"/g)].some(
+					([, c]) => /\bbg-stone-\d+/.test(c) && /\btext-white\b/.test(c) && !/\bdark:text-/.test(c)
+				)
+			)
+			.map(([path]) => path);
+		expect(offenders).toEqual([]);
+	});
 });

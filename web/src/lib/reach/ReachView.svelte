@@ -196,7 +196,7 @@
 		<LayerSwitcher bind:base bind:overlays />
 		{#if status === 'busy'}
 			<p
-				class="pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-md bg-stone-900/85 px-3 py-2 text-sm text-white shadow"
+				class="pointer-events-none absolute inset-x-0 top-14 z-10 mx-auto w-fit max-w-[calc(100%-2rem)] rounded-md bg-stone-900/85 px-3 py-2 text-sm text-stone-50 shadow"
 				role="status"
 			>
 				{m.reach_busy()}

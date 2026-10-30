@@ -40,7 +40,7 @@
 					<a
 						href={resolve(p.route)}
 						aria-current={page.url.pathname.startsWith(p.path) ? 'page' : undefined}
-						class="rounded-full px-3 py-1.5 hover:bg-stone-100 aria-[current=page]:bg-stone-900 aria-[current=page]:text-white"
+						class="rounded-full px-3 py-1.5 hover:bg-stone-100 aria-[current=page]:bg-stone-900 aria-[current=page]:text-stone-50 dark:aria-[current=page]:bg-stone-200 dark:aria-[current=page]:text-stone-900"
 						>{p.label}</a
 					>
 				{/each}

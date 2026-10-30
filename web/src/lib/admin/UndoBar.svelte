@@ -25,7 +25,7 @@
 {#if done}
 	<div
 		role="status"
-		class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-stone-900 px-4 py-2 text-sm text-white"
+		class="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-stone-900 px-4 py-2 text-sm text-stone-50 dark:bg-stone-200 dark:text-stone-900"
 		data-testid="admin-done"
 	>
 		<span class="flex-1">{done.text}</span>

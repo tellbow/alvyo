@@ -13,7 +13,8 @@ const hydrating = new WeakSet<BrowserContext>();
  * After goto() and reload(), our pages wait until they are hydrated: a fill
  * or click before Svelte attaches its handlers does nothing (a search not
  * searched, a confirmation not opened), which made tests fail now and then.
- * The root layout enables the language menu once hydrated.
+ * The root layout enables the language menu once hydrated; the admin
+ * portal's frame marks itself.
  */
 function waitForHydration(context: BrowserContext, origin: string) {
 	if (hydrating.has(context)) return;
@@ -24,7 +25,13 @@ function waitForHydration(context: BrowserContext, origin: string) {
 			(page as unknown as Record<string, unknown>)[name] = async (...args: unknown[]) => {
 				const response = await navigate(...args);
 				if (isOurPage(page, response, origin)) {
-					await expect(page.getByTestId('language').first()).toBeEnabled({ timeout: 15_000 });
+					await expect(
+						page
+							.locator(
+								'[data-testid="language"]:enabled, [data-testid="admin-frame"][data-hydrated]'
+							)
+							.first()
+					).toBeAttached({ timeout: 15_000 });
 				}
 				return response;
 			};

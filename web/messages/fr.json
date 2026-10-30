@@ -436,7 +436,6 @@
 	"profile_since": "membre depuis {date}",
 	"profile_routes": "Itinéraires",
 	"nav_feed": "Actualités",
-	"nav_moderation": "Modération",
 	"community_likes": "{n} j'aime",
 	"community_comments": [
 		{
@@ -489,8 +488,6 @@
 	"account_pace_hint": "Les temps de marche en pourcentage des temps des indicateurs jaunes : en dessous de 100 % tu es plus rapide, au-dessus plus lent.",
 	"account_pace_signposts": "100 % – comme les indicateurs",
 	"account_blocked": "Personnes bloquées",
-	"moderation_title": "Modération",
-	"moderation_intro": "Signalements ouverts, les plus anciens d'abord. Une décision clôt tous les signalements sur le même contenu.",
 	"moderation_empty": "Aucun signalement ouvert.",
 	"moderation_kind_comment": "Commentaire",
 	"moderation_kind_user": "Personne",

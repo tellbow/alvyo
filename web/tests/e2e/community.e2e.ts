@@ -110,8 +110,9 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 				'postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'
 		}
 	});
-	await modPage.goto('/');
-	await modPage.getByRole('link', { name: 'Moderation' }).click();
+	// In the admin portal (feedback issue 70), served here without ADMIN_URL.
+	await modPage.goto('/admin');
+	await expect(modPage).toHaveURL(/\/admin\/meldungen$/);
 	const report = modPage.getByTestId('report').filter({ hasText: s });
 	await expect(report).toContainText('Spam oder Werbung');
 	await expect(report).toContainText(`@${troll}`);
@@ -122,6 +123,10 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 	await page.reload();
 	await page.getByTestId('tab-comments').click();
 	await expect(page.getByTestId('comment').filter({ hasText: s })).toHaveCount(0);
+	// Not for everyone: the owner is asked to log in as a moderator.
+	await page.goto('/admin/meldungen');
+	await expect(page).toHaveURL(/\/admin\/login$/);
+	await expect(page.getByTestId('admin-no-role')).toContainText(owner);
 });
 
 test('reply to a comment, and edit one', async ({ page, browser }) => {

@@ -3,6 +3,7 @@ import { defineConfig } from '@playwright/test';
 // End-to-end tests run the real API and web app against the dev stack
 // (`make infra-up`: PostGIS, Mailpit, GraphHopper, tile cache).
 const API_PORT = 18080;
+const ADMIN_API_PORT = 18082;
 const WEB_PORT = 4173;
 
 export default defineConfig({
@@ -28,6 +29,7 @@ export default defineConfig({
 					process.env.ALVYO_DATABASE_URL ??
 					'postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable',
 				ALVYO_LISTEN: `:${API_PORT}`,
+				ALVYO_ADMIN_LISTEN: `:${ADMIN_API_PORT}`,
 				ALVYO_PUBLIC_URL: `http://localhost:${WEB_PORT}`,
 				// every test signs up its own account from 127.0.0.1
 				ALVYO_RELAXED_LIMITS: 'true',
@@ -58,6 +60,7 @@ export default defineConfig({
 			reuseExistingServer: !process.env.CI,
 			env: {
 				API_INTERNAL_URL: `http://localhost:${API_PORT}`,
+				ADMIN_API_INTERNAL_URL: `http://localhost:${ADMIN_API_PORT}`,
 				PUBLIC_CONTACT_EMAIL: 'hallo@alvyo.test',
 				PUBLIC_OPERATOR_NAME: 'Alvyo Test',
 				PUBLIC_OPERATOR_ADDRESS: 'Wanderweg 1, 3000 Bern'

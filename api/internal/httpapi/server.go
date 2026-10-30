@@ -45,6 +45,10 @@ import (
 // Prefix is the path under which the versioned API is served.
 const Prefix = "/api/v1"
 
+// AdminPrefix is where the admin listener serves the API with the admin
+// portal's endpoints.
+const AdminPrefix = "/admin-api/v1"
+
 func init() {
 	// Responses never contain null arrays (handlers return empty slices), so
 	// the schema — and the generated TypeScript types — should not allow it.
@@ -103,6 +107,26 @@ func init() {
 
 // New returns the root HTTP handler and the huma API (for OpenAPI export).
 func New(d Deps) (http.Handler, huma.API) {
+	return build(d, Prefix, nil)
+}
+
+// NewAdmin returns the handler of the admin listener: the API under
+// AdminPrefix with the admin portal's endpoints, where moderators act.
+// d.PublicURL is the admin portal's origin. Never route it from the public
+// ingress.
+func NewAdmin(d Deps) (http.Handler, huma.API) {
+	h, api := build(d, AdminPrefix, registerAdmin)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), adminKey{}, true)))
+	}), api
+}
+
+type adminKey struct{}
+
+// onAdminListener tells whether the request came through NewAdmin.
+func onAdminListener(ctx context.Context) bool { return ctx.Value(adminKey{}) != nil }
+
+func build(d Deps, prefix string, extra func(huma.API, Deps)) (http.Handler, huma.API) {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -121,12 +145,12 @@ func New(d Deps) (http.Handler, huma.API) {
 	cfg := huma.DefaultConfig("Alvyo API", d.Version)
 	cfg.CreateHooks = nil // no $schema links in response bodies
 	cfg.Components.Schemas = huma.NewMapRegistry("#/components/schemas/", schemaNamer)
-	cfg.Servers = []*huma.Server{{URL: Prefix}}
-	api := humago.NewWithPrefix(mux, Prefix, cfg)
+	cfg.Servers = []*huma.Server{{URL: prefix}}
+	api := humago.NewWithPrefix(mux, prefix, cfg)
 
 	// Spans and request metrics carry the operation, not the address.
 	api.UseMiddleware(func(ctx huma.Context, next func(huma.Context)) {
-		telemetry.Route(ctx.Context(), ctx.Method(), Prefix+ctx.Operation().Path)
+		telemetry.Route(ctx.Context(), ctx.Method(), prefix+ctx.Operation().Path)
 		next(ctx)
 	})
 	if d.Limits == (Limits{}) {
@@ -167,6 +191,9 @@ func New(d Deps) (http.Handler, huma.API) {
 	registerBugReports(api, d)
 	registerAccessTokens(api, d)
 	registerMCP(mux, d)
+	if extra != nil {
+		extra(api, d)
+	}
 
 	h := withCompression(mux)
 	if d.Auth != nil {

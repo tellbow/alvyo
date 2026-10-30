@@ -38,8 +38,9 @@ const origin = "http://alvyo.test"
 
 type testServer struct {
 	*httptest.Server
-	mail *mailer.Recorder
-	db   *pgxpool.Pool
+	admin *httptest.Server // NewAdmin's listener
+	mail  *mailer.Recorder
+	db    *pgxpool.Pool
 }
 
 func newTestServer(t *testing.T, limits Limits) *testServer {
@@ -75,7 +76,10 @@ func newTestServerWith(t *testing.T, adjust func(*Deps)) *testServer {
 	h, _ := New(d)
 	srv := httptest.NewServer(h)
 	t.Cleanup(srv.Close)
-	return &testServer{Server: srv, mail: rec, db: pool}
+	ah, _ := NewAdmin(d)
+	admin := httptest.NewServer(ah)
+	t.Cleanup(admin.Close)
+	return &testServer{Server: srv, admin: admin, mail: rec, db: pool}
 }
 
 // client is a browser-like client with a cookie jar that sends our Origin.
@@ -88,6 +92,12 @@ type client struct {
 func (s *testServer) client(t *testing.T) *client {
 	jar, _ := cookiejar.New(nil)
 	return &client{t: t, base: s.URL, http: &http.Client{Jar: jar}}
+}
+
+// onAdmin is c at the admin listener, with the same cookies (they do not
+// depend on the port).
+func (s *testServer) onAdmin(c *client) *client {
+	return &client{t: c.t, base: s.admin.URL, http: c.http}
 }
 
 func (c *client) do(method, path string, body any, headers ...string) (int, []byte) {

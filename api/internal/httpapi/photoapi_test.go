@@ -156,10 +156,13 @@ func TestPhotos(t *testing.T) {
 	if code, _ := anon.do("GET", "/api/v1/photos/"+p0.ID+"/large", nil); code != http.StatusNotFound {
 		t.Errorf("photo of a private route: %d, want 404", code)
 	}
-	if code, _ := mod.do("GET", "/api/v1/photos/"+p1.ID+"/large", nil); code != http.StatusOK {
+	if code, _ := mod.do("GET", "/api/v1/photos/"+p1.ID+"/large", nil); code != http.StatusNotFound {
+		t.Errorf("moderator views a reported photo on the public API: %d, want 404", code)
+	}
+	if code, _ := s.onAdmin(mod).do("GET", "/admin-api/v1/photos/"+p1.ID+"/large", nil); code != http.StatusOK {
 		t.Errorf("moderator views a reported photo: %d", code)
 	}
-	if code, _ := mod.do("GET", "/api/v1/photos/"+p0.ID+"/large", nil); code != http.StatusNotFound {
+	if code, _ := s.onAdmin(mod).do("GET", "/admin-api/v1/photos/"+p0.ID+"/large", nil); code != http.StatusNotFound {
 		t.Errorf("moderator views an unreported private photo: %d, want 404", code)
 	}
 

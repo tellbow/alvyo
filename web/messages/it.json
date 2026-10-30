@@ -436,7 +436,6 @@
 	"profile_since": "iscritto/a da {date}",
 	"profile_routes": "Percorsi",
 	"nav_feed": "Novità",
-	"nav_moderation": "Moderazione",
 	"community_likes": "{n} mi piace",
 	"community_comments": [
 		{
@@ -489,8 +488,6 @@
 	"account_pace_hint": "I tempi di cammino in percentuale dei tempi dei cartelli gialli: sotto il 100 % sei più veloce, sopra più lento.",
 	"account_pace_signposts": "100 % – come i cartelli",
 	"account_blocked": "Persone bloccate",
-	"moderation_title": "Moderazione",
-	"moderation_intro": "Segnalazioni aperte, le più vecchie per prime. Una decisione chiude tutte le segnalazioni sullo stesso contenuto.",
 	"moderation_empty": "Nessuna segnalazione aperta.",
 	"moderation_kind_comment": "Commento",
 	"moderation_kind_user": "Persona",

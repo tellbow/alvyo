@@ -436,7 +436,6 @@
 	"profile_since": "member since {date}",
 	"profile_routes": "Routes",
 	"nav_feed": "News",
-	"nav_moderation": "Moderation",
 	"community_likes": [
 		{
 			"declarations": ["input n", "local nPlural = n: plural"],
@@ -495,8 +494,6 @@
 	"account_pace_hint": "Hiking times as a percentage of the times on the yellow signposts: below 100 % you are faster, above it slower.",
 	"account_pace_signposts": "100 % – as the signposts",
 	"account_blocked": "Blocked people",
-	"moderation_title": "Moderation",
-	"moderation_intro": "Open reports, oldest first. A decision closes all reports on the same content.",
 	"moderation_empty": "No open reports.",
 	"moderation_kind_comment": "Comment",
 	"moderation_kind_user": "Person",

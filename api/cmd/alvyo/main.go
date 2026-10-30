@@ -186,7 +186,7 @@ func serve(ctx context.Context) error {
 		limits = httpapi.RelaxedLimits()
 	}
 	oidc := oidcProviders(cfg)
-	handler, _ := httpapi.New(httpapi.Deps{
+	deps := httpapi.Deps{
 		DB:          pool,
 		Auth:        &auth.Service{DB: pool, Mail: sender, PublicURL: cfg.PublicURL, Revoke: oidc.Revoke},
 		Router:      router,
@@ -218,7 +218,8 @@ func serve(ctx context.Context) error {
 		PublicURL:   cfg.PublicURL,
 		TrustProxy:  cfg.TrustProxy,
 		Limits:      limits,
-	})
+	}
+	handler, _ := httpapi.New(deps)
 	srv := &http.Server{
 		Addr:              cfg.Listen,
 		Handler:           telemetry.Handler(handler),
@@ -230,10 +231,22 @@ func serve(ctx context.Context) error {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	errc := make(chan error, 2)
+	// The admin portal's API, for the internal admin host only.
+	adminDeps := deps
+	adminDeps.PublicURL = cfg.AdminURL
+	adminHandler, _ := httpapi.NewAdmin(adminDeps)
+	admin := &http.Server{Addr: cfg.AdminListen, Handler: telemetry.Handler(adminHandler), ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout: time.Minute, WriteTimeout: time.Minute, IdleTimeout: 120 * time.Second}
+	defer func() { _ = admin.Close() }()
+
+	errc := make(chan error, 3)
 	go func() {
 		slog.Info("listening", "addr", cfg.Listen, "version", version)
 		errc <- srv.ListenAndServe()
+	}()
+	go func() {
+		slog.Info("admin", "addr", cfg.AdminListen)
+		errc <- admin.ListenAndServe()
 	}()
 	if metrics != nil {
 		go func() {
@@ -306,7 +319,8 @@ func adminCommand(ctx context.Context, cmd string, args []string) error {
 }
 
 func printOpenAPI() error {
-	_, api := httpapi.New(httpapi.Deps{Version: version})
+	// The admin API's: the public operations and the admin portal's.
+	_, api := httpapi.NewAdmin(httpapi.Deps{Version: version})
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
 	return enc.Encode(api.OpenAPI())

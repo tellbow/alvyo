@@ -11,8 +11,13 @@ through geo.admin.ch.
 
 Both clients reach one address, `alvyo.tellbow.ch`. The ingress sends
 `/api` to the API, `/tiles` to the tile cache and everything else to the
-web server, so pages, API and tiles share one origin and one cookie. The calls to
-outside services are in the next diagram.
+web server, so pages, API and tiles share one origin and one cookie. The
+admin portal (moderators and admins) has a host of its own,
+`admin.alvyo.tellbow.ch`, on the internal ingress class: reachable only
+inside the cluster's network. Its `/admin-api` goes to the API's admin
+port (8082), which the public ingress never routes to; `/admin` on the
+public host redirects there. The calls to outside services are in the next
+diagram.
 
 ```mermaid
 flowchart TB
@@ -22,6 +27,7 @@ flowchart TB
 
   subgraph cluster["Kubernetes, namespace alvyo"]
     ingress["Ingress<br/>alvyo.tellbow.ch"]
+    adminingress["Internal ingress<br/>admin.alvyo.tellbow.ch"]
     web["web<br/>SvelteKit server"]
     api["api<br/>Go, api/ and swiss/"]
     tiles["tilecache<br/>nginx"]
@@ -46,6 +52,8 @@ flowchart TB
   ingress -- "/" --> web
   ingress -- "/api" --> api
   ingress -- "/tiles" --> tiles
+  adminingress -- "/" --> web
+  adminingress -- "/admin-api, port 8082" --> api
   web -- "page rendering" --> api
 
   api --> db
@@ -74,7 +82,9 @@ What each part does, and why it is there:
   code as the website's requests ([mcp.md](mcp.md)).
 - **web** renders the pages (SvelteKit). On the server it asks the API
   through the cluster (`API_INTERNAL_URL`); in the browser the pages call
-  `/api` directly.
+  `/api` directly. It also serves the admin portal (`/admin`, on the admin
+  host when `ADMIN_URL` is set), whose pages call the API's admin port
+  (`/admin-api`, `ADMIN_API_INTERNAL_URL` on the server).
 - **api** holds all logic: accounts, routes, journeys, imports, weather,
   public transport. Hiking time, SAC grade and elevation sampling live in
   the `swiss/` module. It keeps photos on its own volume and offline map

@@ -96,19 +96,6 @@ type reportInput struct {
 	}
 }
 
-type reportsOutput struct {
-	Body struct {
-		Reports []community.Report `json:"reports"`
-	}
-}
-
-type resolveInput struct {
-	ID   string `path:"id" format:"uuid"`
-	Body struct {
-		Resolution string `json:"resolution" enum:"dismissed,removed" doc:"removed deletes a comment or photo, makes a route or journey private or bans a user"`
-	}
-}
-
 type settingsInput struct {
 	Body struct {
 		NotifyComments *bool    `json:"notify_comments,omitempty" doc:"E-mail on comments on my routes and journeys"`
@@ -130,7 +117,11 @@ type socialItem struct {
 	load   func(ctx context.Context, rawID, token string) (community.Target, access.Role, error)
 }
 
-func isModerator(u dbq.User) bool { return u.Role == "moderator" || u.Role == "admin" }
+// isModerator tells whether u acts as a moderator: only through the admin
+// portal (feedback issue 70), not on the public site.
+func isModerator(ctx context.Context, u dbq.User) bool {
+	return onAdminListener(ctx) && (u.Role == "moderator" || u.Role == "admin")
+}
 
 // communityViewer is the logged-in caller, or the anonymous viewer.
 func communityViewer(ctx context.Context) (community.Viewer, dbq.User, bool) {
@@ -138,7 +129,7 @@ func communityViewer(ctx context.Context) (community.Viewer, dbq.User, bool) {
 	if !ok {
 		return community.Viewer{}, u, false
 	}
-	return community.Viewer{ID: u.ID, Moderator: isModerator(u)}, u, true
+	return community.Viewer{ID: u.ID, Moderator: isModerator(ctx, u)}, u, true
 }
 
 func communityError(err error) error {
@@ -524,40 +515,4 @@ func registerReports(api huma.API, d Deps) {
 		return nil, nil
 	})
 
-	moderator := func(ctx context.Context) (dbq.User, error) {
-		u, err := requireUser(ctx)
-		if err == nil && !isModerator(u) {
-			err = huma.Error403Forbidden("for moderators")
-		}
-		return u, err
-	}
-
-	huma.Register(api, huma.Operation{
-		OperationID: "list-reports", Method: http.MethodGet, Path: "/moderation/reports",
-		Summary: "Open reports, oldest first (moderators)", Tags: []string{"moderation"},
-	}, func(ctx context.Context, _ *struct{}) (*reportsOutput, error) {
-		if _, err := moderator(ctx); err != nil {
-			return nil, err
-		}
-		out := &reportsOutput{}
-		var err error
-		out.Body.Reports, err = d.Community.OpenReports(ctx)
-		return out, err
-	})
-
-	huma.Register(api, huma.Operation{
-		OperationID: "resolve-report", Method: http.MethodPost, Path: "/moderation/reports/{id}/resolve",
-		Summary: "Close a report and all others on the same target (moderators)", Tags: []string{"moderation"},
-		DefaultStatus: http.StatusNoContent,
-	}, func(ctx context.Context, in *resolveInput) (*struct{}, error) {
-		u, err := moderator(ctx)
-		if err != nil {
-			return nil, err
-		}
-		id, err := uuid.Parse(in.ID)
-		if err != nil {
-			return nil, huma.Error404NotFound("report not found")
-		}
-		return nil, communityError(d.Community.Resolve(ctx, id, u.ID, in.Body.Resolution))
-	})
 }

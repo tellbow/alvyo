@@ -100,7 +100,7 @@ func registerPhotos(api huma.API, d Deps) {
 		}
 		// Moderators may look at reported photos they could not see otherwise.
 		u, _ := auth.UserFrom(ctx)
-		if !reported || !isModerator(u) {
+		if !reported || !isModerator(ctx, u) {
 			if _, _, err := socialItemFor(d, t.Kind).load(ctx, t.ID.String(), in.Token); err != nil {
 				return nil, photoError(photos.ErrNotFound)
 			}

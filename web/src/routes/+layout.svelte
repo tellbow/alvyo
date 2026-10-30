@@ -123,13 +123,6 @@
 			class={tab('/collections')}
 			aria-current={current('/collections')}>{m.nav_collections()}</a
 		>
-		{#if data.user.role !== 'user'}
-			<a
-				href={resolve('/moderation')}
-				class={tab('/moderation')}
-				aria-current={current('/moderation')}>{m.nav_moderation()}</a
-			>
-		{/if}
 	{/if}
 	<a href={resolve('/about')} class={tab('/about')} aria-current={current('/about')}
 		>{m.nav_about()}</a
@@ -245,103 +238,108 @@
 	</a>
 {/snippet}
 
-<div class="flex h-dvh flex-col bg-ground text-stone-900 print:h-auto">
-	<a
-		href="#content"
-		class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2"
-		onclick={skip}>{m.skip_to_content()}</a
-	>
-	<header
-		class="relative flex items-center gap-6 border-b border-stone-200 px-4 py-2.5 xl:px-5 print:hidden"
-	>
+<!-- The admin portal has its own frame (routes/admin). -->
+{#if page.route.id?.startsWith('/admin')}
+	{@render children()}
+{:else}
+	<div class="flex h-dvh flex-col bg-ground text-stone-900 print:h-auto">
 		<a
-			href={resolve('/')}
-			aria-label="Alvyo"
-			class="flex items-baseline font-display text-[28px] leading-none font-bold tracking-[-0.04em]"
+			href="#content"
+			class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2"
+			onclick={skip}>{m.skip_to_content()}</a
 		>
-			<svg width="20" height="19" viewBox="0 0 24 23" fill="none" aria-hidden="true">
-				<path
-					d="M2.3 23L12 2L21.7 23"
-					stroke="currentColor"
-					stroke-width="4"
-					stroke-linejoin="round"
-				/>
-				<path d="M7.8 11H16.2" class="stroke-accent" stroke-width="3.2" />
-			</svg><span>lvyo</span>
-		</a>
-		<nav
-			class="hidden items-center gap-1 rounded-full border border-stone-200 bg-surface p-1 text-sm font-medium xl:flex"
+		<header
+			class="relative flex items-center gap-6 border-b border-stone-200 px-4 py-2.5 xl:px-5 print:hidden"
 		>
-			{@render links()}
-		</nav>
-		<div class="ml-auto hidden items-center gap-4 text-sm font-medium xl:flex">
-			{@render settings()}
-			{@render account()}
-			{#if !data.user}{@render signup()}{/if}
-		</div>
-
-		<!-- In the header, not over the page: it hid what was below it. -->
-		{#if data.user}<BugReport />{/if}
-
-		<div class="flex items-center gap-2 xl:hidden {data.user ? '' : 'ml-auto'}">
-			{#if !data.user}{@render signup()}{/if}
-			<button
-				type="button"
-				class="flex size-10 items-center justify-center rounded-full hover:bg-stone-100"
-				aria-label={m.nav_menu()}
-				aria-expanded={menu}
-				aria-controls="menu"
-				onclick={() => (menu = !menu)}
-				data-testid="menu"
+			<a
+				href={resolve('/')}
+				aria-label="Alvyo"
+				class="flex items-baseline font-display text-[28px] leading-none font-bold tracking-[-0.04em]"
 			>
-				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+				<svg width="20" height="19" viewBox="0 0 24 23" fill="none" aria-hidden="true">
 					<path
-						d={menu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16'}
+						d="M2.3 23L12 2L21.7 23"
 						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
+						stroke-width="4"
+						stroke-linejoin="round"
 					/>
-				</svg>
-			</button>
-		</div>
-		{#if menu}
-			<div
-				id="menu"
-				class="absolute inset-x-0 top-full z-30 flex max-h-[calc(100dvh-4rem)] flex-col gap-4 overflow-y-auto overscroll-contain border-b border-stone-200 bg-surface p-4 shadow-lg xl:hidden"
+					<path d="M7.8 11H16.2" class="stroke-accent" stroke-width="3.2" />
+				</svg><span>lvyo</span>
+			</a>
+			<nav
+				class="hidden items-center gap-1 rounded-full border border-stone-200 bg-surface p-1 text-sm font-medium xl:flex"
 			>
-				<nav class="flex flex-col items-start gap-1 font-medium">
-					{@render links()}
-				</nav>
-				<div class="flex flex-col gap-2 border-t border-stone-200 pt-4 text-sm">
-					{@render segmented(
-						m.nav_language(),
-						locales,
-						getLocale(),
-						(l) => languages[l],
-						(l) => language(l)
-					)}
-					{@render segmented(m.nav_theme(), themes, theme, (t) => themeNames[t](), chooseTheme)}
+				{@render links()}
+			</nav>
+			<div class="ml-auto hidden items-center gap-4 text-sm font-medium xl:flex">
+				{@render settings()}
+				{@render account()}
+				{#if !data.user}{@render signup()}{/if}
+			</div>
+
+			<!-- In the header, not over the page: it hid what was below it. -->
+			{#if data.user}<BugReport />{/if}
+
+			<div class="flex items-center gap-2 xl:hidden {data.user ? '' : 'ml-auto'}">
+				{#if !data.user}{@render signup()}{/if}
+				<button
+					type="button"
+					class="flex size-10 items-center justify-center rounded-full hover:bg-stone-100"
+					aria-label={m.nav_menu()}
+					aria-expanded={menu}
+					aria-controls="menu"
+					onclick={() => (menu = !menu)}
+					data-testid="menu"
+				>
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path
+							d={menu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16'}
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+						/>
+					</svg>
+				</button>
+			</div>
+			{#if menu}
+				<div
+					id="menu"
+					class="absolute inset-x-0 top-full z-30 flex max-h-[calc(100dvh-4rem)] flex-col gap-4 overflow-y-auto overscroll-contain border-b border-stone-200 bg-surface p-4 shadow-lg xl:hidden"
+				>
+					<nav class="flex flex-col items-start gap-1 font-medium">
+						{@render links()}
+					</nav>
+					<div class="flex flex-col gap-2 border-t border-stone-200 pt-4 text-sm">
+						{@render segmented(
+							m.nav_language(),
+							locales,
+							getLocale(),
+							(l) => languages[l],
+							(l) => language(l)
+						)}
+						{@render segmented(m.nav_theme(), themes, theme, (t) => themeNames[t](), chooseTheme)}
+					</div>
+					<div class="flex flex-col items-start gap-3 border-t border-stone-200 pt-4 font-medium">
+						{@render account()}
+					</div>
 				</div>
-				<div class="flex flex-col items-start gap-3 border-t border-stone-200 pt-4 font-medium">
-					{@render account()}
-				</div>
+			{/if}
+		</header>
+
+		{#if data.user && !data.user.email_verified}
+			<div
+				class="flex flex-wrap items-center gap-x-3 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 print:hidden"
+			>
+				<span>{m.verify_banner()}</span>
+				{#if resent}
+					<span>{m.verify_resent()}</span>
+				{:else}
+					<button type="button" onclick={resend} class="underline">{m.verify_resend()}</button>
+				{/if}
 			</div>
 		{/if}
-	</header>
 
-	{#if data.user && !data.user.email_verified}
-		<div
-			class="flex flex-wrap items-center gap-x-3 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 print:hidden"
-		>
-			<span>{m.verify_banner()}</span>
-			{#if resent}
-				<span>{m.verify_resent()}</span>
-			{:else}
-				<button type="button" onclick={resend} class="underline">{m.verify_resend()}</button>
-			{/if}
-		</div>
-	{/if}
-
-	{@render children()}
-	<ConsentBanner />
-</div>
+		{@render children()}
+		<ConsentBanner />
+	</div>
+{/if}

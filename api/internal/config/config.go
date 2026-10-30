@@ -24,14 +24,19 @@ type Config struct {
 	// (not behind the ingress): ALVYO_METRICS_LISTEN, e.g. ":9464"; off if
 	// empty.
 	MetricsListen string
-	DatabaseURL   string     // ALVYO_DATABASE_URL (required)
-	LogLevel      slog.Level // ALVYO_LOG_LEVEL: debug, info, warn, error
-	PublicURL     string     // ALVYO_PUBLIC_URL: origin of the web app, default http://localhost:5173
-	TrustProxy    bool       // ALVYO_TRUST_PROXY: behind our reverse proxy
-	GraphHopper   string     // ALVYO_GRAPHHOPPER_URL, default http://localhost:8989
-	TilesURL      string     // ALVYO_TILES_URL: our tile cache, default http://localhost:8081
-	CacheDir      string     // ALVYO_CACHE_DIR: rendered images etc., default <tmp>/alvyo
-	PhotosDir     string     // ALVYO_PHOTOS_DIR: uploaded photos (keep and back up), default data/photos
+	// AdminListen serves the API with the admin portal's endpoints under
+	// AdminPrefix, for the internal admin host only (never behind the public
+	// ingress): ALVYO_ADMIN_LISTEN, default ":8082".
+	AdminListen string
+	AdminURL    string     // ALVYO_ADMIN_URL: origin of the admin portal, default PublicURL
+	DatabaseURL string     // ALVYO_DATABASE_URL (required)
+	LogLevel    slog.Level // ALVYO_LOG_LEVEL: debug, info, warn, error
+	PublicURL   string     // ALVYO_PUBLIC_URL: origin of the web app, default http://localhost:5173
+	TrustProxy  bool       // ALVYO_TRUST_PROXY: behind our reverse proxy
+	GraphHopper string     // ALVYO_GRAPHHOPPER_URL, default http://localhost:8989
+	TilesURL    string     // ALVYO_TILES_URL: our tile cache, default http://localhost:8081
+	CacheDir    string     // ALVYO_CACHE_DIR: rendered images etc., default <tmp>/alvyo
+	PhotosDir   string     // ALVYO_PHOTOS_DIR: uploaded photos (keep and back up), default data/photos
 	// SwissALTI3DDir holds swisstopo's height model as tiles
 	// (infra/data-import/swissalti3d.py): ALVYO_SWISSALTI3D_DIR. Heights
 	// come from there and, beyond the border or without it, from geo.admin.
@@ -127,6 +132,7 @@ func FromEnv() (Config, error) {
 		MetricsListen: os.Getenv("ALVYO_METRICS_LISTEN"),
 		DatabaseURL:   os.Getenv("ALVYO_DATABASE_URL"),
 		PublicURL:     strings.TrimSuffix(getenv("ALVYO_PUBLIC_URL", "http://localhost:5173"), "/"),
+		AdminListen:   getenv("ALVYO_ADMIN_LISTEN", ":8082"),
 		TrustProxy:    os.Getenv("ALVYO_TRUST_PROXY") == "true",
 		GraphHopper:   getenv("ALVYO_GRAPHHOPPER_URL", "http://localhost:8989"),
 		TilesURL:      getenv("ALVYO_TILES_URL", "http://localhost:8081"),
@@ -162,6 +168,7 @@ func FromEnv() (Config, error) {
 	if c.OIDC, err = oidcProviders(); err != nil {
 		return c, err
 	}
+	c.AdminURL = strings.TrimSuffix(getenv("ALVYO_ADMIN_URL", c.PublicURL), "/")
 	return c, nil
 }
 

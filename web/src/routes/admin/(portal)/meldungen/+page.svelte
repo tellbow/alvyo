@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { api } from '#lib/api/client.js';
+	import { adminApi } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import Seo from '#lib/seo/Seo.svelte';
@@ -43,7 +43,7 @@
 
 	async function resolveReport(r: Report, resolution: 'dismissed' | 'removed') {
 		error = '';
-		const { response } = await api().POST('/moderation/reports/{id}/resolve', {
+		const { response } = await adminApi().POST('/moderation/reports/{id}/resolve', {
 			params: { path: { id: r.id } },
 			body: { resolution }
 		});
@@ -52,11 +52,10 @@
 	}
 </script>
 
-<Seo title={m.moderation_title()} index={false} />
+<Seo title="Meldungen" index={false} />
 
-<main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
-	<h1 class="text-2xl font-semibold">{m.moderation_title()}</h1>
-	<p class="mt-1 text-stone-600">{m.moderation_intro()}</p>
+<div class="mx-auto w-full max-w-4xl px-4 py-8">
+	<h1 class="text-2xl font-semibold">Meldungen</h1>
 	{#if error}<p role="alert" class="mt-3 text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 
 	{#if reports.length === 0}
@@ -72,7 +71,7 @@
 					</p>
 					{#if r.kind === 'photo' && !r.gone}
 						<img
-							src="/api/v1/photos/{r.target_id}/thumb"
+							src="/admin-api/v1/photos/{r.target_id}/thumb"
 							alt={r.excerpt}
 							class="mt-1 max-h-40 rounded"
 						/>
@@ -112,4 +111,4 @@
 			{/each}
 		</ul>
 	{/if}
-</main>
+</div>

@@ -70,10 +70,17 @@ Environment variables of `alvyo serve` (defaults match the dev stack):
 | `ALVYO_OJP_TOKEN` | unset — opentransportdata.swiss API key for public transport connections; without it the search answers 503 and the UI shows only SBB links |
 | `ALVYO_OJP_URL` | `https://api.opentransportdata.swiss/ojp20` |
 | `ALVYO_OIDC_PROVIDERS` | unset — comma-separated ids of OpenID Connect sign-in providers, e.g. `google`; each needs `ALVYO_OIDC_<ID>_ISSUER`, `_CLIENT_ID`, `_CLIENT_SECRET` and optionally `_NAME` (button label). Register `<ALVYO_PUBLIC_URL>/api/v1/auth/oidc/<id>/callback` as redirect URI at the provider. Playwright runs a fake provider (`web/tests/e2e/fake-idp.mjs`) |
+| `ALVYO_ADMIN_LISTEN` | `:8082` — the API with the admin portal's endpoints under `/admin-api/v1`; for the internal admin host only, never behind the public ingress |
+| `ALVYO_ADMIN_URL` | `ALVYO_PUBLIC_URL` — origin of the admin portal (`https://admin.alvyo.tellbow.ch` on the cluster) |
 | `ALVYO_RELAXED_LIMITS` | unset — `true` lifts the per-IP signup limit (5 per 10 min); Playwright sets it, never use it in production |
 
 The web app reads `API_INTERNAL_URL` (default `http://localhost:8080`) for
-server-side rendering and the Vite proxy.
+server-side rendering and the Vite proxy, `ADMIN_API_INTERNAL_URL`
+(default `http://localhost:8082`) likewise for `/admin-api`, and
+`ADMIN_URL`: unset, the admin portal is at `/admin` of the same host (as
+in development and the end-to-end tests); set, `/admin` redirects there.
+Make an account a moderator with `go run ./api/cmd/alvyo user role <name>
+moderator`.
 
 ## Code generation
 

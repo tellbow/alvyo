@@ -24,7 +24,8 @@ func TestFromEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 	if c.Listen != ":8080" || c.PublicURL != "https://alvyo.example" || c.LogLevel != slog.LevelInfo ||
-		c.SMTP.Port != 1025 || c.SMTP.TLS != "none" || c.TrustProxy || c.RelaxedLimits || len(c.OIDC) != 0 {
+		c.SMTP.Port != 1025 || c.SMTP.TLS != "none" || c.TrustProxy || c.RelaxedLimits || len(c.OIDC) != 0 ||
+		c.AdminListen != ":8082" || c.AdminURL != "https://alvyo.example" {
 		t.Errorf("defaults: %+v", c)
 	}
 

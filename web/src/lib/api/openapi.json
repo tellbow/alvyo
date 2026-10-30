@@ -16363,7 +16363,7 @@
   },
   "servers": [
     {
-      "url": "/api/v1"
+      "url": "/admin-api/v1"
     }
   ]
 }

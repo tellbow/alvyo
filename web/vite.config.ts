@@ -8,6 +8,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 // production Caddy does this routing.
 const proxy = {
 	'/api': process.env.API_INTERNAL_URL || 'http://localhost:8080',
+	'/admin-api': process.env.ADMIN_API_INTERNAL_URL || 'http://localhost:8082',
 	'/tiles': process.env.TILES_URL || 'http://localhost:8081'
 };
 

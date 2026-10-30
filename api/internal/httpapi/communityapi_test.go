@@ -166,8 +166,12 @@ func TestCommunity(t *testing.T) {
 	if code, _ := fan.social("PATCH", r+"/social", map[string]any{"comments_enabled": true}); code != http.StatusForbidden {
 		t.Errorf("fan switches comments: %d, want 403", code)
 	}
-	// A moderator may too, as can_moderate says.
-	if code, sc := mod.social("PATCH", r+"/social", map[string]any{"comments_enabled": true}); code != http.StatusOK || !sc.CommentsEnabled {
+	// A moderator may too, through the admin portal only (feedback issue 70).
+	if code, _ := mod.social("PATCH", r+"/social", map[string]any{"comments_enabled": true}); code != http.StatusForbidden {
+		t.Errorf("moderator switches comments on the public API: %d, want 403", code)
+	}
+	adminR := strings.Replace(r, "/api/v1", "/admin-api/v1", 1)
+	if code, sc := s.onAdmin(mod).social("PATCH", adminR+"/social", map[string]any{"comments_enabled": true}); code != http.StatusOK || !sc.CommentsEnabled {
 		t.Errorf("moderator switches comments on: %d", code)
 	}
 
@@ -185,8 +189,12 @@ func TestCommunity(t *testing.T) {
 	if code := report(fan, map[string]any{"kind": "route", "id": private.ID, "reason": "spam"}); code != http.StatusNotFound {
 		t.Errorf("report of a private route: %d, want 404", code)
 	}
-	if code, _ := fan.do("GET", "/api/v1/moderation/reports", nil); code != http.StatusForbidden {
+	if code, _ := s.onAdmin(fan).do("GET", "/admin-api/v1/moderation/reports", nil); code != http.StatusForbidden {
 		t.Errorf("fan reads reports: %d, want 403", code)
+	}
+	// Only the admin listener has them (feedback issue 70).
+	if code, _ := mod.do("GET", "/api/v1/moderation/reports", nil); code != http.StatusNotFound {
+		t.Errorf("reports on the public API: %d, want 404", code)
 	}
 	var queue struct {
 		Reports []struct {
@@ -198,19 +206,19 @@ func TestCommunity(t *testing.T) {
 			ItemID   string `json:"item_id"`
 		} `json:"reports"`
 	}
-	_, body = mod.do("GET", "/api/v1/moderation/reports", nil)
+	_, body = s.onAdmin(mod).do("GET", "/admin-api/v1/moderation/reports", nil)
 	_ = json.Unmarshal(body, &queue)
 	if len(queue.Reports) != 2 || queue.Reports[0].Excerpt != "Spam spam spam" || queue.Reports[0].Subject != "troll" ||
 		queue.Reports[0].Reports != 2 || queue.Reports[0].ItemKind != "route" || queue.Reports[0].ItemID != route.ID {
 		t.Fatalf("queue: %s", body)
 	}
-	if code, _ := mod.do("POST", "/api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "removed"}); code != http.StatusNoContent {
+	if code, _ := s.onAdmin(mod).do("POST", "/admin-api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "removed"}); code != http.StatusNoContent {
 		t.Fatalf("resolve: %d", code)
 	}
 	if _, sc := fan.social("GET", r+"/social", nil); sc.authors() != "fan,owner" {
 		t.Errorf("after removal: %s", sc.authors())
 	}
-	_, body = mod.do("GET", "/api/v1/moderation/reports", nil)
+	_, body = s.onAdmin(mod).do("GET", "/admin-api/v1/moderation/reports", nil)
 	if !strings.Contains(string(body), `"reports":[]`) {
 		t.Errorf("queue after resolving: %s", body)
 	}
@@ -283,18 +291,18 @@ func TestCommunity(t *testing.T) {
 
 	// A moderator is not banned from a report.
 	report(fan, map[string]any{"kind": "user", "username": "mod", "reason": "spam"})
-	_, body = mod.do("GET", "/api/v1/moderation/reports", nil)
+	_, body = s.onAdmin(mod).do("GET", "/admin-api/v1/moderation/reports", nil)
 	_ = json.Unmarshal(body, &queue)
-	if code, _ := mod.do("POST", "/api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "removed"}); code != http.StatusUnprocessableEntity {
+	if code, _ := s.onAdmin(mod).do("POST", "/admin-api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "removed"}); code != http.StatusUnprocessableEntity {
 		t.Errorf("banning a moderator: %d", code)
 	}
-	mod.do("POST", "/api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "dismissed"})
+	s.onAdmin(mod).do("POST", "/admin-api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "dismissed"})
 
 	// Reporting a user and removing bans them.
 	report(fan, map[string]any{"kind": "user", "username": "troll", "reason": "spam"})
-	_, body = mod.do("GET", "/api/v1/moderation/reports", nil)
+	_, body = s.onAdmin(mod).do("GET", "/admin-api/v1/moderation/reports", nil)
 	_ = json.Unmarshal(body, &queue)
-	mod.do("POST", "/api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "removed"})
+	s.onAdmin(mod).do("POST", "/admin-api/v1/moderation/reports/"+queue.Reports[0].ID+"/resolve", map[string]any{"resolution": "removed"})
 	var banned bool
 	_ = s.db.QueryRow(ctx, `SELECT banned_at IS NOT NULL FROM users WHERE username = 'troll'`).Scan(&banned)
 	if !banned {

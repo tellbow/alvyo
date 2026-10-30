@@ -66,8 +66,13 @@ export type Snow = components['schemas']['SnowOutputBody'];
  * functions. On the server the base URL must be absolute (`url.origin`);
  * hooks.server.ts rewrites it to the internal API address.
  */
-export function api(fetchFn: typeof fetch = fetch, origin = '') {
-	const client = createClient<paths>({ baseUrl: `${origin}/api/v1`, fetch: fetchFn });
+/** The API of the admin portal (feedback issue 70): the admin listener,
+ * with the moderators' endpoints. */
+export const adminApi = (fetchFn: typeof fetch = fetch, origin = '') =>
+	api(fetchFn, origin, '/admin-api/v1');
+
+export function api(fetchFn: typeof fetch = fetch, origin = '', prefix = '/api/v1') {
+	const client = createClient<paths>({ baseUrl: `${origin}${prefix}`, fetch: fetchFn });
 	client.use(unreachable);
 	return client;
 }

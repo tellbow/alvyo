@@ -436,7 +436,6 @@
 	"profile_since": "dabei seit {date}",
 	"profile_routes": "Routen",
 	"nav_feed": "Neuigkeiten",
-	"nav_moderation": "Moderation",
 	"community_likes": "{n} Mal gemerkt",
 	"community_comments": [
 		{
@@ -489,8 +488,6 @@
 	"account_pace_hint": "Wanderzeiten in Prozent der Zeiten auf den gelben Wegweisern: unter 100 % bist du schneller, darüber langsamer.",
 	"account_pace_signposts": "100 % – wie die Wegweiser",
 	"account_blocked": "Blockierte Personen",
-	"moderation_title": "Moderation",
-	"moderation_intro": "Offene Meldungen, die ältesten zuerst. Eine Entscheidung schliesst alle Meldungen zum selben Inhalt.",
 	"moderation_empty": "Keine offenen Meldungen.",
 	"moderation_kind_comment": "Kommentar",
 	"moderation_kind_user": "Person",

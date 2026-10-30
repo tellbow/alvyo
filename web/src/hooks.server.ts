@@ -4,8 +4,10 @@ import {
 	ATTR_HTTP_RESPONSE_STATUS_CODE,
 	ATTR_HTTP_ROUTE
 } from '@opentelemetry/semantic-conventions';
+import { redirect } from '@sveltejs/kit';
 import { sequence, type Handle, type HandleFetch } from '@sveltejs/kit/hooks';
-import { API_INTERNAL_URL } from '$app/env/private';
+import { ADMIN_API_INTERNAL_URL, ADMIN_URL, API_INTERNAL_URL } from '$app/env/private';
+import { adminRedirect } from '#lib/admin/host.js';
 import { api } from '#lib/api/client.js';
 import { prefixLocale } from '#lib/i18n.js';
 import {
@@ -32,6 +34,21 @@ defineCustomServerStrategy('custom-prefix', {
 
 /** Where the Go API is reachable from this server (not from browsers). */
 const apiInternalURL = () => API_INTERNAL_URL || 'http://localhost:8080';
+const adminAPIInternalURL = () => ADMIN_API_INTERNAL_URL || 'http://localhost:8082';
+
+/** With ADMIN_URL, the admin portal has a host of its own, inside the
+ * cluster's network only. The Host header decides: with ORIGIN set (the
+ * cluster), event.url always has the public host. */
+const handleAdminHost: Handle = ({ event, resolve }) => {
+	const to = adminRedirect(
+		ADMIN_URL,
+		event.request.headers.get('host') ?? event.url.host,
+		event.url.pathname,
+		event.url.search
+	);
+	if (to) redirect(307, to);
+	return resolve(event);
+};
 
 const handleParaglide: Handle = ({ event, resolve }) =>
 	// The request without the language prefix is not needed: reroute in
@@ -120,6 +137,7 @@ const handleMetrics: Handle = async ({ event, resolve }) => {
 
 export const handle: Handle = sequence(
 	handleMetrics,
+	handleAdminHost,
 	handleHeaders,
 	handleCompression,
 	handleParaglide,
@@ -133,8 +151,12 @@ export const handle: Handle = sequence(
  */
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
 	const url = new URL(request.url);
-	if (url.origin === event.url.origin && url.pathname.startsWith('/api/')) {
-		request = new Request(apiInternalURL() + url.pathname + url.search, request);
+	const admin = url.pathname.startsWith('/admin-api/');
+	if (url.origin === event.url.origin && (admin || url.pathname.startsWith('/api/'))) {
+		request = new Request(
+			(admin ? adminAPIInternalURL() : apiInternalURL()) + url.pathname + url.search,
+			request
+		);
 		const cookie = event.request.headers.get('cookie');
 		if (cookie) request.headers.set('cookie', cookie);
 		// The API's spans join the trace of this page.

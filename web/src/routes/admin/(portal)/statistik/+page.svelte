@@ -59,7 +59,7 @@
 					<tr>
 						<td class="px-4 py-2">{week.format(new Date(w.start))}</td>
 						{#each columns as [key] (key)}
-							<td class="px-4 py-2 text-right tabular-nums" class:text-stone-400={w[key] === 0}
+							<td class="px-4 py-2 text-right tabular-nums" class:text-stone-500={w[key] === 0}
 								>{number.format(w[key])}</td
 							>
 						{/each}

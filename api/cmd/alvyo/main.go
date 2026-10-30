@@ -14,10 +14,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -213,12 +215,19 @@ func serve(ctx context.Context) error {
 		Planner:     planner,
 		Images:      &og.Renderer{TilesURL: cfg.TilesURL, CacheDir: cfg.CacheDir},
 		Bugs:        bugStore,
-		Admin:       &admin.Store{DB: pool},
-		Reminders:   reminderStore,
-		Version:     version,
-		PublicURL:   cfg.PublicURL,
-		TrustProxy:  cfg.TrustProxy,
-		Limits:      limits,
+		Admin: &admin.Store{DB: pool, GraphHopper: cfg.GraphHopper, AltiDir: cfg.SwissALTI3DDir, Probes: []admin.Probe{
+			{Name: "GraphHopper", URL: cfg.GraphHopper + "/health"},
+			{Name: "Kachel-Cache", URL: cfg.TilesURL + "/healthz"},
+			{Name: "geo.admin", URL: "https://api3.geo.admin.ch/rest/services/height?easting=2600000&northing=1200000"},
+			{Name: "MeteoSwiss (data.geo.admin.ch)", URL: "https://data.geo.admin.ch/api/stac/v1/collections/ch.meteoschweiz.ogd-local-forecasting"},
+			{Name: "OJP (Verbindungen)", URL: cfg.OJPURL},
+			{Name: "Mailserver", URL: "tcp://" + net.JoinHostPort(cfg.SMTP.Host, strconv.Itoa(cfg.SMTP.Port))},
+		}},
+		Reminders:  reminderStore,
+		Version:    version,
+		PublicURL:  cfg.PublicURL,
+		TrustProxy: cfg.TrustProxy,
+		Limits:     limits,
 	}
 	handler, _ := httpapi.New(deps)
 	srv := &http.Server{

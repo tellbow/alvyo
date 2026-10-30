@@ -69,4 +69,12 @@ test('admin portal: users, items and the log with undo', async ({ page, browser 
 		.filter({ hasText: `«Werbung ${s}» privat gemacht` });
 	await unpublished.getByRole('button', { name: 'Rückgängig' }).click();
 	await expect(unpublished).toContainText('rückgängig gemacht');
+
+	// Statistik and System.
+	await page.getByRole('link', { name: 'Statistik' }).click();
+	await expect(page.getByTestId('admin-totals')).toContainText('Konten');
+	await expect(page.getByTestId('admin-weeks').locator('tbody tr')).toHaveCount(12);
+	await page.getByRole('link', { name: 'System' }).click();
+	await expect(page.getByTestId('admin-services')).toContainText('GraphHopper');
+	await expect(page.getByTestId('admin-data')).toContainText('Routing-Graph');
 });

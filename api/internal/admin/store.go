@@ -26,6 +26,11 @@ var (
 // (feedback issues 70, 72).
 type Store struct {
 	DB *pgxpool.Pool
+	// For «System»: GraphHopper's address, the swissALTI3D tiles ("" without)
+	// and the outside services to check.
+	GraphHopper string
+	AltiDir     string
+	Probes      []Probe
 }
 
 // Change is a row as it was before an action: what an undo writes back.
@@ -343,12 +348,16 @@ type User struct {
 	Role          string     `json:"role" enum:"user,moderator,admin"`
 	BannedAt      *time.Time `json:"banned_at,omitempty"`
 	CreatedAt     time.Time  `json:"created_at"`
-	LastSeenAt    *time.Time `json:"last_seen_at,omitempty" doc:"Last request of any of their sessions"`
+	LastSeenAt    *time.Time `json:"last_seen_at,omitempty" doc:"When one of their sessions was last used, to a day"`
 	Routes        int        `json:"routes"`
 	Journeys      int        `json:"journeys"`
 	Collections   int        `json:"collections"`
 	Sessions      int        `json:"sessions"`
 }
+
+// seen is when a session was last used: last_seen_at is written when it is
+// extended (once a day at most), a new one counts from its start.
+const seen = `coalesce(last_seen_at, created_at)`
 
 // UserCounts are the totals over all accounts that match a search.
 type UserCounts struct {
@@ -369,14 +378,14 @@ func (s *Store) Users(ctx context.Context, q string, limit, offset int) ([]User,
 	q = strings.TrimSpace(q)
 	var c UserCounts
 	if err := s.DB.QueryRow(ctx, `SELECT count(*),
-			count(*) FILTER (WHERE EXISTS (SELECT 1 FROM sessions WHERE user_id = u.id AND last_seen_at > now() - interval '30 days')),
+			count(*) FILTER (WHERE EXISTS (SELECT 1 FROM sessions WHERE user_id = u.id AND `+seen+` > now() - interval '30 days')),
 			count(*) FILTER (WHERE u.banned_at IS NOT NULL)
 		FROM users u WHERE `+userMatch, q).Scan(&c.Total, &c.Active, &c.Banned); err != nil {
 		return nil, c, err
 	}
 	rows, err := s.DB.Query(ctx, `SELECT u.id, u.username, u.display_name, u.email, u.email_verified_at IS NOT NULL, u.role,
 			u.banned_at, u.created_at,
-			(SELECT max(last_seen_at) FROM sessions WHERE user_id = u.id),
+			(SELECT max(`+seen+`) FROM sessions WHERE user_id = u.id),
 			(SELECT count(*) FROM routes WHERE owner_id = u.id AND journey_id IS NULL),
 			(SELECT count(*) FROM journeys WHERE owner_id = u.id),
 			(SELECT count(*) FROM collections WHERE owner_id = u.id),

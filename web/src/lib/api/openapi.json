@@ -220,6 +220,38 @@
         ],
         "type": "object"
       },
+      "AdminSystemOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DataSet"
+            },
+            "type": "array"
+          },
+          "migration": {
+            "description": "The database's last migration",
+            "format": "int64",
+            "type": "integer"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/Service"
+            },
+            "type": "array"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "services",
+          "version",
+          "data",
+          "migration"
+        ],
+        "type": "object"
+      },
       "AdminUsersOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -1301,6 +1333,35 @@
           "profile",
           "anchors",
           "legs"
+        ],
+        "type": "object"
+      },
+      "DataSet": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "description": "When it was last loaded or is for",
+            "format": "date-time",
+            "type": "string"
+          },
+          "count": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "stale": {
+            "description": "Older than its job's schedule allows",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "stale"
         ],
         "type": "object"
       },
@@ -5330,6 +5391,32 @@
         ],
         "type": "object"
       },
+      "Service": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "description": "Why it is down",
+            "type": "string"
+          },
+          "ms": {
+            "description": "How long it took to answer",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "up": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "up",
+          "ms"
+        ],
+        "type": "object"
+      },
       "SessionOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -5902,6 +5989,25 @@
         ],
         "type": "object"
       },
+      "Stats": {
+        "additionalProperties": false,
+        "properties": {
+          "totals": {
+            "$ref": "#/components/schemas/Totals"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/Week"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "totals",
+          "weeks"
+        ],
+        "type": "object"
+      },
       "Status": {
         "additionalProperties": false,
         "properties": {
@@ -6166,6 +6272,63 @@
         },
         "required": [
           "token"
+        ],
+        "type": "object"
+      },
+      "Totals": {
+        "additionalProperties": false,
+        "properties": {
+          "accounts": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "active_30": {
+            "description": "Accounts seen in the last 30 days",
+            "format": "int64",
+            "type": "integer"
+          },
+          "active_7": {
+            "description": "Accounts seen in the last 7 days",
+            "format": "int64",
+            "type": "integer"
+          },
+          "collections": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "comments": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "hikes": {
+            "description": "Hikes recorded with the app",
+            "format": "int64",
+            "type": "integer"
+          },
+          "journeys": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "photos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "routes": {
+            "description": "Planned routes, not stages",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "accounts",
+          "active_7",
+          "active_30",
+          "routes",
+          "hikes",
+          "journeys",
+          "collections",
+          "photos",
+          "comments"
         ],
         "type": "object"
       },
@@ -6889,6 +7052,44 @@
           "days"
         ],
         "type": "object"
+      },
+      "Week": {
+        "additionalProperties": false,
+        "properties": {
+          "accounts": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "comments": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "hikes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "journeys": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "routes": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "start": {
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "accounts",
+          "routes",
+          "hikes",
+          "journeys",
+          "comments"
+        ],
+        "type": "object"
       }
     }
   },
@@ -7075,6 +7276,68 @@
           }
         },
         "summary": "Undo an action, unless changed again since (a change of role: admins)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "operationId": "admin-stats",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Accounts and tours, in total and for each of the last 12 weeks (moderators)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/system": {
+      "get": {
+        "operationId": "admin-system",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSystemOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Outside services, how fresh the jobs' data is, versions (moderators)",
         "tags": [
           "admin"
         ]

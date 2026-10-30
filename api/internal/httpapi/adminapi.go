@@ -103,6 +103,18 @@ func adminError(err error) error {
 	return err
 }
 
+type adminSystemOutput struct {
+	Body struct {
+		admin.System
+		Services []admin.Service `json:"services"`
+		Version  string          `json:"version"`
+	}
+}
+
+type adminStatsOutput struct {
+	Body admin.Stats
+}
+
 // registerAdmin adds the admin portal's endpoints (NewAdmin only).
 func registerAdmin(api huma.API, d Deps) {
 	moderator := func(ctx context.Context) (dbq.User, error) {
@@ -258,5 +270,33 @@ func registerAdmin(api huma.API, d Deps) {
 			return nil, err
 		}
 		return nil, adminError(d.Admin.Undo(ctx, u.ID, uuid.MustParse(in.ID), u.Role == "admin"))
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "admin-system", Method: http.MethodGet, Path: "/admin/system",
+		Summary: "Outside services, how fresh the jobs' data is, versions (moderators)", Tags: tags,
+	}, func(ctx context.Context, _ *struct{}) (*adminSystemOutput, error) {
+		if _, err := moderator(ctx); err != nil {
+			return nil, err
+		}
+		out := &adminSystemOutput{}
+		out.Body.Version = d.Version
+		out.Body.Services = admin.Services(ctx, d.Admin.Probes)
+		var err error
+		out.Body.System, err = d.Admin.SystemInfo(ctx)
+		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "admin-stats", Method: http.MethodGet, Path: "/admin/stats",
+		Summary: "Accounts and tours, in total and for each of the last 12 weeks (moderators)", Tags: tags,
+	}, func(ctx context.Context, _ *struct{}) (*adminStatsOutput, error) {
+		if _, err := moderator(ctx); err != nil {
+			return nil, err
+		}
+		out := &adminStatsOutput{}
+		var err error
+		out.Body, err = d.Admin.Stats(ctx, 12)
+		return out, err
 	})
 }

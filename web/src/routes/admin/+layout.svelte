@@ -15,7 +15,9 @@
 		{ route: '/admin/(portal)/meldungen', path: '/admin/meldungen', label: 'Meldungen' },
 		{ route: '/admin/(portal)/nutzer', path: '/admin/nutzer', label: 'Nutzer' },
 		{ route: '/admin/(portal)/inhalte', path: '/admin/inhalte', label: 'Inhalte' },
-		{ route: '/admin/(portal)/verlauf', path: '/admin/verlauf', label: 'Verlauf' }
+		{ route: '/admin/(portal)/verlauf', path: '/admin/verlauf', label: 'Verlauf' },
+		{ route: '/admin/(portal)/statistik', path: '/admin/statistik', label: 'Statistik' },
+		{ route: '/admin/(portal)/system', path: '/admin/system', label: 'System' }
 	] as const;
 
 	async function logout() {

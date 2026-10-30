@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/tellbow/alvyo/api/internal/admin"
 )
 
 // The admin portal (feedback issues 70, 72): find people and items, act on
@@ -177,5 +180,67 @@ func TestAdminPortal(t *testing.T) {
 	}
 	if len(log.Entries) == 3 && (log.Entries[2].UndoneAt == nil || log.Entries[2].Undoable) {
 		t.Errorf("the undone ban: %s", body)
+	}
+}
+
+// «System» checks the outside services and says how fresh the data is;
+// «Statistik» counts people, not the system's own accounts.
+func TestAdminSystemAndStats(t *testing.T) {
+	up := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	t.Cleanup(up.Close)
+	broken := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusBadGateway)
+	}))
+	t.Cleanup(broken.Close)
+	s := newTestServerWith(t, func(d *Deps) {
+		d.Admin.Probes = []admin.Probe{{Name: "up", URL: up.URL}, {Name: "broken", URL: broken.URL}, {Name: "closed", URL: "tcp://127.0.0.1:1"}}
+		d.Admin.GraphHopper = up.URL // answers no /info
+	})
+	ctx := context.Background()
+	mod := s.client(t)
+	s.signup(mod, "mod@example.ch", "mod")
+	if _, err := s.db.Exec(ctx, `UPDATE users SET role = 'moderator', email_verified_at = now() WHERE username = 'mod'`); err != nil {
+		t.Fatal(err)
+	}
+	m := s.onAdmin(mod)
+	mod.do("POST", "/api/v1/routes", lineRoute("Gipfel", "public", 8.0, 46.6, "T2"))
+
+	var sys struct {
+		Services []struct {
+			Name string
+			Up   bool
+		} `json:"services"`
+		Data []struct {
+			Name  string
+			Stale bool
+			Count *int64
+		} `json:"data"`
+		Migration int64  `json:"migration"`
+		Version   string `json:"version"`
+	}
+	code, body := m.do("GET", "/admin-api/v1/admin/system", nil)
+	_ = json.Unmarshal(body, &sys)
+	if code != http.StatusOK || len(sys.Services) != 3 || !sys.Services[0].Up || sys.Services[1].Up || sys.Services[2].Up {
+		t.Fatalf("services: %d %s", code, body)
+	}
+	if sys.Migration < 45 || sys.Version != "test" || len(sys.Data) == 0 || !sys.Data[0].Stale {
+		t.Errorf("system: %s", body)
+	}
+
+	var st struct {
+		Totals struct {
+			Accounts, Routes int
+			Active7          int `json:"active_7"`
+		} `json:"totals"`
+		Weeks []struct{ Accounts, Routes int } `json:"weeks"`
+	}
+	_, body = m.do("GET", "/admin-api/v1/admin/stats", nil)
+	_ = json.Unmarshal(body, &st)
+	// A session just started counts as active (last_seen_at is written a day later).
+	if st.Totals.Accounts != 1 || st.Totals.Routes != 1 || st.Totals.Active7 != 1 || len(st.Weeks) != 12 || st.Weeks[0].Accounts != 1 || st.Weeks[0].Routes != 1 {
+		t.Errorf("stats: %s", body)
+	}
+	if code, _ := s.client(t).do("GET", "/api/v1/admin/stats", nil); code != http.StatusNotFound {
+		t.Errorf("stats on the public API: %d, want 404", code)
 	}
 }

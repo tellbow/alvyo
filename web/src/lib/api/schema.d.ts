@@ -72,6 +72,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Accounts and tours, in total and for each of the last 12 weeks (moderators) */
+        get: operations["admin-stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/system": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Outside services, how fresh the jobs' data is, versions (moderators) */
+        get: operations["admin-system"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -2896,6 +2930,16 @@ export interface components {
             /** @enum {string} */
             role: "user" | "moderator" | "admin";
         };
+        AdminSystemOutputBody: {
+            data: components["schemas"]["DataSet"][];
+            /**
+             * Format: int64
+             * @description The database's last migration
+             */
+            migration: number;
+            services: components["schemas"]["Service"][];
+            version: string;
+        };
         AdminUsersOutputBody: {
             counts: components["schemas"]["UserCounts"];
             /** Format: int64 */
@@ -3261,6 +3305,19 @@ export interface components {
              * @enum {string}
              */
             visibility: "private" | "unlisted" | "public";
+        };
+        DataSet: {
+            /**
+             * Format: date-time
+             * @description When it was last loaded or is for
+             */
+            at?: string;
+            /** Format: int64 */
+            count?: number;
+            name: string;
+            note?: string;
+            /** @description Older than its job's schedule allows */
+            stale: boolean;
         };
         DeleteMeInputBody: {
             /** @description Current password, as confirmation; accounts without one must have logged in within 15 minutes */
@@ -4596,6 +4653,17 @@ export interface components {
         SearchPlacesOutputBody: {
             places: components["schemas"]["Found"][];
         };
+        Service: {
+            /** @description Why it is down */
+            detail?: string;
+            /**
+             * Format: int64
+             * @description How long it took to answer
+             */
+            ms: number;
+            name: string;
+            up: boolean;
+        };
         SessionOutputBody: {
             user: components["schemas"]["Me"];
         };
@@ -4773,6 +4841,10 @@ export interface components {
             route_id?: string;
             title: string;
         };
+        Stats: {
+            totals: components["schemas"]["Totals"];
+            weeks: components["schemas"]["Week"][];
+        };
         Status: {
             /**
              * Format: int64
@@ -4866,6 +4938,38 @@ export interface components {
         };
         TokenInputBody: {
             token: string;
+        };
+        Totals: {
+            /** Format: int64 */
+            accounts: number;
+            /**
+             * Format: int64
+             * @description Accounts seen in the last 30 days
+             */
+            active_30: number;
+            /**
+             * Format: int64
+             * @description Accounts seen in the last 7 days
+             */
+            active_7: number;
+            /** Format: int64 */
+            collections: number;
+            /** Format: int64 */
+            comments: number;
+            /**
+             * Format: int64
+             * @description Hikes recorded with the app
+             */
+            hikes: number;
+            /** Format: int64 */
+            journeys: number;
+            /** Format: int64 */
+            photos: number;
+            /**
+             * Format: int64
+             * @description Planned routes, not stages
+             */
+            routes: number;
         };
         TrackSummary: {
             /** Format: double */
@@ -5094,6 +5198,20 @@ export interface components {
             /** @description start, top (the highest point), end */
             roles: string[];
         };
+        Week: {
+            /** Format: int64 */
+            accounts: number;
+            /** Format: int64 */
+            comments: number;
+            /** Format: int64 */
+            hikes: number;
+            /** Format: int64 */
+            journeys: number;
+            /** Format: int64 */
+            routes: number;
+            /** Format: date */
+            start: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -5216,6 +5334,64 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Stats"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-system": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSystemOutputBody"];
+                };
             };
             /** @description Error */
             default: {

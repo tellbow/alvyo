@@ -46,6 +46,22 @@ func TestAdminPortal(t *testing.T) {
 		t.Fatalf("users: %s", body)
 	}
 	trollID := users.Users[0].ID
+
+	// All accounts, by pages of 50, with the totals.
+	var all struct {
+		Users  []struct{ Username string } `json:"users"`
+		Counts struct{ Total, Banned int } `json:"counts"`
+	}
+	_, body = m.do("GET", "/admin-api/v1/admin/users", nil)
+	_ = json.Unmarshal(body, &all)
+	if len(all.Users) != 3 || all.Users[0].Username != "troll" || all.Counts.Total != 3 || all.Counts.Banned != 0 {
+		t.Errorf("all users: %s", body)
+	}
+	_, body = m.do("GET", "/admin-api/v1/admin/users?page=2", nil)
+	_ = json.Unmarshal(body, &all)
+	if len(all.Users) != 0 || all.Counts.Total != 3 {
+		t.Errorf("page 2: %s", body)
+	}
 	if code, _ := mod.do("GET", "/api/v1/admin/users", nil); code != http.StatusNotFound {
 		t.Errorf("admin users on the public API: %d, want 404", code)
 	}
@@ -64,6 +80,11 @@ func TestAdminPortal(t *testing.T) {
 	}
 	if code, _ := troll.do("GET", "/api/v1/me", nil); code != http.StatusUnauthorized {
 		t.Errorf("banned troll still logged in: %d", code)
+	}
+	_, body = m.do("GET", "/admin-api/v1/admin/users", nil)
+	_ = json.Unmarshal(body, &all)
+	if all.Counts.Banned != 1 {
+		t.Errorf("banned: %s", body)
 	}
 	if code, _ := m.do("POST", "/admin-api/v1/admin/users/"+trollID+"/ban", nil); code != http.StatusConflict {
 		t.Errorf("ban twice: %d, want 409", code)

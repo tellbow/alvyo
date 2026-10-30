@@ -223,6 +223,13 @@
       "AdminUsersOutputBody": {
         "additionalProperties": false,
         "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/UserCounts"
+          },
+          "page_size": {
+            "format": "int64",
+            "type": "integer"
+          },
           "users": {
             "items": {
               "$ref": "#/components/schemas/User"
@@ -231,7 +238,9 @@
           }
         },
         "required": [
-          "users"
+          "users",
+          "counts",
+          "page_size"
         ],
         "type": "object"
       },
@@ -6668,6 +6677,30 @@
         ],
         "type": "object"
       },
+      "UserCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "description": "Seen in the last 30 days",
+            "format": "int64",
+            "type": "integer"
+          },
+          "banned": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "active",
+          "banned"
+        ],
+        "type": "object"
+      },
       "UserRef": {
         "additionalProperties": false,
         "properties": {
@@ -7052,14 +7085,27 @@
         "operationId": "admin-users",
         "parameters": [
           {
-            "description": "Name, e-mail address, id, link or a word of the title",
+            "description": "Name, display name or e-mail address; all if left out",
             "explode": false,
             "in": "query",
             "name": "q",
             "schema": {
-              "description": "Name, e-mail address, id, link or a word of the title",
+              "description": "Name, display name or e-mail address; all if left out",
               "maxLength": 200,
               "type": "string"
+            }
+          },
+          {
+            "description": "Page of 50 accounts, newest first",
+            "explode": false,
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page of 50 accounts, newest first",
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
             }
           }
         ],
@@ -7085,7 +7131,7 @@
             "description": "Error"
           }
         },
-        "summary": "Accounts by name or e-mail address, newest first (moderators)",
+        "summary": "Accounts by name or e-mail address, newest first, by pages, with totals (moderators)",
         "tags": [
           "admin"
         ]

@@ -79,7 +79,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Accounts by name or e-mail address, newest first (moderators) */
+        /** Accounts by name or e-mail address, newest first, by pages, with totals (moderators) */
         get: operations["admin-users"];
         put?: never;
         post?: never;
@@ -2897,6 +2897,9 @@ export interface components {
             role: "user" | "moderator" | "admin";
         };
         AdminUsersOutputBody: {
+            counts: components["schemas"]["UserCounts"];
+            /** Format: int64 */
+            page_size: number;
             users: components["schemas"]["User"][];
         };
         Along: {
@@ -5025,6 +5028,17 @@ export interface components {
             sessions: number;
             username: string;
         };
+        UserCounts: {
+            /**
+             * Format: int64
+             * @description Seen in the last 30 days
+             */
+            active: number;
+            /** Format: int64 */
+            banned: number;
+            /** Format: int64 */
+            total: number;
+        };
         UserRef: {
             display_name: string;
             username: string;
@@ -5217,8 +5231,10 @@ export interface operations {
     "admin-users": {
         parameters: {
             query?: {
-                /** @description Name, e-mail address, id, link or a word of the title */
+                /** @description Name, display name or e-mail address; all if left out */
                 q?: string;
+                /** @description Page of 50 accounts, newest first */
+                page?: number;
             };
             header?: never;
             path?: never;

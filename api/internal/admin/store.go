@@ -350,9 +350,30 @@ type User struct {
 	Sessions      int        `json:"sessions"`
 }
 
-// Users finds accounts by name, display name or e-mail address (all, newest
-// first, for an empty query).
-func (s *Store) Users(ctx context.Context, q string, limit int) ([]User, error) {
+// UserCounts are the totals over all accounts that match a search.
+type UserCounts struct {
+	Total  int `json:"total"`
+	Active int `json:"active" doc:"Seen in the last 30 days"`
+	Banned int `json:"banned"`
+}
+
+// userMatch is the search over username, display name and e-mail address;
+// $1 is the term, empty for all. Not the system's own accounts at
+// alvyo.invalid (wanderland, the owner of the official routes).
+const userMatch = `u.email NOT LIKE '%@alvyo.invalid' AND ($1 = '' OR strpos(lower(u.username::text), lower($1)) > 0 OR strpos(lower(u.display_name), lower($1)) > 0
+	OR strpos(lower(u.email::text), lower($1)) > 0)`
+
+// Users finds accounts by name, display name or e-mail address (all for an
+// empty query), newest first, limit from offset, with the totals.
+func (s *Store) Users(ctx context.Context, q string, limit, offset int) ([]User, UserCounts, error) {
+	q = strings.TrimSpace(q)
+	var c UserCounts
+	if err := s.DB.QueryRow(ctx, `SELECT count(*),
+			count(*) FILTER (WHERE EXISTS (SELECT 1 FROM sessions WHERE user_id = u.id AND last_seen_at > now() - interval '30 days')),
+			count(*) FILTER (WHERE u.banned_at IS NOT NULL)
+		FROM users u WHERE `+userMatch, q).Scan(&c.Total, &c.Active, &c.Banned); err != nil {
+		return nil, c, err
+	}
 	rows, err := s.DB.Query(ctx, `SELECT u.id, u.username, u.display_name, u.email, u.email_verified_at IS NOT NULL, u.role,
 			u.banned_at, u.created_at,
 			(SELECT max(last_seen_at) FROM sessions WHERE user_id = u.id),
@@ -360,14 +381,12 @@ func (s *Store) Users(ctx context.Context, q string, limit int) ([]User, error) 
 			(SELECT count(*) FROM journeys WHERE owner_id = u.id),
 			(SELECT count(*) FROM collections WHERE owner_id = u.id),
 			(SELECT count(*) FROM sessions WHERE user_id = u.id AND expires_at > now())
-		FROM users u
-		WHERE $1 = '' OR strpos(lower(u.username::text), lower($1)) > 0 OR strpos(lower(u.display_name), lower($1)) > 0
-			OR strpos(lower(u.email::text), lower($1)) > 0
-		ORDER BY u.created_at DESC LIMIT $2`, strings.TrimSpace(q), limit)
+		FROM users u WHERE `+userMatch+`
+		ORDER BY u.created_at DESC, u.id LIMIT $2 OFFSET $3`, q, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, c, err
 	}
-	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (User, error) {
+	users, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (User, error) {
 		var u User
 		var id uuid.UUID
 		err := r.Scan(&id, &u.Username, &u.DisplayName, &u.Email, &u.EmailVerified, &u.Role, &u.BannedAt, &u.CreatedAt,
@@ -375,6 +394,7 @@ func (s *Store) Users(ctx context.Context, q string, limit int) ([]User, error) 
 		u.ID = id.String()
 		return u, err
 	})
+	return users, c, err
 }
 
 // Item is a route, journey or collection as the admin portal lists it.

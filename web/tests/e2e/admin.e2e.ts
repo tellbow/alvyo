@@ -36,8 +36,13 @@ test('admin portal: users, items and the log with undo', async ({ page, browser 
 		}
 	});
 
-	// Nutzer: ban, and take it back right away.
+	// Nutzer: everyone, counted; ban, and take it back right away.
+	await page.goto('/admin/nutzer');
+	await expect(page.getByTestId('admin-user-counts')).toContainText(
+		/\d+ Konten · \d+ in den letzten 30 Tagen aktiv/
+	);
 	await page.goto(`/admin/nutzer?q=${troll}`);
+	await expect(page.getByTestId('admin-user-counts')).toContainText('1 Konto gefunden');
 	const user = page.getByTestId('admin-user').filter({ hasText: `@${troll}` });
 	await expect(user).toContainText('1 Route ·');
 	await user.getByRole('button', { name: 'Sperren' }).click();

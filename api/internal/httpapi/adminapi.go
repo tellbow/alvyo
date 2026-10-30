@@ -30,9 +30,19 @@ type adminQueryInput struct {
 	Q string `query:"q" maxLength:"200" doc:"Name, e-mail address, id, link or a word of the title"`
 }
 
+type adminUsersInput struct {
+	Q    string `query:"q" maxLength:"200" doc:"Name, display name or e-mail address; all if left out"`
+	Page int    `query:"page" minimum:"1" default:"1" doc:"Page of 50 accounts, newest first"`
+}
+
+// adminUsersPage is the number of accounts per page.
+const adminUsersPage = 50
+
 type adminUsersOutput struct {
 	Body struct {
-		Users []admin.User `json:"users"`
+		Users    []admin.User     `json:"users"`
+		Counts   admin.UserCounts `json:"counts"`
+		PageSize int              `json:"page_size"`
 	}
 }
 
@@ -155,14 +165,15 @@ func registerAdmin(api huma.API, d Deps) {
 
 	huma.Register(api, huma.Operation{
 		OperationID: "admin-users", Method: http.MethodGet, Path: "/admin/users",
-		Summary: "Accounts by name or e-mail address, newest first (moderators)", Tags: tags,
-	}, func(ctx context.Context, in *adminQueryInput) (*adminUsersOutput, error) {
+		Summary: "Accounts by name or e-mail address, newest first, by pages, with totals (moderators)", Tags: tags,
+	}, func(ctx context.Context, in *adminUsersInput) (*adminUsersOutput, error) {
 		if _, err := moderator(ctx); err != nil {
 			return nil, err
 		}
 		out := &adminUsersOutput{}
+		out.Body.PageSize = adminUsersPage
 		var err error
-		out.Body.Users, err = d.Admin.Users(ctx, in.Q, 100)
+		out.Body.Users, out.Body.Counts, err = d.Admin.Users(ctx, in.Q, adminUsersPage, (in.Page-1)*adminUsersPage)
 		return out, err
 	})
 	userAction("admin-ban", "/admin/users/{id}/ban", "Ban a user: no login, their items private", d.Admin.Ban)

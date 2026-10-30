@@ -10,6 +10,19 @@
 	let { data } = $props();
 	const isAdmin = $derived(data.user?.role === 'admin');
 	const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+	const pageHref = (n: number) => {
+		const params = [data.q && `q=${encodeURIComponent(data.q)}`, n > 1 && `page=${n}`].filter(
+			Boolean
+		);
+		return `${resolve('/admin/(portal)/nutzer')}${params.length ? `?${params.join('&')}` : ''}`;
+	};
+	const counts = $derived(
+		[
+			`${count(data.counts.total, 'Konto', 'Konten')}${data.q ? ' gefunden' : ''}`,
+			`${data.counts.active} in den letzten 30 Tagen aktiv`,
+			`${data.counts.banned} gesperrt`
+		].join(' · ')
+	);
 	let done = $state<{ text: string; logId?: string }>();
 	let error = $state('');
 
@@ -54,6 +67,7 @@
 	<UndoBar bind:done />
 	{#if error}<p role="alert" class="mb-4 text-sm text-red-700 dark:text-red-400">{error}</p>{/if}
 
+	<p class="mb-3 text-sm text-stone-600" data-testid="admin-user-counts">{counts}</p>
 	{#if data.users.length === 0}
 		<p class="text-stone-600">Niemand gefunden.</p>
 	{/if}
@@ -139,4 +153,15 @@
 			</li>
 		{/each}
 	</ul>
+	{#if data.pages > 1}
+		<nav class="mt-6 flex items-center justify-between text-sm" aria-label="Seiten">
+			{#if data.page > 1}
+				<a class="underline" href={pageHref(data.page - 1)}>← Neuere</a>
+			{:else}<span></span>{/if}
+			<span class="text-stone-600">Seite {data.page} von {data.pages}</span>
+			{#if data.page < data.pages}
+				<a class="underline" href={pageHref(data.page + 1)}>Ältere →</a>
+			{:else}<span></span>{/if}
+		</nav>
+	{/if}
 </div>

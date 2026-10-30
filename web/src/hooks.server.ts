@@ -4,10 +4,9 @@ import {
 	ATTR_HTTP_RESPONSE_STATUS_CODE,
 	ATTR_HTTP_ROUTE
 } from '@opentelemetry/semantic-conventions';
-import { redirect } from '@sveltejs/kit';
 import { sequence, type Handle, type HandleFetch } from '@sveltejs/kit/hooks';
 import { ADMIN_API_INTERNAL_URL, ADMIN_URL, API_INTERNAL_URL } from '$app/env/private';
-import { adminRedirect } from '#lib/admin/host.js';
+import { adminHost } from '#lib/admin/host.js';
 import { api } from '#lib/api/client.js';
 import { prefixLocale } from '#lib/i18n.js';
 import {
@@ -37,18 +36,8 @@ const apiInternalURL = () => API_INTERNAL_URL || 'http://localhost:8080';
 const adminAPIInternalURL = () => ADMIN_API_INTERNAL_URL || 'http://localhost:8082';
 
 /** With ADMIN_URL, the admin portal has a host of its own, inside the
- * cluster's network only. The Host header decides: with ORIGIN set (the
- * cluster), event.url always has the public host. */
-const handleAdminHost: Handle = ({ event, resolve }) => {
-	const to = adminRedirect(
-		ADMIN_URL,
-		event.request.headers.get('host') ?? event.url.host,
-		event.url.pathname,
-		event.url.search
-	);
-	if (to) redirect(307, to);
-	return resolve(event);
-};
+ * cluster's network only. */
+const handleAdminHost: Handle = (input) => adminHost(ADMIN_URL)(input);
 
 const handleParaglide: Handle = ({ event, resolve }) =>
 	// The request without the language prefix is not needed: reroute in

@@ -27,6 +27,7 @@ class TourCard extends StatelessWidget {
     this.tags = const [],
     this.trailing,
     this.visibility,
+    this.image,
   });
 
   /// «Route», «Etappentour · 6 Etappen»: in capitals above the title; a
@@ -53,6 +54,9 @@ class TourCard extends StatelessWidget {
   /// One's own: private, unlisted or public, as a badge.
   final String? visibility;
 
+  /// A map above the text: [RoutePicture].
+  final Widget? image;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -71,43 +75,49 @@ class TourCard extends StatelessWidget {
     return ItemCard(
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 14, 12, 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    Text.rich(
-                      TextSpan(
-                        text: kind.toUpperCase(),
-                        children: [
-                          if (owner case final o?)
-                            TextSpan(
-                              text: ' $o',
-                              style: small?.copyWith(color: scheme.onSurface, letterSpacing: 0),
-                            ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (image case final i?) AspectRatio(aspectRatio: 3, child: i),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 12, 14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 4,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            text: kind.toUpperCase(),
+                            children: [
+                              if (owner case final o?)
+                                TextSpan(
+                                  text: ' $o',
+                                  style: small?.copyWith(color: scheme.onSurface, letterSpacing: 0),
+                                ),
+                            ],
+                          ),
+                          style: small,
+                        ),
+                        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                        Text(figures, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+                        if (visibility case final v?) VisibilityBadge(v),
+                        if (note case final n?) Text(n, style: theme.textTheme.bodySmall),
+                        if (stagesDone case final done? when stages > 0) ...[
+                          const SizedBox(height: 4),
+                          StageBar(done: done, total: stages),
                         ],
-                      ),
-                      style: small,
+                        if (tags.isNotEmpty) TagChips(tags),
+                      ],
                     ),
-                    Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                    Text(figures, style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
-                    if (visibility case final v?) VisibilityBadge(v),
-                    if (note case final n?) Text(n, style: theme.textTheme.bodySmall),
-                    if (stagesDone case final done? when stages > 0) ...[
-                      const SizedBox(height: 4),
-                      StageBar(done: done, total: stages),
-                    ],
-                    if (tags.isNotEmpty) TagChips(tags),
-                  ],
-                ),
+                  ),
+                  ?trailing,
+                ],
               ),
-              ?trailing,
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -181,4 +191,42 @@ class VisibilityBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The Hero tag of a route's map from its card to [RouteScreen].
+String routeImageTag(String id) => 'route-image-$id';
+
+/// The map of a route's preview image without the text band below it (og.go:
+/// 1200 × 630, the lowest 120 text), filling its box; it fades in once loaded.
+class RoutePicture extends StatelessWidget {
+  const RoutePicture({super.key, required this.url, required this.headers});
+  final String url;
+  final Map<String, String> headers;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    child: FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: ClipRect(
+        child: Align(
+          alignment: Alignment.topCenter,
+          heightFactor: 510 / 630,
+          child: Image.network(
+            url,
+            headers: headers,
+            width: 1200,
+            height: 630,
+            excludeFromSemantics: true,
+            frameBuilder: (_, child, frame, sync) => sync
+                ? child
+                : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: Durations.medium2, child: child),
+            // Offline: the plain box.
+            errorBuilder: (_, _, _) => const SizedBox(width: 1200, height: 630),
+          ),
+        ),
+      ),
+    ),
+  );
 }

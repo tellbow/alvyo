@@ -28,6 +28,7 @@ import 'done.dart';
 import 'item_menu.dart';
 import 'live_sheet.dart';
 import 'panel_tabs.dart';
+import 'tour_card.dart';
 import 'navigate_screen.dart';
 import 'photos.dart';
 import 'report_dialog.dart';
@@ -48,10 +49,15 @@ class RouteScreen extends StatefulWidget {
     this.map,
     this.startHike = false,
     this.fromWatch = false,
+    this.image,
   });
   final Api api;
   final String id;
   final String title;
+
+  /// Its card's map ([Api.routeImageUrl]): flies in from the card and
+  /// stands in for the map until the map shows the line.
+  final String? image;
 
   /// Starts following the route once loaded, as «Los» does (a tour chosen
   /// on Aufzeichnen).
@@ -87,6 +93,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
       .then<SnowAlong?>((s) => s, onError: (_) => null);
   MapController? _map;
   StyleController? _style;
+  bool _lineShown = false;
   late final Future<List<Poi>> _pois = widget.api.pois(widget.id).catchError((_) => <Poi>[]);
   int _poiCount = 0;
   _Tab _tab = _Tab.overview;
@@ -527,6 +534,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     if (_style case final style?) showProfilePoint(style, at).catchError((_) {});
   }
 
+  Widget _picture() => Hero(
+    tag: routeImageTag(widget.id),
+    child: RoutePicture(url: widget.image!, headers: widget.api.authHeaders),
+  );
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -552,7 +564,10 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
           if (snap.hasError) {
             return ErrorState(error: snap.error, onRetry: () => setState(() => _route = _load()));
           }
-          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+          const loading = Center(child: CircularProgressIndicator());
+          if (!snap.hasData) {
+            return widget.image == null ? loading : MapSplit(share: 0.5, map: _picture(), panel: loading);
+          }
           final r = snap.data!;
           final pack = _pack;
           final tabs = [
@@ -590,6 +605,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                             await _places.addTo(style);
                             await showMyLocation(_map);
                             await addRouteLine(style, r.line);
+                            if (mounted) setState(() => _lineShown = true);
                             await addHighlight(style);
                             await addProfilePoint(style);
                             await _places.addAlong(style, await _pois);
@@ -597,6 +613,16 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                         );
                       },
                     ),
+                if (widget.image != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: AnimatedOpacity(
+                        opacity: _lineShown ? 0 : 1,
+                        duration: Durations.medium4,
+                        child: _picture(),
+                      ),
+                    ),
+                  ),
                 Positioned(top: 12, left: 12, right: 64, child: MapCorner(places: _places)),
                 const Positioned(top: 12, right: 12, child: PlaceLayerButton()),
                 Positioned(top: 64, right: 12, child: MyLocationButton(map: () => _map)),

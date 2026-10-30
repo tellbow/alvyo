@@ -23,6 +23,7 @@
 	import ElevationProfile from './ElevationProfile.svelte';
 	import ProfileDock from './ProfileDock.svelte';
 	import Revisions from './Revisions.svelte';
+	import RouteDraw from './RouteDraw.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
@@ -187,6 +188,7 @@
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map && lib}
 			<RouteLayers {map} {lib} {planner} {hover} editable={false} />
+			<RouteDraw {map} line={planner.line.coordinates} />
 			{#if gallery}<PhotoPins {map} {lib} {gallery} />{/if}
 			<PoiPins {map} {lib} pois={routePois} highlight={poiHighlight} />
 			<TravelLayers {map} {lib} trips={travelTrips} />

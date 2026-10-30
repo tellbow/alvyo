@@ -412,6 +412,11 @@ Checked so far only in the simulator, with made-up or simulated positions
       the button asks; refused for good: it opens the settings.
 - [ ] **«Fehler melden» on a map** (feedback issue 40): a report from
       Planen with the screenshot of the national map (aerial too) is sent.
+- [x] **Route maps on the cards**: on «Touren» and one's profile, a route
+      card shows the route's map; tapped, it flies into the route screen and
+      fades into the live map; back, it shrinks into the card.
+      2026-10-30, iPhone (release build): as described. Not tried offline
+      (the strip stays an empty box) nor with a long list.
 
 ## Apple Watch app (release build, feedback issue 15)
 
@@ -696,6 +701,11 @@ emulator ran the integration tests offline, navigate and journey
       2026-10-02 a town's fountains, restaurants, toilets … of a kind within
       1 km are one line («0–0.9 km · Restaurant, Café ×8»), on the website
       and in the app.
+- [x] **A route draws itself**: opening a route, its line draws from start to
+      end in about a second, then looks as before; with «Reduce motion» it
+      shows at once.
+      2026-10-30, Chromium (dev stack): drawn and finished as described;
+      «Reduce motion» not tried.
 
 ## Server
 

@@ -16,20 +16,26 @@ Future<void> openItem(
   required bool journey,
   required String id,
   required String title,
+  String? image,
 }) => Navigator.of(context).push(
   MaterialPageRoute<void>(
-    builder: (_) =>
-        journey ? JourneyScreen(api: api, id: id, title: title) : RouteScreen(api: api, id: id, title: title),
+    builder: (_) => journey
+        ? JourneyScreen(api: api, id: id, title: title)
+        : RouteScreen(api: api, id: id, title: title, image: image),
   ),
 );
 
 /// A route as a card of a list; [owner] shown for others' routes.
 class RouteTile extends StatelessWidget {
-  const RouteTile({super.key, required this.route, required this.onTap, this.owner, this.trailing});
+  const RouteTile({super.key, required this.route, required this.onTap, this.owner, this.trailing, this.api});
   final RouteSummary route;
   final VoidCallback onTap;
   final String? owner;
   final Widget? trailing;
+
+  /// With it, the route's map above: it flies into [RouteScreen] opened with
+  /// [Api.routeImageUrl] as its image.
+  final Api? api;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +58,13 @@ class RouteTile extends StatelessWidget {
       tags: r.tags,
       visibility: owner == null ? r.visibility : null,
       trailing: trailing,
+      image: switch (api) {
+        final a? => Hero(
+          tag: routeImageTag(r.id),
+          child: RoutePicture(url: a.routeImageUrl(r), headers: a.authHeaders),
+        ),
+        null => null,
+      },
       onTap: onTap,
     );
   }

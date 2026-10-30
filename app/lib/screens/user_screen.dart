@@ -223,8 +223,16 @@ class _UserScreenState extends State<UserScreen> {
                         r.owner == p.username
                             ? RouteTile(
                                 route: r,
+                                api: widget.api,
                                 trailing: _outline(p, r.id),
-                                onTap: () => openItem(context, widget.api, journey: false, id: r.id, title: r.title),
+                                onTap: () => openItem(
+                                  context,
+                                  widget.api,
+                                  journey: false,
+                                  id: r.id,
+                                  title: r.title,
+                                  image: widget.api.routeImageUrl(r),
+                                ),
                               )
                             : OtherTile(
                                 journey: false,

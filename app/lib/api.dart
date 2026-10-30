@@ -117,9 +117,13 @@ class RouteSummary {
         _ => null,
       },
       doneOn = j['done_on'] as String?,
-      visibility = j['visibility'] as String? ?? 'private';
+      visibility = j['visibility'] as String? ?? 'private',
+      version = (j['version'] as num?)?.toInt() ?? 1;
   final String id, title, owner;
   final Totals totals;
+
+  /// Changes with every save: a new preview image.
+  final int version;
 
   /// private, unlisted or public.
   final String visibility;
@@ -209,6 +213,7 @@ class RouteDetail extends RouteSummary {
   String get visibility => json['visibility'] as String? ?? 'private';
 
   /// Sent along when changing the route, so as not to overwrite others.
+  @override
   int get version => (json['version'] as num?)?.toInt() ?? 1;
 
   /// For the owner: the link of an unlisted route is /routes/{id}?t=token.
@@ -2200,6 +2205,9 @@ class Api {
 
   /// The address of a photo file, [size] large or thumb; load it with [authHeaders].
   String photoUrl(String photoId, String size) => _uri('/photos/$photoId/$size').toString();
+
+  /// A route's preview image (og.png) as of [RouteSummary.version]; load it with [authHeaders].
+  String routeImageUrl(RouteSummary r) => '${_uri('/routes/${r.id}/og.png')}?v=${r.version}';
 
   Map<String, String> get authHeaders => {if (token != null) 'Authorization': 'Bearer $token'};
 

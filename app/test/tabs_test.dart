@@ -84,6 +84,9 @@ void main() {
   }
 
   testWidgets('Touren: routes, journeys and shared ones in one list, by state and kind', (tester) async {
+    tester.view.physicalSize = const Size(800, 2400); // all cards at once, with their maps
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final api = Api(
       'https://alvyo.test',
       token: 't',

@@ -163,7 +163,9 @@ class ToursTabState extends State<ToursTab> {
               if (passesDone(filter, r.doneOn))
                 RouteTile(
                   route: r,
-                  onTap: () => _open(RouteScreen(api: widget.api, id: r.id, title: r.title)),
+                  api: widget.api,
+                  onTap: () =>
+                      _open(RouteScreen(api: widget.api, id: r.id, title: r.title, image: widget.api.routeImageUrl(r))),
                 ),
           if (own && journeys)
             for (final j in tours.journeys)
@@ -178,7 +180,9 @@ class ToursTabState extends State<ToursTab> {
                 RouteTile(
                   route: r,
                   owner: r.owner,
-                  onTap: () => _open(RouteScreen(api: widget.api, id: r.id, title: r.title)),
+                  api: widget.api,
+                  onTap: () =>
+                      _open(RouteScreen(api: widget.api, id: r.id, title: r.title, image: widget.api.routeImageUrl(r))),
                 ),
           if (others && journeys)
             for (final j in tours.shared?.journeys ?? const <JourneySummary>[])

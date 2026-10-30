@@ -37,18 +37,16 @@ type Stats struct {
 	Weeks  []Week `json:"weeks"`
 }
 
-// people are the accounts of persons.
-const people = `SELECT id FROM users WHERE email NOT LIKE '%@alvyo.invalid'`
-
 // Stats counts accounts and tours, in total and for each of the last weeks.
 func (s *Store) Stats(ctx context.Context, weeks int) (Stats, error) {
 	var st Stats
 	t := &st.Totals
 	err := s.DB.QueryRow(ctx, `
-		WITH p AS (`+people+`)
+		-- p: persons, not the system's accounts; seen as in Users (store.go)
+		WITH p AS (SELECT id FROM users WHERE email NOT LIKE '%@alvyo.invalid')
 		SELECT (SELECT count(*) FROM p),
-			(SELECT count(DISTINCT user_id) FROM sessions WHERE user_id IN (SELECT id FROM p) AND `+seen+` > now() - interval '7 days'),
-			(SELECT count(DISTINCT user_id) FROM sessions WHERE user_id IN (SELECT id FROM p) AND `+seen+` > now() - interval '30 days'),
+			(SELECT count(DISTINCT user_id) FROM sessions WHERE user_id IN (SELECT id FROM p) AND coalesce(last_seen_at, created_at) > now() - interval '7 days'),
+			(SELECT count(DISTINCT user_id) FROM sessions WHERE user_id IN (SELECT id FROM p) AND coalesce(last_seen_at, created_at) > now() - interval '30 days'),
 			(SELECT count(*) FROM routes WHERE owner_id IN (SELECT id FROM p) AND journey_id IS NULL AND hiked_at IS NULL),
 			(SELECT count(*) FROM routes WHERE owner_id IN (SELECT id FROM p) AND hiked_at IS NOT NULL),
 			(SELECT count(*) FROM journeys WHERE owner_id IN (SELECT id FROM p)),
@@ -60,7 +58,7 @@ func (s *Store) Stats(ctx context.Context, weeks int) (Stats, error) {
 		return st, err
 	}
 	rows, err := s.DB.Query(ctx, `
-		WITH p AS (`+people+`),
+		WITH p AS (SELECT id FROM users WHERE email NOT LIKE '%@alvyo.invalid'),
 		w AS (SELECT generate_series(date_trunc('week', now()) - ($1 - 1) * interval '1 week', date_trunc('week', now()), interval '1 week') AS start)
 		SELECT w.start::date,
 			(SELECT count(*) FROM users WHERE id IN (SELECT id FROM p) AND date_trunc('week', created_at) = w.start),

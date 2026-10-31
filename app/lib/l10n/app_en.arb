@@ -234,6 +234,8 @@
   "themeDark": "Dark",
   "languageTitle": "Language",
   "profileMine": "My profile",
+  "accountAvatarChange": "Change profile picture",
+  "accountAvatarRemove": "Remove profile picture",
   "accountNotifications": "E-mail notifications",
   "accountNotifyComments": "When someone comments on my routes and journeys",
   "accountNotifyFollows": "When someone follows me",

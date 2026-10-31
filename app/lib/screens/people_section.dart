@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../avatar.dart';
 import '../l10n/app_localizations.dart';
 
 /// Who comes along on a journey, as on the website: the owner adds people
@@ -135,7 +136,7 @@ class _PeopleSectionState extends State<PeopleSection> {
             key: Key('person-${p.id}'),
             dense: true,
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.person_outline),
+            leading: Avatar(widget.api, p.avatar, radius: 16),
             title: Text(_name(t, p)),
             subtitle: Text(
               [

@@ -785,6 +785,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMine => 'My profile';
 
   @override
+  String get accountAvatarChange => 'Change profile picture';
+
+  @override
+  String get accountAvatarRemove => 'Remove profile picture';
+
+  @override
   String get accountNotifications => 'E-mail notifications';
 
   @override

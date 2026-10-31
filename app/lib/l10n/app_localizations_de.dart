@@ -788,6 +788,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profileMine => 'Mein Profil';
 
   @override
+  String get accountAvatarChange => 'Profilbild ändern';
+
+  @override
+  String get accountAvatarRemove => 'Profilbild entfernen';
+
+  @override
   String get accountNotifications => 'Benachrichtigungen per E-Mail';
 
   @override

@@ -2,9 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../analytics.dart';
 import '../api.dart';
+import '../avatar.dart';
 import '../l10n/app_localizations.dart';
 import '../settings.dart';
 import 'about_screen.dart';
@@ -60,6 +62,43 @@ class _ProfileTabState extends State<ProfileTab> {
         code ??
         basicLocaleListResolution(PlatformDispatcher.instance.locales, AppLocalizations.supportedLocales).languageCode;
     _update(() => widget.api.updateMe(locale: lang));
+  }
+
+  /// Sets the profile picture from the camera or the library, or removes it.
+  Future<void> _avatar(Me me) async {
+    final t = AppLocalizations.of(context);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(t.photosCamera),
+              onTap: () => Navigator.pop(context, 'camera'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(t.photosLibrary),
+              onTap: () => Navigator.pop(context, 'library'),
+            ),
+            if (me.avatar.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text(t.accountAvatarRemove),
+                onTap: () => Navigator.pop(context, 'remove'),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null) return;
+    if (choice == 'remove') return _update(widget.api.deleteAvatar);
+    final file = await ImagePicker().pickImage(source: choice == 'camera' ? ImageSource.camera : ImageSource.gallery);
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    _update(() => widget.api.setAvatar(bytes, file.name));
   }
 
   /// A change of the account; shows it as the server has it.
@@ -139,12 +178,6 @@ class _ProfileTabState extends State<ProfileTab> {
       future: _me,
       builder: (context, snap) {
         final me = snap.data;
-        final initials = (me?.displayName ?? '')
-            .split(RegExp(r'\s+'))
-            .where((w) => w.isNotEmpty)
-            .take(2)
-            .map((w) => w[0].toUpperCase())
-            .join();
         // The header stays, as on the other tabs.
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -160,7 +193,15 @@ class _ProfileTabState extends State<ProfileTab> {
                     child: ListTile(
                       key: const Key('profile-mine'),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      leading: CircleAvatar(radius: 26, child: Text(initials)),
+                      leading: Tooltip(
+                        message: t.accountAvatarChange,
+                        child: InkWell(
+                          key: const Key('avatar'),
+                          customBorder: const CircleBorder(),
+                          onTap: me == null ? null : () => _avatar(me),
+                          child: Avatar(widget.api, me?.avatar ?? '', radius: 26),
+                        ),
+                      ),
                       title: Text(
                         me?.displayName ?? '',
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),

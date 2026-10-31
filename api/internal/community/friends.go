@@ -91,6 +91,7 @@ func (s *Store) Unfriend(ctx context.Context, a, b uuid.UUID) error {
 type FriendRef struct {
 	Username    string    `json:"username"`
 	DisplayName string    `json:"display_name"`
+	Avatar      string    `json:"avatar,omitempty" format:"uuid" doc:"Profile picture: GET /avatars/{avatar}"`
 	Friend      Friend    `json:"friend" enum:"none,requested,incoming,friends"`
 	Since       time.Time `json:"since" doc:"When they became friends, or were asked"`
 	Tours       int       `json:"tours" doc:"Public routes and journeys"`
@@ -115,7 +116,7 @@ const apart = `EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = $1 AND b.blo
 func collectRefs(rows pgx.Rows) ([]FriendRef, error) {
 	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (FriendRef, error) {
 		var f FriendRef
-		return f, r.Scan(&f.Username, &f.DisplayName, &f.Friend, &f.Since, &f.Tours, &f.Mutual)
+		return f, r.Scan(&f.Username, &f.DisplayName, &f.Avatar, &f.Friend, &f.Since, &f.Tours, &f.Mutual)
 	})
 }
 
@@ -129,7 +130,7 @@ type FriendLists struct {
 // FriendLists returns user's friends and the requests to and from them;
 // banned users are left out.
 func (s *Store) FriendLists(ctx context.Context, user uuid.UUID) (FriendLists, error) {
-	rows, err := s.DB.Query(ctx, `SELECT u.username, u.display_name,
+	rows, err := s.DB.Query(ctx, `SELECT u.username, u.display_name, coalesce(u.avatar::text, ''),
 			CASE WHEN f.accepted_at IS NOT NULL THEN 'friends' WHEN f.requester_id = $1 THEN 'requested' ELSE 'incoming' END,
 			coalesce(f.accepted_at, f.created_at), `+refNumbers+`
 		FROM friendships f
@@ -171,7 +172,7 @@ func (s *Store) IncomingRequests(ctx context.Context, user uuid.UUID) (int, erro
 // who are not friends yet, who published last first.
 func (s *Store) SearchUsers(ctx context.Context, viewer uuid.UUID, q string) ([]FriendRef, error) {
 	like := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(strings.TrimPrefix(strings.TrimSpace(q), "@"))
-	rows, err := s.DB.Query(ctx, `SELECT u.username, u.display_name, `+strings.ReplaceAll(friendState, "$2", "u.id")+`, u.created_at,
+	rows, err := s.DB.Query(ctx, `SELECT u.username, u.display_name, coalesce(u.avatar::text, ''), `+strings.ReplaceAll(friendState, "$2", "u.id")+`, u.created_at,
 			`+refNumbers+`
 		FROM users u
 		CROSS JOIN LATERAL (SELECT max(at) AS at FROM (
@@ -201,7 +202,7 @@ func (s *Store) Suggestions(ctx context.Context, user uuid.UUID) ([]FriendRef, e
 		SELECT DISTINCT CASE WHEN f.requester_id = m.id THEN f.addressee_id ELSE f.requester_id END AS id
 		FROM mine m JOIN friendships f ON f.accepted_at IS NOT NULL AND m.id IN (f.requester_id, f.addressee_id)
 	)
-	SELECT u.username, u.display_name, 'none', u.created_at, `+refNumbers+` AS mutual
+	SELECT u.username, u.display_name, coalesce(u.avatar::text, ''), 'none', u.created_at, `+refNumbers+` AS mutual
 	FROM theirs t JOIN users u ON u.id = t.id
 	WHERE u.profile_public AND u.banned_at IS NULL AND u.id <> $1 AND NOT `+apart+`
 		AND NOT EXISTS (SELECT 1 FROM friendships f WHERE (f.requester_id = $1 AND f.addressee_id = u.id)

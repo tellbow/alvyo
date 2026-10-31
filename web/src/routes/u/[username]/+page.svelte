@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Avatar from '#lib/components/Avatar.svelte';
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
 	import { page } from '$app/state';
@@ -45,15 +46,6 @@
 	}
 	const pace = $derived(data.user?.speed_factor ?? 1);
 
-	// No pictures yet: the first letters of the name.
-	const initials = $derived(
-		profile.display_name
-			.split(/\s+/)
-			.filter(Boolean)
-			.slice(0, 2)
-			.map((w) => w[0].toUpperCase())
-			.join('')
-	);
 	const tabs = $derived(
 		[
 			profile.routes.length ? { id: 'routes', label: m.profile_routes() } : undefined,
@@ -89,12 +81,7 @@
 <main class="mx-auto w-full max-w-4xl overflow-y-auto px-4 py-8">
 	<section class="rounded-xl border border-stone-200 bg-surface p-5 sm:p-6">
 		<div class="flex flex-wrap items-center gap-4">
-			<div
-				class="flex size-16 shrink-0 items-center justify-center rounded-full bg-accent-soft font-display text-2xl font-bold text-accent-ink"
-				aria-hidden="true"
-			>
-				{initials}
-			</div>
+			<Avatar id={profile.avatar} class="size-16" />
 			<div class="min-w-0 flex-1">
 				<h1 class="text-2xl font-semibold">{profile.display_name}</h1>
 				<p class="text-stone-600">@{profile.username} · {m.profile_since({ date: since })}</p>

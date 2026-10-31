@@ -47,6 +47,7 @@ class Me {
     this.profilePublic = true,
     this.shareHikes,
     this.friendRequests = 0,
+    this.avatar = '',
   });
   factory Me.fromJson(Map<String, dynamic> j) => Me(
     id: j['id'] as String,
@@ -62,10 +63,14 @@ class Me {
     profilePublic: j['profile_public'] as bool? ?? true,
     shareHikes: j['share_hikes'] as bool?,
     friendRequests: (j['friend_requests'] as num?)?.toInt() ?? 0,
+    avatar: j['avatar'] as String? ?? '',
   );
   final String id, username;
   final String displayName;
   final double speedFactor;
+
+  /// The profile picture's id ([Api.avatarUrl]); empty without one.
+  final String avatar;
   final String email;
 
   /// The language of e-mails.
@@ -145,8 +150,9 @@ class Person {
       username = j['username'] as String? ?? '',
       displayName = j['display_name'] as String? ?? '',
       email = j['email'] as String? ?? '',
+      avatar = j['avatar'] as String? ?? '',
       stages = [for (final s in j['stages'] as List) s as String];
-  final String id, username, displayName;
+  final String id, username, displayName, avatar;
 
   /// For the owner, for invitations by address.
   final String email;
@@ -1048,6 +1054,7 @@ class Comment {
       parentId = j['parent_id'] as String?,
       authorUsername = j['author_username'] as String,
       authorName = j['author_name'] as String,
+      authorAvatar = j['author_avatar'] as String? ?? '',
       body = j['body'] as String,
       createdAt = DateTime.parse(j['created_at'] as String),
       edited = j['edited_at'] != null,
@@ -1055,7 +1062,7 @@ class Comment {
       canDelete = j['can_delete'] as bool? ?? false;
   final String id;
   final String? parentId;
-  final String authorUsername, authorName, body;
+  final String authorUsername, authorName, authorAvatar, body;
   final DateTime createdAt;
   final bool edited, canEdit, canDelete;
 }
@@ -1116,6 +1123,7 @@ class FeedItem {
       title = j['title'] as String,
       owner = j['owner_username'] as String,
       ownerName = j['owner_name'] as String,
+      ownerAvatar = j['owner_avatar'] as String? ?? '',
       publishedAt = DateTime.parse(j['published_at'] as String),
       distanceM = (j['distance_m'] as num).toDouble(),
       ascentM = (j['ascent_m'] as num).toDouble(),
@@ -1136,7 +1144,7 @@ class FeedItem {
   final String id, title;
 
   /// Who published, hiked or commented.
-  final String owner, ownerName;
+  final String owner, ownerName, ownerAvatar;
 
   /// When it happened; a hike's day is [doneOn].
   final DateTime publishedAt;
@@ -1156,6 +1164,7 @@ class Profile {
   Profile.fromJson(Map<String, dynamic> j)
     : username = j['username'] as String,
       displayName = j['display_name'] as String,
+      avatar = j['avatar'] as String? ?? '',
       since = j['since'] as String,
       self = j['self'] as bool,
       followers = (j['followers'] as num).toInt(),
@@ -1176,7 +1185,7 @@ class Profile {
               [for (final p in line as List) (lon: ((p as List)[0] as num).toDouble(), lat: (p[1] as num).toDouble())],
           ],
       };
-  final String username, displayName;
+  final String username, displayName, avatar;
 
   /// The month the account was made, e.g. 2026-09.
   final String since;
@@ -1215,10 +1224,11 @@ class FriendRef {
   FriendRef.fromJson(Map<String, dynamic> j)
     : username = j['username'] as String,
       displayName = j['display_name'] as String,
+      avatar = j['avatar'] as String? ?? '',
       friend = j['friend'] as String,
       tours = (j['tours'] as num?)?.toInt() ?? 0,
       mutual = (j['mutual'] as num?)?.toInt() ?? 0;
-  final String username, displayName, friend;
+  final String username, displayName, avatar, friend;
 
   /// Public routes and journeys, and friends in common (only how many).
   final int tours, mutual;
@@ -2202,6 +2212,19 @@ class Api {
 
   Future<({List<Photo> photos, bool canEdit})> deletePhoto(String id, String photoId, {bool journey = false}) async =>
       _photos(await _send('DELETE', '/${_kind(journey)}/$id/photos/$photoId'));
+
+  /// The address of a profile picture; anyone may load it.
+  String avatarUrl(String id) => _uri('/avatars/$id').toString();
+
+  /// Sets the profile picture: cropped to a square by the server.
+  Future<Me> setAvatar(List<int> bytes, String filename) async {
+    final req = http.MultipartRequest('PUT', _uri('/me/avatar'))
+      ..headers.addAll(_headers)
+      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    return Me.fromJson(_decode(await http.Response.fromStream(await _http.send(req))) as Map<String, dynamic>);
+  }
+
+  Future<Me> deleteAvatar() async => Me.fromJson(await _send('DELETE', '/me/avatar') as Map<String, dynamic>);
 
   /// The address of a photo file, [size] large or thumb; load it with [authHeaders].
   String photoUrl(String photoId, String size) => _uri('/photos/$photoId/$size').toString();

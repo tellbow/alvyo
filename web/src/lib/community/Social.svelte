@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Avatar from '#lib/components/Avatar.svelte';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -103,7 +104,8 @@
 
 {#snippet item(c: Comment, thread: string)}
 	<div class="rounded-md bg-stone-50 px-2 py-1.5" data-testid="comment">
-		<p class="text-xs text-stone-500">
+		<p class="flex flex-wrap items-center gap-x-1 text-xs text-stone-500">
+			<Avatar id={c.author_avatar} class="size-5" />
 			<span class="font-medium text-stone-700">{c.author_name}</span>
 			@{c.author_username} · {when.format(new Date(c.created_at))}
 			{#if c.edited_at}· {m.community_edited()}{/if}

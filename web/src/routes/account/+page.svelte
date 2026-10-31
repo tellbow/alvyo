@@ -15,6 +15,7 @@
 	import AccessTokens from '#lib/account/AccessTokens.svelte';
 	import Card from '#lib/account/Card.svelte';
 	import { choose } from '#lib/util/choose.js';
+	import Avatar from '#lib/components/Avatar.svelte';
 
 	let { data } = $props();
 	const hydrated = new Hydrated();
@@ -63,6 +64,37 @@
 		}
 	}
 
+	// The profile picture; errors as for photos.
+	let avatarBusy = $state(false);
+	let avatarError = $state('');
+	async function setAvatar(e: Event & { currentTarget: HTMLInputElement }) {
+		const file = e.currentTarget.files?.[0];
+		e.currentTarget.value = '';
+		if (!file) return;
+		avatarBusy = true;
+		avatarError = '';
+		const { response } = await api().PUT('/me/avatar', {
+			body: { file: '' },
+			bodySerializer: () => {
+				const fd = new FormData();
+				fd.append('file', file);
+				return fd;
+			}
+		});
+		avatarBusy = false;
+		if (response.ok) await refreshAll();
+		else
+			avatarError = (
+				{ 413: m.photos_problem_size, 415: m.photos_problem_format, 429: m.photos_problem_rate }[
+					response.status
+				] ?? m.photos_problem_other
+			)();
+	}
+	async function removeAvatar() {
+		const { response } = await api().DELETE('/me/avatar');
+		if (response.ok) await refreshAll();
+	}
+
 	// A lost phone or a browser elsewhere: all sessions but this one end.
 	let loggedOut = $state(false);
 	async function logoutOthers() {
@@ -85,6 +117,34 @@
 			info={[m.account_profile_public_hint(), m.account_pace_hint()]}
 		>
 			<div class="flex flex-col gap-4 text-sm">
+				<div class="flex flex-wrap items-center gap-3" data-testid="avatar">
+					<Avatar id={data.user?.avatar} class="size-16" />
+					<label
+						class="cursor-pointer rounded-md px-3 py-1.5 ring-1 ring-stone-300 hover:bg-stone-50"
+						class:opacity-50={!hydrated.value || avatarBusy}
+					>
+						{data.user?.avatar ? m.account_avatar_change() : m.account_avatar_add()}
+						<input
+							type="file"
+							accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+							class="sr-only"
+							disabled={!hydrated.value || avatarBusy}
+							onchange={setAvatar}
+							data-testid="avatar-file"
+						/>
+					</label>
+					{#if data.user?.avatar}
+						<button
+							type="button"
+							class="text-stone-600 underline hover:text-accent-ink"
+							disabled={!hydrated.value}
+							onclick={removeAvatar}>{m.account_avatar_remove()}</button
+						>
+					{/if}
+					{#if avatarError}
+						<p class="w-full text-xs text-red-700 dark:text-red-400" role="alert">{avatarError}</p>
+					{/if}
+				</div>
 				{#if data.user}
 					<a
 						href={resolve('/u/[username]', { username: data.user.username })}

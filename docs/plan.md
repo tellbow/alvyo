@@ -964,6 +964,15 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     issue: bug reports' screenshots are JPEGs, as a PNG of a map filling
     an iPhone's screen went over the API's 4 MB and «Fehler melden»
     failed.
+82. **Profile pictures** (feedback issue 77, 2026-10-31). One picture per
+    account, set and removed under «Konto» on the website and by tapping
+    it in the app's profile (camera or library). Stored as a 256 px
+    square JPEG without metadata, cropped from the middle, next to the
+    photos under a new random id each time (`users.avatar`, migration
+    0047; the old file goes to the photo trash, also with the account).
+    `GET /avatars/{id}` serves it to anyone with the id, which comes only
+    with the person: profile, news, comments, friends and a journey's
+    people. Without one, a portrait icon instead of the initials.
 
 ### Open
 

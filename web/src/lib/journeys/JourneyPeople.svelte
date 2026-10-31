@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Avatar from '#lib/components/Avatar.svelte';
 	import { api, type JourneyStage, type Person } from '#lib/api/client.js';
 	import FriendOptions from '#lib/community/FriendOptions.svelte';
 	import { m } from '#lib/paraglide/messages.js';
@@ -91,6 +92,7 @@
 			{#each people as p (p.id)}
 				<li class="flex flex-col gap-1" data-testid="person">
 					<div class="flex items-center gap-2">
+						<Avatar id={p.avatar} class="size-7" />
 						<span class="font-medium">{personName(p)}</span>
 						{#if p.username && p.display_name}<span class="text-xs text-stone-500"
 								>@{p.username}</span

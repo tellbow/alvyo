@@ -486,6 +486,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/avatars/{avatar}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A profile picture as JPEG (256 px square)
+         * @description The id is random and given only where the person shows; a new picture gets a new id.
+         */
+        get: operations["get-avatar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/bug-reports": {
         parameters: {
             query?: never;
@@ -1563,6 +1583,27 @@ export interface paths {
         head?: never;
         /** Change settings: notification e-mails, their language, the pace and the profile's visibility */
         patch: operations["update-me"];
+        trace?: never;
+    };
+    "/me/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the profile picture
+         * @description JPEG, PNG, WebP or HEIC up to 20 MB, cropped to a square from its middle, without metadata.
+         */
+        put: operations["set-avatar"];
+        post?: never;
+        /** Remove the profile picture */
+        delete: operations["delete-avatar"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/me/blocks": {
@@ -3249,6 +3290,11 @@ export interface components {
             visibility: "private" | "unlisted" | "public";
         };
         Comment: {
+            /**
+             * Format: uuid
+             * @description Profile picture: GET /avatars/{author_avatar}
+             */
+            author_avatar?: string;
             author_name: string;
             author_username: string;
             body: string;
@@ -3564,6 +3610,11 @@ export interface components {
             id: string;
             /** @enum {string} */
             kind: "route" | "journey" | "hike" | "comment";
+            /**
+             * Format: uuid
+             * @description Profile picture: GET /avatars/{owner_avatar}
+             */
+            owner_avatar?: string;
             owner_name: string;
             /** @description Who did it: published, hiked or commented */
             owner_username: string;
@@ -3673,6 +3724,11 @@ export interface components {
             outgoing: components["schemas"]["FriendRef"][];
         };
         FriendRef: {
+            /**
+             * Format: uuid
+             * @description Profile picture: GET /avatars/{avatar}
+             */
+            avatar?: string;
             display_name: string;
             /** @enum {string} */
             friend: "none" | "requested" | "incoming" | "friends";
@@ -4062,6 +4118,11 @@ export interface components {
             done_on?: string;
         };
         Me: {
+            /**
+             * Format: uuid
+             * @description Profile picture: GET /avatars/{avatar}
+             */
+            avatar?: string;
             /** Format: date-time */
             created_at: string;
             display_name: string;
@@ -4157,6 +4218,11 @@ export interface components {
             to: string;
         };
         Person: {
+            /**
+             * Format: uuid
+             * @description Profile picture: GET /avatars/{avatar}
+             */
+            avatar?: string;
             display_name?: string;
             email?: string;
             /**
@@ -4348,6 +4414,11 @@ export interface components {
             max_sac: number;
         };
         ProfileOutputBody: {
+            /**
+             * Format: uuid
+             * @description Profile picture: GET /avatars/{avatar}
+             */
+            avatar?: string;
             /** @description The viewer blocked this user */
             blocked: boolean;
             /** @description The user's collections the viewer may open */
@@ -6195,6 +6266,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                avatar: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Content-Type"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
             };
             /** @description Error */
             default: {
@@ -9055,6 +9159,71 @@ export interface operations {
                 "application/json": components["schemas"]["SettingsInputBody"];
             };
         };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "set-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "delete-avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {

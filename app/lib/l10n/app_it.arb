@@ -234,6 +234,8 @@
   "themeDark": "Scuro",
   "languageTitle": "Lingua",
   "profileMine": "Il mio profilo",
+  "accountAvatarChange": "Cambia foto profilo",
+  "accountAvatarRemove": "Rimuovi foto profilo",
   "accountNotifications": "Notifiche via e-mail",
   "accountNotifyComments": "Quando qualcuno commenta i miei percorsi e trekking a tappe",
   "accountNotifyFollows": "Quando qualcuno mi segue",

@@ -6,8 +6,8 @@ import 'package:share_plus/share_plus.dart';
 import '../analytics.dart';
 import '../errors.dart';
 import '../api.dart';
+import '../avatar.dart';
 import '../l10n/app_localizations.dart';
-import 'feed_tab.dart';
 import 'item_card.dart';
 import 'tab_header.dart';
 import 'tiles.dart';
@@ -175,14 +175,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 12,
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: theme.colorScheme.primaryContainer,
-                child: Text(
-                  initials(f.displayName),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
-                ),
-              ),
+              Avatar(widget.api, f.avatar),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

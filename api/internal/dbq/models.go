@@ -150,6 +150,19 @@ type AccessToken struct {
 	LastUsedAt *time.Time
 }
 
+type AdminLog struct {
+	ID         uuid.UUID
+	At         time.Time
+	ActorID    *uuid.UUID
+	Area       string
+	Title      string
+	TargetKind string
+	TargetID   uuid.UUID
+	Undo       []byte
+	UndoneAt   *time.Time
+	UndoneBy   *uuid.UUID
+}
+
 type AreaCache struct {
 	LineKey   string
 	Areas     []byte
@@ -549,6 +562,12 @@ type StagePerson struct {
 	GrantID uuid.UUID
 }
 
+type SuggestionDismissal struct {
+	UserID      uuid.UUID
+	DismissedID uuid.UUID
+	CreatedAt   time.Time
+}
+
 type TlmHikingPath struct {
 	ID       int64
 	Category string
@@ -572,6 +591,7 @@ type User struct {
 	ProfilePublic   bool
 	FriendToken     *string
 	ShareHikes      bool
+	Avatar          *uuid.UUID
 }
 
 type WanderlandImport struct {

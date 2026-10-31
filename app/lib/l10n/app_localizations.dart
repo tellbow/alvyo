@@ -1498,6 +1498,18 @@ abstract class AppLocalizations {
   /// **'Mein Profil'**
   String get profileMine;
 
+  /// No description provided for @accountAvatarChange.
+  ///
+  /// In de, this message translates to:
+  /// **'Profilbild ändern'**
+  String get accountAvatarChange;
+
+  /// No description provided for @accountAvatarRemove.
+  ///
+  /// In de, this message translates to:
+  /// **'Profilbild entfernen'**
+  String get accountAvatarRemove;
+
   /// No description provided for @accountNotifications.
   ///
   /// In de, this message translates to:

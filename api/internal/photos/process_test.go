@@ -145,3 +145,35 @@ func TestProcessCraftedEXIF(t *testing.T) {
 		t.Errorf("allocated %d MiB", grew>>20)
 	}
 }
+
+func TestAvatar(t *testing.T) {
+	// 3000×1000 turned upright is 1000×3000: the square comes from its middle.
+	b, err := Avatar(bytes.NewReader(phototest.JPEG(3000, 1000, phototest.EXIF{Orientation: 6})))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := jpeg.DecodeConfig(bytes.NewReader(b))
+	if err != nil || cfg.Width != AvatarPx || cfg.Height != AvatarPx {
+		t.Errorf("%d×%d %v", cfg.Width, cfg.Height, err)
+	}
+	// A small one is not scaled up.
+	var buf bytes.Buffer
+	_ = png.Encode(&buf, image.NewRGBA(image.Rect(0, 0, 40, 30)))
+	b, err = Avatar(&buf)
+	if cfg, _ := jpeg.DecodeConfig(bytes.NewReader(b)); err != nil || cfg.Width != 30 || cfg.Height != 30 {
+		t.Errorf("small: %d×%d %v", cfg.Width, cfg.Height, err)
+	}
+}
+
+func TestTransparentBecomesWhite(t *testing.T) {
+	var buf bytes.Buffer
+	_ = png.Encode(&buf, image.NewNRGBA(image.Rect(0, 0, 40, 30))) // all transparent
+	b, err := Avatar(&buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, _ := jpeg.Decode(bytes.NewReader(b))
+	if r, g, bb, _ := img.At(15, 15).RGBA(); r>>8 < 250 || g>>8 < 250 || bb>>8 < 250 {
+		t.Errorf("transparent became %v", img.At(15, 15))
+	}
+}

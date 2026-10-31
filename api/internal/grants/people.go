@@ -19,6 +19,7 @@ type Person struct {
 	// the invited address; empty for an invitation not taken up yet.
 	Username    string `json:"username,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
+	Avatar      string `json:"avatar,omitempty" format:"uuid" doc:"Profile picture: GET /avatars/{avatar}"`
 	// Email for invitations by address, for the owner only.
 	Email  string   `json:"email,omitempty"`
 	Stages []string `json:"stages" doc:"The ids of the stages they are on"`
@@ -29,6 +30,7 @@ type Person struct {
 func (s *Store) People(ctx context.Context, journeyID uuid.UUID, withEmail bool) ([]Person, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT g.id, coalesce(u.username, v.username, ''), coalesce(u.display_name, v.display_name, ''),
+			coalesce(coalesce(u.avatar, v.avatar)::text, ''),
 			coalesce(g.email::text, ''),
 			coalesce(array_agg(sp.stage_id ORDER BY st.position) FILTER (WHERE sp.stage_id IS NOT NULL), '{}')
 		FROM grants g
@@ -37,7 +39,7 @@ func (s *Store) People(ctx context.Context, journeyID uuid.UUID, withEmail bool)
 		LEFT JOIN stage_people sp ON sp.grant_id = g.id
 		LEFT JOIN stages st ON st.id = sp.stage_id
 		WHERE g.journey_id = $1 AND g.along
-		GROUP BY g.id, u.username, v.username, u.display_name, v.display_name, g.email, g.created_at
+		GROUP BY g.id, u.username, v.username, u.display_name, v.display_name, u.avatar, v.avatar, g.email, g.created_at
 		ORDER BY g.created_at`, journeyID)
 	if err != nil {
 		return nil, fmt.Errorf("grants: people: %w", err)
@@ -48,7 +50,7 @@ func (s *Store) People(ctx context.Context, journeyID uuid.UUID, withEmail bool)
 		var p Person
 		var id uuid.UUID
 		var stages []uuid.UUID
-		if err := rows.Scan(&id, &p.Username, &p.DisplayName, &p.Email, &stages); err != nil {
+		if err := rows.Scan(&id, &p.Username, &p.DisplayName, &p.Avatar, &p.Email, &stages); err != nil {
 			return nil, err
 		}
 		p.ID = id.String()

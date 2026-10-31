@@ -73,6 +73,7 @@ type Comment struct {
 	ParentID       string     `json:"parent_id,omitempty" format:"uuid" doc:"The comment this replies to"`
 	AuthorUsername string     `json:"author_username"`
 	AuthorName     string     `json:"author_name"`
+	AuthorAvatar   string     `json:"author_avatar,omitempty" format:"uuid" doc:"Profile picture: GET /avatars/{author_avatar}"`
 	Body           string     `json:"body"`
 	CreatedAt      time.Time  `json:"created_at"`
 	EditedAt       *time.Time `json:"edited_at,omitempty"`
@@ -111,7 +112,7 @@ func (s *Store) Social(ctx context.Context, t Target, v Viewer) (Social, error) 
 			SELECT c.* FROM comments c JOIN users u ON u.id = c.author_id
 			WHERE c.`+col+` = $1 AND u.banned_at IS NULL
 				AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.blocker_id = $2 AND b.blocked_id = c.author_id))
-		SELECT c.id, c.parent_id, u.username, u.display_name, c.body, c.created_at, c.edited_at, c.author_id
+		SELECT c.id, c.parent_id, u.username, u.display_name, coalesce(u.avatar::text, ''), c.body, c.created_at, c.edited_at, c.author_id
 		FROM visible c JOIN users u ON u.id = c.author_id
 		WHERE c.parent_id IS NULL OR c.parent_id IN (SELECT id FROM visible)
 		ORDER BY c.created_at LIMIT $3`, t.ID, v.ID, MaxComments)
@@ -123,7 +124,7 @@ func (s *Store) Social(ctx context.Context, t Target, v Viewer) (Social, error) 
 		var c Comment
 		var id, author uuid.UUID
 		var parent *uuid.UUID
-		if err := rows.Scan(&id, &parent, &c.AuthorUsername, &c.AuthorName, &c.Body, &c.CreatedAt, &c.EditedAt, &author); err != nil {
+		if err := rows.Scan(&id, &parent, &c.AuthorUsername, &c.AuthorName, &c.AuthorAvatar, &c.Body, &c.CreatedAt, &c.EditedAt, &author); err != nil {
 			return out, err
 		}
 		c.ID = id.String()

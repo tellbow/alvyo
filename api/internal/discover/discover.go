@@ -174,6 +174,7 @@ type User struct {
 	ID          uuid.UUID
 	Username    string
 	DisplayName string
+	Avatar      string    // profile picture id, empty without one
 	Since       time.Time // month the account was created
 	Public      bool      // the profile: found by the search, seen by all
 	ShareHikes  bool      // friends see the user's hikes
@@ -182,8 +183,8 @@ type User struct {
 // User looks up an account that is not banned.
 func (s *Store) User(ctx context.Context, username string) (User, error) {
 	var u User
-	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, date_trunc('month', created_at), profile_public, share_hikes
-		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Since, &u.Public, &u.ShareHikes)
+	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, coalesce(avatar::text, ''), date_trunc('month', created_at), profile_public, share_hikes
+		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Avatar, &u.Since, &u.Public, &u.ShareHikes)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return u, ErrNotFound
 	}

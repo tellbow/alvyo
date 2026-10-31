@@ -485,6 +485,8 @@
   "themeDark": "Dunkel",
   "languageTitle": "Sprache",
   "profileMine": "Mein Profil",
+  "accountAvatarChange": "Profilbild ändern",
+  "accountAvatarRemove": "Profilbild entfernen",
   "accountNotifications": "Benachrichtigungen per E-Mail",
   "accountNotifyComments": "Wenn jemand meine Routen und Etappentouren kommentiert",
   "accountNotifyFollows": "Wenn mir jemand folgt",

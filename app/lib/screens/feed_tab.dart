@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../avatar.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import 'item_card.dart';
@@ -118,18 +119,7 @@ class FeedEntry extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 12,
             children: [
-              InkWell(
-                customBorder: const CircleBorder(),
-                onTap: profile,
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundColor: theme.colorScheme.primaryContainer,
-                  child: Text(
-                    initials(i.ownerName),
-                    style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
+              InkWell(customBorder: const CircleBorder(), onTap: profile, child: Avatar(api, i.ownerAvatar)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,7 +167,3 @@ class FeedEntry extends StatelessWidget {
     );
   }
 }
-
-/// The first letters of a name, as the avatar while there are no pictures.
-String initials(String name) =>
-    name.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).take(2).map((w) => w.characters.first.toUpperCase()).join();

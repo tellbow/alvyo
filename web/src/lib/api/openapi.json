@@ -1054,6 +1054,11 @@
       "Comment": {
         "additionalProperties": false,
         "properties": {
+          "author_avatar": {
+            "description": "Profile picture: GET /avatars/{author_avatar}",
+            "format": "uuid",
+            "type": "string"
+          },
           "author_name": {
             "type": "string"
           },
@@ -1904,6 +1909,11 @@
             ],
             "type": "string"
           },
+          "owner_avatar": {
+            "description": "Profile picture: GET /avatars/{owner_avatar}",
+            "format": "uuid",
+            "type": "string"
+          },
           "owner_name": {
             "type": "string"
           },
@@ -2206,6 +2216,11 @@
       "FriendRef": {
         "additionalProperties": false,
         "properties": {
+          "avatar": {
+            "description": "Profile picture: GET /avatars/{avatar}",
+            "format": "uuid",
+            "type": "string"
+          },
           "display_name": {
             "type": "string"
           },
@@ -3477,6 +3492,11 @@
       "Me": {
         "additionalProperties": false,
         "properties": {
+          "avatar": {
+            "description": "Profile picture: GET /avatars/{avatar}",
+            "format": "uuid",
+            "type": "string"
+          },
           "created_at": {
             "format": "date-time",
             "type": "string"
@@ -3768,6 +3788,11 @@
       "Person": {
         "additionalProperties": false,
         "properties": {
+          "avatar": {
+            "description": "Profile picture: GET /avatars/{avatar}",
+            "format": "uuid",
+            "type": "string"
+          },
           "display_name": {
             "type": "string"
           },
@@ -4357,6 +4382,11 @@
       "ProfileOutputBody": {
         "additionalProperties": false,
         "properties": {
+          "avatar": {
+            "description": "Profile picture: GET /avatars/{avatar}",
+            "format": "uuid",
+            "type": "string"
+          },
           "blocked": {
             "description": "The viewer blocked this user",
             "type": "boolean"
@@ -8475,6 +8505,62 @@
         "summary": "Send a new verification e-mail",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/avatars/{avatar}": {
+      "get": {
+        "description": "The id is random and given only where the person shows; a new picture gets a new id.",
+        "operationId": "get-avatar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "avatar",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "contentEncoding": "base64",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "A profile picture as JPEG (256 px square)",
+        "tags": [
+          "me"
         ]
       }
     },
@@ -12998,6 +13084,92 @@
           }
         },
         "summary": "Change settings: notification e-mails, their language, the pace and the profile's visibility",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/avatar": {
+      "delete": {
+        "operationId": "delete-avatar",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Remove the profile picture",
+        "tags": [
+          "me"
+        ]
+      },
+      "put": {
+        "description": "JPEG, PNG, WebP or HEIC up to 20 MB, cropped to a square from its middle, without metadata.",
+        "operationId": "set-avatar",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "encoding": {
+                "file": {
+                  "contentType": "application/octet-stream"
+                }
+              },
+              "schema": {
+                "properties": {
+                  "file": {
+                    "contentEncoding": "binary",
+                    "contentMediaType": "application/octet-stream",
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Set the profile picture",
         "tags": [
           "me"
         ]

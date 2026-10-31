@@ -417,6 +417,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       fades into the live map; back, it shrinks into the card.
       2026-10-30, iPhone (release build): as described. Not tried offline
       (the strip stays an empty box) nor with a long list.
+- [ ] **Profile picture from the phone** (feedback issue 77): in the app's
+      profile, tapping the picture sets one from the camera and from the
+      library (a HEIC from an iPhone, a portrait photo stays upright) and
+      removes it; it then shows in the news, comments and friends.
 
 ## Apple Watch app (release build, feedback issue 15)
 

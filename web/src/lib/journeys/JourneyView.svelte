@@ -63,7 +63,8 @@
 	import StageCard from './StageCard.svelte';
 	import JourneyPeople from './JourneyPeople.svelte';
 	import JourneyReminders from './JourneyReminders.svelte';
-	import { initials, personName, stagePeople } from './people';
+	import { personName, stagePeople } from './people';
+	import Avatar from '#lib/components/Avatar.svelte';
 	import type { Person } from '#lib/api/client.js';
 	import Travel from '#lib/travel/Travel.svelte';
 	import TravelLayers from '#lib/travel/TravelLayers.svelte';
@@ -459,9 +460,8 @@
 								>
 									<span class="flex -space-x-2" aria-hidden="true">
 										{#each people.slice(0, 3) as p (p.id)}
-											<span
-												class="flex size-7 items-center justify-center rounded-full bg-accent-soft font-display text-[11px] font-bold text-accent-ink ring-2 ring-surface"
-												>{initials(personName(p))}</span
+											<span class="rounded-full ring-2 ring-surface"
+												><Avatar id={p.avatar} class="size-7" /></span
 											>
 										{/each}
 									</span>

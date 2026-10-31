@@ -105,8 +105,12 @@ func Process(r io.Reader) (Processed, error) {
 }
 
 func encode(img image.Image, quality int) ([]byte, error) {
+	// JPEG has no transparency: what is see-through becomes white, not black.
+	flat := image.NewRGBA(img.Bounds())
+	draw.Draw(flat, flat.Bounds(), image.White, image.Point{}, draw.Src)
+	draw.Draw(flat, flat.Bounds(), img, img.Bounds().Min, draw.Over)
 	var buf bytes.Buffer
-	err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: quality})
+	err := jpeg.Encode(&buf, flat, &jpeg.Options{Quality: quality})
 	return buf.Bytes(), err
 }
 
@@ -282,4 +286,26 @@ func saneTIFF(t []byte) bool {
 		}
 	}
 	return true
+}
+
+// AvatarPx is the edge of a profile picture.
+const AvatarPx = 256
+
+// Avatar processes an upload like Process and crops it to a square
+// AvatarPx JPEG from its middle.
+func Avatar(r io.Reader) ([]byte, error) {
+	p, err := Process(r)
+	if err != nil {
+		return nil, err
+	}
+	img, err := jpeg.Decode(bytes.NewReader(p.Large)) // upright already
+	if err != nil {
+		return nil, err
+	}
+	b := img.Bounds()
+	side := min(b.Dx(), b.Dy())
+	crop := image.Rect(0, 0, side, side).Add(b.Min).Add(image.Pt((b.Dx()-side)/2, (b.Dy()-side)/2))
+	dst := image.NewRGBA(image.Rect(0, 0, min(side, AvatarPx), min(side, AvatarPx)))
+	draw.CatmullRom.Scale(dst, dst.Bounds(), img, crop, draw.Src, nil)
+	return encode(dst, 85)
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/google/uuid"
 
 	"github.com/tellbow/alvyo/api/internal/auth"
 	"github.com/tellbow/alvyo/api/internal/dbq"
@@ -92,6 +93,7 @@ type Me struct {
 	EmailVerified bool      `json:"email_verified"`
 	Username      string    `json:"username"`
 	DisplayName   string    `json:"display_name"`
+	Avatar        string    `json:"avatar,omitempty" format:"uuid" doc:"Profile picture: GET /avatars/{avatar}"`
 	Locale        string    `json:"locale"`
 	SpeedFactor   float32   `json:"speed_factor" doc:"Personal pace multiplier applied to hiking times"`
 	Role          string    `json:"role" enum:"user,moderator,admin"`
@@ -122,7 +124,16 @@ func toMe(u dbq.User) Me {
 		NotifyFollows:  u.NotifyFollows,
 		ProfilePublic:  u.ProfilePublic,
 		ShareHikes:     u.ShareHikes,
+		Avatar:         avatarID(u.Avatar),
 	}
+}
+
+// avatarID is a profile picture's id as the API gives it: empty without one.
+func avatarID(id *uuid.UUID) string {
+	if id == nil {
+		return ""
+	}
+	return id.String()
 }
 
 // fullMe is toMe with the friend requests waiting.

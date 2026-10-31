@@ -7,8 +7,8 @@ import 'done.dart';
 import 'error_state.dart';
 import '../analytics.dart';
 import '../api.dart';
+import '../avatar.dart';
 import '../l10n/app_localizations.dart';
-import 'feed_tab.dart';
 import 'friends_screen.dart';
 import 'item_card.dart';
 import 'outline.dart';
@@ -128,18 +128,7 @@ class _UserScreenState extends State<UserScreen> {
                           Row(
                             spacing: 14,
                             children: [
-                              // No pictures yet: the first letters of the name.
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundColor: theme.colorScheme.primaryContainer,
-                                child: Text(
-                                  initials(p.displayName),
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
+                              Avatar(widget.api, p.avatar, radius: 30),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,

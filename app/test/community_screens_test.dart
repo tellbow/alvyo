@@ -323,7 +323,7 @@ void main() {
     );
     await _settle(tester);
     expect(find.text('@anna · dabei seit September 2026'), findsOneWidget);
-    expect(find.text('A'), findsOneWidget); // the initial
+    expect(find.byIcon(Icons.person), findsOneWidget); // no picture: the portrait icon
     Finder stat(String label) => find.descendant(
       of: find.ancestor(of: find.text(label), matching: find.byType(Column)).first,
       matching: find.byType(Text),

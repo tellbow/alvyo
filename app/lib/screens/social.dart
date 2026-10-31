@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
+import '../avatar.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
 import 'report_dialog.dart';
@@ -147,7 +148,9 @@ class _SocialPanelState extends State<SocialPanel> {
       padding: EdgeInsets.only(left: reply ? 24 : 0, top: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
         children: [
+          Padding(padding: const EdgeInsets.only(top: 2), child: Avatar(widget.api, c.authorAvatar, radius: 12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

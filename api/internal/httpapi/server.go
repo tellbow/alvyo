@@ -188,6 +188,7 @@ func build(d Deps, prefix string, extra func(huma.API, Deps)) (http.Handler, hum
 	registerCommunity(api, d)
 	registerDone(api, d)
 	registerPhotos(api, d)
+	registerAvatars(api, d)
 	registerOIDC(api, d)
 	registerPacks(api, d)
 	registerBugReports(api, d)

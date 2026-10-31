@@ -67,6 +67,7 @@ type profileOutput struct {
 	Body struct {
 		Username    string                    `json:"username"`
 		DisplayName string                    `json:"display_name"`
+		Avatar      string                    `json:"avatar,omitempty" format:"uuid" doc:"Profile picture: GET /avatars/{avatar}"`
 		Since       time.Time                 `json:"since" doc:"Month the account was created"`
 		Routes      []routes.Summary          `json:"routes" doc:"The user's routes the viewer may open and, for friends, others' routes the user hiked; done_on is when the user hiked it, for friends only"`
 		Journeys    []journeys.Summary        `json:"journeys" doc:"As routes"`
@@ -166,7 +167,7 @@ func registerDiscover(api huma.API, d Deps) {
 			return nil, err
 		}
 		out := &profileOutput{}
-		out.Body.Username, out.Body.DisplayName, out.Body.Since = u.Username, u.DisplayName, u.Since
+		out.Body.Username, out.Body.DisplayName, out.Body.Avatar, out.Body.Since = u.Username, u.DisplayName, u.Avatar, u.Since
 		v, viewer, signedIn := communityViewer(ctx)
 		out.Body.Self = v.ID == u.ID
 		if out.Body.Relation, err = d.Community.Relation(ctx, v.ID, u.ID); err != nil {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Avatar from '#lib/components/Avatar.svelte';
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
@@ -46,13 +47,6 @@
 	// A hike's day is the one hiked, not when it was marked.
 	const when = (it: Item) =>
 		day.format(new Date(it.done_on ? `${it.done_on}T12:00:00Z` : it.published_at));
-	const initials = (name: string) =>
-		name
-			.split(/\s+/)
-			.filter(Boolean)
-			.slice(0, 2)
-			.map((w) => w[0].toUpperCase())
-			.join('');
 </script>
 
 <Seo title={m.feed_title()} index={false} />
@@ -76,12 +70,7 @@
 					class="flex gap-3 rounded-xl border border-stone-200 bg-surface p-4"
 					data-testid="feed-{it.kind}"
 				>
-					<div
-						class="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft font-display font-bold text-accent-ink"
-						aria-hidden="true"
-					>
-						{initials(it.owner_name)}
-					</div>
+					<Avatar id={it.owner_avatar} />
 					<div class="min-w-0 flex-1">
 						<p class="text-sm">
 							<a

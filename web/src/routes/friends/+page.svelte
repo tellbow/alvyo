@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Avatar from '#lib/components/Avatar.svelte';
 	import { resolve } from '$app/paths';
 	import { refreshAll } from '$app/navigation';
 	import { page } from '$app/state';
@@ -62,25 +63,13 @@
 		}
 	}
 
-	const initials = (name: string) =>
-		name
-			.split(/\s+/)
-			.filter(Boolean)
-			.slice(0, 2)
-			.map((w) => w[0].toUpperCase())
-			.join('');
 	const section = 'mt-10 mb-3 font-display text-lg font-bold';
 	const grid = 'grid gap-3 sm:grid-cols-2';
 </script>
 
 {#snippet person(f: FriendRef, testid: string, suggested = false)}
 	<li class="flex gap-3 rounded-xl border border-stone-200 bg-surface p-4" data-testid={testid}>
-		<div
-			class="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft font-display font-bold text-accent-ink"
-			aria-hidden="true"
-		>
-			{initials(f.display_name)}
-		</div>
+		<Avatar id={f.avatar} />
 		<div class="min-w-0 flex-1">
 			<div class="flex items-start gap-2">
 				<p class="min-w-0 flex-1 truncate">

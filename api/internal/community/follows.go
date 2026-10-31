@@ -135,6 +135,7 @@ type FeedItem struct {
 	Title         string    `json:"title" doc:"Empty with the id"`
 	OwnerUsername string    `json:"owner_username" doc:"Who did it: published, hiked or commented"`
 	OwnerName     string    `json:"owner_name"`
+	OwnerAvatar   string    `json:"owner_avatar,omitempty" format:"uuid" doc:"Profile picture: GET /avatars/{owner_avatar}"`
 	PublishedAt   time.Time `json:"published_at" doc:"When it happened"`
 	DistanceM     float64   `json:"distance_m"`
 	AscentM       float64   `json:"ascent_m"`
@@ -178,17 +179,17 @@ func (s *Store) Feed(ctx context.Context, user uuid.UUID, before time.Time, limi
 	), apart AS (
 		SELECT blocked_id AS id FROM blocks WHERE blocker_id = $1 UNION SELECT blocker_id FROM blocks WHERE blocked_id = $1
 	), actors AS (
-		SELECT u.id, u.username, u.display_name, u.share_hikes AND u.id IN (SELECT id FROM friends) AS hikes
+		SELECT u.id, u.username, u.display_name, coalesce(u.avatar::text, '') AS avatar, u.share_hikes AND u.id IN (SELECT id FROM friends) AS hikes
 		FROM users u WHERE u.banned_at IS NULL AND u.id NOT IN (SELECT id FROM apart)
 	)
 	SELECT * FROM (
-		SELECT 'route' AS kind, 'route' AS target, r.id, r.title, a.username, a.display_name, r.published_at AS at,
+		SELECT 'route' AS kind, 'route' AS target, r.id, r.title, a.username, a.display_name, a.avatar, r.published_at AS at,
 			r.distance_m::float8, r.ascent_m::float8, r.duration_s, r.sac_grade::int, r.sac_max::int, 0, NULL::date, ''
 		FROM people p JOIN actors a ON a.id = p.id
 		JOIN routes r ON r.owner_id = p.id AND r.visibility = 'public' AND r.journey_id IS NULL
 		WHERE r.published_at < $2
 		UNION ALL
-		SELECT 'journey', 'journey', j.id, j.title, a.username, a.display_name, j.published_at,
+		SELECT 'journey', 'journey', j.id, j.title, a.username, a.display_name, a.avatar, j.published_at,
 			js.distance_m, js.ascent_m, js.duration_s, js.sac_grade, js.sac_max, js.stages, NULL, ''
 		FROM people p JOIN actors a ON a.id = p.id
 		JOIN journeys j ON j.owner_id = p.id AND j.visibility = 'public' `+journeySums+`
@@ -196,19 +197,19 @@ func (s *Store) Feed(ctx context.Context, user uuid.UUID, before time.Time, limi
 		UNION ALL
 		-- Hikes: marked as hiked, or recorded in the app.
 		SELECT 'hike', 'route', CASE WHEN `+seesRoute+` THEN r.id END, CASE WHEN `+seesRoute+` THEN r.title ELSE '' END,
-			a.username, a.display_name, d.created_at,
+			a.username, a.display_name, a.avatar, d.created_at,
 			r.distance_m::float8, r.ascent_m::float8, r.duration_s, r.sac_grade::int, r.sac_max::int, 0, d.done_on, ''
 		FROM actors a JOIN done_marks d ON d.user_id = a.id JOIN routes r ON r.id = d.route_id
 		WHERE a.hikes AND d.created_at < $2
 		UNION ALL
 		SELECT 'hike', 'journey', CASE WHEN `+seesJourney+` THEN j.id END, CASE WHEN `+seesJourney+` THEN j.title ELSE '' END,
-			a.username, a.display_name, d.created_at,
+			a.username, a.display_name, a.avatar, d.created_at,
 			js.distance_m, js.ascent_m, js.duration_s, js.sac_grade, js.sac_max, js.stages, d.done_on, ''
 		FROM actors a JOIN done_marks d ON d.user_id = a.id JOIN journeys j ON j.id = d.journey_id `+journeySums+`
 		WHERE a.hikes AND d.created_at < $2
 		UNION ALL
 		SELECT 'hike', 'route', CASE WHEN `+seesRoute+` THEN r.id END, CASE WHEN `+seesRoute+` THEN r.title ELSE '' END,
-			a.username, a.display_name, r.hiked_at,
+			a.username, a.display_name, a.avatar, r.hiked_at,
 			r.distance_m::float8, r.ascent_m::float8, r.duration_s, r.sac_grade::int, r.sac_max::int, 0,
 			(r.hiked_at AT TIME ZONE 'Europe/Zurich')::date, ''
 		FROM actors a JOIN routes r ON r.owner_id = a.id AND r.source = 'recorded'
@@ -216,7 +217,7 @@ func (s *Store) Feed(ctx context.Context, user uuid.UUID, before time.Time, limi
 		UNION ALL
 		-- On the user's own routes and journeys.
 		SELECT 'comment', CASE WHEN c.route_id IS NULL THEN 'journey' ELSE 'route' END, coalesce(c.route_id, c.journey_id),
-			coalesce(r.title, j.title), a.username, a.display_name, c.created_at, 0, 0, 0, 0, 0, 0, NULL, left(c.body, 160)
+			coalesce(r.title, j.title), a.username, a.display_name, a.avatar, c.created_at, 0, 0, 0, 0, 0, 0, NULL, left(c.body, 160)
 		FROM comments c JOIN actors a ON a.id = c.author_id
 		LEFT JOIN routes r ON r.id = c.route_id LEFT JOIN journeys j ON j.id = c.journey_id
 		WHERE $4 AND c.author_id <> $1 AND coalesce(r.owner_id, j.owner_id) = $1 AND c.created_at < $2
@@ -230,7 +231,7 @@ func (s *Store) Feed(ctx context.Context, user uuid.UUID, before time.Time, limi
 		var it FeedItem
 		var id *uuid.UUID
 		var doneOn *time.Time
-		if err := rows.Scan(&it.Kind, &it.Target, &id, &it.Title, &it.OwnerUsername, &it.OwnerName, &it.PublishedAt,
+		if err := rows.Scan(&it.Kind, &it.Target, &id, &it.Title, &it.OwnerUsername, &it.OwnerName, &it.OwnerAvatar, &it.PublishedAt,
 			&it.DistanceM, &it.AscentM, &it.DurationS, &it.SACGrade, &it.SACMax, &it.Stages, &doneOn, &it.Excerpt); err != nil {
 			return nil, err
 		}

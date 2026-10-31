@@ -377,7 +377,6 @@
 	"import_intro": "Bring your tours from GPX, KML, TCX or FIT files. Imported tours are private; afterwards you can edit and share them like planned routes.",
 	"import_komoot_hint": "Tours from Komoot: download them there as GPX files and upload them here.",
 	"import_link": "Import",
-	"import_journey_hint": "Import a multi-day GPX file",
 	"import_file_title": "Upload a file",
 	"import_fallback_title": "Import",
 	"import_file_intro": "GPX, KML, TCX or FIT, up to 20 MB. Only tracks in Switzerland, Liechtenstein and up to 15 km beyond are imported.",

@@ -56,12 +56,7 @@
 
 <main class="mx-auto w-full max-w-4xl flex-1 overflow-y-auto px-4 py-8">
 	<h1 class="text-2xl font-semibold">{m.journeys_title()}</h1>
-	<p class="mt-1 text-stone-600">
-		{m.journeys_intro()}
-		<a href={resolve('/import')} class="underline hover:text-accent-ink"
-			>{m.import_journey_hint()}</a
-		>
-	</p>
+	<p class="mt-1 text-stone-600">{m.journeys_intro()}</p>
 	<a
 		href={resolve('/journeys/plan')}
 		class="{primaryButtonSmall} mt-4 inline-block"

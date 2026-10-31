@@ -377,7 +377,6 @@
 	"import_intro": "Hol deine Touren aus GPX-, KML-, TCX- oder FIT-Dateien. Importierte Touren sind privat; du kannst sie danach wie geplante Routen bearbeiten und teilen.",
 	"import_komoot_hint": "Touren aus Komoot: Lade sie dort als GPX-Dateien herunter und lade sie hier hoch.",
 	"import_link": "Importieren",
-	"import_journey_hint": "Mehrtägige GPX-Datei importieren",
 	"import_file_title": "Datei hochladen",
 	"import_fallback_title": "Import",
 	"import_file_intro": "GPX, KML, TCX oder FIT, bis 20 MB. Nur Tracks in der Schweiz, in Liechtenstein und bis 15 km über die Grenze werden übernommen.",

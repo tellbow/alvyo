@@ -377,7 +377,6 @@
 	"import_intro": "Porta qui le tue escursioni da file GPX, KML, TCX o FIT. Le escursioni importate sono private; poi puoi modificarle e condividerle come i percorsi pianificati.",
 	"import_komoot_hint": "Escursioni da Komoot: scaricale lì come file GPX e caricale qui.",
 	"import_link": "Importa",
-	"import_journey_hint": "Importa un file GPX di più giorni",
 	"import_file_title": "Carica un file",
 	"import_fallback_title": "Importazione",
 	"import_file_intro": "GPX, KML, TCX o FIT, fino a 20 MB. Vengono ripresi solo i tracciati in Svizzera, nel Liechtenstein e fino a 15 km oltre.",

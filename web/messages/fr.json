@@ -377,7 +377,6 @@
 	"import_intro": "Récupère tes randonnées depuis des fichiers GPX, KML, TCX ou FIT. Les randonnées importées sont privées ; tu peux ensuite les modifier et les partager comme des itinéraires planifiés.",
 	"import_komoot_hint": "Randonnées de Komoot : télécharge-les là-bas en fichiers GPX et importe-les ici.",
 	"import_link": "Importer",
-	"import_journey_hint": "Importer un fichier GPX de plusieurs jours",
 	"import_file_title": "Téléverser un fichier",
 	"import_fallback_title": "Import",
 	"import_file_intro": "GPX, KML, TCX ou FIT, jusqu'à 20 Mo. Seules les traces en Suisse, au Liechtenstein et jusqu'à 15 km au-delà sont reprises.",

@@ -6,23 +6,29 @@
 //	alvyo user ban|unban <username>    block or unblock an account
 //	alvyo user role <username> <role>  set user, moderator or admin
 //	alvyo route unpublish <id>         make a route private
+//	alvyo restore [--apply] user <name> | route|journey|collection <id>
+//	                                   copy part of a backup back (docs/restore.md)
 package main
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/time/rate"
 
 	"github.com/tellbow/alvyo/api/internal/admin"
@@ -49,6 +55,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/places"
 	"github.com/tellbow/alvyo/api/internal/precip"
 	"github.com/tellbow/alvyo/api/internal/reminders"
+	"github.com/tellbow/alvyo/api/internal/restore"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/snow"
@@ -65,7 +72,7 @@ var version = "dev"
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: alvyo serve|migrate|openapi|user|route")
+		fmt.Fprintln(os.Stderr, "usage: alvyo serve|migrate|openapi|user|route|restore")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1], os.Args[2:]); err != nil {
@@ -87,6 +94,8 @@ func run(cmd string, args []string) error {
 		return printOpenAPI()
 	case "user", "route":
 		return adminCommand(ctx, cmd, args)
+	case "restore":
+		return restoreCommand(ctx, args)
 	default:
 		return fmt.Errorf("unknown command %q", cmd)
 	}
@@ -329,6 +338,55 @@ func adminCommand(ctx context.Context, cmd string, args []string) error {
 		return err
 	}
 	slog.Info("done", "command", cmd, "args", args)
+	return nil
+}
+
+// restoreCommand copies a user's routes, journeys and collections, or one
+// of them, back from a dump loaded into the database named by --from on
+// the same server (docs/restore.md); without --apply it only counts.
+func restoreCommand(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("restore", flag.ContinueOnError)
+	from := fs.String("from", "alvyo_restore", "the database the dump was loaded into")
+	apply := fs.Bool("apply", false, "write; without it nothing changes")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if fs.NArg() != 2 || !slices.Contains([]string{"user", "route", "journey", "collection"}, fs.Arg(0)) {
+		return errors.New("usage: alvyo restore [--from db] [--apply] user <username> | route|journey|collection <id>")
+	}
+	cfg, err := config.FromEnv()
+	if err != nil {
+		return err
+	}
+	u, err := url.Parse(cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	u.Path = "/" + *from
+	live, err := db.Open(ctx, cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer live.Close()
+	backup, err := db.Open(ctx, u.String())
+	if err != nil {
+		return err
+	}
+	defer backup.Close()
+	files := &photos.Files{Dir: cfg.PhotosDir}
+	r := &restore.Restorer{From: backup, To: live, PhotoFile: func(id uuid.UUID) string { return files.Path(id, photos.Large) }}
+	counts, err := r.Run(ctx, restore.What{Kind: fs.Arg(0), ID: fs.Arg(1)}, *apply)
+	if err != nil {
+		return err
+	}
+	for _, c := range counts {
+		if c.Added+c.Missed > 0 {
+			fmt.Printf("%-22s %5d added  %5d left out\n", c.Table, c.Added, c.Missed)
+		}
+	}
+	if !*apply {
+		fmt.Println("Nothing written: run again with --apply.")
+	}
 	return nil
 }
 

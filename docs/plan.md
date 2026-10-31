@@ -973,6 +973,15 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     `GET /avatars/{id}` serves it to anyone with the id, which comes only
     with the person: profile, news, comments, friends and a journey's
     people. Without one, a portrait icon instead of the initials.
+83. **Restoring part of a backup** (feedback issue 74, 2026-10-31). A
+    user's routes, journeys and collections, or one of them, copied back
+    from a nightly dump loaded into a scratch database (`alvyo restore
+    [--apply] user <name> | route|journey|collection <id>`,
+    [restore.md](restore.md) case 1b): only missing rows, in one
+    transaction, without what lost its other end, a dry run first. From
+    the same work: dumps restore `routes` again (migration 0048; the
+    generated line of recorded hikes did not find PostGIS under
+    pg_restore's empty search_path).
 
 ### Open
 

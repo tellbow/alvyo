@@ -74,6 +74,47 @@ flux resume kustomization flux-system
 
 Then check as in [Afterwards](#afterwards).
 
+## 1b. Part of the data: a user's tours, or one of them
+
+Someone deleted their journey, a route or a collection by mistake, or all
+their tours are gone: copy them back from a dump without touching the rest
+(feedback issue 74). The API keeps running.
+
+1. **A dump of the state now**, in case the copy goes wrong:
+   `kubectl -n alvyo create job --from=cronjob/db-backup db-backup-before-restore`.
+2. **The dump into a scratch database** `alvyo_restore` on the same server,
+   in the helper pod of case 1 (with `-it` and `sh`):
+
+   ```sh
+   ls -t /backups/*.dump | head
+   createdb -h db -U alvyo alvyo_restore
+   pg_restore -h db -U alvyo -d alvyo_restore --no-owner /backups/alvyo-<stamp>.dump
+   ```
+
+   Dumps from before migration 0048 (release after 1.17.0) do not restore
+   `routes`: replace `pg_restore … -d alvyo_restore` with
+   `pg_restore -f - /backups/alvyo-<stamp>.dump | sed 's/^CREATE FUNCTION public.shown_line(g public.geometry) RETURNS public.geometry/&\n    SET search_path = public/' | psql -h db -U alvyo -d alvyo_restore`.
+3. **What would come back**, without writing anything; then the same with
+   `--apply`:
+
+   ```sh
+   kubectl -n alvyo exec deploy/api -- /alvyo restore user <username>
+   kubectl -n alvyo exec deploy/api -- /alvyo restore route|journey|collection <id>
+   kubectl -n alvyo exec deploy/api -- /alvyo restore --apply user <username>
+   ```
+
+   A user's tours are their routes, journeys (with stages and stage routes)
+   and collections, with what hangs on them: who they are shared with,
+   collection items, likes, comments, photos, revisions, «Gewandert»,
+   travel and reminders. Only missing rows are added, in one transaction;
+   what is in the database now stays as it is. «left out» counts rows
+   whose other end is gone (a like from a deleted account), whose place is
+   taken (an item at a position of its collection used again since) and
+   photos whose file is gone: those come back only after their files
+   (case 1, «Photos», a few files from a snapshot), then run it again.
+   The account itself is not restored: it must still exist.
+4. **The scratch database away:** `dropdb -h db -U alvyo alvyo_restore`.
+
 ## 2. A node or disk fails
 
 Nothing to restore: every Longhorn volume keeps three replicas on different

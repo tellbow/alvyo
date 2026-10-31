@@ -37,6 +37,22 @@
 		done = { text: `«${it.title}» ist jetzt privat.`, logId: r.log_id };
 		await invalidateAll();
 	}
+
+	// Planned while the trail network was missing or older: matched again.
+	let retrailing = $state('');
+	async function retrail(it: AdminItem) {
+		if (it.kind === 'collection') return;
+		error = '';
+		retrailing = it.id;
+		const { response } = await adminApi().POST('/admin/items/{kind}/{id}/retrail', {
+			params: { path: { kind: it.kind, id: it.id } }
+		});
+		retrailing = '';
+		if (response.status === 409)
+			return void (done = { text: `«${it.title}» passt schon zu den Wanderwegen.` });
+		if (!response.ok) return void (error = refused(response.status));
+		done = { text: `«${it.title}» an die Wanderwege angepasst.` };
+	}
 </script>
 
 <Seo title="Inhalte" index={false} />
@@ -66,6 +82,15 @@
 						class="ml-2 text-stone-600 underline">@{it.owner}</a
 					>
 				</div>
+				{#if it.kind !== 'collection'}
+					<button
+						type="button"
+						class="rounded px-2 py-1 ring-1 ring-stone-300 hover:bg-stone-50 disabled:opacity-50"
+						disabled={retrailing === it.id}
+						onclick={() => retrail(it)}
+						>{retrailing === it.id ? 'Wird angepasst …' : 'An Wanderwege anpassen'}</button
+					>
+				{/if}
 				{#if it.visibility !== 'private'}
 					<button
 						type="button"

@@ -12,6 +12,7 @@
 	const hydrated = new Hydrated(); // for the end-to-end tests
 	const staff = $derived(data.user && data.user.role !== 'user');
 	const pages = [
+		{ route: '/admin/(portal)', path: '/admin', label: 'Übersicht' },
 		{ route: '/admin/(portal)/meldungen', path: '/admin/meldungen', label: 'Meldungen' },
 		{ route: '/admin/(portal)/nutzer', path: '/admin/nutzer', label: 'Nutzer' },
 		{ route: '/admin/(portal)/inhalte', path: '/admin/inhalte', label: 'Inhalte' },
@@ -39,7 +40,13 @@
 				{#each pages as p (p.path)}
 					<a
 						href={resolve(p.route)}
-						aria-current={page.url.pathname.startsWith(p.path) ? 'page' : undefined}
+						aria-current={(
+							p.path === '/admin'
+								? page.url.pathname === p.path
+								: page.url.pathname.startsWith(p.path)
+						)
+							? 'page'
+							: undefined}
 						class="rounded-full px-3 py-1.5 hover:bg-stone-100 aria-[current=page]:bg-stone-900 aria-[current=page]:text-stone-50 dark:aria-[current=page]:bg-stone-200 dark:aria-[current=page]:text-stone-900"
 						>{p.label}</a
 					>

@@ -239,6 +239,24 @@ func (s *Store) Unpublish(ctx context.Context, actor uuid.UUID, kind string, id 
 	})
 }
 
+// LogRetrail records that a route's or a journey's stage routes were
+// matched to the trails again (routes.Store.RetrailOne); not undoable, as
+// it only brings back an outdated match.
+func (s *Store) LogRetrail(ctx context.Context, actor uuid.UUID, kind string, id uuid.UUID, changed int) (uuid.UUID, error) {
+	table, ok := map[string]string{"route": "routes", "journey": "journeys"}[kind]
+	if !ok {
+		return uuid.Nil, ErrNotFound
+	}
+	return s.do(ctx, actor, func(tx pgx.Tx) (Entry, error) {
+		var title string
+		if err := tx.QueryRow(ctx, `SELECT title FROM `+table+` WHERE id = $1`, id).Scan(&title); err != nil {
+			return Entry{}, notFound(err)
+		}
+		return Entry{Area: "inhalte", Title: fmt.Sprintf("«%s» an Wanderwege angepasst (%d geändert)", title, changed),
+			TargetKind: kind, TargetID: id}, nil
+	})
+}
+
 // ErrRole means only admins change roles, and undo a change of one.
 var ErrRole = errors.New("only admins change roles")
 
@@ -276,9 +294,11 @@ func (s *Store) Undo(ctx context.Context, actor, id uuid.UUID, roles bool) error
 			return ErrRole
 		}
 	}
+	// Only later changes that can be undone count: the others (log out,
+	// e-mails, jobs, retrail) never touch what an undo writes back.
 	var later bool
 	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM admin_log
-		WHERE target_id = ANY($1) AND at > $2 AND id <> $3 AND undone_at IS NULL)`, ids, at, id).Scan(&later); err != nil {
+		WHERE target_id = ANY($1) AND at > $2 AND id <> $3 AND undone_at IS NULL AND undo IS NOT NULL)`, ids, at, id).Scan(&later); err != nil {
 		return err
 	}
 	if later {

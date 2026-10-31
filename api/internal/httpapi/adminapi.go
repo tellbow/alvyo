@@ -7,10 +7,12 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/tellbow/alvyo/api/internal/admin"
 	"github.com/tellbow/alvyo/api/internal/community"
 	"github.com/tellbow/alvyo/api/internal/dbq"
+	"github.com/tellbow/alvyo/api/internal/routing"
 )
 
 type reportsOutput struct {
@@ -265,6 +267,52 @@ func registerAdmin(api huma.API, d Deps) {
 			return nil, err
 		}
 		return done(d.Admin.Unpublish(ctx, u.ID, in.Kind, uuid.MustParse(in.ID)))
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "admin-retrail", Method: http.MethodPost, Path: "/admin/items/{kind}/{id}/retrail",
+		Summary:     "Match a route, or a journey's stage routes, to the trail network again",
+		Description: "For routes planned while the network was missing or outdated; as `alvyo route retrail` for one item.",
+		Tags:        tags,
+	}, func(ctx context.Context, in *adminItemInput) (*adminDoneOutput, error) {
+		u, err := moderator(ctx)
+		if err != nil {
+			return nil, err
+		}
+		id := uuid.MustParse(in.ID)
+		var rows pgx.Rows
+		switch in.Kind {
+		case "route":
+			rows, err = d.DB.Query(ctx, `SELECT id FROM routes WHERE id = $1`, id)
+		case "journey":
+			rows, err = d.DB.Query(ctx, `SELECT id FROM routes WHERE journey_id = $1`, id)
+		default:
+			return nil, huma.Error422UnprocessableEntity("only routes and journeys")
+		}
+		if err != nil {
+			return nil, err
+		}
+		ids, err := pgx.CollectRows(rows, pgx.RowTo[uuid.UUID])
+		if err != nil {
+			return nil, err
+		}
+		if len(ids) == 0 && in.Kind == "route" {
+			return nil, adminError(admin.ErrNotFound)
+		}
+		changed, m := 0, &routing.TrailMatcher{DB: d.DB}
+		for _, r := range ids {
+			ok, err := d.Routes.RetrailOne(ctx, m, r)
+			if err != nil {
+				return nil, err
+			}
+			if ok {
+				changed++
+			}
+		}
+		if changed == 0 {
+			return nil, adminError(admin.ErrNoChange)
+		}
+		return done(d.Admin.LogRetrail(ctx, u.ID, in.Kind, id, changed))
 	})
 
 	huma.Register(api, huma.Operation{

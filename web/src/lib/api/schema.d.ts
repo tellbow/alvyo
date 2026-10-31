@@ -21,6 +21,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/items/{kind}/{id}/retrail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Match a route, or a journey's stage routes, to the trail network again
+         * @description For routes planned while the network was missing or outdated; as `alvyo route retrail` for one item.
+         */
+        post: operations["admin-retrail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/items/{kind}/{id}/unpublish": {
         parameters: {
             query?: never;
@@ -5369,6 +5389,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminItemsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "admin-retrail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "route" | "journey" | "collection";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDoneOutputBody"];
                 };
             };
             /** @description Error */

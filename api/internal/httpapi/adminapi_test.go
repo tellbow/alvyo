@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/tellbow/alvyo/api/internal/admin"
 )
 
@@ -149,6 +151,24 @@ func TestAdminPortal(t *testing.T) {
 	_ = json.Unmarshal(body, &done)
 	if code, _ := m.do("POST", "/admin-api/v1/admin/log/"+unpublished.LogID+"/undo", nil); code != http.StatusConflict {
 		t.Errorf("undo before a later change: %d, want 409", code)
+	}
+
+	// Matching to the trails again; a second time nothing changes.
+	if code, body := m.do("POST", "/admin-api/v1/admin/items/route/"+route.ID+"/retrail", nil); code != http.StatusOK {
+		t.Errorf("retrail: %d %s", code, body)
+	}
+	if code, _ := m.do("POST", "/admin-api/v1/admin/items/route/"+route.ID+"/retrail", nil); code != http.StatusConflict {
+		t.Errorf("retrail unchanged: %d, want 409", code)
+	}
+	// Not undoable, so it does not stand in the way of undoing the unpublish.
+	if code, body := m.do("POST", "/admin-api/v1/admin/log/"+done.LogID+"/undo", nil); code != http.StatusNoContent {
+		t.Errorf("undo the unpublish after a retrail: %d %s", code, body)
+	}
+	if code, _ := m.do("POST", "/admin-api/v1/admin/items/route/"+uuid.NewString()+"/retrail", nil); code != http.StatusNotFound {
+		t.Errorf("retrail missing: %d, want 404", code)
+	}
+	if code, _ := m.do("POST", "/admin-api/v1/admin/items/collection/"+route.ID+"/retrail", nil); code != http.StatusUnprocessableEntity {
+		t.Errorf("retrail a collection: %d, want 422", code)
 	}
 
 	// A new confirmation e-mail only for an address not confirmed.

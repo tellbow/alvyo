@@ -111,7 +111,12 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 		}
 	});
 	// In the admin portal (feedback issue 70), served here without ADMIN_URL.
+	// «Übersicht» names the open reports and leads to them.
 	await modPage.goto('/admin');
+	await modPage
+		.getByTestId('admin-waiting')
+		.getByRole('link', { name: /offene Meldung/ })
+		.click();
 	await expect(modPage).toHaveURL(/\/admin\/meldungen$/);
 	const report = modPage.getByTestId('report').filter({ hasText: s });
 	await expect(report).toContainText('Spam oder Werbung');

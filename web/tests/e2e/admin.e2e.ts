@@ -58,6 +58,9 @@ test('admin portal: users, items and the log with undo', async ({ page, browser 
 	await expect(item).toContainText('öffentlich');
 	await item.getByRole('button', { name: 'Privat machen' }).click();
 	await expect(item).toContainText('privat');
+	// Matched to the trails again: done, or already as it is.
+	await item.getByRole('button', { name: 'An Wanderwege anpassen' }).click();
+	await expect(page.getByTestId('admin-done')).toContainText('Wanderwege');
 
 	// Verlauf: newest first; the undone ban struck through, the rest undoable.
 	await page.goto('/admin/verlauf?area=nutzer');

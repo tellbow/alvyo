@@ -28,7 +28,7 @@ func (s *Store) Retrail(ctx context.Context, m *routing.TrailMatcher) (int, erro
 	}
 	changed := 0
 	for _, id := range ids {
-		ok, err := s.retrail(ctx, m, id)
+		ok, err := s.RetrailOne(ctx, m, id)
 		if err != nil {
 			return changed, fmt.Errorf("routes: retrail %s: %w", id, err)
 		}
@@ -39,8 +39,9 @@ func (s *Store) Retrail(ctx context.Context, m *routing.TrailMatcher) (int, erro
 	return changed, nil
 }
 
-// retrail does one route, one at a time: some have tens of thousands of points.
-func (s *Store) retrail(ctx context.Context, m *routing.TrailMatcher, id uuid.UUID) (bool, error) {
+// RetrailOne does one route and tells whether it changed; one at a time:
+// some have tens of thousands of points.
+func (s *Store) RetrailOne(ctx context.Context, m *routing.TrailMatcher, id uuid.UUID) (bool, error) {
 	var version int
 	var raw []byte
 	err := s.DB.QueryRow(ctx, `SELECT version, legs FROM routes WHERE id = $1`, id).Scan(&version, &raw)

@@ -7250,6 +7250,62 @@
         ]
       }
     },
+    "/admin/items/{kind}/{id}/retrail": {
+      "post": {
+        "description": "For routes planned while the network was missing or outdated; as `alvyo route retrail` for one item.",
+        "operationId": "admin-retrail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "route",
+                "journey",
+                "collection"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDoneOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Match a route, or a journey's stage routes, to the trail network again",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/admin/items/{kind}/{id}/unpublish": {
       "post": {
         "operationId": "admin-unpublish",

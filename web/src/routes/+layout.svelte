@@ -254,17 +254,9 @@
 			<a
 				href={resolve('/')}
 				aria-label="Alvyo"
-				class="flex items-baseline font-display text-[28px] leading-none font-bold tracking-[-0.04em]"
+				class="flex items-center gap-2 font-display text-[28px] leading-none font-bold tracking-[-0.04em]"
 			>
-				<svg width="20" height="19" viewBox="0 0 24 23" fill="none" aria-hidden="true">
-					<path
-						d="M2.3 23L12 2L21.7 23"
-						stroke="currentColor"
-						stroke-width="4"
-						stroke-linejoin="round"
-					/>
-					<path d="M7.8 11H16.2" class="stroke-accent" stroke-width="3.2" />
-				</svg><span>lvyo</span>
+				<img src="/favicon.svg" width="28" height="28" alt="" /><span>Alvyo</span>
 			</a>
 			<nav
 				class="hidden items-center gap-1 rounded-full border border-stone-200 bg-surface p-1 text-sm font-medium xl:flex"

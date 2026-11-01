@@ -421,6 +421,8 @@ Checked so far only in the simulator, with made-up or simulated positions
       profile, tapping the picture sets one from the camera and from the
       library (a HEIC from an iPhone, a portrait photo stays upright) and
       removes it; it then shows in the news, comments and friends.
+- [ ] **The new logo (feedback issue 60)**: the home screen icon and the launch
+      screen in light and dark.
 
 ## Apple Watch app (release build, feedback issue 15)
 
@@ -452,6 +454,8 @@ after the hike started.
       (Settings → General → Return to Clock on the watch; «Alvyo» there can
       keep it).
 - [ ] **No watch paired**: the app works as before.
+- [ ] **The new logo (feedback issue 60)**: the icon in the watch's app list, the
+      mountain's foot whole in the round mask.
 
 ## App on the iPad (release build)
 
@@ -520,6 +524,8 @@ emulator ran the integration tests offline, navigate and journey
   of the old phone, so they stay out of backups); no offline maps.
 - [ ] **Photos, sharing, files**: «Foto aufnehmen», a photo from the gallery,
   «Link senden …» and importing a GPX file.
+- [ ] **The new logo (feedback issue 60)**: launcher icon in a round mask, the
+  themed icon, the mountain in the status bar's notification while recording.
 - [ ] **Look and size**: the icon (also themed), the status bar in light and
   dark, the back gesture, the keyboard over fields, large text.
 - [ ] **One's position on the maps and «Fehler melden» on a map** (81,

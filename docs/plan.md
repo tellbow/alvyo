@@ -1088,8 +1088,6 @@ Connect's course import.
 - Operations: backups are kept on the cluster only; an off-site copy is
   missing.
 - Texts: the French and Italian texts to be reviewed by a native speaker.
-- Logo: the Λ of the Alvyo mock-up, drawn as a vector for the web and the
-  app icon; a final one from a designer.
 - Design: the mock-up's moods, logbook and «send to app».
 - M4: the Swiss Map Raster 25 (1:25 000) served from own tiles instead of
   swisstopo's WMTS (20–40 GB of tiles).

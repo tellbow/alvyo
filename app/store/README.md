@@ -68,7 +68,7 @@ the iPhone captures and the header's map (no dev stack needed once
 a 32-bit PNG:
 
 ```sh
-uv run --with pillow python -I -c "from PIL import Image; Image.open('app/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png').convert('RGBA').resize((512, 512), Image.LANCZOS).save('app/store/work/play-icon.png')"
+uv run --with pillow python -I -c "from PIL import Image; Image.open('app/ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png').convert('RGBA').resize((512, 512), Image.LANCZOS).save('app/store/work/play-icon.png')"
 ```
 
 Where each goes, and the listing's texts: [google-play.md](google-play.md).

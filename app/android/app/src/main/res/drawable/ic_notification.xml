@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Λ for the status bar: white on transparent, cut to the letter. -->
+<!-- The mountain for the status bar: white on transparent, the pole thicker to stay visible at 24 dp. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="624"
-    android:viewportHeight="624">
+    android:viewportWidth="448"
+    android:viewportHeight="448">
     <group
-        android:translateX="-200"
-        android:translateY="-200">
+        android:translateX="-32"
+        android:translateY="-19">
         <path
             android:fillColor="#FFFFFFFF"
-            android:pathData="M220,795 L467,258 Q512,190 557,258 L804,795 L696,795 L512,396 L328,795 Z M409,460 L615,460 L615,538 L409,538 Z" />
+            android:fillType="evenOdd"
+            android:pathData="M256,86 L440,446 L72,446 Z M164,446 L212,350 L226,358 L256,258 L282,328 L296,318 L348,446 Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M160,352 H356 V370 H160 Z M248,40 H264 V90 H248 Z M258,40 H300 V72 H258 Z" />
     </group>
 </vector>

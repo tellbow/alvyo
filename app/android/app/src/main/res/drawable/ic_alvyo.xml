@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Λ of the app icon on its 1024 px grid: a themed launcher icon. -->
+<!-- The mountain of the app icon on its 512 px grid: a themed launcher icon. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="1024"
-    android:viewportHeight="1024">
-    <!-- Smaller, as on the launcher icon's foreground, so a round mask keeps the legs. -->
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <!-- Smaller, as on the launcher icon's foreground, so a round mask keeps the foot. -->
     <group
-        android:pivotX="512"
-        android:pivotY="512"
-        android:scaleX="0.75"
-        android:scaleY="0.75">
+        android:translateX="97.28"
+        android:translateY="97.28"
+        android:scaleX="0.62"
+        android:scaleY="0.62">
         <path
             android:fillColor="#FFFFFFFF"
-            android:pathData="M220,795 L467,258 Q512,190 557,258 L804,795 L696,795 L512,396 L328,795 Z M409,460 L615,460 L615,538 L409,538 Z" />
+            android:fillType="evenOdd"
+            android:pathData="M256,86 L440,446 L72,446 Z M164,446 L212,350 L226,358 L256,258 L282,328 L296,318 L348,446 Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M160,352 H356 V370 H160 Z M252,40 H260 V90 H252 Z M258,40 H300 V72 H258 Z" />
     </group>
 </vector>

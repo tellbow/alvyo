@@ -2086,10 +2086,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reachBackHint => 'Hin und zurück, bergauf und bergab je mit ihrer Zeit';
 
   @override
+  String get routeSplit => 'In Etappen aufteilen';
+
+  @override
+  String get routeSplitIntro =>
+      'Aus dieser Route entsteht eine neue Etappentour. Die Route selbst bleibt, wie sie ist.';
+
+  @override
+  String get stagesPickHint => 'Tippe auf die Karte oder das Höhenprofil, um eine Etappe dort zu teilen.';
+
+  @override
+  String get stagesMerge => 'Mit der nächsten Etappe verbinden';
+
+  @override
+  String stagesEndAt(String distance) {
+    return 'bei $distance';
+  }
+
+  @override
+  String get importAsRoute => 'Als Route';
+
+  @override
+  String get importAsJoined => 'Zu einer Route zusammenfügen';
+
+  @override
+  String get importAsRoutes => 'Als einzelne Routen';
+
+  @override
+  String get importAsJourney => 'Als Etappentour – eine Etappe pro Track';
+
+  @override
+  String get importOutside => 'ausserhalb CH/FL';
+
+  @override
   String get importFile => 'Datei (GPX, KML, TCX, FIT)';
 
   @override
-  String get importFileHint => 'Wird eine private Route';
+  String get importFileHint => 'Mit Vorschau, als Route oder Etappentour';
 
   @override
   String get importNotTrack => 'Diese Datei enthält keine Spur, die Alvyo lesen kann (GPX, KML, TCX oder FIT).';

@@ -353,22 +353,32 @@ void main() {
       expect(find.byKey(const Key('import-watch')), findsOneWidget);
       await tester.tap(find.byKey(const Key('import-file')));
       await tester.pumpAndSettle();
-      await until(tester, find.byType(SnackBar));
     }
 
     await importIt();
     expect(find.textContaining('keine Spur'), findsOneWidget);
     expect(saved, 0);
 
-    ScaffoldMessenger.of(tester.element(find.byType(Scaffold).first)).clearSnackBars();
+    await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     answer = _json({
-      'routes': <Object>[],
-      'skipped': [
-        {'name': 'Mont Blanc', 'reason': 'outside'},
+      'format': 'gpx',
+      'tracks': [
+        {
+          'name': 'Mont Blanc',
+          'points': 2,
+          'distance_m': 1000,
+          'inside': false,
+          'nights': 0,
+          'line': [
+            [6.8, 45.8, 0],
+            [6.9, 45.8, 0],
+          ],
+        },
       ],
     });
     await importIt();
-    expect(find.textContaining('über die Grenze'), findsOneWidget);
+    expect(find.byKey(const Key('import-none')), findsOneWidget, reason: 'nothing to import');
+    expect(find.byKey(const Key('import-submit')), findsNothing);
   });
 }

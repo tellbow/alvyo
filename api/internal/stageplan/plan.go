@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -67,8 +68,9 @@ type Request struct {
 	Profile string      // hike or alpine
 	Days    Days
 	Kinds   []string // kinds of places preferred for the nights; none: all
-	// Ends are place ids to end the days at, in order, instead of choosing
-	// (from an earlier proposal's alternatives).
+	// Ends are where the days end, in order, instead of choosing: place ids
+	// (from an earlier proposal's alternatives) or, for a spot on the line
+	// without a place, "@lon/lat".
 	Ends []string
 	// Strict refuses a split with a day over Days.MaxS (a TooLongError)
 	// instead of marking it; not with Ends, where the hiker chose.
@@ -148,14 +150,8 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 	ways := detours{}
 	var ends []place
 	if len(req.Ends) > 0 {
-		for _, id := range req.Ends {
-			i := slices.IndexFunc(near, func(pl place) bool { return pl.ID == id })
-			// A day can end neither where the hike starts nor where it ends.
-			if i < 0 || near[i].index == 0 || near[i].index == len(tr.Coords)-1 ||
-				(len(ends) > 0 && near[i].index <= ends[len(ends)-1].index) {
-				return Proposal{}, ErrUnknownEnd
-			}
-			ends = append(ends, near[i])
+		if ends, err = endsOf(req.Ends, near, tr); err != nil {
+			return Proposal{}, err
 		}
 	} else {
 		// Split, then look at the ways to the places picked; again without
@@ -239,6 +235,54 @@ func (p *Planner) Split(ctx context.Context, legs []routing.Leg, req Request) (P
 		out.Stages = append(out.Stages, st)
 	}
 	return out, nil
+}
+
+// endsOf finds the vertices of the days' ends. A spot is a place without an
+// id: the vertex nearest to it between the ends before and after it.
+// shortcut: where the line passes the spot twice within one day, the first
+// pass wins; a hint of the distance along it would tell them apart.
+func endsOf(ids []string, near []place, tr Track) ([]place, error) {
+	ends := make([]place, len(ids))
+	for k, id := range ids {
+		if strings.HasPrefix(id, "@") {
+			continue
+		}
+		i := slices.IndexFunc(near, func(pl place) bool { return pl.ID == id })
+		if i < 0 {
+			return nil, ErrUnknownEnd
+		}
+		ends[k] = near[i]
+	}
+	last := len(tr.Coords) - 1
+	lo := 0
+	for k, id := range ids {
+		if strings.HasPrefix(id, "@") {
+			lon, lat, ok := strings.Cut(id[1:], "/")
+			x, errX := strconv.ParseFloat(lon, 64)
+			y, errY := strconv.ParseFloat(lat, 64)
+			if !ok || errX != nil || errY != nil {
+				return nil, ErrUnknownEnd
+			}
+			hi := last
+			if i := slices.IndexFunc(ends[k+1:], func(e place) bool { return e.ID != "" }); i >= 0 {
+				hi = ends[k+1+i].index
+			}
+			spot := geo.Point{Lon: x, Lat: y}
+			best := math.Inf(1)
+			for i := lo + 1; i < hi; i++ {
+				if d := geo.Distance(point(tr.Coords[i]), spot); d < best {
+					best = d
+					ends[k].index = i
+				}
+			}
+		}
+		// A day can end neither where the hike starts nor where it ends.
+		if ends[k].index <= lo || ends[k].index >= last {
+			return nil, ErrUnknownEnd
+		}
+		lo = ends[k].index
+	}
+	return ends, nil
 }
 
 // dayEndM: a place this close to where a recorded day ends is where the
@@ -331,10 +375,10 @@ func (p *Planner) stage(ctx context.Context, ways detours, tr Track, a, b int, f
 		return Stage{}, fmt.Errorf("stageplan: stage: %w", err)
 	}
 	st := Stage{Profile: profile, Anchors: c.Anchors, Legs: checked, Totals: totals}
-	if from != nil {
+	if from != nil && from.ID != "" {
 		st.StartPlace = &from.Place
 	}
-	if to != nil {
+	if to != nil && to.ID != "" {
 		st.EndPlace = &to.Place
 		if to.Kind != "pt_stop" {
 			st.Accommodation = to.Name

@@ -60,7 +60,7 @@ type stagesImportInput struct {
 		Days        int           `form:"days" required:"false" minimum:"0" maximum:"60" doc:"Number of stages; with neither this nor hours_per_day, a recording is split at its nights"`
 		HoursPerDay float64       `form:"hours_per_day" required:"false" minimum:"0" maximum:"16" doc:"Hiking time per stage (Swiss hiking time)"`
 		MaxHours    float64       `form:"max_hours" required:"false" minimum:"0" maximum:"20"`
-		Ends        string        `form:"ends" required:"false" doc:"Comma-separated place ids to end the stages at (from a proposal's earlier and later)"`
+		Ends        string        `form:"ends" required:"false" doc:"Comma-separated ends of the stages: place ids (from a proposal's earlier and later) or @lon/lat for a spot on the line"`
 	}]
 }
 
@@ -68,6 +68,15 @@ type stagesImportOutput struct {
 	Body struct {
 		stageplan.Proposal
 		Title string `json:"title" doc:"The track's name, for the journey"`
+	}
+}
+
+type routeStagesInput struct {
+	ID    string `path:"id" format:"uuid"`
+	Token string `query:"t" doc:"Share token of an unlisted route"`
+	Body  struct {
+		Days int      `json:"days" minimum:"2" maximum:"60" doc:"Number of stages"`
+		Ends []string `json:"ends,omitempty" maxItems:"59" doc:"Ends of the stages: place ids (from a proposal's earlier and later) or @lon/lat for a spot on the line"`
 	}
 }
 
@@ -274,6 +283,42 @@ func registerImports(api huma.API, d Deps) {
 		}
 		out := &stagesImportOutput{}
 		out.Body.Proposal, out.Body.Title = proposal, track.Name
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "route-stages", Method: http.MethodPost, Path: "/routes/{id}/stages",
+		Summary:     "Propose stages for a route one can see",
+		Description: "Nothing is saved and the route stays: POST /journeys with the stages makes the journey.",
+		Tags:        []string{"routes"},
+	}, func(ctx context.Context, in *routeStagesInput) (*stagesImportOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		r, role, err := loadRoute(ctx, d, in.ID, in.Token)
+		if err != nil {
+			return nil, err
+		}
+		// Others see a recorded hike without its start and end.
+		if r.Hike != nil && role != access.Owner {
+			return nil, huma.Error403Forbidden("recorded hikes of others cannot be split")
+		}
+		if len(r.Legs) == 0 {
+			return nil, huma.Error422UnprocessableEntity("the route has no line")
+		}
+		if !d.Limits.Import.Allow(u.ID.String()) {
+			return nil, huma.Error429TooManyRequests("too many requests; try again in a few minutes")
+		}
+		planner := &stageplan.Planner{Router: d.Importer.Router, DB: d.DB}
+		proposal, err := planner.Split(ctx, r.Legs, stageplan.Request{
+			Profile: r.Profile, Ends: in.Body.Ends, Days: stageplan.Days{N: in.Body.Days},
+		})
+		if err != nil {
+			return nil, planError(ctx, err)
+		}
+		out := &stagesImportOutput{}
+		out.Body.Proposal, out.Body.Title = proposal, r.Title
 		return out, nil
 	})
 

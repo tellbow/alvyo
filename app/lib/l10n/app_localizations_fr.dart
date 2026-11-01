@@ -2090,10 +2090,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reachBackHint => 'Aller-retour, montée et descente chacune avec son temps';
 
   @override
+  String get routeSplit => 'Diviser en étapes';
+
+  @override
+  String get routeSplitIntro =>
+      'Cet itinéraire devient une nouvelle randonnée par étapes. L’itinéraire lui-même reste tel quel.';
+
+  @override
+  String get stagesPickHint => 'Touche la carte ou le profil d’altitude pour y couper une étape.';
+
+  @override
+  String get stagesMerge => 'Joindre à l’étape suivante';
+
+  @override
+  String stagesEndAt(String distance) {
+    return 'à $distance';
+  }
+
+  @override
+  String get importAsRoute => 'Comme itinéraire';
+
+  @override
+  String get importAsJoined => 'Réunir en un itinéraire';
+
+  @override
+  String get importAsRoutes => 'Comme itinéraires séparés';
+
+  @override
+  String get importAsJourney => 'Comme randonnée par étapes, une étape par trace';
+
+  @override
+  String get importOutside => 'hors CH/FL';
+
+  @override
   String get importFile => 'Fichier (GPX, KML, TCX, FIT)';
 
   @override
-  String get importFileHint => 'Devient un itinéraire privé';
+  String get importFileHint => 'Avec aperçu, comme itinéraire ou randonnée par étapes';
 
   @override
   String get importNotTrack => 'Ce fichier ne contient aucune trace qu’Alvyo sait lire (GPX, KML, TCX ou FIT).';

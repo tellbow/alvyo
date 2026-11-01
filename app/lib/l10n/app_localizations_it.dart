@@ -2086,10 +2086,42 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reachBackHint => 'Andata e ritorno, salita e discesa ciascuna con il suo tempo';
 
   @override
+  String get routeSplit => 'Dividi in tappe';
+
+  @override
+  String get routeSplitIntro => 'Da questo percorso nasce un nuovo trekking a tappe. Il percorso stesso resta com’è.';
+
+  @override
+  String get stagesPickHint => 'Tocca la mappa o il profilo altimetrico per dividere lì una tappa.';
+
+  @override
+  String get stagesMerge => 'Unisci alla tappa successiva';
+
+  @override
+  String stagesEndAt(String distance) {
+    return 'a $distance';
+  }
+
+  @override
+  String get importAsRoute => 'Come percorso';
+
+  @override
+  String get importAsJoined => 'Unisci in un percorso';
+
+  @override
+  String get importAsRoutes => 'Come percorsi separati';
+
+  @override
+  String get importAsJourney => 'Come trekking a tappe, una tappa per traccia';
+
+  @override
+  String get importOutside => 'fuori CH/FL';
+
+  @override
   String get importFile => 'File (GPX, KML, TCX, FIT)';
 
   @override
-  String get importFileHint => 'Diventa un percorso privato';
+  String get importFileHint => 'Con anteprima, come percorso o trekking a tappe';
 
   @override
   String get importNotTrack => 'Questo file non contiene una traccia leggibile da Alvyo (GPX, KML, TCX o FIT).';

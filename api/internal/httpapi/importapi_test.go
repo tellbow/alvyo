@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -335,6 +337,50 @@ func TestImportStages(t *testing.T) {
 	}
 	if code, _ := c.upload("/api/v1/imports/stages", "weg.gpx", planned, "days", "2", "ends", "nope"); code != http.StatusUnprocessableEntity {
 		t.Errorf("bad end: %d", code)
+	}
+
+	// A day can end anywhere on the line, not only at a place, also next to
+	// a place's end (feedback issue 47).
+	spot := func(lon float64) string { return "@" + strconv.FormatFloat(lon, 'f', 5, 64) + "/46.66" }
+	p = stages(c.upload("/api/v1/imports/stages", "weg.gpx", planned, "days", "3", "ends", spot(8.02)+","+inn))
+	if len(p.Stages) != 3 || p.Stages[0].EndPlace != nil || p.Stages[0].Accommodation != "" ||
+		p.Stages[1].StartPlace != nil || p.Stages[1].EndPlace == nil || p.Stages[1].EndPlace.ID != inn {
+		t.Fatalf("spot and place: %+v", p.Stages)
+	}
+	a := p.Stages[0].Anchors
+	if lon, _ := a[len(a)-1]["lon"].(float64); math.Abs(lon-8.02) > 0.002 {
+		t.Errorf("spot's day ends at %+v", a[len(a)-1])
+	}
+	for _, bad := range []string{"@8.02", "@x/46.66", "@8.02/y", spot(8.05) + "," + inn + "," + inn} {
+		if code, _ := c.upload("/api/v1/imports/stages", "weg.gpx", planned, "days", "2", "ends", bad); code != http.StatusUnprocessableEntity {
+			t.Errorf("bad end %q: %d", bad, code)
+		}
+	}
+
+	// An existing route splits the same way, and stays (feedback issue 47).
+	code, body = c.upload("/api/v1/imports", "weg.gpx", planned)
+	var imported struct{ Routes []importedRoute }
+	_ = json.Unmarshal(body, &imported)
+	if code != http.StatusOK || len(imported.Routes) != 1 {
+		t.Fatalf("import: %d %s", code, body)
+	}
+	path := "/api/v1/routes/" + imported.Routes[0].ID
+	p = stages(c.do("POST", path+"/stages", map[string]any{"days": 2}))
+	if len(p.Stages) != 2 || p.Stages[0].EndPlace == nil || p.Stages[0].EndPlace.ID != inn {
+		t.Errorf("route in two days: %+v", p.Stages)
+	}
+	p = stages(c.do("POST", path+"/stages", map[string]any{"days": 3, "ends": []string{spot(8.02), inn}}))
+	if len(p.Stages) != 3 || p.Stages[0].EndPlace != nil {
+		t.Errorf("route with a spot: %+v", p.Stages)
+	}
+	if code, _ := c.do("GET", path, nil); code != http.StatusOK {
+		t.Errorf("the route is gone: %d", code)
+	}
+	// Private: others cannot.
+	other := s.client(t)
+	s.signup(other, "other-stager@example.ch", "otherstager")
+	if code, _ := other.do("POST", path+"/stages", map[string]any{"days": 2}); code != http.StatusNotFound && code != http.StatusForbidden {
+		t.Errorf("someone else's private route: %d", code)
 	}
 }
 

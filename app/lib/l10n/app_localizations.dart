@@ -3856,6 +3856,66 @@ abstract class AppLocalizations {
   /// **'Hin und zurück, bergauf und bergab je mit ihrer Zeit'**
   String get reachBackHint;
 
+  /// No description provided for @routeSplit.
+  ///
+  /// In de, this message translates to:
+  /// **'In Etappen aufteilen'**
+  String get routeSplit;
+
+  /// No description provided for @routeSplitIntro.
+  ///
+  /// In de, this message translates to:
+  /// **'Aus dieser Route entsteht eine neue Etappentour. Die Route selbst bleibt, wie sie ist.'**
+  String get routeSplitIntro;
+
+  /// No description provided for @stagesPickHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Tippe auf die Karte oder das Höhenprofil, um eine Etappe dort zu teilen.'**
+  String get stagesPickHint;
+
+  /// No description provided for @stagesMerge.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit der nächsten Etappe verbinden'**
+  String get stagesMerge;
+
+  /// No description provided for @stagesEndAt.
+  ///
+  /// In de, this message translates to:
+  /// **'bei {distance}'**
+  String stagesEndAt(String distance);
+
+  /// No description provided for @importAsRoute.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Route'**
+  String get importAsRoute;
+
+  /// No description provided for @importAsJoined.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu einer Route zusammenfügen'**
+  String get importAsJoined;
+
+  /// No description provided for @importAsRoutes.
+  ///
+  /// In de, this message translates to:
+  /// **'Als einzelne Routen'**
+  String get importAsRoutes;
+
+  /// No description provided for @importAsJourney.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Etappentour – eine Etappe pro Track'**
+  String get importAsJourney;
+
+  /// No description provided for @importOutside.
+  ///
+  /// In de, this message translates to:
+  /// **'ausserhalb CH/FL'**
+  String get importOutside;
+
   /// No description provided for @importFile.
   ///
   /// In de, this message translates to:
@@ -3865,7 +3925,7 @@ abstract class AppLocalizations {
   /// No description provided for @importFileHint.
   ///
   /// In de, this message translates to:
-  /// **'Wird eine private Route'**
+  /// **'Mit Vorschau, als Route oder Etappentour'**
   String get importFileHint;
 
   /// No description provided for @importNotTrack.

@@ -5281,6 +5281,30 @@
         ],
         "type": "object"
       },
+      "RouteStagesInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "Number of stages",
+            "format": "int64",
+            "maximum": 60,
+            "minimum": 2,
+            "type": "integer"
+          },
+          "ends": {
+            "description": "Ends of the stages: place ids (from a proposal's earlier and later) or @lon/lat for a spot on the line",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 59,
+            "type": "array"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "type": "object"
+      },
       "RouteSummary": {
         "additionalProperties": false,
         "properties": {
@@ -10029,7 +10053,7 @@
                     "type": "integer"
                   },
                   "ends": {
-                    "description": "Comma-separated place ids to end the stages at (from a proposal's earlier and later)",
+                    "description": "Comma-separated ends of the stages: place ids (from a proposal's earlier and later) or @lon/lat for a spot on the line",
                     "type": "string"
                   },
                   "file": {
@@ -16488,6 +16512,69 @@
         "summary": "Switch comments on or off (owner or moderator)",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/routes/{id}/stages": {
+      "post": {
+        "description": "Nothing is saved and the route stays: POST /journeys with the stages makes the journey.",
+        "operationId": "route-stages",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Share token of an unlisted route",
+            "explode": false,
+            "in": "query",
+            "name": "t",
+            "schema": {
+              "description": "Share token of an unlisted route",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteStagesInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StagesImportOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Propose stages for a route one can see",
+        "tags": [
+          "routes"
         ]
       }
     },

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../l10n/app_localizations.dart';
-import 'route_screen.dart';
+import 'import_screen.dart';
 import 'watch_screen.dart';
 
 /// «Importieren» in the profile (feedback issue 47): a file or the Apple
@@ -53,7 +53,7 @@ class ImportTile extends StatelessWidget {
     }
   }
 
-  /// A GPX, KML, TCX or FIT file becomes a private route, opened at once.
+  /// A GPX, KML, TCX or FIT file, shown before anything is saved.
   Future<void> _importFile(BuildContext context) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -72,28 +72,12 @@ class ImportTile extends StatelessWidget {
             ))();
     if (file == null) return;
     try {
-      final result = await api.importFile(await file.readAsBytes(), file.name);
-      onImported?.call();
-      if (result.routes.firstOrNull case final r?) {
-        await nav.push(
-          MaterialPageRoute<void>(
-            builder: (_) => RouteScreen(api: api, id: r.id, title: r.title),
-          ),
-        );
-        return;
-      }
-      final reason = result.skipped.firstOrNull?.reason;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(switch (reason) {
-            'outside' => t.watchOutside(t.watchReasonOutside),
-            'short' => t.watchOutside(t.watchReasonShort),
-            _ => t.errorServer,
-          }),
+      final bytes = await file.readAsBytes();
+      await nav.push(
+        MaterialPageRoute<void>(
+          builder: (_) => ImportScreen(api: api, bytes: bytes, filename: file.name, onImported: onImported),
         ),
       );
-    } on ApiException catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.status == 422 ? t.importNotTrack : t.errorServer)));
     } on Object {
       messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
     }

@@ -2077,10 +2077,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reachBackHint => 'There and back, uphill and downhill each with its own time';
 
   @override
+  String get routeSplit => 'Split into stages';
+
+  @override
+  String get routeSplitIntro => 'This route becomes a new multi-day tour. The route itself stays as it is.';
+
+  @override
+  String get stagesPickHint => 'Tap the map or the elevation profile to split a stage there.';
+
+  @override
+  String get stagesMerge => 'Join with the next stage';
+
+  @override
+  String stagesEndAt(String distance) {
+    return 'at $distance';
+  }
+
+  @override
+  String get importAsRoute => 'As a route';
+
+  @override
+  String get importAsJoined => 'Join into one route';
+
+  @override
+  String get importAsRoutes => 'As separate routes';
+
+  @override
+  String get importAsJourney => 'As a multi-day tour, one stage per track';
+
+  @override
+  String get importOutside => 'outside CH/LI';
+
+  @override
   String get importFile => 'File (GPX, KML, TCX, FIT)';
 
   @override
-  String get importFileHint => 'Becomes a private route';
+  String get importFileHint => 'With a preview, as a route or a multi-day tour';
 
   @override
   String get importNotTrack => 'This file contains no track Alvyo can read (GPX, KML, TCX or FIT).';

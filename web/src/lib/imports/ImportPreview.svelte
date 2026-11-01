@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Map as MapLibreMap } from 'maplibre-gl';
+	import type { Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import CollectionLayers from '#lib/collections/CollectionLayers.svelte';
 	import LayerSwitcher from '#lib/map/LayerSwitcher.svelte';
@@ -14,12 +14,15 @@
 	let {
 		lines,
 		profile,
-		breaks = []
+		breaks = [],
+		onpick
 	}: {
 		/** [lon, lat, elevation] per point, one line per track or stage */
 		lines: number[][][];
 		profile: Profile3;
 		breaks?: number[];
+		/** A tap on line k of the map or its part of the profile. */
+		onpick?: (k: number, lon: number, lat: number) => void;
 	} = $props();
 
 	let base = $state<BaseMapId>('landeskarte');
@@ -54,6 +57,40 @@
 		void lines;
 		fit();
 	});
+
+	const TAP_PX = 24;
+
+	/** The tap on the map, if near the line: its nearest point. */
+	function tapped(e: MapMouseEvent) {
+		let best = TAP_PX;
+		let found: [number, number[]] | undefined;
+		lines.forEach((l, k) => {
+			for (const c of l) {
+				const d = map!.project([c[0], c[1]]).dist(e.point);
+				if (d < best) {
+					best = d;
+					found = [k, c];
+				}
+			}
+		});
+		if (found) onpick?.(found[0], found[1][0], found[1][1]);
+	}
+
+	$effect(() => {
+		if (!map || !onpick) return;
+		const mp = map;
+		mp.on('click', tapped);
+		return () => mp.off('click', tapped);
+	});
+
+	function profileTap(i: number) {
+		const c = profile.coordinates[i];
+		onpick?.(
+			breaks.findLastIndex((b) => b <= i),
+			c[0],
+			c[1]
+		);
+	}
 </script>
 
 <div class="mt-3 flex flex-col gap-2" data-testid="import-preview">
@@ -62,5 +99,7 @@
 		<LayerSwitcher bind:base bind:overlays />
 		{#if map}<CollectionLayers {map} {items} />{/if}
 	</div>
-	{#if heights}<ElevationProfile line={profile} {breaks} bind:hover />{/if}
+	{#if heights}
+		<ElevationProfile line={profile} {breaks} bind:hover onpick={onpick ? profileTap : undefined} />
+	{/if}
 </div>

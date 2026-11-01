@@ -5,16 +5,12 @@
 	import { api, type Proposal } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import {
-		combine,
-		formatDistance,
-		formatDuration,
-		formatHeight,
-		lineProfile
-	} from '#lib/planner/route.js';
+	import { formatDistance, lineProfile } from '#lib/planner/route.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import ImportPreview from './ImportPreview.svelte';
 	import ImportResult from './ImportResult.svelte';
+	import StageList from './StageList.svelte';
+	import { endsWithSpot, stageView } from './stages';
 
 	type Preview = components['schemas']['ImportPreviewOutputBody'];
 	type Result = components['schemas']['ImportOutputBody'];
@@ -41,20 +37,7 @@
 
 	// On the map and the profile: the stages once proposed, else the tracks.
 	const shown = $derived.by(() => {
-		if (stages) {
-			const legs = stages.stages.flatMap((st) => st.legs);
-			const breaks: number[] = [];
-			let n = 0;
-			for (const st of stages.stages) {
-				breaks.push(Math.max(n - 1, 0));
-				for (const l of st.legs) n += n === 0 ? l.coordinates.length : l.coordinates.length - 1;
-			}
-			return {
-				lines: stages.stages.map((st) => st.legs.flatMap((l) => l.coordinates)),
-				profile: combine(legs),
-				breaks
-			};
-		}
+		if (stages) return stageView(stages);
 		const tracks = preview?.tracks.filter((t) => t.inside && t.line.length > 1) ?? [];
 		const breaks: number[] = [];
 		let n = 0;
@@ -68,8 +51,6 @@
 			breaks
 		};
 	});
-	// Each day's end can move to the place before or after it, when all have one.
-	const movable = $derived(!!stages?.stages.slice(0, -1).every((st) => st.end_place));
 
 	function form(f: File, fields: Record<string, string | undefined> = {}) {
 		const fd = new FormData();
@@ -122,36 +103,9 @@
 		if (!title) title = data.title;
 	}
 
-	/** Ends day i at another place, the other days where they are. */
-	function endAt(i: number, placeId: string) {
-		if (!stages || !file) return;
-		const ends = stages.stages.slice(0, -1).map((st) => st.end_place!.id);
-		ends[i] = placeId;
-		stageCount = stages.stages.length;
-		void proposeStages(file, ends);
-	}
-
-	async function createJourney(e: SubmitEvent) {
-		e.preventDefault();
-		if (!stages) return;
-		busy = true;
-		const { data } = await api().POST('/journeys', {
-			body: {
-				title: title.trim() || preview?.tracks[0].name || m.import_fallback_title(),
-				visibility: 'private',
-				stages: stages.stages.map((st) => ({
-					profile: st.profile as 'hike' | 'alpine',
-					anchors: st.anchors,
-					legs: st.legs,
-					accommodation: st.accommodation,
-					...(st.start_place ? { start_place_id: st.start_place.id } : {}),
-					...(st.end_place ? { end_place_id: st.end_place.id } : {})
-				}))
-			}
-		});
-		busy = false;
-		if (data) await goto(resolve('/journeys/[id]', { id: data.id }));
-		else problem = m.import_failed();
+	function propose(ends: string[]) {
+		stageCount = ends.length + 1;
+		if (file) void proposeStages(file, ends);
 	}
 
 	async function run(e: SubmitEvent) {
@@ -217,7 +171,14 @@
 
 	{#if preview}
 		{#if shown.lines.length > 0}
-			<ImportPreview lines={shown.lines} profile={shown.profile} breaks={shown.breaks} />
+			<ImportPreview
+				lines={shown.lines}
+				profile={shown.profile}
+				breaks={shown.breaks}
+				onpick={stages && !busy
+					? (k, lon, lat) => propose(endsWithSpot(stages!, k, lon, lat))
+					: undefined}
+			/>
 		{/if}
 		<ul class="mt-3 divide-y divide-stone-100 text-sm" data-testid="import-tracks">
 			{#each preview.tracks as t, i (i)}
@@ -281,49 +242,13 @@
 			</form>
 		{/if}
 		{#if stages}
-			<ol class="mt-3 flex flex-col gap-1 text-sm" data-testid="import-stages">
-				{#each stages.stages as st, i (i)}
-					<li class="flex flex-wrap gap-x-3 rounded-md border border-stone-200 px-3 py-2">
-						<span class="font-medium">{m.jplan_day({ n: i + 1 })}</span>
-						<span class="text-stone-600 tabular-nums"
-							>{formatDistance(st.totals.distance_m)} · {formatDuration(st.totals.duration_s, pace)} ·
-							↑&nbsp;{formatHeight(st.totals.ascent_m)}</span
-						>
-						<span class="ml-auto" data-testid="import-stage-end"
-							>→ {st.end_place ? st.end_place.name : m.jplan_to_end()}</span
-						>
-						{#if movable && (st.earlier || st.later)}
-							<span class="flex w-full flex-wrap gap-2 text-xs">
-								{#if st.earlier}
-									<button
-										type="button"
-										class="underline"
-										disabled={busy}
-										data-testid="import-stage-earlier"
-										onclick={() => endAt(i, st.earlier!.id)}
-										>{m.jplan_earlier({ place: st.earlier.name })}</button
-									>
-								{/if}
-								{#if st.later}
-									<button
-										type="button"
-										class="underline"
-										disabled={busy}
-										data-testid="import-stage-later"
-										onclick={() => endAt(i, st.later!.id)}
-										>{m.jplan_later({ place: st.later.name })}</button
-									>
-								{/if}
-							</span>
-						{/if}
-					</li>
-				{/each}
-			</ol>
-			<form method="post" onsubmit={createJourney} class="mt-3">
-				<button disabled={busy} class={primaryButton}>
-					{busy ? m.import_running() : m.jplan_create()}
-				</button>
-			</form>
+			<StageList
+				proposal={stages}
+				title={title.trim() || preview.tracks[0].name || m.import_fallback_title()}
+				{pace}
+				bind:busy
+				onends={propose}
+			/>
 		{/if}
 	{:else if busy}
 		<p class="mt-3 text-sm text-stone-500">…</p>

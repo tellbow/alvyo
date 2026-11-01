@@ -81,6 +81,7 @@ class ElevationProfile extends StatefulWidget {
     this.height = 110,
     this.points,
     this.onPoint,
+    this.onTapAt,
     this.steep,
   });
 
@@ -91,7 +92,9 @@ class ElevationProfile extends StatefulWidget {
     double? markerM,
     double height = 110,
     ValueChanged<Geographic?>? onPoint,
+    ValueChanged<double>? onTapAt,
     List<SteepStretch>? steep,
+    List<int> breaks = const [],
   }) => ElevationProfile(
     key: key,
     distances: cumulativeM(line),
@@ -100,7 +103,9 @@ class ElevationProfile extends StatefulWidget {
     height: height,
     points: line,
     onPoint: onPoint,
+    onTapAt: onTapAt,
     steep: steep,
+    breaks: breaks,
   );
 
   final List<double> distances, elevations;
@@ -116,6 +121,9 @@ class ElevationProfile extends StatefulWidget {
   /// Where the finger is on the profile, as a place; null when it is lifted.
   final ValueChanged<Geographic?>? onPoint;
 
+  /// A tap on the profile, in metres along.
+  final ValueChanged<double>? onTapAt;
+
   /// Steep terrain along the line: a band under the profile (feedback issue 61).
   final List<SteepStretch>? steep;
 
@@ -129,10 +137,14 @@ class _ElevationProfileState extends State<ElevationProfile> {
 
   double get _lengthM => widget.distances.isEmpty ? 0 : widget.distances.last;
 
+  double _metres(Offset local, double width) {
+    final plot = _ProfilePainter.plotRect(Size(width, widget.height), band: widget.steep != null);
+    return ((local.dx - plot.left) / plot.width).clamp(0.0, 1.0) * _lengthM;
+  }
+
   void _touch(Offset local, double width) {
     if (_lengthM <= 0) return;
-    final plot = _ProfilePainter.plotRect(Size(width, widget.height), band: widget.steep != null);
-    final m = ((local.dx - plot.left) / plot.width).clamp(0.0, 1.0) * _lengthM;
+    final m = _metres(local, width);
     setState(() => _touchM = m);
     if (widget.points case final points? when points.length == widget.distances.length) {
       widget.onPoint?.call(pointAt(widget.distances, points, m));
@@ -169,7 +181,10 @@ class _ElevationProfileState extends State<ElevationProfile> {
         onHorizontalDragUpdate: (d) => _touch(d.localPosition, size.maxWidth),
         onHorizontalDragEnd: (_) => _lift(),
         onHorizontalDragCancel: _lift,
-        onTapUp: (_) => _lift(),
+        onTapUp: (d) {
+          _lift();
+          widget.onTapAt?.call(_metres(d.localPosition, size.maxWidth));
+        },
         child: Stack(
           children: [
             Semantics(

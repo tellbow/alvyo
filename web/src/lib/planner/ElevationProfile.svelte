@@ -9,7 +9,8 @@
 		colors = SAC_COLOR,
 		breaks = [],
 		steep,
-		height = 140
+		height = 140,
+		onpick
 	}: {
 		line: Profile3;
 		hover?: number;
@@ -21,6 +22,8 @@
 		steep?: { from_m: number; to_m: number; class: number }[];
 		/** in pixels */
 		height?: number;
+		/** A click on the profile, with the point's index (feedback issue 47). */
+		onpick?: (index: number) => void;
 	} = $props();
 
 	let width = $state(600);
@@ -73,7 +76,7 @@
 		line.coordinates.map((c, i) => `${i ? 'L' : 'M'}${x(line.distance[i])},${y(c[2])}`).join('')
 	);
 
-	function onmove(e: PointerEvent) {
+	function onmove(e: MouseEvent) {
 		const rect = (e.currentTarget as SVGElement).getBoundingClientRect();
 		const d = ((e.clientX - rect.left - pad.l) / (width - pad.l - pad.r)) * total;
 		// Binary search for the first sample at or beyond d.
@@ -91,13 +94,21 @@
 {#if line.coordinates.length > 1}
 	<!-- Clipped until it has measured its width: no page wider than a phone. -->
 	<figure class="w-full overflow-hidden" bind:clientWidth={width} aria-label={m.profile_title()}>
+		<!-- The pointer's way to a click; the keyboard's are the buttons beside the profile. -->
+		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 		<svg
 			{width}
 			{height}
 			role="img"
 			aria-label={summary}
-			class="block touch-none select-none"
+			class={['block touch-none select-none', onpick && 'cursor-crosshair']}
 			onpointermove={onmove}
+			onclick={onpick
+				? (e) => {
+						onmove(e);
+						if (hover !== undefined) onpick(hover);
+					}
+				: undefined}
 			onpointerleave={() => (hover = undefined)}
 			data-testid="elevation-profile"
 		>

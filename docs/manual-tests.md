@@ -423,6 +423,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       removes it; it then shows in the news, comments and friends.
 - [ ] **The new logo (feedback issue 60)**: the home screen icon and the launch
       screen in light and dark.
+- [ ] **Importing with a preview and splitting into stages (feedback issue 47)**:
+      a GPX file from «Dateien» shows its map and profile before anything is
+      saved; a tap on the map and on the profile with a finger adds a stage
+      there, the route's «⋯» › «In Etappen aufteilen» too.
 
 ## Apple Watch app (release build, feedback issue 15)
 

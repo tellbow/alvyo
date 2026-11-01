@@ -140,3 +140,38 @@ test('a recording of three days becomes a journey of three stages, after a previ
 	await expect(page.getByTestId('journey-title')).toHaveText('Drei Tage');
 	await expect(page.getByTestId('stage')).toHaveCount(3);
 });
+
+test('a route splits into stages by a tap on the profile, and stays', async ({ page }) => {
+	await signup(page, 'splitter');
+	const gpx = `<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">${track('Lange Tour', 9.3, 46.99, 60)}</gpx>`;
+	const imported = await page.request.post('/api/v1/imports', {
+		multipart: {
+			file: { name: 'lang.gpx', mimeType: 'application/gpx+xml', buffer: Buffer.from(gpx) }
+		}
+	});
+	const id = (await imported.json()).routes[0].id;
+
+	await page.goto(`/routes/${id}`);
+	await page.getByTestId('route-menu').click();
+	await page.getByTestId('route-split').click();
+	const split = page.getByTestId('route-split-page');
+	await split.getByRole('button', { name: 'Etappen vorschlagen' }).click();
+	const stages = split.getByTestId('import-stages').getByRole('listitem');
+	await expect(stages.first()).toBeVisible({ timeout: 30_000 });
+	const before = await stages.count();
+
+	const profile = split.getByTestId('elevation-profile');
+	const box = (await profile.boundingBox())!;
+	await profile.click({ position: { x: box.width * 0.25, y: box.height / 2 } });
+	await expect(stages).toHaveCount(before + 1, { timeout: 30_000 });
+	await expect(stages.first().getByTestId('import-stage-end')).toContainText(/bei \d/);
+	await stages.first().getByTestId('import-stage-merge').click();
+	await expect(stages).toHaveCount(before, { timeout: 30_000 });
+
+	await profile.click({ position: { x: box.width * 0.25, y: box.height / 2 } });
+	await expect(stages).toHaveCount(before + 1, { timeout: 30_000 });
+	await split.getByRole('button', { name: 'Etappentour erstellen' }).click();
+	await expect(page.getByTestId('journey-title')).toHaveText('Lange Tour');
+	await expect(page.getByTestId('stage')).toHaveCount(before + 1);
+	expect((await page.request.get(`/api/v1/routes/${id}`)).status()).toBe(200);
+});

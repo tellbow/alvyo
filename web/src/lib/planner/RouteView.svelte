@@ -266,6 +266,15 @@
 						<!-- API download, not a page: resolve() does not apply. -->
 						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 						<a href="/api/v1/routes/{route.id}/gpx" download class={menuItem}>{m.route_gpx()}</a>
+						{#if user && route.legs.length > 0 && !route.journey_id && (!route.hike || route.can_edit)}
+							<!-- The share token rides along; resolve() cannot express query strings. -->
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+							<a
+								href="{resolve('/routes/[id]/split', { id: route.id })}{token ? `?t=${token}` : ''}"
+								class={menuItem}
+								data-testid="route-split">{m.route_split()}</a
+							>
+						{/if}
 						<OpenInApp kind="routes" id={route.id} class={menuItem} />
 						{#if user && !route.journey_id}
 							<div class="px-1.5 py-1"><AddToCollection kind="route" id={route.id} /></div>

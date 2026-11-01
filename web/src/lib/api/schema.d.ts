@@ -2506,6 +2506,26 @@ export interface paths {
         patch: operations["update-route-social"];
         trace?: never;
     };
+    "/routes/{id}/stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose stages for a route one can see
+         * @description Nothing is saved and the route stays: POST /journeys with the stages makes the journey.
+         */
+        post: operations["route-stages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/routes/{id}/steepness": {
         parameters: {
             query?: never;
@@ -4721,6 +4741,15 @@ export interface components {
             version: number;
             /** @enum {string} */
             visibility: "private" | "unlisted" | "public";
+        };
+        RouteStagesInputBody: {
+            /**
+             * Format: int64
+             * @description Number of stages
+             */
+            days: number;
+            /** @description Ends of the stages: place ids (from a proposal's earlier and later) or @lon/lat for a spot on the line */
+            ends?: string[];
         };
         RouteSummary: {
             /** Format: date-time */
@@ -7214,7 +7243,7 @@ export interface operations {
                      * @description Number of stages; with neither this nor hours_per_day, a recording is split at its nights
                      */
                     days?: number;
-                    /** @description Comma-separated place ids to end the stages at (from a proposal's earlier and later) */
+                    /** @description Comma-separated ends of the stages: place ids (from a proposal's earlier and later) or @lon/lat for a spot on the line */
                     ends?: string;
                     /** Format: binary */
                     file: string;
@@ -11406,6 +11435,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SocialBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "route-stages": {
+        parameters: {
+            query?: {
+                /** @description Share token of an unlisted route */
+                t?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteStagesInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StagesImportOutputBody"];
                 };
             };
             /** @description Error */

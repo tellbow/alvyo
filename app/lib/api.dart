@@ -992,6 +992,34 @@ class Proposal {
   final int targetS, minS, maxS;
 }
 
+/// A track of a file (`POST /imports/preview`).
+class ImportTrack {
+  ImportTrack.fromJson(Map<String, dynamic> j)
+    : name = j['name'] as String,
+      distanceM = (j['distance_m'] as num).toDouble(),
+      inside = j['inside'] as bool,
+      nights = (j['nights'] as num).toInt(),
+      line = _line(j['line']);
+  final String name;
+  final double distanceM;
+
+  /// Entirely within Switzerland, Liechtenstein and 15 km around; else it
+  /// cannot be imported.
+  final bool inside;
+
+  /// Pauses of 5 hours or more in a recording.
+  final int nights;
+
+  /// [lon, lat, height] per point, simplified; heights 0 where unknown.
+  final List<List<double>> line;
+}
+
+class ImportPreview {
+  ImportPreview.fromJson(Map<String, dynamic> j)
+    : tracks = [for (final t in j['tracks'] as List) ImportTrack.fromJson(t as Map<String, dynamic>)];
+  final List<ImportTrack> tracks;
+}
+
 /// One of several ways (`POST /journeys/suggest`).
 class Suggestion {
   Suggestion.fromJson(Map<String, dynamic> j)
@@ -2167,26 +2195,59 @@ class Api {
 
   /// Adds a photo (JPEG, PNG, WebP or HEIC). Fails with 413 when too big,
   /// 415 in another format, 422 when there are too many.
-  /// Imports a GPX, KML, TCX or FIT file as a private route (its tracks
-  /// joined); the routes made and the tracks skipped with why.
-  Future<({List<({String id, String title})> routes, List<({String name, String reason})> skipped})> importFile(
-    List<int> bytes,
-    String filename,
-  ) async {
-    final req = http.MultipartRequest('POST', _uri('/imports'))
-      ..headers.addAll(_headers)
-      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
-    final j = _decode(await http.Response.fromStream(await _http.send(req))) as Map<String, dynamic>;
+  /// Imports a GPX, KML, TCX or FIT file as private routes or a journey:
+  /// [mode] route (its tracks joined), routes (one each) or journey (a stage
+  /// each). What was made and the tracks skipped with why.
+  Future<({List<({String id, String title})> routes, String? journeyId, List<({String name, String reason})> skipped})>
+  importFile(List<int> bytes, String filename, {String mode = 'route'}) async {
+    final j = _decode(await _upload('/imports', bytes, filename, {'mode': mode})) as Map<String, dynamic>;
     return (
       routes: [
         for (final r in j['routes'] as List? ?? const [])
           (id: (r as Map<String, dynamic>)['id'] as String, title: r['title'] as String),
       ],
+      journeyId: j['journey_id'] as String?,
       skipped: [
         for (final s in j['skipped'] as List? ?? const [])
           (name: (s as Map<String, dynamic>)['name'] as String, reason: s['reason'] as String),
       ],
     );
+  }
+
+  /// What a file holds; nothing is saved. Fails with 422 when it holds no track.
+  Future<ImportPreview> previewImport(List<int> bytes, String filename) async =>
+      ImportPreview.fromJson(_decode(await _upload('/imports/preview', bytes, filename)) as Map<String, dynamic>);
+
+  /// The stages of a file's line, [days] of them ending at [ends] if given
+  /// (place ids or `@lon/lat`), without [days] at a recording's nights.
+  /// Nothing is saved.
+  Future<Proposal> importStages(List<int> bytes, String filename, {int? days, List<String>? ends}) async =>
+      Proposal.fromJson(
+        _decode(
+              await _upload('/imports/stages', bytes, filename, {
+                if (days != null) 'days': '$days',
+                if (ends != null) 'ends': ends.join(','),
+              }),
+            )
+            as Map<String, dynamic>,
+      );
+
+  /// The stages of a route, as [importStages]; the route stays.
+  Future<Proposal> routeStages(String id, {required int days, List<String>? ends}) async => Proposal.fromJson(
+    await _send('POST', '/routes/$id/stages', {'days': days, 'ends': ?ends}) as Map<String, dynamic>,
+  );
+
+  Future<http.Response> _upload(
+    String path,
+    List<int> bytes,
+    String filename, [
+    Map<String, String> fields = const {},
+  ]) async {
+    final req = http.MultipartRequest('POST', _uri(path))
+      ..headers.addAll(_headers)
+      ..fields.addAll(fields)
+      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    return http.Response.fromStream(await _http.send(req));
   }
 
   Future<({List<Photo> photos, bool canEdit})> addPhoto(

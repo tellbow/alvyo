@@ -1189,8 +1189,25 @@
   "inviteSelf": "Das ist dein eigener Link.",
   "reachTitle": "Wie weit komme ich?",
   "reachBackHint": "Hin und zurück, bergauf und bergab je mit ihrer Zeit",
+  "routeSplit": "In Etappen aufteilen",
+  "routeSplitIntro": "Aus dieser Route entsteht eine neue Etappentour. Die Route selbst bleibt, wie sie ist.",
+  "stagesPickHint": "Tippe auf die Karte oder das Höhenprofil, um eine Etappe dort zu teilen.",
+  "stagesMerge": "Mit der nächsten Etappe verbinden",
+  "stagesEndAt": "bei {distance}",
+  "@stagesEndAt": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "importAsRoute": "Als Route",
+  "importAsJoined": "Zu einer Route zusammenfügen",
+  "importAsRoutes": "Als einzelne Routen",
+  "importAsJourney": "Als Etappentour – eine Etappe pro Track",
+  "importOutside": "ausserhalb CH/FL",
   "importFile": "Datei (GPX, KML, TCX, FIT)",
-  "importFileHint": "Wird eine private Route",
+  "importFileHint": "Mit Vorschau, als Route oder Etappentour",
   "importNotTrack": "Diese Datei enthält keine Spur, die Alvyo lesen kann (GPX, KML, TCX oder FIT).",
   "reachWithinBack": "bis {hours} Stunden, hin und zurück",
   "@reachWithinBack": {

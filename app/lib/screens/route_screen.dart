@@ -18,6 +18,7 @@ import '../my_location.dart';
 import '../navigation/recording.dart';
 import '../navigation/uploads.dart';
 import '../offline/downloads.dart';
+import 'stage_split_screen.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
@@ -377,6 +378,25 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
         // Someone else's planned route (others' hikes lack their ends).
         if (!r.canEdit && r.hikedAt == null && r.line.length >= 2)
           MenuAction('copy', Icons.edit_outlined, t.routeCopy, () => _copy(r)),
+        // Others' hikes lack their ends.
+        if (!stage && r.line.length >= 2 && (r.isOwner || r.hikedAt == null))
+          MenuAction(
+            'split',
+            Icons.call_split,
+            t.routeSplit,
+            () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => StageSplitScreen(
+                  api: widget.api,
+                  line: r.line,
+                  title: r.title,
+                  durationS: r.totals.durationS,
+                  intro: t.routeSplitIntro,
+                  propose: (days, ends) => widget.api.routeStages(r.id, days: days, ends: ends),
+                ),
+              ),
+            ),
+          ),
         if (r.isOwner && !stage)
           MenuAction(
             'share',

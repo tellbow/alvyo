@@ -1,7 +1,9 @@
 name: release
 
-# A version tag (v0.1.0) publishes all images to GHCR for amd64 and arm64,
-# tagged 0.1.0 and sha-<commit>, each with an SBOM and its provenance; then a
+# A version tag (v0.1.0) publishes the images whose files changed since the
+# previous tag to GHCR for amd64 and arm64 (feedback issue 78: an image not
+# rebuilt keeps its last version, which Flux keeps deployed), tagged 0.1.0
+# and sha-<commit>, each with an SBOM and its provenance; then a
 # GitHub Release with the version's row of docs/plan.md as its notes,
 # alvyo-cli for Linux, macOS and Windows, and the Android app (APK).
 on:
@@ -31,8 +33,43 @@ jobs:
           gpg --batch --import .github/release-signers.asc
           git verify-tag "$GITHUB_REF_NAME"
 
-  image:
+  # The images whose context changed since the previous version tag; all
+  # of them when this file changed or there is no previous tag.
+  changes:
     needs: verify
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.diff.outputs.images }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: diff
+        run: |
+          prev=$(git describe --tags --abbrev=0 --match 'v*' "$GITHUB_REF_NAME^" 2>/dev/null || true)
+          files=$(git diff --name-only "$prev" "$GITHUB_REF_NAME" 2>/dev/null || true)
+          all=false
+          if [ -z "$prev" ] || grep -qx .github/workflows/release.yml <<<"$files"; then all=true; fi
+          # name, context, Dockerfile, the paths that change it
+          matrix=()
+          while read -r name context file paths; do
+            if [ "$all" = true ] || grep -qE "$paths" <<<"$files"; then
+              matrix+=("$(jq -nc --arg n "$name" --arg c "$context" --arg f "$file" '{name: $n, context: $c, file: $f}')")
+            fi
+          done <<'IMAGES'
+          api . api/Dockerfile ^(api|swiss)/|^go\.work
+          web web web/Dockerfile ^web/
+          postgis infra/postgis infra/postgis/Dockerfile ^infra/postgis/
+          graphhopper infra/graphhopper infra/graphhopper/Dockerfile ^infra/graphhopper/
+          data-import infra/data-import infra/data-import/Dockerfile ^infra/data-import/
+          IMAGES
+          echo "Since ${prev:-the first tag}: ${#matrix[@]} image(s)"
+          echo "images=[$(IFS=,; echo "${matrix[*]}")]" | tee -a "$GITHUB_OUTPUT"
+
+  image:
+    needs: changes
+    if: needs.changes.outputs.images != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -41,12 +78,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { name: api, context: ., file: api/Dockerfile }
-          - { name: web, context: web, file: web/Dockerfile }
-          - { name: postgis, context: infra/postgis, file: infra/postgis/Dockerfile }
-          - { name: graphhopper, context: infra/graphhopper, file: infra/graphhopper/Dockerfile }
-          - { name: data-import, context: infra/data-import, file: infra/data-import/Dockerfile }
+        include: ${{ fromJSON(needs.changes.outputs.images) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -94,7 +126,9 @@ jobs:
         run: cosign sign --yes "$IMAGE@$DIGEST"
 
   release:
-    needs: image
+    needs: [changes, image]
+    # Also when no image changed (image skipped).
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -141,6 +175,8 @@ jobs:
       - name: Checksums
         run: (cd dist && sha256sum alvyo-* > SHA256SUMS)
       - name: Notes from docs/plan.md
+        env:
+          IMAGES: ${{ needs.changes.outputs.images }}
         run: |
           v="${GITHUB_REF_NAME#v}"
           # The version's row (| 0.29.1 | date | what |), else the tag's message.
@@ -150,7 +186,12 @@ jobs:
           {
             echo "$what"
             echo
-            echo "Images: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/alvyo-{api,web,data-import,postgis,graphhopper}:$v\`"
+            names=$(jq -r 'map(.name) | join(",")' <<<"$IMAGES")
+            case "$names" in
+              "") echo "No new images: the deployed ones stay." ;;
+              *,*) echo "Images: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/alvyo-{$names}:$v\`" ;;
+              *) echo "Image: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/alvyo-$names:$v\`" ;;
+            esac
             echo
             echo "alvyo-cli for AI assistants and the command line: below (docs/mcp.md)."
             echo

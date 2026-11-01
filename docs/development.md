@@ -146,8 +146,10 @@ generated inputs:
 
 ## Supply chain
 
-CI (`.github/workflows/ci.yml`, also every Monday) checks more than the
-tests; the same locally:
+CI (`.github/workflows/ci.yml`) runs the Go, web, app and image jobs only
+for the parts a push changed, and everything every Monday and when
+`ci.yml` changed; the supply-chain checks and semgrep always run. It
+checks more than the tests; the same locally:
 
 ```sh
 (cd api && go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...)   # and in swiss/

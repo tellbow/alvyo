@@ -13,7 +13,44 @@ permissions:
   contents: read
 
 jobs:
+  # What changed (feedback issue 78): each job below runs only for its
+  # part. Everything runs on the weekly schedule, when this file changed,
+  # and when the base is unknown (a new branch, a force push).
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.diff.outputs.go }}
+      web: ${{ steps.diff.outputs.web }}
+      app: ${{ steps.diff.outputs.app }}
+      api-image: ${{ steps.diff.outputs.api-image }}
+      data-import: ${{ steps.diff.outputs.data-import }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          all=false
+          if [ "$EVENT" = schedule ] || ! files=$(git diff --name-only "$BASE" HEAD 2>/dev/null); then
+            all=true
+          fi
+          grep -qx .github/workflows/ci.yml <<<"$files" && all=true
+          flag() { if [ "$all" = true ] || grep -qE "$2" <<<"$files"; then echo "$1=true"; else echo "$1=false"; fi; }
+          {
+            flag go '^(api|swiss|infra/postgis)/|^go\.work'
+            flag web '^web/'
+            flag app '^app/'
+            flag api-image '^(api|swiss)/|^go\.work'
+            flag data-import '^infra/data-import/'
+          } | tee -a "$GITHUB_OUTPUT"
+
   go:
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -45,6 +82,8 @@ jobs:
           working-directory: ${{ matrix.module }}
 
   web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -60,6 +99,8 @@ jobs:
       - run: bun run test:unit --run --passWithNoTests
 
   app:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -110,21 +151,33 @@ jobs:
 
   # The images of a release still build (base image or Dockerfile changes).
   images:
+    needs: changes
+    if: >-
+      needs.changes.outputs.api-image == 'true' || needs.changes.outputs.web == 'true' ||
+      needs.changes.outputs.data-import == 'true'
     runs-on: ubuntu-latest
+    env:
+      DATA_IMPORT: ${{ needs.changes.outputs.data-import }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: docker build -f api/Dockerfile .
-      - run: docker build web
-      - run: docker build -t alvyo-data-import infra/data-import
+      - if: needs.changes.outputs.api-image == 'true'
+        run: docker build -f api/Dockerfile .
+      - if: needs.changes.outputs.web == 'true'
+        run: docker build web
+      - if: env.DATA_IMPORT == 'true'
+        run: docker build -t alvyo-data-import infra/data-import
       - name: merge-extracts test (osmium in the data-import image)
+        if: env.DATA_IMPORT == 'true'
         run: docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import sh /scripts/merge-extracts_test.sh
       - name: download and fetch tests (retries with backoff and jitter)
+        if: env.DATA_IMPORT == 'true'
         run: |
           docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import sh /scripts/download_test.sh
           docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import python3 /scripts/swissalti3d_test.py
       - name: snow-cover and weather-precip tests (missing tiles, unfinished forecast items)
+        if: env.DATA_IMPORT == 'true'
         run: |
           docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import python3 /scripts/snow-cover_test.py
           docker run --rm -v "$PWD/infra/data-import:/scripts:ro" alvyo-data-import python3 /scripts/weather-precip_test.py

@@ -26,7 +26,8 @@ features the minor one.
    `git tag -s vX.Y.Z -m "Alvyo X.Y.Z: <what, in a few words>" <sha> && git push origin vX.Y.Z`
    (signed with the GPG key that signs the commits; the `release` workflow
    refuses a tag it cannot verify against `.github/release-signers.asc`)
-4. **Images:** the `release` workflow builds `ghcr.io/tellbow/alvyo-{api,web,data-import,postgis,graphhopper}`.
+4. **Images:** the `release` workflow builds those of `ghcr.io/tellbow/alvyo-{api,web,data-import,postgis,graphhopper}`
+   whose files changed since the previous tag (the release notes name them).
    `gh run list -L 2` for its id, then `gh run watch <id> --exit-status`;
    its last job creates the GitHub Release (`gh release view vX.Y.Z`).
 5. **Deploy:** Flux image automation sets the api, web and data-import tags

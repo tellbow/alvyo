@@ -240,15 +240,17 @@ Write the version's row of the release table in [plan.md](plan.md) first
 the About page (`web/src/lib/news/releases.ts`, four languages), commit,
 then tag that commit, signed (the `release` skill has all steps). The
 workflow (`.github/workflows/release.yml`) refuses a tag not signed with
-the key in `.github/release-signers.asc`; it builds all images for amd64
-and arm64, each with an SBOM and its provenance, signs them with cosign
+the key in `.github/release-signers.asc`; it builds the images whose files
+changed since the previous tag (all of them when `release.yml` changed;
+an unchanged image keeps its last version, which Flux keeps deployed) for
+amd64 and arm64, each with an SBOM and its provenance, signs them with cosign
 (keyless: the workflow's identity, entered in Sigstore's public
 transparency log), publishes them to GHCR and creates a GitHub Release
 whose notes are that row:
 
 ```sh
 git tag -s v0.1.0 -m "Alvyo 0.1.0: …" && git push origin v0.1.0
-# → ghcr.io/tellbow/alvyo-{api,web,postgis,graphhopper,data-import}:0.1.0
+# → ghcr.io/tellbow/alvyo-{api,web,…}:0.1.0, those that changed (the release notes name them)
 docker buildx imagetools inspect ghcr.io/tellbow/alvyo-api:0.1.0 --format '{{json .SBOM}}'   # what is in it
 cosign verify ghcr.io/tellbow/alvyo-api:0.1.0 \
   --certificate-identity-regexp '^https://github.com/tellbow/alvyo/.github/workflows/release.yml@refs/tags/v' \

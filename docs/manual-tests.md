@@ -314,6 +314,7 @@ Checked so far only in the simulator, with made-up or simulated positions
       the app» opens another account's unlisted route; links to a route,
       journey and collection open with the app running, closed, and signed
       out (after signing in).
+- [ ] **The bug tab dragged** (feedback issue 56): by finger up and down without opening the report, a tap still opens it; after restarting the app it is where it was left.
 - [ ] **Reporting a bug from the app** (41): the tab at the right edge on
       every screen, not in the way of buttons; the screenshot shows the
       screen (the map itself stays empty: MapLibre draws it natively); the

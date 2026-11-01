@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
 	import FriendOptions from '#lib/community/FriendOptions.svelte';
@@ -112,15 +114,15 @@
 							{g.email} <span class="text-xs text-stone-500">· {m.share_pending()}</span>
 						{/if}
 					</span>
-					<select
-						class="rounded-md border border-stone-400 px-1 py-0.5 text-xs"
+					<NativeSelect
+						size="sm"
 						value={g.role}
 						aria-label={m.share_role()}
-						use:choose={(v) => setRole(g, v as Role)}
+						{@attach fromAction(choose, () => (v) => setRole(g, v as Role))}
 					>
 						<option value="viewer">{m.role_viewer()}</option>
 						<option value="editor">{m.role_editor()}</option>
-					</select>
+					</NativeSelect>
 					<button
 						type="button"
 						class="text-xs text-stone-500 underline"
@@ -144,15 +146,15 @@
 				class="min-w-0 flex-1 rounded-md border border-stone-400 px-2 py-1"
 			/>
 			<FriendOptions id="share-friends-{id}" />
-			<select
+			<NativeSelect
+				size="sm"
 				bind:value={role}
 				disabled={!hydrated.value}
-				class="rounded-md border border-stone-400 px-1"
 				aria-label={m.share_role()}
 			>
 				<option value="viewer">{m.role_viewer()}</option>
 				<option value="editor">{m.role_editor()}</option>
-			</select>
+			</NativeSelect>
 			<button disabled={busy || !hydrated.value} class={primaryButtonSmall}>
 				{m.share_invite()}
 			</button>

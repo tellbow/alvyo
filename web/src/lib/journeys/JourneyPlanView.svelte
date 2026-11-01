@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Tip from '#lib/components/Tip.svelte';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import type { Map as MapLibreMap, MapMouseEvent, Marker } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
@@ -364,38 +366,41 @@
 							<span class="min-w-0 flex-1 truncate" class:text-stone-500={!p.name}
 								>{p.name ?? m.plan_point_map()}</span
 							>
-							<button
-								type="button"
-								class="icon-button"
-								aria-label={m.plan_point_action({
-									point: p.name ?? m.plan_point_map(),
-									action: m.plan_point_up()
-								})}
-								title={m.plan_point_up()}
-								disabled={i === 0}
-								onclick={() => movePoint(i, i - 1)}>↑</button
-							>
-							<button
-								type="button"
-								class="icon-button"
-								aria-label={m.plan_point_action({
-									point: p.name ?? m.plan_point_map(),
-									action: m.plan_point_down()
-								})}
-								title={m.plan_point_down()}
-								disabled={i === points.length - 1}
-								onclick={() => movePoint(i, i + 1)}>↓</button
-							>
-							<button
-								type="button"
-								class="icon-button"
-								aria-label={m.plan_point_action({
-									point: p.name ?? m.plan_point_map(),
-									action: m.plan_point_remove()
-								})}
-								title={m.plan_point_remove()}
-								onclick={() => removePoint(i)}>×</button
-							>
+							<Tip text={m.plan_point_up()}>
+								<button
+									type="button"
+									class="icon-button"
+									aria-label={m.plan_point_action({
+										point: p.name ?? m.plan_point_map(),
+										action: m.plan_point_up()
+									})}
+									disabled={i === 0}
+									onclick={() => movePoint(i, i - 1)}>↑</button
+								>
+							</Tip>
+							<Tip text={m.plan_point_down()}>
+								<button
+									type="button"
+									class="icon-button"
+									aria-label={m.plan_point_action({
+										point: p.name ?? m.plan_point_map(),
+										action: m.plan_point_down()
+									})}
+									disabled={i === points.length - 1}
+									onclick={() => movePoint(i, i + 1)}>↓</button
+								>
+							</Tip>
+							<Tip text={m.plan_point_remove()}>
+								<button
+									type="button"
+									class="icon-button"
+									aria-label={m.plan_point_action({
+										point: p.name ?? m.plan_point_map(),
+										action: m.plan_point_remove()
+									})}
+									onclick={() => removePoint(i)}>×</button
+								>
+							</Tip>
 						</li>
 					{/each}
 				</ol>
@@ -483,10 +488,10 @@
 
 			<label class="flex flex-col gap-1">
 				<span class="font-medium">{m.plan_profile()}</span>
-				<select bind:value={profile} class="rounded-md border border-stone-400 px-2 py-1.5">
+				<NativeSelect bind:value={profile}>
 					<option value="hike">{m.plan_profile_hike()}</option>
 					<option value="alpine">{m.plan_profile_alpine()}</option>
-				</select>
+				</NativeSelect>
 			</label>
 
 			<button

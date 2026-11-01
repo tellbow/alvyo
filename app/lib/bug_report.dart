@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import 'api.dart';
 import 'l10n/app_localizations.dart';
+import 'settings.dart';
 
 /// The app's version, from the build (`--dart-define=ALVYO_VERSION=…`).
 const appVersion = String.fromEnvironment('ALVYO_VERSION', defaultValue: 'dev');
@@ -32,7 +34,7 @@ mixin ReportsPlace<T extends StatefulWidget> on State<T> {
 }
 
 /// Wraps the app: what it shows can be taken as a picture, and a small tab
-/// at the right edge opens «Fehler melden» when [api] is signed in. The
+/// at the right edge, dragged up or down out of the way, opens «Fehler melden» when [api] is signed in. The
 /// maps (MapLibre's own views) stay empty in the picture.
 class BugReportFrame extends StatefulWidget {
   const BugReportFrame({super.key, required this.api, required this.navigator, required this.child});
@@ -46,6 +48,7 @@ class BugReportFrame extends StatefulWidget {
 
 class _BugReportFrameState extends State<BugReportFrame> {
   final _boundary = GlobalKey();
+  final _settings = AppSettings.instance;
   bool _taking = false;
 
   /// The window as shown, natively: the maps are platform views, which
@@ -91,27 +94,42 @@ class _BugReportFrameState extends State<BugReportFrame> {
       children: [
         RepaintBoundary(key: _boundary, child: widget.child),
         if (api != null && !_taking)
-          Positioned(
-            right: 0,
-            top: MediaQuery.sizeOf(context).height * 0.45,
-            child: Material(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.9),
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
-              elevation: 2,
-              child: InkWell(
-                key: const Key('bug-open'),
-                borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
-                onTap: () => _open(api),
-                child: Semantics(
-                  button: true,
-                  label: AppLocalizations.of(context).bugOpen,
-                  child: const Padding(
-                    padding: EdgeInsets.all(12), // 44 pt to tap
-                    child: Icon(Icons.bug_report_outlined, size: 20),
+          ValueListenableBuilder(
+            valueListenable: _settings.bugTabAt,
+            builder: (context, at, _) {
+              final media = MediaQuery.of(context);
+              final height = media.size.height;
+              final top = (height * at)
+                  .clamp(media.padding.top, max(media.padding.top, height - media.padding.bottom - 44))
+                  .toDouble();
+              return Positioned(
+                right: 0,
+                top: top,
+                child: GestureDetector(
+                  onVerticalDragUpdate: (d) =>
+                      _settings.bugTabAt.value = ((top + d.delta.dy) / height).clamp(0.0, 1.0).toDouble(),
+                  onVerticalDragEnd: (_) => _settings.saveBugTab(),
+                  child: Material(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.9),
+                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
+                    elevation: 2,
+                    child: InkWell(
+                      key: const Key('bug-open'),
+                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
+                      onTap: () => _open(api),
+                      child: Semantics(
+                        button: true,
+                        label: AppLocalizations.of(context).bugOpen,
+                        child: const Padding(
+                          padding: EdgeInsets.all(12), // 44 pt to tap
+                          child: Icon(Icons.bug_report_outlined, size: 20),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
       ],
     );

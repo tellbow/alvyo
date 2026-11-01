@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { onMount } from 'svelte';
 	import { api, type Place } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
@@ -56,14 +57,10 @@
 
 <div class="mt-2 flex flex-col gap-2 text-xs text-stone-800" data-testid="connections">
 	<form method="post" onsubmit={search} class="flex flex-wrap items-center gap-1">
-		<select
-			bind:value={arrive}
-			class="rounded-md border border-stone-400 px-1 py-0.5"
-			aria-label={m.connections_mode()}
-		>
+		<NativeSelect size="sm" bind:value={arrive} aria-label={m.connections_mode()}>
 			<option value={false}>{m.connections_depart()}</option>
 			<option value={true}>{m.connections_arrive()}</option>
-		</select>
+		</NativeSelect>
 		<input
 			type="time"
 			bind:value={time}

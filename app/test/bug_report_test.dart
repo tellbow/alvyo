@@ -8,10 +8,10 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/bug_report.dart';
+import 'package:alvyo/settings.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/main.dart';
 import 'package:alvyo/session.dart';
-import 'package:alvyo/settings.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
@@ -118,6 +118,26 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.byKey(const Key('bug-open')), findsOneWidget);
+  });
+
+  testWidgets('the tab is dragged out of the way and stays there (feedback issue 56)', (tester) async {
+    final api = Api('https://alvyo.test', token: 't', client: MockClient((req) async => http.Response('{}', 404)));
+    addTearDown(() => AppSettings.instance.bugTabAt.value = 0.45);
+    await pump(tester, api, GlobalKey<NavigatorState>());
+    final tab = find.byKey(const Key('bug-open'));
+    final before = tester.getTopLeft(tab).dy;
+    await tester.drag(tab, const Offset(0, -100));
+    await tester.pump();
+    expect(tester.getTopLeft(tab).dy, lessThan(before - 50));
+    expect(AppSettings.instance.bugTabAt.value, lessThan(0.45));
+
+    // Not off the screen.
+    await tester.drag(tab, const Offset(0, 5000));
+    await tester.pump();
+    expect(
+      tester.getBottomLeft(tab).dy,
+      lessThanOrEqualTo(tester.view.physicalSize.height / tester.view.devicePixelRatio),
+    );
   });
 }
 

@@ -118,7 +118,7 @@ test('plan a two-stage journey that continues where the previous stage ended', a
 	// Delete stage 2.
 	const second = page.getByTestId('stage').nth(1);
 	await second.getByRole('button', { name: 'Etappe löschen' }).click();
-	await second.getByRole('button', { name: 'Etappe samt Route löschen?' }).click();
+	await page.getByRole('alertdialog').getByRole('button', { name: 'Etappe löschen' }).click();
 	await expect(page.getByTestId('stage')).toHaveCount(1);
 	await expect(page.getByTestId('stage-marker')).toHaveCount(1);
 });

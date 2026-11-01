@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { api, type Place } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { formatDistance } from '#lib/planner/route.js';
@@ -58,16 +59,12 @@
 			aria-label={m.place_search()}
 			bind:value={q}
 		/>
-		<select
-			class="rounded-md border border-stone-400 px-1"
-			bind:value={kind}
-			aria-label={m.place_kind()}
-		>
+		<NativeSelect size="sm" bind:value={kind} aria-label={m.place_kind()}>
 			<option value="">{m.place_kind_all()}</option>
 			{#each KINDS as k (k)}
 				<option value={k}>{placeLabel(k)}</option>
 			{/each}
-		</select>
+		</NativeSelect>
 	</div>
 	{#if results?.length === 0}
 		<p class="text-xs text-stone-500">{m.place_nothing_found()}</p>

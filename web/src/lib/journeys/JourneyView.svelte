@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import OpenInApp from '#lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
@@ -485,7 +488,7 @@
 				</div>
 				{#if user || hasRoutes}
 					<!-- What is done now and then: GPX, collections, the app, deleting. -->
-					<MoreMenu testid="journey-menu" onclose={() => (confirming = false)}>
+					<MoreMenu testid="journey-menu">
 						{#if hasRoutes}
 							<!-- API download, not a page: resolve() does not apply. -->
 							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -499,25 +502,21 @@
 						{/if}
 						{#if isOwner}
 							<hr class="my-1 border-stone-200" />
-							{#if confirming}
-								<button
-									type="button"
-									class="{menuItem} bg-red-700 font-medium text-white hover:bg-red-800"
-									onclick={removeJourney}
-								>
-									{m.journey_delete_confirm()}
-								</button>
-							{:else}
-								<button
-									type="button"
-									class="{menuItem} text-red-700 dark:text-red-400"
-									onclick={() => (confirming = true)}
-								>
-									{m.journey_delete()}
-								</button>
-							{/if}
+							<button
+								type="button"
+								class="{menuItem} text-red-700 dark:text-red-400"
+								onclick={() => (confirming = true)}
+							>
+								{m.journey_delete()}
+							</button>
 						{/if}
 					</MoreMenu>
+					<ConfirmDialog
+						bind:open={confirming}
+						question={m.journey_delete_confirm()}
+						action={m.journey_delete()}
+						onconfirm={removeJourney}
+					/>
 				{/if}
 			</div>
 			<div class="-mt-2">
@@ -603,19 +602,22 @@
 								{#if canEdit}
 									<label class="mt-1 flex items-center gap-1">
 										{m.gap_transfer()}
-										<select
-											class="rounded-md border border-stone-400 px-1 py-0.5"
+										<NativeSelect
+											size="sm"
 											value={s.transfer_before ?? ''}
-											use:choose={(v) =>
-												patchStage(s.id, {
-													transfer_before: v as StagePatch['transfer_before']
-												})}
+											{@attach fromAction(
+												choose,
+												() => (v) =>
+													patchStage(s.id, {
+														transfer_before: v as StagePatch['transfer_before']
+													})
+											)}
 										>
 											<option value="">{m.transfer_none()}</option>
 											<option value="pt">{m.transfer_pt()}</option>
 											<option value="cablecar">{m.transfer_cablecar()}</option>
 											<option value="other">{m.transfer_other()}</option>
-										</select>
+										</NativeSelect>
 									</label>
 								{/if}
 								{#if transferUrl(i)}
@@ -672,20 +674,19 @@
 					<button type="button" class={primaryButtonSmall} onclick={() => addStage()}>
 						{m.journey_add_stage()}
 					</button>
-					<select
-						class="rounded-md border border-stone-400 px-2 py-1.5"
+					<NativeSelect
 						onfocus={loadMyRoutes}
-						use:choose={(id, select) => {
+						{@attach fromAction(choose, () => (id, select) => {
 							select.value = '';
 							if (id) addStage(id);
-						}}
+						})}
 						aria-label={m.journey_add_from_route()}
 					>
 						<option value="">{m.journey_add_from_route()}</option>
 						{#each myRoutes as r (r.id)}
 							<option value={r.id}>{r.title} · {formatDistance(r.totals.distance_m)}</option>
 						{/each}
-					</select>
+					</NativeSelect>
 				</div>
 			{/if}
 		</div>
@@ -770,10 +771,12 @@
 						<h2 class="font-medium">{m.journey_settings()}</h2>
 						<label class="flex flex-col gap-1">
 							<span>{m.field_visibility()}</span>
-							<select
-								class="rounded-md border border-stone-400 px-2 py-1.5"
+							<NativeSelect
 								value={journey.visibility}
-								use:choose={(v) => setVisibility(v as 'private' | 'unlisted' | 'public')}
+								{@attach fromAction(
+									choose,
+									() => (v) => setVisibility(v as 'private' | 'unlisted' | 'public')
+								)}
 							>
 								<option value="private">{m.visibility_private()}</option>
 								<option value="unlisted" disabled={!user?.email_verified}
@@ -782,7 +785,7 @@
 								<option value="public" disabled={!user?.email_verified}
 									>{m.visibility_public()}</option
 								>
-							</select>
+							</NativeSelect>
 						</label>
 						{#if shareUrl && journey.visibility === 'unlisted'}
 							<input

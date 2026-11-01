@@ -20,6 +20,10 @@ class AppSettings {
   /// Apple Watch hikes are imported when the app opens: those since then;
   /// null: off.
   final watchAutoSince = ValueNotifier<DateTime?>(null);
+
+  /// How far down the screen the bug-report tab is, 0 to 1; dragged away
+  /// from what it covers (feedback issue 56).
+  final bugTabAt = ValueNotifier<double>(0.45);
   late final Future<void> loaded = _load();
 
   Future<void> _load() async {
@@ -29,6 +33,7 @@ class AppSettings {
       final l = await _storage.read(key: 'locale');
       locale.value = AppLocalizations.supportedLocales.where((s) => s.languageCode == l).firstOrNull;
       watchAutoSince.value = DateTime.tryParse(await _storage.read(key: 'watch-auto') ?? '');
+      if (double.tryParse(await _storage.read(key: 'bug-tab') ?? '') case final at?) bugTabAt.value = at;
       // The account's pace as last known, for hikes started offline.
       if (double.tryParse(await _storage.read(key: 'pace') ?? '') case final pace?) hikerPace.value = pace;
     } on Object {
@@ -46,6 +51,8 @@ class AppSettings {
     locale.value = l;
     await _write('locale', l?.languageCode);
   }
+
+  Future<void> saveBugTab() => _write('bug-tab', '${bugTabAt.value}');
 
   /// Switches the import of new Apple Watch hikes on (from now) or off.
   Future<void> setWatchAuto(bool on) async {

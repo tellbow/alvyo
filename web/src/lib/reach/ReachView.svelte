@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { intlLocale } from '#lib/util/locale.js';
 	import { page } from '$app/state';
 	import { choose } from '#lib/util/choose.js';
@@ -222,15 +224,14 @@
 			<PlaceSearch label={m.reach_search()} near={center} onpick={pick} />
 			<label class="flex flex-col gap-1 text-sm">
 				<span class="font-medium">{m.plan_profile()}</span>
-				<select
-					class="rounded-md border border-stone-400 px-2 py-1.5"
+				<NativeSelect
 					bind:value={profile}
-					use:choose={() => void reach()}
+					{@attach fromAction(choose, () => () => void reach())}
 					data-testid="reach-profile"
 				>
 					<option value="hike">{m.plan_profile_hike()}</option>
 					<option value="alpine">{m.plan_profile_alpine()}</option>
-				</select>
+				</NativeSelect>
 			</label>
 			{#if start}
 				<p class="text-sm" data-testid="reach-start">

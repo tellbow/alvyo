@@ -3,6 +3,8 @@
 @import '@fontsource-variable/bricolage-grotesque';
 @import 'tw-animate-css';
 
+/* Same palette in the app: app/lib/theme.dart; a change goes into both. */
+
 /*
  * The Alvyo palette, light and dark after the system setting unless one
  * was chosen (<html data-theme>, see #lib/util/theme). The stone

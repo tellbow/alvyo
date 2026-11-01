@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { officialLabel } from '#lib/official/official.js';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import { onDestroy, untrack } from 'svelte';
@@ -149,47 +150,34 @@
 		<h1 class="text-xl font-semibold">{m.discover_title()}</h1>
 
 		<div class="flex flex-col gap-2 text-sm">
-			<select
-				bind:value={kind}
-				aria-label={m.discover_kind()}
-				class="rounded-md border border-stone-400 px-2 py-1.5"
-			>
+			<NativeSelect bind:value={kind} aria-label={m.discover_kind()}>
 				<option value="">{m.discover_kind_all()}</option>
 				<option value="route">{m.discover_kind_route()}</option>
 				<option value="journey">{m.discover_kind_journey()}</option>
-			</select>
-			<select
+			</NativeSelect>
+			<NativeSelect
 				bind:value={origin}
 				aria-label={m.discover_origin()}
-				class="rounded-md border border-stone-400 px-2 py-1.5"
 				data-testid="discover-origin"
 			>
 				<option value="">{m.discover_origin_all()}</option>
 				<option value="only">{m.discover_origin_only()}</option>
 				<option value="none">{m.discover_origin_none()}</option>
-			</select>
+			</NativeSelect>
 			<div class="flex gap-2">
-				<select
-					bind:value={sac}
-					aria-label={m.discover_sac()}
-					class="flex-1 rounded-md border border-stone-400 px-2 py-1.5"
-				>
+				<NativeSelect class="flex-1" bind:value={sac} aria-label={m.discover_sac()}>
 					<option value={0}>{m.discover_sac_any()}</option>
 					{#each [1, 2, 3, 4, 5, 6] as g (g)}
 						<option value={g}>{m.discover_sac_max({ grade: `T${g}` })}</option>
 					{/each}
-				</select>
-				<select
-					bind:value={duration}
-					aria-label={m.discover_duration()}
-					class="flex-1 rounded-md border border-stone-400 px-2 py-1.5"
-				>
+				</NativeSelect>
+				<NativeSelect class="flex-1" bind:value={duration} aria-label={m.discover_duration()}>
 					<option value="">{m.discover_duration_any()}</option>
 					<option value="short">{m.discover_duration_short()}</option>
 					<option value="medium">{m.discover_duration_medium()}</option>
 					<option value="long">{m.discover_duration_long()}</option>
 					<option value="xlong">{m.discover_duration_xlong()}</option>
-				</select>
+				</NativeSelect>
 			</div>
 			{#if duration && kind !== 'route'}
 				<p class="text-xs text-stone-500">{m.discover_duration_hint()}</p>

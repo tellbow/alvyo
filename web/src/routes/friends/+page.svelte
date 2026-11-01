@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Tip from '#lib/components/Tip.svelte';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import { resolve } from '$app/paths';
 	import { refreshAll } from '$app/navigation';
@@ -80,14 +81,15 @@
 					<span class="block truncate text-sm text-stone-500">@{f.username}</span>
 				</p>
 				{#if suggested}
-					<button
-						type="button"
-						class="-m-1 rounded-full p-1 text-stone-500 hover:bg-muted hover:text-foreground"
-						aria-label={m.friends_dismiss()}
-						title={m.friends_dismiss()}
-						onclick={() => dismiss(f.username)}
-						data-testid="dismiss">✕</button
-					>
+					<Tip text={m.friends_dismiss()}>
+						<button
+							type="button"
+							class="-m-1 rounded-full p-1 text-stone-500 hover:bg-muted hover:text-foreground"
+							aria-label={m.friends_dismiss()}
+							onclick={() => dismiss(f.username)}
+							data-testid="dismiss">✕</button
+						>
+					</Tip>
 				{/if}
 			</div>
 			<p class="mt-1 text-[13px] text-stone-600">

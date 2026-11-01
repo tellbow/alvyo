@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { goto } from '$app/navigation';
@@ -134,12 +135,12 @@
 		{#if isOwner}
 			<label class="flex flex-col gap-1 text-sm">
 				<span class="font-medium">{m.field_visibility()}</span>
-				<select bind:value={visibility} class="rounded-md border border-stone-400 px-2 py-1.5">
+				<NativeSelect bind:value={visibility}>
 					<option value="private">{m.visibility_private()}</option>
 					<option value="unlisted" disabled={!user.email_verified}>{m.visibility_unlisted()}</option
 					>
 					<option value="public" disabled={!user.email_verified}>{m.visibility_public()}</option>
-				</select>
+				</NativeSelect>
 			</label>
 			{#if !user.email_verified}
 				<p class="text-xs text-stone-500">{m.visibility_needs_verify()}</p>

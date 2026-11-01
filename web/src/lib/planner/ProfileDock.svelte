@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Tip from '#lib/components/Tip.svelte';
 	import { onMount, type Snippet } from 'svelte';
 	import { m } from '#lib/paraglide/messages.js';
 
@@ -40,19 +41,20 @@
 	<div
 		class="absolute right-12 bottom-8 left-2 z-10 rounded-md bg-surface/95 px-2 py-1 shadow ring-1 ring-stone-300"
 	>
-		<button
-			type="button"
-			class="absolute top-0 right-0 z-10 icon-button"
-			aria-label={m.profile_hide()}
-			title={m.profile_hide()}
-			aria-expanded="true"
-			onclick={() => fold(true)}
-			data-testid="profile-hide"
-		>
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-				<path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" />
-			</svg>
-		</button>
+		<Tip text={m.profile_hide()} class="absolute top-0 right-0 z-10">
+			<button
+				type="button"
+				class="icon-button"
+				aria-label={m.profile_hide()}
+				aria-expanded="true"
+				onclick={() => fold(true)}
+				data-testid="profile-hide"
+			>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" />
+				</svg>
+			</button>
+		</Tip>
 		{@render children()}
 	</div>
 {/if}

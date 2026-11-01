@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Tip from '#lib/components/Tip.svelte';
 	import type { Snippet } from 'svelte';
 	import Info from '@lucide/svelte/icons/info';
 	import { m } from '#lib/paraglide/messages.js';
@@ -34,17 +35,18 @@
 
 {#snippet explanation()}
 	{#if info}
-		<button
-			type="button"
-			class="-m-1 rounded-full p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
-			aria-label={m.account_info()}
-			title={m.account_info()}
-			aria-expanded={explained}
-			aria-controls="{id}-info"
-			onclick={() => (explained = !explained)}
-		>
-			<Info class="size-4" aria-hidden="true" />
-		</button>
+		<Tip text={m.account_info()}>
+			<button
+				type="button"
+				class="-m-1 rounded-full p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+				aria-label={m.account_info()}
+				aria-expanded={explained}
+				aria-controls="{id}-info"
+				onclick={() => (explained = !explained)}
+			>
+				<Info class="size-4" aria-hidden="true" />
+			</button>
+		</Tip>
 	{/if}
 {/snippet}
 

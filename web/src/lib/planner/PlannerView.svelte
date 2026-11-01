@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import Tip from '#lib/components/Tip.svelte';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { page } from '$app/state';
 	import { choose } from '#lib/util/choose.js';
 	import PlanTabs from './PlanTabs.svelte';
@@ -279,14 +282,13 @@
 		{:else}
 			<label class="flex flex-col gap-1 text-sm">
 				<span class="font-medium">{m.plan_profile()}</span>
-				<select
-					class="rounded-md border border-stone-400 px-2 py-1.5"
+				<NativeSelect
 					value={planner.profile}
-					use:choose={(v) => planner.setProfile(v as Profile)}
+					{@attach fromAction(choose, () => (v) => planner.setProfile(v as Profile))}
 				>
 					<option value="hike">{m.plan_profile_hike()}</option>
 					<option value="alpine">{m.plan_profile_alpine()}</option>
-				</select>
+				</NativeSelect>
 			</label>
 
 			<section data-testid="points">
@@ -317,30 +319,33 @@
 										>{formatHeight(height)}</span
 									>
 								{/if}
-								<button
-									type="button"
-									class="icon-button"
-									aria-label={m.plan_point_action({ point, action: m.plan_point_up() })}
-									title={m.plan_point_up()}
-									disabled={!hydrated.value || i === 0}
-									onclick={() => planner.reorder(i, i - 1)}>↑</button
-								>
-								<button
-									type="button"
-									class="icon-button"
-									aria-label={m.plan_point_action({ point, action: m.plan_point_down() })}
-									title={m.plan_point_down()}
-									disabled={!hydrated.value || i === planner.anchors.length - 1}
-									onclick={() => planner.reorder(i, i + 1)}>↓</button
-								>
-								<button
-									type="button"
-									class="icon-button"
-									aria-label={m.plan_point_action({ point, action: m.plan_point_remove() })}
-									title={m.plan_point_remove()}
-									disabled={!hydrated.value}
-									onclick={() => planner.remove(a.id)}>×</button
-								>
+								<Tip text={m.plan_point_up()}>
+									<button
+										type="button"
+										class="icon-button"
+										aria-label={m.plan_point_action({ point, action: m.plan_point_up() })}
+										disabled={!hydrated.value || i === 0}
+										onclick={() => planner.reorder(i, i - 1)}>↑</button
+									>
+								</Tip>
+								<Tip text={m.plan_point_down()}>
+									<button
+										type="button"
+										class="icon-button"
+										aria-label={m.plan_point_action({ point, action: m.plan_point_down() })}
+										disabled={!hydrated.value || i === planner.anchors.length - 1}
+										onclick={() => planner.reorder(i, i + 1)}>↓</button
+									>
+								</Tip>
+								<Tip text={m.plan_point_remove()}>
+									<button
+										type="button"
+										class="icon-button"
+										aria-label={m.plan_point_action({ point, action: m.plan_point_remove() })}
+										disabled={!hydrated.value}
+										onclick={() => planner.remove(a.id)}>×</button
+									>
+								</Tip>
 							</li>
 						{/each}
 					</ol>

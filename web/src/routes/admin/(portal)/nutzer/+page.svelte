@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { refused, when, type AdminUser } from '#lib/admin/admin.js';
@@ -138,15 +139,15 @@
 					{#if isAdmin && u.username !== data.user?.username}
 						<label class="ml-auto flex items-center gap-2">
 							Rolle
-							<select
+							<NativeSelect
+								size="sm"
 								value={u.role}
-								class="rounded border border-stone-300 bg-surface px-2 py-1"
 								onchange={(e) => setRole(u, e.currentTarget.value as AdminUser['role'])}
 							>
 								<option value="user">user</option>
 								<option value="moderator">moderator</option>
 								<option value="admin">admin</option>
-							</select>
+							</NativeSelect>
 						</label>
 					{/if}
 				</div>

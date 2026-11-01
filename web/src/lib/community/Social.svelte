@@ -1,11 +1,11 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Reply from '@lucide/svelte/icons/reply';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import { focused } from '#lib/util/focus.js';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { api, type Me } from '#lib/api/client.js';
@@ -142,25 +142,18 @@
 				>
 			{/if}
 			{#if c.can_delete}
-				{#if deleting === c.id}
-					<button
-						type="button"
-						class="inline-flex items-center gap-1 rounded-md bg-red-700 px-1.5 py-1 text-white hover:bg-red-800 pointer-coarse:py-2"
-						use:focused
-						onblur={() => (deleting = undefined)}
-						onclick={() => {
-							deleting = undefined;
-							remove(c.id);
-						}}><Trash2 class="size-3.5" aria-hidden="true" />{m.route_delete_confirm()}</button
-					>
-				{:else}
-					<button
-						type="button"
-						class="{commentAction} text-red-700 dark:text-red-400"
-						onclick={() => (deleting = c.id)}
-						><Trash2 class="size-3.5" aria-hidden="true" />{m.community_comment_delete()}</button
-					>
-				{/if}
+				<button
+					type="button"
+					class="{commentAction} text-red-700 dark:text-red-400"
+					onclick={() => (deleting = c.id)}
+					><Trash2 class="size-3.5" aria-hidden="true" />{m.community_comment_delete()}</button
+				>
+				<ConfirmDialog
+					bind:open={() => deleting === c.id, (v) => (deleting = v ? c.id : undefined)}
+					question={m.route_delete_confirm()}
+					action={m.community_comment_delete()}
+					onconfirm={() => remove(c.id)}
+				/>
 			{/if}
 			{#if user && c.author_username !== user.username}
 				<ReportButton target={{ kind: 'comment', id: c.id }} />

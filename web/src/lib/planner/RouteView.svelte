@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
@@ -253,7 +254,7 @@
 				</div>
 				{#if !revision}
 					<!-- What is done now and then: printing, GPX, collections, versions, deleting. -->
-					<MoreMenu testid="route-menu" onclose={() => (confirmDelete = false)}>
+					<MoreMenu testid="route-menu">
 						{#if route.legs.length > 0}
 							<!-- The share token rides along; resolve() cannot express query strings. -->
 							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -282,25 +283,21 @@
 						{#if route.can_edit}
 							<div class="px-2.5 py-2"><Revisions id={route.id} /></div>
 							<hr class="my-1 border-stone-200" />
-							{#if confirmDelete}
-								<button
-									type="button"
-									class="{menuItem} bg-red-700 font-medium text-white hover:bg-red-800"
-									onclick={remove}
-								>
-									{m.route_delete_confirm()}
-								</button>
-							{:else}
-								<button
-									type="button"
-									class="{menuItem} text-red-700 dark:text-red-400"
-									onclick={() => (confirmDelete = true)}
-								>
-									{m.route_delete()}
-								</button>
-							{/if}
+							<button
+								type="button"
+								class="{menuItem} text-red-700 dark:text-red-400"
+								onclick={() => (confirmDelete = true)}
+							>
+								{m.route_delete()}
+							</button>
 						{/if}
 					</MoreMenu>
+					<ConfirmDialog
+						bind:open={confirmDelete}
+						question={m.route_delete_confirm()}
+						action={m.route_delete()}
+						onconfirm={remove}
+					/>
 				{/if}
 			</div>
 			{#if route.tags.length > 0 || route.hike}

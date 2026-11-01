@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { api } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -37,16 +38,12 @@
 		class="flex w-full flex-col gap-1.5 rounded-md bg-stone-50 p-2 text-xs"
 		data-testid="report-form"
 	>
-		<select
-			bind:value={reason}
-			aria-label={m.report_reason()}
-			class="rounded-md border border-stone-400 px-1 py-0.5"
-		>
+		<NativeSelect size="sm" bind:value={reason} aria-label={m.report_reason()}>
 			<option value="spam">{m.report_reason_spam()}</option>
 			<option value="offensive">{m.report_reason_offensive()}</option>
 			<option value="dangerous">{m.report_reason_dangerous()}</option>
 			<option value="other">{m.report_reason_other()}</option>
-		</select>
+		</NativeSelect>
 		<textarea
 			bind:value={note}
 			maxlength="1000"

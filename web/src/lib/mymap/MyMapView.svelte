@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { ROUTE_COLOR } from '#lib/planner/colors.js';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import { onDestroy, onMount, untrack } from 'svelte';
@@ -254,8 +255,8 @@
 			<fieldset class="flex items-center gap-2">
 				<legend class="mb-1 font-medium">{m.mymap_sac()}</legend>
 				{#each [0, 1] as end (end)}
-					<select
-						class="rounded-md border border-stone-400 px-2 py-1"
+					<NativeSelect
+						size="sm"
 						aria-label="{m.mymap_sac()} {end === 0 ? m.mymap_from() : m.mymap_to()}"
 						value={filters.sac[end]}
 						onchange={(e) => {
@@ -268,7 +269,7 @@
 						{#each [1, 2, 3, 4, 5, 6] as g (g)}
 							<option value={g}>T{g}</option>
 						{/each}
-					</select>
+					</NativeSelect>
 					{#if end === 0}<span>–</span>{/if}
 				{/each}
 			</fieldset>
@@ -286,10 +287,10 @@
 			<div class="flex items-center justify-between gap-2">
 				<label class="flex items-center gap-2">
 					{m.mymap_color()}
-					<select class="rounded-md border border-stone-400 px-2 py-1" bind:value={filters.color}>
+					<NativeSelect size="sm" bind:value={filters.color}>
 						<option value="kind">{m.mymap_color_kind()}</option>
 						<option value="sac">{m.mymap_color_sac()}</option>
-					</select>
+					</NativeSelect>
 				</label>
 				<button type="button" class="text-xs text-stone-600 underline" onclick={reset}
 					>{m.mymap_reset()}</button

@@ -52,7 +52,7 @@ test('mark a route as hiked; the list and the map tell planned from hiked', asyn
 	);
 	await planned.getByRole('button', { name: 'Mehr: Noch geplant' }).click();
 	await planned.getByTestId('route-row-delete').click();
-	await planned.getByTestId('route-row-delete-confirm').click();
+	await page.getByTestId('route-row-delete-confirm').click();
 	await expect(page.getByText('Nichts in dieser Auswahl.')).toBeVisible();
 
 	// On the map of one's hikes too.

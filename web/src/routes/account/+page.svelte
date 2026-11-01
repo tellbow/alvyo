@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { onMount } from 'svelte';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { goto, refreshAll } from '$app/navigation';
@@ -173,20 +175,19 @@
 				</label>
 				<label class="flex flex-wrap items-center gap-x-3 gap-y-1">
 					<span class="font-medium">{m.account_pace()}</span>
-					<select
-						class="rounded-md border border-stone-400 bg-surface px-2 py-1.5"
+					<NativeSelect
 						aria-label={m.account_pace()}
 						data-testid="pace"
 						value={pace}
 						disabled={!hydrated.value}
-						use:choose={(v) => notify({ speed_factor: Number(v) })}
+						{@attach fromAction(choose, () => (v) => notify({ speed_factor: Number(v) }))}
 					>
 						{#each paces as p (p)}
 							<option value={p}
 								>{p === 1 ? m.account_pace_signposts() : `${Math.round(p * 100)} %`}</option
 							>
 						{/each}
-					</select>
+					</NativeSelect>
 				</label>
 			</div>
 		</Card>

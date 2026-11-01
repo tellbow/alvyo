@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { onMount } from 'svelte';
 	import { api, type CollectionSummary } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -28,21 +30,20 @@
 </script>
 
 <div class="flex flex-col gap-1 text-sm">
-	<select
-		class="rounded-md border border-stone-400 px-2 py-1.5"
+	<NativeSelect
 		aria-label={m.collection_add_to()}
 		data-testid="add-to-collection"
 		disabled={!mine}
-		use:choose={(value, select) => {
+		{@attach fromAction(choose, () => (value, select) => {
 			const c = mine?.find((x) => x.id === value);
 			select.value = '';
 			if (c) add(c);
-		}}
+		})}
 	>
 		<option value="">{m.collection_add_to()}</option>
 		{#each mine ?? [] as c (c.id)}
 			<option value={c.id}>{c.title}</option>
 		{/each}
-	</select>
+	</NativeSelect>
 	{#if message}<p class="text-xs text-stone-600" role="status">{message}</p>{/if}
 </div>

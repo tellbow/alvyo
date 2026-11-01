@@ -1,10 +1,10 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { api, type AccessToken } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
-	import { focused } from '#lib/util/focus.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import { hikeDate } from '#lib/util/locale.js';
 
@@ -96,20 +96,13 @@
 					>{m.tokens_revoke()}</button
 				>
 			</div>
-			{#if revoking === t.id}
-				<div class="mt-1 flex flex-wrap items-center gap-2 text-xs" data-testid="revoke-confirm">
-					<span class="flex-1">{m.tokens_revoke_confirm({ name: t.name })}</span>
-					<button
-						type="button"
-						class="rounded bg-red-700 px-2 py-1 text-white"
-						use:focused
-						onclick={() => revoke(t.id)}>{m.tokens_revoke()}</button
-					>
-					<button type="button" class="underline" onclick={() => (revoking = undefined)}
-						>{m.tokens_cancel()}</button
-					>
-				</div>
-			{/if}
+			<ConfirmDialog
+				bind:open={() => revoking === t.id, (v) => (revoking = v ? t.id : undefined)}
+				question={m.tokens_revoke_confirm({ name: t.name })}
+				action={m.tokens_revoke()}
+				onconfirm={() => revoke(t.id)}
+				testid={revoking === t.id ? 'revoke-confirm' : undefined}
+			/>
 		</li>
 	{/each}
 </ul>

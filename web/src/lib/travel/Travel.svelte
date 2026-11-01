@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { choose as pick } from '#lib/util/choose.js';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
@@ -184,11 +186,11 @@
 				<div class="flex flex-wrap items-center gap-1">
 					<label class="flex items-center gap-1">
 						{d === 'to' ? m.travel_from() : m.travel_to_home()}
-						<select
-							class="rounded-md border border-stone-400 px-1 py-0.5"
+						<NativeSelect
+							size="sm"
 							value={searching[d] || way?.place ? ELSEWHERE : (way?.home_id ?? '')}
 							disabled={!hydrated.value}
-							use:pick={(v) => choose(d, v)}
+							{@attach fromAction(pick, () => (v) => choose(d, v))}
 							data-testid="travel-{d}-home"
 						>
 							<option value="">{m.travel_none()}</option>
@@ -196,7 +198,7 @@
 								<option value={h.id}>{h.name}</option>
 							{/each}
 							<option value={ELSEWHERE}>{m.travel_elsewhere()}</option>
-						</select>
+						</NativeSelect>
 					</label>
 					{#if way?.place && !searching[d]}
 						<span data-testid="travel-{d}-place">{way.place.name}</span>
@@ -207,16 +209,16 @@
 						>
 					{/if}
 					{#if way}
-						<select
-							class="rounded-md border border-stone-400 px-1 py-0.5"
+						<NativeSelect
+							size="sm"
 							value={way.arrive}
 							aria-label={m.connections_mode()}
-							use:pick={(v) => edit(d, { arrive: v === 'true' })}
+							{@attach fromAction(pick, () => (v) => edit(d, { arrive: v === 'true' }))}
 							data-testid="travel-{d}-mode"
 						>
 							<option value={false}>{m.connections_depart()}</option>
 							<option value={true}>{m.connections_arrive()}</option>
-						</select>
+						</NativeSelect>
 						<input
 							type="time"
 							class="rounded-md border border-stone-400 px-1 py-0.5"

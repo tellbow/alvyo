@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { onMount } from 'svelte';
 	import { api, type Home, type Travel } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -36,8 +37,8 @@
 		{#each ['to', 'back'] as const as d (d)}
 			<div class="flex flex-wrap items-center gap-1">
 				<span class="w-20">{d === 'to' ? m.travel_to() : m.travel_back()}</span>
-				<select
-					class="rounded-md border border-stone-400 px-1 py-0.5"
+				<NativeSelect
+					size="sm"
 					aria-label={d === 'to' ? m.travel_from() : m.travel_to_home()}
 					value={travel[d]?.home_id ?? ''}
 					onchange={(e) => set(d, { home_id: e.currentTarget.value })}
@@ -47,17 +48,17 @@
 					{#each homes as h (h.id)}
 						<option value={h.id}>{h.name}</option>
 					{/each}
-				</select>
+				</NativeSelect>
 				{#if travel[d]}
-					<select
-						class="rounded-md border border-stone-400 px-1 py-0.5"
+					<NativeSelect
+						size="sm"
 						aria-label={m.connections_mode()}
 						value={travel[d]!.arrive}
 						onchange={(e) => set(d, { arrive: e.currentTarget.value === 'true' })}
 					>
 						<option value={false}>{m.connections_depart()}</option>
 						<option value={true}>{m.connections_arrive()}</option>
-					</select>
+					</NativeSelect>
 					<input
 						type="time"
 						class="rounded-md border border-stone-400 px-1 py-0.5"

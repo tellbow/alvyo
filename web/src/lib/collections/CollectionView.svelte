@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { focused } from '#lib/util/focus.js';
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import OpenInApp from '#lib/sharing/OpenInApp.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
@@ -311,28 +313,13 @@
 										onclick={() => (removing = it.id)}>{m.collection_remove_item()}</button
 									>
 								</div>
-								{#if removing === it.id}
-									<div
-										class="mt-2 flex flex-wrap items-center gap-2 text-xs"
-										data-testid="remove-confirm"
-									>
-										<span class="flex-1">{m.collection_remove_confirm({ title: it.title })}</span>
-										<button
-											type="button"
-											class="rounded bg-red-700 px-2 py-1 text-white"
-											use:focused
-											onclick={() => {
-												removing = undefined;
-												removeItem(it);
-											}}>{m.collection_remove_item()}</button
-										>
-										<button
-											type="button"
-											class="text-stone-500 underline"
-											onclick={() => (removing = undefined)}>{m.collection_remove_cancel()}</button
-										>
-									</div>
-								{/if}
+								<ConfirmDialog
+									bind:open={() => removing === it.id, (v) => (removing = v ? it.id : undefined)}
+									question={m.collection_remove_confirm({ title: it.title })}
+									action={m.collection_remove_item()}
+									onconfirm={() => removeItem(it)}
+									testid={removing === it.id ? 'remove-confirm' : undefined}
+								/>
 							{:else if it.note}
 								<p class="mt-1 text-xs text-stone-600">{it.note}</p>
 							{/if}
@@ -347,17 +334,19 @@
 				<h2 class="font-medium">{m.journey_settings()}</h2>
 				<label class="flex flex-col gap-1">
 					<span>{m.field_visibility()}</span>
-					<select
-						class="rounded-md border border-stone-400 px-2 py-1.5"
+					<NativeSelect
 						value={collection.visibility}
-						use:choose={(v) => patch({ visibility: v as 'private' | 'unlisted' | 'public' })}
+						{@attach fromAction(
+							choose,
+							() => (v) => patch({ visibility: v as 'private' | 'unlisted' | 'public' })
+						)}
 					>
 						<option value="private">{m.visibility_private()}</option>
 						<option value="unlisted" disabled={!user?.email_verified}
 							>{m.visibility_unlisted()}</option
 						>
 						<option value="public" disabled={!user?.email_verified}>{m.visibility_public()}</option>
-					</select>
+					</NativeSelect>
 				</label>
 				{#if shareUrl && collection.visibility === 'unlisted'}
 					<input
@@ -368,20 +357,17 @@
 						data-testid="collection-share-link"
 					/>
 				{/if}
-				{#if confirming}
-					<button
-						type="button"
-						class="self-start rounded bg-red-700 px-2 py-1 text-white"
-						use:focused
-						onclick={remove}>{m.collection_delete_confirm()}</button
-					>
-				{:else}
-					<button
-						type="button"
-						class="self-start text-stone-500 underline"
-						onclick={() => (confirming = true)}>{m.collection_delete()}</button
-					>
-				{/if}
+				<button
+					type="button"
+					class="self-start text-stone-500 underline"
+					onclick={() => (confirming = true)}>{m.collection_delete()}</button
+				>
+				<ConfirmDialog
+					bind:open={confirming}
+					question={m.collection_delete_confirm()}
+					action={m.collection_delete()}
+					onconfirm={remove}
+				/>
 			</section>
 			<SharePanel kind="collections" id={collection.id} verified={!!user?.email_verified} />
 		{/if}

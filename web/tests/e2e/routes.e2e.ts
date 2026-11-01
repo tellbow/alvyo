@@ -87,7 +87,7 @@ test('save a planned route, reopen and edit it, then delete it', async ({ page, 
 	await page.keyboard.press('Escape'); // the menu stays open after the download
 	await page.getByTestId('route-menu').click();
 	await page.getByRole('button', { name: 'Löschen' }).click();
-	await page.getByRole('button', { name: 'Wirklich löschen?' }).click();
+	await page.getByRole('alertdialog').getByRole('button', { name: 'Löschen' }).click();
 	await expect(page).toHaveURL('/routes');
 	await expect(page.getByText('Noch keine Routen')).toBeVisible();
 	expect((await page.request.get(routeUrl.replace('/plan/', '/api/v1/routes/'))).status()).toBe(

@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { fromAction } from 'svelte/attachments';
+	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
-	import { focused } from '#lib/util/focus.js';
 	import { choose } from '#lib/util/choose.js';
 	import { resolve } from '$app/paths';
 	import type { JourneyStage, StagePatch } from '#lib/api/client.js';
@@ -154,16 +156,16 @@
 				aria-label={m.journey_date()}
 				onchange={(e) => onpatch({ planned_date: e.currentTarget.value })}
 			/>
-			<select
-				class="rounded-md border border-stone-400 px-1 py-0.5"
+			<NativeSelect
+				size="sm"
 				value={s.status}
 				aria-label={m.journey_status()}
-				use:choose={(v) => onpatch({ status: v as JourneyStage['status'] })}
+				{@attach fromAction(choose, () => (v) => onpatch({ status: v as JourneyStage['status'] }))}
 			>
 				<option value="planned">{m.status_planned()}</option>
 				<option value="done">{m.status_done()}</option>
 				<option value="skipped">{m.status_skipped()}</option>
-			</select>
+			</NativeSelect>
 		</div>
 	{:else}
 		{#if s.title || placesTitle}<p class="mt-1">{s.title || placesTitle}</p>{/if}
@@ -338,27 +340,19 @@
 				onclick={() => onmove(1)}
 				aria-label={m.journey_move_down()}>↓</button
 			>
-			{#if confirming}
-				<button
-					type="button"
-					class="ml-auto rounded bg-red-700 px-2 py-1 text-white"
-					use:focused
-					onclick={() => {
-						confirming = false;
-						onremove();
-					}}
-				>
-					{m.journey_delete_stage_confirm()}
-				</button>
-			{:else}
-				<button
-					type="button"
-					class="ml-auto text-stone-500 underline"
-					onclick={() => (confirming = true)}
-				>
-					{m.journey_delete_stage()}
-				</button>
-			{/if}
+			<button
+				type="button"
+				class="ml-auto text-stone-500 underline"
+				onclick={() => (confirming = true)}
+			>
+				{m.journey_delete_stage()}
+			</button>
+			<ConfirmDialog
+				bind:open={confirming}
+				question={m.journey_delete_stage_confirm()}
+				action={m.journey_delete_stage()}
+				onconfirm={onremove}
+			/>
 		</div>
 	{:else}
 		{#if s.accommodation}

@@ -5,3 +5,8 @@
 id = "GHSA-gcqx-w48m-w2h4"
 ignoreUntil = 2027-01-31
 reason = "deepmerge 4.3.1 (no fixed version) comes only through @sveltejs/vite-plugin-svelte, a dev dependency merging the build config; it is in neither the server nor the browser bundle."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-01-31
+reason = "minimatch 10.2.6 and 5.1.9 (fixed only in 11.0.1) come only through eslint, typescript-eslint and openapi-typescript, dev tools given the repository's own globs; in neither the server nor the browser bundle, and no glob comes from outside."

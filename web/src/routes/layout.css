@@ -103,6 +103,9 @@
 }
 
 @theme inline {
+	/* From here the header's links fit on one line, in every language. */
+	--breakpoint-nav: 85rem;
+
 	--font-sans: 'Figtree Variable', system-ui, sans-serif;
 	--font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', system-ui, sans-serif;
 

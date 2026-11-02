@@ -56,7 +56,7 @@
 	<button
 		type="button"
 		data-bug-report
-		class="flex size-10 items-center justify-center rounded-full border border-stone-300 bg-surface text-stone-900 hover:bg-stone-100 xl:ml-0 print:hidden"
+		class="flex size-10 items-center justify-center rounded-full border border-stone-300 bg-surface text-stone-900 hover:bg-stone-100 nav:ml-0 print:hidden"
 		aria-label={m.bug_open()}
 		disabled={status === 'taking'}
 		onclick={open}

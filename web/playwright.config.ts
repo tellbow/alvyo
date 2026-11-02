@@ -12,7 +12,12 @@ export default defineConfig({
 	// two at once left pages without an answer.
 	workers: process.env.CI ? 1 : undefined,
 	// German, like most tests expect; the language follows the browser.
-	use: { baseURL: `http://localhost:${WEB_PORT}`, locale: 'de-CH' },
+	// As wide as a laptop: below 1360 px the header's links are in the menu.
+	use: {
+		baseURL: `http://localhost:${WEB_PORT}`,
+		locale: 'de-CH',
+		viewport: { width: 1440, height: 720 }
+	},
 	projects: [
 		{ name: 'chromium', use: { browserName: 'chromium' } },
 		// Safari's engine, for what differs there.

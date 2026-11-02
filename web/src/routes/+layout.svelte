@@ -66,7 +66,7 @@
 	const current = (section: string) => (isHere(section) ? 'page' : undefined);
 	function tab(section: string) {
 		const on = isHere(section);
-		return `rounded-full px-3.5 py-1.5 ${on ? 'bg-stone-900 text-stone-50 dark:bg-stone-200 dark:text-stone-900' : 'hover:text-accent-ink'}`;
+		return `rounded-full px-3.5 py-1.5 nav:px-2.5 2xl:px-3.5 ${on ? 'bg-stone-900 text-stone-50 dark:bg-stone-200 dark:text-stone-900' : 'hover:text-accent-ink'}`;
 	}
 
 	// Past the navigation to the page's own content (its main part or panel).
@@ -131,7 +131,7 @@
 
 <!-- Round and outlined, as the bug report button beside them. -->
 {#snippet settings()}
-	<div class="flex items-center gap-2">
+	<div class="flex shrink-0 items-center gap-2">
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger
 				class="flex h-10 items-center gap-1.5 rounded-full border border-stone-300 bg-surface px-3 text-stone-900 uppercase hover:bg-stone-100 disabled:opacity-50"
@@ -214,7 +214,8 @@
 		</a>
 		<a
 			href={resolve('/account')}
-			class="text-stone-900 hover:text-accent-ink"
+			class="max-w-full min-w-0 truncate text-stone-900 hover:text-accent-ink"
+			title={data.user.username}
 			data-testid="current-user"
 		>
 			{data.user.username}
@@ -249,21 +250,23 @@
 			onclick={skip}>{m.skip_to_content()}</a
 		>
 		<header
-			class="relative flex items-center gap-6 border-b border-stone-200 px-4 py-2.5 xl:px-5 print:hidden"
+			class="relative flex items-center gap-4 border-b border-stone-200 px-4 py-2.5 nav:px-5 print:hidden"
 		>
 			<a
 				href={resolve('/')}
 				aria-label="Alvyo"
-				class="flex items-center gap-2 font-display text-[28px] leading-none font-bold tracking-[-0.04em]"
+				class="flex shrink-0 items-center gap-2 font-display text-[28px] leading-none font-bold tracking-[-0.04em]"
 			>
 				<img src="/favicon.svg" width="28" height="28" alt="" /><span>Alvyo</span>
 			</a>
 			<nav
-				class="hidden items-center gap-1 rounded-full border border-stone-200 bg-surface p-1 text-sm font-medium xl:flex"
+				class="hidden shrink-0 items-center gap-1 rounded-full border border-stone-200 bg-surface p-1 text-sm font-medium whitespace-nowrap nav:flex"
 			>
 				{@render links()}
 			</nav>
-			<div class="ml-auto hidden items-center gap-4 text-sm font-medium xl:flex">
+			<div
+				class="ml-auto hidden min-w-0 items-center gap-3 text-sm font-medium whitespace-nowrap nav:flex"
+			>
 				{@render settings()}
 				{@render account()}
 				{#if !data.user}{@render signup()}{/if}
@@ -272,7 +275,7 @@
 			<!-- In the header, not over the page: it hid what was below it. -->
 			{#if data.user}<BugReport />{/if}
 
-			<div class="flex items-center gap-2 xl:hidden {data.user ? '' : 'ml-auto'}">
+			<div class="flex items-center gap-2 nav:hidden {data.user ? '' : 'ml-auto'}">
 				{#if !data.user}{@render signup()}{/if}
 				<button
 					type="button"
@@ -296,7 +299,7 @@
 			{#if menu}
 				<div
 					id="menu"
-					class="absolute inset-x-0 top-full z-30 flex max-h-[calc(100dvh-4rem)] flex-col gap-4 overflow-y-auto overscroll-contain border-b border-stone-200 bg-surface p-4 shadow-lg xl:hidden"
+					class="absolute inset-x-0 top-full z-30 flex max-h-[calc(100dvh-4rem)] flex-col gap-4 overflow-y-auto overscroll-contain border-b border-stone-200 bg-surface p-4 shadow-lg nav:hidden"
 				>
 					<nav class="flex flex-col items-start gap-1 font-medium">
 						{@render links()}

@@ -546,6 +546,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A challenge for an open form
+         * @description Signup, comments, reports and bug reports need one, answered: a small proof-of-work and a minimum time to fill the form. Valid for 30 minutes, once.
+         */
+        post: operations["new-challenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/collections": {
         parameters: {
             query?: never;
@@ -3157,7 +3177,11 @@ export interface components {
             west: number;
         };
         BugReportInputBody: {
+            /** @description From POST /challenge */
+            challenge?: string;
             description: string;
+            /** @description A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits */
+            nonce?: string;
             /** @description The page's address or the app's screen, and the item open */
             place: string;
             /** @enum {string} */
@@ -3165,12 +3189,27 @@ export interface components {
             /** @description PNG or JPEG, base64, up to 4 MB */
             screenshot?: string;
             version: string;
+            /** @description Leave empty (spam trap) */
+            website?: string;
         };
         BugReportOutputBody: {
             /** Format: uuid */
             id: string;
             /** @description The GitHub issue, when one was opened */
             issue_url?: string;
+        };
+        ChallengeOutputBody: {
+            /**
+             * Format: int64
+             * @description Leading zero bits of the SHA-256 of «challenge:nonce»
+             */
+            bits: number;
+            challenge: string;
+            /**
+             * Format: int64
+             * @description An answer sooner than this is refused
+             */
+            wait_ms: number;
         };
         Class: {
             /** @description #rrggbb */
@@ -3356,11 +3395,17 @@ export interface components {
         };
         CommentInputBody: {
             body: string;
+            /** @description From POST /challenge */
+            challenge?: string;
+            /** @description A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits */
+            nonce?: string;
             /**
              * Format: uuid
              * @description Reply to this comment
              */
             parent_id?: string;
+            /** @description Leave empty (spam trap) */
+            website?: string;
         };
         ConnectionsOutputBody: {
             trips: components["schemas"]["TransitTrip"][];
@@ -4596,6 +4641,8 @@ export interface components {
             target_id: string;
         };
         ReportInputBody: {
+            /** @description From POST /challenge */
+            challenge?: string;
             /**
              * Format: uuid
              * @description The route, journey, comment or photo
@@ -4603,6 +4650,8 @@ export interface components {
             id?: string;
             /** @enum {string} */
             kind: "route" | "journey" | "comment" | "user" | "photo";
+            /** @description A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits */
+            nonce?: string;
             note?: string;
             /** @enum {string} */
             reason: "spam" | "offensive" | "dangerous" | "other";
@@ -4610,6 +4659,8 @@ export interface components {
             token?: string;
             /** @description The user */
             username?: string;
+            /** @description Leave empty (spam trap) */
+            website?: string;
         };
         ReportsOutputBody: {
             reports: components["schemas"]["Report"][];
@@ -4893,6 +4944,8 @@ export interface components {
             to?: string;
         };
         SignupInputBody: {
+            /** @description From POST /challenge */
+            challenge?: string;
             display_name: string;
             /** Format: email */
             email: string;
@@ -4901,6 +4954,8 @@ export interface components {
              * @enum {string}
              */
             locale: "de" | "en" | "fr" | "it";
+            /** @description A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits */
+            nonce?: string;
             password: string;
             /** @description Lowercase letters, digits and underscore */
             username: string;
@@ -6412,6 +6467,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BugReportOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "new-challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOutputBody"];
                 };
             };
             /** @description Error */

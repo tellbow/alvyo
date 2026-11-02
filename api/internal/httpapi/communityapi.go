@@ -36,6 +36,7 @@ type commentInput struct {
 	Body  struct {
 		Body     string `json:"body" minLength:"1" maxLength:"2000"`
 		ParentID string `json:"parent_id,omitempty" format:"uuid" doc:"Reply to this comment"`
+		SpamProof
 	}
 }
 
@@ -93,6 +94,7 @@ type reportInput struct {
 		Token    string `json:"token,omitempty" doc:"Share token of an unlisted route or journey"`
 		Reason   string `json:"reason" enum:"spam,offensive,dangerous,other"`
 		Note     string `json:"note,omitempty" maxLength:"1000"`
+		SpamProof
 	}
 }
 
@@ -298,6 +300,9 @@ func registerSocialItem(api huma.API, d Deps, it socialItem) {
 		if err != nil {
 			return nil, err
 		}
+		if err := d.checkProof(in.Body.SpamProof); err != nil {
+			return nil, err
+		}
 		if !d.Limits.Comment.Allow(u.ID.String()) {
 			return nil, errTooMany
 		}
@@ -473,6 +478,9 @@ func registerReports(api huma.API, d Deps) {
 	}, func(ctx context.Context, in *reportInput) (*struct{}, error) {
 		u, err := requireUser(ctx)
 		if err != nil {
+			return nil, err
+		}
+		if err := d.checkProof(in.Body.SpamProof); err != nil {
 			return nil, err
 		}
 		if !d.Limits.Report.Allow(u.ID.String()) {

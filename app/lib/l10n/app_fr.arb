@@ -769,6 +769,7 @@
   "signupUsername": "Nom d'utilisateur",
   "signupUsernameHint": "3 à 30 caractères : minuscules, chiffres et _",
   "signupUsernameTaken": "Ce nom d'utilisateur est déjà pris.",
+  "signupEmailRejected": "Cette adresse ne peut pas recevoir d'e-mails ou est une adresse jetable. Utilise-en une autre.",
   "signupDisplayName": "Nom affiché",
   "signupDisplayNameMissing": "Indique un nom.",
   "signupPasswordHint": "Au moins 10 caractères",

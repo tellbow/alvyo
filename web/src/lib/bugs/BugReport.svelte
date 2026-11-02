@@ -4,6 +4,8 @@
 	import { page } from '$app/state';
 	import { api } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { formProof } from '#lib/spam/proof.js';
+	import Trap from '#lib/spam/Trap.svelte';
 	import { pageScreenshot } from './screenshot';
 
 	// «Fehler melden» on every page for signed-in people: what is open and a
@@ -15,6 +17,7 @@
 	let text = $state('');
 	let status = $state<'idle' | 'taking' | 'sending' | 'sent' | 'failed' | 'busy'>('idle');
 	let version = '';
+	const proof = formProof();
 
 	/** The address without a share token: the issue is read by others. */
 	const place = () => {
@@ -24,6 +27,7 @@
 	};
 
 	async function open() {
+		void proof.start();
 		status = 'taking';
 		shot = await pageScreenshot();
 		withShot = !!shot;
@@ -45,7 +49,8 @@
 				place: place(),
 				version: `${version} · ${navigator.userAgent}`.slice(0, 60),
 				platform: 'web',
-				...(withShot && shot ? { screenshot: shot.slice(shot.indexOf(',') + 1) } : {})
+				...(withShot && shot ? { screenshot: shot.slice(shot.indexOf(',') + 1) } : {}),
+				...(await proof.take(e))
 			}
 		});
 		status = response.ok ? 'sent' : response.status === 429 ? 'busy' : 'failed';
@@ -97,6 +102,7 @@
 		</div>
 	{:else}
 		<form class="flex flex-col gap-3 p-4 text-sm" onsubmit={send}>
+			<Trap />
 			<h2 class="text-base font-semibold">{m.bug_title()}</h2>
 			<label class="flex flex-col gap-1">
 				<span>{m.bug_what()}</span>

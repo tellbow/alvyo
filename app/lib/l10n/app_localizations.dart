@@ -4708,6 +4708,12 @@ abstract class AppLocalizations {
   /// **'Dieser Benutzername ist vergeben.'**
   String get signupUsernameTaken;
 
+  /// No description provided for @signupEmailRejected.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Adresse kann keine E-Mails empfangen oder ist eine Wegwerf-Adresse. Bitte nimm eine andere.'**
+  String get signupEmailRejected;
+
   /// No description provided for @signupDisplayName.
   ///
   /// In de, this message translates to:

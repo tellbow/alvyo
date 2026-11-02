@@ -578,9 +578,19 @@
       "BugReportInputBody": {
         "additionalProperties": false,
         "properties": {
+          "challenge": {
+            "description": "From POST /challenge",
+            "maxLength": 200,
+            "type": "string"
+          },
           "description": {
             "maxLength": 4000,
             "minLength": 1,
+            "type": "string"
+          },
+          "nonce": {
+            "description": "A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits",
+            "maxLength": 20,
             "type": "string"
           },
           "place": {
@@ -603,6 +613,10 @@
           },
           "version": {
             "maxLength": 60,
+            "type": "string"
+          },
+          "website": {
+            "description": "Leave empty (spam trap)",
             "type": "string"
           }
         },
@@ -628,6 +642,30 @@
         },
         "required": [
           "id"
+        ],
+        "type": "object"
+      },
+      "ChallengeOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "bits": {
+            "description": "Leading zero bits of the SHA-256 of «challenge:nonce»",
+            "format": "int64",
+            "type": "integer"
+          },
+          "challenge": {
+            "type": "string"
+          },
+          "wait_ms": {
+            "description": "An answer sooner than this is refused",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "challenge",
+          "bits",
+          "wait_ms"
         ],
         "type": "object"
       },
@@ -1113,9 +1151,23 @@
             "minLength": 1,
             "type": "string"
           },
+          "challenge": {
+            "description": "From POST /challenge",
+            "maxLength": 200,
+            "type": "string"
+          },
+          "nonce": {
+            "description": "A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits",
+            "maxLength": 20,
+            "type": "string"
+          },
           "parent_id": {
             "description": "Reply to this comment",
             "format": "uuid",
+            "type": "string"
+          },
+          "website": {
+            "description": "Leave empty (spam trap)",
             "type": "string"
           }
         },
@@ -4822,6 +4874,11 @@
       "ReportInputBody": {
         "additionalProperties": false,
         "properties": {
+          "challenge": {
+            "description": "From POST /challenge",
+            "maxLength": 200,
+            "type": "string"
+          },
           "id": {
             "description": "The route, journey, comment or photo",
             "format": "uuid",
@@ -4835,6 +4892,11 @@
               "user",
               "photo"
             ],
+            "type": "string"
+          },
+          "nonce": {
+            "description": "A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits",
+            "maxLength": 20,
             "type": "string"
           },
           "note": {
@@ -4857,6 +4919,10 @@
           "username": {
             "description": "The user",
             "maxLength": 31,
+            "type": "string"
+          },
+          "website": {
+            "description": "Leave empty (spam trap)",
             "type": "string"
           }
         },
@@ -5705,6 +5771,11 @@
       "SignupInputBody": {
         "additionalProperties": false,
         "properties": {
+          "challenge": {
+            "description": "From POST /challenge",
+            "maxLength": 200,
+            "type": "string"
+          },
           "display_name": {
             "maxLength": 60,
             "minLength": 1,
@@ -5723,6 +5794,11 @@
               "fr",
               "it"
             ],
+            "type": "string"
+          },
+          "nonce": {
+            "description": "A number so that the SHA-256 of «challenge:nonce» starts with the challenge's zero bits",
+            "maxLength": 20,
             "type": "string"
           },
           "password": {
@@ -8683,6 +8759,38 @@
         "summary": "Report a bug, with what is open and a screenshot",
         "tags": [
           "bugs"
+        ]
+      }
+    },
+    "/challenge": {
+      "post": {
+        "description": "Signup, comments, reports and bug reports need one, answered: a small proof-of-work and a minimum time to fill the form. Valid for 30 minutes, once.",
+        "operationId": "new-challenge",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "A challenge for an open form",
+        "tags": [
+          "auth"
         ]
       }
     },

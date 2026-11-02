@@ -154,6 +154,12 @@ class _BugSheetState extends State<_BugSheet> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    widget.api.prepareProof();
+  }
+
+  @override
   void dispose() {
     _text.dispose();
     super.dispose();

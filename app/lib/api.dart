@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -9,6 +10,22 @@ import 'precip.dart';
 import 'snow.dart';
 
 /// A failed API call with its HTTP status.
+/// A nonce so that the SHA-256 of «challenge:nonce» starts with [bits] zero
+/// bits; a little at a time, so that the screen stays smooth.
+Future<String> solveChallenge(String challenge, int bits) async {
+  bool zero(List<int> hash) {
+    for (var i = 0; i < bits; i++) {
+      if (hash[i >> 3] & (0x80 >> (i & 7)) != 0) return false;
+    }
+    return true;
+  }
+
+  for (var nonce = 0; ; nonce++) {
+    if (zero(sha256.convert(utf8.encode('$challenge:$nonce')).bytes)) return '$nonce';
+    if (nonce % 256 == 255) await Future<void>.delayed(Duration.zero);
+  }
+}
+
 class ApiException implements Exception {
   ApiException(this.status, this.message, [this.errors = const []]);
   final int status;
@@ -1580,13 +1597,54 @@ class Api {
     required String displayName,
     required String password,
     required String locale,
-  }) => _send('POST', '/auth/signup', {
+  }) async => _send('POST', '/auth/signup', {
     'email': email,
     'username': username,
     'display_name': displayName,
     'password': password,
     'locale': locale,
+    ...await _takeProof(),
   });
+
+  Future<Map<String, String>>? _proof;
+  DateTime? _proofAt;
+
+  /// Starts answering the server's challenge against bots while the person
+  /// types; a form calls it when it opens.
+  void prepareProof() {
+    // The server takes a challenge for 30 minutes.
+    if (_proof != null && DateTime.now().difference(_proofAt!).inMinutes < 25) return;
+    _proofAt = DateTime.now();
+    _proof = _newProof()..ignore();
+  }
+
+  Future<Map<String, String>> _newProof() async {
+    try {
+      final j = await _send('POST', '/challenge') as Map<String, dynamic>;
+      final challenge = j['challenge'] as String;
+      final done = await Future.wait([
+        solveChallenge(challenge, j['bits'] as int),
+        Future<String>.delayed(Duration(milliseconds: j['wait_ms'] as int), () => ''),
+      ]);
+      return {'challenge': challenge, 'nonce': done.first};
+    } catch (_) {
+      _proof = null; // the next form asks again
+      rethrow;
+    }
+  }
+
+  /// The answer for one sending. Without one, the server says no, as for any
+  /// other failure of the form.
+  Future<Map<String, String>> _takeProof() async {
+    prepareProof();
+    try {
+      return await _proof!;
+    } catch (_) {
+      return const {};
+    } finally {
+      _proof = null;
+    }
+  }
 
   /// Ends the account's other sessions (other phones and browsers).
   Future<void> logoutOthers() => _send('POST', '/auth/logout-others');
@@ -2168,7 +2226,11 @@ class Api {
 
   /// A comment, or a reply to [parentId] (one level deep).
   Future<Social> comment(String id, String body, {String? parentId, bool journey = false}) async => Social.fromJson(
-    await _send('POST', '/${_kind(journey)}/$id/comments', {'body': body, 'parent_id': ?parentId})
+    await _send('POST', '/${_kind(journey)}/$id/comments', {
+          'body': body,
+          'parent_id': ?parentId,
+          ...await _takeProof(),
+        })
         as Map<String, dynamic>,
   );
 
@@ -2350,6 +2412,7 @@ class Api {
               'version': version,
               'platform': defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios',
               if (screenshot != null) 'screenshot': base64Encode(screenshot),
+              ...await _takeProof(),
             })
             as Map<String, dynamic>;
     return j['issue_url'] as String?;
@@ -2357,14 +2420,20 @@ class Api {
 
   /// Reports a route, journey, comment, photo ([id]) or user ([username]) to
   /// the moderators; [reason] spam, offensive, dangerous or other.
-  Future<void> report({required String kind, String? id, String? username, required String reason, String note = ''}) =>
-      _send('POST', '/reports', {
-        'kind': kind,
-        'id': ?id,
-        'username': ?username,
-        'reason': reason,
-        if (note.isNotEmpty) 'note': note,
-      });
+  Future<void> report({
+    required String kind,
+    String? id,
+    String? username,
+    required String reason,
+    String note = '',
+  }) async => _send('POST', '/reports', {
+    'kind': kind,
+    'id': ?id,
+    'username': ?username,
+    'reason': reason,
+    if (note.isNotEmpty) 'note': note,
+    ...await _takeProof(),
+  });
 
   /// Public routes and journeys of the people the user follows, newest
   /// first; [before] the previous page's next.

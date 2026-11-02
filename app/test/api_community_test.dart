@@ -92,6 +92,7 @@ void main() {
     expect(calls, [
       'GET /api/v1/routes/r1/social',
       'DELETE /api/v1/journeys/j1/like',
+      'POST /api/v1/challenge',
       'POST /api/v1/routes/r1/comments {"body":"Hallo","parent_id":"c1"}',
       'PATCH /api/v1/routes/r1/comments/c2 {"body":"Danke!"}',
       'PATCH /api/v1/journeys/j1/social {"comments_enabled":false}',

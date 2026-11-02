@@ -49,11 +49,17 @@ void main() {
     // Someone new, with a public profile, to be friends with.
     final name = 'beat${DateTime.now().millisecondsSinceEpoch % 1000000000}';
     const password = 'sehr-geheim-456';
+    final challenge = jsonDecode(
+      (await http.post(Uri.parse('$server/api/v1/challenge'), headers: {'Origin': server})).body,
+    );
+    await Future<void>.delayed(Duration(milliseconds: challenge['wait_ms'] as int));
     final signup = await http.post(
       Uri.parse('$server/api/v1/auth/signup'),
       headers: {'Content-Type': 'application/json', 'Origin': server},
       body: jsonEncode({
-        'email': '$name@example.com',
+        'challenge': challenge['challenge'],
+        'nonce': await solveChallenge(challenge['challenge'] as String, challenge['bits'] as int),
+        'email': '$name@example.ch',
         'username': name,
         'display_name': 'Beat Test',
         'password': password,
@@ -63,7 +69,7 @@ void main() {
     expect(signup.statusCode, 202, reason: signup.body);
     // Logging in needs the address confirmed: the link from Mailpit.
     final found = jsonDecode(
-      (await http.get(Uri.parse('http://localhost:8025/api/v1/search?query=to:$name@example.com'))).body,
+      (await http.get(Uri.parse('http://localhost:8025/api/v1/search?query=to:$name@example.ch'))).body,
     );
     final mail = jsonDecode(
       (await http.get(Uri.parse('http://localhost:8025/api/v1/message/${found['messages'][0]['ID']}'))).body,

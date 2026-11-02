@@ -428,6 +428,9 @@ Checked so far only in the simulator, with made-up or simulated positions
       a GPX file from «Dateien» shows its map and profile before anything is
       saved; a tap on the map and on the profile with a finger adds a stage
       there, the route's «⋯» › «In Etappen aufteilen» too.
+- [ ] **Spam protection (feedback issue 73)**: signing up, a comment, a reply, a
+      report and a bug report go through on a phone without a stutter, also
+      right after the form opens (about three seconds at most).
 
 ## Apple Watch app (release build, feedback issue 15)
 

@@ -2558,6 +2558,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get signupUsernameTaken => 'Dieser Benutzername ist vergeben.';
 
   @override
+  String get signupEmailRejected =>
+      'Diese Adresse kann keine E-Mails empfangen oder ist eine Wegwerf-Adresse. Bitte nimm eine andere.';
+
+  @override
   String get signupDisplayName => 'Anzeigename';
 
   @override

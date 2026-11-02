@@ -15,6 +15,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/auth"
 	"github.com/tellbow/alvyo/api/internal/mailer"
 	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/api/internal/spam"
 	"github.com/tellbow/alvyo/api/internal/testdb"
 	"github.com/tellbow/alvyo/swiss/geo"
 )
@@ -48,6 +49,7 @@ func newRoutingServer(t *testing.T) *testServer {
 	pool := testdb.New(t)
 	rec := &mailer.Recorder{}
 	h, _ := New(Deps{
+		Spam: spam.Off(),
 		DB:   pool,
 		Auth: &auth.Service{DB: pool, Mail: rec, PublicURL: origin},
 		Router: &routing.Router{
@@ -199,6 +201,7 @@ func TestRouteReach(t *testing.T) {
 	pool := testdb.New(t)
 	rec := &mailer.Recorder{}
 	h, _ := New(Deps{
+		Spam:      spam.Off(),
 		DB:        pool,
 		Auth:      &auth.Service{DB: pool, Mail: rec, PublicURL: origin},
 		Router:    &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh.URL}, Outlines: &routing.Outliner{DB: pool}},

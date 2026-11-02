@@ -12,7 +12,12 @@ post() { curl -sf -b "$jar" -c "$jar" -H "Origin: $web" -H 'Content-Type: applic
 sql() { docker exec alvyo-db-1 psql -U alvyo -d alvyo -At -c "$1"; }
 
 if ! post /auth/login '{"login":"storeshots","password":"store-shots-2026"}' >/dev/null; then
-  post /auth/signup '{"email":"storeshots@example.ch","username":"storeshots","display_name":"Lena","password":"store-shots-2026","locale":"de"}' >/dev/null
+  # The challenge every signup answers (api/internal/spam).
+  proof=$(post /challenge | python3 -I -c 'import hashlib,json,sys,time
+c=json.load(sys.stdin); time.sleep(c["wait_ms"]/1000); n=0; t=c["challenge"]
+while int.from_bytes(hashlib.sha256(f"{t}:{n}".encode()).digest(),"big")>>(256-c["bits"]): n+=1
+print(json.dumps({"challenge":t,"nonce":str(n)})[1:-1])')
+  post /auth/signup '{'"$proof"',"email":"storeshots@example.ch","username":"storeshots","display_name":"Lena","password":"store-shots-2026","locale":"de"}' >/dev/null
   sleep 2 # the confirmation e-mail, in Mailpit
   id=$(curl -sf 'http://localhost:8025/api/v1/search?query=to:storeshots@example.ch' | python3 -I -c 'import json,sys;print(json.load(sys.stdin)["messages"][0]["ID"])')
   token=$(curl -sf "http://localhost:8025/api/v1/message/$id" | python3 -I -c 'import json,re,sys;print(re.search(r"token=([A-Za-z0-9_-]+)",json.load(sys.stdin)["Text"]).group(1))')

@@ -2545,6 +2545,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signupUsernameTaken => 'This username is taken.';
 
   @override
+  String get signupEmailRejected =>
+      'This address cannot receive e-mail or is a throwaway address. Please use another one.';
+
+  @override
   String get signupDisplayName => 'Display name';
 
   @override

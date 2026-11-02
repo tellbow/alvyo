@@ -37,6 +37,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/snow"
+	"github.com/tellbow/alvyo/api/internal/spam"
 	"github.com/tellbow/alvyo/api/internal/steep"
 	"github.com/tellbow/alvyo/api/internal/telemetry"
 	"github.com/tellbow/alvyo/api/internal/travel"
@@ -86,10 +87,11 @@ type Deps struct {
 	Bugs        *bugs.Store
 	Admin       *admin.Store // the admin portal's actions and log (NewAdmin)
 	Reminders   *reminders.Store
-	Version     string // git SHA or release tag, shown for the AGPL source link
-	PublicURL   string // origin of the web app: CSRF check and cookie Secure flag
-	TrustProxy  bool   // take the client IP from X-Forwarded-For
-	Limits      Limits // zero value: DefaultLimits
+	Version     string      // git SHA or release tag, shown for the AGPL source link
+	PublicURL   string      // origin of the web app: CSRF check and cookie Secure flag
+	TrustProxy  bool        // take the client IP from X-Forwarded-For
+	Limits      Limits      // zero value: DefaultLimits
+	Spam        *spam.Guard // nil: spam.New
 }
 
 // Internal errors are logged, not shown: their messages can hold SQL, file
@@ -158,7 +160,11 @@ func build(d Deps, prefix string, extra func(huma.API, Deps)) (http.Handler, hum
 	if d.Limits == (Limits{}) {
 		d.Limits = DefaultLimits()
 	}
+	if d.Spam == nil {
+		d.Spam = spam.New()
+	}
 	registerMeta(api, d)
+	registerSpam(api, d)
 	registerAuth(api, d)
 	registerAccount(api, d)
 	registerRouting(api, d)

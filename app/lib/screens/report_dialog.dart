@@ -32,6 +32,12 @@ class _ReportDialogState extends State<_ReportDialog> {
   bool _busy = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.api.prepareProof();
+  }
+
+  @override
   void dispose() {
     _note.dispose();
     super.dispose();

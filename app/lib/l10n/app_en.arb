@@ -769,6 +769,7 @@
   "signupUsername": "Username",
   "signupUsernameHint": "3–30 characters: lowercase letters, digits and _",
   "signupUsernameTaken": "This username is taken.",
+  "signupEmailRejected": "This address cannot receive e-mail or is a throwaway address. Please use another one.",
   "signupDisplayName": "Display name",
   "signupDisplayNameMissing": "Enter a name.",
   "signupPasswordHint": "At least 10 characters",

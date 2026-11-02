@@ -2564,6 +2564,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signupUsernameTaken => 'Ce nom d\'utilisateur est déjà pris.';
 
   @override
+  String get signupEmailRejected =>
+      'Cette adresse ne peut pas recevoir d\'e-mails ou est une adresse jetable. Utilise-en une autre.';
+
+  @override
   String get signupDisplayName => 'Nom affiché';
 
   @override

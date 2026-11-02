@@ -23,6 +23,7 @@
 	"signup_submit": "Create account",
 	"signup_have_account": "Already have an account?",
 	"signup_username_taken": "This username is taken.",
+	"signup_email_rejected": "This address cannot receive e-mail or is a throwaway address. Please use another one.",
 	"verify_title": "Confirm e-mail",
 	"verify_pending": "Checking the link …",
 	"verify_ok": "Your e-mail address is confirmed.",

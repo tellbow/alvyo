@@ -23,6 +23,7 @@
 	"signup_submit": "Konto erstellen",
 	"signup_have_account": "Schon ein Konto?",
 	"signup_username_taken": "Dieser Benutzername ist vergeben.",
+	"signup_email_rejected": "Diese Adresse kann keine E-Mails empfangen oder ist eine Wegwerf-Adresse. Bitte nimm eine andere.",
 	"verify_title": "E-Mail bestätigen",
 	"verify_pending": "Der Link wird geprüft …",
 	"verify_ok": "Deine E-Mail-Adresse ist bestätigt.",

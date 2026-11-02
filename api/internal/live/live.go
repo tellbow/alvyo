@@ -53,8 +53,11 @@ type Contact struct {
 
 // Store keeps contacts and shares and sends the e-mails.
 type Store struct {
-	DB        *pgxpool.Pool
-	Mail      mailer.Sender
+	DB   *pgxpool.Pool
+	Mail mailer.Sender
+	// StartMail, if set, sends the mails at a hike's start, to addresses anyone
+	// can type; limited, unlike the alerts, which must always go out.
+	StartMail mailer.Sender
 	PublicURL string
 	Now       func() time.Time // for tests; time.Now otherwise
 }
@@ -194,8 +197,14 @@ func (s *Store) Start(ctx context.Context, h Hiker, st Start) (Share, error) {
 	}
 	sh.ExpectedEnd = st.ExpectedEnd
 	link := s.link(sh.Token)
+	start := s.StartMail
+	if start == nil {
+		start = s.Mail
+	}
 	for _, c := range recipients {
-		s.send(ctx, startMail(h, c.Name, st.Title, st.ExpectedEnd, link, c.Email))
+		if err := start.Send(ctx, startMail(h, c.Name, st.Title, st.ExpectedEnd, link, c.Email)); err != nil {
+			slog.ErrorContext(ctx, "live e-mail", "err", err)
+		}
 	}
 	return sh, nil
 }

@@ -108,6 +108,7 @@ class _SocialPanelState extends State<SocialPanel> {
     final id = widget.id, journey = widget.journey;
     switch (what) {
       case 'reply':
+        widget.api.prepareProof();
         final text = await _ask(t.communityReply);
         if (text != null && text.isNotEmpty) {
           await _run(widget.api.comment(id, text, parentId: thread, journey: journey));
@@ -229,6 +230,7 @@ class _SocialPanelState extends State<SocialPanel> {
             onPressed: _busy
                 ? null
                 : () async {
+                    widget.api.prepareProof();
                     final text = await _ask(t.communityCommentSend);
                     if (text != null && text.isNotEmpty) {
                       await _run(widget.api.comment(widget.id, text, journey: widget.journey));

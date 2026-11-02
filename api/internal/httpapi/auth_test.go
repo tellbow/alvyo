@@ -31,6 +31,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/reminders"
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/snow"
+	"github.com/tellbow/alvyo/api/internal/spam"
 	"github.com/tellbow/alvyo/api/internal/testdb"
 	"github.com/tellbow/alvyo/api/internal/travel"
 )
@@ -55,6 +56,7 @@ func newTestServerWith(t *testing.T, adjust func(*Deps)) *testServer {
 	pool := testdb.New(t)
 	rec := &mailer.Recorder{}
 	d := Deps{
+		Spam:        spam.Off(),
 		DB:          pool,
 		Auth:        &auth.Service{DB: pool, Mail: rec, PublicURL: origin},
 		Routes:      &routes.Store{DB: pool},

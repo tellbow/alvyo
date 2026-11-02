@@ -4,10 +4,14 @@ package mailer
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
 	gomail "github.com/wneessen/go-mail"
+
+	"github.com/tellbow/alvyo/api/internal/ratelimit"
 )
 
 // Message is a plain-text e-mail.
@@ -77,6 +81,23 @@ func (s *SMTP) Send(ctx context.Context, m Message) error {
 		return fmt.Errorf("mail: %w", err)
 	}
 	return nil
+}
+
+// PerRecipient is a Sender that stops at a limit per recipient, so that nobody
+// can flood another's inbox through our forms. Over the limit a message is
+// dropped without an error: the form's answer must not say so.
+type PerRecipient struct {
+	Next  Sender
+	Limit *ratelimit.Limiter
+}
+
+// Send implements Sender.
+func (p PerRecipient) Send(ctx context.Context, m Message) error {
+	if !p.Limit.Allow(strings.ToLower(m.To)) {
+		slog.WarnContext(ctx, "mail dropped: too many to this recipient")
+		return nil
+	}
+	return p.Next.Send(ctx, m)
 }
 
 // Recorder is a Sender that keeps messages in memory, for tests.

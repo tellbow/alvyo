@@ -9,6 +9,9 @@
 	import Seo from '#lib/seo/Seo.svelte';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import ProviderButtons from '#lib/account/ProviderButtons.svelte';
+	import { formProof } from '#lib/spam/proof.js';
+	import Trap from '#lib/spam/Trap.svelte';
+	import { onMount } from 'svelte';
 
 	const hydrated = new Hydrated();
 
@@ -16,17 +19,25 @@
 	let username = $state('');
 	let displayName = $state('');
 	let password = $state('');
-	let website = $state(''); // spam trap, hidden from people
-	let errors = $state<{ username?: string; form?: string }>({});
+	let errors = $state<{ email?: string; username?: string; form?: string }>({});
 	let busy = $state(false);
 	let sent = $state<string>();
+	const proof = formProof();
+	onMount(() => void proof.start());
 
 	async function submit(e: SubmitEvent) {
 		e.preventDefault();
 		busy = true;
 		errors = {};
 		const { response, error } = await api().POST('/auth/signup', {
-			body: { email, username, display_name: displayName, password, locale: getLocale(), website }
+			body: {
+				email,
+				username,
+				display_name: displayName,
+				password,
+				locale: getLocale(),
+				...(await proof.take(e))
+			}
 		});
 		busy = false;
 		// The same answer for a new address and one with an account: the
@@ -38,6 +49,7 @@
 		const where = errorLocations(error);
 		if (response.status === 409 && where.includes('body.username'))
 			errors.username = m.signup_username_taken();
+		else if (where.includes('body.email')) errors.email = m.signup_email_rejected();
 		else if (response.status === 429) errors.form = m.error_too_many();
 		else errors.form = m.error_generic();
 	}
@@ -56,6 +68,7 @@
 				type="email"
 				autocomplete="email"
 				required
+				error={errors.email}
 				bind:value={email}
 			/>
 			<Field
@@ -87,15 +100,7 @@
 				hint={m.hint_password()}
 				bind:value={password}
 			/>
-			<input
-				type="text"
-				name="website"
-				bind:value={website}
-				tabindex="-1"
-				autocomplete="off"
-				class="hidden"
-				aria-hidden="true"
-			/>
+			<Trap />
 			{#if errors.form}<p role="alert" class="text-sm text-red-700 dark:text-red-400">
 					{errors.form}
 				</p>{/if}

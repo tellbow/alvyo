@@ -330,3 +330,29 @@ func TestOverdueAlertSentAgainAfterAFailure(t *testing.T) {
 		t.Errorf("once sent, not again: %d mails", got)
 	}
 }
+
+// The mails at the start go through the limited sender, to addresses anyone
+// can type; the alerts do not, they must always go out.
+func TestStartMailSender(t *testing.T) {
+	ctx := context.Background()
+	pool := testdb.New(t)
+	rec, limited := &mailer.Recorder{}, &mailer.Recorder{}
+	s := &Store{DB: pool, Mail: rec, StartMail: limited, PublicURL: "https://alvyo.test"}
+	var uid uuid.UUID
+	if err := pool.QueryRow(ctx, `INSERT INTO users (email, username, display_name, locale)
+		VALUES ('anna@example.ch', 'anna', 'Anna Alpin', 'de') RETURNING id`).Scan(&uid); err != nil {
+		t.Fatal(err)
+	}
+	bea, err := s.AddContact(ctx, uid, "Bea", "bea@example.ch")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := Hiker{ID: uid, DisplayName: "Anna Alpin", Email: "anna@example.ch", Locale: "de"}
+	if _, err := s.Start(ctx, h, Start{Title: "Gratweg", ExpectedEnd: time.Now().Add(time.Hour),
+		ContactIDs: []uuid.UUID{uuid.MustParse(bea.ID)}}); err != nil {
+		t.Fatal(err)
+	}
+	if len(limited.Sent()) != 1 || len(rec.Sent()) != 0 {
+		t.Errorf("limited %d, unlimited %d", len(limited.Sent()), len(rec.Sent()))
+	}
+}

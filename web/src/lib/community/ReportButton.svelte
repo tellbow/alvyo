@@ -3,6 +3,8 @@
 	import { api } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { formProof } from '#lib/spam/proof.js';
+	import Trap from '#lib/spam/Trap.svelte';
 
 	type Report = components['schemas']['ReportInputBody'];
 
@@ -13,12 +15,13 @@
 	let note = $state('');
 	let done = $state(false);
 	let error = $state('');
+	const proof = formProof();
 
 	async function send(e: SubmitEvent) {
 		e.preventDefault();
 		error = '';
 		const { response } = await api().POST('/reports', {
-			body: { ...target, reason, note: note.trim() || undefined }
+			body: { ...target, reason, note: note.trim() || undefined, ...(await proof.take(e)) }
 		});
 		if (response.ok) {
 			done = true;
@@ -51,6 +54,7 @@
 			placeholder={m.report_note()}
 			aria-label={m.report_note()}
 			class="rounded-md border border-stone-400 px-1 py-0.5"></textarea>
+		<Trap />
 		{#if error}<p role="alert" class="text-red-700 dark:text-red-400">{error}</p>{/if}
 		<div class="flex gap-2">
 			<button class="rounded bg-stone-800 px-2 py-0.5 text-stone-50">{m.report_send()}</button>
@@ -60,7 +64,12 @@
 		</div>
 	</form>
 {:else}
-	<button type="button" class="text-xs text-stone-500 underline" onclick={() => (open = true)}
-		>{m.report()}</button
+	<button
+		type="button"
+		class="text-xs text-stone-500 underline"
+		onclick={() => {
+			open = true;
+			void proof.start();
+		}}>{m.report()}</button
 	>
 {/if}

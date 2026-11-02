@@ -18,6 +18,7 @@ type bugReportInput struct {
 		Version     string `json:"version" maxLength:"60"`
 		Platform    string `json:"platform" enum:"web,ios,android"`
 		Screenshot  []byte `json:"screenshot,omitempty" doc:"PNG or JPEG, base64, up to 4 MB"`
+		SpamProof
 	}
 }
 
@@ -45,6 +46,9 @@ func registerBugReports(api huma.API, d Deps) {
 		}
 		if strings.TrimSpace(in.Body.Description) == "" {
 			return nil, huma.Error422UnprocessableEntity("say what happened")
+		}
+		if err := d.checkProof(in.Body.SpamProof); err != nil {
+			return nil, err
 		}
 		if !d.Limits.BugReport.Allow(u.ID.String()) {
 			return nil, errTooMany

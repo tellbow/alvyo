@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import type { APIRequestContext } from '@playwright/test';
-import { signUp } from './accounts';
+import { signUp, spamProof } from './accounts';
 import { expect, test } from './fixtures';
 import { routeContent } from './legs';
 import { mailMatching } from './mailpit';
@@ -87,7 +87,10 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 	const trollContext = await browser.newContext();
 	await member(trollContext.request, troll, 'Tom Troll');
 	await trollContext.request.post(`/api/v1/routes/${id}/comments`, {
-		data: { body: `Kauft billige Wanderschuhe ${s}` }
+		data: {
+			body: `Kauft billige Wanderschuhe ${s}`,
+			...(await spamProof(trollContext.request))
+		}
 	});
 	await trollContext.close();
 

@@ -59,6 +59,7 @@ import (
 	"github.com/tellbow/alvyo/api/internal/routes"
 	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/api/internal/snow"
+	"github.com/tellbow/alvyo/api/internal/spam"
 	"github.com/tellbow/alvyo/api/internal/steep"
 	"github.com/tellbow/alvyo/api/internal/telemetry"
 	"github.com/tellbow/alvyo/api/internal/travel"
@@ -138,6 +139,14 @@ func serve(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	limits := httpapi.DefaultLimits()
+	guard := spam.New()
+	if cfg.RelaxedLimits {
+		slog.Warn("relaxed rate limits (ALVYO_RELAXED_LIMITS): for tests only")
+		limits = httpapi.RelaxedLimits()
+		guard = spam.Relaxed()
+	}
+	limited := mailer.PerRecipient{Next: sender, Limit: limits.MailRecipient}
 	routeStore := &routes.Store{DB: pool}
 	journeyStore := &journeys.Store{DB: pool, Routes: routeStore}
 	var heights elevation.Sampler = &elevation.GeoAdmin{
@@ -172,7 +181,7 @@ func serve(ctx context.Context) error {
 	_, _, _ = peakService.File() // built in the background unless there
 	photoStore := &photos.Store{DB: pool, Files: &photos.Files{Dir: cfg.PhotosDir}}
 	go photoStore.SweepEvery(ctx, time.Minute) // files of deleted photos
-	liveStore := &live.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
+	liveStore := &live.Store{DB: pool, Mail: sender, StartMail: limited, PublicURL: cfg.PublicURL}
 	go liveStore.CheckEvery(ctx, time.Minute) // overdue hikes, old positions
 	reminderStore := &reminders.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL}
 	go reminderStore.CheckEvery(ctx, 15*time.Minute) // before journeys start
@@ -187,14 +196,9 @@ func serve(ctx context.Context) error {
 	if cfg.OJPToken != "" {
 		planner = &ojp.Client{URL: cfg.OJPURL, Token: cfg.OJPToken, RequestorRef: "alvyo/" + version}
 	}
-	var limits httpapi.Limits // zero value: defaults
 	bugStore := &bugs.Store{DB: pool}
 	if cfg.GitHubToken != "" {
 		bugStore.GitHub = &bugs.GitHub{Repo: cfg.GitHubRepo, Token: cfg.GitHubToken}
-	}
-	if cfg.RelaxedLimits {
-		slog.Warn("relaxed rate limits (ALVYO_RELAXED_LIMITS): for tests only")
-		limits = httpapi.RelaxedLimits()
 	}
 	oidc := oidcProviders(cfg)
 	kube, err := admin.InCluster(cfg.AdminJobs)
@@ -203,7 +207,7 @@ func serve(ctx context.Context) error {
 	}
 	deps := httpapi.Deps{
 		DB:          pool,
-		Auth:        &auth.Service{DB: pool, Mail: sender, PublicURL: cfg.PublicURL, Revoke: oidc.Revoke},
+		Auth:        &auth.Service{DB: pool, Mail: limited, PublicURL: cfg.PublicURL, Revoke: oidc.Revoke},
 		Router:      router,
 		Routes:      routeStore,
 		Journeys:    journeyStore,
@@ -213,7 +217,7 @@ func serve(ctx context.Context) error {
 		Travel:      &travel.Store{DB: pool},
 		Areas:       areaFinder,
 		Weather:     forecast,
-		Grants:      &grants.Store{DB: pool, Mail: sender, PublicURL: cfg.PublicURL},
+		Grants:      &grants.Store{DB: pool, Mail: limited, PublicURL: cfg.PublicURL},
 		Collections: &collections.Store{DB: pool},
 		Precip:      &precip.Store{DB: pool},
 		Snow:        snowStore,
@@ -240,6 +244,7 @@ func serve(ctx context.Context) error {
 		Version:    version,
 		PublicURL:  cfg.PublicURL,
 		TrustProxy: cfg.TrustProxy,
+		Spam:       guard,
 		Limits:     limits,
 	}
 	handler, _ := httpapi.New(deps)

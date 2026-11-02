@@ -23,6 +23,7 @@
 	"signup_submit": "Crea account",
 	"signup_have_account": "Hai già un account?",
 	"signup_username_taken": "Questo nome utente è già in uso.",
+	"signup_email_rejected": "Questo indirizzo non può ricevere e-mail o è un indirizzo usa e getta. Usane un altro.",
 	"verify_title": "Conferma l'e-mail",
 	"verify_pending": "Verifica del link …",
 	"verify_ok": "Il tuo indirizzo e-mail è confermato.",

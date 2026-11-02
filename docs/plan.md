@@ -985,6 +985,21 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     generated line of recorded hikes did not find PostGIS under
     pg_restore's empty search_path).
 
+84. **Spam protection without a captcha** (feedback issue 73). Signup,
+    comments, reports and bug reports answer a challenge from `POST
+    /challenge` (`api/internal/spam`): signed, it is a small proof-of-work
+    (16 bits, solved while the person types, in the browser and in the app)
+    and a minimum of 3 seconds to fill the form, valid once for 30 minutes.
+    A hidden trap field on the website's forms. At signup, throwaway domains
+    and domains that cannot receive mail are refused with a message of their
+    own (MX, else the domain's address; trouble with DNS lets the address
+    through). Mails to addresses anyone can type (confirmation, reset,
+    invitations, the start of a shared hike) stop at five at once and four a
+    day per recipient and are dropped with a log line; alerts, notifications
+    and reminders are not limited. The signing key and the limit live in
+    memory: a restart loses them, a form open during a deploy fails once.
+    App versions before this one cannot use these four forms.
+
 ### Open
 
 14 was added on 2026-09-24 from a survey of Komoot, AllTrails,

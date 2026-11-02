@@ -14,6 +14,8 @@
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
 	import type { Community, SocialBody } from './community.svelte';
 	import ReportButton from './ReportButton.svelte';
+	import { formProof } from '#lib/spam/proof.js';
+	import Trap from '#lib/spam/Trap.svelte';
 
 	type Comment = SocialBody['comments'][number];
 
@@ -26,6 +28,8 @@
 	// svelte-ignore state_referenced_locally
 	const { kind, id, token } = community;
 	let text = $state('');
+	const proof = formProof();
+	const prepare = () => void proof.start();
 	// The comment being replied to or edited, and the text typed for it.
 	let replyTo = $state<string>();
 	let editing = $state<string>();
@@ -56,9 +60,11 @@
 
 	async function post(e: SubmitEvent) {
 		e.preventDefault();
-		if (await run(api().POST(at('/comments'), { params: params(), body: { body: text.trim() } }))) {
-			text = '';
-		}
+		const body = { body: text.trim() };
+		const sending = proof
+			.take(e)
+			.then((p) => api().POST(at('/comments'), { params: params(), body: { ...body, ...p } }));
+		if (await run(sending)) text = '';
 	}
 
 	/** Opens the reply field of a thread (replies are one level deep). */
@@ -77,7 +83,10 @@
 	async function reply(e: SubmitEvent, parent: string) {
 		e.preventDefault();
 		const body = { body: draft.trim(), parent_id: parent };
-		if (await run(api().POST(at('/comments'), { params: params(), body }))) replyTo = undefined;
+		const sending = proof
+			.take(e)
+			.then((p) => api().POST(at('/comments'), { params: params(), body: { ...body, ...p } }));
+		if (await run(sending)) replyTo = undefined;
 	}
 
 	async function saveEdit(e: SubmitEvent, comment: string) {
@@ -218,8 +227,10 @@
 								onsubmit={(e) => reply(e, c.id)}
 								class="ml-4 flex flex-col gap-1.5 pl-2"
 							>
+								<Trap />
 								<textarea
 									bind:value={draft}
+									onfocus={prepare}
 									required
 									maxlength="2000"
 									rows="2"
@@ -243,8 +254,10 @@
 
 		{#if social.can_comment}
 			<form method="post" onsubmit={post} class="flex flex-col gap-1.5">
+				<Trap />
 				<textarea
 					bind:value={text}
+					onfocus={prepare}
 					required
 					maxlength="2000"
 					rows="3"

@@ -28,6 +28,9 @@ type Limits struct {
 	LegUser      *ratelimit.Limiter
 	ReachUser    *ratelimit.Limiter // «Wie weit komme ich?»: seconds of routing each
 	Invite       *ratelimit.Limiter // invitations send e-mail
+	// Mails to addresses anyone can type, per recipient: signup, reset,
+	// invitations, the start of a shared hike.
+	MailRecipient *ratelimit.Limiter
 	// Connection searches: per user, and for everyone together under the
 	// OJP quota of 50 requests per minute.
 	ConnectionsUser *ratelimit.Limiter
@@ -64,6 +67,7 @@ func DefaultLimits() Limits {
 		LegUser:         ratelimit.New(time.Second, 60), // planning bursts, 60/min sustained
 		ReachUser:       ratelimit.New(10*time.Second, 6),
 		Invite:          ratelimit.New(3*time.Minute, 20),
+		MailRecipient:   ratelimit.New(6*time.Hour, 5),
 		ConnectionsUser: ratelimit.New(3*time.Second, 10),
 		ConnectionsAll:  ratelimit.New(1500*time.Millisecond, 40), // 40/min
 		Import:          ratelimit.New(20*time.Second, 30),
@@ -83,6 +87,7 @@ func DefaultLimits() Limits {
 func RelaxedLimits() Limits {
 	l := DefaultLimits()
 	l.SignupIP = ratelimit.New(time.Second, 100)
+	l.MailRecipient = ratelimit.New(time.Second, 100)
 	return l
 }
 
@@ -168,7 +173,7 @@ type signupInput struct {
 		DisplayName string `json:"display_name" minLength:"1" maxLength:"60"`
 		Password    string `json:"password" minLength:"10" maxLength:"128"`
 		Locale      string `json:"locale,omitempty" enum:"de,en,fr,it" default:"de"`
-		Website     string `json:"website,omitempty" doc:"Leave empty (spam trap)"`
+		SpamProof
 	}
 }
 
@@ -230,14 +235,19 @@ func registerAuth(api huma.API, d Deps) {
 		Description: "202 for a new address and for one with an account alike (that one gets an e-mail saying so), so that signing up does not reveal which addresses have accounts. 409 only for a username that is taken.",
 		Tags:        tags, DefaultStatus: http.StatusAccepted,
 	}, func(ctx context.Context, in *signupInput) (*struct{}, error) {
-		if in.Body.Website != "" {
-			return nil, huma.Error400BadRequest("invalid request")
+		if err := d.checkProof(in.Body.SpamProof); err != nil {
+			return nil, err
 		}
 		if !lim.SignupIP.Allow(limitKey(ctx)) {
 			return nil, errTooMany
 		}
+		email := strings.TrimSpace(in.Body.Email)
+		if !d.Spam.MailboxOK(ctx, email) {
+			return nil, huma.Error422UnprocessableEntity("this address cannot receive mail or is a throwaway one",
+				&huma.ErrorDetail{Location: "body.email", Message: "no mailbox"})
+		}
 		err := svc.Signup(ctx, auth.SignupInput{
-			Email:       strings.TrimSpace(in.Body.Email),
+			Email:       email,
 			Username:    in.Body.Username,
 			DisplayName: strings.TrimSpace(in.Body.DisplayName),
 			Password:    in.Body.Password,

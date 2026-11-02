@@ -26,8 +26,17 @@ class _SignupScreenState extends State<SignupScreen> {
   final _password = TextEditingController();
   bool _busy = false;
   String? _usernameTaken;
+  String? _emailRejected;
   String? _error;
   String? _sent;
+
+  late final _api = Api(widget.server, client: widget.client);
+
+  @override
+  void initState() {
+    super.initState();
+    _api.prepareProof();
+  }
 
   @override
   void dispose() {
@@ -42,13 +51,14 @@ class _SignupScreenState extends State<SignupScreen> {
     final t = AppLocalizations.of(context);
     setState(() {
       _usernameTaken = null;
+      _emailRejected = null;
       _error = null;
     });
     if (!_form.currentState!.validate()) return;
     setState(() => _busy = true);
     final email = _email.text.trim();
     try {
-      await Api(widget.server, client: widget.client).signup(
+      await _api.signup(
         email: email,
         username: _username.text.trim(),
         displayName: _displayName.text.trim(),
@@ -61,6 +71,8 @@ class _SignupScreenState extends State<SignupScreen> {
         setState(() {
           if (e.status == 409 && e.errors.any((d) => d['location'] == 'body.username')) {
             _usernameTaken = t.signupUsernameTaken;
+          } else if (e.errors.any((d) => d['location'] == 'body.email')) {
+            _emailRejected = t.signupEmailRejected;
           } else {
             _error = e.status == 429 ? t.errorTooMany : t.errorGeneric;
           }
@@ -94,7 +106,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         TextFormField(
                           key: const Key('signup-email'),
                           controller: _email,
-                          decoration: InputDecoration(labelText: t.contactsEmail),
+                          decoration: InputDecoration(labelText: t.contactsEmail, errorText: _emailRejected),
                           keyboardType: TextInputType.emailAddress,
                           autocorrect: false,
                           autofillHints: const [AutofillHints.email],

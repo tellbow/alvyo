@@ -73,10 +73,29 @@ void main() {
     expect(find.text('Dieser Benutzername ist vergeben.'), findsOneWidget);
   });
 
+  testWidgets('an address the server refuses is marked', (tester) async {
+    await openSignup(
+      tester,
+      (_) async => http.Response(
+        jsonEncode({
+          'status': 422,
+          'detail': 'no mailbox',
+          'errors': [
+            {'location': 'body.email', 'message': 'no mailbox'},
+          ],
+        }),
+        422,
+        headers: {'content-type': 'application/problem+json'},
+      ),
+    );
+    await fill(tester);
+    expect(find.textContaining('Wegwerf-Adresse'), findsOneWidget);
+  });
+
   testWidgets('a username the server would refuse is not sent', (tester) async {
     var asked = false;
-    await openSignup(tester, (_) async {
-      asked = true;
+    await openSignup(tester, (r) async {
+      if (r.url.path.endsWith('/auth/signup')) asked = true;
       return http.Response('', 202);
     });
     await fill(tester, username: 'Anna B');

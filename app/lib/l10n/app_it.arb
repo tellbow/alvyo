@@ -101,6 +101,7 @@
   "navMarkStageDone": "Segna la tappa come fatta",
   "stageConflict": "Qualcuno ha modificato la tappa nel frattempo. Ecco lo stato attuale.",
   "stageMarkedDone": "Tappa segnata come fatta",
+  "areasAsOf": "Stato al {date}: geo.admin non risponde al momento, informazioni più recenti potrebbero mancare.",
   "areasTitle": "Zone protette lungo il percorso",
   "areasWildlifeRest": "zona di tranquillità",
   "areasHuntingReserve": "bandita federale di caccia",

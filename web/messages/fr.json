@@ -666,6 +666,7 @@
 	"areas_stages": "Étape {list}",
 	"areas_more": "En savoir plus",
 	"areas_failed": "Les zones protégées n'ont pas pu être chargées.",
+	"areas_as_of": "État au {date} : geo.admin ne répond pas pour le moment, des informations plus récentes peuvent manquer.",
 	"areas_source": "Source : OFEV / cantons. Les règles sur place font foi.",
 	"contacts_title": "Contacts pour les randonnées partagées",
 	"contacts_intro": "Quand tu commences une randonnée dans l'app, tu peux montrer ta position aux contacts choisis. Si la randonnée n'est pas terminée 30 minutes après la fin prévue, ils reçoivent un e-mail avec la dernière position.",

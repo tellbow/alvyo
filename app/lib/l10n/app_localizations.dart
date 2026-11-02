@@ -700,6 +700,12 @@ abstract class AppLocalizations {
   /// **'Etappe als gewandert markiert'**
   String get stageMarkedDone;
 
+  /// No description provided for @areasAsOf.
+  ///
+  /// In de, this message translates to:
+  /// **'Stand {date}: geo.admin antwortet gerade nicht, Neueres fehlt vielleicht.'**
+  String areasAsOf(String date);
+
   /// No description provided for @areasTitle.
   ///
   /// In de, this message translates to:

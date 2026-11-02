@@ -340,11 +340,12 @@ type conditionsArgs struct {
 }
 
 type conditionsResult struct {
-	Route   string            `json:"route"`
-	Weather []mcpWeatherPlace `json:"weather"`
-	Notices []mcpNotice       `json:"notices" jsonschema:"Closed trails and military shooting on the way, from today on"`
-	Areas   []mcpArea         `json:"areas" jsonschema:"Protected areas crossed"`
-	Snow    *mcpSnow          `json:"snow,omitempty" jsonschema:"Snow on the way, from the newest day of the snow cover; missing while there is none"`
+	Route     string            `json:"route"`
+	Weather   []mcpWeatherPlace `json:"weather"`
+	Notices   []mcpNotice       `json:"notices" jsonschema:"Closed trails and military shooting on the way, from today on"`
+	HintsAsOf *time.Time        `json:"hints_as_of,omitempty" jsonschema:"Only while geo.admin does not answer: notices and areas are the last known ones, from this time; newer ones may be missing"`
+	Areas     []mcpArea         `json:"areas" jsonschema:"Protected areas crossed"`
+	Snow      *mcpSnow          `json:"snow,omitempty" jsonschema:"Snow on the way, from the newest day of the snow cover; missing while there is none"`
 }
 
 type mcpSnow struct {
@@ -441,10 +442,11 @@ func (t mcpTools) routeConditions(ctx context.Context, u dbq.User, in conditions
 	for i, c := range line {
 		pts[i] = geo.Point{Lon: c[0], Lat: c[1]}
 	}
-	found, notices, err := crossedAreas(ctx, t.d, pts)
+	found, notices, asOf, err := crossedAreas(ctx, t.d, pts)
 	if err != nil {
 		return out, "", err
 	}
+	out.HintsAsOf = asOf
 	if geo.CumulativeDistance(pts)[len(pts)-1] <= snow.MaxLineM {
 		sa, err := t.d.Snow.Along(ctx, pts)
 		if err != nil {

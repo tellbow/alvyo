@@ -85,7 +85,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   late Future<RouteDetail> _route = _load();
   late final Future<Along> _areas = widget.api
       .areas(routeId: widget.id)
-      .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
+      .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[], asOf: null));
   late final Future<Steepness?> _steep = widget.api
       .steepness(widget.id)
       .then<Steepness?>((s) => s, onError: (_) => null);

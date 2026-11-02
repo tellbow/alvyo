@@ -17,7 +17,7 @@ import (
 // Run with: go test -tags live ./internal/areas/
 func TestCrossedLive(t *testing.T) {
 	f := &Finder{DB: testdb.New(t), UserAgent: "alvyo-test"}
-	got, err := f.Crossed(context.Background(), []geo.Point{{Lon: 8.01, Lat: 46.665}, {Lon: 8.04, Lat: 46.665}})
+	got, _, err := f.Crossed(context.Background(), []geo.Point{{Lon: 8.01, Lat: 46.665}, {Lon: 8.04, Lat: 46.665}})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -19,6 +19,7 @@ type areasOutput struct {
 	Body struct {
 		Areas   []areas.Area   `json:"areas"`
 		Notices []areas.Notice `json:"notices" doc:"Closed trails and shooting on the way, from today on"`
+		AsOf    *time.Time     `json:"as_of,omitempty" doc:"Only while geo.admin does not answer: the time of the oldest answer given instead"`
 	}
 }
 
@@ -28,24 +29,34 @@ type lineAreasInput struct {
 	}
 }
 
+// older is the earlier of two answers' times; zero is a fresh answer.
+func older(a *time.Time, t time.Time) *time.Time {
+	if !t.IsZero() && (a == nil || t.Before(*a)) {
+		return &t
+	}
+	return a
+}
+
 // crossedAreas returns the protected areas a line crosses and the notices
-// (closures, shooting) on it from today on.
-func crossedAreas(ctx context.Context, d Deps, line []geo.Point) ([]areas.Area, []areas.Notice, error) {
-	found, err := d.Areas.Crossed(ctx, line)
-	var notices []areas.Notice
+// (closures, shooting) on it from today on, and asOf when geo.admin did not
+// answer and these are the last known ones.
+func crossedAreas(ctx context.Context, d Deps, line []geo.Point) (found []areas.Area, notices []areas.Notice, asOf *time.Time, err error) {
+	found, at, err := d.Areas.Crossed(ctx, line)
+	asOf = older(asOf, at)
 	if err == nil {
-		notices, err = d.Areas.Notices(ctx, line, time.Now().In(zurich))
+		notices, at, err = d.Areas.Notices(ctx, line, time.Now().In(zurich))
+		asOf = older(asOf, at)
 	}
 	if errors.Is(err, areas.ErrUnavailable) {
 		slog.WarnContext(ctx, "protected areas", "err", err)
-		return nil, nil, huma.Error503ServiceUnavailable("protected areas unavailable, please retry")
+		return nil, nil, nil, huma.Error503ServiceUnavailable("protected areas unavailable, please retry")
 	}
-	return found, notices, err
+	return found, notices, asOf, err
 }
 
 func registerAreas(api huma.API, d Deps) {
 	tags := []string{"routing"}
-	crossed := func(ctx context.Context, line []geo.Point) ([]areas.Area, []areas.Notice, error) {
+	crossed := func(ctx context.Context, line []geo.Point) ([]areas.Area, []areas.Notice, *time.Time, error) {
 		return crossedAreas(ctx, d, line)
 	}
 	points := func(line [][3]float64) []geo.Point {
@@ -74,7 +85,7 @@ func registerAreas(api huma.API, d Deps) {
 			line[i] = geo.Point{Lon: c[0], Lat: c[1]}
 		}
 		out := &areasOutput{}
-		out.Body.Areas, out.Body.Notices, err = crossed(ctx, line)
+		out.Body.Areas, out.Body.Notices, out.Body.AsOf, err = crossed(ctx, line)
 		return out, err
 	})
 
@@ -87,7 +98,7 @@ func registerAreas(api huma.API, d Deps) {
 			return nil, err
 		}
 		out := &areasOutput{}
-		out.Body.Areas, out.Body.Notices, err = crossed(ctx, points(r.Line()))
+		out.Body.Areas, out.Body.Notices, out.Body.AsOf, err = crossed(ctx, points(r.Line()))
 		return out, err
 	})
 
@@ -107,6 +118,7 @@ func registerAreas(api huma.API, d Deps) {
 		type result struct {
 			found   []areas.Area
 			notices []areas.Notice
+			asOf    *time.Time
 		}
 		results := make([]result, len(j.StageList))
 		g, gctx := errgroup.WithContext(ctx)
@@ -116,16 +128,20 @@ func registerAreas(api huma.API, d Deps) {
 				continue
 			}
 			g.Go(func() error {
-				found, notices, err := crossed(gctx, points(st.FullLine()))
-				results[i] = result{found, notices}
+				found, notices, asOf, err := crossed(gctx, points(st.FullLine()))
+				results[i] = result{found, notices, asOf}
 				return err
 			})
 		}
 		if err := g.Wait(); err != nil {
 			return nil, err
 		}
+		var asOf *time.Time
 		for i, res := range results {
 			found, notices := res.found, res.notices
+			if res.asOf != nil {
+				asOf = older(asOf, *res.asOf)
+			}
 			for _, n := range notices {
 				key := n.Kind + "/" + n.ID
 				if noticeByID[key] == nil {
@@ -147,6 +163,7 @@ func registerAreas(api huma.API, d Deps) {
 			}
 		}
 		out := &areasOutput{}
+		out.Body.AsOf = asOf
 		out.Body.Areas = []areas.Area{}
 		for _, k := range order {
 			out.Body.Areas = append(out.Body.Areas, *byID[k])

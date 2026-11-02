@@ -13,7 +13,12 @@ features the minor one.
 1. **Ready?** `main` is pushed and CI passed for its last commit:
    `gh run list -L 1 --branch main`. The end-to-end tests passed locally
    on that commit (`.claude/rules/e2e.md`). `docs/plan.md` describes what is in it
-   (the «next» row of the release table).
+   (the «next» row of the release table). The deployment gives the API what
+   this commit needs: pull the deployment repository (its path:
+   `CLAUDE.local.md`), then `go run ./api/cmd/alvyo check-deployment
+   <deployment repository>/cluster/alvyo`. A failure stops the release: a new
+   pod that cannot start leaves no API, the old one is gone by then. The
+   secret is not read: a key it lacks is not found here.
 2. **Record first:** in `docs/plan.md`, the «next» row becomes the X.Y.Z
    row with today's date, and «Was ist neu» gets a line for the people
    using Alvyo: `web/src/lib/news/releases.ts` and `news_X_Y_Z` in all four

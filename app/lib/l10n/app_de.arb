@@ -211,6 +211,8 @@
   "navMarkStageDone": "Etappe als gewandert markieren",
   "stageConflict": "Jemand hat die Etappe inzwischen geändert. Hier ist der neue Stand.",
   "stageMarkedDone": "Etappe als gewandert markiert",
+  "areasAsOf": "Stand {date}: geo.admin antwortet gerade nicht, Neueres fehlt vielleicht.",
+  "@areasAsOf": {"placeholders": {"date": {"type": "String"}}},
   "areasTitle": "Schutzgebiete auf dem Weg",
   "areasWildlifeRest": "Wildruhezone",
   "areasHuntingReserve": "Eidg. Jagdbanngebiet",

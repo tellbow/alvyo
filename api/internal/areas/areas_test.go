@@ -53,7 +53,7 @@ func TestCrossed(t *testing.T) {
 	srv, calls := identifyServer(t, nil)
 	f := &Finder{DB: testdb.New(t), URL: srv.URL}
 
-	areas, err := f.Crossed(ctx, east(10))
+	areas, _, err := f.Crossed(ctx, east(10))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,14 +73,14 @@ func TestCrossed(t *testing.T) {
 
 	// The same line again: from the cache.
 	before := calls.Load()
-	if _, err := f.Crossed(ctx, east(10)); err != nil || calls.Load() != before {
+	if _, _, err := f.Crossed(ctx, east(10)); err != nil || calls.Load() != before {
 		t.Errorf("not cached: %v, %d more calls", err, calls.Load()-before)
 	}
 
 	// A long line in chunks of 200 points sharing one: 450 → 3 requests;
 	// areas found in several chunks come once.
 	before = calls.Load()
-	areas, err = f.Crossed(ctx, east(450))
+	areas, _, err = f.Crossed(ctx, east(450))
 	if err != nil || calls.Load()-before != 3 || len(areas) != 3 {
 		t.Errorf("long line: %v, %d calls, %d areas", err, calls.Load()-before, len(areas))
 	}
@@ -91,13 +91,45 @@ func TestCrossedUnavailable(t *testing.T) {
 	broken.Store(true)
 	srv, _ := identifyServer(t, &broken)
 	f := &Finder{DB: testdb.New(t), URL: srv.URL}
-	if _, err := f.Crossed(context.Background(), east(5)); !errors.Is(err, ErrUnavailable) {
+	if _, _, err := f.Crossed(context.Background(), east(5)); !errors.Is(err, ErrUnavailable) {
 		t.Errorf("err = %v", err)
 	}
 	// Nothing cached from a failure.
 	broken.Store(false)
-	if areas, err := f.Crossed(context.Background(), east(5)); err != nil || len(areas) != 3 {
+	if areas, _, err := f.Crossed(context.Background(), east(5)); err != nil || len(areas) != 3 {
 		t.Errorf("after recovery: %v %d", err, len(areas))
+	}
+}
+
+// While geo.admin does not answer, the last answer serves, with its time, also
+// past the time it would be asked again.
+func TestCrossedLastKnown(t *testing.T) {
+	ctx := context.Background()
+	var broken atomic.Bool
+	srv, _ := identifyServer(t, &broken)
+	f := &Finder{DB: testdb.New(t), URL: srv.URL}
+	first, at, err := f.Crossed(ctx, east(5))
+	if err != nil || !at.IsZero() {
+		t.Fatalf("fresh: %v %v", at, err)
+	}
+	broken.Store(true)
+	if got, at, err := f.Crossed(ctx, east(5)); err != nil || !at.IsZero() || len(got) != len(first) {
+		t.Errorf("within the month it is simply current: %d %v %v", len(got), at, err)
+	}
+	if _, err := f.DB.Exec(ctx, `UPDATE area_cache SET fetched_at = now() - interval '40 days'`); err != nil {
+		t.Fatal(err)
+	}
+	got, at, err := f.Crossed(ctx, east(5))
+	if err != nil || len(got) != len(first) {
+		t.Fatalf("last known: %d %v", len(got), err)
+	}
+	if d := time.Since(at); d < 39*24*time.Hour || d > 41*24*time.Hour {
+		t.Errorf("as of %v", at)
+	}
+	// Back again: a new answer, no date.
+	broken.Store(false)
+	if _, at, err := f.Crossed(ctx, east(5)); err != nil || !at.IsZero() {
+		t.Errorf("after recovery: %v %v", at, err)
 	}
 }
 
@@ -130,7 +162,7 @@ func TestPrune(t *testing.T) {
 	ctx := context.Background()
 	f := &Finder{DB: testdb.New(t)}
 	if _, err := f.DB.Exec(ctx, `INSERT INTO area_cache (line_key, areas, fetched_at) VALUES
-		('old', '[]', now() - interval '31 days'), ('new', '[]', now())`); err != nil {
+		('old', '[]', now() - interval '91 days'), ('new', '[]', now() - interval '31 days')`); err != nil {
 		t.Fatal(err)
 	}
 	if err := f.Prune(ctx); err != nil {
@@ -163,7 +195,7 @@ func TestCrossedWhere(t *testing.T) {
 	t.Cleanup(srv.Close)
 	f := &Finder{DB: testdb.New(t), URL: srv.URL}
 
-	areas, err := f.Crossed(context.Background(), east(10))
+	areas, _, err := f.Crossed(context.Background(), east(10))
 	if err != nil || len(areas) != 1 {
 		t.Fatalf("%v: %+v", err, areas)
 	}

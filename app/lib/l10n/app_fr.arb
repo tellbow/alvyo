@@ -101,6 +101,7 @@
   "navMarkStageDone": "Marquer l'étape comme faite",
   "stageConflict": "Quelqu'un a modifié l'étape entre-temps. Voici le nouvel état.",
   "stageMarkedDone": "Étape marquée comme faite",
+  "areasAsOf": "État au {date} : geo.admin ne répond pas pour le moment, des informations plus récentes peuvent manquer.",
   "areasTitle": "Zones protégées sur le chemin",
   "areasWildlifeRest": "zone de tranquillité",
   "areasHuntingReserve": "district franc fédéral",

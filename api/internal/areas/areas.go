@@ -46,6 +46,9 @@ const (
 	chunkPoints = 200
 	// cacheFor: areas change a few times a year.
 	cacheFor = 30 * 24 * time.Hour
+	// keepFor: older answers still serve, with their date, while geo.admin
+	// does not answer.
+	keepFor = 90 * 24 * time.Hour
 )
 
 // ErrUnavailable means geo.admin did not answer usefully.
@@ -101,10 +104,10 @@ type Finder struct {
 	UserAgent string
 }
 
-// Prune deletes answers older than cacheFor: every line drawn in the
-// planner leaves one.
+// Prune deletes answers older than keepFor: every line drawn in the planner
+// leaves one.
 func (f *Finder) Prune(ctx context.Context) error {
-	_, err := f.DB.Exec(ctx, `DELETE FROM area_cache WHERE fetched_at < now() - make_interval(secs => $1)`, cacheFor.Seconds())
+	_, err := f.DB.Exec(ctx, `DELETE FROM area_cache WHERE fetched_at < now() - make_interval(secs => $1)`, keepFor.Seconds())
 	return err
 }
 
@@ -124,23 +127,38 @@ func (f *Finder) PruneEvery(ctx context.Context, every time.Duration) {
 	}
 }
 
-// Crossed returns the areas line crosses, rest areas first, by name.
-func (f *Finder) Crossed(ctx context.Context, line []geo.Point) ([]Area, error) {
+// cached is the kept answer for key, nil without one, with when it was
+// fetched and whether that is within maxAge.
+func (f *Finder) cached(ctx context.Context, key string, maxAge time.Duration) (raw []byte, at time.Time, fresh bool, err error) {
+	err = f.DB.QueryRow(ctx, `SELECT areas, fetched_at, fetched_at > now() - make_interval(secs => $2)
+		FROM area_cache WHERE line_key = $1`, key, maxAge.Seconds()).Scan(&raw, &at, &fresh)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, time.Time{}, false, nil
+	}
+	if err != nil {
+		return nil, time.Time{}, false, fmt.Errorf("areas: cache: %w", err)
+	}
+	return raw, at, fresh, nil
+}
+
+// Crossed returns the areas line crosses, rest areas first, by name. While
+// geo.admin does not answer: the last answer for this line and its time, which
+// is zero otherwise.
+func (f *Finder) Crossed(ctx context.Context, line []geo.Point) ([]Area, time.Time, error) {
 	pts := geo.Simplify(line, simplifyM)
 	if len(pts) < 2 {
-		return []Area{}, nil
+		return []Area{}, time.Time{}, nil
 	}
 	key := "where:" + lineKey(pts) // answers from before Where are not used
-	var cached []byte
-	err := f.DB.QueryRow(ctx, `SELECT areas FROM area_cache WHERE line_key = $1 AND fetched_at > now() - make_interval(secs => $2)`,
-		key, cacheFor.Seconds()).Scan(&cached)
-	if err == nil {
+	cached, at, fresh, err := f.cached(ctx, key, cacheFor)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+	if fresh {
 		var out []Area
 		if err := json.Unmarshal(cached, &out); err == nil {
-			return out, nil
+			return out, time.Time{}, nil
 		}
-	} else if !errors.Is(err, pgx.ErrNoRows) {
-		return nil, fmt.Errorf("areas: cache: %w", err)
 	}
 
 	found := map[string]Area{}
@@ -149,7 +167,11 @@ func (f *Finder) Crossed(ctx context.Context, line []geo.Point) ([]Area, error) 
 		chunk := pts[start:min(start+chunkPoints, len(pts))]
 		areas, err := f.identify(ctx, chunk)
 		if err != nil {
-			return nil, err
+			var last []Area
+			if errors.Is(err, ErrUnavailable) && cached != nil && json.Unmarshal(cached, &last) == nil {
+				return last, at, nil
+			}
+			return nil, time.Time{}, err
 		}
 		for _, a := range areas {
 			if _, seen := found[a.Kind+"/"+a.ID]; !seen {
@@ -172,7 +194,7 @@ func (f *Finder) Crossed(ctx context.Context, line []geo.Point) ([]Area, error) 
 		_, _ = f.DB.Exec(ctx, `INSERT INTO area_cache (line_key, areas) VALUES ($1, $2)
 			ON CONFLICT (line_key) DO UPDATE SET areas = excluded.areas, fetched_at = now()`, key, b)
 	}
-	return out, nil
+	return out, time.Time{}, nil
 }
 
 func lineKey(pts []geo.Point) string {

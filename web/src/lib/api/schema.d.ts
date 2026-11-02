@@ -3160,6 +3160,11 @@ export interface components {
         };
         AreasOutputBody: {
             areas: components["schemas"]["Area"][];
+            /**
+             * Format: date-time
+             * @description Only while geo.admin does not answer: the time of the oldest answer given instead
+             */
+            as_of?: string;
             /** @description Closed trails and shooting on the way, from today on */
             notices: components["schemas"]["Notice"][];
         };

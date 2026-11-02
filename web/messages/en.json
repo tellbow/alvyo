@@ -672,6 +672,7 @@
 	"areas_stages": "Stage {list}",
 	"areas_more": "More",
 	"areas_failed": "The protected areas could not be loaded.",
+	"areas_as_of": "As of {date}: geo.admin is not answering right now, newer hints may be missing.",
 	"areas_source": "Source: FOEN / cantons. The rules on site apply.",
 	"contacts_title": "Contacts for shared hikes",
 	"contacts_intro": "When you start a hike in the app, you can show chosen contacts where you are. If the hike has not ended 30 minutes after the expected end, they get an e-mail with the last position.",

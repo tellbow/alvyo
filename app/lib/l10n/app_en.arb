@@ -101,6 +101,7 @@
   "navMarkStageDone": "Mark the stage as hiked",
   "stageConflict": "Someone changed the stage in the meantime. Here is the new state.",
   "stageMarkedDone": "Stage marked as hiked",
+  "areasAsOf": "As of {date}: geo.admin is not answering right now, newer hints may be missing.",
   "areasTitle": "Protected areas on the way",
   "areasWildlifeRest": "wildlife rest area",
   "areasHuntingReserve": "federal hunting reserve",

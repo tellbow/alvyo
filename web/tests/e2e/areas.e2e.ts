@@ -79,3 +79,29 @@ test('a route through a wildlife rest area says so, with its rules', async ({ pa
 		page.getByTestId('protected-area').filter({ hasText: 'Spilmatten-Reetihorn' })
 	).toBeVisible();
 });
+
+test('while geo.admin does not answer, the last known hints say from when', async ({ page }) => {
+	const id = `asof${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	await signUp(page.request, {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Stand',
+			password: 'sehr-geheim-123'
+		}
+	});
+	const res = await page.request.post('/api/v1/routes', {
+		data: { title: 'Letzter Stand', ...routeContent(8.01, 46.665, 60) }
+	});
+	const route = (await res.json()).id as string;
+	await page.route(`**/api/v1/routes/${route}/areas`, async (r) => {
+		const answer = await r.fetch();
+		await r.fulfill({
+			response: answer,
+			json: { ...(await answer.json()), as_of: '2026-10-12T08:00:00Z' }
+		});
+	});
+	await page.goto(`/routes/${route}`);
+	await expect(page.getByTestId('areas-as-of')).toContainText('Stand 12.10.2026');
+	await expect(page.getByTestId('protected-areas')).toBeVisible();
+});

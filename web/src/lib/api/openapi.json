@@ -518,6 +518,11 @@
             },
             "type": "array"
           },
+          "as_of": {
+            "description": "Only while geo.admin does not answer: the time of the oldest answer given instead",
+            "format": "date-time",
+            "type": "string"
+          },
           "notices": {
             "description": "Closed trails and shooting on the way, from today on",
             "items": {

@@ -999,6 +999,16 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     and reminders are not limited. The signing key and the limit live in
     memory: a restart loses them, a form open during a deploy fails once.
     App versions before this one cannot use these four forms.
+85. **When outside services fail, the rest** (feedback issue 22, closed). A
+    route's or journey's hints (protected areas, closures, shooting) serve
+    the last answer for that line, up to 90 days old, with its date while
+    geo.admin does not answer (`as_of`); a line never asked about still
+    answers 503. `alvyo check-deployment` loads the configuration as the
+    API's deployment would give it, before each release (`release` skill);
+    Flux applies the deployment repository at once, so a job there could
+    not stop a rollout. Not built, on purpose: a mail outbox, the forecast on
+    disk, bug reports retried, a rolling update on shared storage, the
+    Basiskarte through our tile cache.
 
 ### Open
 

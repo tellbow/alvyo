@@ -30,6 +30,7 @@
 	import StatsPanel from '#lib/planner/StatsPanel.svelte';
 	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
 	import Notices from '#lib/areas/Notices.svelte';
+	import AsOf from '#lib/areas/AsOf.svelte';
 	import SnowAlong from '#lib/areas/SnowAlong.svelte';
 	import LineHighlight from '#lib/map/LineHighlight.svelte';
 	import JourneyWeather from '#lib/weather/JourneyWeather.svelte';
@@ -108,6 +109,7 @@
 	let areas = $state<ProtectedArea[]>();
 	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
+	let areasAsOf = $state<string>();
 	let snow = $state<Snow>();
 	// A part of a stage picked in a list, shown on the map.
 	let picked = $state<number[][][]>([]);
@@ -138,6 +140,7 @@
 				areas = data?.areas;
 				notices = data?.notices;
 				areasFailed = !data;
+				areasAsOf = data?.as_of;
 			});
 		return () => {
 			stale = true;
@@ -700,6 +703,7 @@
 			>
 				{#if journey.totals.distance_m > 0}
 					<JourneyWeather id={journey.id} {token} key={routeKey + plannedDays.join()} />
+					<AsOf asOf={areasAsOf} />
 					<Notices {notices} days={plannedDays} onshow={(p) => (picked = p)} />
 					<ProtectedAreas
 						{areas}

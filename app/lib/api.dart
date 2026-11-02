@@ -596,7 +596,7 @@ class JourneyWeather {
 }
 
 /// What lies along a route: protected areas, closures and shooting.
-typedef Along = ({List<ProtectedArea> areas, List<Notice> notices});
+typedef Along = ({List<ProtectedArea> areas, List<Notice> notices, DateTime? asOf});
 
 /// Lines of [lon, lat]: where a route crosses something, for the map.
 List<List<List<double>>> _parts(Object? v) => [
@@ -1733,6 +1733,7 @@ class Api {
     return (
       areas: [for (final a in j['areas'] as List) ProtectedArea.fromJson(a as Map<String, dynamic>)],
       notices: [for (final n in j['notices'] as List? ?? const []) Notice.fromJson(n as Map<String, dynamic>)],
+      asOf: DateTime.tryParse(j['as_of'] as String? ?? ''),
     );
   }
 

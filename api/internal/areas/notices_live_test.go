@@ -52,7 +52,7 @@ func TestNoticesLive(t *testing.T) {
 		t.Skip("no closed trail with a simple line today")
 	}
 	f := &Finder{DB: testdb.New(t), UserAgent: "alvyo-test"}
-	got, err := f.Notices(context.Background(), line, time.Now())
+	got, _, err := f.Notices(context.Background(), line, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}

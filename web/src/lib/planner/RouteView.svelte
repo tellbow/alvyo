@@ -29,6 +29,7 @@
 	import StatsPanel from './StatsPanel.svelte';
 	import ProtectedAreas from '#lib/areas/ProtectedAreas.svelte';
 	import Notices from '#lib/areas/Notices.svelte';
+	import AsOf from '#lib/areas/AsOf.svelte';
 	import SnowAlong from '#lib/areas/SnowAlong.svelte';
 	import LineHighlight from '#lib/map/LineHighlight.svelte';
 	import Pois from '#lib/map/Pois.svelte';
@@ -66,6 +67,7 @@
 	let areas = $state<ProtectedArea[]>();
 	let notices = $state<Notice[]>();
 	let areasFailed = $state(false);
+	let areasAsOf = $state<string>();
 	let snow = $state<Snow>();
 	let steepness = $state<Steepness>();
 	// A part of the line picked in a list, shown on the map.
@@ -82,6 +84,7 @@
 		areas = data?.areas;
 		notices = data?.notices;
 		areasFailed = !data;
+		areasAsOf = data?.as_of;
 	});
 	// Link previews (Signal, WhatsApp, Slack …) read these tags from the SSR page.
 	const summary = $derived(
@@ -407,6 +410,7 @@
 						>{/each}
 				</p>
 			{/if}
+			<AsOf asOf={areasAsOf} />
 			<Notices {notices} onshow={(p) => (picked = p)} />
 			<ProtectedAreas {areas} failed={areasFailed} onshow={(p) => (picked = p)} />
 			<SnowAlong {snow} onshow={(p) => (picked = p)} />

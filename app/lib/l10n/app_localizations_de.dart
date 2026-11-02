@@ -344,6 +344,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get stageMarkedDone => 'Etappe als gewandert markiert';
 
   @override
+  String areasAsOf(String date) {
+    return 'Stand $date: geo.admin antwortet gerade nicht, Neueres fehlt vielleicht.';
+  }
+
+  @override
   String get areasTitle => 'Schutzgebiete auf dem Weg';
 
   @override

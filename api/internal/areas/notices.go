@@ -4,13 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"slices"
 	"strings"
 	"time"
-
-	"github.com/jackc/pgx/v5"
 
 	"github.com/tellbow/alvyo/swiss/geo"
 )
@@ -60,31 +57,35 @@ type ShootingDay struct {
 }
 
 // Notices returns the closures the line runs along and the shooting areas
-// it crosses, from today on; closures first.
-func (f *Finder) Notices(ctx context.Context, line []geo.Point, today time.Time) ([]Notice, error) {
+// it crosses, from today on; closures first. While geo.admin does not answer:
+// the last answer for this line and its time, which is zero otherwise.
+func (f *Finder) Notices(ctx context.Context, line []geo.Point, today time.Time) ([]Notice, time.Time, error) {
 	pts := geo.Simplify(line, simplifyM)
 	if len(pts) < 2 {
-		return []Notice{}, nil
+		return []Notice{}, time.Time{}, nil
 	}
 	key := "notices-where:" + lineKey(pts) // answers from before Where are not used
-	var cached []byte
-	err := f.DB.QueryRow(ctx, `SELECT areas FROM area_cache WHERE line_key = $1 AND fetched_at > now() - make_interval(secs => $2)`,
-		key, noticesFor.Seconds()).Scan(&cached)
+	cached, at, fresh, err := f.cached(ctx, key, noticesFor)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
 	var all []Notice
 	switch {
-	case err == nil && json.Unmarshal(cached, &all) == nil:
-	case err != nil && !errors.Is(err, pgx.ErrNoRows):
-		return nil, fmt.Errorf("areas: cache: %w", err)
+	case fresh && json.Unmarshal(cached, &all) == nil:
 	default:
 		if all, err = f.fetchNotices(ctx, pts); err != nil {
-			return nil, err
+			var last []Notice
+			if errors.Is(err, ErrUnavailable) && cached != nil && json.Unmarshal(cached, &last) == nil {
+				return current(last, today.Format(time.DateOnly)), at, nil
+			}
+			return nil, time.Time{}, err
 		}
 		if b, err := json.Marshal(all); err == nil {
 			_, _ = f.DB.Exec(ctx, `INSERT INTO area_cache (line_key, areas) VALUES ($1, $2)
 				ON CONFLICT (line_key) DO UPDATE SET areas = excluded.areas, fetched_at = now()`, key, b)
 		}
 	}
-	return current(all, today.Format(time.DateOnly)), nil
+	return current(all, today.Format(time.DateOnly)), time.Time{}, nil
 }
 
 // current keeps what is not over by day.

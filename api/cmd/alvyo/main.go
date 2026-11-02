@@ -73,7 +73,7 @@ var version = "dev"
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: alvyo serve|migrate|openapi|user|route|restore")
+		fmt.Fprintln(os.Stderr, "usage: alvyo serve|migrate|openapi|check-deployment|user|route|restore")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1], os.Args[2:]); err != nil {
@@ -93,6 +93,11 @@ func run(cmd string, args []string) error {
 		return migrate(ctx)
 	case "openapi":
 		return printOpenAPI()
+	case "check-deployment":
+		if len(args) != 1 {
+			return errors.New("usage: alvyo check-deployment <directory of api-deployment.yaml and configmap.yaml>")
+		}
+		return checkDeployment(args[0])
 	case "user", "route":
 		return adminCommand(ctx, cmd, args)
 	case "restore":

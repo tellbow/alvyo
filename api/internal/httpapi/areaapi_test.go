@@ -1,12 +1,14 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/tellbow/alvyo/api/internal/areas"
 )
@@ -80,4 +82,50 @@ func TestProtectedAreas(t *testing.T) {
 	if code, _ := get(owner, "POST", "/api/v1/routing/areas", map[string]any{"line": [][2]float64{{8.1, 46.6}, {8.2, 46.6}}}); code != http.StatusServiceUnavailable {
 		t.Errorf("geo.admin down: %d", code)
 	}
+}
+
+func TestProtectedAreasLastKnown(t *testing.T) {
+	fixture, err := os.ReadFile("../areas/testdata/identify_grindelwald.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var broken atomic.Bool
+	geoadmin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if broken.Load() {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		_, _ = w.Write(fixture)
+	}))
+	t.Cleanup(geoadmin.Close)
+	s := newTestServerWith(t, func(d *Deps) { d.Areas = &areas.Finder{DB: d.DB, URL: geoadmin.URL} })
+	c := s.client(t)
+	s.signup(c, "owner@example.ch", "owner")
+	body := map[string]any{"line": [][2]float64{{8.0, 46.66}, {8.04, 46.665}}}
+	type resp struct {
+		Areas []areas.Area `json:"areas"`
+		AsOf  *time.Time   `json:"as_of"`
+	}
+	post := func(want int) resp {
+		t.Helper()
+		code, raw := c.do("POST", "/api/v1/routing/areas", body)
+		if code != want {
+			t.Fatalf("%d, want %d: %s", code, want, raw)
+		}
+		var r resp
+		_ = json.Unmarshal(raw, &r)
+		return r
+	}
+	if r := post(http.StatusOK); r.AsOf != nil || len(r.Areas) == 0 {
+		t.Errorf("fresh: %+v", r)
+	}
+	broken.Store(true)
+	if _, err := s.db.Exec(context.Background(), `UPDATE area_cache SET fetched_at = now() - interval '40 days'`); err != nil {
+		t.Fatal(err)
+	}
+	if r := post(http.StatusOK); r.AsOf == nil || len(r.Areas) == 0 {
+		t.Errorf("last known: %+v", r)
+	}
+	body["line"] = [][2]float64{{9.0, 46.7}, {9.04, 46.705}}
+	post(http.StatusServiceUnavailable) // never asked about
 }

@@ -666,6 +666,7 @@
 	"areas_stages": "Etappe {list}",
 	"areas_more": "Mehr dazu",
 	"areas_failed": "Die Schutzgebiete konnten nicht geladen werden.",
+	"areas_as_of": "Stand {date}: geo.admin antwortet gerade nicht, Neueres fehlt vielleicht.",
 	"areas_source": "Quelle: BAFU / Kantone. Massgebend sind die Regeln vor Ort.",
 	"contacts_title": "Kontakte für geteilte Wanderungen",
 	"contacts_intro": "Starte in der App eine Wanderung, kannst du ausgewählten Kontakten deinen Standort zeigen. Ist die Wanderung 30 Minuten nach dem geplanten Ende nicht beendet, bekommen sie eine E-Mail mit dem letzten Standort.",

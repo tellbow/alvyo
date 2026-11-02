@@ -92,6 +92,15 @@ class ProtectedAreas extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (snap.data?.asOf case final asOf?)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  t.areasAsOf(DateFormat.yMd(lang).format(asOf.toLocal())),
+                  key: const Key('areas-as-of'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
             if (notices.isNotEmpty)
               _HintLine(
                 key: const Key('notices'),

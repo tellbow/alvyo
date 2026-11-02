@@ -71,7 +71,7 @@ class _JourneyScreenState extends State<JourneyScreen> with ReportsPlace<Journey
   late Future<JourneyDetail> _journey = _load();
   late final Future<Along> _areas = widget.api
       .areas(journeyId: widget.id)
-      .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[]));
+      .catchError((_) => (areas: <ProtectedArea>[], notices: <Notice>[], asOf: null));
   late final Future<SnowAlong?> _snow = widget.api
       .snowAlong(journeyId: widget.id)
       .then<SnowAlong?>((s) => s, onError: (_) => null);

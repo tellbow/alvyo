@@ -50,6 +50,8 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-finish')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-finish-confirm')));
+    await waitFor(tester, find.byKey(const Key('hike-done-close')));
+    await tester.tap(find.byKey(const Key('hike-done-close')));
     await waitFor(tester, find.byKey(const Key('nav-saved')));
     final saved = (find.byKey(const Key('nav-saved')).evaluate().first.widget as Text).data!;
     debugPrint('saved: $saved');

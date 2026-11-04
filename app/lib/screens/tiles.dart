@@ -8,6 +8,7 @@ import 'done.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
 import 'tour_card.dart';
+import '../motion.dart';
 
 /// Opens a route or journey; done when back from it.
 Future<void> openItem(
@@ -59,9 +60,12 @@ class RouteTile extends StatelessWidget {
       visibility: owner == null ? r.visibility : null,
       trailing: trailing,
       image: switch (api) {
-        final a? => Hero(
-          tag: routeImageTag(r.id),
-          child: RoutePicture(url: a.routeImageUrl(r), headers: a.authHeaders),
+        final a? => HeroMode(
+          enabled: !lessMotion(context),
+          child: Hero(
+            tag: routeImageTag(r.id),
+            child: RoutePicture(url: a.routeImageUrl(r), headers: a.authHeaders),
+          ),
         ),
         null => null,
       },

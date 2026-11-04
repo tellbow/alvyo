@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -14,6 +16,7 @@ import 'error_state.dart';
 import 'journey_screen.dart';
 import 'route_screen.dart';
 import 'wide.dart';
+import 'canton_map.dart';
 
 /// What the user hiked, on one map and in numbers, by year; or, with
 /// [username], what that user shares of it.
@@ -33,6 +36,7 @@ class _HikedScreenState extends State<HikedScreen> {
   Hiked? _hiked;
   SharedHiked? _shared;
   Achievements? _achievements;
+  List<String> _freshCantons = const [];
   Object? _error;
   int? _year;
   MapController? _map;
@@ -67,7 +71,14 @@ class _HikedScreenState extends State<HikedScreen> {
       }
       final hiked = await widget.api.hiked(year: _year);
       // All years together, so once is enough.
-      _achievements ??= await widget.api.achievements();
+      if (_achievements == null) {
+        final a = _achievements = await widget.api.achievements();
+        unawaited(
+          SeenCantons.instance.fresh(a.cantons).then((fresh) {
+            if (mounted && fresh.isNotEmpty) setState(() => _freshCantons = fresh);
+          }),
+        );
+      }
       if (!mounted) return;
       setState(() => _hiked = hiked);
       await _style?.updateGeoJsonSource(id: 'hiked', data: _geojson());
@@ -233,7 +244,7 @@ class _HikedScreenState extends State<HikedScreen> {
               stat(t.hikedLongest, formatDistance(totals.longestM)),
             ],
           ),
-        if (achievements != null) _AchievementsView(achievements: achievements),
+        if (achievements != null) _AchievementsView(achievements: achievements, fresh: _freshCantons),
         for (final it in hiked?.items ?? const <HikedItem>[])
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -249,8 +260,11 @@ class _HikedScreenState extends State<HikedScreen> {
 }
 
 class _AchievementsView extends StatelessWidget {
-  const _AchievementsView({required this.achievements});
+  const _AchievementsView({required this.achievements, this.fresh = const []});
   final Achievements achievements;
+
+  /// The cantons new since the last look.
+  final List<String> fresh;
 
   static const _first = 5;
 
@@ -277,6 +291,11 @@ class _AchievementsView extends StatelessWidget {
         const SizedBox(height: 8),
         Text(t.hikedAchievements, style: text.titleMedium),
         heading('${t.hikedCantons}: ${t.hikedOf(a.cantons.length, a.cantonsTotal)}'),
+        const SizedBox(height: 8),
+        CantonMap(walked: a.cantons, fresh: fresh),
+        if (fresh.isNotEmpty)
+          Text(t.hikedNewCanton(fresh.join(', ')), key: const Key('hiked-new-canton'), style: text.titleSmall),
+        const SizedBox(height: 4),
         Wrap(
           spacing: 4,
           runSpacing: 4,

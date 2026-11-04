@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../analytics.dart';
@@ -525,6 +528,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
         anchors: _planner.anchors,
         legs: _planner.readyLegs,
       );
+      unawaited(HapticFeedback.lightImpact());
       if (!mounted) return;
       // Opened like any saved route: to keep offline and to hike.
       final open = MaterialPageRoute<void>(
@@ -567,6 +571,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
         ),
         _ => throw StateError('nothing to save into'),
       };
+      unawaited(HapticFeedback.lightImpact());
       if (mounted) nav.pop(saved);
     } on Object catch (e) {
       if (!mounted) return;

@@ -30,6 +30,7 @@ class Session {
   Future<void> clear() async {
     await _storage.delete(key: 'token');
     await _storage.delete(key: 'user');
+    await _storage.delete(key: 'cantons-seen'); // the next account's are its own
   }
 
   Future<String> lastServer() async => await _storage.read(key: 'server') ?? defaultServer;

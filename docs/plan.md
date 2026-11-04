@@ -1031,6 +1031,15 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     first and last 500 m, and without someone else's route that is not public.
     Achievements are plain facts, no points or streaks: cantons walked in,
     official routes hiked, summits within 50 m and huts within 100 m of a hike.
+88. **More life in the app.** Motion and touch at the moments that matter,
+    not on what is used all the time; a touch never has to wait for it, and
+    the phone's «Reduce Motion» or «Remove animations» turns it off. A short
+    tap on the phone when marking a hike, starting or ending one, arriving and
+    saving a route. A route's line draws itself when its page opens. The end
+    of a hike has its own screen: the line draws itself on the map and the
+    numbers count up, once. A canton hiked for the first time fills in on a
+    small map of Switzerland, there or in «Meine Wanderungen». Own icons for
+    what is Swiss are still open.
 
 ### Open
 

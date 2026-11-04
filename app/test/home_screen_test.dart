@@ -82,6 +82,7 @@ void main() {
           api: api,
           onLogout: onLogout,
           record: record == null ? null : () => record(api),
+          hikeDoneMap: const SizedBox.expand(),
           planModes: (mode, saved) => Text('plan ${mode.name}'),
         ),
       ),
@@ -184,6 +185,8 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-finish')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('nav-finish-confirm')));
+    await until(tester, find.byKey(const Key('hike-done-close')));
+    await tester.tap(find.byKey(const Key('hike-done-close')));
     await until(tester, find.byType(RouteScreen));
     expect(hikes.single.containsKey('route_id'), isFalse);
     expect(hikes.single['title'], startsWith('Wanderung, '));

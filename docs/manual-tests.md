@@ -440,6 +440,23 @@ Checked so far only in the simulator, with made-up or simulated positions
       report and a bug report go through on a phone without a stutter, also
       right after the form opens (about three seconds at most).
 
+### Motion and touch
+
+- [ ] **Taps on the phone:** one short tap each for marking a hike, starting
+      and ending a recording or a route's hike, reaching the goal and saving
+      a route; none when a hike resumes. The phone's own «System Haptics»
+      switched off silences them.
+- [ ] **A route's line** draws itself once when its page opens, smoothly also
+      on a long route; saving the offline map does not draw it again.
+- [ ] **The end of a hike:** the line draws itself and the numbers count up; a
+      touch shows the end at once. Without signal the numbers still count,
+      and the map may stay empty.
+- [ ] **A new canton:** on the first hike in a canton, it fills in on the small
+      map at the end of the hike, or next time in «Meine Wanderungen» when the
+      upload had to wait; not again after that.
+- [ ] **Reduce Motion** on (iOS: Settings › Accessibility › Motion; Android:
+      Remove animations): the line, numbers and canton are there at once.
+
 ## Apple Watch app (release build, feedback issue 15)
 
 Checked in the simulator only (2026-10-25, iPhone 17 Pro iOS 26.5 paired

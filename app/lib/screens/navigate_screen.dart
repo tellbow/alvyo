@@ -27,9 +27,12 @@ import '../route_layers.dart';
 
 /// What was recorded, for the screen that started the hike to show.
 class HikeSummary {
-  const HikeSummary(this.distanceM, this.duration, this.id);
+  const HikeSummary(this.distanceM, this.duration, this.id, [this.line = const []]);
   final double distanceM;
   final Duration duration;
+
+  /// The track, as lon, lat points.
+  final List<List<double>> line;
 
   /// The hike's id when uploaded (see uploadHikes).
   final String id;
@@ -101,6 +104,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
   late final Alerts _alerts = widget.alerts ?? Alerts();
   late final Speech _speech = widget.speech ?? Speech();
   late TurnGuide? _guide = widget.turns == null ? null : TurnGuide(widget.turns!);
+  var _arrivedFelt = false;
   late final WatchLink _watch = widget.watch ?? WatchLink.instance;
   late final _watchLine = simplifyLine(widget.route.line, WatchLink.maxPoints);
   late final _controls = HikeControls(pause: _pause, resume: _resume, stop: () => _finish(ask: false));
@@ -195,6 +199,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
       await rec!.finish();
       rec = null;
     }
+    if (rec == null) unawaited(HapticFeedback.mediumImpact());
     rec ??= await Recording.start(root, routeId: widget.route.id, title: widget.route.title, owner: widget.api.userId);
     if (widget.live case final live?) await rec.setLive(live.id, live.expectedEnd);
     if (rec.liveId case final id?) _live = LiveSender(widget.api, id);
@@ -300,6 +305,10 @@ class _NavigateScreenState extends State<NavigateScreen> {
     }
     if (p == null || !mounted) return;
     final t = AppLocalizations.of(context);
+    if (p.arrived && !_paused && !_arrivedFelt) {
+      _arrivedFelt = true;
+      unawaited(HapticFeedback.heavyImpact());
+    }
     // Nothing said or warned during a pause (the way to the restaurant).
     if (_guide?.prompt(p) case final prompt? when _voice && !_paused) {
       await _speech.say(_promptText(t, prompt), Localizations.localeOf(context).languageCode);
@@ -368,7 +377,11 @@ class _NavigateScreenState extends State<NavigateScreen> {
         trackLengthM(fixes),
         fixes.isEmpty ? Duration.zero : rec.elapsed(fixes.last.time),
         rec.started.toIso8601String(),
+        [
+          for (final f in fixes) [f.lon, f.lat],
+        ],
       );
+      unawaited(HapticFeedback.mediumImpact());
     }
     if (mounted) Navigator.of(context).pop(summary);
   }

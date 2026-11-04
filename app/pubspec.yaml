@@ -43,6 +43,7 @@ flutter:
     - assets/fonts/OFL-BricolageGrotesque.txt
     - assets/google_g_light.png
     - assets/google_g_dark.png
+    - assets/cantons.json
   fonts:
     - family: Figtree
       fonts:

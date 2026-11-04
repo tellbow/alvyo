@@ -2121,6 +2121,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get hikedTitle => 'Le mie escursioni';
 
   @override
+  String get hikeDoneTitle => 'Ce l’hai fatta';
+
+  @override
+  String get hikeDoneClose => 'Fatto';
+
+  @override
+  String hikedNewCanton(String cantons) {
+    return 'Nuovo: $cantons';
+  }
+
+  @override
   String get hikedPrivate => 'Solo tu lo vedi, a meno che tu non lo condivida.';
 
   @override

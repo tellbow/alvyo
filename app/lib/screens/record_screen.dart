@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:maplibre/maplibre.dart';
 
 import '../analytics.dart';
@@ -238,6 +239,7 @@ class _RecordScreenState extends State<RecordScreen> {
       return;
     }
     _watch.controls = _controls;
+    unawaited(HapticFeedback.mediumImpact());
     if (!mounted) return;
     setState(() {
       _recording = rec;
@@ -345,7 +347,11 @@ class _RecordScreenState extends State<RecordScreen> {
       trackLengthM(fixes),
       fixes.isEmpty ? Duration.zero : rec.elapsed(fixes.last.time),
       rec.started.toIso8601String(),
+      [
+        for (final f in fixes) [f.lon, f.lat],
+      ],
     );
+    unawaited(HapticFeedback.mediumImpact());
     if (mounted) Navigator.of(context).pop(summary);
   }
 

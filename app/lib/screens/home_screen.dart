@@ -23,6 +23,7 @@ import 'statistics_sheet.dart';
 import 'tours_tab.dart';
 import 'watch_screen.dart';
 import 'wide.dart';
+import 'hike_done_screen.dart';
 
 /// The app after logging in (requirement 69): Entdecken (where to?),
 /// Planen (how?), the record button (go!), Touren (what do I have?) and
@@ -35,6 +36,7 @@ class HomeScreen extends StatefulWidget {
     this.settings,
     this.analytics,
     this.record,
+    this.hikeDoneMap,
     @visibleForTesting this.planModes,
     @visibleForTesting this.watch,
     @visibleForTesting this.watchLink,
@@ -50,6 +52,9 @@ class HomeScreen extends StatefulWidget {
 
   /// For tests: stands in for the recording screen (GPS and map).
   final Widget Function()? record;
+
+  /// For tests: stands in for the map at a hike's end.
+  final Widget? hikeDoneMap;
 
   /// For tests: stands in for the planning screens (MapLibre).
   final Widget Function(PlanMode mode, VoidCallback saved)? planModes;
@@ -207,7 +212,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
     );
     if (summary == null || !mounted) return;
-    final routes = await uploadHikes(widget.api, root).catchError((_) => <String, String?>{});
+    final uploading = uploadHikes(widget.api, root).catchError((_) => <String, String?>{});
+    await showHikeDone(navigator, widget.api, summary, uploading, map: widget.hikeDoneMap);
+    final routes = await uploading;
     if (!mounted) return;
     messenger.showSnackBar(
       SnackBar(
@@ -219,7 +226,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (routes[summary.id] case final id?) {
       await navigator.push(
         MaterialPageRoute<void>(
-          builder: (_) => RouteScreen(api: widget.api, id: id, title: t.recordTitle),
+          // Its line was just drawn on the hike's end.
+          builder: (_) => RouteScreen(api: widget.api, id: id, title: t.recordTitle, drawLine: false),
         ),
       );
     }

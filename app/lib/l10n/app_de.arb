@@ -1239,6 +1239,16 @@
   "shareMapHint": "Die Karte zeigt alle deine Wanderungen als Linien, auch private Routen: ohne Titel und Daten und ohne die ersten und letzten 500 m. Sie verrät trotzdem, wo du unterwegs bist.",
   "sharePrivateHint": "Bei einem privaten Profil sehen es auch mit «Alle» nur deine Freunde.",
   "hikedTitle": "Meine Wanderungen",
+  "hikeDoneTitle": "Geschafft",
+  "hikeDoneClose": "Fertig",
+  "hikedNewCanton": "Neu dabei: {cantons}",
+  "@hikedNewCanton": {
+    "placeholders": {
+      "cantons": {
+        "type": "String"
+      }
+    }
+  },
   "hikedPrivate": "Nur du siehst das, ausser du teilst es.",
   "hikedEmpty": "Noch nichts gewandert. Markiere eine Route als gewandert oder zeichne eine Wanderung auf.",
   "hikedAll": "Alle",

@@ -3874,6 +3874,24 @@ abstract class AppLocalizations {
   /// **'Meine Wanderungen'**
   String get hikedTitle;
 
+  /// No description provided for @hikeDoneTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Geschafft'**
+  String get hikeDoneTitle;
+
+  /// No description provided for @hikeDoneClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Fertig'**
+  String get hikeDoneClose;
+
+  /// No description provided for @hikedNewCanton.
+  ///
+  /// In de, this message translates to:
+  /// **'Neu dabei: {cantons}'**
+  String hikedNewCanton(String cantons);
+
   /// No description provided for @hikedPrivate.
   ///
   /// In de, this message translates to:

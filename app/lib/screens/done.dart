@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../api.dart';
 import '../format.dart';
@@ -69,6 +72,7 @@ List<MenuAction> doneActions(
     }
     try {
       onDone(await api.setDone(id, journey: journey, on: on, day: day));
+      if (on) unawaited(HapticFeedback.lightImpact());
     } on Object {
       messenger.showSnackBar(SnackBar(content: Text(t.errorServer)));
     }

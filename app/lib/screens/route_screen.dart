@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:maplibre/maplibre.dart';
 
@@ -38,6 +40,8 @@ import 'tag_chips.dart';
 import 'planner_screen.dart';
 import 'travel_screen.dart';
 import 'wide.dart';
+import '../motion.dart';
+import 'hike_done_screen.dart';
 
 /// A route on the national map, with offline saving; its description,
 /// photos and comments, and a menu to change, share or export it.
@@ -51,10 +55,14 @@ class RouteScreen extends StatefulWidget {
     this.startHike = false,
     this.fromWatch = false,
     this.image,
+    this.drawLine = true,
   });
   final Api api;
   final String id;
   final String title;
+
+  /// The line draws itself once when the map opens.
+  final bool drawLine;
 
   /// Its card's map ([Api.routeImageUrl]): flies in from the card and
   /// stands in for the map until the map shows the line.
@@ -95,6 +103,8 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   MapController? _map;
   StyleController? _style;
   bool _lineShown = false;
+  late bool _drawLine = widget.drawLine;
+  WhenTilesIn? _drawWhen;
   late final Future<List<Poi>> _pois = widget.api.pois(widget.id).catchError((_) => <Poi>[]);
   int _poiCount = 0;
   _Tab _tab = _Tab.overview;
@@ -139,6 +149,7 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
 
   @override
   void dispose() {
+    _drawWhen?.dispose();
     _places.dispose();
     super.dispose();
   }
@@ -213,7 +224,11 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     if (!mounted) return;
     setState(() => _resumable = false);
     if (summary == null) return;
-    final routes = await uploadHikes(widget.api, await Recording.defaultRoot()).catchError((_) => <String, String?>{});
+    final uploading = Recording.defaultRoot()
+        .then((root) => uploadHikes(widget.api, root))
+        .catchError((_) => <String, String?>{});
+    await showHikeDone(Navigator.of(context), widget.api, summary, uploading);
+    final routes = await uploading;
     messenger.showSnackBar(
       SnackBar(
         content: Text(key: const Key('nav-saved'), summary.message(t, routes)),
@@ -556,9 +571,12 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
     if (_style case final style?) showProfilePoint(style, at).catchError((_) {});
   }
 
-  Widget _picture() => Hero(
-    tag: routeImageTag(widget.id),
-    child: RoutePicture(url: widget.image!, headers: widget.api.authHeaders),
+  Widget _picture() => HeroMode(
+    enabled: !lessMotion(context),
+    child: Hero(
+      tag: routeImageTag(widget.id),
+      child: RoutePicture(url: widget.image!, headers: widget.api.authHeaders),
+    ),
   );
 
   @override
@@ -620,13 +638,24 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                             initCenter: Geographic(lon: view.lon, lat: view.lat),
                             initZoom: view.zoom,
                           ),
-                          onEvent: _places.onEvent,
+                          onEvent: (e) {
+                            _places.onEvent(e);
+                            _drawWhen?.onEvent(e);
+                          },
                           onMapCreated: (c) => _map = c,
                           onStyleLoaded: (style) async {
                             _style = style;
+                            // Once: a new offline map loads the style again.
+                            final draw = _drawLine && r.line.length >= 2 && !lessMotion(context);
+                            _drawLine = false;
                             await _places.addTo(style);
                             await showMyLocation(_map);
-                            await addRouteLine(style, r.line);
+                            await addRouteLine(style, draw ? const [] : r.line);
+                            if (draw) {
+                              _drawWhen = WhenTilesIn(
+                                () => unawaited(drawRouteLine(style, r.line, stopped: () => !mounted)),
+                              )..arm();
+                            }
                             if (mounted) setState(() => _lineShown = true);
                             await addHighlight(style);
                             await addProfilePoint(style);

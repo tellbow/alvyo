@@ -82,6 +82,9 @@
             </intent-filter>
         </activity>
         <!-- A provider's sign-in comes back from the browser: alvyo://signin?… -->
+        <!-- Exported for the browser. It only passes the link on, and the code in it is
+             useless without the verifier of the app that started the sign-in. -->
+        <!-- nosemgrep: java.android.security.exported_activity.exported_activity -->
         <activity
             android:name=".SignInAnswerActivity"
             android:exported="true"

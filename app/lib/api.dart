@@ -1057,6 +1057,54 @@ class Suggestion {
 }
 
 /// A public route or journey (`GET /discover`).
+/// One's hikes of a year, or of all: `GET /me/hiked`.
+class Hiked {
+  Hiked.fromJson(Map<String, dynamic> j)
+    : total = HikedTotals.fromJson(j['total'] as Map<String, dynamic>),
+      years = [for (final y in j['years'] as List? ?? const []) HikedTotals.fromJson(y as Map<String, dynamic>)],
+      items = [for (final i in j['items'] as List? ?? const []) HikedItem.fromJson(i as Map<String, dynamic>)];
+
+  final HikedTotals total;
+
+  /// Newest first.
+  final List<HikedTotals> years;
+  final List<HikedItem> items;
+}
+
+class HikedTotals {
+  HikedTotals.fromJson(Map<String, dynamic> j)
+    : year = (j['year'] as num?)?.toInt() ?? 0,
+      hikes = (j['hikes'] as num).toInt(),
+      distanceM = (j['distance_m'] as num).toDouble(),
+      ascentM = (j['ascent_m'] as num).toDouble(),
+      timeS = (j['time_s'] as num).toInt(),
+      longestM = (j['longest_m'] as num).toDouble(),
+      highestM = (j['highest_m'] as num).toDouble();
+
+  /// 0 for all years.
+  final int year, hikes;
+  final double distanceM, ascentM, longestM, highestM;
+
+  /// Already at one's pace.
+  final int timeS;
+}
+
+class HikedItem {
+  HikedItem.fromJson(Map<String, dynamic> j)
+    : kind = j['kind'] as String,
+      id = j['id'] as String,
+      title = j['title'] as String,
+      on = j['on'] as String,
+      distanceM = (j['distance_m'] as num).toDouble(),
+      ascentM = (j['ascent_m'] as num).toDouble(),
+      lines = [for (final l in j['lines'] as List? ?? const []) _line(l)];
+
+  /// route, journey or hike.
+  final String kind, id, title, on;
+  final double distanceM, ascentM;
+  final List<List<List<double>>> lines;
+}
+
 class DiscoverItem {
   DiscoverItem.fromJson(Map<String, dynamic> j)
     : kind = j['kind'] as String,
@@ -2529,6 +2577,10 @@ class Api {
             as Map<String, dynamic>;
     return (doneOn: j['done_on'] as String?, marked: j['done_marked'] as bool? ?? false);
   }
+
+  /// What the user hiked: the totals, and the hikes of [year] (null: all).
+  Future<Hiked> hiked({int? year}) async =>
+      Hiked.fromJson(await _get('/me/hiked', {if (year != null) 'year': '$year'}) as Map<String, dynamic>);
 
   /// Routes, journeys and collections others shared with the user.
   Future<Shared> shared() async {

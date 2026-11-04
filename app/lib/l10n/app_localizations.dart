@@ -3676,6 +3676,72 @@ abstract class AppLocalizations {
   /// **'Als gewandert markieren'**
   String get doneMark;
 
+  /// No description provided for @hikedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Meine Wanderungen'**
+  String get hikedTitle;
+
+  /// No description provided for @hikedPrivate.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur du siehst das.'**
+  String get hikedPrivate;
+
+  /// No description provided for @hikedEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch nichts gewandert. Markiere eine Route als gewandert oder zeichne eine Wanderung auf.'**
+  String get hikedEmpty;
+
+  /// No description provided for @hikedAll.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle'**
+  String get hikedAll;
+
+  /// No description provided for @hikedHikes.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderungen'**
+  String get hikedHikes;
+
+  /// No description provided for @hikedDistance.
+  ///
+  /// In de, this message translates to:
+  /// **'Distanz'**
+  String get hikedDistance;
+
+  /// No description provided for @hikedAscent.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufstieg'**
+  String get hikedAscent;
+
+  /// No description provided for @hikedTime.
+  ///
+  /// In de, this message translates to:
+  /// **'Zeit'**
+  String get hikedTime;
+
+  /// No description provided for @hikedHighest.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchster Punkt'**
+  String get hikedHighest;
+
+  /// No description provided for @hikedLongest.
+  ///
+  /// In de, this message translates to:
+  /// **'Längste'**
+  String get hikedLongest;
+
+  /// No description provided for @doneAgain.
+  ///
+  /// In de, this message translates to:
+  /// **'Nochmals gewandert'**
+  String get doneAgain;
+
   /// No description provided for @doneRemove.
   ///
   /// In de, this message translates to:

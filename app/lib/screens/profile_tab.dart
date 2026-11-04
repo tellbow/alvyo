@@ -14,6 +14,7 @@ import 'account_screens.dart';
 import 'devices_screen.dart';
 import 'import_tile.dart';
 import 'friends_screen.dart';
+import 'hiked_screen.dart';
 import 'statistics_sheet.dart';
 import 'tab_header.dart';
 import 'user_screen.dart';
@@ -235,6 +236,13 @@ class _ProfileTabState extends State<ProfileTab> {
                           });
                         }
                       },
+                    ),
+                    ListTile(
+                      key: const Key('hiked'),
+                      leading: const Icon(Icons.landscape_outlined),
+                      title: Text(t.hikedTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _push(HikedScreen(api: widget.api)),
                     ),
                     ImportTile(api: widget.api, onImported: widget.onImported),
                     // Apple Watch only; Health Connect on Android is to come (issue 8).

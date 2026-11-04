@@ -33,16 +33,19 @@ type State struct {
 	Marked bool       // by the viewer's own mark, which can be taken back
 }
 
-// Mark records that user hiked the item on day.
+// Mark records that user hiked the item on day, also when they did before.
 func (s *Store) Mark(ctx context.Context, user uuid.UUID, k Kind, id uuid.UUID, day time.Time) error {
 	_, err := s.DB.Exec(ctx, `INSERT INTO done_marks (user_id, `+string(k)+`_id, done_on) VALUES ($1, $2, $3)
-		ON CONFLICT ON CONSTRAINT done_marks_key DO UPDATE SET done_on = excluded.done_on`, user, id, day)
+		ON CONFLICT ON CONSTRAINT done_marks_key DO NOTHING`, user, id, day)
 	return err
 }
 
-// Unmark takes user's mark back; a recorded hike still counts.
+// Unmark takes user's latest mark back; earlier ones and a recorded hike still
+// count.
 func (s *Store) Unmark(ctx context.Context, user uuid.UUID, k Kind, id uuid.UUID) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM done_marks WHERE user_id = $1 AND `+string(k)+`_id = $2`, user, id)
+	c := string(k) + `_id`
+	_, err := s.DB.Exec(ctx, `DELETE FROM done_marks WHERE user_id = $1 AND `+c+` = $2 AND done_on =
+		(SELECT max(done_on) FROM done_marks WHERE user_id = $1 AND `+c+` = $2)`, user, id)
 	return err
 }
 

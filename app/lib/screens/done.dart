@@ -44,8 +44,9 @@ class DoneFilterBar extends StatelessWidget {
   }
 }
 
-/// The menu's «Als gewandert markieren» (a day asked, today at first) and,
-/// for one's own mark, «Nicht gewandert»; [onDone] gets the new state.
+/// The menu's «Als gewandert markieren» or «Nochmals gewandert» (a day asked,
+/// today at first) and, for one's own mark, «Nicht gewandert», which takes the
+/// latest day back; [onDone] gets the new state.
 List<MenuAction> doneActions(
   BuildContext context,
   Api api, {
@@ -60,12 +61,7 @@ List<MenuAction> doneActions(
     DateTime? day;
     if (on) {
       final today = DateUtils.dateOnly(DateTime.now());
-      day = await showDatePicker(
-        context: context,
-        firstDate: DateTime(1990),
-        lastDate: today,
-        initialDate: state.doneOn != null ? DateTime.parse(state.doneOn!) : today,
-      );
+      day = await showDatePicker(context: context, firstDate: DateTime(1990), lastDate: today, initialDate: today);
       if (day == null) return;
     }
     try {
@@ -76,7 +72,7 @@ List<MenuAction> doneActions(
   }
 
   return [
-    MenuAction('done', Icons.check_circle_outline, t.doneMark, () => set(true)),
+    MenuAction('done', Icons.check_circle_outline, state.doneOn == null ? t.doneMark : t.doneAgain, () => set(true)),
     if (state.marked) MenuAction('undone', Icons.highlight_off, t.doneRemove, () => set(false)),
   ];
 }

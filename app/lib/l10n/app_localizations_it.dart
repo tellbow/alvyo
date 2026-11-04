@@ -1996,6 +1996,39 @@ class AppLocalizationsIt extends AppLocalizations {
   String get doneMark => 'Segna come fatta';
 
   @override
+  String get hikedTitle => 'Le mie escursioni';
+
+  @override
+  String get hikedPrivate => 'Solo tu lo vedi.';
+
+  @override
+  String get hikedEmpty => 'Ancora nulla. Segna un percorso come fatto o registra un\'escursione.';
+
+  @override
+  String get hikedAll => 'Tutti';
+
+  @override
+  String get hikedHikes => 'Escursioni';
+
+  @override
+  String get hikedDistance => 'Distanza';
+
+  @override
+  String get hikedAscent => 'Salita';
+
+  @override
+  String get hikedTime => 'Tempo';
+
+  @override
+  String get hikedHighest => 'Punto più alto';
+
+  @override
+  String get hikedLongest => 'La più lunga';
+
+  @override
+  String get doneAgain => 'Rifatta';
+
+  @override
   String get doneRemove => 'Non fatta';
 
   @override

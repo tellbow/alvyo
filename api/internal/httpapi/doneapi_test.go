@@ -112,6 +112,17 @@ func TestDone(t *testing.T) {
 		t.Errorf("hiked on the map: %s", got)
 	}
 
+	// Hiked again: the latest day shows, and taking back steps to the one before.
+	if _, body := hiker.do("PUT", "/api/v1/routes/"+hiked+"/done", map[string]any{"done_on": "2026-09-01"}); !strings.Contains(string(body), `"done_on":"2026-09-01"`) {
+		t.Errorf("hiked again: %s", body)
+	}
+	if _, body := hiker.do("PUT", "/api/v1/routes/"+hiked+"/done", map[string]any{"done_on": "2026-08-01"}); !strings.Contains(string(body), `"done_on":"2026-09-01"`) {
+		t.Errorf("an earlier day again: %s", body)
+	}
+	if _, body := hiker.do("DELETE", "/api/v1/routes/"+hiked+"/done", nil); !strings.Contains(string(body), `"done_on":"2026-08-01"`) || !strings.Contains(string(body), `"done_marked":true`) {
+		t.Errorf("taking back the latest: %s", body)
+	}
+
 	// Taking a mark back.
 	if code, body := hiker.do("DELETE", "/api/v1/routes/"+hiked+"/done", nil); code != http.StatusOK || strings.Contains(string(body), "done_on") {
 		t.Errorf("unmark: %d %s", code, body)

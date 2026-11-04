@@ -48,6 +48,7 @@
 		<h1 class="text-2xl font-semibold">{m.routes_title()}</h1>
 		<div class="flex items-center gap-4">
 			<a href={resolve('/routes/map')} class="text-sm hover:text-accent-ink">{m.mymap_link()}</a>
+			<a href={resolve('/hiked')} class="text-sm hover:text-accent-ink">{m.hiked_title()}</a>
 			<a href={resolve('/import')} class="text-sm hover:text-accent-ink">{m.import_link()}</a>
 			<a href={resolve('/plan')} class={primaryButtonSmall}>
 				{m.route_new()}

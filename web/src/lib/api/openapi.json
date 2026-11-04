@@ -1570,6 +1570,144 @@
         ],
         "type": "object"
       },
+      "DiscoverHiked": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "description": "Of the year asked for, newest first",
+            "items": {
+              "$ref": "#/components/schemas/DiscoverHikedItem"
+            },
+            "type": "array"
+          },
+          "total": {
+            "$ref": "#/components/schemas/DiscoverHikedTotals"
+          },
+          "years": {
+            "description": "Newest first",
+            "items": {
+              "$ref": "#/components/schemas/DiscoverHikedTotals"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "total",
+          "years",
+          "items"
+        ],
+        "type": "object"
+      },
+      "DiscoverHikedItem": {
+        "additionalProperties": false,
+        "properties": {
+          "ascent_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "distance_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "route",
+              "journey",
+              "hike"
+            ],
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "items": {
+                "items": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "on": {
+            "format": "date",
+            "type": "string"
+          },
+          "time_s": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "title",
+          "on",
+          "distance_m",
+          "ascent_m",
+          "time_s",
+          "lines"
+        ],
+        "type": "object"
+      },
+      "DiscoverHikedTotals": {
+        "additionalProperties": false,
+        "properties": {
+          "ascent_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "distance_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "highest_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "hikes": {
+            "description": "A journey's stages count one by one",
+            "format": "int64",
+            "type": "integer"
+          },
+          "longest_m": {
+            "format": "double",
+            "type": "number"
+          },
+          "longest_title": {
+            "type": "string"
+          },
+          "time_s": {
+            "description": "As recorded, otherwise the hiking time at one's pace",
+            "format": "int64",
+            "type": "integer"
+          },
+          "year": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hikes",
+          "distance_m",
+          "ascent_m",
+          "time_s",
+          "longest_m",
+          "longest_title",
+          "highest_m"
+        ],
+        "type": "object"
+      },
       "DiscoverItem": {
         "additionalProperties": false,
         "properties": {
@@ -11043,7 +11181,7 @@
             "description": "Error"
           }
         },
-        "summary": "Take back one's mark; a recorded hike still counts",
+        "summary": "Take back one's latest mark; earlier ones and a recorded hike still count",
         "tags": [
           "done"
         ]
@@ -11102,7 +11240,7 @@
             "description": "Error"
           }
         },
-        "summary": "Mark a journey as hiked, on a day",
+        "summary": "Mark a journey as hiked on a day, also when hiked before",
         "tags": [
           "done"
         ]
@@ -13770,6 +13908,52 @@
         ]
       }
     },
+    "/me/hiked": {
+      "get": {
+        "operationId": "my-hiked",
+        "parameters": [
+          {
+            "description": "Only this year's hikes; all if left out",
+            "explode": false,
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "description": "Only this year's hikes; all if left out",
+              "format": "int64",
+              "maximum": 9999,
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoverHiked"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "What I have hiked: totals per year and the hikes of a year",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
     "/me/homes": {
       "get": {
         "operationId": "list-homes",
@@ -15358,7 +15542,7 @@
             "description": "Error"
           }
         },
-        "summary": "Take back one's mark; a recorded hike still counts",
+        "summary": "Take back one's latest mark; earlier ones and a recorded hike still count",
         "tags": [
           "done"
         ]
@@ -15417,7 +15601,7 @@
             "description": "Error"
           }
         },
-        "summary": "Mark a route as hiked, on a day",
+        "summary": "Mark a route as hiked on a day, also when hiked before",
         "tags": [
           "done"
         ]

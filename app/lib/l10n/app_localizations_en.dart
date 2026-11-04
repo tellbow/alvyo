@@ -1986,6 +1986,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doneMark => 'Mark as hiked';
 
   @override
+  String get hikedTitle => 'My hikes';
+
+  @override
+  String get hikedPrivate => 'Only you can see this.';
+
+  @override
+  String get hikedEmpty => 'Nothing hiked yet. Mark a route as hiked or record a hike.';
+
+  @override
+  String get hikedAll => 'All';
+
+  @override
+  String get hikedHikes => 'Hikes';
+
+  @override
+  String get hikedDistance => 'Distance';
+
+  @override
+  String get hikedAscent => 'Ascent';
+
+  @override
+  String get hikedTime => 'Time';
+
+  @override
+  String get hikedHighest => 'Highest point';
+
+  @override
+  String get hikedLongest => 'Longest';
+
+  @override
+  String get doneAgain => 'Hiked again';
+
+  @override
   String get doneRemove => 'Not hiked';
 
   @override

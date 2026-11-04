@@ -97,7 +97,7 @@ func registerDone(api huma.API, d Deps) {
 		path := "/" + string(k) + "s/{id}/done"
 		huma.Register(api, huma.Operation{
 			OperationID: "mark-" + string(k) + "-done", Method: http.MethodPut, Path: path,
-			Summary: "Mark a " + string(k) + " as hiked, on a day", Tags: tags,
+			Summary: "Mark a " + string(k) + " as hiked on a day, also when hiked before", Tags: tags,
 		}, func(ctx context.Context, in *markDoneInput) (*doneOutput, error) {
 			u, err := requireUser(ctx)
 			if err != nil {
@@ -118,7 +118,7 @@ func registerDone(api huma.API, d Deps) {
 		})
 		huma.Register(api, huma.Operation{
 			OperationID: "unmark-" + string(k) + "-done", Method: http.MethodDelete, Path: path,
-			Summary: "Take back one's mark; a recorded hike still counts", Tags: tags,
+			Summary: "Take back one's latest mark; earlier ones and a recorded hike still count", Tags: tags,
 		}, func(ctx context.Context, in *unmarkDoneInput) (*doneOutput, error) {
 			u, err := requireUser(ctx)
 			if err != nil {

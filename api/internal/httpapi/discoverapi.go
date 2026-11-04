@@ -52,6 +52,14 @@ type myMapInput struct {
 	Done         string   `query:"done" enum:"done,planned" doc:"done: only what I hiked; planned: only what I have not; all if left out"`
 }
 
+type hikedInput struct {
+	Year int `query:"year" minimum:"0" maximum:"9999" doc:"Only this year's hikes; all if left out"`
+}
+
+type hikedOutput struct {
+	Body discover.Hiked
+}
+
 type myMapOutput struct {
 	Body struct {
 		Items []discover.MineItem `json:"items"`
@@ -138,6 +146,20 @@ func registerDiscover(api huma.API, d Deps) {
 		out := &myMapOutput{}
 		out.Body.Items, out.Body.More = items, more
 		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "my-hiked", Method: http.MethodGet, Path: "/me/hiked",
+		Summary: "What I have hiked: totals per year and the hikes of a year", Tags: []string{"discover"},
+	}, func(ctx context.Context, in *hikedInput) (*hikedOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		id, email := grants.Grantee(u)
+		out := &hikedOutput{}
+		out.Body, err = d.Discover.Hiked(ctx, id, email, float64(u.SpeedFactor), in.Year)
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{

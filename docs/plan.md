@@ -1016,6 +1016,16 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     back as `alvyo://signin` with a one-time code; only the app that started
     it can redeem it (PKCE). iOS keeps its own Apple sheet. Login with Strava
     (feedback issue 82) is not offered: [licensing.md](licensing.md).
+87. **What I hiked** (feedback issue 84, the first two of four steps). «Meine
+    Wanderungen» on the website and in the app: everything hiked on one map,
+    without a limit, see-through so that paths walked more often get darker,
+    with the numbers per year and overall. Only you see it. A route or journey
+    can be hiked again («Nochmals gewandert»): one mark per day, and «Nicht
+    gewandert» takes the latest back. A day counts once: a recording on the
+    same day beats a mark, and a mark on a journey under way adds only the
+    stages not ticked off. Still open from the issue: sharing, opt-in and
+    private by default (as plain lines without titles or links, 500 m cut at
+    both ends), and achievements.
 
 ### Open
 

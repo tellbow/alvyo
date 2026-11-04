@@ -1996,6 +1996,39 @@ class AppLocalizationsDe extends AppLocalizations {
   String get doneMark => 'Als gewandert markieren';
 
   @override
+  String get hikedTitle => 'Meine Wanderungen';
+
+  @override
+  String get hikedPrivate => 'Nur du siehst das.';
+
+  @override
+  String get hikedEmpty => 'Noch nichts gewandert. Markiere eine Route als gewandert oder zeichne eine Wanderung auf.';
+
+  @override
+  String get hikedAll => 'Alle';
+
+  @override
+  String get hikedHikes => 'Wanderungen';
+
+  @override
+  String get hikedDistance => 'Distanz';
+
+  @override
+  String get hikedAscent => 'Aufstieg';
+
+  @override
+  String get hikedTime => 'Zeit';
+
+  @override
+  String get hikedHighest => 'Höchster Punkt';
+
+  @override
+  String get hikedLongest => 'Längste';
+
+  @override
+  String get doneAgain => 'Nochmals gewandert';
+
+  @override
   String get doneRemove => 'Nicht gewandert';
 
   @override

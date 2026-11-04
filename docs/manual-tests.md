@@ -345,6 +345,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       private profile switch as on the website.
 - [ ] **Hiked in the app** (61): «Als gewandert markieren» with the date
       picker; the lists' «Geplant / Gewandert»; a recorded hike counts.
+- [ ] **Meine Wanderungen in the app** (87): Profil → Meine Wanderungen on iOS
+      and Android: the lines show on the map and fill the view, a year chip
+      changes lines, numbers and list, a tap on a line opens the route;
+      «Nochmals gewandert» adds a day, «Nicht gewandert» takes the latest back.
 
 - [ ] **Accounts since 2026-10-08**: logging in with an account whose
       address is not confirmed says «Bestätige zuerst deine E-Mail-Adresse

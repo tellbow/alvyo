@@ -2000,6 +2000,39 @@ class AppLocalizationsFr extends AppLocalizations {
   String get doneMark => 'Marquer comme faite';
 
   @override
+  String get hikedTitle => 'Mes randonnées';
+
+  @override
+  String get hikedPrivate => 'Toi seul vois ceci.';
+
+  @override
+  String get hikedEmpty => 'Rien de fait pour l\'instant. Marque un itinéraire comme fait ou enregistre une randonnée.';
+
+  @override
+  String get hikedAll => 'Toutes';
+
+  @override
+  String get hikedHikes => 'Randonnées';
+
+  @override
+  String get hikedDistance => 'Distance';
+
+  @override
+  String get hikedAscent => 'Montée';
+
+  @override
+  String get hikedTime => 'Temps';
+
+  @override
+  String get hikedHighest => 'Point culminant';
+
+  @override
+  String get hikedLongest => 'La plus longue';
+
+  @override
+  String get doneAgain => 'Refaite';
+
+  @override
   String get doneRemove => 'Pas faite';
 
   @override

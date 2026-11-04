@@ -44,6 +44,7 @@ export type CollectionItem = components['schemas']['CollectionItem'];
 export type SharedCollection = components['schemas']['CollectionShared'];
 export type DiscoverItem = components['schemas']['DiscoverItem'];
 export type MyMapItem = components['schemas']['DiscoverMineItem'];
+export type HikedItem = components['schemas']['DiscoverHikedItem'];
 export type ProtectedArea = components['schemas']['Area'];
 export type Notice = components['schemas']['Notice'];
 export type SnowAlong = components['schemas']['Along'];

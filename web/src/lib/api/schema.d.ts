@@ -1086,10 +1086,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Mark a journey as hiked, on a day */
+        /** Mark a journey as hiked on a day, also when hiked before */
         put: operations["mark-journey-done"];
         post?: never;
-        /** Take back one's mark; a recorded hike still counts */
+        /** Take back one's latest mark; earlier ones and a recorded hike still count */
         delete: operations["unmark-journey-done"];
         options?: never;
         head?: never;
@@ -1787,6 +1787,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/hiked": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What I have hiked: totals per year and the hikes of a year */
+        get: operations["my-hiked"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/homes": {
         parameters: {
             query?: never;
@@ -2219,10 +2236,10 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** Mark a route as hiked, on a day */
+        /** Mark a route as hiked on a day, also when hiked before */
         put: operations["mark-route-done"];
         post?: never;
-        /** Take back one's mark; a recorded hike still counts */
+        /** Take back one's latest mark; earlier ones and a recorded hike still count */
         delete: operations["unmark-route-done"];
         options?: never;
         head?: never;
@@ -3548,6 +3565,52 @@ export interface components {
             surface: components["schemas"]["Run"][];
             trail: components["schemas"]["Run"][];
             way_type: components["schemas"]["Run"][];
+        };
+        DiscoverHiked: {
+            /** @description Of the year asked for, newest first */
+            items: components["schemas"]["DiscoverHikedItem"][];
+            total: components["schemas"]["DiscoverHikedTotals"];
+            /** @description Newest first */
+            years: components["schemas"]["DiscoverHikedTotals"][];
+        };
+        DiscoverHikedItem: {
+            /** Format: double */
+            ascent_m: number;
+            /** Format: double */
+            distance_m: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "route" | "journey" | "hike";
+            lines: number[][][];
+            /** Format: date */
+            on: string;
+            /** Format: int64 */
+            time_s: number;
+            title: string;
+        };
+        DiscoverHikedTotals: {
+            /** Format: double */
+            ascent_m: number;
+            /** Format: double */
+            distance_m: number;
+            /** Format: double */
+            highest_m: number;
+            /**
+             * Format: int64
+             * @description A journey's stages count one by one
+             */
+            hikes: number;
+            /** Format: double */
+            longest_m: number;
+            longest_title: string;
+            /**
+             * Format: int64
+             * @description As recorded, otherwise the hiking time at one's pace
+             */
+            time_s: number;
+            /** Format: int64 */
+            year?: number;
         };
         DiscoverItem: {
             /** Format: double */
@@ -9733,6 +9796,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FriendLists"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "my-hiked": {
+        parameters: {
+            query?: {
+                /** @description Only this year's hikes; all if left out */
+                year?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoverHiked"];
                 };
             };
             /** @description Error */

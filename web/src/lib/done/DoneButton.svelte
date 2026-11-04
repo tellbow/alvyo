@@ -6,9 +6,9 @@
 	import { swissToday } from '#lib/travel/travel.js';
 	import { doneDate } from './done';
 
-	// «Gewandert»: the viewer marks a route or journey as hiked on a day, or
-	// takes their mark back; a recorded hike or ticked-off stages (by) count
-	// without one.
+	// «Gewandert»: the viewer marks a route or journey as hiked on a day, again
+	// on a later hike, or takes their latest mark back; a recorded hike or
+	// ticked-off stages (by) count without one.
 	let {
 		kind,
 		id,
@@ -35,8 +35,7 @@
 	let on = $state(doneOn);
 	// svelte-ignore state_referenced_locally
 	let isMarked = $state(marked);
-	// svelte-ignore state_referenced_locally
-	let day = $state(doneOn ?? today);
+	let day = $state(today);
 	let failed = $state(false);
 
 	async function call(mark: boolean) {
@@ -58,7 +57,7 @@
 		if (!data) return;
 		on = data.done_on;
 		isMarked = data.done_marked;
-		day = on ?? today;
+		day = today;
 		onchange?.(on);
 		close();
 	}
@@ -87,7 +86,7 @@
 			class="{menuItem} font-medium"
 			disabled={!day || day > today}
 			onclick={() => set(true, close)}
-			data-testid="{testid}-save">✓ {m.done_button()}</button
+			data-testid="{testid}-save">✓ {on ? m.done_again() : m.done_button()}</button
 		>
 		{#if on && isMarked}
 			<button

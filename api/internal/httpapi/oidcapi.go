@@ -18,6 +18,10 @@ import (
 // oidcCookie binds a sign-in to the browser that started it.
 const oidcCookie = "alvyo_oidc"
 
+// oidcAppCookie marks a sign-in the Android app started in a browser: its
+// PKCE challenge and language, «challenge.locale».
+const oidcAppCookie = "alvyo_oidc_app"
+
 type providersOutput struct {
 	Body struct {
 		Providers []providerInfo `json:"providers"`
@@ -33,6 +37,9 @@ type oidcStartInput struct {
 	Provider string `path:"provider"`
 	Redirect string `query:"redirect" doc:"Local path to return to"`
 	Link     bool   `query:"link" doc:"Connect the provider to the logged-in account instead of logging in"`
+	// The Android app signs in through a browser and gets back an alvyo:// link.
+	AppChallenge string `query:"app_challenge" pattern:"^[A-Za-z0-9_-]{43}$" doc:"From the app: base64url of the SHA-256 of its verifier"`
+	AppLocale    string `query:"app_locale" enum:"de,en,fr,it" doc:"From the app: the language of a new account"`
 }
 
 type oidcCallbackInput struct {
@@ -41,6 +48,7 @@ type oidcCallbackInput struct {
 	State     string `query:"state"`
 	Error     string `query:"error"`
 	Cookie    string `cookie:"alvyo_oidc"`
+	AppCookie string `cookie:"alvyo_oidc_app"`
 	UserAgent string `header:"User-Agent"`
 	Locale    string `cookie:"PARAGLIDE_LOCALE"`
 }
@@ -50,6 +58,7 @@ type oidcCallbackInput struct {
 type oidcPostInput struct {
 	Provider  string `path:"provider"`
 	Cookie    string `cookie:"alvyo_oidc"`
+	AppCookie string `cookie:"alvyo_oidc_app"`
 	UserAgent string `header:"User-Agent"`
 	Locale    string `cookie:"PARAGLIDE_LOCALE"`
 	RawBody   []byte `contentType:"application/x-www-form-urlencoded"`
@@ -64,6 +73,13 @@ type nativeSignInInput struct {
 		Nonce             string `json:"nonce" maxLength:"200" doc:"The raw nonce whose SHA-256 (hex) the app asked for"`
 		Name              string `json:"name,omitempty" maxLength:"200" doc:"The name Apple gave the app on the first sign-in"`
 		Locale            string `json:"locale,omitempty" enum:"de,en,fr,it"`
+	}
+}
+
+type appSignInInput struct {
+	Body struct {
+		Code     string `json:"code" maxLength:"100" doc:"From the alvyo:// link"`
+		Verifier string `json:"verifier" maxLength:"100" doc:"Whose SHA-256 was the app_challenge"`
 	}
 }
 
@@ -102,14 +118,14 @@ func registerOIDC(api huma.API, d Deps) {
 	if d.OIDC == nil {
 		d.OIDC = &auth.OIDC{} // no providers: start answers 404
 	}
-	cookie := func(value string, maxAge int) http.Cookie {
+	cookie := func(name, value string, maxAge int) http.Cookie {
 		// Apple posts its answer from its own site: a Lax cookie would stay
 		// behind. Without HTTPS (local development) browsers refuse None.
 		same := http.SameSiteNoneMode
 		if !d.secureCookies() {
 			same = http.SameSiteLaxMode
 		}
-		return http.Cookie{Name: oidcCookie, Value: value, Path: "/api/v1/auth/oidc", MaxAge: maxAge,
+		return http.Cookie{Name: name, Value: value, Path: "/api/v1/auth/oidc", MaxAge: maxAge,
 			HttpOnly: true, Secure: d.secureCookies(), SameSite: same}
 	}
 	// back sends the browser to a page of the web app, with an outcome
@@ -123,7 +139,15 @@ func registerOIDC(api huma.API, d Deps) {
 			path += sep + "oidc=" + url.QueryEscape(outcome)
 		}
 		return &redirectOutput{Status: http.StatusFound, Location: d.PublicURL + path,
-			SetCookie: append(cookies, cookie("", -1))}
+			SetCookie: append(cookies, cookie(oidcCookie, "", -1), cookie(oidcAppCookie, "", -1))}
+	}
+	// toApp sends the browser back into the Android app instead.
+	toApp := func(query string) *redirectOutput {
+		return &redirectOutput{Status: http.StatusFound, Location: "alvyo://signin?" + query,
+			SetCookie: []http.Cookie{cookie(oidcCookie, "", -1), cookie(oidcAppCookie, "", -1)}}
+	}
+	backToApp := func(_, outcome string, _ ...http.Cookie) *redirectOutput {
+		return toApp("oidc=" + url.QueryEscape(outcome))
 	}
 
 	huma.Register(api, huma.Operation{
@@ -144,6 +168,14 @@ func registerOIDC(api huma.API, d Deps) {
 		Description: "Redirects to the provider, which returns to /auth/oidc/{provider}/callback.",
 		Tags:        tags,
 	}, func(ctx context.Context, in *oidcStartInput) (*redirectOutput, error) {
+		back := back
+		// Always set: an unfinished sign-in of the app must not turn a later
+		// one on the website in the same browser into the app's.
+		appCookie := cookie(oidcAppCookie, "", -1)
+		if in.AppChallenge != "" {
+			back = backToApp
+			appCookie = cookie(oidcAppCookie, in.AppChallenge+"."+in.AppLocale, int((10 * time.Minute).Seconds()))
+		}
 		redirect := localPath(in.Redirect)
 		link := uuid.Nil
 		if in.Link {
@@ -175,12 +207,17 @@ func registerOIDC(api huma.API, d Deps) {
 			return back(redirect, "unavailable"), nil
 		}
 		return &redirectOutput{Status: http.StatusFound, Location: to,
-			SetCookie: []http.Cookie{cookie(state, int((10 * time.Minute).Seconds()))}}, nil
+			SetCookie: []http.Cookie{cookie(oidcCookie, state, int((10 * time.Minute).Seconds())), appCookie}}, nil
 	})
 
 	// callback finishes a sign-in from the provider's answer: user is the
 	// JSON Apple posts on the first sign-in.
 	callback := func(ctx context.Context, in *oidcCallbackInput, user string) (*redirectOutput, error) {
+		back := back
+		challenge, appLocale, app := strings.Cut(in.AppCookie, ".")
+		if app {
+			back, in.Locale = backToApp, appLocale
+		}
 		if in.Error != "" {
 			return back("/login", "cancelled"), nil
 		}
@@ -219,6 +256,9 @@ func registerOIDC(api huma.API, d Deps) {
 			return nil, err
 		}
 		slog.InfoContext(ctx, "oidc login", "provider", in.Provider, "user", u.ID)
+		if app {
+			return toApp("code=" + d.OIDC.KeepForApp(challenge, u, s)), nil
+		}
 		return back(redirect, "", newSessionCookie(s.Token, s.ExpiresAt, d.secureCookies())), nil
 	}
 
@@ -242,7 +282,7 @@ func registerOIDC(api huma.API, d Deps) {
 			return nil, huma.Error400BadRequest("not a form")
 		}
 		return callback(ctx, &oidcCallbackInput{Provider: in.Provider, Code: f.Get("code"), State: f.Get("state"),
-			Error: f.Get("error"), Cookie: in.Cookie, UserAgent: in.UserAgent, Locale: in.Locale}, f.Get("user"))
+			Error: f.Get("error"), Cookie: in.Cookie, AppCookie: in.AppCookie, UserAgent: in.UserAgent, Locale: in.Locale}, f.Get("user"))
 	})
 
 	huma.Register(api, huma.Operation{
@@ -279,6 +319,19 @@ func registerOIDC(api huma.API, d Deps) {
 			return nil, err
 		}
 		slog.InfoContext(ctx, "native login", "provider", in.Provider, "user", u.ID)
+		return d.sessionResponse(u, s), nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "app-sign-in", Method: http.MethodPost, Path: "/auth/app-sign-in",
+		Summary:     "The Android app fetches a sign-in finished in the browser",
+		Description: "Takes the one-time code from the alvyo:// link and the verifier of the app_challenge given to start.",
+		Tags:        tags,
+	}, func(_ context.Context, in *appSignInInput) (*sessionOutput, error) {
+		u, s, ok := d.OIDC.TakeForApp(in.Body.Code, in.Body.Verifier)
+		if !ok {
+			return nil, huma.Error401Unauthorized("sign-in expired or was started elsewhere")
+		}
 		return d.sessionResponse(u, s), nil
 	})
 

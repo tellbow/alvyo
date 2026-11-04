@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -13,6 +14,8 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
+
+	"github.com/tellbow/alvyo/api/internal/dbq"
 )
 
 // OIDC errors.
@@ -28,6 +31,9 @@ const oidcStateTTL = 10 * time.Minute
 
 // maxOIDCStates bounds the sign-ins under way (kept in memory).
 const maxOIDCStates = 10000
+
+// appLoginTTL bounds the way from the browser back into the app.
+const appLoginTTL = 2 * time.Minute
 
 // OIDCProvider is an OpenID Connect provider from the configuration.
 type OIDCProvider struct {
@@ -65,6 +71,15 @@ type OIDC struct {
 	mu      sync.Mutex
 	clients map[string]*oidcClient
 	states  map[string]oidcState
+	apps    map[string]appLogin
+}
+
+// appLogin is a finished sign-in waiting for the app that started it.
+type appLogin struct {
+	challenge string
+	user      dbq.User
+	session   Session
+	until     time.Time
 }
 
 type oidcClient struct {
@@ -208,6 +223,38 @@ func (o *OIDC) Finish(ctx context.Context, provider, state, cookie, code, user s
 		id.RefreshToken, id.TokenClient = tok.RefreshToken, c.config.ClientID
 	}
 	return id, st.redirect, st.link, nil
+}
+
+// KeepForApp holds a finished sign-in for the app that started it in a
+// browser, and returns the one-time code that goes back in the alvyo:// link.
+func (o *OIDC) KeepForApp(challenge string, u dbq.User, s Session) string {
+	code := random()
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if o.apps == nil {
+		o.apps = map[string]appLogin{}
+	}
+	for k, v := range o.apps {
+		if time.Now().After(v.until) {
+			delete(o.apps, k)
+		}
+	}
+	o.apps[code] = appLogin{challenge: challenge, user: u, session: s, until: time.Now().Add(appLoginTTL)}
+	return code
+}
+
+// TakeForApp hands a kept sign-in over once, to the holder of the challenge's
+// verifier (PKCE): another app that catches the link gets nothing.
+func (o *OIDC) TakeForApp(code, verifier string) (dbq.User, Session, bool) {
+	o.mu.Lock()
+	login, ok := o.apps[code]
+	delete(o.apps, code)
+	o.mu.Unlock()
+	sum := sha256.Sum256([]byte(verifier))
+	if !ok || time.Now().After(login.until) || base64.RawURLEncoding.EncodeToString(sum[:]) != login.challenge {
+		return dbq.User{}, Session{}, false
+	}
+	return login.user, login.session, true
 }
 
 // identityFrom checks the ID token in tok and reads who signed in.

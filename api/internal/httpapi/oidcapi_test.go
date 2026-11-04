@@ -171,6 +171,79 @@ func (c *client) location(path string) string {
 	return resp.Header.Get("Location")
 }
 
+func TestOIDCFromTheApp(t *testing.T) {
+	idp := newFakeIDP(t)
+	s := newTestServerWith(t, func(d *Deps) {
+		d.OIDC = &auth.OIDC{
+			Providers:   []auth.OIDCProvider{{ID: "test", Name: "Test-ID", Issuer: idp.URL, ClientID: "alvyo", ClientSecret: "geheim"}},
+			CallbackURL: func(id string) string { return origin + "/api/v1/auth/oidc/" + id + "/callback" },
+		}
+	})
+	const verifier = "the-apps-verifier-that-nobody-else-knows-012"
+	sum := sha256.Sum256([]byte(verifier))
+	start := "/api/v1/auth/oidc/test/start?app_locale=it&app_challenge=" + base64.RawURLEncoding.EncodeToString(sum[:])
+	signIn := func(c *client, claims map[string]any) string {
+		t.Helper()
+		code, state := idp.authorize(t, c.location(start), claims)
+		return c.location("/api/v1/auth/oidc/test/callback?code=" + code + "&state=" + state)
+	}
+	codeOf := func(to string) string {
+		t.Helper()
+		code, ok := strings.CutPrefix(to, "alvyo://signin?code=")
+		if !ok {
+			t.Fatalf("not back to the app with a code: %s", to)
+		}
+		return code
+	}
+
+	// The browser goes back into the app, and is not logged in itself.
+	browser := s.browser(t)
+	to := signIn(browser, map[string]any{"sub": "a-1", "email": "app@example.ch", "email_verified": true})
+	if code, _ := browser.do("GET", "/api/v1/me", nil); code != http.StatusUnauthorized {
+		t.Errorf("browser after the app's sign-in: %d, want 401", code)
+	}
+
+	// Whoever catches the link without the verifier gets nothing, and the
+	// code is gone.
+	app := s.client(t)
+	body := map[string]any{"code": codeOf(to), "verifier": "someone-else"}
+	if code, _ := app.do("POST", "/api/v1/auth/app-sign-in", body); code != http.StatusUnauthorized {
+		t.Errorf("wrong verifier: %d, want 401", code)
+	}
+	body["verifier"] = verifier
+	if code, _ := app.do("POST", "/api/v1/auth/app-sign-in", body); code != http.StatusUnauthorized {
+		t.Errorf("code used twice: %d, want 401", code)
+	}
+
+	// With the verifier the app logs in, in its language.
+	to = signIn(browser, map[string]any{"sub": "a-1"})
+	code, answer := app.do("POST", "/api/v1/auth/app-sign-in", map[string]any{"code": codeOf(to), "verifier": verifier})
+	if code != http.StatusOK || !strings.Contains(string(answer), `"username":"app"`) {
+		t.Fatalf("app sign-in: %d %s", code, answer)
+	}
+	if code, body := app.do("GET", "/api/v1/me", nil); code != http.StatusOK || !strings.Contains(string(body), `"locale":"it"`) {
+		t.Errorf("session in the app: %d %s", code, body)
+	}
+
+	// Refusals reach the app too.
+	owner := s.client(t)
+	s.signup(owner, "alt@example.ch", "alt")
+	if to := signIn(browser, map[string]any{"sub": "a-2", "email": "alt@example.ch", "email_verified": true}); to != "alvyo://signin?oidc=exists" {
+		t.Errorf("existing e-mail: %s", to)
+	}
+	browser.location(start)
+	if to := browser.location("/api/v1/auth/oidc/test/callback?error=access_denied"); to != "alvyo://signin?oidc=cancelled" {
+		t.Errorf("cancelled: %s", to)
+	}
+
+	// A later sign-in on the website in the same browser stays the website's.
+	browser.location(start)
+	code2, state := idp.authorize(t, browser.location("/api/v1/auth/oidc/test/start"), map[string]any{"sub": "a-1"})
+	if to := browser.location("/api/v1/auth/oidc/test/callback?code=" + code2 + "&state=" + state); to != origin+"/" {
+		t.Errorf("website after an unfinished app sign-in: %s", to)
+	}
+}
+
 func TestOIDC(t *testing.T) {
 	idp := newFakeIDP(t)
 	s := newTestServerWith(t, func(d *Deps) {

@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:alvyo/apple_sign_in.dart';
+import 'package:alvyo/browser_sign_in.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/screens/login_screen.dart';
 import 'package:alvyo/session.dart';
@@ -198,6 +199,94 @@ void main() {
     testWidgets('not offered when the server has no Apple sign-in', (tester) async {
       await open(tester, providers: ['google']);
       expect(find.byKey(const Key('apple')), findsNothing);
+    });
+  });
+
+  group('signing in through a browser (Android)', () {
+    /// The login screen as on Android: every provider, each in the browser.
+    Future<({List<Uri> opened, List<http.Request> asked})> open(
+      WidgetTester tester, {
+      void Function()? loggedIn,
+    }) async {
+      final opened = <Uri>[];
+      final asked = <http.Request>[];
+      signInAnswer.value = null;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('it'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: LoginScreen(
+            session: Session(),
+            onLoggedIn: (_) => loggedIn?.call(),
+            showServer: false,
+            browser: (u) async => opened.add(u),
+            client: MockClient((r) async {
+              if (r.url.path.endsWith('/auth/providers')) {
+                return http.Response(
+                  jsonEncode({
+                    'providers': [
+                      {'id': 'google', 'name': 'Google'},
+                      {'id': 'apple', 'name': 'Apple'},
+                    ],
+                  }),
+                  200,
+                );
+              }
+              asked.add(r);
+              return http.Response(
+                jsonEncode({
+                  'user': {'id': 'u1', 'username': 'anna', 'display_name': 'Anna', 'speed_factor': 1.0},
+                }),
+                200,
+                headers: {'set-cookie': 'alvyo_session=s3ss10n; Path=/; HttpOnly'},
+              );
+            }),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return (opened: opened, asked: asked);
+    }
+
+    testWidgets('both providers go to the browser, and the answer logs in with the verifier', (tester) async {
+      var loggedIn = false;
+      final r = await open(tester, loggedIn: () => loggedIn = true);
+      await tester.tap(find.byKey(const Key('apple')));
+      await tester.tap(find.text('Continua con Google'));
+      await tester.pumpAndSettle();
+      expect(r.opened.map((u) => u.path), ['/api/v1/auth/oidc/apple/start', '/api/v1/auth/oidc/google/start']);
+      expect(r.opened.last.queryParameters['app_locale'], 'it');
+
+      signInAnswer.value = Uri.parse('alvyo://signin?code=c0de');
+      await tester.pumpAndSettle();
+      final sent = jsonDecode(r.asked.single.body) as Map<String, dynamic>;
+      expect(r.asked.single.url.path, '/api/v1/auth/app-sign-in');
+      expect(sent['code'], 'c0de');
+      expect(challengeOf(sent['verifier'] as String), r.opened.last.queryParameters['app_challenge']);
+      expect(loggedIn, isTrue);
+    });
+
+    testWidgets('an answer nobody here asked for is ignored', (tester) async {
+      final r = await open(tester);
+      signInAnswer.value = Uri.parse('alvyo://signin?code=someone-elses');
+      await tester.pumpAndSettle();
+      expect(r.asked, isEmpty);
+    });
+
+    testWidgets('a refusal is said, a cancel is not', (tester) async {
+      await open(tester);
+      await tester.tap(find.text('Continua con Google'));
+      await tester.pumpAndSettle();
+      signInAnswer.value = Uri.parse('alvyo://signin?oidc=cancelled');
+      await tester.pumpAndSettle();
+      expect(find.textContaining('fornitore'), findsNothing);
+
+      await tester.tap(find.text('Continua con Google'));
+      await tester.pumpAndSettle();
+      signInAnswer.value = Uri.parse('alvyo://signin?oidc=exists');
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Esiste già un account'), findsOneWidget);
     });
   });
 }

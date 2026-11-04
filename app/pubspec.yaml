@@ -41,6 +41,8 @@ flutter:
   assets:
     - assets/fonts/OFL-Figtree.txt
     - assets/fonts/OFL-BricolageGrotesque.txt
+    - assets/google_g_light.png
+    - assets/google_g_dark.png
   fonts:
     - family: Figtree
       fonts:

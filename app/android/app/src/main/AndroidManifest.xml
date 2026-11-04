@@ -81,6 +81,19 @@
                 <data android:pathPrefix="/it/friends/invite/" />
             </intent-filter>
         </activity>
+        <!-- A provider's sign-in comes back from the browser: alvyo://signin?… -->
+        <activity
+            android:name=".SignInAnswerActivity"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="alvyo" android:host="signin" />
+            </intent-filter>
+        </activity>
         <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
         <!-- Google Analytics (lib/analytics.dart): nothing collected until the
              user agrees, never the advertising id; screens are named by the

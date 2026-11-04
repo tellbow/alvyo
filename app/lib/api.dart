@@ -1571,6 +1571,17 @@ class Api {
     return _loggedIn(r);
   }
 
+  /// Logs in with a sign-in finished in the browser: the code from its
+  /// alvyo:// link and the verifier of the challenge it was started with.
+  Future<Me> browserSignIn(String code, String verifier) async {
+    final r = await _http.post(
+      _uri('/auth/app-sign-in'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({'code': code, 'verifier': verifier}),
+    );
+    return _loggedIn(r);
+  }
+
   /// Takes the session from a login's answer.
   Me _loggedIn(http.Response r) {
     final body = _decode(r) as Map<String, dynamic>;
@@ -1583,10 +1594,10 @@ class Api {
     return me;
   }
 
-  /// The ids of the sign-in providers the server offers, e.g. «apple».
-  Future<List<String>> providers() async => [
+  /// The sign-in providers the server offers, e.g. «apple».
+  Future<List<({String id, String name})>> providers() async => [
     for (final p in ((await _get('/auth/providers')) as Map<String, dynamic>)['providers'] as List? ?? const [])
-      (p as Map<String, dynamic>)['id'] as String,
+      (id: (p as Map<String, dynamic>)['id'] as String, name: p['name'] as String),
   ];
 
   /// Signs up; the server answers the same for an address with an account

@@ -54,8 +54,30 @@ class AppLocalizationsIt extends AppLocalizations {
   String get appleContinue => 'Continua con Apple';
 
   @override
+  String get googleContinue => 'Continua con Google';
+
+  @override
   String get appleExists =>
       'Esiste già un account con questo indirizzo e-mail. Accedi con la tua password e collega Apple sul sito web in «Account».';
+
+  @override
+  String providerLogin(String provider) {
+    return 'Accedi con $provider';
+  }
+
+  @override
+  String get providerExists =>
+      'Esiste già un account con questo indirizzo e-mail. Accedi con la tua password e collega il fornitore sul sito web in «Account».';
+
+  @override
+  String get providerNoEmail =>
+      'Il fornitore non ha trasmesso alcun indirizzo e-mail. Registrati con e-mail e password.';
+
+  @override
+  String get providerBanned => 'Questo account è bloccato.';
+
+  @override
+  String get providerFailed => 'L\'accesso presso il fornitore non è riuscito. Riprova.';
 
   @override
   String get logoutOthers => 'Esci su tutti gli altri dispositivi';

@@ -10,6 +10,7 @@ import 'wide.dart';
 
 import '../api.dart';
 import '../apple_sign_in.dart';
+import '../browser_sign_in.dart';
 import '../l10n/app_localizations.dart';
 import '../session.dart';
 
@@ -22,6 +23,7 @@ class LoginScreen extends StatefulWidget {
     this.client,
     this.showServer = kDebugMode,
     this.appleSheet,
+    this.browser,
   });
   final Session session;
   final void Function(Api api) onLoggedIn;
@@ -36,6 +38,9 @@ class LoginScreen extends StatefulWidget {
   /// The system's «Sign in with Apple» sheet, on iOS; tests pass their own.
   final Future<AppleCredential?> Function(String nonce)? appleSheet;
 
+  /// Opens a provider's sign-in in a browser, on Android; tests pass their own.
+  final Future<void> Function(Uri start)? browser;
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -47,15 +52,23 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _busy = false;
   String? _error;
 
-  /// Whether the server offers Sign in with Apple.
-  bool _apple = false;
+  /// The sign-in providers the server offers and this platform can use.
+  List<({String id, String name})> _providers = const [];
+
+  /// The verifier of the sign-in under way in the browser.
+  // shortcut: in memory only, so if Android ends the app meanwhile, the sign-in starts over.
+  String? _verifier;
 
   Future<AppleCredential?> Function(String nonce)? get _sheet =>
       widget.appleSheet ?? (Platform.isIOS ? appleSignIn : null);
 
+  Future<void> Function(Uri start)? get _browser =>
+      widget.browser ?? (Platform.isAndroid ? (u) => launchUrl(u, mode: LaunchMode.inAppBrowserView) : null);
+
   @override
   void initState() {
     super.initState();
+    signInAnswer.addListener(_onSignInAnswer);
     if (!widget.showServer) {
       _server.text = Session.defaultServer;
       _loadProviders(Session.defaultServer);
@@ -69,10 +82,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loadProviders(String server) async {
-    if (_sheet == null || server.isEmpty) return;
+    if ((_sheet == null && _browser == null) || server.isEmpty) return;
     try {
-      final ids = await Api(server, client: widget.client).providers();
-      if (mounted) setState(() => _apple = ids.contains('apple'));
+      final all = await Api(server, client: widget.client).providers();
+      // With the system's sheet only Apple; in a browser all of them.
+      if (mounted) setState(() => _providers = _browser != null ? all : all.where((p) => p.id == 'apple').toList());
     } catch (_) {
       // offline or an older server: the password only
     }
@@ -80,6 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    signInAnswer.removeListener(_onSignInAnswer);
     _server.dispose();
     _login.dispose();
     _password.dispose();
@@ -147,6 +162,59 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Goes to [provider] in a browser; [_onSignInAnswer] takes it from there.
+  /// Not busy meanwhile: the person may close the browser and try again.
+  Future<void> _signInInBrowser(String provider) async {
+    final verifier = _verifier = newNonce();
+    setState(() => _error = null);
+    final start = Uri.parse('${Api(_server.text.trim()).server}/api/v1/auth/oidc/$provider/start');
+    await _browser!(
+      start.replace(
+        queryParameters: {
+          'app_challenge': challengeOf(verifier),
+          'app_locale': Localizations.localeOf(context).languageCode,
+        },
+      ),
+    );
+  }
+
+  Future<void> _onSignInAnswer() async {
+    final answer = signInAnswer.value, verifier = _verifier;
+    if (answer == null || verifier == null) return; // not asked for here
+    _verifier = null;
+    final t = AppLocalizations.of(context);
+    final code = answer.queryParameters['code'];
+    if (code == null) {
+      setState(
+        () => _error = switch (answer.queryParameters['oidc']) {
+          'cancelled' => null,
+          'exists' => t.providerExists,
+          'noemail' => t.providerNoEmail,
+          'banned' => t.providerBanned,
+          'busy' => t.errorTooMany,
+          _ => t.providerFailed,
+        },
+      );
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final api = Api(_server.text.trim(), client: widget.client);
+    try {
+      await api.browserSignIn(code, verifier);
+      await widget.session.save(api);
+      widget.onLoggedIn(api);
+    } on ApiException {
+      if (mounted) setState(() => _error = t.providerFailed);
+    } catch (_) {
+      if (mounted) setState(() => _error = t.errorServer);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   /// A page of the server's website, in a browser view inside the app
   /// (App Review wants no switch to Safari around signing in).
   Future<void> _web(String page) =>
@@ -195,12 +263,45 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   ),
                 FilledButton(key: const Key('submit'), onPressed: _busy ? null : _submit, child: Text(t.loginSubmit)),
-                if (_apple) ...[
+                for (final p in _providers.where((p) => p.id != 'apple')) ...[
+                  const SizedBox(height: 8),
+                  if (p.id == 'google')
+                    // Google's branding guidelines: its logo unchanged, these colours and gaps.
+                    OutlinedButton(
+                      key: Key('provider-${p.id}'),
+                      onPressed: _busy ? null : () => _signInInBrowser(p.id),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: dark ? const Color(0xFF131314) : Colors.white,
+                        foregroundColor: dark ? const Color(0xFFE3E3E3) : const Color(0xFF1F1F1F),
+                        side: BorderSide(color: dark ? const Color(0xFF8E918F) : const Color(0xFF747775)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset('assets/google_g_${dark ? 'dark' : 'light'}.png', width: 20, height: 20),
+                          const SizedBox(width: 10),
+                          Flexible(child: Text(t.googleContinue)),
+                        ],
+                      ),
+                    )
+                  else
+                    OutlinedButton(
+                      key: Key('provider-${p.id}'),
+                      onPressed: _busy ? null : () => _signInInBrowser(p.id),
+                      child: Text(t.providerLogin(p.name)),
+                    ),
+                ],
+                if (_providers.any((p) => p.id == 'apple')) ...[
                   const SizedBox(height: 8),
                   // Apple's guidelines: black with its logo, white when dark.
                   FilledButton.icon(
                     key: const Key('apple'),
-                    onPressed: _busy ? null : _signInWithApple,
+                    onPressed: _busy
+                        ? null
+                        : _sheet != null
+                        ? _signInWithApple
+                        : () => _signInInBrowser('apple'),
                     style: FilledButton.styleFrom(
                       backgroundColor: dark ? Colors.white : Colors.black,
                       foregroundColor: dark ? Colors.black : Colors.white,

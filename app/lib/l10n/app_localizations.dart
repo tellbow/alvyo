@@ -184,11 +184,47 @@ abstract class AppLocalizations {
   /// **'Mit Apple fortfahren'**
   String get appleContinue;
 
+  /// No description provided for @googleContinue.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Google fortfahren'**
+  String get googleContinue;
+
   /// No description provided for @appleExists.
   ///
   /// In de, this message translates to:
   /// **'Es gibt schon ein Konto mit dieser E-Mail-Adresse. Melde dich mit deinem Passwort an und verbinde Apple auf der Website unter «Konto».'**
   String get appleExists;
+
+  /// No description provided for @providerLogin.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit {provider} anmelden'**
+  String providerLogin(String provider);
+
+  /// No description provided for @providerExists.
+  ///
+  /// In de, this message translates to:
+  /// **'Es gibt schon ein Konto mit dieser E-Mail-Adresse. Melde dich mit deinem Passwort an und verbinde den Anbieter auf der Website unter «Konto».'**
+  String get providerExists;
+
+  /// No description provided for @providerNoEmail.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Anbieter hat keine E-Mail-Adresse übermittelt. Registriere dich mit E-Mail und Passwort.'**
+  String get providerNoEmail;
+
+  /// No description provided for @providerBanned.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieses Konto ist gesperrt.'**
+  String get providerBanned;
+
+  /// No description provided for @providerFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Anmeldung beim Anbieter hat nicht geklappt. Versuche es noch einmal.'**
+  String get providerFailed;
 
   /// No description provided for @logoutOthers.
   ///

@@ -262,6 +262,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/app-sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The Android app fetches a sign-in finished in the browser
+         * @description Takes the one-time code from the alvyo:// link and the verifier of the app_challenge given to start.
+         */
+        post: operations["app-sign-in"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/apple/notifications": {
         parameters: {
             query?: never;
@@ -3137,6 +3157,12 @@ export interface components {
             /** @description The ways between the two points, the shortest first; [lon, lat] per point */
             ways: number[][][];
         };
+        AppSignInInputBody: {
+            /** @description From the alvyo:// link */
+            code: string;
+            /** @description Whose SHA-256 was the app_challenge */
+            verifier: string;
+        };
         AppleNotificationInputBody: {
             payload: string;
         };
@@ -5927,6 +5953,40 @@ export interface operations {
             };
         };
     };
+    "app-sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppSignInInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "apple-notification": {
         parameters: {
             query?: never;
@@ -6064,6 +6124,7 @@ export interface operations {
             };
             cookie?: {
                 alvyo_oidc?: string;
+                alvyo_oidc_app?: string;
                 PARAGLIDE_LOCALE?: string;
             };
         };
@@ -6100,6 +6161,7 @@ export interface operations {
             };
             cookie?: {
                 alvyo_oidc?: string;
+                alvyo_oidc_app?: string;
                 PARAGLIDE_LOCALE?: string;
             };
         };
@@ -6174,6 +6236,10 @@ export interface operations {
                 redirect?: string;
                 /** @description Connect the provider to the logged-in account instead of logging in */
                 link?: boolean;
+                /** @description From the app: base64url of the SHA-256 of its verifier */
+                app_challenge?: string;
+                /** @description From the app: the language of a new account */
+                app_locale?: "de" | "en" | "fr" | "it";
             };
             header?: never;
             path: {

@@ -1010,6 +1010,13 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     disk, bug reports retried, a rolling update on shared storage, the
     Basiskarte through our tile cache.
 
+86. **Google and Apple sign-in on Android** (feedback issue 81). The Android
+    app's login offers the server's providers. A sign-in runs in a Custom Tab
+    through the website's flow, so the providers need no new setup, and comes
+    back as `alvyo://signin` with a one-time code; only the app that started
+    it can redeem it (PKCE). iOS keeps its own Apple sheet. Login with Strava
+    (feedback issue 82) is not offered: [licensing.md](licensing.md).
+
 ### Open
 
 14 was added on 2026-09-24 from a survey of Komoot, AllTrails,

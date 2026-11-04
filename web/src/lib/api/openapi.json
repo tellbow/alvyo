@@ -428,6 +428,26 @@
         ],
         "type": "object"
       },
+      "AppSignInInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "description": "From the alvyo:// link",
+            "maxLength": 100,
+            "type": "string"
+          },
+          "verifier": {
+            "description": "Whose SHA-256 was the app_challenge",
+            "maxLength": 100,
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "verifier"
+        ],
+        "type": "object"
+      },
       "AppleNotificationInputBody": {
         "additionalProperties": false,
         "properties": {
@@ -7962,6 +7982,55 @@
         ]
       }
     },
+    "/auth/app-sign-in": {
+      "post": {
+        "description": "Takes the one-time code from the alvyo:// link and the verifier of the app_challenge given to start.",
+        "operationId": "app-sign-in",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppSignInInputBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionOutputBody"
+                }
+              }
+            },
+            "description": "OK",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "The Android app fetches a sign-in finished in the browser",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/apple/notifications": {
       "post": {
         "description": "Apple tells when someone stops using Sign in with Apple with Alvyo or deletes their Apple account: the identity is removed.",
@@ -8154,6 +8223,13 @@
             }
           },
           {
+            "in": "cookie",
+            "name": "alvyo_oidc_app",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "in": "header",
             "name": "User-Agent",
             "schema": {
@@ -8215,6 +8291,13 @@
           {
             "in": "cookie",
             "name": "alvyo_oidc",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "alvyo_oidc_app",
             "schema": {
               "type": "string"
             }
@@ -8376,6 +8459,33 @@
             "schema": {
               "description": "Connect the provider to the logged-in account instead of logging in",
               "type": "boolean"
+            }
+          },
+          {
+            "description": "From the app: base64url of the SHA-256 of its verifier",
+            "explode": false,
+            "in": "query",
+            "name": "app_challenge",
+            "schema": {
+              "description": "From the app: base64url of the SHA-256 of its verifier",
+              "pattern": "^[A-Za-z0-9_-]{43}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "From the app: the language of a new account",
+            "explode": false,
+            "in": "query",
+            "name": "app_locale",
+            "schema": {
+              "description": "From the app: the language of a new account",
+              "enum": [
+                "de",
+                "en",
+                "fr",
+                "it"
+              ],
+              "type": "string"
             }
           }
         ],

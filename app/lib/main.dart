@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'api.dart';
+import 'browser_sign_in.dart';
 import 'bug_report.dart';
 import 'format.dart';
 import 'l10n/app_localizations.dart';
@@ -59,6 +60,10 @@ class _AlvyoAppState extends State<AlvyoApp> with WidgetsBindingObserver {
   /// A link to a route, journey or collection, while the app runs.
   @override
   Future<bool> didPushRouteInformation(RouteInformation info) async {
+    if (info.uri.scheme == 'alvyo' && info.uri.host == 'signin') {
+      signInAnswer.value = info.uri;
+      return true;
+    }
     final link = parseItemLink(info.uri.toString());
     if (link == null) return false;
     _pending = link;

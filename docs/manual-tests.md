@@ -490,6 +490,12 @@ with «Install unknown apps» allowed for the browser or files app. The
 emulator ran the integration tests offline, navigate and journey
 (2026-10-12); the rest needs a phone.
 
+- [ ] **Google and Apple sign-in** (production, after a release with the new
+  API): both from the login screen, with Chrome and with another default
+  browser; the browser closes and the app is logged in; a cancel leaves the
+  login screen without a message; while a sign-in is open, switch away and
+  back. Emulator 2026-11-04 (debug APK, local API, the fake provider as
+  `google`): the Custom Tab closed, the same activity came back logged in.
 - [ ] **The map in a release build** (production): routes, journeys, the
   offline map; release builds shrink the code, which the emulator tests
   (debug builds) do not.

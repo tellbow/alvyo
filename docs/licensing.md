@@ -61,9 +61,16 @@ terms change, so check again when a source's use changes.
 | Mapterhorn terrain tiles | 3D terrain, the peak pack's height grid | [attribution](https://mapterhorn.com/attribution); sources per region (Copernicus GLO-30, swissALTI3D, neighbouring countries' models: mostly CC BY 4.0 and open government licences) | the 3D map's attribution, the peak camera, About pages, NOTICE |
 | AWS Terrain Tiles (Mapzen, skadi) | heights in the GraphHopper graph (reach areas) | [Mapzen attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md): EU-DEM («produced using Copernicus data and information funded by the European Union»), SRTM (USGS) | the reach areas' attribution, About pages, NOTICE |
 | Google Analytics | page views; in the app (Firebase, the same property) the kinds of screens opened | [Terms](https://marketingplatform.google.com/about/analytics/terms/us/) (checked 2026-10-25, free, apps through the SDK too): disclose its use and how it collects data, including device identifiers, in the privacy policy; consent where the law requires it; nothing Google could recognise as personal. [Firebase terms](https://firebase.google.com/terms) (2026-09-24) accepted in the console. Website: cookies only after consent; app: nothing sent before consent, no advertising id (`FirebaseAnalyticsCore`, `FIREBASE_ANALYTICS_WITHOUT_ADID`), the analytics id deleted on refusal | About page (privacy), the app's consent sheet; App Store privacy labels: Usage Data and Identifiers, not linked, no tracking |
-| Google and Apple sign-in | optional login | provider terms; Apple requires Sign in with Apple in the app when another provider is offered there (guideline 4.8), its tokens revoked when an account is deleted (5.1.1(v)), and its button as Apple designs it | privacy text |
+| Google and Apple sign-in | optional login | provider terms; Google's [branding guidelines](https://developers.google.com/identity/branding-guidelines) (checked 2026-11-04) for its button in the Android app: the unchanged «G» from its asset bundle, its colours and gaps; Apple requires Sign in with Apple in the app when another provider is offered there (guideline 4.8), its tokens revoked when an account is deleted (5.1.1(v)), and its button as Apple designs it | privacy text |
 | Infomaniak (SMTP) | e-mails | provider terms | privacy text |
 | GitHub API | bug reports as issues | issues in a public repository are public: the report form says so | the report form, privacy text |
+
+Strava: no login with Strava (feedback issue 82, declined 2026-11-04). The
+[API Policy](https://www.strava.com/legal/api_policy) §5.2 (effective
+2026-06-01) forbids use «in any manner that is competitive to Strava», and
+Alvyo records and shares hikes with a feed. Besides: no OpenID Connect, no
+e-mail address in its [API reference](https://developers.strava.com/docs/reference/),
+and more than one athlete only at Strava's discretion (§3.6).
 
 Komoot: the password-based import through Komoot's unofficial API was
 removed on 2026-10-12. Komoot's terms forbid exporting tours other than

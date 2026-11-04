@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/tellbow/alvyo/api/internal/discover"
@@ -30,7 +31,7 @@ func TestHiked(t *testing.T) {
 	me, other := signup("hiker"), signup("other")
 	create := func(c *client, title string, lon float64) (string, float64, float64, int) {
 		t.Helper()
-		code, b := c.do("POST", "/api/v1/routes", legsRoute(title, lon, 2, "T2"))
+		code, b := c.do("POST", "/api/v1/routes", legsRoute(title, lon, 40, "T2"))
 		if code != http.StatusCreated {
 			t.Fatalf("create: %d %s", code, b)
 		}
@@ -186,11 +187,198 @@ func TestHiked(t *testing.T) {
 		t.Errorf("hiked again: %d, want 2", got)
 	}
 
+	testSharedHiked(t, s, me, other, theirs)
+
 	// Only one's own.
 	if h := hiked(other, ""); h.Total.Hikes != 2 || h.Items[1].Title != "Fremd" && h.Items[0].Title != "Fremd" {
 		t.Errorf("other's: %+v", h)
 	}
 	if code, _ := s.client(t).do("GET", "/api/v1/me/hiked", nil); code != http.StatusUnauthorized {
 		t.Errorf("logged out: %d", code)
+	}
+}
+
+// testSharedHiked: me has hiked the routes above, and other's public route theirs.
+func testSharedHiked(t *testing.T, s *testServer, me, other *client, theirs string) {
+	t.Helper()
+	ctx := context.Background()
+	exec := func(q string, args ...any) {
+		t.Helper()
+		if _, err := s.db.Exec(ctx, q, args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	type shared struct {
+		Total        *discover.HikedTotals
+		Years        []discover.HikedTotals
+		Lines        [][][2]float64
+		Achievements *discover.Achievements
+	}
+	anon := s.client(t)
+	get := func(c *client) (int, shared, string) {
+		t.Helper()
+		code, b := c.do("GET", "/api/v1/users/hiker/hiked", nil)
+		var out shared
+		if code == http.StatusOK {
+			if err := json.Unmarshal(b, &out); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return code, out, string(b)
+	}
+	set := func(body map[string]any) {
+		t.Helper()
+		if code, b := me.do("PATCH", "/api/v1/me", body); code != http.StatusOK {
+			t.Fatalf("settings: %d %s", code, b)
+		}
+	}
+	profileShared := func(c *client) bool {
+		t.Helper()
+		_, b := c.do("GET", "/api/v1/users/hiker", nil)
+		var p struct {
+			HikedShared bool `json:"hiked_shared"`
+		}
+		_ = json.Unmarshal(b, &p)
+		return p.HikedShared
+	}
+
+	// Nothing by default, for anyone, oneself included.
+	for name, c := range map[string]*client{"self": me, "other": other, "anonymous": anon} {
+		if code, _, _ := get(c); code != http.StatusNotFound {
+			t.Errorf("by default, %s: %d", name, code)
+		}
+	}
+	if code, b := me.do("PATCH", "/api/v1/me", map[string]any{"share_map": "everybody"}); code != http.StatusUnprocessableEntity {
+		t.Errorf("an unknown level: %d %s", code, b)
+	}
+
+	// For friends: not for others. Each choice on its own.
+	set(map[string]any{"share_stats": "friends"})
+	if code, _, _ := get(other); code != http.StatusNotFound || profileShared(other) {
+		t.Errorf("not friends yet: %d", code)
+	}
+	if code, b := me.do("PUT", "/api/v1/users/other/friend", nil); code != http.StatusOK && code != http.StatusNoContent {
+		t.Fatalf("friend request: %d %s", code, b)
+	}
+	if code, b := other.do("PUT", "/api/v1/users/hiker/friend", nil); code != http.StatusOK && code != http.StatusNoContent {
+		t.Fatalf("friend accept: %d %s", code, b)
+	}
+	code, got, body := get(other)
+	if code != http.StatusOK || got.Total == nil || got.Total.Hikes == 0 || len(got.Years) == 0 || got.Lines != nil || got.Achievements != nil {
+		t.Errorf("numbers for a friend: %d %s", code, body)
+	}
+	if !profileShared(other) {
+		t.Error("the profile should say so")
+	}
+	if code, _, _ := get(anon); code != http.StatusNotFound {
+		t.Errorf("numbers for friends, anonymous: %d", code)
+	}
+
+	// The map, for all: plain lines, 500 m cut, without someone else's private
+	// route (made so here), without a title or a date anywhere.
+	set(map[string]any{"share_stats": "nobody", "share_map": "public"})
+	code, got, body = get(anon)
+	if code != http.StatusOK || got.Total != nil || got.Achievements != nil || len(got.Lines) == 0 {
+		t.Fatalf("the map for all: %d %s", code, body)
+	}
+	for _, leak := range []string{"Zweimal", "Aufgezeichnet", "Plan", "Via", "2025-", "2026-", "on\":"} {
+		if strings.Contains(body, leak) {
+			t.Errorf("%q in what is shared: %s", leak, body[:200])
+		}
+	}
+	// The test's routes run due east, so a line covers a range of longitudes.
+	covers := func(lines [][][2]float64, lon float64) bool {
+		for _, l := range lines {
+			if min(l[0][0], l[len(l)-1][0]) <= lon && lon <= max(l[0][0], l[len(l)-1][0]) {
+				return true
+			}
+		}
+		return false
+	}
+	// Zweimal starts at 8.00 and no other route comes near; 500 m are 0.0065°.
+	if covers(got.Lines, 8.003) || !covers(got.Lines, 8.01) {
+		t.Errorf("a planned route without the first 500 m: %v", got.Lines)
+	}
+	// theirs is marked and public: shown. Otherwise not, though still hiked.
+	exec(`UPDATE routes SET visibility = 'public' WHERE id = $1`, theirs)
+	if _, got, _ = get(anon); !covers(got.Lines, 8.15) {
+		t.Errorf("someone else's public route should show")
+	}
+	exec(`UPDATE routes SET visibility = 'unlisted' WHERE id = $1`, theirs)
+	if _, got, _ = get(anon); covers(got.Lines, 8.15) {
+		t.Errorf("someone else's route that is not public shows on the shared map")
+	}
+
+	// A private profile: public means friends.
+	exec(`UPDATE users SET profile_public = false WHERE username = 'hiker'`)
+	if code, _, _ := get(anon); code != http.StatusNotFound {
+		t.Errorf("private profile, anonymous: %d", code)
+	}
+	if code, _, _ := get(other); code != http.StatusOK {
+		t.Errorf("private profile, friend: %d", code)
+	}
+	exec(`UPDATE users SET profile_public = true WHERE username = 'hiker'`)
+
+	// Achievements: what the hikes passed, and nothing else. Zweimal is at 8.00.
+	var lon, lat float64
+	if err := s.db.QueryRow(ctx, `SELECT ST_X(ST_LineInterpolatePoint(ST_Force2D(geom), 0.5)), ST_Y(ST_LineInterpolatePoint(ST_Force2D(geom), 0.5)) FROM routes WHERE title = 'Zweimal'`).Scan(&lon, &lat); err != nil {
+		t.Fatal(err)
+	}
+	exec(`INSERT INTO pois (kind, name, ele, source_id, geom) VALUES
+		('peak', 'Nahgipfel', 2500, 't1', ST_SetSRID(ST_MakePoint($1, $2), 4326)),
+		('peak', 'Hochgipfel', 3000, 't2', ST_SetSRID(ST_MakePoint($1, $2), 4326)),
+		('peak', '', 2000, 't3', ST_SetSRID(ST_MakePoint($1, $2), 4326)),
+		('peak', 'Ferngipfel', 4000, 't4', ST_SetSRID(ST_MakePoint($1, $2 + 0.05), 4326)),
+		('viewpoint', 'Aussicht', 1000, 't5', ST_SetSRID(ST_MakePoint($1, $2), 4326))`, lon, lat)
+	exec(`INSERT INTO places (kind, name, source, source_id, geom) VALUES
+		('hut', 'Nahhütte', 'osm', 't1', ST_SetSRID(ST_MakePoint($1, $2), 4326)),
+		('hut', 'Fernhütte', 'osm', 't2', ST_SetSRID(ST_MakePoint($1, $2 + 0.05), 4326)),
+		('hotel', 'Hotel', 'osm', 't3', ST_SetSRID(ST_MakePoint($1, $2), 4326))`, lon, lat)
+	var twice string
+	if err := s.db.QueryRow(ctx, `SELECT id FROM routes WHERE title = 'Zweimal'`).Scan(&twice); err != nil {
+		t.Fatal(err)
+	}
+	var unhiked string
+	if err := s.db.QueryRow(ctx, `SELECT id FROM routes WHERE title = 'Nur geplant'`).Scan(&unhiked); err != nil {
+		t.Fatal(err)
+	}
+	exec(`INSERT INTO official (nr, kind, route_id, hash) VALUES ('1', 'national', $1, ''), ('2', 'national', $2, '')`, twice, unhiked)
+
+	code, b := me.do("GET", "/api/v1/me/achievements", nil)
+	var a discover.Achievements
+	if code != http.StatusOK || json.Unmarshal(b, &a) != nil {
+		t.Fatalf("achievements: %d %s", code, b)
+	}
+	if len(a.Summits) != 2 || a.Summits[0].Name != "Hochgipfel" || a.Summits[1].Name != "Nahgipfel" {
+		t.Errorf("summits: %+v", a.Summits)
+	}
+	if len(a.Huts) != 1 || a.Huts[0] != "Nahhütte" {
+		t.Errorf("huts: %+v", a.Huts)
+	}
+	// 8.0, 46.5 and thereabouts: the lines of this test lie in Bern or Valais.
+	if a.CantonsTotal != 26 || len(a.Cantons) == 0 {
+		t.Errorf("cantons: %+v", a.Cantons)
+	}
+	if len(a.Official) != 1 || a.Official[0] != (discover.OfficialDone{Kind: "national", Done: 1, Total: 2}) {
+		t.Errorf("official: %+v", a.Official)
+	}
+	var n int
+	if err := s.db.QueryRow(ctx, `SELECT count(*) FROM cantons WHERE ST_IsValid(geom)`).Scan(&n); err != nil || n != 26 {
+		t.Errorf("valid cantons: %d %v", n, err)
+	}
+
+	// Shared on its own.
+	set(map[string]any{"share_map": "nobody", "share_achievements": "friends"})
+	code, got, body = get(other)
+	if code != http.StatusOK || got.Lines != nil || got.Total != nil || got.Achievements == nil || len(got.Achievements.Summits) != 2 {
+		t.Errorf("achievements for a friend: %d %s", code, body)
+	}
+
+	// Blocking ends a friendship, and with it what was shared with friends.
+	if code, b := me.do("PUT", "/api/v1/users/other/block", nil); code != http.StatusOK && code != http.StatusNoContent {
+		t.Fatalf("block: %d %s", code, b)
+	}
+	if code, _, _ := get(other); code != http.StatusNotFound {
+		t.Errorf("blocked: %d", code)
 	}
 }

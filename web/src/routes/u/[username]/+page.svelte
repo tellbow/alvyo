@@ -122,6 +122,20 @@
 			{/each}
 		</dl>
 
+		{#if profile.self}
+			<p class="mt-4 text-sm">
+				<a href={resolve('/hiked')} class="text-accent-ink underline">{m.hiked_title()}</a>
+			</p>
+		{:else if profile.hiked_shared}
+			<p class="mt-4 text-sm">
+				<a
+					href={resolve('/u/[username]/hiked', { username: profile.username })}
+					class="text-accent-ink underline"
+					data-testid="profile-hiked">{m.hiked_by({ name: profile.display_name })}</a
+				>
+			</p>
+		{/if}
+
 		{#if data.user && !profile.self}
 			<div class="mt-4 flex flex-wrap items-center gap-3 text-xs">
 				<button

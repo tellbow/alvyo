@@ -10,6 +10,7 @@ import '../api.dart';
 import '../avatar.dart';
 import '../l10n/app_localizations.dart';
 import 'friends_screen.dart';
+import 'hiked_screen.dart';
 import 'item_card.dart';
 import 'outline.dart';
 import 'report_dialog.dart';
@@ -169,6 +170,16 @@ class _UserScreenState extends State<UserScreen> {
                               ],
                             ),
                           if (p.blocked) Text(t.profileBlockedNote),
+                          if (p.hikedShared && !p.self)
+                            TextButton(
+                              key: const Key('profile-hiked'),
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => HikedScreen(api: widget.api, username: p.username),
+                                ),
+                              ),
+                              child: Text(t.hikedBy(p.displayName)),
+                            ),
                           _Stats(
                             key: const Key('profile-counts'),
                             stats: [

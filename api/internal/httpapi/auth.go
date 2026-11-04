@@ -109,7 +109,11 @@ type Me struct {
 	NotifyFollows  bool `json:"notify_follows" doc:"E-mail when someone follows me or asks to be friends"`
 	ProfilePublic  bool `json:"profile_public" doc:"Found by the user search; else seen by friends only"`
 	ShareHikes     bool `json:"share_hikes" doc:"Friends see my hikes in their news"`
-	FriendRequests int  `json:"friend_requests" doc:"Friend requests waiting for an answer (on GET and PATCH /me)"`
+	// Who sees what I hiked.
+	ShareStats        string `json:"share_stats" enum:"nobody,friends,public"`
+	ShareMap          string `json:"share_map" enum:"nobody,friends,public"`
+	ShareAchievements string `json:"share_achievements" enum:"nobody,friends,public"`
+	FriendRequests    int    `json:"friend_requests" doc:"Friend requests waiting for an answer (on GET and PATCH /me)"`
 }
 
 func toMe(u dbq.User) Me {
@@ -124,12 +128,15 @@ func toMe(u dbq.User) Me {
 		Role:          u.Role,
 		CreatedAt:     u.CreatedAt,
 
-		HasPassword:    u.PasswordHash != nil,
-		NotifyComments: u.NotifyComments,
-		NotifyFollows:  u.NotifyFollows,
-		ProfilePublic:  u.ProfilePublic,
-		ShareHikes:     u.ShareHikes,
-		Avatar:         avatarID(u.Avatar),
+		HasPassword:       u.PasswordHash != nil,
+		NotifyComments:    u.NotifyComments,
+		NotifyFollows:     u.NotifyFollows,
+		ProfilePublic:     u.ProfilePublic,
+		ShareHikes:        u.ShareHikes,
+		ShareStats:        u.ShareStats,
+		ShareMap:          u.ShareMap,
+		ShareAchievements: u.ShareAchievements,
+		Avatar:            avatarID(u.Avatar),
 	}
 }
 

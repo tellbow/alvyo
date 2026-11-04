@@ -1645,6 +1645,23 @@ export interface paths {
         patch: operations["update-me"];
         trace?: never;
     };
+    "/me/achievements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What I have achieved: cantons, official routes, summits and huts */
+        get: operations["my-achievements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/avatar": {
         parameters: {
             query?: never;
@@ -2909,6 +2926,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{username}/hiked": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What a user hiked, as far as they share it with the viewer
+         * @description 404 if they share nothing with the viewer. What is not shared is left out.
+         */
+        get: operations["get-shared-hiked"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{username}/og.png": {
         parameters: {
             query?: never;
@@ -3566,6 +3603,17 @@ export interface components {
             trail: components["schemas"]["Run"][];
             way_type: components["schemas"]["Run"][];
         };
+        DiscoverAchievements: {
+            /** @description Codes of the cantons walked in, such as BE */
+            cantons: string[];
+            /** Format: int64 */
+            cantons_total: number;
+            /** @description Huts within 100 m of a hike */
+            huts: string[];
+            official: components["schemas"]["DiscoverOfficialDone"][];
+            /** @description Named summits within 50 m of a hike, the highest first */
+            summits: components["schemas"]["DiscoverSummit"][];
+        };
         DiscoverHiked: {
             /** @description Of the year asked for, newest first */
             items: components["schemas"]["DiscoverHikedItem"][];
@@ -3603,7 +3651,6 @@ export interface components {
             hikes: number;
             /** Format: double */
             longest_m: number;
-            longest_title: string;
             /**
              * Format: int64
              * @description As recorded, otherwise the hiking time at one's pace
@@ -3691,6 +3738,14 @@ export interface components {
             tags: string[];
             title: string;
         };
+        DiscoverOfficialDone: {
+            /** Format: int64 */
+            done: number;
+            /** @enum {string} */
+            kind: "national" | "regional" | "local" | "handicap";
+            /** Format: int64 */
+            total: number;
+        };
         DiscoverOutputBody: {
             items: components["schemas"]["DiscoverItem"][];
             /** @description There are more results than shown: zoom in or narrow the filters */
@@ -3703,6 +3758,11 @@ export interface components {
             kind: "route" | "journey" | "collection" | "profile";
             /** Format: date-time */
             updated_at: string;
+        };
+        DiscoverSummit: {
+            /** Format: int32 */
+            ele?: number;
+            name: string;
         };
         DoneOutputBody: {
             /** @description By their own mark, which can be taken back */
@@ -4326,8 +4386,14 @@ export interface components {
             profile_public: boolean;
             /** @enum {string} */
             role: "user" | "moderator" | "admin";
+            /** @enum {string} */
+            share_achievements: "nobody" | "friends" | "public";
             /** @description Friends see my hikes in their news */
             share_hikes: boolean;
+            /** @enum {string} */
+            share_map: "nobody" | "friends" | "public";
+            /** @enum {string} */
+            share_stats: "nobody" | "friends" | "public";
             /**
              * Format: float
              * @description Personal pace multiplier applied to hiking times
@@ -4614,6 +4680,8 @@ export interface components {
              * @enum {string}
              */
             friend: "none" | "requested" | "incoming" | "friends";
+            /** @description GET /users/{username}/hiked has something for the viewer */
+            hiked_shared: boolean;
             /** @description As routes */
             journeys: components["schemas"]["JourneySummary"][];
             /** @description The (lon, lat) lines of each route and journey listed by its id, simplified for a thumbnail */
@@ -5005,8 +5073,23 @@ export interface components {
             notify_follows?: boolean;
             /** @description Found by the user search; else seen by friends only */
             profile_public?: boolean;
+            /**
+             * @description Who sees my achievements
+             * @enum {string}
+             */
+            share_achievements?: "nobody" | "friends" | "public";
             /** @description Friends see my hikes in their news */
             share_hikes?: boolean;
+            /**
+             * @description Who sees the map of what I hiked
+             * @enum {string}
+             */
+            share_map?: "nobody" | "friends" | "public";
+            /**
+             * @description Who sees my hiking numbers
+             * @enum {string}
+             */
+            share_stats?: "nobody" | "friends" | "public";
             /**
              * Format: double
              * @description Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)
@@ -5025,6 +5108,17 @@ export interface components {
         };
         ShareTokenOutputBody: {
             share_token: string;
+        };
+        SharedHikedOutputBody: {
+            achievements?: components["schemas"]["DiscoverAchievements"];
+            display_name: string;
+            /** @description If the viewer may see the map: all without titles or dates, and without the first and last 500 m */
+            lines?: number[][][];
+            /** @description With years, if the viewer may see the numbers */
+            total?: components["schemas"]["DiscoverHikedTotals"];
+            username: string;
+            /** @description Newest first */
+            years?: components["schemas"]["DiscoverHikedTotals"][];
         };
         SharedOutputBody: {
             collections: components["schemas"]["CollectionShared"][];
@@ -9479,6 +9573,35 @@ export interface operations {
             };
         };
     };
+    "my-achievements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoverAchievements"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "set-avatar": {
         parameters: {
             query?: never;
@@ -12400,6 +12523,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Relation"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-shared-hiked": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedHikedOutputBody"];
                 };
             };
             /** @description Error */

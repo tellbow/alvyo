@@ -1570,6 +1570,50 @@
         ],
         "type": "object"
       },
+      "DiscoverAchievements": {
+        "additionalProperties": false,
+        "properties": {
+          "cantons": {
+            "description": "Codes of the cantons walked in, such as BE",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "cantons_total": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "huts": {
+            "description": "Huts within 100 m of a hike",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "official": {
+            "items": {
+              "$ref": "#/components/schemas/DiscoverOfficialDone"
+            },
+            "type": "array"
+          },
+          "summits": {
+            "description": "Named summits within 50 m of a hike, the highest first",
+            "items": {
+              "$ref": "#/components/schemas/DiscoverSummit"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "cantons",
+          "cantons_total",
+          "official",
+          "summits",
+          "huts"
+        ],
+        "type": "object"
+      },
       "DiscoverHiked": {
         "additionalProperties": false,
         "properties": {
@@ -1684,9 +1728,6 @@
             "format": "double",
             "type": "number"
           },
-          "longest_title": {
-            "type": "string"
-          },
           "time_s": {
             "description": "As recorded, otherwise the hiking time at one's pace",
             "format": "int64",
@@ -1703,7 +1744,6 @@
           "ascent_m",
           "time_s",
           "longest_m",
-          "longest_title",
           "highest_m"
         ],
         "type": "object"
@@ -1897,6 +1937,34 @@
         ],
         "type": "object"
       },
+      "DiscoverOfficialDone": {
+        "additionalProperties": false,
+        "properties": {
+          "done": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "national",
+              "regional",
+              "local",
+              "handicap"
+            ],
+            "type": "string"
+          },
+          "total": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "done",
+          "total"
+        ],
+        "type": "object"
+      },
       "DiscoverOutputBody": {
         "additionalProperties": false,
         "properties": {
@@ -1942,6 +2010,22 @@
           "kind",
           "id",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "DiscoverSummit": {
+        "additionalProperties": false,
+        "properties": {
+          "ele": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
         ],
         "type": "object"
       },
@@ -3762,9 +3846,33 @@
             ],
             "type": "string"
           },
+          "share_achievements": {
+            "enum": [
+              "nobody",
+              "friends",
+              "public"
+            ],
+            "type": "string"
+          },
           "share_hikes": {
             "description": "Friends see my hikes in their news",
             "type": "boolean"
+          },
+          "share_map": {
+            "enum": [
+              "nobody",
+              "friends",
+              "public"
+            ],
+            "type": "string"
+          },
+          "share_stats": {
+            "enum": [
+              "nobody",
+              "friends",
+              "public"
+            ],
+            "type": "string"
           },
           "speed_factor": {
             "description": "Personal pace multiplier applied to hiking times",
@@ -3790,6 +3898,9 @@
           "notify_follows",
           "profile_public",
           "share_hikes",
+          "share_stats",
+          "share_map",
+          "share_achievements",
           "friend_requests"
         ],
         "type": "object"
@@ -4638,6 +4749,10 @@
             ],
             "type": "string"
           },
+          "hiked_shared": {
+            "description": "GET /users/{username}/hiked has something for the viewer",
+            "type": "boolean"
+          },
           "journeys": {
             "description": "As routes",
             "items": {
@@ -4693,6 +4808,7 @@
           "collections",
           "outlines",
           "self",
+          "hiked_shared",
           "followers",
           "following",
           "followed",
@@ -5826,9 +5942,36 @@
             "description": "Found by the user search; else seen by friends only",
             "type": "boolean"
           },
+          "share_achievements": {
+            "description": "Who sees my achievements",
+            "enum": [
+              "nobody",
+              "friends",
+              "public"
+            ],
+            "type": "string"
+          },
           "share_hikes": {
             "description": "Friends see my hikes in their news",
             "type": "boolean"
+          },
+          "share_map": {
+            "description": "Who sees the map of what I hiked",
+            "enum": [
+              "nobody",
+              "friends",
+              "public"
+            ],
+            "type": "string"
+          },
+          "share_stats": {
+            "description": "Who sees my hiking numbers",
+            "enum": [
+              "nobody",
+              "friends",
+              "public"
+            ],
+            "type": "string"
           },
           "speed_factor": {
             "description": "Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)",
@@ -5880,6 +6023,52 @@
         },
         "required": [
           "share_token"
+        ],
+        "type": "object"
+      },
+      "SharedHikedOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "achievements": {
+            "$ref": "#/components/schemas/DiscoverAchievements"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "lines": {
+            "description": "If the viewer may see the map: all without titles or dates, and without the first and last 500 m",
+            "items": {
+              "items": {
+                "items": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "total": {
+            "$ref": "#/components/schemas/DiscoverHikedTotals",
+            "description": "With years, if the viewer may see the numbers"
+          },
+          "username": {
+            "type": "string"
+          },
+          "years": {
+            "description": "Newest first",
+            "items": {
+              "$ref": "#/components/schemas/DiscoverHikedTotals"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "username",
+          "display_name"
         ],
         "type": "object"
       },
@@ -13530,6 +13719,37 @@
         ]
       }
     },
+    "/me/achievements": {
+      "get": {
+        "operationId": "my-achievements",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoverAchievements"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "What I have achieved: cantons, official routes, summits and huts",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
     "/me/avatar": {
       "delete": {
         "operationId": "delete-avatar",
@@ -17897,6 +18117,48 @@
         "summary": "Ask a user to be friends, or accept their request",
         "tags": [
           "community"
+        ]
+      }
+    },
+    "/users/{username}/hiked": {
+      "get": {
+        "description": "404 if they share nothing with the viewer. What is not shared is left out.",
+        "operationId": "get-shared-hiked",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedHikedOutputBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "What a user hiked, as far as they share it with the viewer",
+        "tags": [
+          "discover"
         ]
       }
     },

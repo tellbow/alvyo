@@ -100,12 +100,15 @@ type reportInput struct {
 
 type settingsInput struct {
 	Body struct {
-		NotifyComments *bool    `json:"notify_comments,omitempty" doc:"E-mail on comments on my routes and journeys"`
-		NotifyFollows  *bool    `json:"notify_follows,omitempty" doc:"E-mail when someone follows me or asks to be friends"`
-		ProfilePublic  *bool    `json:"profile_public,omitempty" doc:"Found by the user search; else seen by friends only"`
-		ShareHikes     *bool    `json:"share_hikes,omitempty" doc:"Friends see my hikes in their news"`
-		Locale         *string  `json:"locale,omitempty" enum:"de,en,fr,it" doc:"Language of e-mails"`
-		SpeedFactor    *float64 `json:"speed_factor,omitempty" minimum:"0.3" maximum:"3" doc:"Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)"`
+		NotifyComments    *bool    `json:"notify_comments,omitempty" doc:"E-mail on comments on my routes and journeys"`
+		NotifyFollows     *bool    `json:"notify_follows,omitempty" doc:"E-mail when someone follows me or asks to be friends"`
+		ProfilePublic     *bool    `json:"profile_public,omitempty" doc:"Found by the user search; else seen by friends only"`
+		ShareHikes        *bool    `json:"share_hikes,omitempty" doc:"Friends see my hikes in their news"`
+		ShareStats        *string  `json:"share_stats,omitempty" enum:"nobody,friends,public" doc:"Who sees my hiking numbers"`
+		ShareMap          *string  `json:"share_map,omitempty" enum:"nobody,friends,public" doc:"Who sees the map of what I hiked"`
+		ShareAchievements *string  `json:"share_achievements,omitempty" enum:"nobody,friends,public" doc:"Who sees my achievements"`
+		Locale            *string  `json:"locale,omitempty" enum:"de,en,fr,it" doc:"Language of e-mails"`
+		SpeedFactor       *float64 `json:"speed_factor,omitempty" minimum:"0.3" maximum:"3" doc:"Pace: hiking times as a multiple of the signposts' (1.2: a fifth slower)"`
 	}
 }
 
@@ -206,6 +209,7 @@ func registerCommunity(api huma.API, d Deps) {
 		if err := d.Community.SetSettings(ctx, u.ID, community.Settings{
 			NotifyComments: b.NotifyComments, NotifyFollows: b.NotifyFollows, ProfilePublic: b.ProfilePublic,
 			ShareHikes: b.ShareHikes, Locale: b.Locale, Pace: b.SpeedFactor,
+			ShareStats: b.ShareStats, ShareMap: b.ShareMap, ShareAchievements: b.ShareAchievements,
 		}); err != nil {
 			return nil, err
 		}

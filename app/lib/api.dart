@@ -63,6 +63,9 @@ class Me {
     this.emailVerified = true,
     this.profilePublic = true,
     this.shareHikes,
+    this.shareStats = 'nobody',
+    this.shareMap = 'nobody',
+    this.shareAchievements = 'nobody',
     this.friendRequests = 0,
     this.avatar = '',
   });
@@ -79,6 +82,9 @@ class Me {
     emailVerified: j['email_verified'] as bool? ?? true,
     profilePublic: j['profile_public'] as bool? ?? true,
     shareHikes: j['share_hikes'] as bool?,
+    shareStats: j['share_stats'] as String? ?? 'nobody',
+    shareMap: j['share_map'] as String? ?? 'nobody',
+    shareAchievements: j['share_achievements'] as String? ?? 'nobody',
     friendRequests: (j['friend_requests'] as num?)?.toInt() ?? 0,
     avatar: j['avatar'] as String? ?? '',
   );
@@ -108,6 +114,9 @@ class Me {
 
   /// Friends see one's hikes in their news; null from older servers.
   final bool? shareHikes;
+
+  /// Who sees what the user hiked: nobody, friends or public.
+  final String shareStats, shareMap, shareAchievements;
 
   /// Friend requests waiting for an answer.
   final int friendRequests;
@@ -1057,6 +1066,52 @@ class Suggestion {
 }
 
 /// A public route or journey (`GET /discover`).
+/// What someone shares of what they hiked: what is not shared is null.
+class SharedHiked {
+  SharedHiked.fromJson(Map<String, dynamic> j)
+    : displayName = j['display_name'] as String,
+      total = j['total'] == null ? null : HikedTotals.fromJson(j['total'] as Map<String, dynamic>),
+      years = [for (final y in j['years'] as List? ?? const []) HikedTotals.fromJson(y as Map<String, dynamic>)],
+      lines = [for (final l in j['lines'] as List? ?? const []) _line(l)],
+      achievements = j['achievements'] == null
+          ? null
+          : Achievements.fromJson(j['achievements'] as Map<String, dynamic>);
+
+  final String displayName;
+  final HikedTotals? total;
+  final List<HikedTotals> years;
+  final List<List<List<double>>> lines;
+  final Achievements? achievements;
+}
+
+/// Plain facts about what someone hiked.
+class Achievements {
+  Achievements.fromJson(Map<String, dynamic> j)
+    : cantons = [for (final c in j['cantons'] as List? ?? const []) c as String],
+      cantonsTotal = (j['cantons_total'] as num).toInt(),
+      official = [
+        for (final o in j['official'] as List? ?? const [])
+          (
+            kind: (o as Map<String, dynamic>)['kind'] as String,
+            done: (o['done'] as num).toInt(),
+            total: (o['total'] as num).toInt(),
+          ),
+      ],
+      summits = [
+        for (final s in j['summits'] as List? ?? const [])
+          (name: (s as Map<String, dynamic>)['name'] as String, ele: (s['ele'] as num?)?.toDouble()),
+      ],
+      huts = [for (final h in j['huts'] as List? ?? const []) h as String];
+
+  final List<String> cantons;
+  final int cantonsTotal;
+  final List<({String kind, int done, int total})> official;
+
+  /// The highest first.
+  final List<({String name, double? ele})> summits;
+  final List<String> huts;
+}
+
 /// One's hikes of a year, or of all: `GET /me/hiked`.
 class Hiked {
   Hiked.fromJson(Map<String, dynamic> j)
@@ -1260,6 +1315,7 @@ class Profile {
       avatar = j['avatar'] as String? ?? '',
       since = j['since'] as String,
       self = j['self'] as bool,
+      hikedShared = j['hiked_shared'] as bool? ?? false,
       followers = (j['followers'] as num).toInt(),
       following = (j['following'] as num).toInt(),
       followed = j['followed'] as bool,
@@ -1285,6 +1341,9 @@ class Profile {
 
   /// This is the user's own profile.
   final bool self;
+
+  /// They share something of what they hiked with the viewer.
+  final bool hikedShared;
   final int followers, following;
 
   /// The user follows, or blocked, this one.
@@ -2214,6 +2273,9 @@ class Api {
     double? speedFactor,
     bool? profilePublic,
     bool? shareHikes,
+    String? shareStats,
+    String? shareMap,
+    String? shareAchievements,
   }) async {
     final me = Me.fromJson(
       await _send('PATCH', '/me', {
@@ -2223,6 +2285,9 @@ class Api {
             'speed_factor': ?speedFactor,
             'profile_public': ?profilePublic,
             'share_hikes': ?shareHikes,
+            'share_stats': ?shareStats,
+            'share_map': ?shareMap,
+            'share_achievements': ?shareAchievements,
           })
           as Map<String, dynamic>,
     );
@@ -2581,6 +2646,13 @@ class Api {
   /// What the user hiked: the totals, and the hikes of [year] (null: all).
   Future<Hiked> hiked({int? year}) async =>
       Hiked.fromJson(await _get('/me/hiked', {if (year != null) 'year': '$year'}) as Map<String, dynamic>);
+
+  Future<Achievements> achievements() async =>
+      Achievements.fromJson(await _get('/me/achievements') as Map<String, dynamic>);
+
+  /// What [username] shares with the user of what they hiked.
+  Future<SharedHiked> sharedHiked(String username) async =>
+      SharedHiked.fromJson(await _get('/users/${Uri.encodeComponent(username)}/hiked') as Map<String, dynamic>);
 
   /// Routes, journeys and collections others shared with the user.
   Future<Shared> shared() async {

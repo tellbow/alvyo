@@ -35,12 +35,26 @@
 	const pace = $derived(data.user?.speed_factor ?? 1);
 	const paces = $derived(PACES.includes(pace) ? PACES : [...PACES, pace].sort((a, b) => a - b));
 
+	type Share = 'nobody' | 'friends' | 'public';
+	const shares = $derived([
+		{ key: 'share_stats', label: m.account_share_stats(), on: data.user?.share_stats },
+		{ key: 'share_map', label: m.account_share_map(), on: data.user?.share_map },
+		{
+			key: 'share_achievements',
+			label: m.hiked_achievements(),
+			on: data.user?.share_achievements
+		}
+	] as const);
+
 	async function notify(body: {
 		notify_comments?: boolean;
 		notify_follows?: boolean;
 		speed_factor?: number;
 		profile_public?: boolean;
 		share_hikes?: boolean;
+		share_stats?: Share;
+		share_map?: Share;
+		share_achievements?: Share;
 	}) {
 		const { response } = await api().PATCH('/me', { body });
 		if (response.ok) await refreshAll();
@@ -189,6 +203,29 @@
 						{/each}
 					</NativeSelect>
 				</label>
+			</div>
+		</Card>
+
+		<Card title={m.account_hiked_sharing()}>
+			<div class="flex flex-col gap-2 text-sm">
+				{#each shares as share (share.key)}
+					<label class="flex flex-wrap items-center gap-x-3 gap-y-1">
+						<span class="w-24 font-medium">{share.label}</span>
+						<NativeSelect
+							aria-label={share.label}
+							data-testid={share.key}
+							value={share.on ?? 'nobody'}
+							disabled={!hydrated.value}
+							{@attach fromAction(choose, () => (v) => notify({ [share.key]: v as Share }))}
+						>
+							<option value="nobody">{m.account_share_nobody()}</option>
+							<option value="friends">{m.account_share_friends()}</option>
+							<option value="public">{m.account_share_public()}</option>
+						</NativeSelect>
+					</label>
+				{/each}
+				<p class="text-xs text-stone-500">{m.account_share_map_hint()}</p>
+				<p class="text-xs text-stone-500">{m.account_share_private_hint()}</p>
 			</div>
 		</Card>
 

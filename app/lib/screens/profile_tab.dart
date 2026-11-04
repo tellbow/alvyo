@@ -121,6 +121,12 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
+  String _shareLabel(AppLocalizations t, String level) => switch (level) {
+    'friends' => t.shareFriends,
+    'public' => t.sharePublic,
+    _ => t.shareNobody,
+  };
+
   void _push(Widget screen) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
 
   /// A choice of a setting in a sheet: the options, the current ticked.
@@ -323,6 +329,45 @@ class _ProfileTabState extends State<ProfileTab> {
                         value: share,
                         onChanged: (v) => _update(() => widget.api.updateMe(shareHikes: v)),
                       ),
+                    if (me != null) ...[
+                      ListTile(title: Text(t.shareHikedTitle), subtitle: Text(t.sharePrivateHint)),
+                      for (final (key, label, hint, current, set)
+                          in <(String, String, String?, String, Future<Me> Function(String))>[
+                            (
+                              'share-stats',
+                              t.shareStats,
+                              null,
+                              me.shareStats,
+                              (v) => widget.api.updateMe(shareStats: v),
+                            ),
+                            (
+                              'share-map',
+                              t.shareMap,
+                              t.shareMapHint,
+                              me.shareMap,
+                              (v) => widget.api.updateMe(shareMap: v),
+                            ),
+                            (
+                              'share-achievements',
+                              t.hikedAchievements,
+                              null,
+                              me.shareAchievements,
+                              (v) => widget.api.updateMe(shareAchievements: v),
+                            ),
+                          ])
+                        ListTile(
+                          key: Key(key),
+                          title: Text(label),
+                          subtitle: hint == null ? null : Text(hint),
+                          trailing: value(_shareLabel(t, current)),
+                          onTap: () async {
+                            final v = await _pick(label, [
+                              for (final level in const ['nobody', 'friends', 'public']) (level, _shareLabel(t, level)),
+                            ], current);
+                            if (v != null) _update(() => set(v));
+                          },
+                        ),
+                    ],
                     if ((widget.analytics ?? Analytics.instance) case final analytics when analytics.active)
                       ValueListenableBuilder(
                         valueListenable: analytics.consent,

@@ -6,7 +6,8 @@ Contributions are accepted under the Contributor License Agreement in CLA.md.
 Data sources (attribution required when displaying or distributing; terms,
 links and where each is credited: docs/licensing.md):
 - Maps, aerial images, base map, elevation (swissALTI3D), relief, slopes,
-  swissTLM3D hiking trails, place names: © swisstopo (Federal Office of
+  swissTLM3D hiking trails, place names, swissBOUNDARIES3D cantonal
+  boundaries: © swisstopo (Federal Office of
   Topography swisstopo, free geodata / OGD terms)
 - The official hiking routes (national, regional, local, barrier-free) and
   hiking trail closures and diversions: Wanderland Schweiz, ASTRA /

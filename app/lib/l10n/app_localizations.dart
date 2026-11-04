@@ -3676,6 +3676,132 @@ abstract class AppLocalizations {
   /// **'Als gewandert markieren'**
   String get doneMark;
 
+  /// No description provided for @hikedAchievements.
+  ///
+  /// In de, this message translates to:
+  /// **'Erfolge'**
+  String get hikedAchievements;
+
+  /// No description provided for @hikedCantons.
+  ///
+  /// In de, this message translates to:
+  /// **'Kantone'**
+  String get hikedCantons;
+
+  /// No description provided for @hikedOfficial.
+  ///
+  /// In de, this message translates to:
+  /// **'Offizielle Routen'**
+  String get hikedOfficial;
+
+  /// No description provided for @hikedOfficialNational.
+  ///
+  /// In de, this message translates to:
+  /// **'National'**
+  String get hikedOfficialNational;
+
+  /// No description provided for @hikedOfficialRegional.
+  ///
+  /// In de, this message translates to:
+  /// **'Regional'**
+  String get hikedOfficialRegional;
+
+  /// No description provided for @hikedOfficialLocal.
+  ///
+  /// In de, this message translates to:
+  /// **'Lokal'**
+  String get hikedOfficialLocal;
+
+  /// No description provided for @hikedOfficialHandicap.
+  ///
+  /// In de, this message translates to:
+  /// **'Hindernisfrei'**
+  String get hikedOfficialHandicap;
+
+  /// No description provided for @hikedSummits.
+  ///
+  /// In de, this message translates to:
+  /// **'Gipfel'**
+  String get hikedSummits;
+
+  /// No description provided for @hikedHuts.
+  ///
+  /// In de, this message translates to:
+  /// **'Hütten'**
+  String get hikedHuts;
+
+  /// No description provided for @hikedSharedMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Wanderungen als Linien, ohne Titel und Daten und ohne die ersten und letzten 500 m.'**
+  String get hikedSharedMap;
+
+  /// No description provided for @hikedOf.
+  ///
+  /// In de, this message translates to:
+  /// **'{done} von {total}'**
+  String hikedOf(int done, int total);
+
+  /// No description provided for @hikedMore.
+  ///
+  /// In de, this message translates to:
+  /// **'und {count} weitere'**
+  String hikedMore(int count);
+
+  /// No description provided for @hikedBy.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderungen von {name}'**
+  String hikedBy(String name);
+
+  /// No description provided for @shareHikedTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Wer sieht, was ich gewandert bin?'**
+  String get shareHikedTitle;
+
+  /// No description provided for @shareStats.
+  ///
+  /// In de, this message translates to:
+  /// **'Zahlen'**
+  String get shareStats;
+
+  /// No description provided for @shareMap.
+  ///
+  /// In de, this message translates to:
+  /// **'Karte'**
+  String get shareMap;
+
+  /// No description provided for @shareNobody.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur ich'**
+  String get shareNobody;
+
+  /// No description provided for @shareFriends.
+  ///
+  /// In de, this message translates to:
+  /// **'Freunde'**
+  String get shareFriends;
+
+  /// No description provided for @sharePublic.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle'**
+  String get sharePublic;
+
+  /// No description provided for @shareMapHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Karte zeigt alle deine Wanderungen als Linien, auch private Routen: ohne Titel und Daten und ohne die ersten und letzten 500 m. Sie verrät trotzdem, wo du unterwegs bist.'**
+  String get shareMapHint;
+
+  /// No description provided for @sharePrivateHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bei einem privaten Profil sehen es auch mit «Alle» nur deine Freunde.'**
+  String get sharePrivateHint;
+
   /// No description provided for @hikedTitle.
   ///
   /// In de, this message translates to:
@@ -3685,7 +3811,7 @@ abstract class AppLocalizations {
   /// No description provided for @hikedPrivate.
   ///
   /// In de, this message translates to:
-  /// **'Nur du siehst das.'**
+  /// **'Nur du siehst das, ausser du teilst es.'**
   String get hikedPrivate;
 
   /// No description provided for @hikedEmpty.
@@ -4645,7 +4771,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutSrcSwisstopo.
   ///
   /// In de, this message translates to:
-  /// **'Bundesamt für Landestopografie swisstopo: Landeskarten, Luftbilder, Basiskarte, Höhenmodell swissALTI3D, Relief, Hangneigung und Wanderwege (swissTLM3D)'**
+  /// **'Bundesamt für Landestopografie swisstopo: Landeskarten, Luftbilder, Basiskarte, Höhenmodell swissALTI3D, Relief, Hangneigung, Wanderwege (swissTLM3D) und Kantonsgrenzen (swissBOUNDARIES3D)'**
   String get aboutSrcSwisstopo;
 
   /// No description provided for @aboutSrcAstra.

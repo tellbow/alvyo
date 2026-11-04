@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { GeoJSON } from 'geojson';
 	import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibreMap } from 'maplibre-gl';
-	import type { HikedItem } from '#lib/api/client.js';
 	import { OSM_ATTRIBUTION, ROUTE_PREFIX } from '#lib/map/styles.js';
 	import { ROUTE_COLOR } from '#lib/planner/colors.js';
 
@@ -9,7 +8,11 @@
 		map,
 		items,
 		onclick
-	}: { map: MapLibreMap; items: HikedItem[]; onclick: (it: HikedItem) => void } = $props();
+	}: {
+		map: MapLibreMap;
+		items: { lines: number[][][] }[];
+		onclick?: (index: number) => void;
+	} = $props();
 
 	const SRC = `${ROUTE_PREFIX}hiked`;
 	const LINE = `${ROUTE_PREFIX}hiked-line`;
@@ -49,9 +52,11 @@
 	});
 
 	$effect(() => {
+		if (!onclick) return;
+		const open = onclick;
 		const click = (e: MapLayerMouseEvent) => {
-			const it = items[Number(e.features?.[0]?.properties?.i)];
-			if (it) onclick(it);
+			const i = Number(e.features?.[0]?.properties?.i);
+			if (items[i]) open(i);
 		};
 		const enter = () => (map.getCanvas().style.cursor = 'pointer');
 		const leave = () => (map.getCanvas().style.cursor = '');

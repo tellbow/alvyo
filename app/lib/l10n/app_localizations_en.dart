@@ -1986,10 +1986,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doneMark => 'Mark as hiked';
 
   @override
+  String get hikedAchievements => 'Achievements';
+
+  @override
+  String get hikedCantons => 'Cantons';
+
+  @override
+  String get hikedOfficial => 'Official routes';
+
+  @override
+  String get hikedOfficialNational => 'National';
+
+  @override
+  String get hikedOfficialRegional => 'Regional';
+
+  @override
+  String get hikedOfficialLocal => 'Local';
+
+  @override
+  String get hikedOfficialHandicap => 'Barrier-free';
+
+  @override
+  String get hikedSummits => 'Summits';
+
+  @override
+  String get hikedHuts => 'Huts';
+
+  @override
+  String get hikedSharedMap => 'All hikes as lines, without titles or dates and without the first and last 500 m.';
+
+  @override
+  String hikedOf(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String hikedMore(int count) {
+    return 'and $count more';
+  }
+
+  @override
+  String hikedBy(String name) {
+    return '$name\'s hikes';
+  }
+
+  @override
+  String get shareHikedTitle => 'Who sees what I\'ve hiked?';
+
+  @override
+  String get shareStats => 'Numbers';
+
+  @override
+  String get shareMap => 'Map';
+
+  @override
+  String get shareNobody => 'Only me';
+
+  @override
+  String get shareFriends => 'Friends';
+
+  @override
+  String get sharePublic => 'Everyone';
+
+  @override
+  String get shareMapHint =>
+      'The map shows all your hikes as lines, private routes too: without titles or dates and without the first and last 500 m. It still shows where you go.';
+
+  @override
+  String get sharePrivateHint => 'With a private profile, only your friends see it, even with «Everyone».';
+
+  @override
   String get hikedTitle => 'My hikes';
 
   @override
-  String get hikedPrivate => 'Only you can see this.';
+  String get hikedPrivate => 'Only you see this, unless you share it.';
 
   @override
   String get hikedEmpty => 'Nothing hiked yet. Mark a route as hiked or record a hike.';
@@ -2509,7 +2579,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutSrcSwisstopo =>
-      'Federal Office of Topography swisstopo: national maps, aerial images, base map, swissALTI3D elevation model, relief, slopes and hiking trails (swissTLM3D)';
+      'Federal Office of Topography swisstopo: national maps, aerial images, base map, swissALTI3D elevation model, relief, slopes, hiking trails (swissTLM3D) and cantonal boundaries (swissBOUNDARIES3D)';
 
   @override
   String get aboutSrcAstra =>

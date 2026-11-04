@@ -178,13 +178,36 @@ type User struct {
 	Since       time.Time // month the account was created
 	Public      bool      // the profile: found by the search, seen by all
 	ShareHikes  bool      // friends see the user's hikes
+	// Who sees what the user hiked: nobody, friends or public.
+	ShareStats, ShareMap, ShareAchievements string
+	Email                                   string  // verified, else empty; for the grants they hold
+	Pace                                    float64 // their speed factor
+}
+
+// Shares says whether a viewer sees what is shared at level. A private profile
+// is seen by friends only, so public means friends there.
+func (u User) Shares(level string, self, friend bool) bool {
+	switch level {
+	case "public":
+		return u.Public || self || friend
+	case "friends":
+		return self || friend
+	}
+	return false
+}
+
+// SharesHiked says whether a viewer sees any of what the user hiked.
+func (u User) SharesHiked(self, friend bool) bool {
+	return u.Shares(u.ShareStats, self, friend) || u.Shares(u.ShareMap, self, friend) || u.Shares(u.ShareAchievements, self, friend)
 }
 
 // User looks up an account that is not banned.
 func (s *Store) User(ctx context.Context, username string) (User, error) {
 	var u User
-	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, coalesce(avatar::text, ''), date_trunc('month', created_at), profile_public, share_hikes
-		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Avatar, &u.Since, &u.Public, &u.ShareHikes)
+	err := s.DB.QueryRow(ctx, `SELECT id, username, display_name, coalesce(avatar::text, ''), date_trunc('month', created_at), profile_public, share_hikes,
+			share_stats, share_map, share_achievements, CASE WHEN email_verified_at IS NOT NULL THEN email ELSE '' END, speed_factor
+		FROM users WHERE username = $1 AND banned_at IS NULL`, username).Scan(&u.ID, &u.Username, &u.DisplayName, &u.Avatar, &u.Since, &u.Public, &u.ShareHikes,
+		&u.ShareStats, &u.ShareMap, &u.ShareAchievements, &u.Email, &u.Pace)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return u, ErrNotFound
 	}

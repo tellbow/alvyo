@@ -186,6 +186,11 @@ type BugReport struct {
 	IssueNumber *int32
 }
 
+type Canton struct {
+	Code string
+	Geom interface{}
+}
+
 type Collection struct {
 	ID          uuid.UUID
 	OwnerID     uuid.UUID
@@ -575,23 +580,26 @@ type TlmHikingPath struct {
 }
 
 type User struct {
-	ID              uuid.UUID
-	Email           string
-	EmailVerifiedAt *time.Time
-	PasswordHash    *string
-	Username        string
-	DisplayName     string
-	Locale          string
-	SpeedFactor     float32
-	Role            string
-	BannedAt        *time.Time
-	CreatedAt       time.Time
-	NotifyComments  bool
-	NotifyFollows   bool
-	ProfilePublic   bool
-	FriendToken     *string
-	ShareHikes      bool
-	Avatar          *uuid.UUID
+	ID                uuid.UUID
+	Email             string
+	EmailVerifiedAt   *time.Time
+	PasswordHash      *string
+	Username          string
+	DisplayName       string
+	Locale            string
+	SpeedFactor       float32
+	Role              string
+	BannedAt          *time.Time
+	CreatedAt         time.Time
+	NotifyComments    bool
+	NotifyFollows     bool
+	ProfilePublic     bool
+	FriendToken       *string
+	ShareHikes        bool
+	Avatar            *uuid.UUID
+	ShareStats        string
+	ShareMap          string
+	ShareAchievements string
 }
 
 type WanderlandImport struct {

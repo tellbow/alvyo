@@ -1996,10 +1996,81 @@ class AppLocalizationsIt extends AppLocalizations {
   String get doneMark => 'Segna come fatta';
 
   @override
+  String get hikedAchievements => 'Traguardi';
+
+  @override
+  String get hikedCantons => 'Cantoni';
+
+  @override
+  String get hikedOfficial => 'Percorsi ufficiali';
+
+  @override
+  String get hikedOfficialNational => 'Nazionali';
+
+  @override
+  String get hikedOfficialRegional => 'Regionali';
+
+  @override
+  String get hikedOfficialLocal => 'Locali';
+
+  @override
+  String get hikedOfficialHandicap => 'Senza barriere';
+
+  @override
+  String get hikedSummits => 'Cime';
+
+  @override
+  String get hikedHuts => 'Capanne';
+
+  @override
+  String get hikedSharedMap =>
+      'Tutte le escursioni come linee, senza titoli né date e senza i primi e gli ultimi 500 m.';
+
+  @override
+  String hikedOf(int done, int total) {
+    return '$done su $total';
+  }
+
+  @override
+  String hikedMore(int count) {
+    return 'e altri $count';
+  }
+
+  @override
+  String hikedBy(String name) {
+    return 'Escursioni di $name';
+  }
+
+  @override
+  String get shareHikedTitle => 'Chi vede ciò che ho percorso?';
+
+  @override
+  String get shareStats => 'Numeri';
+
+  @override
+  String get shareMap => 'Mappa';
+
+  @override
+  String get shareNobody => 'Solo io';
+
+  @override
+  String get shareFriends => 'Amici';
+
+  @override
+  String get sharePublic => 'Tutti';
+
+  @override
+  String get shareMapHint =>
+      'La mappa mostra tutte le tue escursioni come linee, anche i percorsi privati: senza titoli né date e senza i primi e gli ultimi 500 m. Mostra comunque dove vai.';
+
+  @override
+  String get sharePrivateHint => 'Con un profilo privato lo vedono solo i tuoi amici, anche con «Tutti».';
+
+  @override
   String get hikedTitle => 'Le mie escursioni';
 
   @override
-  String get hikedPrivate => 'Solo tu lo vedi.';
+  String get hikedPrivate => 'Solo tu lo vedi, a meno che tu non lo condivida.';
 
   @override
   String get hikedEmpty => 'Ancora nulla. Segna un percorso come fatto o registra un\'escursione.';
@@ -2522,7 +2593,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aboutSrcSwisstopo =>
-      'Ufficio federale di topografia swisstopo: carte nazionali, immagini aeree, carta di base, modello altimetrico swissALTI3D, rilievo, pendenze e sentieri (swissTLM3D)';
+      'Ufficio federale di topografia swisstopo: carte nazionali, immagini aeree, carta di base, modello altimetrico swissALTI3D, rilievo, pendenze, sentieri (swissTLM3D) e confini cantonali (swissBOUNDARIES3D)';
 
   @override
   String get aboutSrcAstra =>

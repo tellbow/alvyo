@@ -82,8 +82,24 @@ type profileOutput struct {
 		Collections []collections.Summary     `json:"collections" doc:"The user's collections the viewer may open"`
 		Outlines    map[string][][][2]float64 `json:"outlines" doc:"The (lon, lat) lines of each route and journey listed by its id, simplified for a thumbnail"`
 		community.Relation
-		Self bool `json:"self" doc:"This is the viewer's own profile"`
+		Self        bool `json:"self" doc:"This is the viewer's own profile"`
+		HikedShared bool `json:"hiked_shared" doc:"GET /users/{username}/hiked has something for the viewer"`
 	}
+}
+
+type sharedHikedOutput struct {
+	Body struct {
+		Username     string                 `json:"username"`
+		DisplayName  string                 `json:"display_name"`
+		Total        *discover.HikedTotals  `json:"total,omitempty" doc:"With years, if the viewer may see the numbers"`
+		Years        []discover.HikedTotals `json:"years,omitempty" doc:"Newest first"`
+		Lines        [][][2]float64         `json:"lines,omitempty" doc:"If the viewer may see the map: all without titles or dates, and without the first and last 500 m"`
+		Achievements *discover.Achievements `json:"achievements,omitempty"`
+	}
+}
+
+type achievementsOutput struct {
+	Body discover.Achievements
 }
 
 type sitemapOutput struct {
@@ -233,10 +249,72 @@ func registerDiscover(api huma.API, d Deps) {
 		// public one for the signed-in (the search finds it), and for all once
 		// it has something to show. One's own always.
 		friend := out.Body.Self || out.Body.Friend == community.Friends || out.Body.Friend == community.Incoming
-		if !friend && (!u.Public || !signedIn && len(out.Body.Routes) == 0 && len(out.Body.Journeys) == 0) {
+		out.Body.HikedShared = u.SharesHiked(out.Body.Self, out.Body.Friend == community.Friends)
+		if !friend && (!u.Public || !signedIn && len(out.Body.Routes) == 0 && len(out.Body.Journeys) == 0 && !out.Body.HikedShared) {
 			return nil, notFound
 		}
 		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-shared-hiked", Method: http.MethodGet, Path: "/users/{username}/hiked",
+		Summary:     "What a user hiked, as far as they share it with the viewer",
+		Description: "404 if they share nothing with the viewer. What is not shared is left out.",
+		Tags:        []string{"discover"},
+	}, func(ctx context.Context, in *profileInput) (*sharedHikedOutput, error) {
+		notFound := huma.Error404NotFound("nothing shared")
+		u, err := d.Discover.User(ctx, in.Username)
+		if errors.Is(err, discover.ErrNotFound) {
+			return nil, notFound
+		}
+		if err != nil {
+			return nil, err
+		}
+		v, _, _ := communityViewer(ctx)
+		f, err := d.Community.FriendState(ctx, v.ID, u.ID)
+		if err != nil {
+			return nil, err
+		}
+		self, friend := v.ID == u.ID, f == community.Friends
+		if !u.SharesHiked(self, friend) {
+			return nil, notFound
+		}
+		out := &sharedHikedOutput{}
+		out.Body.Username, out.Body.DisplayName = u.Username, u.DisplayName
+		if u.Shares(u.ShareStats, self, friend) {
+			h, err := d.Discover.Hiked(ctx, u.ID, u.Email, u.Pace, discover.NoItems)
+			if err != nil {
+				return nil, err
+			}
+			out.Body.Total, out.Body.Years = &h.Total, h.Years
+		}
+		if u.Shares(u.ShareMap, self, friend) {
+			if out.Body.Lines, err = d.Discover.SharedLines(ctx, u.ID, u.Email); err != nil {
+				return nil, err
+			}
+		}
+		if u.Shares(u.ShareAchievements, self, friend) {
+			a, err := d.Discover.Achievements(ctx, u.ID, u.Email)
+			if err != nil {
+				return nil, err
+			}
+			out.Body.Achievements = &a
+		}
+		return out, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "my-achievements", Method: http.MethodGet, Path: "/me/achievements",
+		Summary: "What I have achieved: cantons, official routes, summits and huts", Tags: []string{"discover"},
+	}, func(ctx context.Context, _ *struct{}) (*achievementsOutput, error) {
+		u, err := requireUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		id, email := grants.Grantee(u)
+		out := &achievementsOutput{}
+		out.Body, err = d.Discover.Achievements(ctx, id, email)
+		return out, err
 	})
 
 	huma.Register(api, huma.Operation{

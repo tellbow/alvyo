@@ -2000,10 +2000,81 @@ class AppLocalizationsFr extends AppLocalizations {
   String get doneMark => 'Marquer comme faite';
 
   @override
+  String get hikedAchievements => 'Réussites';
+
+  @override
+  String get hikedCantons => 'Cantons';
+
+  @override
+  String get hikedOfficial => 'Itinéraires officiels';
+
+  @override
+  String get hikedOfficialNational => 'National';
+
+  @override
+  String get hikedOfficialRegional => 'Régional';
+
+  @override
+  String get hikedOfficialLocal => 'Local';
+
+  @override
+  String get hikedOfficialHandicap => 'Sans obstacles';
+
+  @override
+  String get hikedSummits => 'Sommets';
+
+  @override
+  String get hikedHuts => 'Cabanes';
+
+  @override
+  String get hikedSharedMap =>
+      'Toutes les randonnées en lignes, sans titres ni dates et sans les premiers et derniers 500 m.';
+
+  @override
+  String hikedOf(int done, int total) {
+    return '$done sur $total';
+  }
+
+  @override
+  String hikedMore(int count) {
+    return 'et $count autres';
+  }
+
+  @override
+  String hikedBy(String name) {
+    return 'Randonnées de $name';
+  }
+
+  @override
+  String get shareHikedTitle => 'Qui voit ce que j’ai parcouru ?';
+
+  @override
+  String get shareStats => 'Chiffres';
+
+  @override
+  String get shareMap => 'Carte';
+
+  @override
+  String get shareNobody => 'Moi seul';
+
+  @override
+  String get shareFriends => 'Amis';
+
+  @override
+  String get sharePublic => 'Tout le monde';
+
+  @override
+  String get shareMapHint =>
+      'La carte montre toutes tes randonnées en lignes, y compris les itinéraires privés : sans titres ni dates et sans les premiers et derniers 500 m. Elle montre tout de même où tu vas.';
+
+  @override
+  String get sharePrivateHint => 'Avec un profil privé, seuls tes amis le voient, même avec « Tout le monde ».';
+
+  @override
   String get hikedTitle => 'Mes randonnées';
 
   @override
-  String get hikedPrivate => 'Toi seul vois ceci.';
+  String get hikedPrivate => 'Toi seul vois ceci, sauf si tu le partages.';
 
   @override
   String get hikedEmpty => 'Rien de fait pour l\'instant. Marque un itinéraire comme fait ou enregistre une randonnée.';
@@ -2528,7 +2599,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aboutSrcSwisstopo =>
-      'Office fédéral de topographie swisstopo : cartes nationales, images aériennes, carte de base, modèle altimétrique swissALTI3D, relief, pentes et chemins de randonnée (swissTLM3D)';
+      'Office fédéral de topographie swisstopo : cartes nationales, images aériennes, carte de base, modèle altimétrique swissALTI3D, relief, pentes, chemins de randonnée (swissTLM3D) et limites cantonales (swissBOUNDARIES3D)';
 
   @override
   String get aboutSrcAstra =>

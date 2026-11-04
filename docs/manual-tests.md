@@ -349,6 +349,10 @@ Checked so far only in the simulator, with made-up or simulated positions
       and Android: the lines show on the map and fill the view, a year chip
       changes lines, numbers and list, a tap on a line opens the route;
       «Nochmals gewandert» adds a day, «Nicht gewandert» takes the latest back.
+- [ ] **Sharing what I hiked** (87): Profil → Einstellungen: «Zahlen», «Karte»
+      and «Erfolge» each on «Freunde» and «Alle»; on a friend's phone the
+      profile's link opens only what is shared, and the map's lines stay still
+      with the year chips and open nothing when tapped.
 
 - [ ] **Accounts since 2026-10-08**: logging in with an account whose
       address is not confirmed says «Bestätige zuerst deine E-Mail-Adresse

@@ -1996,10 +1996,81 @@ class AppLocalizationsDe extends AppLocalizations {
   String get doneMark => 'Als gewandert markieren';
 
   @override
+  String get hikedAchievements => 'Erfolge';
+
+  @override
+  String get hikedCantons => 'Kantone';
+
+  @override
+  String get hikedOfficial => 'Offizielle Routen';
+
+  @override
+  String get hikedOfficialNational => 'National';
+
+  @override
+  String get hikedOfficialRegional => 'Regional';
+
+  @override
+  String get hikedOfficialLocal => 'Lokal';
+
+  @override
+  String get hikedOfficialHandicap => 'Hindernisfrei';
+
+  @override
+  String get hikedSummits => 'Gipfel';
+
+  @override
+  String get hikedHuts => 'Hütten';
+
+  @override
+  String get hikedSharedMap =>
+      'Alle Wanderungen als Linien, ohne Titel und Daten und ohne die ersten und letzten 500 m.';
+
+  @override
+  String hikedOf(int done, int total) {
+    return '$done von $total';
+  }
+
+  @override
+  String hikedMore(int count) {
+    return 'und $count weitere';
+  }
+
+  @override
+  String hikedBy(String name) {
+    return 'Wanderungen von $name';
+  }
+
+  @override
+  String get shareHikedTitle => 'Wer sieht, was ich gewandert bin?';
+
+  @override
+  String get shareStats => 'Zahlen';
+
+  @override
+  String get shareMap => 'Karte';
+
+  @override
+  String get shareNobody => 'Nur ich';
+
+  @override
+  String get shareFriends => 'Freunde';
+
+  @override
+  String get sharePublic => 'Alle';
+
+  @override
+  String get shareMapHint =>
+      'Die Karte zeigt alle deine Wanderungen als Linien, auch private Routen: ohne Titel und Daten und ohne die ersten und letzten 500 m. Sie verrät trotzdem, wo du unterwegs bist.';
+
+  @override
+  String get sharePrivateHint => 'Bei einem privaten Profil sehen es auch mit «Alle» nur deine Freunde.';
+
+  @override
   String get hikedTitle => 'Meine Wanderungen';
 
   @override
-  String get hikedPrivate => 'Nur du siehst das.';
+  String get hikedPrivate => 'Nur du siehst das, ausser du teilst es.';
 
   @override
   String get hikedEmpty => 'Noch nichts gewandert. Markiere eine Route als gewandert oder zeichne eine Wanderung auf.';
@@ -2523,7 +2594,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aboutSrcSwisstopo =>
-      'Bundesamt für Landestopografie swisstopo: Landeskarten, Luftbilder, Basiskarte, Höhenmodell swissALTI3D, Relief, Hangneigung und Wanderwege (swissTLM3D)';
+      'Bundesamt für Landestopografie swisstopo: Landeskarten, Luftbilder, Basiskarte, Höhenmodell swissALTI3D, Relief, Hangneigung, Wanderwege (swissTLM3D) und Kantonsgrenzen (swissBOUNDARIES3D)';
 
   @override
   String get aboutSrcAstra =>

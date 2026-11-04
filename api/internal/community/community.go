@@ -267,18 +267,20 @@ func (s *Store) DeleteComment(ctx context.Context, t Target, id uuid.UUID, v Vie
 // Settings are what a user changes about their account; nil keeps it.
 type Settings struct {
 	NotifyComments, NotifyFollows, ProfilePublic, ShareHikes *bool
-	Locale                                                   *string
+	Locale, ShareStats, ShareMap, ShareAchievements          *string
 	Pace                                                     *float64
 }
 
 // SetSettings changes which notification e-mails user gets, their
 // language, the pace, whether the profile is public and whether friends
-// see their hikes.
+// see their hikes, and who sees what they hiked.
 func (s *Store) SetSettings(ctx context.Context, user uuid.UUID, c Settings) error {
 	_, err := s.DB.Exec(ctx, `UPDATE users SET notify_comments = coalesce($2, notify_comments),
 		notify_follows = coalesce($3, notify_follows), locale = coalesce($4, locale),
 		speed_factor = coalesce($5, speed_factor), profile_public = coalesce($6, profile_public),
-		share_hikes = coalesce($7, share_hikes) WHERE id = $1`,
-		user, c.NotifyComments, c.NotifyFollows, c.Locale, c.Pace, c.ProfilePublic, c.ShareHikes)
+		share_hikes = coalesce($7, share_hikes), share_stats = coalesce($8, share_stats),
+		share_map = coalesce($9, share_map), share_achievements = coalesce($10, share_achievements) WHERE id = $1`,
+		user, c.NotifyComments, c.NotifyFollows, c.Locale, c.Pace, c.ProfilePublic, c.ShareHikes,
+		c.ShareStats, c.ShareMap, c.ShareAchievements)
 	return err
 }

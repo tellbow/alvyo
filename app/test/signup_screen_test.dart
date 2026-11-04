@@ -54,6 +54,16 @@ void main() {
     expect(find.textContaining('anna@example.ch'), findsOneWidget);
   });
 
+  testWidgets('a username typed with a capital is sent in lowercase', (tester) async {
+    http.Request? asked;
+    await openSignup(tester, (r) async {
+      asked = r;
+      return http.Response('', 202);
+    });
+    await fill(tester, username: 'Derotsche');
+    expect((jsonDecode(asked!.body) as Map)['username'], 'derotsche');
+  });
+
   testWidgets('a username taken shows at its field', (tester) async {
     await openSignup(
       tester,

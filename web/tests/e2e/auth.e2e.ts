@@ -1,6 +1,16 @@
 import { expect, test } from './fixtures';
 import { linkFromMail } from './mailpit';
 
+test('a username typed with capitals becomes lowercase', async ({ page }) => {
+	await page.goto('/signup');
+	const username = page.getByLabel('Benutzername');
+	// Typed again until hydrated: before that the page does not react.
+	await expect(async () => {
+		await username.fill('Derotsche');
+		await expect(username).toHaveValue('derotsche', { timeout: 500 });
+	}).toPass();
+});
+
 test('sign up, verify e-mail, log out and log in again', async ({ page }) => {
 	const id = `e2e${Date.now().toString(36)}`;
 	const email = `${id}@example.ch`;

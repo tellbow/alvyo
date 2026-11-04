@@ -75,11 +75,12 @@
 				label={m.field_username()}
 				name="username"
 				autocomplete="username"
+				autocapitalize="none"
 				required
 				pattern={'[a-z0-9_]{3,30}'}
 				hint={m.hint_username()}
 				error={errors.username}
-				bind:value={username}
+				bind:value={() => username, (v) => (username = v.toLowerCase())}
 			/>
 			<Field
 				label={m.field_display_name()}

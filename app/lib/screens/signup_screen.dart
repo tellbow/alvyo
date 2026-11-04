@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'wide.dart';
 
@@ -123,6 +124,10 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           autocorrect: false,
                           autofillHints: const [AutofillHints.newUsername],
+                          // Usernames have no capitals, and logging in ignores case: no need to refuse them.
+                          inputFormatters: [
+                            TextInputFormatter.withFunction((_, v) => v.copyWith(text: v.text.toLowerCase())),
+                          ],
                           validator: (v) =>
                               RegExp(r'^[a-z0-9_]{3,30}$').hasMatch(v!.trim()) ? null : t.signupUsernameHint,
                         ),

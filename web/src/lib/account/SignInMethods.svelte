@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { onMount } from 'svelte';
 	import { api, type Me } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
@@ -21,6 +22,7 @@
 		providers = pr.data?.providers ?? [];
 	});
 
+	let unlinking = $state<string>(); // the provider asked about
 	async function unlink(provider: string) {
 		error = '';
 		const { data, response } = await api().DELETE('/me/identities/{provider}', {
@@ -50,8 +52,16 @@
 							<button
 								type="button"
 								class="text-stone-500 underline"
-								onclick={() => unlink(i.provider)}>{m.provider_unlink()}</button
+								onclick={() => (unlinking = i.provider)}>{m.provider_unlink()}</button
 							>
+							<ConfirmDialog
+								bind:open={
+									() => unlinking === i.provider, (v) => (unlinking = v ? i.provider : undefined)
+								}
+								question={m.provider_unlink_confirm({ name: providerName(i.provider) })}
+								action={m.provider_unlink()}
+								onconfirm={() => unlink(i.provider)}
+							/>
 						</li>
 					{/each}
 				</ul>

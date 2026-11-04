@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { fromAction } from 'svelte/attachments';
 	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
@@ -99,6 +100,7 @@
 
 	const setRole = (g: Grant, r: Role) => run(calls.setRole(g.id, r));
 	const remove = (g: Grant) => run(calls.remove(g.id));
+	let removing = $state<string>(); // the grant asked about
 </script>
 
 <section class="flex flex-col gap-2 text-sm" data-testid="share-panel">
@@ -126,9 +128,17 @@
 					<button
 						type="button"
 						class="text-xs text-stone-500 underline"
-						onclick={() => remove(g)}
+						onclick={() => (removing = g.id)}
 						aria-label={m.share_remove()}>✕</button
 					>
+					<ConfirmDialog
+						bind:open={() => removing === g.id, (v) => (removing = v ? g.id : undefined)}
+						question={m.share_remove_confirm({
+							name: (g.username ? g.display_name : g.email) ?? ''
+						})}
+						action={m.share_remove()}
+						onconfirm={() => remove(g)}
+					/>
 				</li>
 			{/each}
 		</ul>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
 	import { api } from '#lib/api/client.js';
@@ -38,6 +39,7 @@
 		name = email = '';
 	}
 
+	let removing = $state<string>(); // the contact asked about
 	async function remove(id: string) {
 		const { response } = await api().DELETE('/me/contacts/{id}', { params: { path: { id } } });
 		if (response.ok) contacts = contacts.filter((c) => c.id !== id);
@@ -48,9 +50,15 @@
 	{#each contacts as c (c.id)}
 		<li class="flex items-center gap-3">
 			<span class="flex-1">{c.name} <span class="text-stone-500">{c.email}</span></span>
-			<button type="button" class="text-stone-500 underline" onclick={() => remove(c.id)}
+			<button type="button" class="text-stone-500 underline" onclick={() => (removing = c.id)}
 				>{m.contacts_remove()}</button
 			>
+			<ConfirmDialog
+				bind:open={() => removing === c.id, (v) => (removing = v ? c.id : undefined)}
+				question={m.remove_name_confirm({ name: c.name })}
+				action={m.contacts_remove()}
+				onconfirm={() => remove(c.id)}
+			/>
 		</li>
 	{/each}
 </ul>

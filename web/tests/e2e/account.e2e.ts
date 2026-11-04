@@ -51,10 +51,12 @@ test('delete the account', async ({ page }) => {
 
 	await page.getByLabel('Passwort').fill('falsches-passwort');
 	await page.getByRole('button', { name: 'Konto endgültig löschen' }).click();
+	await page.getByTestId('account-delete-confirm').click();
 	await expect(page.getByRole('alert')).toHaveText('Das Passwort ist falsch.');
 
 	await page.getByLabel('Passwort').fill('sehr-geheim-123');
 	await page.getByRole('button', { name: 'Konto endgültig löschen' }).click();
+	await page.getByTestId('account-delete-confirm').click();
 	await expect(page).toHaveURL('/');
 	await expect(page.getByRole('link', { name: 'Anmelden' })).toBeVisible();
 	const login = await page.request.post('/api/v1/auth/login', {

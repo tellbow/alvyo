@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -35,6 +36,7 @@
 		verification: (u) => `Bestätigungs-E-Mail an ${u.email} gesendet.`
 	};
 
+	let banning = $state<string>(); // the user asked about
 	async function act(u: AdminUser, action: Action) {
 		error = '';
 		const path = `/admin/users/{id}/${action}` as const;
@@ -119,8 +121,14 @@
 						<button
 							type="button"
 							class="rounded bg-red-700 px-2 py-1 text-white"
-							onclick={() => act(u, 'ban')}>Sperren</button
+							onclick={() => (banning = u.id)}>Sperren</button
 						>
+						<ConfirmDialog
+							bind:open={() => banning === u.id, (v) => (banning = v ? u.id : undefined)}
+							question="@{u.username} sperren?"
+							action="Sperren"
+							onconfirm={() => act(u, 'ban')}
+						/>
 					{/if}
 					{#if u.sessions > 0}
 						<button

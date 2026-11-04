@@ -270,6 +270,8 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
   }
 
   Future<void> _remove() async {
+    final t = AppLocalizations.of(context);
+    if (!await confirmFirst(context, t.offlineRemoveConfirm, t.collectionRemoveItem)) return;
     await (await _store).delete(widget.id);
     if (mounted) {
       setState(() {

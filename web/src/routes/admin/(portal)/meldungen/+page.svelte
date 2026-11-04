@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { resolve } from '$app/paths';
 	import { adminApi } from '#lib/api/client.js';
 	import type { components } from '#lib/api/schema.js';
@@ -41,6 +42,7 @@
 		other: m.report_reason_other
 	};
 
+	let removing = $state<string>(); // the report asked about
 	async function resolveReport(r: Report, resolution: 'dismissed' | 'removed') {
 		error = '';
 		const { response } = await adminApi().POST('/moderation/reports/{id}/resolve', {
@@ -103,8 +105,14 @@
 							<button
 								type="button"
 								class="rounded bg-red-700 px-2 py-1 text-white"
-								onclick={() => resolveReport(r, 'removed')}>{removeLabel[r.kind]()}</button
+								onclick={() => (removing = r.id)}>{removeLabel[r.kind]()}</button
 							>
+							<ConfirmDialog
+								bind:open={() => removing === r.id, (v) => (removing = v ? r.id : undefined)}
+								question={m.moderation_remove_confirm({ action: removeLabel[r.kind]() })}
+								action={removeLabel[r.kind]()}
+								onconfirm={() => resolveReport(r, 'removed')}
+							/>
 						{/if}
 					</div>
 				</li>

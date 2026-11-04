@@ -940,10 +940,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileUnfollow => 'Unfollow';
 
   @override
+  String profileUnfollowConfirm(String username) {
+    return 'Stop following @$username?';
+  }
+
+  @override
   String get profileBlock => 'Block';
 
   @override
+  String profileBlockConfirm(String username) {
+    return 'Block @$username?';
+  }
+
+  @override
   String get profileUnblock => 'Unblock';
+
+  @override
+  String profileUnblockConfirm(String username) {
+    return 'Unblock @$username?';
+  }
 
   @override
   String get profileBlockedNote =>
@@ -1070,6 +1085,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareRemove => 'Remove access';
+
+  @override
+  String shareRemoveConfirm(String name) {
+    return 'Remove access for $name?';
+  }
 
   @override
   String get shareWho => 'Username or e-mail address';
@@ -1333,6 +1353,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collectionRemoveItem => 'Remove';
 
   @override
+  String get offlineRemoveConfirm => 'Remove this route’s offline map?';
+
+  @override
   String collectionRemoveConfirm(String title) {
     return 'Remove “$title” from the collection? The route or journey itself stays.';
   }
@@ -1427,6 +1450,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homesRemove => 'Remove';
+
+  @override
+  String removeNameConfirm(String name) {
+    return 'Remove $name?';
+  }
 
   @override
   String get homesFull => 'At most 5 homes.';
@@ -1835,6 +1863,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get peopleRemove => 'Not coming';
 
   @override
+  String peopleRemoveConfirm(String name) {
+    return 'Remove $name from this journey?';
+  }
+
+  @override
   String get peopleWho => 'Username or e-mail address';
 
   @override
@@ -1949,16 +1982,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendWithdraw => 'Withdraw';
 
   @override
+  String friendWithdrawConfirm(String username) {
+    return 'Withdraw your request to @$username?';
+  }
+
+  @override
   String get friendAccept => 'Accept';
 
   @override
   String get friendDecline => 'Decline';
 
   @override
+  String friendDeclineConfirm(String username) {
+    return 'Decline the request from @$username?';
+  }
+
+  @override
   String get friendFriends => 'Friends';
 
   @override
   String get friendRemove => 'Unfriend';
+
+  @override
+  String get commentDeleteConfirm => 'Delete this comment?';
+
+  @override
+  String friendRemoveConfirm(String username) {
+    return 'End your friendship with @$username?';
+  }
 
   @override
   String get friendsLinkHint =>
@@ -2090,6 +2141,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get doneRemove => 'Not hiked';
+
+  @override
+  String doneRemoveConfirm(String date) {
+    return 'Remove the mark from $date?';
+  }
 
   @override
   String get doneByHike => 'recorded';

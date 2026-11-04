@@ -601,6 +601,9 @@ void main() {
     await settle();
     await tester.tap(find.byKey(const Key('item-undone')));
     await settle();
+    expect(sent, isNot(contains('DELETE')), reason: 'asked first');
+    await tester.tap(find.byKey(const Key('delete-confirm')));
+    await settle();
     expect(sent.last, 'DELETE');
     expect(find.byKey(const Key('done-on')), findsNothing);
   });

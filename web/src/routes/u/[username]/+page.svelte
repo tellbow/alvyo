@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import { resolve } from '$app/paths';
 	import { api } from '#lib/api/client.js';
@@ -28,6 +29,8 @@
 		blocked: data.profile.blocked
 	});
 	let busy = $state(false);
+	let askUnfollow = $state(false);
+	let askBlock = $state(false);
 
 	async function set(what: 'follow' | 'block', on: boolean) {
 		busy = true;
@@ -93,7 +96,7 @@
 					<button
 						type="button"
 						disabled={busy}
-						onclick={() => set('follow', !relation.followed)}
+						onclick={() => (relation.followed ? (askUnfollow = true) : set('follow', true))}
 						class={actionButton}
 					>
 						{relation.followed ? m.profile_unfollow() : m.profile_follow()}
@@ -142,12 +145,26 @@
 					type="button"
 					disabled={busy}
 					class="text-stone-500 underline"
-					onclick={() => set('block', !relation.blocked)}
+					onclick={() => (askBlock = true)}
 				>
 					{relation.blocked ? m.profile_unblock() : m.profile_block()}
 				</button>
 				<ReportButton target={{ kind: 'user', username: profile.username }} />
 			</div>
+			<ConfirmDialog
+				bind:open={askUnfollow}
+				question={m.profile_unfollow_confirm({ username: `@${profile.username}` })}
+				action={m.profile_unfollow()}
+				onconfirm={() => set('follow', false)}
+			/>
+			<ConfirmDialog
+				bind:open={askBlock}
+				question={relation.blocked
+					? m.profile_unblock_confirm({ username: `@${profile.username}` })
+					: m.profile_block_confirm({ username: `@${profile.username}` })}
+				action={relation.blocked ? m.profile_unblock() : m.profile_block()}
+				onconfirm={() => set('block', !relation.blocked)}
+			/>
 			{#if relation.blocked}
 				<p class="mt-2 text-xs text-stone-500">{m.profile_blocked_note()}</p>
 			{/if}

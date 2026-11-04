@@ -92,6 +92,20 @@ test('find someone, ask, be accepted; a private profile through its invite link'
 	await carlaPage.reload();
 	await expect(carlaPage.getByTestId('friends-list')).toContainText(`Beat ${s}`);
 	await expect(carlaPage.getByTestId('friends-suggested')).toHaveCount(0);
+
+	// Ending a friendship asks first.
+	const friends = carlaPage.getByTestId('friends-list');
+	const end = friends.getByRole('button', { name: 'Freundschaft beenden' });
+	const asked = carlaPage.getByTestId('friend-confirm');
+	await end.click();
+	await expect(asked).toContainText('Freundschaft mit @');
+	await asked.getByRole('button', { name: 'Abbrechen' }).click();
+	await expect(asked).toHaveCount(0);
+	await carlaPage.reload();
+	await expect(friends).toContainText(`Beat ${s}`);
+	await end.click();
+	await asked.getByRole('button', { name: 'Freundschaft beenden' }).click();
+	await expect(carlaPage.getByTestId('friends-list')).toHaveCount(0);
 	await beatContext.close();
 	await carlaContext.close();
 });

@@ -58,6 +58,7 @@ void main() {
           return http.Response('', 204);
         }(),
         ('PUT', '/api/v1/users/beat/friend') => _json({'friend': 'requested'}),
+        ('DELETE', '/api/v1/users/anna/friend') => _json({'friend': 'none'}),
         ('PUT', '/api/v1/users/anna/friend') => () {
           annaAccepted = true;
           return _json({'friend': 'friends'});
@@ -106,6 +107,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Anfragen an dich'), findsNothing, reason: 'the lists load anew');
     expect(find.text('✓ Befreundet'), findsOneWidget);
+
+    // Ending the friendship asks first.
+    const end = 'DELETE /api/v1/users/anna/friend';
+    await tester.ensureVisible(find.byKey(const Key('friend-remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('friend-remove')));
+    await tester.pumpAndSettle();
+    expect(find.text('Freundschaft mit @anna beenden?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('delete-cancel')));
+    await tester.pumpAndSettle();
+    expect(calls, isNot(contains(end)));
+    await tester.tap(find.byKey(const Key('friend-remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('delete-confirm')));
+    await tester.pumpAndSettle();
+    expect(calls, contains(end));
   });
 
   // A friend's invite link opened in the app: who sent it, then friends.

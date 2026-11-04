@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'item_menu.dart';
 import 'collections_screen.dart';
 import 'done.dart';
 import 'error_state.dart';
@@ -42,6 +43,22 @@ class _UserScreenState extends State<UserScreen> {
   _Tab? _tab;
 
   DoneFilter _done = DoneFilter.all;
+
+  Future<void> _block(Profile p) async {
+    final t = AppLocalizations.of(context);
+    final question = p.blocked ? t.profileUnblockConfirm(p.username) : t.profileBlockConfirm(p.username);
+    if (await confirmFirst(context, question, p.blocked ? t.profileUnblock : t.profileBlock) && mounted) {
+      await _set(() => widget.api.block(p.username, !p.blocked));
+    }
+  }
+
+  Future<void> _follow(Profile p) async {
+    final t = AppLocalizations.of(context);
+    if (p.followed) {
+      if (!await confirmFirst(context, t.profileUnfollowConfirm(p.username), t.profileUnfollow) || !mounted) return;
+    }
+    await _set(() => widget.api.follow(p.username, !p.followed));
+  }
 
   Future<void> _set(Future<void> Function() call) async {
     final t = AppLocalizations.of(context);
@@ -95,7 +112,7 @@ class _UserScreenState extends State<UserScreen> {
                 PopupMenuButton<String>(
                   key: const Key('user-menu'),
                   onSelected: (v) => switch (v) {
-                    'block' => _set(() => widget.api.block(p.username, !p.blocked)),
+                    'block' => _block(p),
                     _ => report(context, widget.api, kind: 'user', username: p.username),
                   },
                   itemBuilder: (context) => [
@@ -156,9 +173,7 @@ class _UserScreenState extends State<UserScreen> {
                               children: [
                                 OutlinedButton(
                                   key: Key(p.followed ? 'unfollow' : 'follow'),
-                                  onPressed: _busy
-                                      ? null
-                                      : () => _set(() => widget.api.follow(p.username, !p.followed)),
+                                  onPressed: _busy ? null : () => _follow(p),
                                   child: Text(p.followed ? t.profileUnfollow : t.profileFollow),
                                 ),
                                 FriendButton(

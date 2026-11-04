@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api.dart';
 import '../avatar.dart';
 import '../l10n/app_localizations.dart';
+import 'item_menu.dart';
 
 /// Who comes along on a journey, as on the website: the owner adds people
 /// (someone without access is invited as a viewer) and removes them; the
@@ -106,6 +107,8 @@ class _PeopleSectionState extends State<PeopleSection> {
                   leading: const Icon(Icons.person_remove_outlined),
                   title: Text(t.peopleRemove),
                   onTap: () async {
+                    final ok = await confirmFirst(context, t.peopleRemoveConfirm(_name(t, p)), t.peopleRemove);
+                    if (!ok || !context.mounted) return;
                     Navigator.pop(context);
                     await _run(widget.api.removePerson(j.id, p.id));
                   },

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { api } from '#lib/api/client.js';
 	import { actionButton, menuItem } from '#lib/components/actions.js';
 	import MoreMenu from '#lib/components/MoreMenu.svelte';
@@ -51,6 +52,8 @@
 				: api().DELETE('/journeys/{id}/done', { params });
 	}
 
+	let asking = $state(false);
+
 	async function set(mark: boolean, close: () => void) {
 		const { data } = await call(mark);
 		failed = !data;
@@ -92,7 +95,10 @@
 			<button
 				type="button"
 				class="{menuItem} text-red-700 dark:text-red-400"
-				onclick={() => set(false, close)}
+				onclick={() => {
+					close();
+					asking = true;
+				}}
 				data-testid="{testid}-remove">{m.done_remove()}</button
 			>
 		{:else if on}
@@ -105,3 +111,10 @@
 			</p>{/if}
 	{/snippet}
 </MoreMenu>
+<ConfirmDialog
+	bind:open={asking}
+	question={on ? m.done_remove_confirm({ date: doneDate(on) }) : ''}
+	action={m.done_remove()}
+	onconfirm={() => set(false, () => {})}
+	actionTestid="{testid}-remove-confirm"
+/>

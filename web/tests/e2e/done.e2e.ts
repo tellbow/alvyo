@@ -65,5 +65,6 @@ test('mark a route as hiked; the list and the map tell planned from hiked', asyn
 	await page.goto(`/routes/${hiked}`);
 	await page.getByTestId('done').click();
 	await page.getByTestId('done-remove').click();
+	await page.getByTestId('done-remove-confirm').click();
 	await expect(page.getByTestId('done')).toHaveText('✓ Gewandert');
 });

@@ -22,6 +22,7 @@ test('sign up with a provider; an existing account connects it after logging in'
 		page.getByText('Dein Konto hat kein Passwort', { exact: false }).first()
 	).toBeVisible();
 	await page.getByTestId('identities').getByRole('button', { name: 'Trennen' }).click();
+	await page.getByRole('alertdialog').getByRole('button', { name: 'Trennen' }).click();
 	await expect(page.getByTestId('signin-methods')).toContainText('Das ist dein letzter Weg');
 
 	// Someone with a password account signs in at the provider with the same address.

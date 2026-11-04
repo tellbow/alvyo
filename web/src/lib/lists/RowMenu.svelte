@@ -43,7 +43,7 @@
 					data-testid="{testid}-leave"
 					onclick={() => {
 						close();
-						onremove();
+						asking = true;
 					}}><X class="size-4" aria-hidden="true" />{m.shared_remove_mine()}</button
 				>
 			{:else}
@@ -61,9 +61,9 @@
 	</MoreMenu>
 	<ConfirmDialog
 		bind:open={asking}
-		question={confirm ?? ''}
-		action={m.route_delete()}
+		question={leave ? m.shared_remove_confirm({ title }) : (confirm ?? '')}
+		action={leave ? m.collection_remove_item() : m.route_delete()}
 		onconfirm={onremove}
-		actionTestid="{testid}-delete-confirm"
+		actionTestid="{testid}-{leave ? 'leave' : 'delete'}-confirm"
 	/>
 </div>

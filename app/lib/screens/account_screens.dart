@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'item_menu.dart';
 import 'wide.dart';
 
 import '../errors.dart';
@@ -64,6 +65,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
   Future<void> _remove(Contact c) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    if (!await confirmFirst(context, t.removeNameConfirm(c.name), t.contactsRemove)) return;
     try {
       await widget.api.deleteContact(c.id);
       if (mounted) {
@@ -155,6 +157,7 @@ class _BlockedScreenState extends State<BlockedScreen> {
   Future<void> _unblock(UserRef u) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    if (!await confirmFirst(context, t.profileUnblockConfirm(u.username), t.profileUnblock)) return;
     try {
       await widget.api.block(u.username, false);
       if (mounted) {
@@ -340,6 +343,7 @@ class _HomesScreenState extends State<HomesScreen> {
   Future<void> _remove(Home h) async {
     final t = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    if (!await confirmFirst(context, t.removeNameConfirm(h.name), t.homesRemove)) return;
     try {
       await widget.api.deleteHome(h.id);
       if (mounted) {

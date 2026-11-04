@@ -63,6 +63,9 @@ List<MenuAction> doneActions(
       final today = DateUtils.dateOnly(DateTime.now());
       day = await showDatePicker(context: context, firstDate: DateTime(1990), lastDate: today, initialDate: today);
       if (day == null) return;
+    } else {
+      final question = t.doneRemoveConfirm(formatDate(DateTime.parse(state.doneOn!)));
+      if (!await confirmFirst(context, question, t.doneRemove)) return;
     }
     try {
       onDone(await api.setDone(id, journey: journey, on: on, day: day));

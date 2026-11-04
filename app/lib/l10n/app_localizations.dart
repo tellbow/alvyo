@@ -1786,17 +1786,35 @@ abstract class AppLocalizations {
   /// **'Nicht mehr folgen'**
   String get profileUnfollow;
 
+  /// No description provided for @profileUnfollowConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'@{username} nicht mehr folgen?'**
+  String profileUnfollowConfirm(String username);
+
   /// No description provided for @profileBlock.
   ///
   /// In de, this message translates to:
   /// **'Blockieren'**
   String get profileBlock;
 
+  /// No description provided for @profileBlockConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'@{username} blockieren?'**
+  String profileBlockConfirm(String username);
+
   /// No description provided for @profileUnblock.
   ///
   /// In de, this message translates to:
   /// **'Nicht mehr blockieren'**
   String get profileUnblock;
+
+  /// No description provided for @profileUnblockConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'@{username} nicht mehr blockieren?'**
+  String profileUnblockConfirm(String username);
 
   /// No description provided for @profileBlockedNote.
   ///
@@ -2037,6 +2055,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Zugriff entfernen'**
   String get shareRemove;
+
+  /// No description provided for @shareRemoveConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Zugriff für {name} entfernen?'**
+  String shareRemoveConfirm(String name);
 
   /// No description provided for @shareWho.
   ///
@@ -2512,6 +2536,12 @@ abstract class AppLocalizations {
   /// **'Entfernen'**
   String get collectionRemoveItem;
 
+  /// No description provided for @offlineRemoveConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Offline-Karte dieser Route entfernen?'**
+  String get offlineRemoveConfirm;
+
   /// No description provided for @collectionRemoveConfirm.
   ///
   /// In de, this message translates to:
@@ -2685,6 +2715,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Entfernen'**
   String get homesRemove;
+
+  /// No description provided for @removeNameConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'{name} entfernen?'**
+  String removeNameConfirm(String name);
 
   /// No description provided for @homesFull.
   ///
@@ -3412,6 +3448,12 @@ abstract class AppLocalizations {
   /// **'Kommt nicht mit'**
   String get peopleRemove;
 
+  /// No description provided for @peopleRemoveConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'{name} aus dieser Etappentour entfernen?'**
+  String peopleRemoveConfirm(String name);
+
   /// No description provided for @peopleWho.
   ///
   /// In de, this message translates to:
@@ -3604,6 +3646,12 @@ abstract class AppLocalizations {
   /// **'Zurückziehen'**
   String get friendWithdraw;
 
+  /// No description provided for @friendWithdrawConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Anfrage an @{username} zurückziehen?'**
+  String friendWithdrawConfirm(String username);
+
   /// No description provided for @friendAccept.
   ///
   /// In de, this message translates to:
@@ -3616,6 +3664,12 @@ abstract class AppLocalizations {
   /// **'Ablehnen'**
   String get friendDecline;
 
+  /// No description provided for @friendDeclineConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Anfrage von @{username} ablehnen?'**
+  String friendDeclineConfirm(String username);
+
   /// No description provided for @friendFriends.
   ///
   /// In de, this message translates to:
@@ -3627,6 +3681,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Freundschaft beenden'**
   String get friendRemove;
+
+  /// No description provided for @commentDeleteConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Kommentar löschen?'**
+  String get commentDeleteConfirm;
+
+  /// No description provided for @friendRemoveConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Freundschaft mit @{username} beenden?'**
+  String friendRemoveConfirm(String username);
 
   /// No description provided for @friendsLinkHint.
   ///
@@ -3873,6 +3939,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Nicht gewandert'**
   String get doneRemove;
+
+  /// No description provided for @doneRemoveConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Markierung vom {date} entfernen?'**
+  String doneRemoveConfirm(String date);
 
   /// No description provided for @doneByHike.
   ///

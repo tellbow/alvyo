@@ -2,6 +2,35 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 
+/// Asks [question] before something is removed; true when the user goes on
+/// with [action].
+Future<bool> confirmFirst(BuildContext context, String question, String action) async {
+  final t = AppLocalizations.of(context);
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      content: Text(question),
+      actions: [
+        TextButton(
+          key: const Key('delete-cancel'),
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(t.cancel),
+        ),
+        FilledButton(
+          key: const Key('delete-confirm'),
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+            foregroundColor: Theme.of(context).colorScheme.onError,
+          ),
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(action),
+        ),
+      ],
+    ),
+  );
+  return ok == true;
+}
+
 /// An entry of an [ItemMenu] above «Löschen».
 class MenuAction {
   const MenuAction(this.key, this.icon, this.label, this.onTap);
@@ -21,27 +50,7 @@ class ItemMenu extends StatelessWidget {
   final Future<void> Function()? onDelete;
 
   Future<void> _confirm(BuildContext context) async {
-    final t = AppLocalizations.of(context);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text(question),
-        actions: [
-          TextButton(
-            key: const Key('delete-cancel'),
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(t.cancel),
-          ),
-          FilledButton(
-            key: const Key('delete-confirm'),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
-    );
-    if (ok == true) await onDelete!();
+    if (await confirmFirst(context, question, AppLocalizations.of(context).delete)) await onDelete!();
   }
 
   @override

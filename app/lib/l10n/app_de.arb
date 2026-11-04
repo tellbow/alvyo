@@ -542,8 +542,32 @@
   "profileStatFollowing": "Folgt",
   "profileFollow": "Folgen",
   "profileUnfollow": "Nicht mehr folgen",
+  "profileUnfollowConfirm": "@{username} nicht mehr folgen?",
+  "@profileUnfollowConfirm": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "profileBlock": "Blockieren",
+  "profileBlockConfirm": "@{username} blockieren?",
+  "@profileBlockConfirm": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "profileUnblock": "Nicht mehr blockieren",
+  "profileUnblockConfirm": "@{username} nicht mehr blockieren?",
+  "@profileUnblockConfirm": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "profileBlockedNote": "Blockiert: Diese Person kann deine Touren nicht kommentieren und dir nicht folgen, und du siehst ihre Kommentare nicht.",
   "profileRoutes": "Routen",
   "profileJourneys": "Etappentouren",
@@ -598,6 +622,14 @@
   "sharePeople": "Mit Personen teilen",
   "sharePending": "eingeladen",
   "shareRemove": "Zugriff entfernen",
+  "shareRemoveConfirm": "Zugriff für {name} entfernen?",
+  "@shareRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "shareWho": "Benutzername oder E-Mail-Adresse",
   "shareInvite": "Einladen",
   "shareHint": "Eingeladene erhalten eine E-Mail. Wer noch kein Konto hat, registriert sich mit dieser Adresse.",
@@ -757,6 +789,7 @@
     }
   },
   "collectionRemoveItem": "Entfernen",
+  "offlineRemoveConfirm": "Offline-Karte dieser Route entfernen?",
   "collectionRemoveConfirm": "«{title}» aus der Sammlung entfernen? Die Route oder Etappentour selbst bleibt.",
   "@collectionRemoveConfirm": {
     "placeholders": {
@@ -817,6 +850,14 @@
   "homesAddress": "Adresse suchen …",
   "homesAdd": "Hinzufügen",
   "homesRemove": "Entfernen",
+  "removeNameConfirm": "{name} entfernen?",
+  "@removeNameConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "homesFull": "Höchstens 5 Zuhause.",
   "travelStart": "Start der Tour",
   "travelEnd": "Ende der Tour",
@@ -1068,6 +1109,14 @@
   "peopleNone": "Noch niemand. Wer mitkommt, sieht die Etappentour und die Etappen, auf denen er oder sie dabei ist.",
   "peopleInvited": "Eingeladen",
   "peopleRemove": "Kommt nicht mit",
+  "peopleRemoveConfirm": "{name} aus dieser Etappentour entfernen?",
+  "@peopleRemoveConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "peopleWho": "Benutzername oder E-Mail-Adresse",
   "peopleAdd": "Hinzufügen",
   "peopleHint": "Wer noch keinen Zugang hat, wird eingeladen und kann die Etappentour ansehen. Die Zahlen sind die Etappen: antippen, wer wo dabei ist.",
@@ -1128,10 +1177,35 @@
   "friendAdd": "Als Freund hinzufügen",
   "friendRequested": "Anfrage gesendet",
   "friendWithdraw": "Zurückziehen",
+  "friendWithdrawConfirm": "Anfrage an @{username} zurückziehen?",
+  "@friendWithdrawConfirm": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "friendAccept": "Annehmen",
   "friendDecline": "Ablehnen",
+  "friendDeclineConfirm": "Anfrage von @{username} ablehnen?",
+  "@friendDeclineConfirm": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "friendFriends": "Befreundet",
   "friendRemove": "Freundschaft beenden",
+  "commentDeleteConfirm": "Kommentar löschen?",
+  "friendRemoveConfirm": "Freundschaft mit @{username} beenden?",
+  "@friendRemoveConfirm": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
   "friendsLinkHint": "Wer den Link öffnet und annimmt, wird dein Freund – auch wenn dein Profil privat ist. In Alvyo kommt dabei keine Anfrage an: Schick den Link selbst, nur an Leute, die du kennst.",
   "friendsInviteShare": "Lass uns auf Alvyo Freunde sein. Öffne den Link und tippe auf «Annehmen»:",
   "friendsLinkRenew": "Neuen Link erzeugen",
@@ -1176,6 +1250,14 @@
   "hikedLongest": "Längste",
   "doneAgain": "Nochmals gewandert",
   "doneRemove": "Nicht gewandert",
+  "doneRemoveConfirm": "Markierung vom {date} entfernen?",
+  "@doneRemoveConfirm": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "doneByHike": "aufgezeichnet",
   "doneByStages": "alle Etappen erledigt",
   "doneFilterAll": "Alle",

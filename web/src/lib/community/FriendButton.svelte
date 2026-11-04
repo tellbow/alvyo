@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { api } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { Hydrated } from '#lib/util/hydrated.svelte.js';
@@ -24,6 +25,16 @@
 	const hydrated = new Hydrated();
 	let busy = $state(false);
 
+	// Taking a request or a friendship back is asked first.
+	let asking = $state(false);
+	let question = $state('');
+	let action = $state('');
+	function ask(q: string, a: string) {
+		question = q;
+		action = a;
+		asking = true;
+	}
+
 	async function set(on: boolean) {
 		busy = true;
 		const params = { params: { path: { username } } };
@@ -48,20 +59,41 @@
 		>
 	{:else if friend === 'requested'}
 		<span class="text-stone-600">{m.friend_requested()}</span>
-		<button type="button" class={quiet} {disabled} onclick={() => set(false)}
+		<button
+			type="button"
+			class={quiet}
+			{disabled}
+			onclick={() =>
+				ask(m.friend_withdraw_confirm({ username: `@${username}` }), m.friend_withdraw())}
 			>{m.friend_withdraw()}</button
 		>
 	{:else if friend === 'incoming'}
 		<button type="button" class={primary} {disabled} onclick={() => set(true)}
 			>{m.friend_accept()}</button
 		>
-		<button type="button" class={quiet} {disabled} onclick={() => set(false)}
+		<button
+			type="button"
+			class={quiet}
+			{disabled}
+			onclick={() =>
+				ask(m.friend_decline_confirm({ username: `@${username}` }), m.friend_decline())}
 			>{m.friend_decline()}</button
 		>
 	{:else}
 		<span class="text-stone-600">✓ {m.friend_friends()}</span>
-		<button type="button" class={quiet} {disabled} onclick={() => set(false)}
+		<button
+			type="button"
+			class={quiet}
+			{disabled}
+			onclick={() => ask(m.friend_remove_confirm({ username: `@${username}` }), m.friend_remove())}
 			>{m.friend_remove()}</button
 		>
 	{/if}
 </span>
+<ConfirmDialog
+	bind:open={asking}
+	{question}
+	{action}
+	onconfirm={() => set(false)}
+	testid="friend-confirm"
+/>

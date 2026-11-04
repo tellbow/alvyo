@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import { api, type JourneyStage, type Person } from '#lib/api/client.js';
 	import FriendOptions from '#lib/community/FriendOptions.svelte';
@@ -77,6 +78,7 @@
 		);
 	}
 
+	let removing = $state<string>(); // the person asked about
 	function remove(p: Person) {
 		run(api().DELETE('/journeys/{id}/people/{person}', { params: { path: { id, person: p.id } } }));
 	}
@@ -102,8 +104,14 @@
 								type="button"
 								class="ml-auto text-xs underline"
 								disabled={busy}
-								onclick={() => remove(p)}>{m.people_remove()}</button
+								onclick={() => (removing = p.id)}>{m.people_remove()}</button
 							>
+							<ConfirmDialog
+								bind:open={() => removing === p.id, (v) => (removing = v ? p.id : undefined)}
+								question={m.people_remove_confirm({ name: personName(p) })}
+								action={m.people_remove()}
+								onconfirm={() => remove(p)}
+							/>
 						{/if}
 					</div>
 					<div

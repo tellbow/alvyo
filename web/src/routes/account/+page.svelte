@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { fromAction } from 'svelte/attachments';
 	import { NativeSelect } from '#lib/components/ui/native-select/index.js';
 	import { onMount } from 'svelte';
@@ -60,6 +61,7 @@
 		if (response.ok) await refreshAll();
 	}
 
+	let unblocking = $state<string>(); // the user asked about
 	async function unblock(username: string) {
 		const { response } = await api().DELETE('/users/{username}/block', {
 			params: { path: { username } }
@@ -67,8 +69,8 @@
 		if (response.ok) blocked = blocked.filter((u) => u.username !== username);
 	}
 
-	async function remove(e: SubmitEvent) {
-		e.preventDefault();
+	let deleting = $state(false);
+	async function remove() {
 		const { response } = await api().DELETE('/me', { body: password ? { password } : {} });
 		if (response.ok) {
 			await refreshAll();
@@ -106,6 +108,7 @@
 				] ?? m.photos_problem_other
 			)();
 	}
+	let removingAvatar = $state(false);
 	async function removeAvatar() {
 		const { response } = await api().DELETE('/me/avatar');
 		if (response.ok) await refreshAll();
@@ -154,8 +157,14 @@
 							type="button"
 							class="text-stone-600 underline hover:text-accent-ink"
 							disabled={!hydrated.value}
-							onclick={removeAvatar}>{m.account_avatar_remove()}</button
+							onclick={() => (removingAvatar = true)}>{m.account_avatar_remove()}</button
 						>
+						<ConfirmDialog
+							bind:open={removingAvatar}
+							question={m.account_avatar_remove_confirm()}
+							action={m.account_avatar_remove()}
+							onconfirm={removeAvatar}
+						/>
 					{/if}
 					{#if avatarError}
 						<p class="w-full text-xs text-red-700 dark:text-red-400" role="alert">{avatarError}</p>
@@ -300,8 +309,16 @@
 							<button
 								type="button"
 								class="text-stone-500 underline"
-								onclick={() => unblock(b.username)}>{m.profile_unblock()}</button
+								onclick={() => (unblocking = b.username)}>{m.profile_unblock()}</button
 							>
+							<ConfirmDialog
+								bind:open={
+									() => unblocking === b.username, (v) => (unblocking = v ? b.username : undefined)
+								}
+								question={m.profile_unblock_confirm({ username: `@${b.username}` })}
+								action={m.profile_unblock()}
+								onconfirm={() => unblock(b.username)}
+							/>
 						</li>
 					{/each}
 				</ul>
@@ -315,7 +332,14 @@
 
 		<Card title={m.account_delete_title()} danger class="lg:col-span-2">
 			<p class="mb-4 text-sm text-stone-600">{m.account_delete_text()}</p>
-			<form method="post" onsubmit={remove} class="flex max-w-md flex-col gap-3">
+			<form
+				method="post"
+				onsubmit={(e) => {
+					e.preventDefault();
+					deleting = true;
+				}}
+				class="flex max-w-md flex-col gap-3"
+			>
 				{#if data.user?.has_password}
 					<Field
 						label={m.field_password()}
@@ -335,6 +359,13 @@
 					>{m.account_delete_submit()}</button
 				>
 			</form>
+			<ConfirmDialog
+				bind:open={deleting}
+				question={m.account_delete_confirm()}
+				action={m.account_delete_submit()}
+				onconfirm={remove}
+				actionTestid="account-delete-confirm"
+			/>
 		</Card>
 	</div>
 </main>

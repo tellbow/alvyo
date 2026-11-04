@@ -1,3 +1,4 @@
+import 'item_menu.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -437,22 +438,30 @@ class _ShareSheetState extends State<_ShareSheet> {
                         title: Text(g.username.isNotEmpty ? '${g.displayName} (@${g.username})' : g.email),
                         subtitle: Text([role(g.role), if (g.username.isEmpty) t.sharePending].join(' · ')),
                         trailing: PopupMenuButton<String>(
-                          onSelected: (v) => _run(
-                            () => v == 'remove'
-                                ? widget.api.removeGrant(
-                                    widget.id,
-                                    g.id,
-                                    journey: widget.journey,
-                                    collection: widget.collection,
-                                  )
-                                : widget.api.setGrantRole(
-                                    widget.id,
-                                    g.id,
-                                    v,
-                                    journey: widget.journey,
-                                    collection: widget.collection,
-                                  ),
-                          ),
+                          onSelected: (v) async {
+                            if (v == 'remove') {
+                              final name = g.username.isNotEmpty ? g.displayName : g.email;
+                              if (!await confirmFirst(context, t.shareRemoveConfirm(name), t.shareRemove) || !mounted) {
+                                return;
+                              }
+                            }
+                            await _run(
+                              () => v == 'remove'
+                                  ? widget.api.removeGrant(
+                                      widget.id,
+                                      g.id,
+                                      journey: widget.journey,
+                                      collection: widget.collection,
+                                    )
+                                  : widget.api.setGrantRole(
+                                      widget.id,
+                                      g.id,
+                                      v,
+                                      journey: widget.journey,
+                                      collection: widget.collection,
+                                    ),
+                            );
+                          },
                           itemBuilder: (_) => [
                             PopupMenuItem(value: 'viewer', child: Text(t.roleViewer)),
                             PopupMenuItem(value: 'editor', child: Text(t.roleEditor)),

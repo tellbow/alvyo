@@ -46,6 +46,7 @@ test('admin portal: users, items and the log with undo', async ({ page, browser 
 	const user = page.getByTestId('admin-user').filter({ hasText: `@${troll}` });
 	await expect(user).toContainText('1 Route ·');
 	await user.getByRole('button', { name: 'Sperren' }).click();
+	await page.getByRole('alertdialog').getByRole('button', { name: 'Sperren' }).click();
 	await expect(page.getByTestId('admin-done')).toContainText(`@${troll} gesperrt`);
 	await expect(user).toContainText('gesperrt seit');
 	await page.getByTestId('admin-done').getByRole('button', { name: 'Rückgängig' }).click();

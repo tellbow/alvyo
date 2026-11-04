@@ -48,6 +48,8 @@ void main() {
     );
     if (saved.evaluate().isNotEmpty) {
       await tester.tap(saved); // from an earlier run: start over
+      await waitFor(tester, find.byKey(const Key('delete-confirm')));
+      await tester.tap(find.byKey(const Key('delete-confirm')));
       await waitFor(tester, save);
     }
     final started = DateTime.now();

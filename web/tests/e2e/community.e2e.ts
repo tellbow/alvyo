@@ -125,6 +125,7 @@ test('a reported comment is removed from the moderation queue', async ({ page, b
 	await expect(report).toContainText('Spam oder Werbung');
 	await expect(report).toContainText(`@${troll}`);
 	await report.getByRole('button', { name: 'Kommentar löschen' }).click();
+	await modPage.getByRole('alertdialog').getByRole('button', { name: 'Kommentar löschen' }).click();
 	await expect(report).toHaveCount(0);
 	await modContext.close();
 

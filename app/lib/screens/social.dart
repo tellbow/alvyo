@@ -4,6 +4,7 @@ import '../api.dart';
 import '../avatar.dart';
 import '../format.dart';
 import '../l10n/app_localizations.dart';
+import 'item_menu.dart';
 import 'report_dialog.dart';
 
 /// Likes and comments of a route or journey: liking, commenting, replies
@@ -119,7 +120,9 @@ class _SocialPanelState extends State<SocialPanel> {
           await _run(widget.api.editComment(id, c.id, text, journey: journey));
         }
       case 'delete':
-        await _run(widget.api.deleteComment(id, c.id, journey: journey));
+        if (await confirmFirst(context, t.commentDeleteConfirm, t.delete) && mounted) {
+          await _run(widget.api.deleteComment(id, c.id, journey: journey));
+        }
       case 'report':
         await report(context, widget.api, kind: 'comment', id: c.id);
     }

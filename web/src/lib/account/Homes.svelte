@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
 	import { primaryButtonSmall } from '#lib/components/actions.js';
 	import { onMount } from 'svelte';
 	import { api, type FoundPlace, type Home } from '#lib/api/client.js';
@@ -33,6 +34,7 @@
 		found = undefined;
 	}
 
+	let removing = $state<string>(); // the home asked about
 	async function remove(id: string) {
 		const { response } = await api().DELETE('/me/homes/{id}', { params: { path: { id } } });
 		if (response.ok) homes = homes.filter((h) => h.id !== id);
@@ -43,9 +45,15 @@
 	{#each homes as h (h.id)}
 		<li class="flex items-center gap-3">
 			<span class="flex-1">{h.name} <span class="text-stone-500">{h.address}</span></span>
-			<button type="button" class="text-stone-500 underline" onclick={() => remove(h.id)}
+			<button type="button" class="text-stone-500 underline" onclick={() => (removing = h.id)}
 				>{m.homes_remove()}</button
 			>
+			<ConfirmDialog
+				bind:open={() => removing === h.id, (v) => (removing = v ? h.id : undefined)}
+				question={m.remove_name_confirm({ name: h.name })}
+				action={m.homes_remove()}
+				onconfirm={() => remove(h.id)}
+			/>
 		</li>
 	{/each}
 </ul>

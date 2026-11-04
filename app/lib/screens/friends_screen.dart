@@ -1,3 +1,4 @@
+import 'item_menu.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -49,11 +50,15 @@ class _FriendButtonState extends State<FriendButton> {
     }
   }
 
+  /// Taking a request or a friendship back is asked first.
+  Future<void> _off(String question, String action) async {
+    if (await confirmFirst(context, question, action) && mounted) await _set(false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final on = _busy ? null : () => _set(true);
-    final off = _busy ? null : () => _set(false);
     return Wrap(
       key: Key('friend-$_friend'),
       spacing: 8,
@@ -62,15 +67,27 @@ class _FriendButtonState extends State<FriendButton> {
         'none' => [FilledButton(key: const Key('friend-add'), onPressed: on, child: Text(t.friendAdd))],
         'requested' => [
           Text(t.friendRequested),
-          TextButton(key: const Key('friend-withdraw'), onPressed: off, child: Text(t.friendWithdraw)),
+          TextButton(
+            key: const Key('friend-withdraw'),
+            onPressed: _busy ? null : () => _off(t.friendWithdrawConfirm(widget.username), t.friendWithdraw),
+            child: Text(t.friendWithdraw),
+          ),
         ],
         'incoming' => [
           FilledButton(key: const Key('friend-accept'), onPressed: on, child: Text(t.friendAccept)),
-          TextButton(key: const Key('friend-decline'), onPressed: off, child: Text(t.friendDecline)),
+          TextButton(
+            key: const Key('friend-decline'),
+            onPressed: _busy ? null : () => _off(t.friendDeclineConfirm(widget.username), t.friendDecline),
+            child: Text(t.friendDecline),
+          ),
         ],
         _ => [
           Text('✓ ${t.friendFriends}'),
-          TextButton(key: const Key('friend-remove'), onPressed: off, child: Text(t.friendRemove)),
+          TextButton(
+            key: const Key('friend-remove'),
+            onPressed: _busy ? null : () => _off(t.friendRemoveConfirm(widget.username), t.friendRemove),
+            child: Text(t.friendRemove),
+          ),
         ],
       },
     );

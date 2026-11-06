@@ -14,7 +14,7 @@ make infra-up       # PostGIS, GraphHopper, tile cache, Mailpit (docker compose)
 export ALVYO_DATABASE_URL='postgres://alvyo:alvyo@localhost:5432/alvyo?sslmode=disable'
 go run ./api/cmd/alvyo migrate
 make tlm-import     # official hiking trails into PostGIS (~200 MB download), needed for SAC grades
-make places-import  # stops (BAV) and huts/accommodation (OSM) for stage start and end (~5 s)
+make places-import  # stops (BAV) and huts/accommodation (OSM) for stage start and end, lakes for the reach areas (~20 s)
 cd web && bun install
 ```
 

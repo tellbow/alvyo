@@ -16,8 +16,8 @@ import (
 )
 
 // newMCPServer is the test server with GraphHopper (the recorded First →
-// Bachalpsee route for every route, three areas for every isochrone),
-// geo.admin's protected areas, and two places to find.
+// Bachalpsee route for every route, a short path east for every shortest
+// path tree), geo.admin's protected areas, and two places to find.
 func newMCPServer(t *testing.T) *testServer {
 	t.Helper()
 	route, err := os.ReadFile("../routing/testdata/gh_first_bachalpsee.json")
@@ -29,12 +29,8 @@ func newMCPServer(t *testing.T) *testServer {
 		t.Fatal(err)
 	}
 	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, "/isochrone") {
-			_, _ = w.Write([]byte(`{"polygons":[
-				{"properties":{"bucket":0},"geometry":{"coordinates":[[[8.04,46.65],[8.06,46.65],[8.05,46.67],[8.04,46.65]]]}},
-				{"properties":{"bucket":1},"geometry":{"coordinates":[[[8.03,46.64],[8.07,46.64],[8.05,46.68],[8.03,46.64]]]}},
-				{"properties":{"bucket":2},"geometry":{"coordinates":[[[8.02,46.63],[8.08,46.63],[8.05,46.69],[8.02,46.63]]]}},
-				{"properties":{"bucket":3},"geometry":{"coordinates":[[[8.01,46.62],[8.09,46.62],[8.05,46.70],[8.01,46.62]]]}}]}`))
+		if r.URL.Path == "/reach-tree" {
+			_, _ = w.Write([]byte("from_node,to_node,time,geometry\n-1,0,0,8.0535 46.6597\n0,1,600000,8.0535 46.6597;8.07 46.66\n"))
 			return
 		}
 		_, _ = w.Write(route)

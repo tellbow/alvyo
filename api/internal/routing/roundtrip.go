@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/sync/errgroup"
 
@@ -28,35 +29,60 @@ const (
 
 // The outline around the cells, in metres (LV95): gaps narrower than
 // twice closeM between paths are closed, holes smaller than minHoleM2 (the
-// land between paths) filled, larger ones such as lakes kept, and the cells'
-// steps smoothed to about simplifyM.
+// land between paths) filled, larger ones such as a pathless massif kept,
+// lakes cut out (shrunk by shoreM, so the paths along a shore stay in), and
+// the cells' steps smoothed to about simplifyM.
 const (
-	closeM    = 300
-	minHoleM2 = 1_000_000
+	closeM    = 500
+	minHoleM2 = 5_000_000
+	shoreM    = 100
 	simplifyM = 60
 )
 
-// sptNode is a node of GraphHopper's shortest path tree: where it is, the
-// node before it and the time to it (or from it, flowing back), in ms.
-type sptNode struct {
-	lon, lat, prevLon, prevLat float64
-	ms                         float64
+// overreach: the trees search this much beyond the longest time, so the
+// paths that cross a limit are known up to their next node (GraphHopper's
+// isochrones add 14 %).
+const overreach = 1.15
+
+// sptEdge is an edge leaving a node GraphHopper's shortest path tree
+// reaches: its way from node from to node to ([lon, lat]), and the time at to
+// by it (or from to, flowing back), in ms. The start's edge comes from -1 and
+// is its point alone.
+type sptEdge struct {
+	from, to int64
+	ms       float64
+	way      [][2]float64
+}
+
+// nodeTimes returns each node's time: the least by any edge to it.
+func nodeTimes(edges []sptEdge) map[int64]float64 {
+	times := make(map[int64]float64, len(edges))
+	for _, e := range edges {
+		if t, ok := times[e.to]; !ok || e.ms < t {
+			times[e.to] = e.ms
+		}
+	}
+	return times
 }
 
 // spt asks GraphHopper for its shortest path tree from p within seconds
-// (reverse: the times to p instead).
-func (g *GraphHopper) spt(ctx context.Context, p geo.Point, profile string, seconds float64, reverse bool) (map[int64]sptNode, error) {
+// (reverse: the times to p instead), as the edges leaving the nodes it
+// reaches, with their ways: our endpoint (infra/graphhopper/src), as /spt
+// gives only the tree's nodes, and straight lines between them cut across
+// the slopes where paths wind, and miss the paths the tree does not take.
+func (g *GraphHopper) spt(ctx context.Context, p geo.Point, profile string, seconds float64, reverse bool) ([]sptEdge, error) {
 	q := url.Values{
 		"point":        {fmt.Sprintf("%.6f,%.6f", p.Lat, p.Lon)},
 		"profile":      {profile + "_time"},
 		"time_limit":   {strconv.Itoa(int(math.Round(seconds)))},
 		"reverse_flow": {strconv.FormatBool(reverse)},
-		"columns":      {"node_id,prev_longitude,prev_latitude,longitude,latitude,time"},
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(g.URL, "/")+"/spt?"+q.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(g.URL, "/")+"/reach-tree?"+q.Encode(), nil)
 	if err != nil {
 		return nil, err
 	}
+	// Tens of MB, but GraphHopper takes longer to gzip them than to send them.
+	req.Header.Set("Accept-Encoding", "identity")
 	client := g.Client
 	if client == nil {
 		client = &http.Client{Timeout: reachTimeout}
@@ -74,34 +100,35 @@ func (g *GraphHopper) spt(ctx context.Context, p geo.Point, profile string, seco
 	}
 	rd := csv.NewReader(resp.Body)
 	rd.ReuseRecord = true
-	if _, err := rd.Read(); err != nil { // the header, in the columns' order
+	if _, err := rd.Read(); err != nil { // from_node,to_node,time,geometry
 		return nil, fmt.Errorf("routing: spt: %w", err)
 	}
-	nodes := map[int64]sptNode{}
+	var edges []sptEdge
 	for {
 		rec, err := rd.Read()
 		if errors.Is(err, io.EOF) {
-			return nodes, nil
+			return edges, nil
 		}
 		if err != nil {
 			return nil, fmt.Errorf("routing: spt: %w", err)
 		}
-		var v [6]float64
-		// The start has no node before it: «null» there.
-		start := rec[1] == "null" || rec[1] == ""
-		for i := range v {
-			if start && (i == 1 || i == 2) {
-				continue
-			}
-			if v[i], err = strconv.ParseFloat(rec[i], 64); err != nil {
+		from, err1 := strconv.ParseInt(rec[0], 10, 64)
+		to, err2 := strconv.ParseInt(rec[1], 10, 64)
+		ms, err3 := strconv.ParseFloat(rec[2], 64)
+		if err := errors.Join(err1, err2, err3); err != nil {
+			return nil, fmt.Errorf("routing: spt: %w", err)
+		}
+		e := sptEdge{from: from, to: to, ms: ms}
+		for pt := range strings.SplitSeq(rec[3], ";") {
+			lon, lat, _ := strings.Cut(pt, " ")
+			x, err1 := strconv.ParseFloat(lon, 64)
+			y, err2 := strconv.ParseFloat(lat, 64)
+			if err := errors.Join(err1, err2); err != nil {
 				return nil, fmt.Errorf("routing: spt: %w", err)
 			}
+			e.way = append(e.way, [2]float64{x, y})
 		}
-		n := sptNode{prevLon: v[1], prevLat: v[2], lon: v[3], lat: v[4], ms: v[5]}
-		if start {
-			n.prevLon, n.prevLat = n.lon, n.lat
-		}
-		nodes[int64(v[0])] = n
+		edges = append(edges, e)
 	}
 }
 
@@ -111,8 +138,8 @@ type Outliner struct {
 }
 
 // Outline returns the largest area the cells (column, row of cellLon ×
-// cellLat) make, closed and smoothed (closeM): its rings, the outer one
-// first. None for no cells.
+// cellLat) make, closed, without lakes and smoothed (closeM): its rings,
+// the outer one first. None for no cells.
 func (o *Outliner) Outline(ctx context.Context, cells [][2]int) ([][][2]float64, error) {
 	if len(cells) == 0 {
 		return nil, nil
@@ -131,12 +158,24 @@ func (o *Outliner) Outline(ctx context.Context, cells [][2]int) ([][][2]float64,
 		),
 		part AS (SELECT (ST_Dump(ST_Buffer(ST_Buffer(g, $5::float8), -$5::float8))).geom AS g FROM cells),
 		big AS (SELECT g FROM part ORDER BY ST_Area(g) DESC LIMIT 1),
-		ring AS (SELECT r.path[1] AS n, ST_ExteriorRing(r.geom) AS l, ST_Area(r.geom) AS a FROM big, ST_DumpRings(big.g) r)
-		SELECT ST_AsGeoJSON(ST_Transform(ST_SimplifyPreserveTopology(ST_MakePolygon(
+		ring AS (SELECT r.path[1] AS n, ST_ExteriorRing(r.geom) AS l, ST_Area(r.geom) AS a FROM big, ST_DumpRings(big.g) r),
+		filled AS (SELECT ST_MakePolygon(
 			(SELECT l FROM ring WHERE n = 0),
 			ARRAY(SELECT l FROM ring WHERE n > 0 AND a >= $6::float8 ORDER BY n)
-		), $7::float8), 4326), 5)`,
-		cols, rows, cellLon, cellLat, closeM, minHoleM2, simplifyM).Scan(&raw)
+		) AS g),
+		-- after the holes are filled, so a small lake inside stays out too
+		dry AS (
+			SELECT (ST_Dump(ST_Difference(f.g, coalesce(
+				(SELECT ST_Union(ST_Buffer(l.geom, -$8::float8)) FROM lakes l WHERE l.geom && f.g),
+				ST_GeomFromText('POLYGON EMPTY', 2056))))).geom AS g
+			FROM filled f
+		)
+		SELECT ST_AsGeoJSON(ST_Transform(ST_SimplifyPreserveTopology(g, $7::float8), 4326), 5)
+		FROM dry ORDER BY ST_Area(g) DESC LIMIT 1`,
+		cols, rows, cellLon, cellLat, closeM, minHoleM2, simplifyM, shoreM).Scan(&raw)
+	if errors.Is(err, pgx.ErrNoRows) { // all of it a lake
+		return nil, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("routing: outline: %w", err)
 	}
@@ -160,6 +199,36 @@ func segmentCells(cells map[[2]int]bool, lon0, lat0, lon1, lat1 float64) {
 	}
 }
 
+// wayCells adds the cells along the first fraction f (0 to 1) of a way, by
+// its length.
+func wayCells(cells map[[2]int]bool, way [][2]float64, f float64) {
+	if len(way) == 0 {
+		return
+	}
+	if len(way) == 1 {
+		segmentCells(cells, way[0][0], way[0][1], way[0][0], way[0][1])
+		return
+	}
+	k := math.Cos(way[0][1] * math.Pi / 180) // a degree of longitude in degrees of latitude
+	length := func(a, b [2]float64) float64 { return math.Hypot((b[0]-a[0])*k, b[1]-a[1]) }
+	total := 0.0
+	for i := 1; i < len(way); i++ {
+		total += length(way[i-1], way[i])
+	}
+	left := f * total
+	for i := 1; i < len(way); i++ {
+		a, b := way[i-1], way[i]
+		d := length(a, b)
+		if d > left {
+			g := left / d
+			segmentCells(cells, a[0], a[1], a[0]+(b[0]-a[0])*g, a[1]+(b[1]-a[1])*g)
+			return
+		}
+		left -= d
+		segmentCells(cells, a[0], a[1], b[0], b[1])
+	}
+}
+
 // ReachBack returns the areas from which one is back at p within ReachHours
 // at pace: out and back timed each in its own direction (uphill is slower
 // than down), the smallest first. GraphHopper's shortest path trees give
@@ -170,26 +239,50 @@ func (r *Router) ReachBack(ctx context.Context, p geo.Point, profile string, pac
 		pace = 1
 	}
 	most := float64(ReachHours[len(ReachHours)-1]) * 3600 / pace
-	var out, back map[int64]sptNode
+	var out, back []sptEdge
 	grp, gctx := errgroup.WithContext(ctx)
 	grp.Go(func() (err error) {
-		out, err = r.GraphHopper.spt(gctx, p, profile, most, false)
+		out, err = r.GraphHopper.spt(gctx, p, profile, most*overreach, false)
 		return err
 	})
 	grp.Go(func() (err error) {
-		back, err = r.GraphHopper.spt(gctx, p, profile, most, true)
+		back, err = r.GraphHopper.spt(gctx, p, profile, most*overreach, true)
 		return err
 	})
 	if err := grp.Wait(); err != nil {
 		return nil, err
 	}
+	backTimes := nodeTimes(back)
+	return r.areas(ctx, pace, out, func(node int64, ms float64) float64 {
+		if b, ok := backTimes[node]; ok {
+			return ms + b
+		}
+		return math.Inf(1)
+	})
+}
+
+// areas outlines, for each of ReachHours at pace, the edges as far as
+// they get within it, the smallest first. ms gives the time at a node from
+// its time on the way out.
+func (r *Router) areas(ctx context.Context, pace float64, edges []sptEdge, ms func(node int64, out float64) float64) ([]ReachArea, error) {
+	times := nodeTimes(edges)
 	var areas []ReachArea
 	for _, h := range ReachHours {
 		limit := float64(h) * 3600 * 1000 / pace
 		cells := map[[2]int]bool{}
-		for id, n := range out {
-			if b, ok := back[id]; ok && n.ms+b.ms <= limit {
-				segmentCells(cells, n.prevLon, n.prevLat, n.lon, n.lat)
+		for _, e := range edges {
+			t := ms(e.to, e.ms)
+			if t <= limit {
+				wayCells(cells, e.way, 1)
+				continue
+			}
+			// As far as it gets from e.from: between junctions in the
+			// mountains, that can be a kilometre or more. Its other end, if
+			// reached, has its own edge back.
+			if t0, ok := times[e.from]; ok {
+				if t0 = ms(e.from, t0); t0 < limit {
+					wayCells(cells, e.way, (limit-t0)/(t-t0))
+				}
 			}
 		}
 		list := make([][2]int, 0, len(cells))

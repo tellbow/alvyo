@@ -5,6 +5,7 @@
 #    their Didok number
 #  - named huts and accommodation from OpenStreetMap (© OpenStreetMap
 #    contributors, ODbL), from the extract of `make osm-fetch`
+#  - lakes from OpenStreetMap, cut out of the reach areas
 # Re-running updates places in place (by source and id), so stages keep their
 # choices; places that disappeared are removed and those stages fall back to
 # the suggestion. Needs PG* environment variables for the target database.
@@ -49,6 +50,12 @@ osmium tags-filter --overwrite -o osm-pois.pbf "$pbf" \
 osmium export --overwrite -f geojsonseq -x print_record_separator=false \
 	--geometry-types=point,linestring,polygon -a type,id -o osm-pois.geojsonseq osm-pois.pbf
 
+# Lakes, cut out of the reach areas (the SQL keeps lakes and reservoirs: a
+# river's water area cut out would split an area along its valley).
+osmium tags-filter --overwrite -o osm-lakes.pbf "$pbf" wr/natural=water
+osmium export --overwrite -f geojsonseq -x print_record_separator=false \
+	--geometry-types=polygon -a type,id -o osm-lakes.geojsonseq osm-lakes.pbf
+
 psql -v ON_ERROR_STOP=1 -q <<'SQL'
 CREATE UNLOGGED TABLE IF NOT EXISTS import_osm (j jsonb NOT NULL);
 TRUNCATE import_osm;
@@ -58,6 +65,9 @@ TRUNCATE import_osm;
 CREATE UNLOGGED TABLE IF NOT EXISTS import_pois (j jsonb NOT NULL);
 TRUNCATE import_pois;
 \copy import_pois FROM 'osm-pois.geojsonseq' WITH (FORMAT csv, QUOTE E'\x01', DELIMITER E'\x02')
+CREATE UNLOGGED TABLE IF NOT EXISTS import_lakes (j jsonb NOT NULL);
+TRUNCATE import_lakes;
+\copy import_lakes FROM 'osm-lakes.geojsonseq' WITH (FORMAT csv, QUOTE E'\x01', DELIMITER E'\x02')
 
 BEGIN;
 CREATE TEMP TABLE incoming ON COMMIT DROP AS
@@ -122,9 +132,24 @@ ON CONFLICT (source_id) DO UPDATE
 DELETE FROM pois p WHERE NOT EXISTS (SELECT 1 FROM incoming_pois i WHERE i.source_id = p.source_id);
 COMMIT;
 
-DROP TABLE import_stops, import_osm, import_pois;
+BEGIN;
+DELETE FROM lakes;
+INSERT INTO lakes (source_id, geom)
+SELECT DISTINCT ON (source_id) source_id, ST_Multi(g)
+FROM (
+	SELECT left(p->>'@type', 1) || (p->>'@id') AS source_id,
+		ST_CollectionExtract(ST_MakeValid(ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON(j->'geometry'), 4326), 2056)), 3) AS g
+	FROM import_lakes, jsonb_extract_path(j, 'properties') AS p
+	-- most lakes carry no water=* at all
+	WHERE coalesce(p->>'water', 'lake') IN ('lake', 'reservoir')
+) l
+WHERE ST_Area(g) >= 100000;
+COMMIT;
+
+DROP TABLE import_stops, import_osm, import_pois, import_lakes;
 ANALYZE places;
 ANALYZE pois;
+ANALYZE lakes;
 SELECT kind, count(*) FROM places GROUP BY 1 ORDER BY 1;
 SELECT kind, count(*) FROM pois GROUP BY 1 ORDER BY 1;
 SQL

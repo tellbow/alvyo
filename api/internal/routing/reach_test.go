@@ -14,43 +14,104 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/tellbow/alvyo/api/internal/testdb"
 	"github.com/tellbow/alvyo/swiss/geo"
 	"github.com/tellbow/alvyo/swiss/hikingtime"
 )
 
+// A path due east, a node every 0.005° (about 380 m), 10 minutes a node.
 func TestReach(t *testing.T) {
-	var asked map[string][]string
+	var asked *http.Request
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		asked = r.URL.Query()
-		var polys []string
-		for b := range 4 {
-			x := float64(b + 1)
-			polys = append(polys, fmt.Sprintf(
-				`{"type":"Feature","properties":{"bucket":%d},"geometry":{"type":"Polygon","coordinates":[[[9.4,47.0],[%.7f,47.0],[9.4,47.123456789],[9.4,47.0]]]}}`,
-				b, 9.4+x/10))
+		asked = r
+		var b strings.Builder
+		b.WriteString("from_node,to_node,time,geometry\n-1,0,0,9.4 47.0\n")
+		for i := 1; i <= 60; i++ {
+			fmt.Fprintf(&b, "%d,%d,%d,%.3f 47.0;%.3f 47.0\n", i-1, i, i*10*60000, 9.4+float64(i-1)*0.005, 9.4+float64(i)*0.005)
 		}
-		_, _ = fmt.Fprintf(w, `{"polygons":[%s],"info":{"took":5}}`, strings.Join(polys, ","))
+		_, _ = w.Write([]byte(b.String()))
 	}))
 	defer srv.Close()
-	g := &GraphHopper{URL: srv.URL}
+	r := &Router{GraphHopper: &GraphHopper{URL: srv.URL}, Outlines: &Outliner{DB: testdb.New(t)}}
 
-	areas, err := g.Reach(context.Background(), geo.Point{Lon: 9.4466, Lat: 47.0446}, "hike", 1.2)
+	areas, err := r.Reach(context.Background(), geo.Point{Lon: 9.4, Lat: 47.0}, "hike", 1.2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if asked["profile"][0] != "hike_time" || asked["point"][0] != "47.044600,9.446600" || asked["buckets"][0] != "4" {
-		t.Errorf("asked %v", asked)
-	}
-	// Eight hours at a pace 1.2 times the signposts' are 6 h 40 of Swiss time.
-	if asked["time_limit"][0] != "24000" {
-		t.Errorf("time_limit %v", asked["time_limit"])
+	q := asked.URL.Query()
+	// One tree, out from the point; eight hours at a pace 1.2 times the
+	// signposts' are 6 h 40 of Swiss time, and 15 % beyond.
+	if asked.URL.Path != "/reach-tree" || q.Get("profile") != "hike_time" || q.Get("point") != "47.000000,9.400000" ||
+		q.Get("reverse_flow") != "false" || q.Get("time_limit") != "27600" {
+		t.Errorf("asked %v", asked.URL)
 	}
 	if len(areas) != 3 || areas[0].Hours != 2 || areas[1].Hours != 4 || areas[2].Hours != 8 {
 		t.Fatalf("areas %+v", areas)
 	}
-	// Two hours: bucket 0; eight: bucket 3; rounded to 5 decimals.
-	if areas[0].Outline[0][1][0] != 9.5 || areas[2].Outline[0][1][0] != 9.8 || areas[0].Outline[0][2][1] != 47.12346 {
-		t.Errorf("outlines %v %v", areas[0].Outline, areas[2].Outline)
+	east := func(a ReachArea) float64 {
+		m := 0.0
+		for _, p := range a.Outline[0] {
+			m = max(m, p[0])
+		}
+		return m
+	}
+	// Two hours at pace 1.2: 10 nodes; eight hours: 40.
+	if e := east(areas[0]); e < 9.45 || e > 9.45+2*cellLon {
+		t.Errorf("2 h reach east to %.4f, want about 9.45", e)
+	}
+	if e := east(areas[2]); e < 9.60 || e > 9.60+2*cellLon {
+		t.Errorf("8 h reach east to %.4f, want about 9.60", e)
+	}
+}
+
+// A path with no junction for 0.05° (about 3.8 km, four hours): two hours
+// reach halfway along it, not just its start.
+func TestReachFrontier(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("from_node,to_node,time,geometry\n-1,0,0,9.4 47.0\n0,1,14400000,9.4 47.0;9.45 47.0\n"))
+	}))
+	defer srv.Close()
+	r := &Router{GraphHopper: &GraphHopper{URL: srv.URL}, Outlines: &Outliner{DB: testdb.New(t)}}
+	areas, err := r.Reach(context.Background(), geo.Point{Lon: 9.4, Lat: 47.0}, "hike", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(areas) != 3 {
+		t.Fatalf("areas %+v", areas)
+	}
+	for i, want := range []float64{9.425, 9.45} {
+		e := 0.0
+		for _, p := range areas[i].Outline[0] {
+			e = max(e, p[0])
+		}
+		if e < want || e > want+2*cellLon {
+			t.Errorf("%d h reach east to %.4f, want about %.3f", areas[i].Hours, e, want)
+		}
+	}
+}
+
+// Two paths from the start, an hour each, to nodes 1 (east) and 2 (north),
+// joined by a path of two hours that bends far east: the tree never takes
+// it, its ends are reached faster, but two hours reach halfway round it
+// from each end, so along its bend.
+func TestReachWays(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("from_node,to_node,time,geometry\n-1,0,0,9.4 47.0\n" +
+			"0,1,3600000,9.4 47.0;9.45 47.0\n0,2,3600000,9.4 47.0;9.4 47.03\n" +
+			"1,2,10800000,9.45 47.0;9.5 47.03;9.4 47.03\n2,1,10800000,9.4 47.03;9.5 47.03;9.45 47.0\n"))
+	}))
+	defer srv.Close()
+	r := &Router{GraphHopper: &GraphHopper{URL: srv.URL}, Outlines: &Outliner{DB: testdb.New(t)}}
+	areas, err := r.Reach(context.Background(), geo.Point{Lon: 9.4, Lat: 47.0}, "hike", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := 0.0
+	for _, p := range areas[0].Outline[0] {
+		e = max(e, p[0])
+	}
+	if areas[0].Hours != 2 || e < 9.5 {
+		t.Errorf("%d h reach east to %.4f, want the bend at 9.5", areas[0].Hours, e)
 	}
 }
 
@@ -60,7 +121,7 @@ func TestReachNoPath(t *testing.T) {
 		_, _ = w.Write([]byte(`{"message":"Point not found:47.1,9.2","hints":[{"message":"Point not found:47.1,9.2","details":"com.graphhopper.util.exceptions.PointNotFoundException"}]}`))
 	}))
 	defer srv.Close()
-	_, err := (&GraphHopper{URL: srv.URL}).Reach(context.Background(), geo.Point{Lon: 9.2, Lat: 47.1}, "alpine", 1)
+	_, err := (&Router{GraphHopper: &GraphHopper{URL: srv.URL}}).Reach(context.Background(), geo.Point{Lon: 9.2, Lat: 47.1}, "alpine", 1)
 	if !errors.Is(err, ErrPointNotFound) {
 		t.Fatalf("got %v", err)
 	}

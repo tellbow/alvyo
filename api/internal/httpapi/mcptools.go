@@ -295,7 +295,7 @@ func (t mcpTools) reach(ctx context.Context, u dbq.User, in reachArgs) (reachRes
 	if in.Back {
 		found, err = t.d.Router.ReachBack(ctx, p, in.Profile, float64(u.SpeedFactor))
 	} else {
-		found, err = t.d.Router.GraphHopper.Reach(ctx, p, in.Profile, float64(u.SpeedFactor))
+		found, err = t.d.Router.Reach(ctx, p, in.Profile, float64(u.SpeedFactor))
 	}
 	if err := legError(ctx, err); err != nil {
 		return reachResult{}, "", err

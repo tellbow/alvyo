@@ -138,7 +138,7 @@ func registerRouting(api huma.API, d Deps) {
 		if in.Body.Back {
 			areas, err = d.Router.ReachBack(ctx, in.Body.From.geo(), in.Body.Profile, float64(u.SpeedFactor))
 		} else {
-			areas, err = d.Router.GraphHopper.Reach(ctx, in.Body.From.geo(), in.Body.Profile, float64(u.SpeedFactor))
+			areas, err = d.Router.Reach(ctx, in.Body.From.geo(), in.Body.Profile, float64(u.SpeedFactor))
 		}
 		if err := legError(ctx, err); err != nil {
 			return nil, err

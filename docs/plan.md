@@ -659,13 +659,21 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     by name, the areas reached on foot within 2 h (green), 4 h (yellow) and
     8 h (red) at one's pace, on hiking or alpine ways (`POST
     /routing/reach`, logged in, six per minute, two at a time). GraphHopper's
-    isochrones over two profiles of their own, `hike_time` and
+    shortest path tree, as every path leaving a node it reaches with the
+    path's way (`/reach-tree`, our endpoint in the GraphHopper image:
+    `/spt` gives only the tree's nodes, and straight lines between them
+    cut across slopes and miss the paths the tree does not take), over
+    two profiles of their own, `hike_time` and
     `alpine_time`, timed by slope like the Swiss formula (median 2.7 %
     short of the official times of 28 stages, docs/hiking-time.md); the
     graph has elevation for it (30 m terrain tiles, skadi). An area is the
-    outline around what is reached, lakes and pathless slopes inside
-    included: the page says «ungefähr». 8 hours take about 2 s on the dev
-    machine, 7 s in production. In the app: «Wie weit komme ich?» (the radar icon above «Meine
+    outline around the paths reached, drawn like the round trip's (cells of
+    about 230 × 220 m, gaps up to 1 km closed, pathless land up to 5 km²
+    between paths filled, larger massifs left out, lakes cut out: OSM's, with
+    the places; a path crossing a limit counts as far as one gets along it):
+    the page says «ungefähr». 8 hours from Bern take about 2 s
+    locally, from Grindelwald 0.4 s (GraphHopper's own isochrones took
+    10–14 s in production, 2026-11-06). In the app: «Wie weit komme ich?» (the radar icon above «Meine
     Routen»), from a tap on the map, a place or where one is, the map fitted
     to the 8-hour area. From there to planning (issue 13): a click or tap
     inside the areas says within how many hours and offers «Hierhin

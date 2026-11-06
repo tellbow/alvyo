@@ -155,8 +155,8 @@ that a few planning points do not force. Two outliers:
 
 ## Isochrones («Wie weit komme ich?»)
 
-The areas of requirement 65 come from GraphHopper alone: its isochrones add
-up its own time per way, not the formula on swissALTI3D. The profiles
+The areas of requirement 65 come from GraphHopper alone: its shortest path
+tree adds up its own time per way, not the formula on swissALTI3D. The profiles
 `hike_time` and `alpine_time` (`infra/graphhopper/custom_models/`) give each
 way a speed by its slope between its ends, in bands of 3 to 5 %: the
 formula's average over the band. The slope comes from the 30 m terrain

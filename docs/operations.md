@@ -140,7 +140,7 @@ cp infra/.env.example infra/.env        # fill in DOMAIN, POSTGRES_PASSWORD, SMT
 cd infra
 docker compose -f compose.prod.yaml up -d --build   # first start: GraphHopper imports ~2 min
 docker compose -f compose.prod.yaml run --rm tlm-import   # official trail network, once a year
-docker compose -f compose.prod.yaml run --rm places-import   # stops, huts, accommodation
+docker compose -f compose.prod.yaml run --rm places-import   # stops, huts, accommodation, lakes
 docker compose -f compose.prod.yaml run --rm wanderland-import   # the official routes
 ```
 
@@ -344,10 +344,15 @@ Logs are JSON on stderr; the collector reads them into VictoriaLogs (the
 JSON stays in `_msg`); lines of a request carry `trace_id`. Locally: `docker run -p 4318:4318
 otel/opentelemetry-collector-contrib` with a debug exporter shows the traces.
 
+The GraphHopper image is GraphHopper's released jar with Alvyo's endpoint
+`/reach-tree` (`infra/graphhopper/src`, compiled against that jar, so a
+GraphHopper upgrade that breaks it fails the image build). The API's reach
+areas need it: deploy the image before an API that uses it.
+
 GraphHopper times nothing per request itself. Its image carries the
 OpenTelemetry Java agent, switched on by
 `-javaagent:/opt/opentelemetry-javaagent.jar` in `JAVA_OPTS` (on the cluster,
-not locally): spans `GET /isochrone`, `POST /route` and so on inside the API's
+not locally): spans `GET /reach-tree`, `POST /route` and so on inside the API's
 trace, and `http_server_request_duration_seconds` and `jvm_*` for
 Prometheus on 9464 (`OTEL_EXPORTER_PROMETHEUS_HOST=0.0.0.0`, or the agent
 listens on localhost only). The span metrics carry `server_address`, so the

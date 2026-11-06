@@ -337,6 +337,11 @@ type JourneyTravel struct {
 	PlaceLat  *float64
 }
 
+type Lake struct {
+	SourceID string
+	Geom     interface{}
+}
+
 type Like struct {
 	UserID    uuid.UUID
 	RouteID   *uuid.UUID

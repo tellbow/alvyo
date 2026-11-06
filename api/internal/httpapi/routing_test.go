@@ -182,20 +182,13 @@ func TestRouteReach(t *testing.T) {
 	var asked atomic.Value
 	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		asked.Store(r.URL.Query())
-		if r.URL.Path == "/spt" { // there and back: the shortest path trees
-			_, _ = w.Write([]byte("node_id,prev_longitude,prev_latitude,longitude,latitude,time\n0,null,null,9.4466,47.0446,0\n1,9.4466,47.0446,9.46,47.05,600000\n"))
-			return
-		}
 		if r.URL.Query().Get("point") == "47.100000,9.200000" { // in a lake
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(`{"message":"Point not found","hints":[{"details":"com.graphhopper.util.exceptions.PointNotFoundException"}]}`))
 			return
 		}
-		_, _ = w.Write([]byte(`{"polygons":[
-			{"properties":{"bucket":0},"geometry":{"coordinates":[[[9.4,47],[9.5,47],[9.4,47.1],[9.4,47]]]}},
-			{"properties":{"bucket":1},"geometry":{"coordinates":[[[9.3,47],[9.6,47],[9.4,47.2],[9.3,47]]]}},
-			{"properties":{"bucket":2},"geometry":{"coordinates":[[[9.2,47],[9.7,47],[9.4,47.3],[9.2,47]]]}},
-			{"properties":{"bucket":3},"geometry":{"coordinates":[[[9.1,47],[9.8,47],[9.4,47.4],[9.1,47]]]}}]}`))
+		// The shortest path tree (both ways for there and back).
+		_, _ = w.Write([]byte("from_node,to_node,time,geometry\n-1,0,0,9.4466 47.0446\n0,1,600000,9.4466 47.0446;9.46 47.05\n"))
 	}))
 	t.Cleanup(gh.Close)
 	pool := testdb.New(t)
@@ -231,12 +224,12 @@ func TestRouteReach(t *testing.T) {
 		Areas []routing.ReachArea `json:"areas"`
 	}
 	_ = json.Unmarshal(body, &out)
-	if len(out.Areas) != 3 || out.Areas[0].Hours != 2 || out.Areas[2].Hours != 8 || out.Areas[2].Outline[0][0][0] != 9.1 {
+	if len(out.Areas) != 3 || out.Areas[0].Hours != 2 || out.Areas[2].Hours != 8 || len(out.Areas[2].Outline[0]) < 4 {
 		t.Errorf("areas %s", body)
 	}
-	// The alpine ways, eight hours at half the signposts' pace: 4 h of Swiss time.
+	// The alpine ways, eight hours at half the signposts' pace: 4 h of Swiss time, and 15 % beyond.
 	q := asked.Load().(url.Values)
-	if q["profile"][0] != "alpine_time" || q["time_limit"][0] != "14400" {
+	if q["profile"][0] != "alpine_time" || q["time_limit"][0] != "16560" || q["reverse_flow"][0] != "false" {
 		t.Errorf("asked GraphHopper %v", q)
 	}
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -50,6 +51,10 @@ class _BugReportFrameState extends State<BugReportFrame> {
   final _boundary = GlobalKey();
   final _settings = AppSettings.instance;
   bool _taking = false;
+
+  /// Where a drag has taken the tab: Android reports several moves per frame,
+  /// and each one counts (the top built last frame would drop all but one).
+  double _dragTop = 0;
 
   /// The window as shown, natively: the maps are platform views, which
   /// toImage leaves empty (all feedback screenshots until 1.3). Flutter's picture where
@@ -106,8 +111,10 @@ class _BugReportFrameState extends State<BugReportFrame> {
                 right: 0,
                 top: top,
                 child: GestureDetector(
+                  dragStartBehavior: DragStartBehavior.down, // the first few pixels count too
+                  onVerticalDragStart: (_) => _dragTop = top,
                   onVerticalDragUpdate: (d) =>
-                      _settings.bugTabAt.value = ((top + d.delta.dy) / height).clamp(0.0, 1.0).toDouble(),
+                      _settings.bugTabAt.value = ((_dragTop += d.delta.dy) / height).clamp(0.0, 1.0).toDouble(),
                   onVerticalDragEnd: (_) => _settings.saveBugTab(),
                   child: Material(
                     color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.9),

@@ -131,6 +131,21 @@ void main() {
     expect(tester.getTopLeft(tab).dy, lessThan(before - 50));
     expect(AppSettings.instance.bugTabAt.value, lessThan(0.45));
 
+    // Android reports touches more often than it draws: several moves before
+    // the next frame all count, the tab stays under the finger.
+    final start = tester.getTopLeft(tab).dy;
+    final finger = await tester.startGesture(tester.getCenter(tab));
+    for (var i = 0; i < 12; i++) {
+      await finger.moveBy(const Offset(0, 10));
+    }
+    await tester.pump();
+    for (var i = 0; i < 12; i++) {
+      await finger.moveBy(const Offset(0, 10));
+    }
+    await finger.up();
+    await tester.pump();
+    expect(tester.getTopLeft(tab).dy, closeTo(start + 240, 1));
+
     // Not off the screen.
     await tester.drag(tab, const Offset(0, 5000));
     await tester.pump();

@@ -179,6 +179,7 @@
 	"about_title": "About Alvyo",
 	"about_news_title": "What's new",
 	"about_news_older": "Show older versions",
+	"news_1_22_0": "Android: «Name the mountains» now names the summits in the camera view on Android too.\nBring hikes from your watch (Garmin, Samsung, Wear OS and others) into Alvyo through Health Connect: Profile › Connected devices.",
 	"news_1_21_0": "«Reach» now follows the trails: more accurate, without lakes and much faster.\nAlvyo now asks before you remove or end something.\nIn the app: the end of a hike gets its own screen, lines draw themselves, and new cantons fill in on a small map.",
 	"news_1_20_0": "My hikes: everything you have hiked on one map, with numbers per year and achievements like cantons, summits and huts.\nYou can now mark a route as hiked more than once.\nYou share your numbers, map and achievements only if you want to: with friends or everyone.\nIn the Android app you can now also log in with Google and Apple.",
 	"news_1_19_0": "You can now split stages anywhere on the line, when importing and on existing routes.\nIn the app, a file shows its map and profile before it is saved.\nWhen geo.admin does not answer, routes show the last known hints with their date.\nLong names no longer make the website's header overlap.",

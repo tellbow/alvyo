@@ -105,7 +105,9 @@
             </intent-filter>
         </activity>
         <!-- Health Connect's link to the privacy policy: up to Android 13
-             through the action, from Android 14 through the alias. -->
+             through the action, from Android 14 through the alias. Exported
+             for Health Connect; it only opens the public privacy page. -->
+        <!-- nosemgrep: java.android.security.exported_activity.exported_activity -->
         <activity
             android:name=".PrivacyActivity"
             android:exported="true"
@@ -114,6 +116,7 @@
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
         </activity>
+        <!-- nosemgrep: java.android.security.exported_activity.exported_activity -->
         <activity-alias
             android:name="ViewPermissionUsageActivity"
             android:exported="true"

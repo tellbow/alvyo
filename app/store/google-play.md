@@ -275,9 +275,19 @@ Beobachten und verbessern › Richtlinien und Programme › App-Inhalte
 - **Behörden-Apps:** «Nein».
 - **Finanzfunktionen:** «Meine App bietet keine Finanzfunktionen».
 - **Gesundheit (Gesundheits-Apps):** «Aktivität und Fitness» (it records
-  hikes with distance, time and ascent); no Health Connect data (the
-  Android app does not read it yet, issue 8). When the watch import comes
-  through Health Connect, this form and the data safety change.
+  hikes with distance, time and ascent).
+- **Health Connect** (the watch import on Android, plan item 72):
+  the app reads two permissions and writes none: exercise
+  (`READ_EXERCISE`) and exercise routes (`READ_EXERCISE_ROUTES`). Use case
+  «Fitness, wellness and coaching». Justification for both:
+  «Alvyo importiert Wanderungen und Spaziergänge, die der Nutzer mit
+  seiner Uhr aufgezeichnet hat (Garmin, Samsung, Wear OS …), samt
+  GPS-Strecke als Route in sein Alvyo-Konto: wenn er sie unter Profil ›
+  Verbundene Geräte auswählt oder den automatischen Import einschaltet.
+  Ohne die Strecke entsteht keine Route. Nur Trainings der Arten Wandern
+  und Gehen; keine anderen Gesundheitsdaten, nichts geht an Dritte.»
+  The privacy policy names it (`about_privacy_app`). The data safety
+  already lists «Fitnessinformationen» and «Genauer Standort».
 - **Dienste im Vordergrund:** type «Standort», use case
   «Standortaktualisierungen im Hintergrund: Navigation», and also
   «Vom Nutzer initiierte Standortfreigabe» (live location).

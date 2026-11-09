@@ -9,8 +9,9 @@ import '../l10n/app_localizations.dart';
 import '../watch/importer.dart';
 import '../watch/workouts.dart';
 
-/// Hikes recorded with the Apple Watch's Workout app, from Apple Health: each
-/// can be imported as a route, like a hike recorded with this app.
+/// Hikes recorded with the Apple Watch's Workout app, from Apple Health, or
+/// on Android with a watch, from Health Connect: each can be imported as a
+/// route, like a hike recorded with this app.
 class WatchScreen extends StatefulWidget {
   const WatchScreen({super.key, required this.api, this.source, this.importedFile});
   final Api api;
@@ -46,7 +47,7 @@ class _WatchScreenState extends State<WatchScreen> {
         SnackBar(
           content: Text(switch (failure) {
             null => t.watchImported,
-            WatchFailure.noTrack => t.watchNoTrack,
+            WatchFailure.noTrack => Platform.isAndroid ? t.watchNoTrackAndroid : t.watchNoTrack,
             WatchFailure.tooShort => t.watchOutside(t.watchReasonShort),
             WatchFailure.outside => t.watchOutside(t.watchReasonOutside),
             WatchFailure.other => t.errorServer,
@@ -82,7 +83,7 @@ class _WatchScreenState extends State<WatchScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(t.watchTitle)),
+      appBar: AppBar(title: Text(Platform.isAndroid ? t.watchTitleAndroid : t.watchTitle)),
       body: Readable(
         child: FutureBuilder(
           future: _workouts,
@@ -90,9 +91,9 @@ class _WatchScreenState extends State<WatchScreen> {
             if (snap.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
             final workouts = snap.data;
             final message = snap.hasError || workouts == null
-                ? t.watchUnavailable
+                ? (Platform.isAndroid ? t.watchUnavailableAndroid : t.watchUnavailable)
                 : workouts.isEmpty
-                ? t.watchEmpty
+                ? (Platform.isAndroid ? t.watchEmptyAndroid : t.watchEmpty)
                 : null;
             if (message != null) {
               return Padding(padding: const EdgeInsets.all(16), child: Text(message));
@@ -110,7 +111,7 @@ class _WatchScreenState extends State<WatchScreen> {
                     [
                       if (w.distanceM != null) formatDistance(w.distanceM!),
                       formatDuration(w.end.difference(w.start).inSeconds),
-                      w.source,
+                      if (w.source.isNotEmpty) w.source,
                     ].join(' · '),
                   ),
                   trailing: _busy == w.uuid

@@ -184,6 +184,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get watchTitle => 'Von der Apple Watch';
 
   @override
+  String get watchTitleAndroid => 'Von der Uhr';
+
+  @override
   String get watchHike => 'Wanderung';
 
   @override
@@ -208,11 +211,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get watchNoTrack => 'Dieses Training hat keine GPS-Strecke.';
 
   @override
+  String get watchNoTrackAndroid => 'Dieses Training hat keine GPS-Strecke, oder du hast sie nicht freigegeben.';
+
+  @override
   String get watchEmpty =>
       'Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → Alvyo.';
 
   @override
+  String get watchEmptyAndroid =>
+      'Keine Wanderungen der letzten 60 Tage in Health Connect. Zeichne sie mit deiner Uhr auf («Wandern» oder «Gehen») und lass ihre App mit Health Connect teilen. Falls du den Zugriff nicht erlaubt hast: Einstellungen → Health Connect → App-Berechtigungen → Alvyo.';
+
+  @override
   String get watchUnavailable => 'Apple Health ist auf diesem Gerät nicht verfügbar.';
+
+  @override
+  String get watchUnavailableAndroid =>
+      'Health Connect ist auf diesem Gerät nicht verfügbar. Ab Android 14 gehört es zum System, davor gibt es die App «Health Connect» im Play Store.';
 
   @override
   String watchOutside(String reason) {
@@ -2361,16 +2375,29 @@ class AppLocalizationsDe extends AppLocalizations {
   String get devicesSubtitle => 'Apple Watch · Touren automatisch importieren';
 
   @override
+  String get devicesSubtitleAndroid => 'Uhr · Touren automatisch importieren';
+
+  @override
   String get devicesWatch => 'Apple Watch';
 
   @override
+  String get devicesWatchAndroid => 'Uhr';
+
+  @override
   String get devicesWatchHint => 'Wanderungen aus der Trainings-App, über Apple Health';
+
+  @override
+  String get devicesWatchHintAndroid => 'Wanderungen von Garmin, Samsung, Wear OS und anderen, über Health Connect';
 
   @override
   String get devicesWatchAuto => 'Neue Wanderungen automatisch importieren';
 
   @override
   String get devicesWatchAutoHint => 'Wenn du die App öffnest – Wanderungen ab jetzt';
+
+  @override
+  String get devicesWatchAutoHintAndroid =>
+      'Wenn du die App öffnest – Wanderungen ab jetzt. Dafür muss Alvyo in Health Connect die Routen immer lesen dürfen.';
 
   @override
   String get devicesWatchPick => 'Wanderungen auswählen und importieren';
@@ -2388,6 +2415,17 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count Wanderungen von der Apple Watch importiert',
       one: '1 Wanderung von der Apple Watch importiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String devicesWatchImportedAndroid(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wanderungen von der Uhr importiert',
+      one: '1 Wanderung von der Uhr importiert',
     );
     return '$_temp0';
   }

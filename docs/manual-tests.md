@@ -558,6 +558,21 @@ emulator ran the integration tests offline, navigate and journey
   addresses (the planner, /routes/map) open the browser.
 - [ ] **An update**: the APK of a later release installs over the earlier
   one, and the login, offline maps and an unsent hike are still there.
+- [ ] **«Berge erkennen»** outdoors with a view: the camera picture fills
+  the screen, the skyline and the names lie on the real ones within a few
+  degrees (note how far off before dragging), turning and tilting the
+  phone moves them the right way; with the camera refused, the message
+  says so. Emulator 2026-11-09 (debug, the virtual scene): the camera asked
+  and shown, the skyline drawn, tilting moved the view.
+- [ ] **A watch hike through Health Connect** (a Garmin, Samsung or Wear OS
+  watch whose app writes to Health Connect): Profil › Verbundene Geräte ›
+  «Wanderungen auswählen» asks for «Training», lists the hike with the
+  watch's name; «Importieren» asks for its route (unless always allowed)
+  and makes a route; declined, it says there is no track. With routes
+  «immer erlauben» in Health Connect, the automatic import takes a new
+  hike on opening the app. Health Connect's «Datenschutzerklärung» link
+  opens the privacy text. Emulator 2026-11-09: the permission screens
+  (only «Training»), the empty list, the privacy link; no hike to import.
 - [ ] **A new phone from a backup**: the app starts without an error and
   asks for the login again (the login and settings are encrypted with a key
   of the old phone, so they stay out of backups); no offline maps.

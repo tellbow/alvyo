@@ -418,6 +418,12 @@ abstract class AppLocalizations {
   /// **'Von der Apple Watch'**
   String get watchTitle;
 
+  /// No description provided for @watchTitleAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Von der Uhr'**
+  String get watchTitleAndroid;
+
   /// No description provided for @watchHike.
   ///
   /// In de, this message translates to:
@@ -466,17 +472,35 @@ abstract class AppLocalizations {
   /// **'Dieses Training hat keine GPS-Strecke.'**
   String get watchNoTrack;
 
+  /// No description provided for @watchNoTrackAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Dieses Training hat keine GPS-Strecke, oder du hast sie nicht freigegeben.'**
+  String get watchNoTrackAndroid;
+
   /// No description provided for @watchEmpty.
   ///
   /// In de, this message translates to:
   /// **'Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → Alvyo.'**
   String get watchEmpty;
 
+  /// No description provided for @watchEmptyAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Wanderungen der letzten 60 Tage in Health Connect. Zeichne sie mit deiner Uhr auf («Wandern» oder «Gehen») und lass ihre App mit Health Connect teilen. Falls du den Zugriff nicht erlaubt hast: Einstellungen → Health Connect → App-Berechtigungen → Alvyo.'**
+  String get watchEmptyAndroid;
+
   /// No description provided for @watchUnavailable.
   ///
   /// In de, this message translates to:
   /// **'Apple Health ist auf diesem Gerät nicht verfügbar.'**
   String get watchUnavailable;
+
+  /// No description provided for @watchUnavailableAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Health Connect ist auf diesem Gerät nicht verfügbar. Ab Android 14 gehört es zum System, davor gibt es die App «Health Connect» im Play Store.'**
+  String get watchUnavailableAndroid;
 
   /// No description provided for @watchOutside.
   ///
@@ -4324,17 +4348,35 @@ abstract class AppLocalizations {
   /// **'Apple Watch · Touren automatisch importieren'**
   String get devicesSubtitle;
 
+  /// No description provided for @devicesSubtitleAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Uhr · Touren automatisch importieren'**
+  String get devicesSubtitleAndroid;
+
   /// No description provided for @devicesWatch.
   ///
   /// In de, this message translates to:
   /// **'Apple Watch'**
   String get devicesWatch;
 
+  /// No description provided for @devicesWatchAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Uhr'**
+  String get devicesWatchAndroid;
+
   /// No description provided for @devicesWatchHint.
   ///
   /// In de, this message translates to:
   /// **'Wanderungen aus der Trainings-App, über Apple Health'**
   String get devicesWatchHint;
+
+  /// No description provided for @devicesWatchHintAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderungen von Garmin, Samsung, Wear OS und anderen, über Health Connect'**
+  String get devicesWatchHintAndroid;
 
   /// No description provided for @devicesWatchAuto.
   ///
@@ -4347,6 +4389,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Wenn du die App öffnest – Wanderungen ab jetzt'**
   String get devicesWatchAutoHint;
+
+  /// No description provided for @devicesWatchAutoHintAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'Wenn du die App öffnest – Wanderungen ab jetzt. Dafür muss Alvyo in Health Connect die Routen immer lesen dürfen.'**
+  String get devicesWatchAutoHintAndroid;
 
   /// No description provided for @devicesWatchPick.
   ///
@@ -4371,6 +4419,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'{count, plural, =1{1 Wanderung von der Apple Watch importiert} other{{count} Wanderungen von der Apple Watch importiert}}'**
   String devicesWatchImported(int count);
+
+  /// No description provided for @devicesWatchImportedAndroid.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Wanderung von der Uhr importiert} other{{count} Wanderungen von der Uhr importiert}}'**
+  String devicesWatchImportedAndroid(int count);
 
   /// No description provided for @importTitle.
   ///

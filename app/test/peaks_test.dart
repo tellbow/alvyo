@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -88,6 +89,28 @@ void main() {
       // 30° (half the field) to the side of a 60° picture whose 4:3 long
       // side spans max(800, 400·4/3) = 800 px: 400 px from the centre.
       expect(north.project(0, 30, size)!.dy, closeTo(0, 1e-6));
+    });
+
+    // Android: the rotation matrix from the device to east, magnetic north
+    // and up, row by row (its columns are the device's axes).
+    test('Android: upright to magnetic north is the iOS pose, turned by the declination', () {
+      const upright = <double>[1, 0, 0, 0, 0, -1, 0, 1, 0];
+      expect(CameraPose.fromAndroid(upright, 0), [for (final v in north.m) closeTo(v, 1e-12)]);
+      final pose = CameraPose(CameraPose.fromAndroid(upright, 3), fov: 60);
+      expect(pose.centre.azimuth, closeTo(3, 1e-9));
+      expect(pose.centre.elevation, closeTo(0, 1e-9));
+      expect(pose.project(13, 0, size)!.dx, greaterThan(200)); // east of the view: to the right
+    });
+
+    test('Android: to the east, and tilted up', () {
+      // x south, y up, z west (the camera looks east).
+      final east = CameraPose(CameraPose.fromAndroid([0, 0, -1, -1, 0, 0, 0, 1, 0], 0), fov: 60);
+      expect(east.centre.azimuth, closeTo(90, 1e-9));
+      // Looking north 10° up: z = −(0, cos 10°, sin 10°), y = (0, −sin 10°, cos 10°).
+      final c = cos(10 * pi / 180), s = sin(10 * pi / 180);
+      final up = CameraPose(CameraPose.fromAndroid(<double>[1, 0, 0, 0, -s, -c, 0, c, -s], 0), fov: 60);
+      expect(up.centre.azimuth, closeTo(0, 1e-9));
+      expect(up.centre.elevation, closeTo(10, 1e-9));
     });
 
     // Feedback issue 13: the iPad turns the screen with it. Turned left (the

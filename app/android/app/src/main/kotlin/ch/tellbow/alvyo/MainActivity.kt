@@ -16,6 +16,7 @@ import android.speech.tts.UtteranceProgressListener
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.android.FlutterSurfaceView
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import java.util.Locale
@@ -48,6 +49,15 @@ class MainActivity : FlutterFragmentActivity() {
             }
             screenshot { jpeg -> runOnUiThread { result.success(jpeg) } }
         }
+        // «Berge erkennen» (PeakCamera.kt).
+        flutterEngine.platformViewsController.registry.registerViewFactory("alvyo/peak-camera", PeakCameraFactory(this))
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, "alvyo/peak-motion").setStreamHandler(PeakMotion(this))
+        val camera = CameraAccess(this)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "alvyo/camera").setMethodCallHandler { call, result ->
+            if (call.method == "access") camera.handle(result) else result.notImplemented()
+        }
+        // Hikes from watches (HealthConnect.kt).
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "alvyo/health").setMethodCallHandler(HealthConnect(this))
     }
 
     /**

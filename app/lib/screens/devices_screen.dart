@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../api.dart';
@@ -6,8 +8,9 @@ import '../settings.dart';
 import 'watch_screen.dart';
 import 'wide.dart';
 
-/// Verbundene Geräte (requirement 69): the Apple Watch, its hikes imported
-/// by hand or automatically when the app opens.
+/// Verbundene Geräte (requirement 69): the Apple Watch, or on Android a
+/// watch through Health Connect, its hikes imported by hand or
+/// automatically when the app opens.
 class DevicesScreen extends StatelessWidget {
   const DevicesScreen({super.key, required this.api, required this.settings});
   final Api api;
@@ -28,8 +31,8 @@ class DevicesScreen extends StatelessWidget {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.watch_outlined),
-                    title: Text(t.devicesWatch),
-                    subtitle: Text(t.devicesWatchHint),
+                    title: Text(Platform.isAndroid ? t.devicesWatchAndroid : t.devicesWatch),
+                    subtitle: Text(Platform.isAndroid ? t.devicesWatchHintAndroid : t.devicesWatchHint),
                   ),
                   const Divider(height: 1),
                   ValueListenableBuilder(
@@ -37,7 +40,7 @@ class DevicesScreen extends StatelessWidget {
                     builder: (context, since, _) => SwitchListTile(
                       key: const Key('watch-auto'),
                       title: Text(t.devicesWatchAuto),
-                      subtitle: Text(t.devicesWatchAutoHint),
+                      subtitle: Text(Platform.isAndroid ? t.devicesWatchAutoHintAndroid : t.devicesWatchAutoHint),
                       value: since != null,
                       onChanged: settings.setWatchAuto,
                     ),

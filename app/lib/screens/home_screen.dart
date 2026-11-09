@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 
@@ -12,6 +13,7 @@ import '../navigation/uploads.dart';
 import '../navigation/watch.dart';
 import '../settings.dart';
 import '../watch/importer.dart';
+import '../watch/workouts.dart';
 import 'bottom_bar.dart';
 import 'discover_tab.dart';
 import 'navigate_screen.dart';
@@ -82,7 +84,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   late final _settings = widget.settings ?? AppSettings.instance;
   late final _analytics = widget.analytics ?? Analytics.instance;
-  late final _watch = widget.watch ?? WatchImporter(widget.api);
+  // On opening the app, no dialog for each route: only routes always allowed.
+  late final _watch =
+      widget.watch ?? WatchImporter(widget.api, source: Platform.isAndroid ? HealthConnectWorkouts(ask: false) : null);
   late final _watchLink = widget.watchLink ?? WatchLink.instance;
   DateTime? _watchChecked;
 
@@ -159,7 +163,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final messenger = ScaffoldMessenger.of(context);
     final count = await _watch.importNew(since, (w) => watchTitle(t, w)).catchError((_) => 0);
     if (count == 0 || !mounted) return;
-    messenger.showSnackBar(SnackBar(key: const Key('watch-imported'), content: Text(t.devicesWatchImported(count))));
+    messenger.showSnackBar(
+      SnackBar(
+        key: const Key('watch-imported'),
+        content: Text(Platform.isAndroid ? t.devicesWatchImportedAndroid(count) : t.devicesWatchImported(count)),
+      ),
+    );
     _tours.currentState?.reload();
   }
 

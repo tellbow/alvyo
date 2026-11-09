@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
 import 'package:alvyo/watch/workouts.dart';
@@ -71,5 +72,42 @@ void main() {
     final track = await source.track(w);
     expect(track, hasLength(120));
     expect(track.first.time, start);
+  });
+
+  test('Health Connect: hikes and walks, newest first; a route as asked for', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('alvyo/health'),
+      (call) async {
+        calls.add(call);
+        return switch (call.method) {
+          'recent' => [
+            {'id': 'a', 'start': 1000, 'end': 5000, 'hiking': false, 'source': ''},
+            {'id': 'b', 'start': 9000, 'end': 20000, 'hiking': true, 'source': 'Garmin Fenix 8'},
+          ],
+          'route' => [
+            [47.2, 9.3, 1200.5, 4.0, 9500],
+            [47.1, 9.2, null, null, 9000],
+          ],
+          _ => null,
+        };
+      },
+    );
+    final source = HealthConnectWorkouts(ask: false);
+    final hikes = await source.recent(days: 30);
+    expect([for (final w in hikes) w.uuid], ['b', 'a']);
+    expect(hikes.first.hiking, isTrue);
+    expect(hikes.first.source, 'Garmin Fenix 8');
+    expect(hikes.first.end, DateTime.fromMillisecondsSinceEpoch(20000));
+    expect(calls.single.arguments, {'days': 30});
+
+    final track = await source.track(hikes.first);
+    expect(calls.last.arguments, {'id': 'b', 'ask': false});
+    expect([for (final f in track) f.lat], [47.1, 47.2]); // in time order
+    expect(track.first.ele, isNull);
+    expect(track.first.accuracyM, 10);
+    expect(track.last.ele, 1200.5);
+    expect(track.last.lon, 9.3);
   });
 }

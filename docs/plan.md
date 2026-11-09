@@ -133,7 +133,8 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
    hiker's pace), off-route warning, recording in the background, upload as
    a hike linked to the route, turns shown and spoken.
 5. **Tracking with a watch** (0.3.0). Hikes recorded with the Apple Watch's
-   Workout app are imported from Apple Health (works with a free Apple ID).
+   Workout app are imported from Apple Health (works with a free Apple ID);
+   on Android, hikes from any watch app through Health Connect (72).
    A watchOS app of our own: 80.
 6. **A GPX file into a stage** (0.5.0). In the journey editor, «Datei
    importieren» gives a stage its route from a GPX, KML, TCX or FIT file in
@@ -721,8 +722,8 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     picture and moves one layer between them (the iOS plugin cannot change
     an image source); without reception the last pictures stay.
 
-68. **Recognising mountains with the camera** (issue 16; iPhone, also
-    offline). «Berge erkennen» (the mountain icon on «Meine Routen»): the
+68. **Recognising mountains with the camera** (issue 16; iPhone, and
+    Android since 2026-11-09 (72), also offline). «Berge erkennen» (the mountain icon on «Meine Routen»): the
     back camera's picture with the summits in sight named, their height and
     distance, and the skyline as a line. The pack (`GET /peaks/pack`, logged
     in, 8.6 MB): a height grid of Switzerland and about 50 km around it
@@ -1086,14 +1087,27 @@ checked in CI); «Standort erlauben» on «Entdecken» did nothing when the
 location was allowed but not found yet, or refused for good (Android asks
 twice at most): it says which and opens the settings where only they help.
 
-Open: «Berge erkennen» (a CameraX view and the rotation sensor) and the
-watch import through Health Connect, hidden on Android until then; the
-Play Store: started on 2026-10-28 (the app bundle without the advertising
-id, the listing in four languages, its pictures and the app content
-answers in [google-play.md](../app/store/google-play.md), the
-`play-store` skill for releases through the API), open the closed test
-(a personal account: 12 testers for 14 days) and production; the manual
-tests on a real phone ([manual-tests.md](manual-tests.md)).
+Done (2026-11-09): «Berge erkennen» on Android (PeakCamera.kt): the back
+camera through CameraX as a platform view (a TextureView, drawn like the
+maps), the attitude from the rotation vector sensor as Android's matrix
+(device to east, magnetic north, up), turned in Dart to the iOS frame and
+to true north by the declination at Switzerland's centre (about 3°;
+dragging makes up for the rest), the field of view from the back camera's
+sensor size and focal length. The watch import through Health Connect
+(HealthConnect.kt, not the health plugin, which needs distance and
+calories to list workouts): hikes and walks of any watch app that writes
+there, with their routes; it asks for exercise and «always» for routes,
+else each route by Health Connect's dialog on «Importieren»; the
+automatic import on opening the app takes only routes always allowed.
+Health Connect's privacy link opens the website's privacy text.
+
+Open: the Play Store: started on 2026-10-28 (the app bundle without the
+advertising id, the listing in four languages, its pictures and the app
+content answers in [google-play.md](../app/store/google-play.md), the
+`play-store` skill for releases through the API), the closed test running
+(a personal account: 12 testers for 14 days), then production; the Health
+Connect declaration in Play Console with the release that brings it; the
+manual tests on a real phone ([manual-tests.md](manual-tests.md)).
 
 #### 80. The app on the wrist (feedback issue 15, started)
 

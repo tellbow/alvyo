@@ -12,6 +12,21 @@ class CameraPose {
 
   final List<double> m;
 
+  /// The rows of [m] from Android's rotation matrix [enu] (device to east,
+  /// magnetic north, up; its columns are the device's axes, which are the
+  /// same as on iOS), turned to true north by [declination] (degrees, east
+  /// positive).
+  static List<double> fromAndroid(List<double> enu, double declination) {
+    final d = declination * pi / 180, c = cos(d), s = sin(d);
+    return [
+      for (var i = 0; i < 3; i++) ...[
+        enu[3 + i] * c - enu[i] * s, // north
+        -enu[i] * c - enu[3 + i] * s, // west
+        enu[6 + i],
+      ],
+    ];
+  }
+
   /// The compass's calibration: -1 none, 0 low, 1 medium, 2 high.
   final int accuracy;
 

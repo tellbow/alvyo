@@ -31,12 +31,16 @@ class PeaksScreen extends StatefulWidget {
   State<PeaksScreen> createState() => _PeaksScreenState();
 }
 
-/// The attitude from the native side (PeakCamera.swift), smoothed a little.
+/// The attitude from the native side (PeakCamera.swift, PeakCamera.kt),
+/// smoothed a little.
 Stream<CameraPose> peakMotion() {
   List<double>? smooth;
   return const EventChannel('alvyo/peak-motion').receiveBroadcastStream().map((e) {
     final m = e as Map<Object?, Object?>;
-    final raw = [for (final v in m['m']! as List<Object?>) (v! as num).toDouble()];
+    List<double> numbers(String key) => [for (final v in m[key]! as List<Object?>) (v! as num).toDouble()];
+    final raw = m.containsKey('enu')
+        ? CameraPose.fromAndroid(numbers('enu'), (m['declination']! as num).toDouble())
+        : numbers('m');
     final s = smooth == null ? raw : [for (var i = 0; i < 9; i++) smooth![i] * 0.6 + raw[i] * 0.4];
     smooth = s;
     return CameraPose(
@@ -55,6 +59,7 @@ class _PeaksScreenState extends State<PeaksScreen> {
   CameraPose? _pose;
   StreamSubscription<CameraPose>? _motion;
   bool _noPosition = false, _noCompass = false, _noCamera = false, _failed = false;
+  bool _cameraAllowed = false; // Android: the view starts the camera once allowed
   double? _progress; // while downloading: 0…1, or 0 while the server builds it
 
   /// The alignment by dragging, in degrees.
@@ -66,7 +71,7 @@ class _PeaksScreenState extends State<PeaksScreen> {
     Analytics.instance.screen('peaks');
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _open();
-    if (widget.camera == null && defaultTargetPlatform == TargetPlatform.iOS) _askCamera();
+    if (widget.camera == null) _askCamera();
     _motion = (widget.motion ?? peakMotion()).listen(
       (p) {
         if (mounted) setState(() => _pose = p);
@@ -94,7 +99,11 @@ class _PeaksScreenState extends State<PeaksScreen> {
   /// Without access the picture stays black: say why.
   Future<void> _askCamera() async {
     final granted = await const MethodChannel('alvyo/camera').invokeMethod<bool>('access') ?? true;
-    if (mounted && !granted) setState(() => _noCamera = true);
+    if (!mounted) return;
+    setState(() {
+      _noCamera = !granted;
+      _cameraAllowed = granted;
+    });
   }
 
   Future<void> _load() async {
@@ -205,9 +214,11 @@ class _PeaksScreenState extends State<PeaksScreen> {
             fit: StackFit.expand,
             children: [
               widget.camera ??
-                  (defaultTargetPlatform == TargetPlatform.iOS
-                      ? const UiKitView(viewType: 'alvyo/peak-camera')
-                      : const ColoredBox(color: Colors.black)),
+                  switch (defaultTargetPlatform) {
+                    TargetPlatform.iOS => const UiKitView(viewType: 'alvyo/peak-camera'),
+                    TargetPlatform.android when _cameraAllowed => const AndroidView(viewType: 'alvyo/peak-camera'),
+                    _ => const ColoredBox(color: Colors.black),
+                  },
               if (pose != null && view != null)
                 CustomPaint(
                   key: const Key('peaks-overlay'),

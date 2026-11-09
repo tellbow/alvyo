@@ -14,7 +14,7 @@ enum WatchFailure { noTrack, tooShort, outside, other }
 /// app (the same id twice is one route), and remembers which.
 class WatchImporter {
   WatchImporter(this.api, {WorkoutSource? source, File? importedFile})
-    : source = source ?? HealthWorkouts(),
+    : source = source ?? (Platform.isAndroid ? HealthConnectWorkouts() : HealthWorkouts()),
       _file0 = importedFile;
 
   final Api api;

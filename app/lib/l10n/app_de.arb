@@ -89,6 +89,7 @@
     }
   },
   "watchTitle": "Von der Apple Watch",
+  "watchTitleAndroid": "Von der Uhr",
   "watchHike": "Wanderung",
   "watchWalk": "Spaziergang",
   "watchImport": "Importieren",
@@ -97,8 +98,11 @@
   "watchAgainTitle": "Schon importiert",
   "watchAgainBody": "Nochmals als neue Route importieren? Die bisherige bleibt, wie sie ist.",
   "watchNoTrack": "Dieses Training hat keine GPS-Strecke.",
+  "watchNoTrackAndroid": "Dieses Training hat keine GPS-Strecke, oder du hast sie nicht freigegeben.",
   "watchEmpty": "Keine Wanderungen der letzten 60 Tage in Apple Health. Zeichne sie auf der Apple Watch mit der App «Training» auf («Wandern» oder «Gehen» im Freien). Falls du den Zugriff nicht erlaubt hast: Einstellungen → Apps → Health → Datenzugriff & Geräte → Alvyo.",
+  "watchEmptyAndroid": "Keine Wanderungen der letzten 60 Tage in Health Connect. Zeichne sie mit deiner Uhr auf («Wandern» oder «Gehen») und lass ihre App mit Health Connect teilen. Falls du den Zugriff nicht erlaubt hast: Einstellungen → Health Connect → App-Berechtigungen → Alvyo.",
   "watchUnavailable": "Apple Health ist auf diesem Gerät nicht verfügbar.",
+  "watchUnavailableAndroid": "Health Connect ist auf diesem Gerät nicht verfügbar. Ab Android 14 gehört es zum System, davor gibt es die App «Health Connect» im Play Store.",
   "watchOutside": "Nicht importiert: {reason}",
   "@watchOutside": {
     "placeholders": {
@@ -1363,15 +1367,27 @@
   "recordNoTours": "Noch keine geplanten Touren. Plane eine unter «Planen».",
   "devicesTitle": "Verbundene Geräte",
   "devicesSubtitle": "Apple Watch · Touren automatisch importieren",
+  "devicesSubtitleAndroid": "Uhr · Touren automatisch importieren",
   "devicesWatch": "Apple Watch",
+  "devicesWatchAndroid": "Uhr",
   "devicesWatchHint": "Wanderungen aus der Trainings-App, über Apple Health",
+  "devicesWatchHintAndroid": "Wanderungen von Garmin, Samsung, Wear OS und anderen, über Health Connect",
   "devicesWatchAuto": "Neue Wanderungen automatisch importieren",
   "devicesWatchAutoHint": "Wenn du die App öffnest – Wanderungen ab jetzt",
+  "devicesWatchAutoHintAndroid": "Wenn du die App öffnest – Wanderungen ab jetzt. Dafür muss Alvyo in Health Connect die Routen immer lesen dürfen.",
   "devicesWatchPick": "Wanderungen auswählen und importieren",
   "profileAccount": "Konto",
   "accountPaceShort": "Wanderzeiten relativ zu den Wegweisern",
   "devicesWatchImported": "{count, plural, =1{1 Wanderung von der Apple Watch importiert} other{{count} Wanderungen von der Apple Watch importiert}}",
   "@devicesWatchImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "devicesWatchImportedAndroid": "{count, plural, =1{1 Wanderung von der Uhr importiert} other{{count} Wanderungen von der Uhr importiert}}",
+  "@devicesWatchImportedAndroid": {
     "placeholders": {
       "count": {
         "type": "int"

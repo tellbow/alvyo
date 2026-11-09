@@ -10,7 +10,8 @@ paths:
   are method channels in `ios/Runner/AppDelegate.swift` (`alvyo/backup`,
   `alvyo/speech`) and, for Android, in
   `android/app/src/main/kotlin/ch/tellbow/alvyo/MainActivity.kt`
-  (`alvyo/speech`; backups by `res/xml/*_rules.xml`). Something only one
+  (`alvyo/speech`; backups by `res/xml/*_rules.xml`), larger ones in
+  their own file there (`PeakCamera.kt`, `HealthConnect.kt`). Something only one
   platform has yet is hidden on the other with `Platform.isAndroid`
   (`dart:io`; widget tests run as neither).
 - `dart format` with page width 120, flutter_lints.

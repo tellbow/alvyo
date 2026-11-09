@@ -63,6 +63,12 @@ kotlin {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // «Berge erkennen»: the camera's picture (PeakCamera.kt).
+    implementation("androidx.camera:camera-camera2:1.6.2")
+    implementation("androidx.camera:camera-lifecycle:1.6.2")
+    implementation("androidx.camera:camera-view:1.6.2")
+    // Hikes from watches (HealthConnect.kt); the health plugin's version.
+    implementation("androidx.health.connect:connect-client:1.2.0-alpha02")
 }
 
 flutter {

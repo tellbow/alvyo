@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:health/health.dart';
 
 import '../navigation/tracker.dart';
@@ -104,6 +105,56 @@ class HealthWorkouts implements WorkoutSource {
                 accuracyM: l.horizontalAccuracy ?? 10,
                 time: l.timestamp,
               ),
+    ]..sort((a, b) => a.time.compareTo(b.time));
+  }
+}
+
+/// Workouts from Health Connect on Android (HealthConnect.kt): hikes and
+/// walks that watch apps (Garmin, Samsung, Wear OS …) write there.
+class HealthConnectWorkouts implements WorkoutSource {
+  /// [ask]: another app's route needs a tap on «Allow» each time unless
+  /// always allowed in Health Connect; not asked for when importing in the
+  /// background.
+  HealthConnectWorkouts({this.ask = true});
+  final bool ask;
+  static const _channel = MethodChannel('alvyo/health');
+
+  @override
+  Future<bool> authorize() async {
+    try {
+      return await _channel.invokeMethod<bool>('authorize') ?? false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  @override
+  Future<List<Workout>> recent({int days = 60}) async {
+    final list = await _channel.invokeListMethod<Map<Object?, Object?>>('recent', {'days': days}) ?? [];
+    return [
+      for (final m in list)
+        Workout(
+          uuid: m['id']! as String,
+          start: DateTime.fromMillisecondsSinceEpoch(m['start']! as int),
+          end: DateTime.fromMillisecondsSinceEpoch(m['end']! as int),
+          hiking: m['hiking']! as bool,
+          source: m['source']! as String,
+        ),
+    ]..sort((a, b) => b.start.compareTo(a.start));
+  }
+
+  @override
+  Future<List<Fix>> track(Workout w) async {
+    final list = await _channel.invokeListMethod<List<Object?>>('route', {'id': w.uuid, 'ask': ask}) ?? [];
+    return [
+      for (final [lat, lon, ele, accuracy, time] in list)
+        Fix(
+          lon: (lon! as num).toDouble(),
+          lat: (lat! as num).toDouble(),
+          ele: (ele as num?)?.toDouble(),
+          accuracyM: (accuracy as num?)?.toDouble() ?? 10,
+          time: DateTime.fromMillisecondsSinceEpoch(time! as int),
+        ),
     ]..sort((a, b) => a.time.compareTo(b.time));
   }
 }

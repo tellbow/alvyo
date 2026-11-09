@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 
@@ -38,7 +40,7 @@ class ImportTile extends StatelessWidget {
             ListTile(
               key: const Key('import-watch'),
               leading: const Icon(Icons.watch_outlined),
-              title: Text(t.watchTitle),
+              title: Text(Platform.isAndroid ? t.watchTitleAndroid : t.watchTitle),
               subtitle: Text(t.importWatchHint),
               onTap: () => Navigator.pop(context, 'watch'),
             ),

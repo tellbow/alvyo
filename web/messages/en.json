@@ -380,6 +380,8 @@
 	"connections_time": "Time",
 	"connections_search": "Search",
 	"connections_none": "No connection found.",
+	"connections_hike": "Hike {from} → {to}: {time} · ↑ {up} m ↓ {down} m",
+	"travel_none": "No connection found, not even via a stop up to 2 h of hiking away.",
 	"connections_unavailable": "The timetable is not available right now – use the SBB timetable.",
 	"connections_transfers": "{n} changes",
 	"connections_walk": "{min} min walk",

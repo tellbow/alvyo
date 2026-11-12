@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Home, Journey, JourneyStage, Place, Route } from '#lib/api/client.js';
-import { chosenWays, journeyEnds, routeEnds, travelQuery, tripLines } from './travel';
+import { chosenWays, journeyEnds, routeEnds, travelQuery, tripLines, walkText } from './travel';
 
 const stop = (name: string, ref: string, at: number[]): Place => ({
 	id: name,
@@ -82,7 +82,8 @@ describe('travel', () => {
 			date: '2026-07-04',
 			time: '06:00',
 			arrive: false,
-			lines: true
+			lines: true,
+			trailhead: 'to'
 		});
 		const back = travelQuery(
 			'back',
@@ -184,5 +185,19 @@ describe('travel', () => {
 		});
 		expect(lines.features.map((f) => f.properties?.kind)).toEqual(['walk', 'ride']);
 		expect(tripLines(undefined).features).toEqual([]);
+	});
+
+	it('says a walk, or a hike to a stop with its time and climb', () => {
+		const leg = { kind: 'walk' as const, from: 'Riedli, Talstation Wiriehorn', to: 'Wiriehorn' };
+		expect(walkText({ ...leg, duration_min: 7 })).toBe('7 min zu Fuss');
+		expect(
+			walkText({
+				...leg,
+				duration_min: 83,
+				hike: true,
+				ascent_m: 1104.4,
+				descent_m: 12
+			}).replaceAll(' ', ' ')
+		).toBe('Wanderung Riedli, Talstation Wiriehorn → Wiriehorn: 1 h 25 min · ↑ 1104 m ↓ 12 m');
 	});
 });

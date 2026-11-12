@@ -465,7 +465,13 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     its name), leaving after or arriving before a time; the connections
     drawn on the map. A route has no day of its own: its connections are
     those of the day chosen (today at first). Each person's own, on the
-    website and in the app.
+    website and in the app. A start or end out of the planner's reach (on
+    a mountain, feedback issue 89, 2026-11-12): when it finds no
+    connection, the trips go to or from the nearby stop (within 9 km) with
+    the shortest hike of at most 2 h that has any that day, and the hike
+    shows as a leg in hiking time at one's pace with its climb
+    (`trailhead` on `/connections`; app versions before this one do not
+    ask for it).
 
 34. **Along the way.** Named summits (with their height), viewpoints,
     waterfalls, drinking water and shelters (not those at bus stops) from

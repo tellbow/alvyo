@@ -183,6 +183,11 @@ class TripCard extends StatelessWidget {
                       ],
                     ),
                   )
+                else if (leg.hike)
+                  Text(
+                    t.connectionsHike(leg.from, leg.to, formatDuration(leg.walkMin * 60), leg.ascentM, leg.descentM),
+                    style: muted,
+                  )
                 else if (!leg.ride)
                   Text(t.connectionsWalk(leg.walkMin), style: muted),
             ],

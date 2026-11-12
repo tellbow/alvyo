@@ -461,7 +461,7 @@ class _TravelScreenState extends State<TravelScreen> {
                     return Text(e is ApiException && e.status == 429 ? t.shareRate : t.connectionsUnavailable);
                   }
                   final trips = snap.data ?? const <Trip>[];
-                  if (trips.isEmpty) return Text(key: const Key('travel-none'), t.connectionsNone);
+                  if (trips.isEmpty) return Text(key: const Key('travel-none'), t.travelNone);
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

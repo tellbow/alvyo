@@ -144,6 +144,16 @@ test('to a route and back from anywhere, on a day chosen, and on its sheet', asy
 								to: 'Weisstannen, Oberdorf',
 								departure: '2027-07-05T04:10:00Z',
 								arrival: '2027-07-05T05:10:00Z'
+							},
+							// The start out of the planner's reach: the hike up (feedback issue 89).
+							{
+								kind: 'walk',
+								from: 'Weisstannen, Oberdorf',
+								to: 'Start',
+								duration_min: 83,
+								hike: true,
+								ascent_m: 1104,
+								descent_m: 12
 							}
 						]
 					}
@@ -162,6 +172,10 @@ test('to a route and back from anywhere, on a day chosen, and on its sheet', asy
 	await expect(to.getByTestId('travel-to-place')).toContainText('Sargans');
 	await expect(to.getByTestId('trip')).toContainText('06:10 → 07:10');
 	expect(asked.at(-1)?.searchParams.get('from_name')).toContain('Sargans');
+	expect(asked.at(-1)?.searchParams.get('trailhead')).toBe('to');
+	await expect(to.getByTestId('trip')).toContainText(
+		/Wanderung Weisstannen, Oberdorf → Start: 1\sh 25\smin · ↑ 1104 m ↓ 12 m/
+	);
 	// A route has no stages: its day is the one chosen, not a stage's.
 	await expect(to).not.toContainText('Die Etappe hat kein Datum');
 
@@ -179,5 +193,6 @@ test('to a route and back from anywhere, on a day chosen, and on its sheet', asy
 	const trips = page.getByTestId('sheet-trips');
 	await expect(trips).toContainText(/Anreise: Sargans.* → Start/);
 	await expect(trips.getByTestId('sheet-trip')).toContainText('B 432');
+	await expect(trips.getByTestId('sheet-trip')).toContainText('Wanderung Weisstannen, Oberdorf');
 	await expect.poll(() => asked.at(-1)?.searchParams.get('date')).toBe('2027-07-06');
 });

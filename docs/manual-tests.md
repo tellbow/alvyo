@@ -587,6 +587,12 @@ emulator ran the integration tests offline, navigate and journey
 
 ## Web
 
+- [ ] **Getting there to a start on a mountain** (37, feedback issue 89,
+      after the release, with the real journey planner): «Anreise» to a
+      route starting near the Wiriehorn summit from Köniz finds the bus to
+      «Riedli, Talstation Wiriehorn» and the hike up (about 1 h 30,
+      ↑ about 1100 m), on the website and in the app; on a day the
+      Wiriehorn chairlift runs, maybe the lift instead.
 - [x] **Sign in with Apple on the website** (77, after the release with
       the Apple settings deployed): «Mit Apple anmelden» on the login page
       leads to Apple and back logged in, also in Chrome (Apple posts back

@@ -6945,6 +6945,11 @@
             "format": "date-time",
             "type": "string"
           },
+          "ascent_m": {
+            "description": "Hikes only",
+            "format": "double",
+            "type": "number"
+          },
           "delay_min": {
             "format": "int64",
             "type": "integer"
@@ -6952,6 +6957,11 @@
           "departure": {
             "format": "date-time",
             "type": "string"
+          },
+          "descent_m": {
+            "description": "Hikes only",
+            "format": "double",
+            "type": "number"
           },
           "direction": {
             "type": "string"
@@ -6963,6 +6973,10 @@
           },
           "from": {
             "type": "string"
+          },
+          "hike": {
+            "description": "Walks only: a hike to or from a stop, in Swiss hiking time at the user's pace",
+            "type": "boolean"
           },
           "kind": {
             "enum": [
@@ -10114,6 +10128,20 @@
             "schema": {
               "description": "With the way of each leg (track), to draw them",
               "type": "boolean"
+            }
+          },
+          {
+            "description": "The side that is a route's start (to) or end (from): without a connection there, one to the nearby stop with the shortest hike (up to 2 h) and the hike",
+            "explode": false,
+            "in": "query",
+            "name": "trailhead",
+            "schema": {
+              "description": "The side that is a route's start (to) or end (from): without a connection there, one to the nearby stop with the shortest hike (up to 2 h) and the hike",
+              "enum": [
+                "from",
+                "to"
+              ],
+              "type": "string"
             }
           }
         ],

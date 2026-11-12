@@ -393,6 +393,8 @@
   "connectionsArrive": "Arr",
   "connectionsSearch": "Search",
   "connectionsNone": "No connection found.",
+  "connectionsHike": "Hike {from} → {to}: {time} · ↑ {up} m ↓ {down} m",
+  "travelNone": "No connection found, not even via a stop up to 2 h of hiking away.",
   "connectionsUnavailable": "The timetable is not available right now – use the SBB timetable.",
   "connectionsTransfers": "{n} changes",
   "connectionsWalk": "{min} min walk",

@@ -48,6 +48,7 @@ type Query struct {
 	Name     string   // optional substring of the name
 	Kinds    []string // empty: all
 	Limit    int
+	RadiusM  int // 0: 3 km, or 30 km with a name
 }
 
 // Store reads places.
@@ -66,6 +67,9 @@ func (s *Store) Nearby(ctx context.Context, q Query) ([]Place, error) {
 	radius := nearbyRadius
 	if q.Name != "" {
 		radius = searchRadius
+	}
+	if q.RadiusM > 0 {
+		radius = q.RadiusM
 	}
 	limit := q.Limit
 	if limit <= 0 || limit > MaxResults {

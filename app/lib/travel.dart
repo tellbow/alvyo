@@ -74,5 +74,6 @@ Future<List<Trip>> travelTrips(Api api, Spot home, TravelEnd at, TravelWay way, 
     fromName: fromName,
     toName: destName,
     lines: true,
+    trailhead: to ? 'to' : 'from',
   );
 }

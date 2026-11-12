@@ -380,6 +380,8 @@
 	"connections_time": "Heure",
 	"connections_search": "Chercher",
 	"connections_none": "Aucune correspondance trouvée.",
+	"connections_hike": "Randonnée {from} → {to} : {time} · ↑ {up} m ↓ {down} m",
+	"travel_none": "Aucune liaison trouvée, même pas par un arrêt jusqu'à 2 h de marche.",
 	"connections_unavailable": "L'horaire n'est pas disponible pour l'instant – utilise l'horaire CFF.",
 	"connections_transfers": "{n} chang.",
 	"connections_walk": "{min} min à pied",

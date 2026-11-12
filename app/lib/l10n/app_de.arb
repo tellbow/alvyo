@@ -726,6 +726,27 @@
   "connectionsArrive": "An",
   "connectionsSearch": "Suchen",
   "connectionsNone": "Keine Verbindung gefunden.",
+  "connectionsHike": "Wanderung {from} → {to}: {time} · ↑ {up} m ↓ {down} m",
+  "@connectionsHike": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "up": {
+        "type": "int"
+      },
+      "down": {
+        "type": "int"
+      }
+    }
+  },
+  "travelNone": "Keine Verbindung gefunden, auch nicht über eine Haltestelle bis 2 h Wanderzeit entfernt.",
   "connectionsUnavailable": "Fahrplanabfrage gerade nicht möglich – nutze den SBB-Fahrplan.",
   "connectionsTransfers": "{n} Umst.",
   "@connectionsTransfers": {

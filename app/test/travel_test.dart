@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
+import 'package:alvyo/screens/connections_screen.dart';
 import 'package:alvyo/screens/travel_screen.dart';
 import 'package:alvyo/travel.dart';
 
@@ -85,6 +86,16 @@ void main() {
                     [7.63, 46.755],
                   ],
                 },
+                // A hike from a stop to a start out of the planner's reach (feedback issue 89).
+                {
+                  'kind': 'walk',
+                  'from': 'Riedli, Talstation Wiriehorn',
+                  'to': 'Wiriehorn',
+                  'duration_min': 83,
+                  'hike': true,
+                  'ascent_m': 1104,
+                  'descent_m': 12,
+                },
               ],
             },
           ],
@@ -113,8 +124,11 @@ void main() {
       'time': '06:00',
       'arrive': 'false',
       'lines': 'true',
+      'trailhead': 'to',
     });
-    expect(trips.single.legs.single.track, hasLength(2));
+    expect(trips.single.legs.first.track, hasLength(2));
+    final hike = trips.single.legs.last;
+    expect((hike.hike, hike.walkMin, hike.ascentM, hike.descentM), (true, 83, 1104, 12));
     expect(
       const Travel(
         to: TravelWay(homeId: 'h1', time: '06:00'),
@@ -377,5 +391,39 @@ void main() {
       scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first,
     );
     expect(find.byKey(const Key('travel-none')), findsOneWidget);
+  });
+
+  testWidgets('a hike to the start shows with its time and climb', (tester) async {
+    final trip = Trip.fromJson({
+      'start': '2026-11-11T05:00:00Z',
+      'end': '2026-11-11T07:00:00Z',
+      'transfers': 0,
+      'legs': [
+        {
+          'kind': 'walk',
+          'from': 'Riedli, Talstation Wiriehorn',
+          'to': 'Wiriehorn',
+          'duration_min': 83,
+          'hike': true,
+          'ascent_m': 1104,
+          'descent_m': 12,
+        },
+      ],
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: TripCard(trip: trip, selected: true)),
+      ),
+    );
+    expect(find.textContaining('Wanderung Riedli, Talstation Wiriehorn → Wiriehorn: 1'), findsOneWidget);
+    expect(find.textContaining('↑ 1104 m ↓ 12 m'), findsOneWidget);
   });
 }

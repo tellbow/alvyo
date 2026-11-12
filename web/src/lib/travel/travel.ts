@@ -1,5 +1,7 @@
 import type { FeatureCollection, LineString } from 'geojson';
 import type { Home, Journey, Place, Route, Travel, Trip, TravelWay } from '#lib/api/client.js';
+import { m } from '#lib/paraglide/messages.js';
+import { formatDuration } from '#lib/planner/route.js';
 
 /** Where public transport meets the hike: a stop, or a point on the line. */
 export type End = {
@@ -114,8 +116,23 @@ export function travelQuery(
 		date: at.date ?? today,
 		time: way.time,
 		arrive: way.arrive,
-		lines: true
+		lines: true,
+		// Where a route starts or ends: out of the planner's reach (on a
+		// mountain), the trips go via the nearest stop and add the hike.
+		trailhead: direction === 'to' ? ('to' as const) : ('from' as const)
 	};
+}
+
+/** A walk of a trip; a hike to or from a stop with its time and climb (feedback issue 89). */
+export function walkText(leg: Trip['legs'][number]): string {
+	if (!leg.hike) return m.connections_walk({ min: leg.duration_min ?? 0 });
+	return m.connections_hike({
+		from: leg.from,
+		to: leg.to,
+		time: formatDuration((leg.duration_min ?? 0) * 60),
+		up: Math.round(leg.ascent_m ?? 0),
+		down: Math.round(leg.descent_m ?? 0)
+	});
 }
 
 /** A trip's legs as lines: rides and walks, to draw apart from the hike. */

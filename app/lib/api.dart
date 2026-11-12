@@ -1500,10 +1500,18 @@ class TripLeg {
       },
       delayMin = (j['delay_min'] as num?)?.toInt() ?? 0,
       walkMin = (j['duration_min'] as num?)?.toInt() ?? 0,
+      hike = j['hike'] as bool? ?? false,
+      ascentM = (j['ascent_m'] as num?)?.round() ?? 0,
+      descentM = (j['descent_m'] as num?)?.round() ?? 0,
       track = _line(j['track']);
 
   /// A ride, else a walk of [walkMin] minutes.
   final bool ride;
+
+  /// A walk that is a hike to or from a stop (a route's start out of the
+  /// planner's reach), in hiking time at one's pace, with its climb.
+  final bool hike;
+  final int ascentM, descentM;
   final String from, to, line, platform;
   final DateTime? departure, arrival;
   final int delayMin, walkMin;
@@ -2692,7 +2700,9 @@ class Api {
   /// Public transport between two places on [day], leaving after [time]
   /// (HH:MM) or arriving before it. A place is a stop ([Place.ref]) or a
   /// position as lon,lat, named by [fromName] or [toName] in the walk to or
-  /// from it; [lines] asks for the ways ([TripLeg.track]).
+  /// from it; [lines] asks for the ways ([TripLeg.track]). [trailhead]
+  /// ('to' or 'from') names the side that is a route's start or end: out of
+  /// the planner's reach, the trips go via a stop nearby and add the hike.
   Future<List<Trip>> connections(
     String from,
     String to,
@@ -2702,6 +2712,7 @@ class Api {
     String? fromName,
     String? toName,
     bool lines = false,
+    String? trailhead,
   }) async {
     final date =
         '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
@@ -2715,6 +2726,7 @@ class Api {
               'time': time,
               'arrive': '$arrive',
               if (lines) 'lines': 'true',
+              'trailhead': ?trailhead,
             })
             as Map<String, dynamic>;
     return [for (final t in j['trips'] as List) Trip.fromJson(t as Map<String, dynamic>)];

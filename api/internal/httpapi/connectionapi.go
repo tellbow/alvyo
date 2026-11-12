@@ -3,7 +3,9 @@ package httpapi
 import (
 	"context"
 	"log/slog"
+	"math"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,6 +14,9 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
+	"github.com/tellbow/alvyo/api/internal/places"
+	"github.com/tellbow/alvyo/api/internal/routing"
+	"github.com/tellbow/alvyo/swiss/geo"
 	"github.com/tellbow/alvyo/swiss/ojp"
 )
 
@@ -33,6 +38,10 @@ type connectionsInput struct {
 	Time     string `query:"time" pattern:"^[0-9]{2}:[0-9]{2}$" default:"08:00" doc:"HH:MM, Swiss time"`
 	Arrive   bool   `query:"arrive" doc:"The time is the latest arrival instead of the earliest departure"`
 	Lines    bool   `query:"lines" doc:"With the way of each leg (track), to draw them"`
+	// Trailhead names the side that is a route's start or end (a position):
+	// when the planner reaches it from no stop, the trips go to the stop
+	// nearby with the shortest hike and add the hike (feedback issue 89).
+	Trailhead string `query:"trailhead" enum:"from,to" doc:"The side that is a route's start (to) or end (from): without a connection there, one to the nearby stop with the shortest hike (up to 2 h) and the hike"`
 }
 
 // place reads a from or to parameter: a stop's Didok number, or a position
@@ -83,7 +92,7 @@ func registerConnections(api huma.API, d Deps) {
 			return nil, huma.Error422UnprocessableEntity("a position is out of range")
 		}
 		key := strings.Join([]string{in.From, in.FromName, in.To, in.ToName, in.Date, in.Time,
-			map[bool]string{true: "a", false: "d"}[in.Arrive], map[bool]string{true: "l", false: ""}[in.Lines]}, "|")
+			map[bool]string{true: "a", false: "d"}[in.Arrive], map[bool]string{true: "l", false: ""}[in.Lines], in.Trailhead}, "|")
 		out := &connectionsOutput{}
 		now := time.Now()
 		if trips, ok := cache.get(key, now); ok {
@@ -95,15 +104,125 @@ func registerConnections(api huma.API, d Deps) {
 		}
 		ctx, cancel := context.WithTimeout(ctx, 12*time.Second)
 		defer cancel()
-		trips, err := d.Planner.Trips(ctx, ojp.Query{From: from, To: to, At: at, Arrive: in.Arrive, Lines: in.Lines})
+		q := ojp.Query{From: from, To: to, At: at, Arrive: in.Arrive, Lines: in.Lines}
+		trips, err := d.Planner.Trips(ctx, q)
 		if err != nil {
 			slog.WarnContext(ctx, "connections", "err", err)
 			return nil, huma.Error502BadGateway("the journey planner did not answer; use the SBB link")
+		}
+		if len(trips) == 0 && in.Trailhead != "" {
+			if hiked := hikeTrips(ctx, d, q, in.Trailhead == "to", float64(u.SpeedFactor)); hiked != nil {
+				trips = hiked
+			}
 		}
 		cache.put(key, trips, now)
 		out.Body.Trips = trips
 		return out, nil
 	})
+}
+
+// A hike from a stop to a route's start or back to one: at most 2 h of
+// Swiss hiking time, so stops within 9 km (straight) are enough.
+const (
+	maxHikeS    = 2 * 3600
+	hikeRadiusM = 9000
+	hikeStops   = 3
+)
+
+// hikeTrips is for a route's start or end out of the planner's reach, high
+// on a mountain: the trips to (toStart) or from the nearby stop with the
+// shortest hike that has any, and the hike as their last or first leg. The
+// times shift by the hike, at the user's pace. Nil when no stop fits.
+func hikeTrips(ctx context.Context, d Deps, q ojp.Query, toStart bool, pace float64) []ojp.Trip {
+	trail := q.From
+	if toStart {
+		trail = q.To
+	}
+	if d.Router == nil || d.Places == nil || trail.Ref != "" {
+		return nil
+	}
+	if pace <= 0 {
+		pace = 1
+	}
+	stops, err := d.Places.Nearby(ctx, places.Query{Lon: trail.Lon, Lat: trail.Lat,
+		Kinds: []string{"pt_stop"}, Limit: hikeStops, RadiusM: hikeRadiusM})
+	if err != nil {
+		slog.WarnContext(ctx, "stops near a trailhead", "err", err)
+		return nil
+	}
+	type hike struct {
+		stop places.Place
+		leg  routing.Leg
+	}
+	var hikes []hike
+	here := geo.Point{Lon: trail.Lon, Lat: trail.Lat}
+	for _, s := range stops {
+		if s.Ref == "" {
+			continue
+		}
+		from, to := geo.Point{Lon: s.At[0], Lat: s.At[1]}, here
+		if !toStart {
+			from, to = to, from
+		}
+		leg, err := d.Router.Leg(ctx, routing.LegRequest{From: from, To: to, Profile: "hike"})
+		if err != nil || leg.DurationS > maxHikeS {
+			continue
+		}
+		hikes = append(hikes, hike{s, leg})
+	}
+	slices.SortFunc(hikes, func(a, b hike) int { return a.leg.DurationS - b.leg.DurationS })
+	// The nearest by hike may have no service that day (a lift closed for
+	// the season): then the next.
+	for _, h := range hikes {
+		if !d.Limits.ConnectionsAll.Allow("all") {
+			return nil
+		}
+		minutes := int(math.Round(float64(h.leg.DurationS) * pace / 60))
+		walk := time.Duration(minutes) * time.Minute
+		sq := q
+		if toStart {
+			sq.To = ojp.Stop(h.stop.Ref)
+			if q.Arrive {
+				sq.At = q.At.Add(-walk)
+			}
+		} else {
+			sq.From = ojp.Stop(h.stop.Ref)
+			if !q.Arrive {
+				sq.At = q.At.Add(walk)
+			}
+		}
+		trips, err := d.Planner.Trips(ctx, sq)
+		if err != nil {
+			slog.WarnContext(ctx, "connections to a stop near a trailhead", "err", err)
+			continue
+		}
+		if len(trips) == 0 {
+			continue
+		}
+		leg := ojp.Leg{Kind: "walk", Hike: true, From: h.stop.Name, To: trail.Name, DurationMin: minutes,
+			AscentM: math.Round(h.leg.AscentM), DescentM: math.Round(h.leg.DescentM)}
+		if !toStart {
+			leg.From, leg.To = trail.Name, h.stop.Name
+		}
+		if q.Lines {
+			for _, c := range h.leg.Coordinates {
+				leg.Track = append(leg.Track, [2]float64{c[0], c[1]})
+			}
+		}
+		for i := range trips {
+			t := &trips[i]
+			if toStart {
+				t.Legs = append(t.Legs, leg)
+				t.End = t.End.Add(walk)
+			} else {
+				t.Legs = append([]ojp.Leg{leg}, t.Legs...)
+				t.Start = t.Start.Add(-walk)
+			}
+			t.Duration += walk
+		}
+		return trips
+	}
+	return nil
 }
 
 func inRange(p ojp.Place) bool {

@@ -5411,10 +5411,20 @@ export interface components {
         TransitLeg: {
             /** Format: date-time */
             arrival?: string;
+            /**
+             * Format: double
+             * @description Hikes only
+             */
+            ascent_m?: number;
             /** Format: int64 */
             delay_min?: number;
             /** Format: date-time */
             departure?: string;
+            /**
+             * Format: double
+             * @description Hikes only
+             */
+            descent_m?: number;
             direction?: string;
             /**
              * Format: int64
@@ -5422,6 +5432,8 @@ export interface components {
              */
             duration_min?: number;
             from: string;
+            /** @description Walks only: a hike to or from a stop, in Swiss hiking time at the user's pace */
+            hike?: boolean;
             /** @enum {string} */
             kind: "ride" | "walk";
             line?: string;
@@ -7263,6 +7275,8 @@ export interface operations {
                 arrive?: boolean;
                 /** @description With the way of each leg (track), to draw them */
                 lines?: boolean;
+                /** @description The side that is a route's start (to) or end (from): without a connection there, one to the nearby stop with the shortest hike (up to 2 h) and the hike */
+                trailhead?: "from" | "to";
             };
             header?: never;
             path?: never;

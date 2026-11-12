@@ -380,6 +380,8 @@
 	"connections_time": "Zeit",
 	"connections_search": "Suchen",
 	"connections_none": "Keine Verbindung gefunden.",
+	"connections_hike": "Wanderung {from} → {to}: {time} · ↑ {up} m ↓ {down} m",
+	"travel_none": "Keine Verbindung gefunden, auch nicht über eine Haltestelle bis 2 h Wanderzeit entfernt.",
 	"connections_unavailable": "Fahrplanabfrage gerade nicht möglich – nutze den SBB-Fahrplan.",
 	"connections_transfers": "{n} Umst.",
 	"connections_walk": "{min} min zu Fuss",

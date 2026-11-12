@@ -1298,6 +1298,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectionsNone => 'No connection found.';
 
   @override
+  String connectionsHike(String from, String to, String time, int up, int down) {
+    return 'Hike $from → $to: $time · ↑ $up m ↓ $down m';
+  }
+
+  @override
+  String get travelNone => '– none –';
+
+  @override
   String get connectionsUnavailable => 'The timetable is not available right now – use the SBB timetable.';
 
   @override
@@ -1419,9 +1427,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelToHome => 'To';
-
-  @override
-  String get travelNone => '– none –';
 
   @override
   String travelOn(String date) {

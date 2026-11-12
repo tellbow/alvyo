@@ -2,6 +2,7 @@
 	import { api, type Trip } from '#lib/api/client.js';
 	import type { paths } from '#lib/api/schema.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { walkText } from '#lib/travel/travel.js';
 
 	type Query = NonNullable<paths['/connections']['get']['parameters']['query']>;
 
@@ -52,7 +53,7 @@
 							.map((l) =>
 								l.kind === 'ride' && l.departure
 									? `${hhmm(l.departure)} ${l.line} ${l.from} → ${l.to}${l.platform ? ` (${m.connections_platform({ p: l.platform })})` : ''}`
-									: m.connections_walk({ min: l.duration_min ?? 0 })
+									: walkText(l)
 							)
 							.join(', ')}
 					</span>

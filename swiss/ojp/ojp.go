@@ -78,6 +78,12 @@ type Leg struct {
 	DurationMin int    `json:"duration_min,omitempty" doc:"Walks only"`
 	// The way, when asked for (Query.Lines): lon, lat per point.
 	Track [][2]float64 `json:"track,omitempty"`
+	// A hike Alvyo added between a stop and a place out of the planner's
+	// reach (a route's start on a mountain): DurationMin is Swiss hiking
+	// time at the user's pace.
+	Hike     bool    `json:"hike,omitempty" doc:"Walks only: a hike to or from a stop, in Swiss hiking time at the user's pace"`
+	AscentM  float64 `json:"ascent_m,omitempty" doc:"Hikes only"`
+	DescentM float64 `json:"descent_m,omitempty" doc:"Hikes only"`
 }
 
 // Trips asks the planner for connections.

@@ -393,6 +393,8 @@
   "connectionsArrive": "Arrivo",
   "connectionsSearch": "Cerca",
   "connectionsNone": "Nessun collegamento trovato.",
+  "connectionsHike": "Escursione {from} → {to}: {time} · ↑ {up} m ↓ {down} m",
+  "travelNone": "Nessun collegamento trovato, nemmeno tramite una fermata fino a 2 h di cammino.",
   "connectionsUnavailable": "L'orario non è disponibile al momento – usa l'orario FFS.",
   "connectionsTransfers": "{n} cambi",
   "connectionsWalk": "{min} min a piedi",

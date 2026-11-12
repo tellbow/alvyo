@@ -393,6 +393,8 @@
   "connectionsArrive": "Arrivée",
   "connectionsSearch": "Chercher",
   "connectionsNone": "Aucune correspondance trouvée.",
+  "connectionsHike": "Randonnée {from} → {to} : {time} · ↑ {up} m ↓ {down} m",
+  "travelNone": "Aucune liaison trouvée, même pas par un arrêt jusqu'à 2 h de marche.",
   "connectionsUnavailable": "L'horaire n'est pas disponible pour l'instant – utilise l'horaire CFF.",
   "connectionsTransfers": "{n} chang.",
   "connectionsWalk": "{min} min à pied",

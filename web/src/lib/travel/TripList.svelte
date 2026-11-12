@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Trip } from '#lib/api/client.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { walkText } from './travel';
 
 	let {
 		trips,
@@ -58,7 +59,7 @@
 										· {m.connections_platform({ p: leg.platform })}{/if}{#if leg.delay_min}
 										<span class="text-red-700 dark:text-red-400"> +{leg.delay_min}′</span>{/if}
 								{:else}
-									{m.connections_walk({ min: leg.duration_min ?? 0 })}
+									{walkText(leg)}
 								{/if}
 							</span>
 						{/each}

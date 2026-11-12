@@ -380,6 +380,8 @@
 	"connections_time": "Ora",
 	"connections_search": "Cerca",
 	"connections_none": "Nessun collegamento trovato.",
+	"connections_hike": "Escursione {from} → {to}: {time} · ↑ {up} m ↓ {down} m",
+	"travel_none": "Nessun collegamento trovato, nemmeno tramite una fermata fino a 2 h di cammino.",
 	"connections_unavailable": "L'orario non è disponibile al momento – usa l'orario FFS.",
 	"connections_transfers": "{n} cambi",
 	"connections_walk": "{min} min a piedi",

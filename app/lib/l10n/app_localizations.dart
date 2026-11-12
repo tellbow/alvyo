@@ -2452,6 +2452,18 @@ abstract class AppLocalizations {
   /// **'Keine Verbindung gefunden.'**
   String get connectionsNone;
 
+  /// No description provided for @connectionsHike.
+  ///
+  /// In de, this message translates to:
+  /// **'Wanderung {from} → {to}: {time} · ↑ {up} m ↓ {down} m'**
+  String connectionsHike(String from, String to, String time, int up, int down);
+
+  /// No description provided for @travelNone.
+  ///
+  /// In de, this message translates to:
+  /// **'– keine –'**
+  String get travelNone;
+
   /// No description provided for @connectionsUnavailable.
   ///
   /// In de, this message translates to:
@@ -2655,12 +2667,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Nach'**
   String get travelToHome;
-
-  /// No description provided for @travelNone.
-  ///
-  /// In de, this message translates to:
-  /// **'– keine –'**
-  String get travelNone;
 
   /// No description provided for @travelOn.
   ///

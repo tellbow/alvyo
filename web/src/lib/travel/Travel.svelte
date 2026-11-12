@@ -89,7 +89,7 @@
 		// Arriving by a time: the latest that fits first.
 		trips[d] = way.arrive ? data?.trips.toReversed() : data?.trips;
 		chosen[d] = 0;
-		if (data && data.trips.length === 0) problem[d] = m.connections_none();
+		if (data && data.trips.length === 0) problem[d] = m.travel_none();
 		else if (response.status === 429) problem[d] = m.share_rate();
 		else if (!data) problem[d] = m.connections_unavailable();
 	}

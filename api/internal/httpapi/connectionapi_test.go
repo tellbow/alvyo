@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tellbow/alvyo/api/internal/routing"
 	"github.com/tellbow/alvyo/swiss/ojp"
 )
 
@@ -115,5 +116,112 @@ func TestConnectionsFromAPosition(t *testing.T) {
 		if code, _ := c.do("GET", bad, nil); code != http.StatusUnprocessableEntity {
 			t.Errorf("%s: %d", bad, code)
 		}
+	}
+}
+
+// Answers only for stop 8500002: none for positions (out of the planner's
+// reach) and none for 8500001 (a lift closed for the season).
+type valleyPlanner struct{ asked []ojp.Query }
+
+func (f *valleyPlanner) Trips(_ context.Context, q ojp.Query) ([]ojp.Trip, error) {
+	f.asked = append(f.asked, q)
+	if q.To.Ref != "8500002" && q.From.Ref != "8500002" {
+		return []ojp.Trip{}, nil // as ojp.Parse answers TRIP_NOTRIPFOUND
+	}
+	return []ojp.Trip{{Start: q.At.Add(-time.Hour), End: q.At, Legs: []ojp.Leg{
+		{Kind: "ride", Mode: "bus", Line: "B 230", From: "Oey-Diemtigen", To: "Riedli", Departure: q.At.Add(-time.Hour), Arrival: q.At},
+	}}}, nil
+}
+
+// A route's start high on a mountain (feedback issue 89): the trips go to
+// the stop with the shortest hike that has some, and the hike is added.
+func TestConnectionsHikeFromAStop(t *testing.T) {
+	gh := straightGraphHopper(t)
+	fake := &valleyPlanner{}
+	s := newTestServerWith(t, func(d *Deps) {
+		d.Planner = fake
+		d.Router = &routing.Router{GraphHopper: &routing.GraphHopper{URL: gh}, Elevation: flatSampler{}, Trails: &routing.TrailMatcher{DB: d.DB}}
+	})
+	stop := func(ref, name string, lon, lat float64) {
+		if _, err := s.db.Exec(context.Background(), `INSERT INTO places (kind, name, source, source_id, geom)
+			VALUES ('pt_stop', $2, 'didok', $1, ST_SetSRID(ST_MakePoint($3, $4), 4326))`, ref, name, lon, lat); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// The start at 7.53/46.58; on flat ground 1 km is about 14 min.
+	stop("8500001", "Wiriehorn, Bergstation", 7.53, 46.589)       // 1 km, no service
+	stop("8500002", "Riedli, Talstation Wiriehorn", 7.53, 46.607) // 3 km
+	stop("8500003", "Fernwald", 7.53, 46.67)                      // 10 km: too far
+	c := s.client(t)
+	s.signup(c, "pt@example.ch", "berg")
+
+	var out struct {
+		Trips []struct {
+			Start, End string
+			Legs       []struct {
+				Kind        string
+				From, To    string
+				Hike        bool
+				DurationMin int `json:"duration_min"`
+				Track       [][2]float64
+			}
+		}
+	}
+	get := func(q string) {
+		t.Helper()
+		code, body := c.do("GET", q, nil)
+		out.Trips = nil
+		if err := json.Unmarshal(body, &out); code != http.StatusOK || err != nil {
+			t.Fatalf("%s: %d %s", q, code, body)
+		}
+	}
+
+	// There, arriving by 08:00 at the start: at the stop by 08:00 less the hike.
+	get("/api/v1/connections?from=7.4146,46.9244&from_name=Köniz&to=7.53,46.58&to_name=Wiriehorn&date=2026-11-11&time=08:00&arrive=true&lines=true&trailhead=to")
+	if len(out.Trips) != 1 || len(out.Trips[0].Legs) != 2 {
+		t.Fatalf("trips %+v", out.Trips)
+	}
+	hike := out.Trips[0].Legs[1]
+	if !hike.Hike || hike.Kind != "walk" || hike.From != "Riedli, Talstation Wiriehorn" || hike.To != "Wiriehorn" ||
+		hike.DurationMin < 35 || hike.DurationMin > 50 || len(hike.Track) < 2 {
+		t.Errorf("hike %+v", hike)
+	}
+	last := fake.asked[len(fake.asked)-1]
+	walk := time.Duration(hike.DurationMin) * time.Minute
+	if want := time.Date(2026, 11, 11, 7, 0, 0, 0, time.UTC).Add(-walk); last.To.Ref != "8500002" || !last.At.Equal(want) {
+		t.Errorf("asked %+v, want at %v", last, want)
+	}
+	if end, _ := time.Parse(time.RFC3339, out.Trips[0].End); !end.Equal(time.Date(2026, 11, 11, 7, 0, 0, 0, time.UTC)) {
+		t.Errorf("end %s", out.Trips[0].End)
+	}
+	var refs []string
+	for _, q := range fake.asked {
+		refs = append(refs, q.To.Ref)
+	}
+	// The position, the lift (nearest, no service), then the valley; not the far one.
+	if strings.Join(refs, " ") != " 8500001 8500002" {
+		t.Errorf("asked for %q", refs)
+	}
+
+	// Back, leaving the end at 15:00: the bus after the hike, the hike first.
+	fake.asked = nil
+	get("/api/v1/connections?from=7.53,46.58&from_name=Wiriehorn&to=7.4146,46.9244&to_name=Köniz&date=2026-11-11&time=15:00&trailhead=from")
+	if len(out.Trips) != 1 || !out.Trips[0].Legs[0].Hike || out.Trips[0].Legs[0].To != "Riedli, Talstation Wiriehorn" {
+		t.Fatalf("trips %+v", out.Trips)
+	}
+	last = fake.asked[len(fake.asked)-1]
+	walk = time.Duration(out.Trips[0].Legs[0].DurationMin) * time.Minute
+	if want := time.Date(2026, 11, 11, 14, 0, 0, 0, time.UTC).Add(walk); last.From.Ref != "8500002" || !last.At.Equal(want) {
+		t.Errorf("asked %+v, want at %v", last, want)
+	}
+
+	// Without a trailhead, nothing is added; with one but no stop near, an
+	// empty list as before (not null).
+	get("/api/v1/connections?from=7.4146,46.9244&to=7.53,46.58&date=2026-11-11&time=09:00")
+	if len(out.Trips) != 0 {
+		t.Errorf("trips %+v", out.Trips)
+	}
+	if code, body := c.do("GET", "/api/v1/connections?from=7.4146,46.9244&to=8.9,46.3&date=2026-11-11&trailhead=to", nil); code != http.StatusOK || !strings.Contains(string(body), `"trips":[]`) {
+		t.Errorf("no stop near: %d %s", code, body)
 	}
 }

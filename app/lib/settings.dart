@@ -24,6 +24,9 @@ class AppSettings {
   /// How far down the screen the bug-report tab is, 0 to 1; dragged away
   /// from what it covers (feedback issue 56).
   final bugTabAt = ValueNotifier<double>(0.45);
+
+  /// The planner's «So geht's» hidden (feedback issue 88).
+  final plannerHelpHidden = ValueNotifier(false);
   late final Future<void> loaded = _load();
 
   Future<void> _load() async {
@@ -34,6 +37,7 @@ class AppSettings {
       locale.value = AppLocalizations.supportedLocales.where((s) => s.languageCode == l).firstOrNull;
       watchAutoSince.value = DateTime.tryParse(await _storage.read(key: 'watch-auto') ?? '');
       if (double.tryParse(await _storage.read(key: 'bug-tab') ?? '') case final at?) bugTabAt.value = at;
+      plannerHelpHidden.value = await _storage.read(key: 'planner-help') == 'hidden';
       // The account's pace as last known, for hikes started offline.
       if (double.tryParse(await _storage.read(key: 'pace') ?? '') case final pace?) hikerPace.value = pace;
     } on Object {
@@ -50,6 +54,11 @@ class AppSettings {
   Future<void> setLocale(Locale? l) async {
     locale.value = l;
     await _write('locale', l?.languageCode);
+  }
+
+  Future<void> setPlannerHelpHidden(bool hidden) async {
+    plannerHelpHidden.value = hidden;
+    await _write('planner-help', hidden ? 'hidden' : null);
   }
 
   Future<void> saveBugTab() => _write('bug-tab', '${bugTabAt.value}');

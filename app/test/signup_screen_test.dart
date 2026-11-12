@@ -108,9 +108,19 @@ void main() {
       if (r.url.path.endsWith('/auth/signup')) asked = true;
       return http.Response('', 202);
     });
-    await fill(tester, username: 'Anna B');
+    await fill(tester, username: 'Anna-Maria B');
     expect(asked, isFalse);
-    // the hint below the field and the error in its place
-    expect(find.text('3–30 Zeichen: Kleinbuchstaben, Ziffern und _'), findsOneWidget);
+    // Which characters are wrong, in place of the hint (feedback issue 86).
+    expect(find.text('Nicht erlaubt: - Leerzeichen. Nur Kleinbuchstaben a–z, Ziffern und _.'), findsOneWidget);
+  });
+
+  testWidgets('wrong characters show while typing, a short name on sending', (tester) async {
+    await openSignup(tester, (_) async => http.Response('', 202));
+    await tester.enterText(find.byKey(const Key('signup-username')), 'zoë');
+    await tester.pump();
+    expect(find.textContaining('Nicht erlaubt: ë.'), findsOneWidget);
+
+    await fill(tester, username: 'zo');
+    expect(find.text('Zu kurz: mindestens 3 Zeichen.'), findsOneWidget);
   });
 }

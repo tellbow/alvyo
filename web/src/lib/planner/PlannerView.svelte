@@ -29,6 +29,7 @@
 	import ElevationProfile from './ElevationProfile.svelte';
 	import ProfileDock from './ProfileDock.svelte';
 	import PlaceSearch from './PlaceSearch.svelte';
+	import PlanHelp from './PlanHelp.svelte';
 	import RouteLayers from './RouteLayers.svelte';
 	import SavePanel from './SavePanel.svelte';
 	import StatsPanel from './StatsPanel.svelte';
@@ -280,6 +281,7 @@
 				<a href={loginHref} class="text-accent-ink underline">{m.nav_login()}</a>
 			</p>
 		{:else}
+			<PlanHelp />
 			<label class="flex flex-col gap-1 text-sm">
 				<span class="font-medium">{m.plan_profile()}</span>
 				<NativeSelect
@@ -351,8 +353,20 @@
 					</ol>
 				{/if}
 				<PlaceSearch label={searchLabel} near={center} onpick={addPlace} />
+				<label class="mt-2 flex items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						data-testid="round-trip"
+						checked={planner.roundTrip}
+						disabled={!hydrated.value || planner.anchors.length < 2}
+						onchange={(e) => planner.setRoundTrip(e.currentTarget.checked)}
+					/>
+					{m.plan_round_trip()}
+				</label>
 				{#if planner.anchors.length > 1}
-					<p class="mt-1 text-xs text-stone-500">{m.plan_points_hint()}</p>
+					<p class="mt-1 text-xs text-stone-500">
+						{planner.roundTrip ? m.plan_points_hint_round() : m.plan_points_hint()}
+					</p>
 				{/if}
 			</section>
 
@@ -390,9 +404,7 @@
 				<SharePanel kind="routes" id={route.id} verified={user.email_verified} />
 			{/if}
 
-			{#if planner.anchors.length < 2}
-				<p class="text-sm text-stone-600">{m.plan_hint_click()}</p>
-			{:else}
+			{#if planner.anchors.length > 1}
 				<StatsPanel totals={planner.totals} {pace} />
 				<Notices {notices} onshow={(p) => (picked = p)} />
 				<ProtectedAreas {areas} failed={areasFailed} onshow={(p) => (picked = p)} />

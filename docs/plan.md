@@ -155,6 +155,13 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
    line; a double-click on it gives the shortest path back. GraphHopper 11
    offers alternatives with the CH profiles once its factors are loosened
    (paths up to twice as long, sharing up to 80 %), in about 30 ms.
+   Since 2026-11-12 (feedback issues 87, 88): «Rundtour: zurück zum Start»
+   on the website as in the app, saved as the app saves it (the start again
+   as the last point; new points come before the way back, start and end
+   move together); in the app «Rundtour» as a chip at the top. A «So geht's»
+   card on both says what the points' colours mean and what to do with
+   them, until hidden; the website's end point red as in the app, and
+   tooltips on its points.
 10. **Tags** (0.5.0). Routes (recorded hikes included), journeys and
     collections carry up to 20 tags of 40 characters, kept as typed and
     compared without case (`tags text[]`, GIN index on `lower_tags(tags)`);

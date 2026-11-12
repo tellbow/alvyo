@@ -14,6 +14,7 @@ import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/planner.dart';
 import 'package:alvyo/screens/planner_screen.dart';
 import 'package:alvyo/screens/route_screen.dart';
+import 'package:alvyo/settings.dart';
 
 /// A leg from the request's from to to, with ele 500 → 600.
 Map<String, dynamic> _leg(Map<String, dynamic> req, {int sac = 2, int sacMax = 2, int durationS = 1800}) {
@@ -44,6 +45,9 @@ String _asked(http.Request req) {
 }
 
 void main() {
+  // The help would push the totals out of the sheet; planner_help_test has it.
+  setUp(() => AppSettings.instance.plannerHelpHidden.value = true);
+
   group('RoutePlanner', () {
     test('a round trip goes back to the start; a stop goes before the destination', () async {
       final asked = <String>[];
@@ -657,8 +661,8 @@ void main() {
       );
       expect(find.text('Sargans'), findsOneWidget);
       expect(find.byKey(const Key('planner-return')), findsOneWidget);
-      final round = tester.widget<Checkbox>(find.byKey(const Key('planner-round')));
-      expect(round.value, isTrue);
+      final round = tester.widget<FilterChip>(find.byKey(const Key('planner-round')));
+      expect(round.selected, isTrue);
     });
 
     testWidgets('a stage planned from where the one before ends', (tester) async {

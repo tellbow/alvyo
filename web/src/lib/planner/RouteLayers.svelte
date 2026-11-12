@@ -253,6 +253,17 @@
 			const kind = i === 0 ? 'start' : i === anchors.length - 1 ? 'end' : 'via';
 			dot.className = `anchor anchor-${kind}`;
 			dot.textContent = kind === 'via' ? String(i) : '';
+			// On a round trip the end lies on the start: the start shows.
+			marker.getElement().style.zIndex = kind === 'start' ? '1' : '';
+			if (editable)
+				dot.title = m.plan_anchor_title({
+					point:
+						kind === 'start'
+							? m.plan_point_start()
+							: kind === 'end'
+								? m.plan_point_end()
+								: m.plan_point_via({ n: i })
+				});
 			dot.dataset.testid = 'anchor';
 		});
 		for (const [id, marker] of markers) {
@@ -425,7 +436,7 @@
 		border-color: #fff;
 	}
 	:global(.anchor-end) {
-		background: var(--alvyo-route);
+		background: #b91c1c; /* not the line's colour: the end stands out, as in the app */
 		border-color: #fff;
 	}
 </style>

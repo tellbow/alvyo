@@ -2345,6 +2345,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerReturn => 'Back to the start';
 
   @override
+  String get plannerHelpTitle => 'How it works';
+
+  @override
+  String get plannerHelpHide => 'Hide';
+
+  @override
+  String get plannerHelpStart => 'Start';
+
+  @override
+  String get plannerHelpVia => 'Stop';
+
+  @override
+  String get plannerHelpEnd => 'Destination';
+
+  @override
+  String get plannerHelpMidpoint => 'Drag onto another path, or to add a stop';
+
+  @override
+  String get plannerHelpTap => 'Tap the map: a new point; it becomes the destination.';
+
+  @override
+  String get plannerHelpDrag => 'Drag a point to move it. Remove it with × in the list.';
+
+  @override
+  String get plannerHelpRound =>
+      'Round trip: turn it on and set a point or two along the way; the route leads back to the start.';
+
+  @override
   String get recordFollow => 'Follow a tour (optional)';
 
   @override
@@ -2777,6 +2805,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signupUsernameTaken => 'This username is taken.';
+
+  @override
+  String signupUsernameChars(String chars) {
+    return 'Not allowed: $chars. Only lowercase letters a–z, digits and _.';
+  }
+
+  @override
+  String get signupUsernameSpace => 'space';
+
+  @override
+  String get signupUsernameShort => 'Too short: at least 3 characters.';
+
+  @override
+  String get signupUsernameLong => 'Too long: at most 30 characters.';
 
   @override
   String get signupEmailRejected =>

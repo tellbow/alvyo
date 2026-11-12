@@ -2361,6 +2361,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerReturn => 'Retour au départ';
 
   @override
+  String get plannerHelpTitle => 'Mode d\'emploi';
+
+  @override
+  String get plannerHelpHide => 'Masquer';
+
+  @override
+  String get plannerHelpStart => 'Départ';
+
+  @override
+  String get plannerHelpVia => 'Étape';
+
+  @override
+  String get plannerHelpEnd => 'Arrivée';
+
+  @override
+  String get plannerHelpMidpoint => 'Tirer sur un autre chemin, ou pour ajouter une étape';
+
+  @override
+  String get plannerHelpTap => 'Touche la carte : un nouveau point, il devient l\'arrivée.';
+
+  @override
+  String get plannerHelpDrag => 'Tire un point pour le déplacer. Supprime-le avec × dans la liste.';
+
+  @override
+  String get plannerHelpRound =>
+      'Boucle : active-la et place un ou deux points en route ; l\'itinéraire revient au départ.';
+
+  @override
   String get recordFollow => 'Suivre une randonnée (facultatif)';
 
   @override
@@ -2798,6 +2826,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signupUsernameTaken => 'Ce nom d\'utilisateur est déjà pris.';
+
+  @override
+  String signupUsernameChars(String chars) {
+    return 'Non autorisé : $chars. Seulement des minuscules a–z, des chiffres et _.';
+  }
+
+  @override
+  String get signupUsernameSpace => 'espace';
+
+  @override
+  String get signupUsernameShort => 'Trop court : au moins 3 caractères.';
+
+  @override
+  String get signupUsernameLong => 'Trop long : au plus 30 caractères.';
 
   @override
   String get signupEmailRejected =>

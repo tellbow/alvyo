@@ -338,3 +338,41 @@ test('a saved route opens in the planner zoomed to it', async ({ page, context }
 		expect(b.y + b.height).toBeLessThan(map.y + map.height);
 	}
 });
+
+test('a round trip goes back to the start and off again', async ({ page }) => {
+	const id = `round${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+	await signUp(page.request, {
+		data: {
+			email: `${id}@example.ch`,
+			username: id,
+			display_name: 'Rounder',
+			password: 'sehr-geheim-123'
+		}
+	});
+	const created = await page.request.post('/api/v1/routes', {
+		data: { title: 'Rund um First', ...routeContent(8.04, 46.665, 20) }
+	});
+	await page.goto(`/plan/${(await created.json()).id}`);
+	await expect(page.getByTestId('plan-help')).toBeVisible();
+	await expect(page.getByTestId('anchor').first()).toHaveAttribute(
+		'title',
+		/ziehen zum Verschieben/
+	);
+
+	const round = page.getByTestId('round-trip');
+	await round.check();
+	await expect(page.getByTestId('point')).toHaveCount(3);
+	const legs = page.getByTestId('leg');
+	await expect(legs).toHaveCount(2);
+	await expect(legs.nth(1)).toHaveAttribute('data-state', 'ok', { timeout: 15_000 });
+	await expect(page.getByTestId('points')).toContainText('vor den Rückweg zum Start');
+
+	await round.uncheck();
+	await expect(page.getByTestId('point')).toHaveCount(2);
+
+	// Hidden, the help stays hidden.
+	await page.getByTestId('plan-help').getByRole('button', { name: 'Ausblenden' }).click();
+	await page.reload();
+	await expect(page.getByTestId('plan-help-open')).toBeVisible();
+	await expect(page.getByTestId('plan-help')).toBeHidden();
+});

@@ -11,6 +11,22 @@ test('a username typed with capitals becomes lowercase', async ({ page }) => {
 	}).toPass();
 });
 
+test('a username with characters not allowed says which, while typing', async ({ page }) => {
+	await page.goto('/signup');
+	const username = page.getByLabel('Benutzername');
+	const wrong = page.getByText('Nicht erlaubt: - Leerzeichen.');
+	await expect(async () => {
+		await username.fill('anna-maria b');
+		await expect(wrong).toBeVisible({ timeout: 500 });
+	}).toPass();
+	await expect(username).toHaveAttribute('aria-invalid', 'true');
+	// Too short says so once the field is left.
+	await username.fill('an');
+	await expect(wrong).toBeHidden();
+	await page.getByLabel('Anzeigename').focus();
+	await expect(page.getByText('Zu kurz: mindestens 3 Zeichen.')).toBeVisible();
+});
+
 test('sign up, verify e-mail, log out and log in again', async ({ page }) => {
 	const id = `e2e${Date.now().toString(36)}`;
 	const email = `${id}@example.ch`;

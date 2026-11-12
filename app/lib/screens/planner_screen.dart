@@ -21,6 +21,7 @@ import '../my_location.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import '../planner.dart';
+import '../planner_help.dart';
 import '../route_layers.dart';
 import 'plan_sheet.dart';
 import 'route_screen.dart';
@@ -690,19 +691,32 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
         onSelectionChanged: (s) => _planner.setProfile(s.first),
       ),
       const SizedBox(height: 8),
+      // At the top, not below the search (feedback issue 87); on before the
+      // points too: the way back follows.
+      Align(
+        alignment: Alignment.centerLeft,
+        child: FilterChip(
+          key: const Key('planner-round'),
+          avatar: Icon(_planner.roundTrip ? Icons.check : Icons.loop),
+          showCheckmark: false,
+          label: Text(t.plannerRoundTrip),
+          selected: _planner.roundTrip,
+          onSelected: _planner.setRoundTrip,
+        ),
+      ),
+      const PlannerHelp(),
       if (points.isEmpty) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(t.plannerHint)),
       for (final (i, p) in points.indexed) ...[
         ListTile(
           key: Key('planner-point-$i'),
           dense: true,
           contentPadding: EdgeInsets.zero,
-          leading: Icon(
-            i == 0
-                ? Icons.trip_origin
-                : i == points.length - 1
-                ? Icons.place
-                : Icons.more_vert,
-          ),
+          // In the colours of the points on the map.
+          leading: i == 0
+              ? const Icon(Icons.trip_origin, color: PlannerHelp.start)
+              : i == points.length - 1
+              ? const Icon(Icons.place, color: PlannerHelp.end)
+              : const Icon(Icons.more_vert, color: PlannerHelp.via),
           title: Text(p.name ?? t.plannerPointMap, maxLines: 1, overflow: TextOverflow.ellipsis),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -762,32 +776,13 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
             _planner.insertBeforeLast(p.lon, p.lat, name: p.name);
           },
         ),
-      // On a narrow screen the round trip goes below.
-      Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          TextButton(
-            key: const Key('planner-via'),
-            onPressed: points.length < 2 ? null : () => setState(() => _via = !_via),
-            child: Text(_via ? t.cancel : '+ ${t.plannerVia}'),
-          ),
-          InkWell(
-            onTap: () => _planner.setRoundTrip(!_planner.roundTrip),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Checkbox(
-                  key: const Key('planner-round'),
-                  value: _planner.roundTrip,
-                  onChanged: (v) => _planner.setRoundTrip(v ?? false),
-                ),
-                Text(t.plannerRoundTrip),
-                const SizedBox(width: 8),
-              ],
-            ),
-          ),
-        ],
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton(
+          key: const Key('planner-via'),
+          onPressed: points.length < 2 ? null : () => setState(() => _via = !_via),
+          child: Text(_via ? t.cancel : '+ ${t.plannerVia}'),
+        ),
       ),
       if (line.length > 1) ...[
         const SizedBox(height: 16),

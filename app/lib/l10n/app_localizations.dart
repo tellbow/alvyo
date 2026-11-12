@@ -4312,6 +4312,60 @@ abstract class AppLocalizations {
   /// **'Zurück zum Start'**
   String get plannerReturn;
 
+  /// No description provided for @plannerHelpTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'So geht\'s'**
+  String get plannerHelpTitle;
+
+  /// No description provided for @plannerHelpHide.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausblenden'**
+  String get plannerHelpHide;
+
+  /// No description provided for @plannerHelpStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start'**
+  String get plannerHelpStart;
+
+  /// No description provided for @plannerHelpVia.
+  ///
+  /// In de, this message translates to:
+  /// **'Zwischenziel'**
+  String get plannerHelpVia;
+
+  /// No description provided for @plannerHelpEnd.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziel'**
+  String get plannerHelpEnd;
+
+  /// No description provided for @plannerHelpMidpoint.
+  ///
+  /// In de, this message translates to:
+  /// **'Ziehen: auf einen anderen Weg oder als Zwischenziel'**
+  String get plannerHelpMidpoint;
+
+  /// No description provided for @plannerHelpTap.
+  ///
+  /// In de, this message translates to:
+  /// **'Tippe auf die Karte: ein neuer Punkt, er wird zum Ziel.'**
+  String get plannerHelpTap;
+
+  /// No description provided for @plannerHelpDrag.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkt ziehen: verschieben. Entfernen mit × in der Liste.'**
+  String get plannerHelpDrag;
+
+  /// No description provided for @plannerHelpRound.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundtour: einschalten und ein, zwei Punkte unterwegs setzen; der Weg führt zurück zum Start.'**
+  String get plannerHelpRound;
+
   /// No description provided for @recordFollow.
   ///
   /// In de, this message translates to:
@@ -5085,6 +5139,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Dieser Benutzername ist vergeben.'**
   String get signupUsernameTaken;
+
+  /// No description provided for @signupUsernameChars.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht erlaubt: {chars}. Nur Kleinbuchstaben a–z, Ziffern und _.'**
+  String signupUsernameChars(String chars);
+
+  /// No description provided for @signupUsernameSpace.
+  ///
+  /// In de, this message translates to:
+  /// **'Leerzeichen'**
+  String get signupUsernameSpace;
+
+  /// No description provided for @signupUsernameShort.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu kurz: mindestens 3 Zeichen.'**
+  String get signupUsernameShort;
+
+  /// No description provided for @signupUsernameLong.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu lang: höchstens 30 Zeichen.'**
+  String get signupUsernameLong;
 
   /// No description provided for @signupEmailRejected.
   ///

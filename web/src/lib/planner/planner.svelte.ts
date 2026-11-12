@@ -97,6 +97,11 @@ export class Planner {
 	/** Changed since the last load() or markSaved(). */
 	dirty = $derived(this.#fingerprint() !== this.#savedFingerprint);
 	totals = $derived(totals(this.readyLegs));
+	/** Back to the start: the last point is the start again (so the app saves one too). */
+	roundTrip = $derived.by(() => {
+		const [a, z] = [this.anchors[0], this.anchors.at(-1)];
+		return this.anchors.length > 2 && a.lon === z!.lon && a.lat === z!.lat;
+	});
 	line = $derived(combine(this.readyLegs));
 
 	/** The height of the anchor at `i` on its computed legs, if known. */
@@ -154,18 +159,30 @@ export class Planner {
 		this.#savedFingerprint = fingerprint;
 	}
 
+	/** A new point becomes the destination; on a round trip, the last stop before the way back. */
 	add(lon: number, lat: number, name?: string) {
+		if (this.roundTrip) return this.insert(this.anchors.length - 1, lon, lat, name);
 		this.#change(() => this.anchors.push(this.#anchor(lon, lat, name)));
+	}
+
+	/** Adds the way back to the start, or takes it away. */
+	setRoundTrip(on: boolean) {
+		if (on === this.roundTrip || this.anchors.length < 2) return;
+		const start = this.anchors[0];
+		this.#change(() => {
+			if (on) this.anchors.push(this.#anchor(start.lon, start.lat, start.name));
+			else this.anchors.pop();
+		});
 	}
 
 	/** Inserts an anchor before position `index` (e.g. when dragging a leg);
 	 * both halves of a straight or alpine leg stay so. */
-	insert(index: number, lon: number, lat: number) {
+	insert(index: number, lon: number, lat: number, name?: string) {
 		const straight = this.anchors[index]?.straight ?? false;
 		const alpine = this.anchors[index]?.alpine;
 		this.#change(() => {
 			this.anchors.splice(index, 0, {
-				...this.#anchor(lon, lat),
+				...this.#anchor(lon, lat, name),
 				straight,
 				...(alpine ? { alpine } : {})
 			});
@@ -191,11 +208,14 @@ export class Planner {
 		this.#sync();
 	}
 
-	/** Moves an anchor on the map; it is no longer the place it was found as. */
+	/** Moves an anchor on the map; it is no longer the place it was found as.
+	 * On a round trip, start and end move together. */
 	move(id: number, lon: number, lat: number) {
+		const ends = this.roundTrip ? [this.anchors[0].id, this.anchors.at(-1)!.id] : [];
 		this.#change(() => {
-			const a = this.anchors.find((x) => x.id === id);
-			if (a) Object.assign(a, { lon, lat, name: undefined });
+			for (const a of this.anchors)
+				if (a.id === id || (ends.includes(id) && ends.includes(a.id)))
+					Object.assign(a, { lon, lat, name: undefined });
 		});
 	}
 

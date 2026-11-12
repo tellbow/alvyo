@@ -12,6 +12,7 @@
 	import { formProof } from '#lib/spam/proof.js';
 	import Trap from '#lib/spam/Trap.svelte';
 	import { onMount } from 'svelte';
+	import { badChars } from '#lib/account/username.js';
 
 	const hydrated = new Hydrated();
 
@@ -19,7 +20,20 @@
 	let username = $state('');
 	let displayName = $state('');
 	let password = $state('');
-	let errors = $state<{ email?: string; username?: string; form?: string }>({});
+	let errors = $state<{ email?: string; username?: string; password?: string; form?: string }>({});
+	// Wrong characters show while typing; the length once the field is left.
+	let usernameLeft = $state(false);
+	const usernameError = $derived.by(() => {
+		const bad = badChars(username);
+		if (bad.length > 0)
+			return m.signup_username_chars({
+				chars: bad.map((c) => (c === ' ' ? m.signup_username_space() : c)).join(' ')
+			});
+		if (!usernameLeft || !username) return undefined;
+		if (username.length < 3) return m.signup_username_short();
+		if (username.length > 30) return m.signup_username_long();
+		return undefined;
+	});
 	let busy = $state(false);
 	let sent = $state<string>();
 	const proof = formProof();
@@ -50,6 +64,8 @@
 		if (response.status === 409 && where.includes('body.username'))
 			errors.username = m.signup_username_taken();
 		else if (where.includes('body.email')) errors.email = m.signup_email_rejected();
+		else if (where.includes('body.username')) errors.username = m.hint_username();
+		else if (where.includes('body.password')) errors.password = m.hint_password();
 		else if (response.status === 429) errors.form = m.error_too_many();
 		else errors.form = m.error_generic();
 	}
@@ -79,8 +95,16 @@
 				required
 				pattern={'[a-z0-9_]{3,30}'}
 				hint={m.hint_username()}
-				error={errors.username}
-				bind:value={() => username, (v) => (username = v.toLowerCase())}
+				error={errors.username ?? usernameError}
+				onblur={() => (usernameLeft = true)}
+				oninvalid={() => (usernameLeft = true)}
+				bind:value={
+					() => username,
+					(v) => {
+						username = v.toLowerCase();
+						errors.username = undefined; // «taken» was for the name before
+					}
+				}
 			/>
 			<Field
 				label={m.field_display_name()}
@@ -99,6 +123,7 @@
 				minlength={10}
 				maxlength={128}
 				hint={m.hint_password()}
+				error={errors.password}
 				bind:value={password}
 			/>
 			<Trap />

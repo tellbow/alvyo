@@ -1361,6 +1361,15 @@
   "plannerSearchVia": "Zwischenziel suchen …",
   "plannerRoundTrip": "Rundtour",
   "plannerReturn": "Zurück zum Start",
+  "plannerHelpTitle": "So geht's",
+  "plannerHelpHide": "Ausblenden",
+  "plannerHelpStart": "Start",
+  "plannerHelpVia": "Zwischenziel",
+  "plannerHelpEnd": "Ziel",
+  "plannerHelpMidpoint": "Ziehen: auf einen anderen Weg oder als Zwischenziel",
+  "plannerHelpTap": "Tippe auf die Karte: ein neuer Punkt, er wird zum Ziel.",
+  "plannerHelpDrag": "Punkt ziehen: verschieben. Entfernen mit × in der Liste.",
+  "plannerHelpRound": "Rundtour: einschalten und ein, zwei Punkte unterwegs setzen; der Weg führt zurück zum Start.",
   "recordFollow": "Einer Tour folgen (optional)",
   "recordChooseTour": "Tour wählen",
   "recordWithoutTour": "Ohne Tour",
@@ -1563,6 +1572,17 @@
   "signupUsername": "Benutzername",
   "signupUsernameHint": "3–30 Zeichen: Kleinbuchstaben, Ziffern und _",
   "signupUsernameTaken": "Dieser Benutzername ist vergeben.",
+  "signupUsernameChars": "Nicht erlaubt: {chars}. Nur Kleinbuchstaben a–z, Ziffern und _.",
+  "@signupUsernameChars": {
+    "placeholders": {
+      "chars": {
+        "type": "String"
+      }
+    }
+  },
+  "signupUsernameSpace": "Leerzeichen",
+  "signupUsernameShort": "Zu kurz: mindestens 3 Zeichen.",
+  "signupUsernameLong": "Zu lang: höchstens 30 Zeichen.",
   "signupEmailRejected": "Diese Adresse kann keine E-Mails empfangen oder ist eine Wegwerf-Adresse. Bitte nimm eine andere.",
   "signupDisplayName": "Anzeigename",
   "signupDisplayNameMissing": "Gib einen Namen ein.",

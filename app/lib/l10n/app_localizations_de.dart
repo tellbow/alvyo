@@ -2357,6 +2357,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerReturn => 'Zurück zum Start';
 
   @override
+  String get plannerHelpTitle => 'So geht\'s';
+
+  @override
+  String get plannerHelpHide => 'Ausblenden';
+
+  @override
+  String get plannerHelpStart => 'Start';
+
+  @override
+  String get plannerHelpVia => 'Zwischenziel';
+
+  @override
+  String get plannerHelpEnd => 'Ziel';
+
+  @override
+  String get plannerHelpMidpoint => 'Ziehen: auf einen anderen Weg oder als Zwischenziel';
+
+  @override
+  String get plannerHelpTap => 'Tippe auf die Karte: ein neuer Punkt, er wird zum Ziel.';
+
+  @override
+  String get plannerHelpDrag => 'Punkt ziehen: verschieben. Entfernen mit × in der Liste.';
+
+  @override
+  String get plannerHelpRound =>
+      'Rundtour: einschalten und ein, zwei Punkte unterwegs setzen; der Weg führt zurück zum Start.';
+
+  @override
   String get recordFollow => 'Einer Tour folgen (optional)';
 
   @override
@@ -2792,6 +2820,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get signupUsernameTaken => 'Dieser Benutzername ist vergeben.';
+
+  @override
+  String signupUsernameChars(String chars) {
+    return 'Nicht erlaubt: $chars. Nur Kleinbuchstaben a–z, Ziffern und _.';
+  }
+
+  @override
+  String get signupUsernameSpace => 'Leerzeichen';
+
+  @override
+  String get signupUsernameShort => 'Zu kurz: mindestens 3 Zeichen.';
+
+  @override
+  String get signupUsernameLong => 'Zu lang: höchstens 30 Zeichen.';
 
   @override
   String get signupEmailRejected =>

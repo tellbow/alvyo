@@ -306,4 +306,34 @@ describe('Planner', () => {
 		expect(calls).toHaveLength(0);
 		expect(p.dirty).toBe(false);
 	});
+
+	it('a round trip goes back to the start; new points come before the way back', async () => {
+		const { planner: p } = setup();
+		p.add(8.0, 46.0, 'Wengen');
+		p.setRoundTrip(true); // one point: nothing to go back from
+		expect(p.anchors).toHaveLength(1);
+		p.add(8.1, 46.1);
+		p.setRoundTrip(true);
+		expect(p.roundTrip).toBe(true);
+		p.add(8.2, 46.2, 'Männlichen');
+		expect(p.anchors.map((a) => [a.lon, a.name])).toEqual([
+			[8.0, 'Wengen'],
+			[8.1, undefined],
+			[8.2, 'Männlichen'],
+			[8.0, 'Wengen']
+		]);
+
+		p.move(p.anchors[3].id, 8.01, 46.01); // the end takes the start along
+		expect(p.anchors[0]).toMatchObject({ lon: 8.01, lat: 46.01 });
+		expect(p.roundTrip).toBe(true);
+
+		await p.idle();
+		const q = setup().planner;
+		q.load(p.content());
+		expect(q.roundTrip).toBe(true);
+
+		p.setRoundTrip(false);
+		expect(p.anchors).toHaveLength(3);
+		expect(p.roundTrip).toBe(false);
+	});
 });

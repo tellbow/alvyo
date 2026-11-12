@@ -26,7 +26,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _displayName = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
-  String? _usernameTaken;
+  String? _usernameError;
+  String? _passwordError;
   String? _emailRejected;
   String? _error;
   String? _sent;
@@ -51,7 +52,8 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _submit() async {
     final t = AppLocalizations.of(context);
     setState(() {
-      _usernameTaken = null;
+      _usernameError = null;
+      _passwordError = null;
       _emailRejected = null;
       _error = null;
     });
@@ -71,9 +73,13 @@ class _SignupScreenState extends State<SignupScreen> {
       if (mounted) {
         setState(() {
           if (e.status == 409 && e.errors.any((d) => d['location'] == 'body.username')) {
-            _usernameTaken = t.signupUsernameTaken;
+            _usernameError = t.signupUsernameTaken;
           } else if (e.errors.any((d) => d['location'] == 'body.email')) {
             _emailRejected = t.signupEmailRejected;
+          } else if (e.errors.any((d) => d['location'] == 'body.username')) {
+            _usernameError = t.signupUsernameHint;
+          } else if (e.errors.any((d) => d['location'] == 'body.password')) {
+            _passwordError = t.signupPasswordHint;
           } else {
             _error = e.status == 429 ? t.errorTooMany : t.errorGeneric;
           }
@@ -120,8 +126,11 @@ class _SignupScreenState extends State<SignupScreen> {
                           decoration: InputDecoration(
                             labelText: t.signupUsername,
                             helperText: t.signupUsernameHint,
-                            errorText: _usernameTaken,
+                            // Wrong characters show while typing (feedback issue 86).
+                            errorText: _usernameError ?? _badChars(t, _username.text),
+                            errorMaxLines: 3,
                           ),
+                          onChanged: (_) => setState(() => _usernameError = null),
                           autocorrect: false,
                           autofillHints: const [AutofillHints.newUsername],
                           // Usernames have no capitals, and logging in ignores case: no need to refuse them.
@@ -129,7 +138,12 @@ class _SignupScreenState extends State<SignupScreen> {
                             TextInputFormatter.withFunction((_, v) => v.copyWith(text: v.text.toLowerCase())),
                           ],
                           validator: (v) =>
-                              RegExp(r'^[a-z0-9_]{3,30}$').hasMatch(v!.trim()) ? null : t.signupUsernameHint,
+                              _badChars(t, v!.trim()) ??
+                              switch (v.trim().length) {
+                                < 3 => t.signupUsernameShort,
+                                > 30 => t.signupUsernameLong,
+                                _ => null,
+                              },
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -144,7 +158,11 @@ class _SignupScreenState extends State<SignupScreen> {
                         TextFormField(
                           key: const Key('signup-password'),
                           controller: _password,
-                          decoration: InputDecoration(labelText: t.password, helperText: t.signupPasswordHint),
+                          decoration: InputDecoration(
+                            labelText: t.password,
+                            helperText: t.signupPasswordHint,
+                            errorText: _passwordError,
+                          ),
                           obscureText: true,
                           autofillHints: const [AutofillHints.newPassword],
                           validator: (v) => v!.length < 10 || v.length > 128 ? t.signupPasswordHint : null,
@@ -169,4 +187,10 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
+}
+
+/// Which characters of a username are not allowed (only a–z, 0–9 and _), or null.
+String? _badChars(AppLocalizations t, String name) {
+  final bad = {for (final r in name.replaceAll(RegExp('[a-z0-9_]'), '').runes) String.fromCharCode(r)};
+  return bad.isEmpty ? null : t.signupUsernameChars(bad.map((c) => c == ' ' ? t.signupUsernameSpace : c).join(' '));
 }

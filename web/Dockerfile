@@ -10,7 +10,7 @@ RUN bun run build \
 
 # adapter-node bundles the devDependencies into build/; the dependencies
 # (@opentelemetry/api, which SvelteKit imports itself) come as node_modules.
-FROM node:24-alpine
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5
 WORKDIR /app
 ENV NODE_ENV=production PORT=3000
 COPY --from=build /app/build build

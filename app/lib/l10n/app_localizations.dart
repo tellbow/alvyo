@@ -2458,11 +2458,11 @@ abstract class AppLocalizations {
   /// **'Wanderung {from} → {to}: {time} · ↑ {up} m ↓ {down} m'**
   String connectionsHike(String from, String to, String time, int up, int down);
 
-  /// No description provided for @travelNone.
+  /// No description provided for @travelNoTrips.
   ///
   /// In de, this message translates to:
-  /// **'– keine –'**
-  String get travelNone;
+  /// **'Keine Verbindung gefunden, auch nicht über eine Haltestelle bis 2 h Wanderzeit entfernt.'**
+  String get travelNoTrips;
 
   /// No description provided for @connectionsUnavailable.
   ///
@@ -2667,6 +2667,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Nach'**
   String get travelToHome;
+
+  /// No description provided for @travelNone.
+  ///
+  /// In de, this message translates to:
+  /// **'– keine –'**
+  String get travelNone;
 
   /// No description provided for @travelOn.
   ///
@@ -3303,6 +3309,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ort, Haltestelle oder Adresse'**
   String get travelPlaceSearch;
+
+  /// No description provided for @travelMapHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Einen anderen Ort kannst du auch auf der Karte antippen.'**
+  String get travelMapHint;
 
   /// No description provided for @travelDay.
   ///

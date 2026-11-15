@@ -472,7 +472,10 @@ on 2026-10-05, 62 on 2026-10-05, 66 on 2026-10-07 (from issue 17), 67 on
     the shortest hike of at most 2 h that has any that day, and the hike
     shows as a leg in hiking time at one's pace with its climb
     (`trailhead` on `/connections`; app versions before this one do not
-    ask for it).
+    ask for it). In the app,
+    the place can also be tapped on the map or be the phone's position
+    («Mein Standort», kept as a place), and each connection reads as a
+    timetable (feedback issues 90, 91).
 
 34. **Along the way.** Named summits (with their height), viewpoints,
     waterfalls, drinking water and shelters (not those at bus stops) from

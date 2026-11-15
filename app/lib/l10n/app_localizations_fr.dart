@@ -1310,7 +1310,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get travelNone => '– aucun –';
+  String get travelNoTrips => 'Aucune liaison trouvée, même pas par un arrêt jusqu\'à 2 h de marche.';
 
   @override
   String get connectionsUnavailable => 'L\'horaire n\'est pas disponible pour l\'instant – utilise l\'horaire CFF.';
@@ -1436,6 +1436,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get travelToHome => 'À';
+
+  @override
+  String get travelNone => '– aucun –';
 
   @override
   String travelOn(String date) {
@@ -1793,6 +1796,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get travelPlaceSearch => 'Lieu, arrêt ou adresse';
+
+  @override
+  String get travelMapHint => 'Tu peux aussi toucher un autre lieu sur la carte.';
 
   @override
   String get travelDay => 'Le';

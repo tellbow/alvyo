@@ -270,6 +270,13 @@ Checked so far only in the simulator, with made-up or simulated positions
       «Anderer Ort …» (a station found by the search) and «Heimreise» to a
       home, on a day chosen: the connections match the SBB app, the chosen
       one is drawn on the map; the same on the website afterwards.
+- [ ] **Getting there from the map or here** (37, feedback issues 90, 91):
+      on a route's «Anreise», a tap on the map sets the place («Punkt auf
+      der Karte», a blue dot there) and the connections follow; «Mein
+      Standort» asks for the location once and takes the phone's position;
+      each connection reads as a timetable (time left, line and stops
+      right, walks as a small figure), also with long stop names on a
+      narrow Android phone.
 - [x] **Weather** (after a release): on a route high up, «Wetter» names
       forecast points at a similar height (a hut, not the valley village);
       the days after «Heute» fit on the screen; on a journey only the

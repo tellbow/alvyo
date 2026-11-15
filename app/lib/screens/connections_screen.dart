@@ -162,34 +162,73 @@ class TripCard extends StatelessWidget {
                   ],
                 ),
               ),
-              for (final leg in trip.legs)
-                if (leg.ride && leg.departure != null)
-                  Text.rich(
-                    TextSpan(
-                      style: muted,
-                      children: [
-                        TextSpan(text: '${formatTime(leg.departure!)} '),
-                        TextSpan(
-                          text: leg.line,
-                          style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
-                        ),
-                        TextSpan(text: ' ${leg.from} → ${leg.to}'),
-                        if (leg.platform.isNotEmpty) TextSpan(text: ' · ${t.connectionsPlatform(leg.platform)}'),
-                        if (leg.delayMin > 0)
-                          TextSpan(
-                            text: ' +${leg.delayMin}′',
-                            style: TextStyle(color: theme.colorScheme.error),
+              const SizedBox(height: 4),
+              // A timetable: the time (or how one walks) in its own column,
+              // so that long stop names wrap under each other.
+              Table(
+                columnWidths: const {0: IntrinsicColumnWidth()},
+                children: [
+                  for (final leg in trip.legs)
+                    if (!leg.ride || leg.departure != null)
+                      TableRow(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12, top: 3, bottom: 3),
+                            child: leg.ride
+                                ? Text(formatTime(leg.departure!), style: const TextStyle(fontWeight: FontWeight.w600))
+                                : Icon(leg.hike ? Icons.hiking : Icons.directions_walk, size: 18, color: muted.color),
                           ),
-                      ],
-                    ),
-                  )
-                else if (leg.hike)
-                  Text(
-                    t.connectionsHike(leg.from, leg.to, formatDuration(leg.walkMin * 60), leg.ascentM, leg.descentM),
-                    style: muted,
-                  )
-                else if (!leg.ride)
-                  Text(t.connectionsWalk(leg.walkMin), style: muted),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 3),
+                            child: leg.ride
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: leg.line,
+                                              style: const TextStyle(fontWeight: FontWeight.w600),
+                                            ),
+                                            TextSpan(text: '  ${leg.from} → ${leg.to}'),
+                                          ],
+                                        ),
+                                      ),
+                                      if (leg.platform.isNotEmpty || leg.delayMin > 0)
+                                        Text.rich(
+                                          TextSpan(
+                                            style: theme.textTheme.bodySmall?.merge(muted),
+                                            children: [
+                                              if (leg.platform.isNotEmpty)
+                                                TextSpan(text: t.connectionsPlatform(leg.platform)),
+                                              if (leg.delayMin > 0)
+                                                TextSpan(
+                                                  text: '${leg.platform.isNotEmpty ? ' · ' : ''}+${leg.delayMin}′',
+                                                  style: TextStyle(color: theme.colorScheme.error),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  )
+                                : Text(
+                                    leg.hike
+                                        ? t.connectionsHike(
+                                            leg.from,
+                                            leg.to,
+                                            formatDuration(leg.walkMin * 60),
+                                            leg.ascentM,
+                                            leg.descentM,
+                                          )
+                                        : t.connectionsWalk(leg.walkMin),
+                                    style: muted,
+                                  ),
+                          ),
+                        ],
+                      ),
+                ],
+              ),
             ],
           ),
         ),

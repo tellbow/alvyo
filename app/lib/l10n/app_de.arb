@@ -746,7 +746,7 @@
       }
     }
   },
-  "travelNone": "Keine Verbindung gefunden, auch nicht über eine Haltestelle bis 2 h Wanderzeit entfernt.",
+  "travelNoTrips": "Keine Verbindung gefunden, auch nicht über eine Haltestelle bis 2 h Wanderzeit entfernt.",
   "connectionsUnavailable": "Fahrplanabfrage gerade nicht möglich – nutze den SBB-Fahrplan.",
   "connectionsTransfers": "{n} Umst.",
   "@connectionsTransfers": {
@@ -1052,6 +1052,7 @@
   },
   "travelElsewhere": "Anderer Ort …",
   "travelPlaceSearch": "Ort, Haltestelle oder Adresse",
+  "travelMapHint": "Einen anderen Ort kannst du auch auf der Karte antippen.",
   "travelDay": "Am",
   "travelRouteStart": "Start",
   "travelRouteEnd": "Ziel",

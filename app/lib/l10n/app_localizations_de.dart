@@ -1309,7 +1309,8 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get travelNone => '– keine –';
+  String get travelNoTrips =>
+      'Keine Verbindung gefunden, auch nicht über eine Haltestelle bis 2 h Wanderzeit entfernt.';
 
   @override
   String get connectionsUnavailable => 'Fahrplanabfrage gerade nicht möglich – nutze den SBB-Fahrplan.';
@@ -1435,6 +1436,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get travelToHome => 'Nach';
+
+  @override
+  String get travelNone => '– keine –';
 
   @override
   String travelOn(String date) {
@@ -1791,6 +1795,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get travelPlaceSearch => 'Ort, Haltestelle oder Adresse';
+
+  @override
+  String get travelMapHint => 'Einen anderen Ort kannst du auch auf der Karte antippen.';
 
   @override
   String get travelDay => 'Am';

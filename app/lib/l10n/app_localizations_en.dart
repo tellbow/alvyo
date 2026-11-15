@@ -1303,7 +1303,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get travelNone => '– none –';
+  String get travelNoTrips => 'No connection found, not even via a stop up to 2 h of hiking away.';
 
   @override
   String get connectionsUnavailable => 'The timetable is not available right now – use the SBB timetable.';
@@ -1427,6 +1427,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelToHome => 'To';
+
+  @override
+  String get travelNone => '– none –';
 
   @override
   String travelOn(String date) {
@@ -1783,6 +1786,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelPlaceSearch => 'Place, stop or address';
+
+  @override
+  String get travelMapHint => 'You can also tap another place on the map.';
 
   @override
   String get travelDay => 'On';

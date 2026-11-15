@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:alvyo/api.dart';
+import 'package:alvyo/format.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/screens/connections_screen.dart';
 import 'package:alvyo/screens/travel_screen.dart';
@@ -391,6 +392,7 @@ void main() {
       scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first,
     );
     expect(find.byKey(const Key('travel-none')), findsOneWidget);
+    expect(find.textContaining('Keine Verbindung gefunden'), findsOneWidget);
   });
 
   testWidgets('a hike to the start shows with its time and climb', (tester) async {
@@ -425,5 +427,95 @@ void main() {
     );
     expect(find.textContaining('Wanderung Riedli, Talstation Wiriehorn → Wiriehorn: 1'), findsOneWidget);
     expect(find.textContaining('↑ 1104 m ↓ 12 m'), findsOneWidget);
+  });
+
+  testWidgets('a connection reads as a timetable: the time apart, the platform and delay below (feedback issue 90)', (
+    tester,
+  ) async {
+    final trip = Trip.fromJson({
+      'start': '2026-11-13T14:13:00Z',
+      'end': '2026-11-13T14:30:00Z',
+      'transfers': 0,
+      'legs': [
+        {'kind': 'walk', 'from': 'Zuhause', 'to': 'Köniz, Brühlplatz', 'duration_min': 5},
+        {
+          'kind': 'ride',
+          'from': 'Köniz, Brühlplatz',
+          'to': 'Bern, Bahnhof',
+          'line': 'B 10',
+          'platform': 'A',
+          'departure': '2026-11-13T14:18:00Z',
+          'delay_min': 3,
+        },
+      ],
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: TripCard(trip: trip)),
+      ),
+    );
+    expect(find.text(formatTime(DateTime.parse('2026-11-13T14:18:00Z'))), findsOneWidget);
+    expect(find.text('B 10  Köniz, Brühlplatz → Bern, Bahnhof'), findsOneWidget);
+    expect(find.text('Gl./Kante A · +3′'), findsOneWidget);
+    expect(find.text('5 min zu Fuss'), findsOneWidget);
+    expect(find.byIcon(Icons.directions_walk), findsOneWidget);
+  });
+
+  testWidgets('from my location, while it is not known: a hint, nothing saved (feedback issue 91)', (tester) async {
+    var saved = false;
+    final client = MockClient((req) async {
+      if (req.url.path == '/api/v1/me/homes') return _json({'homes': <Object>[]});
+      return http.Response('', 404);
+    });
+    final api = Api('https://alvyo.test', token: 't', client: client);
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: TravelScreen(
+          api: api,
+          at: (
+            at: '9.34000,46.99000',
+            name: 'Start',
+            day: null,
+            line: const [
+              [9.34, 46.99],
+            ],
+          ),
+          travel: const Travel(),
+          to: true,
+          save: (t) async {
+            saved = true;
+            return t;
+          },
+          map: const SizedBox.expand(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Einen anderen Ort kannst du auch auf der Karte antippen.'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('travel-home')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mein Standort').last);
+    for (var i = 0; i < 5; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.textContaining('Dein Standort ist gerade nicht bekannt'), findsOneWidget);
+    expect(saved, isFalse);
   });
 }

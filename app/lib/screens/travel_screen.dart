@@ -12,6 +12,7 @@ import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
+import '../navigation/gps.dart';
 import '../place_search.dart';
 import '../route_layers.dart';
 import '../travel.dart';
@@ -143,9 +144,13 @@ class TravelScreen extends StatefulWidget {
 
 class _TravelScreenState extends State<TravelScreen> {
   static const _elsewhere = '*';
+  static const _here = '@';
   late Travel _travel = widget.travel;
   late Future<List<Home>> _homes = widget.api.homes();
   Future<List<Trip>>? _trips;
+
+  /// The home or place of this way, marked on the map.
+  Spot? _spot;
   int _chosen = 0;
   StyleController? _style;
   MapController? _map;
@@ -171,6 +176,7 @@ class _TravelScreenState extends State<TravelScreen> {
     final way = _way, at = _at;
     final spot = waySpot(way, await _homes);
     if (!mounted) return;
+    _spot = spot;
     if (way == null || spot == null || at == null) {
       setState(() => _trips = null);
       _draw(null);
@@ -189,7 +195,8 @@ class _TravelScreenState extends State<TravelScreen> {
       _trips = trips;
       _chosen = 0;
     });
-    trips.then((t) => _draw(t.firstOrNull), onError: (Object _) {});
+    // The place shows also without connections.
+    trips.then((t) => _draw(t.firstOrNull), onError: (Object _) => _draw(null));
   }
 
   /// Saves a change of this direction; [way] null for none.
@@ -228,6 +235,24 @@ class _TravelScreenState extends State<TravelScreen> {
     );
   }
 
+  /// The phone's position as the place, asking for the location first.
+  Future<void> _fromHere() async {
+    final t = AppLocalizations.of(context);
+    ({double lon, double lat})? at;
+    try {
+      if (await locationAllowed()) at = await knownPosition(maxAge: const Duration(minutes: 1));
+    } on Object {
+      // a question already open
+    }
+    if (!mounted) return;
+    if (at == null) {
+      setState(() {}); // back to the way as saved
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.discoverNearbyUnknown)));
+      return;
+    }
+    _change(place: (name: t.mapMyLocation, lon: at.lon, lat: at.lat));
+  }
+
   static const _source = 'travel';
 
   /// The chosen trip's legs: rides dashed, walks dotted.
@@ -242,6 +267,15 @@ class _TravelScreenState extends State<TravelScreen> {
               'properties': {'kind': l.ride ? 'ride' : 'walk'},
               'geometry': {'type': 'LineString', 'coordinates': l.track},
             },
+        if (_spot case final s?)
+          {
+            'type': 'Feature',
+            'properties': {'kind': 'spot'},
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [s.lon, s.lat],
+            },
+          },
       ],
     });
     _style?.updateGeoJsonSource(id: _source, data: data).catchError((_) {});
@@ -249,7 +283,11 @@ class _TravelScreenState extends State<TravelScreen> {
     final at = _at, size = _mapSize, map = _map;
     if (at == null || size == null || map == null) return;
     final view = fitLine(
-      [...at.line, for (final l in trip?.legs ?? const <TripLeg>[]) ...l.track],
+      [
+        ...at.line,
+        for (final l in trip?.legs ?? const <TripLeg>[]) ...l.track,
+        if (_spot case final s?) [s.lon, s.lat],
+      ],
       size.width,
       size.height,
       maxZoom: 13,
@@ -306,6 +344,23 @@ class _TravelScreenState extends State<TravelScreen> {
         layout: {'line-cap': 'round'},
       ),
     );
+    await style.addLayer(
+      const CircleStyleLayer(
+        id: 'travel-spot',
+        sourceId: _source,
+        filter: [
+          '==',
+          ['get', 'kind'],
+          'spot',
+        ],
+        paint: {
+          'circle-color': '#1d4ed8',
+          'circle-radius': 7,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 2,
+        },
+      ),
+    );
     _style = style;
     final trips = await _trips?.catchError((_) => <Trip>[]);
     _draw(trips?.elementAtOrNull(_chosen));
@@ -359,6 +414,8 @@ class _TravelScreenState extends State<TravelScreen> {
                 setState(() => _searching = v == _elsewhere);
                 if (v == null || v.isEmpty) {
                   _set(null);
+                } else if (v == _here) {
+                  _fromHere();
                 } else if (v != _elsewhere) {
                   _change(homeId: v);
                 }
@@ -366,9 +423,14 @@ class _TravelScreenState extends State<TravelScreen> {
               dropdownMenuEntries: [
                 DropdownMenuEntry(value: '', label: t.travelNone),
                 for (final h in homes) DropdownMenuEntry(value: h.id, label: h.name),
+                DropdownMenuEntry(value: _here, label: t.mapMyLocation),
                 DropdownMenuEntry(value: _elsewhere, label: t.travelElsewhere),
               ],
             ),
+            if (at != null) ...[
+              const SizedBox(height: 4),
+              Text(t.travelMapHint, style: theme.textTheme.bodySmall?.merge(muted)),
+            ],
             if (_searching || way?.place != null) ...[
               const SizedBox(height: 8),
               PlaceSearch(
@@ -461,7 +523,7 @@ class _TravelScreenState extends State<TravelScreen> {
                     return Text(e is ApiException && e.status == 429 ? t.shareRate : t.connectionsUnavailable);
                   }
                   final trips = snap.data ?? const <Trip>[];
-                  if (trips.isEmpty) return Text(key: const Key('travel-none'), t.travelNone);
+                  if (trips.isEmpty) return Text(key: const Key('travel-none'), t.travelNoTrips);
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -508,7 +570,14 @@ class _TravelScreenState extends State<TravelScreen> {
                             _mapSize = size.biggest;
                             return MapLibreMap(
                               onEvent: (e) {
-                                if (e is MapEventMapCreated) _map = e.mapController;
+                                switch (e) {
+                                  case MapEventMapCreated(:final mapController):
+                                    _map = mapController;
+                                  case MapEventClick(:final point):
+                                    setState(() => _searching = false);
+                                    _change(place: (name: t.plannerPointMap, lon: point.lon, lat: point.lat));
+                                  default:
+                                }
                               },
                               options: MapOptions(
                                 initStyle: swisstopoStyle(widget.api.server),

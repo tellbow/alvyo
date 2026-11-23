@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// An iPad, or a phone turned sideways (requirement 73): the tabs in a rail
 /// on the left, a map's panel beside it instead of under it, lists no wider

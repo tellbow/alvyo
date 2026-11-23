@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Each kind along the way: a white shape (24 × 24) on a disc of its colour,
 /// as on the website (`web/src/lib/map/poi-icons.json`, compared in a test).

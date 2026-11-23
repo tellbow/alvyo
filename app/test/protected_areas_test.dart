@@ -1,7 +1,7 @@
 import 'package:alvyo/api.dart';
 import 'package:alvyo/l10n/app_localizations.dart';
 import 'package:alvyo/protected_areas.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -9,7 +9,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('de'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        localizationsDelegates: [AppLocalizations.delegate, ...GlobalMaterialLocalizations.delegates],
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: ProtectedAreas(Future<Along>.value((areas: <ProtectedArea>[], notices: <Notice>[], asOf: asOf))),

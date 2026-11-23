@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The Alvyo look, as on the website: greyish greens, an orange accent,
 /// Figtree for text and Bricolage Grotesque for headings. Light and dark

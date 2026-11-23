@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// An entry of a list as a card, as on the website.
 class ItemCard extends StatelessWidget {

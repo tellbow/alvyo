@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// An item's tags, small, under its title in a list.
 class TagChips extends StatelessWidget {

@@ -88,6 +88,14 @@
 				"pinDigest"
 			],
 			"automerge": true
+		},
+		{
+			"description": "OpenTelemetry in one PR, majors too: the stable (x.y) and experimental (0.x) packages only work in matching versions",
+			"matchPackageNames": [
+				"@opentelemetry/**"
+			],
+			"groupName": "OpenTelemetry",
+			"separateMajorMinor": false
 		}
 	],
 	"customManagers": [

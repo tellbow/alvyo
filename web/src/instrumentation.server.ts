@@ -1,14 +1,20 @@
-import { metrics } from '@opentelemetry/api';
+import { context, metrics, propagation, trace } from '@opentelemetry/api';
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
+import {
+	CompositePropagator,
+	W3CBaggagePropagator,
+	W3CTraceContextPropagator
+} from '@opentelemetry/core';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { detectResources, envDetector, resourceFromAttributes } from '@opentelemetry/resources';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import {
 	BatchSpanProcessor,
-	NodeTracerProvider,
+	TracerProvider,
 	type Span,
 	type SpanProcessor
-} from '@opentelemetry/sdk-trace-node';
+} from '@opentelemetry/sdk-trace';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
 // Traces (SvelteKit's own spans: requests, hooks, loads, actions) by OTLP
@@ -46,12 +52,19 @@ const redact: SpanProcessor = {
 };
 
 if (tracing) {
-	const traces = new NodeTracerProvider({
+	const traces = new TracerProvider({
 		resource,
-		spanProcessors: [redact, new BatchSpanProcessor(new OTLPTraceExporter())]
+		spanProcessors: [redact, new BatchSpanProcessor({ exporter: new OTLPTraceExporter() })]
 	});
-	// Global, with the async context and W3C trace headers.
-	traces.register();
+	// Global, with the async context and W3C trace headers (what
+	// NodeTracerProvider.register() did before OpenTelemetry 3).
+	context.setGlobalContextManager(new AsyncLocalStorageContextManager().enable());
+	propagation.setGlobalPropagator(
+		new CompositePropagator({
+			propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()]
+		})
+	);
+	trace.setGlobalTracerProvider(traces);
 	stops.push(() => traces.shutdown());
 }
 if (on && metricsPort) {

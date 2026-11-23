@@ -57,7 +57,9 @@ if (tracing) {
 if (on && metricsPort) {
 	const meters = new MeterProvider({
 		resource,
-		readers: [new PrometheusExporter({ port: metricsPort })]
+		// All interfaces: Prometheus scrapes the pod's address, and the
+		// exporter listens on localhost alone by default (since 0.301).
+		readers: [new PrometheusExporter({ host: '0.0.0.0', port: metricsPort })]
 	});
 	metrics.setGlobalMeterProvider(meters);
 	stops.push(() => meters.shutdown());

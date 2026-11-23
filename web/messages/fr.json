@@ -182,6 +182,7 @@
 	"about_title": "À propos d'Alvyo",
 	"about_news_title": "Quoi de neuf",
 	"about_news_older": "Afficher les versions plus anciennes",
+	"news_1_24_1": "Radar de pluie dans l'app : quand la prévision tombe le lendemain, l'heure et le jour tiennent à nouveau dans la barre.",
 	"news_1_24_0": "Accès dans l'app : les liaisons se lisent comme un horaire, les heures dans une colonne à part.\nAccès dans l'app : touche le lieu sur la carte ou prends «Ma position».\nAccès : «Aucune liaison trouvée» s'affiche de nouveau là où rien ne circule.",
 	"news_1_23_0": "Accès : si le départ est loin de tout arrêt, la liaison mène à l'arrêt le plus proche jusqu'à 2 h de marche, avec la randonnée jusqu'au départ.\nPlanifier : boucles aussi sur le site ; «Mode d'emploi» explique les points et ce que tu peux en faire.\nInscription : tu vois tout de suite quels caractères ne sont pas autorisés dans le nom d'utilisateur.",
 	"news_1_22_0": "Android : « Reconnaître les sommets » nomme maintenant aussi sur Android les sommets dans l'image de la caméra.\nImporte dans Alvyo les randonnées de ta montre (Garmin, Samsung, Wear OS et autres) via Health Connect : Profil › Appareils connectés.",

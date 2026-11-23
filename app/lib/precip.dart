@@ -269,13 +269,19 @@ class PrecipBar extends StatelessWidget {
                           key: const Key('precip-time'),
                           style: small?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        const Spacer(),
-                        Text(
-                          tl.frames[controller.index.value.clamp(0, tl.frames.length - 1)].kind == 'radar'
-                              ? t.precipRadar
-                              : t.precipForecast,
-                          key: const Key('precip-kind'),
-                          style: small,
+                        const SizedBox(width: 8),
+                        // The time with a weekday leaves less room: the kind gives way.
+                        Expanded(
+                          child: Text(
+                            tl.frames[controller.index.value.clamp(0, tl.frames.length - 1)].kind == 'radar'
+                                ? t.precipRadar
+                                : t.precipForecast,
+                            key: const Key('precip-kind'),
+                            style: small,
+                            textAlign: TextAlign.end,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

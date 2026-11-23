@@ -27,7 +27,8 @@ final _timeline = {
   'frames': [
     _frame('radar', const Duration(minutes: -10)),
     _frame('radar', const Duration(minutes: -5)),
-    _frame('forecast', const Duration(hours: 1)),
+    // Tomorrow, so the time carries the weekday and must still fit.
+    _frame('forecast', const Duration(hours: 25)),
   ],
   'legend': [
     {'from': 0.1, 'color': '#a6dbf7'},
@@ -151,7 +152,10 @@ void main() {
     c.index.value = 2;
     await tester.pumpAndSettle();
     expect(find.text('Modellprognose'), findsOneWidget);
-    expect(tester.widget<Text>(find.byKey(const Key('precip-time'))).data, matches(RegExp(r'^\d\d:\d\d–\d\d:\d\d$')));
+    expect(
+      tester.widget<Text>(find.byKey(const Key('precip-time'))).data,
+      matches(RegExp(r'^\S+ \d\d:\d\d–\d\d:\d\d$')),
+    );
 
     overlays.value = {};
     await tester.pumpAndSettle();

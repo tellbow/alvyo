@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.yaml.in/yaml/v3"
+	"go.yaml.in/yaml/v4"
 
 	"github.com/tellbow/alvyo/api/internal/config"
 	"github.com/tellbow/alvyo/api/internal/mailer"

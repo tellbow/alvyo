@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "ch.tellbow.alvyo"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37 // flutter_local_notifications 23; Flutter 3.50 has 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

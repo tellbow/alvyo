@@ -25,6 +25,8 @@
 	import type { BaseMapId, OverlayId } from '#lib/map/styles.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
+	import { cantonName } from '#lib/cantons.js';
+	import CantonLinks from '#lib/seo/CantonLinks.svelte';
 	import ElevationProfile from '#lib/planner/ElevationProfile.svelte';
 	import ProfileDock from '#lib/planner/ProfileDock.svelte';
 	import StatsPanel from '#lib/planner/StatsPanel.svelte';
@@ -392,7 +394,9 @@
 </script>
 
 <Seo
-	title={journey.title}
+	title={initial.cantons?.length
+		? `${journey.title} – ${m.seo_journey()}, ${cantonName(initial.cantons[0], getLocale())}`
+		: journey.title}
 	description={`${m.seo_journey_description({
 		stages: journey.stage_list.length,
 		stats: [
@@ -438,7 +442,8 @@
 			<div class="flex items-start justify-between gap-2">
 				<div class="min-w-0">
 					<h1 class="text-xl font-semibold" data-testid="journey-title">{journey.title}</h1>
-					<!-- Changes answer without it: as loaded. -->
+					<!-- Changes answer without these: as loaded. -->
+					<CantonLinks codes={initial.cantons ?? []} />
 					{#if initial.official}
 						<OfficialCredit official={initial.official} />
 					{:else}

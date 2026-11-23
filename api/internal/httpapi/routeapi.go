@@ -51,6 +51,7 @@ type routeBody struct {
 	// Official is set for the official Wanderland routes and their stages
 	// (on GET).
 	Official *official.Info `json:"official,omitempty"`
+	Cantons  []string       `json:"cantons,omitempty" doc:"Codes of the cantons crossed, such as BE, the one with most of the route first (on GET)"`
 }
 
 type createRouteInput struct {
@@ -169,6 +170,10 @@ func registerRoutes(api huma.API, d Deps) {
 		}
 		out.Body.DoneOn, out.Body.DoneMarked = day(st.On), st.Marked
 		out.Body.Official, err = official.ForRoute(ctx, d.DB, uuid.MustParse(r.ID))
+		if err != nil {
+			return nil, err
+		}
+		out.Body.Cantons, err = d.Discover.RouteCantons(ctx, uuid.MustParse(r.ID))
 		return out, err
 	})
 

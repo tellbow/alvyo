@@ -566,6 +566,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cantons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The cantons with public routes or journeys, and how many */
+        get: operations["list-cantons"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cantons/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The public routes and journeys crossing a canton, by title
+         * @description Recorded hikes are left out; at most 500.
+         */
+        get: operations["get-canton"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/challenge": {
         parameters: {
             query?: never;
@@ -3283,6 +3320,13 @@ export interface components {
             /** @description The GitHub issue, when one was opened */
             issue_url?: string;
         };
+        CantonOutputBody: {
+            code: string;
+            items: components["schemas"]["DiscoverCantonItem"][];
+        };
+        CantonsOutputBody: {
+            cantons: components["schemas"]["DiscoverCantonCount"][];
+        };
         ChallengeOutputBody: {
             /**
              * Format: int64
@@ -3613,6 +3657,36 @@ export interface components {
             official: components["schemas"]["DiscoverOfficialDone"][];
             /** @description Named summits within 50 m of a hike, the highest first */
             summits: components["schemas"]["DiscoverSummit"][];
+        };
+        DiscoverCantonCount: {
+            code: string;
+            /** Format: int64 */
+            items: number;
+        };
+        DiscoverCantonItem: {
+            /** Format: double */
+            ascent_m: number;
+            /** Format: double */
+            distance_m: number;
+            /**
+             * Format: int64
+             * @description Journeys: all stages together
+             */
+            duration_s: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "route" | "journey";
+            /** Format: int64 */
+            sac_grade: number;
+            /** Format: int64 */
+            sac_max: number;
+            /**
+             * Format: int64
+             * @description Journeys only
+             */
+            stages: number;
+            title: string;
         };
         DiscoverHiked: {
             /** @description Of the year asked for, newest first */
@@ -4089,6 +4163,8 @@ export interface components {
             /** Format: double */
             ascent_m: number;
             can_edit: boolean;
+            /** @description Codes of the cantons the stages cross, such as BE, the one with most of the journey first (on GET) */
+            cantons?: string[];
             /** Format: date-time */
             created_at: string;
             description: string;
@@ -4864,6 +4940,8 @@ export interface components {
         RouteBody: {
             anchors: components["schemas"]["RouteAnchor"][];
             can_edit: boolean;
+            /** @description Codes of the cantons crossed, such as BE, the one with most of the route first (on GET) */
+            cantons?: string[];
             /** Format: date-time */
             created_at: string;
             description: string;
@@ -6707,6 +6785,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BugReportOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-cantons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CantonsOutputBody"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-canton": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The canton's code, such as BE */
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CantonOutputBody"];
                 };
             };
             /** @description Error */

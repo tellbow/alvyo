@@ -34,6 +34,7 @@ type journeyBody struct {
 	DoneMarked bool   `json:"done_marked" doc:"done_on is the viewer's own mark, which can be taken back (on GET)"`
 	// Official is set for the official Wanderland routes (on GET).
 	Official *official.Info `json:"official,omitempty"`
+	Cantons  []string       `json:"cantons,omitempty" doc:"Codes of the cantons the stages cross, such as BE, the one with most of the journey first (on GET)"`
 }
 
 type journeyOutput struct {
@@ -230,6 +231,10 @@ func registerJourneys(api huma.API, d Deps) {
 		}
 		out.Body.DoneOn, out.Body.DoneMarked = day(st.On), st.Marked
 		out.Body.Official, err = official.ForJourney(ctx, d.DB, uuid.MustParse(j.ID))
+		if err != nil {
+			return nil, err
+		}
+		out.Body.Cantons, err = d.Discover.JourneyCantons(ctx, uuid.MustParse(j.ID))
 		return out, err
 	})
 

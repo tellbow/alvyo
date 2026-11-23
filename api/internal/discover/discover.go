@@ -287,14 +287,15 @@ type SitemapEntry struct {
 // addresses, and each page is there in four languages.
 const MaxSitemap = 12500
 
-// Sitemap lists the public routes, journeys and collections of users who
-// are not banned, and the profiles of those who published a route or
-// journey, the most recently changed first.
+// Sitemap lists the public routes (not recorded hikes: a log of a day, not
+// a tour to plan), journeys and collections of users who are not banned,
+// and the profiles of those who published a route or journey, the most
+// recently changed first.
 func (s *Store) Sitemap(ctx context.Context) ([]SitemapEntry, error) {
 	rows, err := s.DB.Query(ctx, `
 WITH items AS (
 	SELECT 'route' AS kind, r.id::text AS id, r.owner_id, r.updated_at
-	FROM routes r WHERE r.visibility = 'public' AND r.journey_id IS NULL
+	FROM routes r WHERE r.visibility = 'public' AND r.journey_id IS NULL AND r.hiked_at IS NULL
 	UNION ALL
 	SELECT 'journey', j.id::text, j.owner_id, j.updated_at
 	FROM journeys j WHERE j.visibility = 'public'

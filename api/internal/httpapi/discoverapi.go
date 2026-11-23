@@ -108,6 +108,23 @@ type sitemapOutput struct {
 	}
 }
 
+type cantonsOutput struct {
+	Body struct {
+		Cantons []discover.CantonCount `json:"cantons"`
+	}
+}
+
+type cantonInput struct {
+	Code string `path:"code" pattern:"^[A-Z]{2}$" doc:"The canton's code, such as BE"`
+}
+
+type cantonOutput struct {
+	Body struct {
+		Code  string                `json:"code"`
+		Items []discover.CantonItem `json:"items"`
+	}
+}
+
 // maxProfileRoutes bounds the routes listed on a profile page.
 const maxProfileRoutes = 200
 
@@ -188,6 +205,34 @@ func registerDiscover(api huma.API, d Deps) {
 		var err error
 		out.Body.Entries, err = d.Discover.Sitemap(ctx)
 		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "list-cantons", Method: http.MethodGet, Path: "/cantons",
+		Summary: "The cantons with public routes or journeys, and how many", Tags: []string{"discover"},
+	}, func(ctx context.Context, _ *struct{}) (*cantonsOutput, error) {
+		out := &cantonsOutput{}
+		var err error
+		out.Body.Cantons, err = d.Discover.Cantons(ctx)
+		return out, err
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-canton", Method: http.MethodGet, Path: "/cantons/{code}",
+		Summary:     "The public routes and journeys crossing a canton, by title",
+		Description: "Recorded hikes are left out; at most 500.",
+		Tags:        []string{"discover"},
+	}, func(ctx context.Context, in *cantonInput) (*cantonOutput, error) {
+		items, err := d.Discover.InCanton(ctx, in.Code)
+		if errors.Is(err, discover.ErrNoCanton) {
+			return nil, huma.Error404NotFound("no such canton")
+		}
+		if err != nil {
+			return nil, err
+		}
+		out := &cantonOutput{}
+		out.Body.Code, out.Body.Items = in.Code, items
+		return out, nil
 	})
 
 	huma.Register(api, huma.Operation{

@@ -13,11 +13,14 @@ const PATHS = {
 
 /**
  * The public pages in every language: the start, discover and about pages,
- * and every public item.
+ * the cantons with public items, and every public item.
  */
 export const GET: RequestHandler = async ({ fetch, url }) => {
-	const { data } = await api(fetch, url.origin).GET('/sitemap');
-	if (!data) error(503);
+	const [{ data }, { data: cantons }] = await Promise.all([
+		api(fetch, url.origin).GET('/sitemap'),
+		api(fetch, url.origin).GET('/cantons')
+	]);
+	if (!data || !cantons) error(503);
 	const pages: string[] = [];
 	const add = (path: string, lastmod?: string) => {
 		for (const locale of locales) {
@@ -25,7 +28,8 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
 			pages.push(`<url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`);
 		}
 	};
-	for (const p of ['/', '/discover', '/about']) add(p);
+	for (const p of ['/', '/discover', '/about', '/cantons']) add(p);
+	for (const c of cantons.cantons) add(`/cantons/${c.code.toLowerCase()}`);
 	for (const e of data.entries) {
 		add(PATHS[e.kind] + encodeURIComponent(e.id), e.updated_at.slice(0, 10));
 	}

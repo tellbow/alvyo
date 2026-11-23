@@ -1,5 +1,8 @@
 <script lang="ts">
 	import ConfirmDialog from '#lib/components/ConfirmDialog.svelte';
+	import { cantonName } from '#lib/cantons.js';
+	import { getLocale } from '#lib/paraglide/runtime.js';
+	import CantonLinks from '#lib/seo/CantonLinks.svelte';
 	import type { Map as MapLibreMap } from 'maplibre-gl';
 	import type * as MapLibre from 'maplibre-gl';
 	import { goto } from '$app/navigation';
@@ -180,10 +183,12 @@
 </script>
 
 <Seo
-	title={route.title}
+	title={route.cantons?.length
+		? `${route.title} – ${m.seo_hike()}, ${cantonName(route.cantons[0], getLocale())}`
+		: route.title}
 	description={`${m.seo_route_description({ stats: summary })} ${route.description ?? ''}`}
 	image={imageUrl}
-	index={route.visibility === 'public' && !route.journey_id && !revision}
+	index={route.visibility === 'public' && !route.journey_id && !route.hike && !revision}
 />
 
 <main class="flex min-h-0 flex-1 flex-col md:flex-row">
@@ -240,6 +245,7 @@
 			<div class="flex items-start justify-between gap-2">
 				<div class="min-w-0">
 					<h1 class="text-xl font-semibold" data-testid="route-title">{route.title}</h1>
+					<CantonLinks codes={route.cantons ?? []} />
 					{#if route.official}
 						<OfficialCredit official={route.official} />
 					{:else}

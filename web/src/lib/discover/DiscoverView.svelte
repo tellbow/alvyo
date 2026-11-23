@@ -147,7 +147,12 @@
 		class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto border-t border-stone-200 bg-surface p-4 md:w-96 md:flex-none md:border-t-0 md:border-l"
 		data-testid="discover-panel"
 	>
-		<h1 class="text-xl font-semibold">{m.discover_title()}</h1>
+		<div>
+			<h1 class="text-xl font-semibold">{m.discover_title()}</h1>
+			<a href={resolve('/cantons')} class="text-sm text-stone-600 hover:underline"
+				>{m.cantons_title()}</a
+			>
+		</div>
 
 		<div class="flex flex-col gap-2 text-sm">
 			<NativeSelect bind:value={kind} aria-label={m.discover_kind()}>

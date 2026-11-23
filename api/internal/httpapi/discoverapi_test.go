@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -192,6 +193,11 @@ func TestDiscover(t *testing.T) {
 			t.Fatalf("collection %s: %d %s", c.title, code, body)
 		}
 	}
+	// A recorded hike is a log, not a tour: public, it stays out.
+	if _, err := s.db.Exec(ctx, `UPDATE routes SET hiked_at = now() WHERE id =
+		(SELECT id FROM routes WHERE visibility = 'public' AND journey_id IS NULL LIMIT 1)`); err != nil {
+		t.Fatal(err)
+	}
 	code, body = anon.do("GET", "/api/v1/sitemap", nil)
 	var sm struct {
 		Entries []struct{ Kind, ID string } `json:"entries"`
@@ -204,7 +210,7 @@ func TestDiscover(t *testing.T) {
 			t.Errorf("sitemap profile %s", e.ID)
 		}
 	}
-	if code != http.StatusOK || kinds["route"] != 3 || kinds["journey"] != 1 || kinds["collection"] != 1 || kinds["profile"] != 1 {
+	if code != http.StatusOK || kinds["route"] != 2 || kinds["journey"] != 1 || kinds["collection"] != 1 || kinds["profile"] != 1 {
 		t.Errorf("sitemap: %d %v %s", code, kinds, body)
 	}
 }
@@ -312,5 +318,96 @@ func TestProfileShows(t *testing.T) {
 	}
 	if r, _, n := profile(bea); r != "Für Bea,Offen" || n != 0 {
 		t.Errorf("bea, hikes off: %s / %d", r, n)
+	}
+}
+
+// Canton pages list the public routes and journeys crossing a canton, as
+// discovery does: no private items, recorded hikes or banned users.
+func TestCantons(t *testing.T) {
+	s := newTestServer(t, Limits{})
+	ctx := context.Background()
+	hiker, spammer := s.client(t), s.client(t)
+	s.signup(hiker, "wanderer@example.ch", "wanderer")
+	s.signup(spammer, "spammer@example.ch", "spammer")
+	if _, err := s.db.Exec(ctx, `UPDATE users SET email_verified_at = now()`); err != nil {
+		t.Fatal(err)
+	}
+	create := func(c *client, body map[string]any) string {
+		t.Helper()
+		code, resp := c.do("POST", "/api/v1/routes", body)
+		if code != http.StatusCreated {
+			t.Fatalf("create %v: %d %s", body["title"], code, resp)
+		}
+		var r savedRoute
+		_ = json.Unmarshal(resp, &r)
+		return r.ID
+	}
+	create(hiker, lineRoute("Oberland", "public", 8.000, 46.6, "T2"))
+	gallus := create(hiker, lineRoute("Gallus", "public", 9.370, 47.424, "T1"))
+	create(hiker, lineRoute("Geheim", "private", 8.001, 46.6, "T2"))
+	hike := create(hiker, lineRoute("Gratweg, 23.09.2026", "public", 8.002, 46.6, "T2"))
+	create(spammer, lineRoute("Werbung", "public", 8.003, 46.6, "T2"))
+	if _, err := s.db.Exec(ctx, `UPDATE routes SET hiked_at = now(), hiked_s = 3600 WHERE id = $1`, hike); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.db.Exec(ctx, `UPDATE users SET banned_at = now() WHERE username = 'spammer'`); err != nil {
+		t.Fatal(err)
+	}
+	_, body := hiker.do("POST", "/api/v1/journeys", map[string]any{"title": "Reise", "visibility": "public"})
+	var j journeyResp
+	_ = json.Unmarshal(body, &j)
+	_, body = hiker.do("POST", "/api/v1/journeys/"+j.ID+"/stages", map[string]any{})
+	j = decodeJourney(t, body)
+	stage := lineRoute("", "", 8.020, 46.6, "T3")
+	delete(stage, "title")
+	delete(stage, "visibility")
+	if code, body := hiker.do("POST", "/api/v1/journeys/"+j.ID+"/stages/"+j.StageList[0].ID+"/route", stage); code != http.StatusOK {
+		t.Fatalf("stage route: %d %s", code, body)
+	}
+
+	anon := s.client(t)
+	code, body := anon.do("GET", "/api/v1/cantons", nil)
+	var counts struct {
+		Cantons []struct {
+			Code  string
+			Items int
+		}
+	}
+	_ = json.Unmarshal(body, &counts)
+	if code != http.StatusOK || fmt.Sprint(counts.Cantons) != "[{BE 2} {SG 1}]" {
+		t.Errorf("cantons: %d %s", code, body)
+	}
+
+	code, body = anon.do("GET", "/api/v1/cantons/BE", nil)
+	var be struct {
+		Code  string
+		Items []struct {
+			Kind, Title string
+			Stages      int
+		}
+	}
+	_ = json.Unmarshal(body, &be)
+	if code != http.StatusOK || be.Code != "BE" || len(be.Items) != 2 ||
+		be.Items[0].Title != "Oberland" || be.Items[1].Title != "Reise" || be.Items[1].Kind != "journey" || be.Items[1].Stages != 1 {
+		t.Errorf("BE: %d %s", code, body)
+	}
+	if code, _ := anon.do("GET", "/api/v1/cantons/ZZ", nil); code != http.StatusNotFound {
+		t.Errorf("ZZ: %d, want 404", code)
+	}
+	if code, _ := anon.do("GET", "/api/v1/cantons/be", nil); code != http.StatusUnprocessableEntity {
+		t.Errorf("be: %d, want 422", code)
+	}
+
+	var withCantons struct{ Cantons []string }
+	_, body = anon.do("GET", "/api/v1/routes/"+gallus, nil)
+	_ = json.Unmarshal(body, &withCantons)
+	if fmt.Sprint(withCantons.Cantons) != "[SG]" {
+		t.Errorf("route cantons: %s", body)
+	}
+	_, body = anon.do("GET", "/api/v1/journeys/"+j.ID, nil)
+	withCantons.Cantons = nil
+	_ = json.Unmarshal(body, &withCantons)
+	if fmt.Sprint(withCantons.Cantons) != "[BE]" {
+		t.Errorf("journey cantons: %s", body)
 	}
 }

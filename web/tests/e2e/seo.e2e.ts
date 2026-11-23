@@ -62,10 +62,20 @@ test('search engines: titles, one address per page, private pages left out, site
 	expect((await head('/discover?bbox=7.9,46.5,8.2,46.8')).canonical).toMatch(/\/discover$/);
 
 	const r = await head(`/routes/${route.id}`);
-	expect(r.title).toBe(`Gratweg ${id} · Alvyo`);
+	// The main canton the route crosses is in its title and linked to its page.
+	expect(r.title).toBe(`Gratweg ${id} – Wanderung, Bern · Alvyo`);
+	expect(r.html).toMatch(/href="[^"]*cantons\/be"/);
 	expect(r.description).toMatch(/^Wanderung: .* m · /);
 	expect(r.canonical).toMatch(new RegExp(`/routes/${route.id}$`));
 	expect(r.noindex).toBe(false);
+
+	// The canton's page lists the route; a canton without public routes is
+	// left out, an unknown one is not there.
+	const be = await head('/cantons/be');
+	expect(be.title).toBe('Wanderungen im Kanton Bern · Alvyo');
+	expect(be.noindex).toBe(false);
+	expect(be.html).toContain(`Gratweg ${id}`);
+	expect((await request.get('/cantons/xx')).status()).toBe(404);
 
 	const j = await head(`/journeys/${journey.id}`);
 	expect(j.description).toMatch(/^Etappentour in 1 Etappen: .*Drei Tage über die Pässe\.$/);
@@ -105,7 +115,12 @@ test('search engines: titles, one address per page, private pages left out, site
 	const sitemap = await request.get('/sitemap.xml');
 	expect(sitemap.headers()['content-type']).toBe('application/xml');
 	const xml = await sitemap.text();
-	for (const path of [`/routes/${route.id}`, `/it/journeys/${journey.id}`, `/fr/u/${id}`]) {
+	for (const path of [
+		`/routes/${route.id}`,
+		`/it/journeys/${journey.id}`,
+		`/fr/u/${id}`,
+		'/cantons/be'
+	]) {
 		expect(xml).toContain(`${path}</loc>`);
 	}
 	expect(xml).not.toContain(unlisted.id);

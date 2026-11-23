@@ -108,7 +108,7 @@ func (idp *fakeIDP) appleSecret(f url.Values) bool {
 	if idp.apple == nil {
 		return false
 	}
-	jws, err := jose.ParseSigned(f.Get("client_secret"), []jose.SignatureAlgorithm{jose.ES256})
+	jws, err := jose.ParseSignedCompact(f.Get("client_secret"), []jose.SignatureAlgorithm{jose.ES256})
 	if err != nil || jws.Signatures[0].Header.KeyID != "KEY1" {
 		return false
 	}

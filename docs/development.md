@@ -152,7 +152,7 @@ for the parts a push changed, and everything every Monday and when
 checks more than the tests; the same locally:
 
 ```sh
-(cd api && go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...)   # and in swiss/
+(cd api && go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...)   # and in swiss/
 go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.6.0 scan source -L web/bun.lock -L app/pubspec.lock
 uvx zizmor .github/workflows                                          # workflow risks
 uvx semgrep scan --config p/default --metrics=off                     # static analysis; the rules CI leaves out and why: ci.yml

@@ -13,6 +13,7 @@ import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
+import '../north_button.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import 'journey_screen.dart';
@@ -373,6 +374,8 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       initStyle: swisstopoStyle(widget.api.server),
       initCenter: Geographic(lon: 8.23, lat: 46.8),
       initZoom: 6.8,
+      minZoom: chMinZoom,
+      maxBounds: chMaxBounds,
     ),
     onMapCreated: (c) => _map = c,
     onEvent: (e) {
@@ -442,6 +445,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       _style = style;
       _draw(); // changed while the layers were added
     },
+    children: const [Positioned(top: 116, right: 12, child: NorthButton())],
   );
 
   /// A tap on a place opens it (the place layer), on a way not chosen

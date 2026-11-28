@@ -10,6 +10,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../north_button.dart';
 import '../motion.dart';
 import '../route_layers.dart';
 import 'canton_map.dart';
@@ -135,6 +136,8 @@ class _HikeDoneScreenState extends State<HikeDoneScreen> with SingleTickerProvid
               initStyle: swisstopoStyle(widget.api.server),
               initCenter: Geographic(lon: view.lon, lat: view.lat),
               initZoom: view.zoom,
+              minZoom: chMinZoom,
+              maxBounds: chMaxBounds,
             ),
             onEvent: _tiles.onEvent,
             onStyleLoaded: (style) async {
@@ -144,6 +147,7 @@ class _HikeDoneScreenState extends State<HikeDoneScreen> with SingleTickerProvid
               // Already going, without the map: the line catches up.
               if (draw && _count.isAnimating) _drawLine(style);
             },
+            children: const [Positioned(top: 8, right: 8, child: NorthButton())],
           );
         },
       );

@@ -11,6 +11,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../north_button.dart';
 import '../route_layers.dart';
 import 'error_state.dart';
 import 'journey_screen.dart';
@@ -147,6 +148,8 @@ class _HikedScreenState extends State<HikedScreen> {
               initStyle: swisstopoStyle(widget.api.server),
               initCenter: Geographic(lon: view.lon, lat: view.lat),
               initZoom: view.zoom,
+              minZoom: chMinZoom,
+              maxBounds: chMaxBounds,
             ),
             onEvent: _onEvent,
             onStyleLoaded: (style) async {
@@ -162,6 +165,7 @@ class _HikedScreenState extends State<HikedScreen> {
                 ),
               );
             },
+            children: const [Positioned(top: 8, right: 8, child: NorthButton())],
           );
         },
       );

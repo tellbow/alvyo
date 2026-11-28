@@ -21,6 +21,7 @@ import '../navigation/speech.dart';
 import '../navigation/tracker.dart';
 import '../navigation/turns.dart';
 import '../navigation/watch.dart';
+import '../north_button.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
@@ -146,6 +147,8 @@ class _NavigateScreenState extends State<NavigateScreen> {
           initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
           initCenter: Geographic(lon: view.lon, lat: view.lat),
           initZoom: view.zoom,
+          minZoom: chMinZoom,
+          maxBounds: chMaxBounds,
         ),
         onMapCreated: (c) => _map = c,
         onStyleLoaded: _onStyle,
@@ -155,6 +158,7 @@ class _NavigateScreenState extends State<NavigateScreen> {
             setState(() => _follow = false);
           }
         },
+        children: const [Positioned(top: 64, right: 12, child: NorthButton())],
       );
     },
   );

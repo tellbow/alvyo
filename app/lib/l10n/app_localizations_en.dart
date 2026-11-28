@@ -456,6 +456,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapMyLocation => 'My location';
 
   @override
+  String get mapNorth => 'Reset bearing to north';
+
+  @override
   String get mapHuts => 'Huts';
 
   @override

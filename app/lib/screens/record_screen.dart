@@ -15,6 +15,7 @@ import '../navigation/gps.dart';
 import '../navigation/recording.dart';
 import '../navigation/tracker.dart';
 import '../navigation/watch.dart';
+import '../north_button.dart';
 import '../offline/packs.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
@@ -130,6 +131,8 @@ class _RecordScreenState extends State<RecordScreen> {
           initStyle: swisstopoStyle(widget.api.server),
           initCenter: const Geographic(lon: 8.23, lat: 46.8),
           initZoom: 7,
+          minZoom: chMinZoom,
+          maxBounds: chMaxBounds,
         ),
         onMapCreated: (c) => _map = c,
         onStyleLoaded: _onStyle,
@@ -139,6 +142,7 @@ class _RecordScreenState extends State<RecordScreen> {
             setState(() => _follow = false);
           }
         },
+        children: const [Positioned(top: 64, right: 12, child: NorthButton())],
       );
 
   @override

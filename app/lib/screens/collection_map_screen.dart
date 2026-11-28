@@ -7,6 +7,7 @@ import '../format.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
+import '../north_button.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
 import 'collections_screen.dart';
@@ -85,6 +86,8 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
                         initStyle: swisstopoStyle(widget.api.server),
                         initCenter: Geographic(lon: view.lon, lat: view.lat),
                         initZoom: view.zoom,
+                        minZoom: chMinZoom,
+                        maxBounds: chMaxBounds,
                       ),
                       onEvent: _onEvent,
                       onStyleLoaded: (style) async {
@@ -92,6 +95,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
                         await showMyLocation(_map);
                         await addStageLines(style, lines);
                       },
+                      children: const [Positioned(top: 116, right: 12, child: NorthButton())],
                     );
                   },
                 ),

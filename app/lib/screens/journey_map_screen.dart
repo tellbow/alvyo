@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
+import '../north_button.dart';
 import '../place_layer.dart';
 import '../route_layers.dart';
 import 'route_screen.dart';
@@ -135,6 +136,8 @@ class _JourneyMapState extends State<JourneyMap> {
                     initStyle: swisstopoStyle(widget.api.server),
                     initCenter: Geographic(lon: view.lon, lat: view.lat),
                     initZoom: view.zoom,
+                    minZoom: chMinZoom,
+                    maxBounds: chMaxBounds,
                   ),
                   onEvent: _places.onEvent,
                   onMapCreated: (c) => _map = c,
@@ -146,6 +149,7 @@ class _JourneyMapState extends State<JourneyMap> {
                     await addHighlight(style);
                     await addProfilePoint(style);
                   },
+                  children: const [Positioned(top: 116, right: 12, child: NorthButton())],
                 );
               },
             ),

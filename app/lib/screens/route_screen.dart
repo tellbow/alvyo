@@ -19,6 +19,7 @@ import '../map_style.dart';
 import '../my_location.dart';
 import '../navigation/recording.dart';
 import '../navigation/uploads.dart';
+import '../north_button.dart';
 import '../offline/downloads.dart';
 import 'stage_split_screen.dart';
 import '../offline/packs.dart';
@@ -632,11 +633,13 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                             ? (lon: 8.23, lat: 46.8, zoom: 7.0)
                             : fitLine(r.line, size.maxWidth, size.maxHeight);
                         return MapLibreMap(
-                          key: ValueKey(pack?.key), // a new style needs a new map
+                          key: ValueKey(pack?.key),
                           options: MapOptions(
                             initStyle: pack != null ? offlineStyle(pack.files) : swisstopoStyle(widget.api.server),
                             initCenter: Geographic(lon: view.lon, lat: view.lat),
                             initZoom: view.zoom,
+                            minZoom: chMinZoom,
+                            maxBounds: chMaxBounds,
                           ),
                           onEvent: (e) {
                             _places.onEvent(e);
@@ -660,7 +663,8 @@ class _RouteScreenState extends State<RouteScreen> with ReportsPlace<RouteScreen
                             await addHighlight(style);
                             await addProfilePoint(style);
                             await _places.addAlong(style, await _pois);
-                          },
+                          }, // a new style needs a new map
+                          children: const [Positioned(top: 116, right: 12, child: NorthButton())],
                         );
                       },
                     ),

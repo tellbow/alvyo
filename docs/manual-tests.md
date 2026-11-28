@@ -428,6 +428,13 @@ Checked so far only in the simulator, with made-up or simulated positions
       the button asks; refused for good: it opens the settings.
 - [ ] **«Fehler melden» on a map** (feedback issue 40): a report from
       Planen with the screenshot of the national map (aerial too) is sent.
+- [ ] **Turning and zooming out the maps** (feedback issues 92, 93): two
+      fingers turn the map on Planen, a route and «Entdecken»; a needle
+      button under «Mein Standort» shows north and turns the map back; it
+      is gone at north. Zoomed out as far as it goes, Switzerland still
+      fills most of the screen; the map cannot be pushed away from it, but
+      far enough that Ticino shows above the sheet and every border can be
+      pushed into the middle (issue 96).
 - [x] **Route maps on the cards**: on «Touren» and one's profile, a route
       card shows the route's map; tapped, it flies into the route screen and
       fades into the live map; back, it shrinks into the card.
@@ -591,6 +598,8 @@ emulator ran the integration tests offline, navigate and journey
   dark, the back gesture, the keyboard over fields, large text.
 - [ ] **One's position on the maps and «Fehler melden» on a map** (81,
   feedback issue 40): as on the iPhone.
+- [ ] **Turning and zooming out the maps** (feedback issues 92, 93): as on
+  the iPhone; zoomed out, no black screen around a white box.
 
 ## Web
 

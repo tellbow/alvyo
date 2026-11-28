@@ -893,6 +893,12 @@ abstract class AppLocalizations {
   /// **'Mein Standort'**
   String get mapMyLocation;
 
+  /// No description provided for @mapNorth.
+  ///
+  /// In de, this message translates to:
+  /// **'Nach Norden ausrichten'**
+  String get mapNorth;
+
   /// No description provided for @mapHuts.
   ///
   /// In de, this message translates to:

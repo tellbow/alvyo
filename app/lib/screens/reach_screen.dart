@@ -12,6 +12,7 @@ import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
 import '../navigation/gps.dart';
+import '../north_button.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 
@@ -324,6 +325,8 @@ class ReachScreenState extends State<ReachScreen> {
       initStyle: swisstopoStyle(widget.api.server),
       initCenter: const Geographic(lon: 8.23, lat: 46.8),
       initZoom: 7,
+      minZoom: chMinZoom,
+      maxBounds: chMaxBounds,
     ),
     onEvent: (e) {
       _places.onEvent(e);
@@ -338,6 +341,7 @@ class ReachScreenState extends State<ReachScreen> {
       }
     },
     onStyleLoaded: _addLayers,
+    children: const [Positioned(top: 116, right: 12, child: NorthButton())],
   );
 
   late final Widget _mapView = widget.map ?? _mapLibre();

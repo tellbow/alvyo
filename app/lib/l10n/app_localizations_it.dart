@@ -457,6 +457,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mapMyLocation => 'La mia posizione';
 
   @override
+  String get mapNorth => 'Orienta a nord';
+
+  @override
   String get mapHuts => 'Capanne';
 
   @override

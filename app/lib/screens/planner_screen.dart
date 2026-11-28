@@ -18,6 +18,7 @@ import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
+import '../north_button.dart';
 import '../place_layer.dart';
 import '../place_search.dart';
 import '../planner.dart';
@@ -320,6 +321,8 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
       initStyle: swisstopoStyle(widget.api.server),
       initCenter: Geographic(lon: view.lon, lat: view.lat),
       initZoom: view.zoom,
+      minZoom: chMinZoom,
+      maxBounds: chMaxBounds,
     ),
     onEvent: (e) {
       _places.onEvent(e);
@@ -406,6 +409,7 @@ class _PlannerScreenState extends State<PlannerScreen> with ReportsPlace<Planner
       _style = style;
       _placeHandles();
     },
+    children: const [Positioned(top: 116, right: 12, child: NorthButton())],
   );
 
   /// The sources exist once the style has loaded; updating one before crashes.

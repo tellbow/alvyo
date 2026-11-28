@@ -12,6 +12,7 @@ import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
 import '../navigation/gps.dart';
+import '../north_button.dart';
 import '../place_layer.dart';
 import 'details.dart';
 import 'journey_screen.dart';
@@ -480,6 +481,8 @@ class _DiscoverMapState extends State<_DiscoverMap> {
                   initStyle: swisstopoStyle(widget.api.server),
                   initCenter: Geographic(lon: view.lon, lat: view.lat),
                   initZoom: view.zoom,
+                  minZoom: chMinZoom,
+                  maxBounds: chMaxBounds,
                 ),
                 onEvent: _onEvent,
                 onStyleLoaded: (style) async {
@@ -509,6 +512,7 @@ class _DiscoverMapState extends State<_DiscoverMap> {
                   _draw(); // results that came meanwhile
                   _report(); // in case the camera rested before
                 },
+                children: const [Positioned(top: 116, right: 12, child: NorthButton())],
               );
             },
           ),

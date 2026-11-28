@@ -13,6 +13,7 @@ import '../map_credit.dart';
 import '../map_style.dart';
 import '../my_location.dart';
 import '../navigation/gps.dart';
+import '../north_button.dart';
 import '../place_search.dart';
 import '../route_layers.dart';
 import '../travel.dart';
@@ -583,12 +584,15 @@ class _TravelScreenState extends State<TravelScreen> {
                                 initStyle: swisstopoStyle(widget.api.server),
                                 initCenter: Geographic(lon: view.lon, lat: view.lat),
                                 initZoom: view.zoom,
+                                minZoom: chMinZoom,
+                                maxBounds: chMaxBounds,
                               ),
                               onStyleLoaded: (style) async {
                                 await addRouteLine(style, at.line);
                                 await _addLayers(style);
                                 await showMyLocation(_map);
                               },
+                              children: const [Positioned(right: 12, bottom: 64, child: NorthButton())],
                             );
                           },
                         ),

@@ -11,6 +11,7 @@ import '../format.dart';
 import '../l10n/app_localizations.dart';
 import '../map_credit.dart';
 import '../map_style.dart';
+import '../north_button.dart';
 import '../route_layers.dart';
 import 'journey_screen.dart';
 
@@ -89,6 +90,8 @@ class _StageMapState extends State<StageMap> {
               initStyle: swisstopoStyle(widget.api.server),
               initCenter: Geographic(lon: view.lon, lat: view.lat),
               initZoom: view.zoom,
+              minZoom: chMinZoom,
+              maxBounds: chMaxBounds,
             ),
             onMapCreated: (c) => _map = c,
             onEvent: (e) {
@@ -119,6 +122,7 @@ class _StageMapState extends State<StageMap> {
               _style = style;
               style.updateGeoJsonSource(id: 'stage-lines', data: _json).catchError((_) {}); // changed meanwhile
             },
+            children: const [Positioned(top: 8, right: 8, child: NorthButton())],
           );
         },
       ),

@@ -133,6 +133,7 @@
   "navProfile": "Profile",
   "mapLayers": "Maps",
   "mapMyLocation": "My location",
+  "mapNorth": "Reset bearing to north",
   "mapHuts": "Huts",
   "mapLodging": "Hotels and campsites",
   "placeHut": "Hut",
